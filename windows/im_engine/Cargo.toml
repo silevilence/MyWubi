@@ -28,3 +28,9 @@ windows = { version = "0.61", features = [
     "Win32_UI_Input_KeyboardAndMouse",
 ] }
 windows-core = "0.61"
+
+slint = { version = "1", default-features = false, features = ["std", "renderer-software", "compat-1-2"] }
+fontdb = { version = "0.21", default-features = false }
+
+[build-dependencies]
+slint-build = "1"
