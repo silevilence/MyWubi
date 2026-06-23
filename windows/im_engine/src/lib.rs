@@ -25,10 +25,12 @@ use windows::Win32::System::Com::{CLSCTX_INPROC_SERVER, CoCreateInstance};
 use windows::Win32::System::SystemServices::DLL_PROCESS_ATTACH;
 use windows::Win32::UI::TextServices::ITfTextInputProcessor;
 
+pub mod candidate_data;
 pub mod factory;
 pub mod guids;
 pub mod key_filter;
 pub mod registrar;
+pub mod screen_geometry;
 pub mod text_service;
 
 /// 内部引擎单例，对应早期 ROADMAP 阶段“工作空间骨架”：保持 C-ABI 入口
