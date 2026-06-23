@@ -1,0 +1,12 @@
+# 五笔86 简易示例码表 — 仅供 core_engine 单元测试与开发联调使用
+# 格式: code<TAB>word[<TAB>weight]
+# 行首 "#" 视为注释，解析时跳过
+a	工	999
+ggll	王	100
+ggll	壬	50
+ggll	丰	20
+ggh	理	80
+gghg	五	200
+ggtt	五笔	60
+ggli	班	30
+gt	五	10
