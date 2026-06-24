@@ -1,36 +1,36 @@
 //! # settings
 //!
-//! 独立配置程序骨架（egui/eframe）。当前阶段先落地 config.toml 的读写
-//! CLI 验证，便于核心层验证。egui 界面将在后续路线图“基础 UI 框架与主题
-//! 搭建”阶段接入。
+//! MyWubi 配置程序入口。
 
-use core_engine::Config;
+use settings::{app::SettingsApp, config_path, log as log_mod, state::AppState};
 
 fn main() {
-    let args: Vec<String> = std::env::args().collect();
-    let path = args
-        .get(1)
-        .map(String::as_str)
-        .unwrap_or("config.toml");
-
-    match Config::load(path) {
-        Ok(cfg) => {
-            println!("✅ 已加载配置: {path}");
-            println!("  候选词个数 : {}", cfg.basic.candidate_count);
-            println!("  上屏方式   : {:?}", cfg.basic.commit_mode);
-            println!("  切换键     : {:?}", cfg.basic.switch_key);
-            println!("  系统码表   : {}", cfg.dictionary.system_table.display());
-            println!("  字体大小   : {}", cfg.appearance.font_size);
-        }
+    log_mod::init();
+    let config_path = match config_path::resolve_config_path() {
+        Ok(p) => p,
         Err(e) => {
-            eprintln!("❌ 加载配置失败: {e}");
-            eprintln!("    将写入默认配置到 {path}");
-            let cfg = Config::default();
-            if let Err(err) = cfg.save(path) {
-                eprintln!("❌ 写入默认配置失败: {err}");
-                std::process::exit(2);
-            }
-            println!("✅ 已生成默认配置: {path}");
+            eprintln!("❌ 无法定位配置文件路径: {e}");
+            std::process::exit(1);
         }
+    };
+    log::info!("配置文件路径: {}", config_path.display());
+
+    let state = AppState::load(config_path);
+
+    let opts = eframe::NativeOptions {
+        viewport: eframe::egui::ViewportBuilder::default()
+            .with_title("MyWubi 设置")
+            .with_inner_size([640.0, 480.0])
+            .with_min_inner_size([480.0, 360.0]),
+        ..Default::default()
+    };
+
+    if let Err(e) = eframe::run_native(
+        "MyWubi 设置",
+        opts,
+        Box::new(|cc| Box::new(SettingsApp::new(cc, state))),
+    ) {
+        eprintln!("❌ 启动失败: {e}");
+        std::process::exit(2);
     }
 }
