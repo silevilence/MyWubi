@@ -16,7 +16,7 @@ pub enum Panel {
 /// 文件选择对话框目标字段。
 #[derive(Debug, Clone, Copy)]
 pub enum FilePickTarget {
-    SystemTable,
+    SystemTableDir,
     UserTable,
 }
 
@@ -52,6 +52,10 @@ pub struct AppState {
     pub load_error: Option<LoadError>,
     /// 后台 rfd 文件选择请求（避免阻塞 UI）。
     pub pending_pick: Option<PickRequest>,
+    /// 当前浏览的码表目录（从 system_table 父目录解析）。
+    pub table_dir: PathBuf,
+    /// 码表目录下扫描到的 .dict 文件名列表。
+    pub scanned_tables: Vec<String>,
 }
 
 /// 配置加载失败信息。用户需在 UI 中确认后才覆盖损坏文件。
@@ -80,6 +84,11 @@ impl AppState {
                 }))
             }
         };
+        let table_dir = config.dictionary.system_table
+            .parent()
+            .unwrap_or_else(|| std::path::Path::new("."))
+            .to_path_buf();
+        let scanned_tables = scan_table_dir(&table_dir);
         Self {
             config,
             dirty: false,
@@ -89,6 +98,8 @@ impl AppState {
             portable,
             load_error,
             pending_pick: None,
+            table_dir,
+            scanned_tables,
         }
     }
 
@@ -111,4 +122,34 @@ impl AppState {
             log::info!("已用默认配置覆盖损坏的 {}", self.config_path.display());
         }
     }
+
+    /// 重新扫描码表目录，更新 scanned_tables。
+    /// 若当前 system_table 文件不在新目录中，自动选第一个 .dict。
+    pub fn rescan_tables(&mut self) {
+        self.scanned_tables = scan_table_dir(&self.table_dir);
+        if !self.scanned_tables.is_empty() {
+            let current = self.config.dictionary.system_table
+                .file_name()
+                .and_then(|f| f.to_str())
+                .unwrap_or("");
+            if !self.scanned_tables.iter().any(|t| t == current) {
+                if let Some(first) = self.scanned_tables.first() {
+                    self.config.dictionary.system_table = self.table_dir.join(first);
+                }
+            }
+        }
+    }
+}
+
+/// 扫描目录下所有 .dict 文件，返回排序后的文件名列表（不含路径）。
+fn scan_table_dir(dir: &std::path::Path) -> Vec<String> {
+    let mut files: Vec<String> = std::fs::read_dir(dir)
+        .into_iter()
+        .flatten()
+        .filter_map(|e| e.ok())
+        .filter(|e| e.path().extension().map_or(false, |ext| ext == "dict"))
+        .filter_map(|e| e.file_name().into_string().ok())
+        .collect();
+    files.sort();
+    files
 }

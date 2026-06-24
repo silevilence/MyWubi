@@ -23,7 +23,6 @@ pub fn save(state: &mut AppState) -> bool {
 mod tests {
     use super::*;
     use crate::state::Panel;
-    use std::path::PathBuf;
 
     /// 构造一个测试用 AppState，config_path 指向临时目录。
     fn test_state(tmp: &std::path::Path) -> AppState {
@@ -37,6 +36,8 @@ mod tests {
             portable: false,
             load_error: None,
             pending_pick: None,
+            table_dir: tmp.to_path_buf(),
+            scanned_tables: Vec::new(),
         }
     }
 

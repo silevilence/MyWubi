@@ -80,8 +80,10 @@ impl SettingsApp {
                 self.state.pending_pick = None;
                 if let Some(path) = result {
                     match target {
-                        FilePickTarget::SystemTable => {
-                            self.state.config.dictionary.system_table = path;
+                        FilePickTarget::SystemTableDir => {
+                            self.state.table_dir = path;
+                            self.state.rescan_tables();
+                            self.state.mark_dirty();
                         }
                         FilePickTarget::UserTable => {
                             self.state.config.dictionary.user_table = path;

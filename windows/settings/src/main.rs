@@ -23,8 +23,8 @@ fn main() {
     let opts = eframe::NativeOptions {
         viewport: eframe::egui::ViewportBuilder::default()
             .with_title("MyWubi 设置")
-            .with_inner_size([640.0, 480.0])
-            .with_min_inner_size([480.0, 360.0]),
+            .with_inner_size([900.0, 650.0])
+            .with_min_inner_size([640.0, 480.0]),
         ..Default::default()
     };
 

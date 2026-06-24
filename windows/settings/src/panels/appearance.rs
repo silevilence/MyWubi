@@ -165,26 +165,30 @@ fn preview(ui: &mut Ui, state: &AppState) {
             ((state.config.appearance.highlight_color >> 8) & 0xFF) as u8,
             (state.config.appearance.highlight_color & 0xFF) as u8,
         );
-        // 根据背景亮度自动选黑/白文字色
         let bg_luma = (bg.r() as u32) * 299 + (bg.g() as u32) * 587 + (bg.b() as u32) * 114;
         let text_color = if bg_luma > LUMINANCE_THRESHOLD { eframe::egui::Color32::BLACK } else { eframe::egui::Color32::WHITE };
         let size = state.config.appearance.font_size as f32;
+        let font_id = eframe::egui::FontId::proportional(size);
+        // 根据实际字体度量计算"1"的宽度，确保高亮色完全覆盖
+        let digit_w = ui.ctx().fonts(|f| f.glyph_width(&font_id, '1'));
+        let pad = 6.0;
+        let hl_w = digit_w + pad * 2.0;
+        let hl_h = size + pad + 2.0;
         let (rect, _) = ui.allocate_exact_size(
-            eframe::egui::vec2(200.0, size + 16.0),
+            eframe::egui::vec2(200.0, size + 20.0),
             eframe::egui::Sense::hover(),
         );
         ui.painter().rect_filled(rect, 4.0, bg);
-        // 高亮第一候选
         let hl_rect = eframe::egui::Rect::from_min_size(
             rect.min + eframe::egui::vec2(4.0, 4.0),
-            eframe::egui::vec2(40.0, size + 8.0),
+            eframe::egui::vec2(hl_w, hl_h),
         );
         ui.painter().rect_filled(hl_rect, 2.0, hl);
         ui.painter().text(
-            rect.min + eframe::egui::vec2(8.0, 8.0),
+            rect.min + eframe::egui::vec2(4.0 + pad, 8.0),
             eframe::egui::Align2::LEFT_TOP,
             "1 你好 2 世界",
-            eframe::egui::FontId::proportional(size),
+            font_id,
             text_color,
         );
     });
