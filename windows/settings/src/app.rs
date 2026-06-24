@@ -8,6 +8,8 @@ pub struct SettingsApp {
     pub state: AppState,
     /// 关闭确认对话框是否显示。
     close_confirm: bool,
+    /// 保存失败时弹模态框（独立于 status_msg）。
+    save_error: Option<String>,
 }
 
 impl SettingsApp {
@@ -16,6 +18,7 @@ impl SettingsApp {
         Self {
             state,
             close_confirm: false,
+            save_error: None,
         }
     }
 }
@@ -43,7 +46,9 @@ impl eframe::App for SettingsApp {
             ui.separator();
             ui.horizontal(|ui| {
                 if ui.button("保存").clicked() {
-                    save::save(&mut self.state);
+                    if !save::save(&mut self.state) {
+                        self.save_error = self.state.status_msg.clone();
+                    }
                 }
                 if ui.button("重新加载").clicked() {
                     self.state = AppState::load(self.state.config_path.clone());
@@ -95,6 +100,19 @@ impl eframe::App for SettingsApp {
                             self.close_confirm = false;
                         }
                     });
+                });
+        }
+
+        // 保存失败模态弹窗（spec §8 要求）
+        if let Some(err) = self.save_error.clone() {
+            egui::Window::new("保存失败")
+                .collapsible(false)
+                .resizable(false)
+                .show(ctx, |ui| {
+                    ui.label(err);
+                    if ui.button("确定").clicked() {
+                        self.save_error = None;
+                    }
                 });
         }
 

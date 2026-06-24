@@ -115,15 +115,40 @@ fn color_row(
     });
 }
 
-fn parse_argb(s: &str) -> Result<u32, ()> {
+/// 解析颜色字符串。支持三种格式：
+/// - `0xAARRGGBB` / `AARRGGBB`（8 位十六进制，含 Alpha）
+/// - `#RRGGBB` / `RRGGBB`（6 位十六进制，Alpha 默认 0xFF）
+pub(crate) fn parse_argb(s: &str) -> Result<u32, ()> {
     let s = s.trim();
-    let s = s.trim_start_matches("0x").trim_start_matches("0X");
+    // 去掉 0x / 0X / # 前缀
+    let s = s.trim_start_matches("0x").trim_start_matches("0X").trim_start_matches('#');
     if s.len() == 8 {
         u32::from_str_radix(s, 16).map_err(|_| ())
     } else if s.len() == 6 {
         Ok(0xFF000000 | u32::from_str_radix(s, 16).map_err(|_| ())?)
     } else {
         Err(())
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::parse_argb;
+
+    #[test]
+    fn parse_hex_format() {
+        assert_eq!(parse_argb("#1E88E5").unwrap(), 0xFF1E88E5);
+        assert_eq!(parse_argb("0xFF1E88E5").unwrap(), 0xFF1E88E5);
+        assert_eq!(parse_argb("FF1E88E5").unwrap(), 0xFF1E88E5);
+        assert_eq!(parse_argb("#FF0000").unwrap(), 0xFFFF0000);
+    }
+
+    #[test]
+    fn parse_invalid_rejected() {
+        assert!(parse_argb("not-a-color").is_err());
+        assert!(parse_argb("#GGG").is_err());
+        assert!(parse_argb("0x123").is_err());
+        assert!(parse_argb("").is_err());
     }
 }
 
@@ -140,6 +165,9 @@ fn preview(ui: &mut Ui, state: &AppState) {
             ((state.config.appearance.highlight_color >> 8) & 0xFF) as u8,
             (state.config.appearance.highlight_color & 0xFF) as u8,
         );
+        // 根据背景亮度自动选黑/白文字色
+        let bg_luma = (bg.r() as u32) * 299 + (bg.g() as u32) * 587 + (bg.b() as u32) * 114;
+        let text_color = if bg_luma > 128000 { eframe::egui::Color32::BLACK } else { eframe::egui::Color32::WHITE };
         let size = state.config.appearance.font_size as f32;
         let (rect, _) = ui.allocate_exact_size(
             eframe::egui::vec2(200.0, size + 16.0),
@@ -157,7 +185,7 @@ fn preview(ui: &mut Ui, state: &AppState) {
             eframe::egui::Align2::LEFT_TOP,
             "1 你好 2 世界",
             eframe::egui::FontId::proportional(size),
-            eframe::egui::Color32::BLACK,
+            text_color,
         );
     });
 }

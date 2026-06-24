@@ -10,15 +10,17 @@ pub fn show(ui: &mut Ui, state: &mut AppState) {
 
     path_row(
         ui,
-        &mut state.dirty,
         "系统码表路径:",
         &mut state.config.dictionary.system_table,
+        &mut state.dirty,
+        &mut state.status_msg,
     );
     path_row(
         ui,
-        &mut state.dirty,
         "用户词库路径:",
         &mut state.config.dictionary.user_table,
+        &mut state.dirty,
+        &mut state.status_msg,
     );
 
     ui.separator();
@@ -54,18 +56,20 @@ pub fn show(ui: &mut Ui, state: &mut AppState) {
     }
 }
 
-fn path_row(ui: &mut Ui, dirty: &mut bool, label: &str, path: &mut PathBuf) {
+fn path_row(ui: &mut Ui, label: &str, path: &mut PathBuf, dirty: &mut bool, status_msg: &mut Option<String>) {
     ui.horizontal(|ui| {
         ui.label(label);
         let mut s = path.display().to_string();
         if ui.text_edit_singleline(&mut s).changed() {
             *path = PathBuf::from(s);
             *dirty = true;
+            *status_msg = None;
         }
         if ui.button("浏览…").clicked() {
             if let Some(picked) = rfd::FileDialog::new().pick_file() {
                 *path = picked;
                 *dirty = true;
+                *status_msg = None;
             }
         }
     });
