@@ -62,6 +62,13 @@ impl eframe::App for SettingsApp {
         };
         ctx.send_viewport_cmd(egui::ViewportCommand::Title(title.into()));
 
+        // 检测窗口关闭请求：若有未保存改动，拦截并弹确认框
+        let close_requested = ctx.input(|i| i.viewport().close_requested());
+        if close_requested && self.state.dirty && !self.close_confirm {
+            self.close_confirm = true;
+            ctx.send_viewport_cmd(egui::ViewportCommand::CancelClose);
+        }
+
         // 关闭确认对话框
         if self.close_confirm {
             egui::Window::new("未保存的改动")
@@ -82,6 +89,7 @@ impl eframe::App for SettingsApp {
                         }
                         if ui.button("取消").clicked() {
                             self.close_confirm = false;
+                            ctx.send_viewport_cmd(egui::ViewportCommand::CancelClose);
                         }
                     });
                 });
