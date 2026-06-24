@@ -34,22 +34,18 @@ pub fn show(ui: &mut Ui, state: &mut AppState) {
         }
     });
 
-    color_row(ui, &mut state.dirty, "主色", &mut state.config.appearance.primary_color);
-    color_row(
-        ui,
-        &mut state.dirty,
-        "背景色",
-        &mut state.config.appearance.background_color,
-    );
-    color_row(
-        ui,
-        &mut state.dirty,
-        "高亮色",
-        &mut state.config.appearance.highlight_color,
-    );
+    color_row(ui, "主色", &mut state.config.appearance.primary_color, &mut state.dirty, &mut state.status_msg);
+    color_row(ui, "背景色", &mut state.config.appearance.background_color, &mut state.dirty, &mut state.status_msg);
+    color_row(ui, "高亮色", &mut state.config.appearance.highlight_color, &mut state.dirty, &mut state.status_msg);
 }
 
-fn color_row(ui: &mut Ui, dirty: &mut bool, label: &str, value: &mut u32) {
+fn color_row(
+    ui: &mut Ui,
+    label: &str,
+    value: &mut u32,
+    dirty: &mut bool,
+    status_msg: &mut Option<String>,
+) {
     ui.horizontal(|ui| {
         ui.label(label);
         // 色块预览
@@ -81,6 +77,7 @@ fn color_row(ui: &mut Ui, dirty: &mut bool, label: &str, value: &mut u32) {
             {
                 *value = preset;
                 *dirty = true;
+                *status_msg = None;
             }
         }
 
@@ -89,16 +86,29 @@ fn color_row(ui: &mut Ui, dirty: &mut bool, label: &str, value: &mut u32) {
             if let Some(picked) = crate::color_picker::pick_color(*value) {
                 *value = picked;
                 *dirty = true;
+                *status_msg = None;
             }
         }
 
-        // ARGB 文本输入
+        // ARGB 文本输入（非法输入标红 + tooltip）
         let mut text = format!("0x{:08X}", *value);
-        if ui.text_edit_singleline(&mut text).lost_focus() {
-            if let Ok(v) = parse_argb(&text) {
-                if v != *value {
+        let te = eframe::egui::TextEdit::singleline(&mut text)
+            .desired_width(90.0);
+        let resp = ui.add(te);
+        if resp.lost_focus() {
+            match parse_argb(&text) {
+                Ok(v) if v != *value => {
                     *value = v;
                     *dirty = true;
+                    *status_msg = None;
+                }
+                Ok(_) => {}
+                Err(()) => {
+                    resp.on_hover_text("格式应为 0xAARRGGBB 或 #RRGGBB")
+                        .request_focus();
+                    *status_msg = Some(
+                        "⚠️ 颜色格式非法，应为 0xAARRGGBB 或 #RRGGBB".into(),
+                    );
                 }
             }
         }
