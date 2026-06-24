@@ -27,5 +27,6 @@ simplelog = "0.12"
 windows = { workspace = true, features = [
     "Win32_Foundation",
     "Win32_UI_ColorSystem",
+    "Win32_UI_Controls_Dialogs",
     "Win32_Graphics_Gdi",
 ] }
