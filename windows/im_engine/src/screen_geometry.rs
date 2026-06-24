@@ -1,19 +1,66 @@
 // windows/im_engine/src/screen_geometry.rs
 
-use windows::Win32::UI::TextServices::ITfContext;
+use windows::core::BOOL;
+use windows::Win32::Foundation::{HWND, POINT, RECT};
+use windows::Win32::Graphics::Gdi::ClientToScreen;
+use windows::Win32::UI::TextServices::{ITfContext, ITfContextView, ITfRange, TF_SELECTION};
 use crate::candidate_data::ScreenPoint;
+
+/// TSF 默认编辑会话 Cookie。
+const TF_DEFAULT_SELECTION: u32 = 0;
 
 /// 屏幕边缘 padding（像素）。
 const EDGE_PADDING: i32 = 8;
 
 /// 从 TSF ITfContext 获取光标屏幕坐标。
 ///
-/// 通过 ITfContext::GetStatus 获取文本服务状态中的光标位置，
-/// 再翻译为屏幕绝对坐标。
-pub fn get_caret_position(_context: &ITfContext) -> Option<ScreenPoint> {
-    // FIXME: 实现通过 ITfContext::GetStatus + ITfContextView::GetTextExt
-    // 获取精确光标矩形，当前返回占位值供渲染联调。
-    None
+/// 步骤：
+/// 1. ITfContext::GetSelection 获取当前退化选区（即光标位置）；
+/// 2. ITfContext::GetActiveView 获取 ITfContextView；
+/// 3. ITfContextView::GetTextExt 获取选区文本坐标矩形；
+/// 4. ITfContextView::GetWnd 获取文档窗口 HWND；
+/// 5. ClientToScreen 将文本坐标转换为屏幕绝对坐标。
+pub fn get_caret_position(context: &ITfContext) -> Option<ScreenPoint> {
+    // 1. 获取当前选区（退化选区 == 光标位置）
+    let mut selection = [unsafe { std::mem::zeroed::<TF_SELECTION>() }];
+    let mut fetched: u32 = 0;
+    unsafe {
+        context
+            .GetSelection(TF_DEFAULT_SELECTION, 0, &mut selection, &mut fetched)
+            .ok()?;
+    }
+    if fetched == 0 {
+        return None;
+    }
+    let sel = &selection[0];
+    // TF_SELECTION.range 是 ManuallyDrop<ITfRange>，&* 安全解引用。
+    // 若 windows-rs 版本变更导致布局不同，此处需调整。
+
+    // 2. 获取活动视图
+    let view: ITfContextView = unsafe { context.GetActiveView().ok()? };
+
+    // 3. 获取选区 bounding rect（文本坐标）
+    let mut rect = RECT::default();
+    let mut clipped = BOOL::default();
+    let range: &ITfRange = (&*sel.range).as_ref()?;
+    unsafe {
+        view.GetTextExt(TF_DEFAULT_SELECTION, range, &mut rect, &mut clipped)
+            .ok()?;
+    }
+
+    // 4. 获取文档窗口 HWND
+    let hwnd: HWND = unsafe { view.GetWnd().ok()? };
+
+    // 5. 转换到屏幕坐标（取光标左下角）
+    let mut pt = POINT {
+        x: rect.left,
+        y: rect.bottom,
+    };
+    unsafe {
+        let _ = ClientToScreen(hwnd, &mut pt);
+    }
+
+    Some(ScreenPoint { x: pt.x, y: pt.y })
 }
 
 /// 计算候选框窗口的左上角屏幕坐标，自动避让屏幕边缘。

@@ -24,6 +24,10 @@
 - [ ] **DLL 注册与反注册脚本及 Hook 开发**
     - [ ] 编写 `reg_script`（基于 `regsvr32` 或直接操作注册表注册 TSF 类 ID）
     - [ ] 编写 Rust 注册逻辑，并在 DLL 导出 `DllRegisterServer` 和 `DllUnregisterServer`
+    - [ ] **在设置工具中集成 TIP 注册/启用功能**
+        - [ ] 通过 `ITfInputProcessorProfileMgr` COM 接口实现 TIP 的注册与启用（替代注册表方案，绕过未签名 DLL 的"仅桌面"灰显限制）
+        - [ ] 实现输入法的安装、启用、禁用、卸载全生命周期管理
+        - [ ] 设置工具启动时检测 TIP 注册状态并提示用户操作
 
 - [ ] **Velopack 打包配置与自动化构建**
     - [ ] 安装并配置 `vshere` 和 Velopack CLI 工具
@@ -61,18 +65,6 @@
 
 ## 🚧 开发中
 
-- [ ] **基于 Slint 的轻量化候选框 UI 绘制**
-    - [ ] 编写 `candidate_window.slint` 界面定义文件（极致精简、无边框、支持主题色）
-    - [ ] 在 `im_engine` 中集成 Slint 编译器
-    - [ ] 实现 TSF 窗口与 Slint 渲染窗口的绑定
-        - [ ] 获取当前排版引擎的光标位置 (IPoint / `ITfContext::GetStatus`)
-        - [ ] 实现候选框窗口随光标绝对定位定位与自动避让屏幕边缘
-        - [ ] 实现候选框的无焦点（No-Focus）弹出，避免夺取主应用焦点
-
-- [ ] **数据通道与热重载**
-    - [ ] 实现本地 `config.toml` 的变更监听（基于 `notify` 库）
-    - [ ] 实现内存中配置对象的原子更新（使用 `ArcSwap` 或读写锁）
-
 ## ✅ 已完成
 
 - [x] **项目工作空间与多模块骨架搭建**
@@ -109,3 +101,15 @@
         - [x] PowerShell 脱离 regsvr32 的备用注册脚本 `windows/im_engine/reg_script.ps1`
     - [x] 编写 Rust 注册逻辑，并在 DLL 导出 `DllRegisterServer` 和 `DllUnregisterServer`
         - [x] 同时导出 `DllGetClassObject` / `DllCanUnloadNow` / `DllMain`
+
+- [x] **基于 Slint 的轻量化候选框 UI 绘制**
+    - [x] 编写 `candidate_window.slint` 界面定义文件（极致精简、无边框、支持主题色）
+    - [x] 在 `im_engine` 中集成 Slint 编译器
+    - [x] 实现 TSF 窗口与 Slint 渲染窗口的绑定
+        - [x] 获取当前排版引擎的光标位置 (IPoint / `ITfContext::GetStatus`)
+        - [x] 实现候选框窗口随光标绝对定位定位与自动避让屏幕边缘
+        - [x] 实现候选框的无焦点（No-Focus）弹出，避免夺取主应用焦点
+
+- [x] **数据通道与热重载**
+    - [x] 实现本地 `config.toml` 的变更监听（基于 `notify` 库）
+    - [x] 实现内存中配置对象的原子更新（使用 `ArcSwap` 或读写锁）

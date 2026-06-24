@@ -42,6 +42,7 @@ pub struct CandidateData {
     /// 候选框是否可见。
     pub visible: bool,
     /// 当前编码字符串。
+    // TODO(silev): spelling 字段暂未在 Slint UI 中渲染，后续在候选框标题区显示编码
     pub spelling: String,
     /// 当前页候选词列表（已截断为 page_size 条）。
     pub items: Vec<CandidateItem>,

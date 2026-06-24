@@ -8,10 +8,14 @@
 //! 本工厂在创建实例时同步把一个对自身的 `IUnknown` 强引用回灌进 [`TextService`]
 //! 的 `self_unknown` 字段，作为后续 `Activate` 中 `AdviseSink` 的 self 指针。
 
+use std::sync::Arc;
+
+use arc_swap::ArcSwap;
 use windows::core::{implement, ComObject, Interface, Ref, Result, GUID, HRESULT};
-use windows::Win32::Foundation::CLASS_E_NOAGGREGATION;
+use windows::Win32::Foundation::{CLASS_E_CLASSNOTAVAILABLE, CLASS_E_NOAGGREGATION};
 use windows::Win32::System::Com::{IClassFactory, IClassFactory_Impl};
 
+use crate::candidate_data::CandidateData;
 use crate::text_service::TextService;
 
 /// 全局 COM 工厂。本类型实现 `IClassFactory`，由 `DllGetClassObject` 单例返回。
@@ -30,18 +34,32 @@ impl IClassFactory_Impl for TextServiceFactory_Impl {
             return Err(HRESULT(CLASS_E_NOAGGREGATION.0).into());
         }
 
+        // 安全获取 Engine 单例——如果未初始化（如 ctfmon 在 im_engine_init 之前加载 DLL），
+        // 降级为默认空码表，避免 panic 跨越 COM FFI 边界导致宿主进程崩溃。
+        let (dict, candidate_data) = match crate::ENGINE.get() {
+            Some(engine) => (
+                Arc::clone(engine.dict()),
+                engine.candidate_data().clone(),
+            ),
+            None => {
+                log::warn!("[TSF] CreateInstance: Engine 未初始化，使用空码表");
+                let dict = match core_engine::Dictionary::from_entries(
+                    Vec::new(), None, Default::default(),
+                ) {
+                    Ok(d) => d,
+                    Err(e) => {
+                        log::error!("[TSF] CreateInstance: 创建空码表失败: {e}");
+                        return Err(HRESULT(CLASS_E_CLASSNOTAVAILABLE.0).into());
+                    }
+                };
+                (dict, Arc::new(ArcSwap::from_pointee(
+                    CandidateData::default(),
+                )))
+            }
+        };
+
         let obj = ComObject::new({
-            // 占位：在 DLL 验证环境下使用空码表 + 默认参数；真实激活流程由
-            // global engine bubble 接管 StateMachine/Dictionary 的初始化，
-            // 后续阶段会从 im_engine_init 处替换为加载过的字典。
-            // 空码表条目从不触发解析错误，使用 expect 而非 ? 以避免错误类型差异。
-            let dict = core_engine::Dictionary::from_entries(
-                Vec::new(),
-                None,
-                Default::default(),
-            )
-            .expect("空码表构建不应失败");
-            TextService::new(dict, 5, true)
+            TextService::new(dict, 5, true, candidate_data)
         });
 
         // 在交还外部接口之前，把 box 自己的 IUnknown 副本写回 TextService，

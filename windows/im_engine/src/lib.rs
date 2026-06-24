@@ -12,20 +12,24 @@
 
 #![cfg_attr(not(windows), allow(unused))]
 
+use arc_swap::ArcSwap;
 use core_engine::{Config, Dictionary, StateMachine};
 use parking_lot::Mutex;
-use std::sync::OnceLock;
+use std::panic::{catch_unwind, AssertUnwindSafe};
 use std::sync::Arc;
+use std::sync::Once;
+use std::sync::OnceLock;
 
+use crate::candidate_data::CandidateData;
 use windows::core::{ComObject, GUID, HRESULT};
 use windows::core::Interface;
 use windows::Win32::Foundation::HMODULE;
 use windows::Win32::Foundation::CLASS_E_CLASSNOTAVAILABLE;
-use windows::Win32::System::Com::{CLSCTX_INPROC_SERVER, CoCreateInstance};
 use windows::Win32::System::SystemServices::DLL_PROCESS_ATTACH;
-use windows::Win32::UI::TextServices::ITfTextInputProcessor;
 
 pub mod candidate_data;
+pub mod candidate_renderer;
+pub mod candidate_window;
 pub mod factory;
 pub mod guids;
 pub mod key_filter;
@@ -33,18 +37,28 @@ pub mod registrar;
 pub mod screen_geometry;
 pub mod text_service;
 
+slint::include_modules!();
+
 /// 内部引擎单例，对应早期 ROADMAP 阶段“工作空间骨架”：保持 C-ABI 入口
 /// `im_engine_init/_on_key/_destroy` 兼容的初始化路径。
 struct Engine {
-    #[allow(dead_code)]
     dict: Arc<Dictionary>,
     #[allow(dead_code)]
     sm: Mutex<StateMachine>,
+    candidate_data: Arc<ArcSwap<CandidateData>>,
 }
 
 impl Engine {
-    fn new(dict: Arc<Dictionary>, sm: StateMachine) -> Self {
-        Self { dict, sm: Mutex::new(sm) }
+    fn new(dict: Arc<Dictionary>, sm: StateMachine, cd: Arc<ArcSwap<CandidateData>>) -> Self {
+        Self { dict, sm: Mutex::new(sm), candidate_data: cd }
+    }
+
+    pub fn candidate_data(&self) -> &Arc<ArcSwap<CandidateData>> {
+        &self.candidate_data
+    }
+
+    pub fn dict(&self) -> &Arc<Dictionary> {
+        &self.dict
     }
 }
 
@@ -56,6 +70,24 @@ static ENGINE: OnceLock<Engine> = OnceLock::new();
 /// 安装 Hook 主动初始化时调用）。
 #[no_mangle]
 pub extern "C" fn im_engine_init() -> i32 {
+    // 惰性设置 panic hook（首次调用时），避免在 DllMain loader lock 下分配内存
+    static PANIC_HOOK_SET: Once = Once::new();
+    PANIC_HOOK_SET.call_once(|| {
+        std::panic::set_hook(Box::new(|info| {
+            let msg = if let Some(s) = info.payload().downcast_ref::<&str>() {
+                s.to_string()
+            } else if let Some(s) = info.payload().downcast_ref::<String>() {
+                s.clone()
+            } else {
+                "unknown panic".to_string()
+            };
+            let loc = info.location()
+                .map(|l| format!("{}:{}", l.file(), l.line()))
+                .unwrap_or_default();
+            log::error!("[PANIC] {msg} at {loc}");
+        }));
+    });
+
     if ENGINE.get().is_some() {
         return 0;
     }
@@ -70,8 +102,13 @@ pub extern "C" fn im_engine_init() -> i32 {
         Ok(d) => d,
         Err(e) => {
             log::error!("加载码表失败: {e}");
-            Dictionary::from_entries(Vec::new(), None, Default::default())
-                .expect("空码表构建不会失败")
+            match Dictionary::from_entries(Vec::new(), None, Default::default()) {
+                Ok(d) => d,
+                Err(e2) => {
+                    log::error!("创建空码表失败: {e2}");
+                    return -1;
+                }
+            }
         }
     };
     let sm = StateMachine::with_options(
@@ -79,7 +116,8 @@ pub extern "C" fn im_engine_init() -> i32 {
         cfg.basic.candidate_count as usize,
         cfg.basic.auto_commit_unique,
     );
-    let _ = ENGINE.set(Engine::new(dict, sm));
+    let cd = Arc::new(ArcSwap::from_pointee(CandidateData::default()));
+    let _ = ENGINE.set(Engine::new(dict, sm, cd));
     0
 }
 
@@ -106,6 +144,7 @@ pub extern "system" fn DllMain(
 ) -> bool {
     if reason == DLL_PROCESS_ATTACH {
         registrar::set_module_handle(h_instance.0 as usize);
+        // panic hook 移到 im_engine_init 中惰性设置，避免在 loader lock 下分配内存
     }
     true
 }
@@ -113,6 +152,23 @@ pub extern "system" fn DllMain(
 /// 系统在 `CoGetClassObject` 时调用本函数请求 COM 类对象（即 ClassFactory）。
 #[no_mangle]
 pub extern "system" fn DllGetClassObject(
+    rclsid: *const GUID,
+    riid: *const GUID,
+    ppv: *mut *mut core::ffi::c_void,
+) -> HRESULT {
+    let result = catch_unwind(AssertUnwindSafe(|| {
+        dll_get_class_object_impl(rclsid, riid, ppv)
+    }));
+    match result {
+        Ok(hr) => hr,
+        Err(e) => {
+            log::error!("[TSF] DllGetClassObject panic: {:?}", e);
+            CLASS_E_CLASSNOTAVAILABLE
+        }
+    }
+}
+
+fn dll_get_class_object_impl(
     rclsid: *const GUID,
     riid: *const GUID,
     ppv: *mut *mut core::ffi::c_void,
@@ -150,25 +206,31 @@ pub extern "system" fn DllGetClassObject(
 pub extern "system" fn DllCanUnloadNow() -> HRESULT {
     // 始终返回 S_FALSE：本 TIP 通常常驻 ctfmon，且工厂自身生命周期由 OnceLock
     // 持有，不能释放。
+    // TODO(silev): 使用 windows::Win32::Foundation::S_FALSE 常量替代魔法数字
     HRESULT(1)
 }
 
 /// `regsvr32 im_engine.dll` 调用，写入 CLSID / TIP 注册表节点。
 #[no_mangle]
 pub extern "system" fn DllRegisterServer() -> HRESULT {
-    match registrar::register_tip() {
-        Ok(()) => {
-            // 让 regsvr32 可在任何机器触发一次 CoCreateInstance 验证 COM 注册。
-            // 仅做最小验证，失败也不阻塞 regsvr32 流程。
-            let cls = guids::CLSID_TEXT_SERVICE;
-            unsafe {
-                let _tip: Result<ITfTextInputProcessor, _> =
-                    CoCreateInstance(&cls, None, CLSCTX_INPROC_SERVER);
+    let result = catch_unwind(AssertUnwindSafe(|| {
+        match registrar::register_tip() {
+            Ok(()) => {
+                // 注意：不再在此处执行 CoCreateInstance 验证——
+                // 它在 ENGINE 未初始化时必然触发 panic 导致 ctfmon 崩溃。
+                log::info!("[TSF] DllRegisterServer: 注册完成");
+                HRESULT(0)
             }
-            HRESULT(0)
+            Err(e) => {
+                log::error!("[TSF] DllRegisterServer: {e:?}");
+                HRESULT(-1)
+            }
         }
+    }));
+    match result {
+        Ok(hr) => hr,
         Err(e) => {
-            log::error!("[TSF] DllRegisterServer: {e:?}");
+            log::error!("[TSF] DllRegisterServer panic: {:?}", e);
             HRESULT(-1)
         }
     }
@@ -177,10 +239,19 @@ pub extern "system" fn DllRegisterServer() -> HRESULT {
 /// `regsvr32 /u im_engine.dll` 调用，从注册表移除 CLSID / TIP 节点。
 #[no_mangle]
 pub extern "system" fn DllUnregisterServer() -> HRESULT {
-    match registrar::unregister_tip() {
-        Ok(()) => HRESULT(0),
+    let result = catch_unwind(AssertUnwindSafe(|| {
+        match registrar::unregister_tip() {
+            Ok(()) => HRESULT(0),
+            Err(e) => {
+                log::error!("[TSF] DllUnregisterServer: {e:?}");
+                HRESULT(-1)
+            }
+        }
+    }));
+    match result {
+        Ok(hr) => hr,
         Err(e) => {
-            log::error!("[TSF] DllUnregisterServer: {e:?}");
+            log::error!("[TSF] DllUnregisterServer panic: {:?}", e);
             HRESULT(-1)
         }
     }

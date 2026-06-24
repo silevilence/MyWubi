@@ -16,7 +16,7 @@ use windows::Win32::System::LibraryLoader::GetModuleFileNameW;
 use windows::Win32::System::Registry::{
     RegCloseKey, RegCreateKeyExW, RegDeleteTreeW, RegSetValueExW, HKEY, HKEY_CLASSES_ROOT,
     HKEY_LOCAL_MACHINE, KEY_CREATE_SUB_KEY, KEY_SET_VALUE, REG_OPTION_NON_VOLATILE,
-    REG_SAM_FLAGS, REG_SZ,
+    REG_DWORD, REG_SAM_FLAGS, REG_SZ,
 };
 
 use crate::guids::{clsid_string, CLSID_TEXT_SERVICE, GUID_PROFILE, TEXT_SERVICE_NAME};
@@ -30,6 +30,11 @@ static MODULE_HANDLE: parking_lot::Mutex<usize> = parking_lot::Mutex::new(0);
 /// 由 DllMain 调用，缓存 `hInstance`，供后续注册表写入使用。
 pub fn set_module_handle(handle: usize) {
     *MODULE_HANDLE.lock() = handle;
+}
+
+/// 获取缓存的 DLL module handle，供 `RegisterClassW` 等需要 HINSTANCE 的 API 使用。
+pub fn module_handle() -> usize {
+    *MODULE_HANDLE.lock()
 }
 
 /// 注册本 TIP。返回 `Ok(())` 仅当所有写键操作成功；失败返回 HRESULT 错误。
@@ -53,6 +58,12 @@ pub fn register_tip() -> windows::core::Result<()> {
     let progid_path = HSTRING::from(format!("CLSID\\{clsid_str}\\ProgID"));
     set_reg_sz(HKEY_CLASSES_ROOT, &progid_path, PCWSTR::null(), &HSTRING::from("MyWubi.TextService.1"))?;
 
+    // 4.5. HKCR\CLSID\{CLSID}\Implemented Categories\{CATID_TIP}
+    //      声明本 COM 类是 TSF 文本服务——缺少此类别会导致键盘列表中灰显"仅桌面"
+    let catid_tip = "{34745C63-B2F0-4784-8B67-5E12C8701A31}";
+    let cat_path = HSTRING::from(format!("CLSID\\{clsid_str}\\Implemented Categories\\{catid_tip}"));
+    set_reg_sz(HKEY_CLASSES_ROOT, &cat_path, PCWSTR::null(), &HSTRING::from(""))?;
+
     // 5. HKLM\SOFTWARE\Microsoft\CTF\TIP\{CLSID}
     let ctf_tip_path = format!("SOFTWARE\\Microsoft\\CTF\\TIP\\{clsid_str}");
     let ctf_tip_w = HSTRING::from(&ctf_tip_path);
@@ -62,8 +73,41 @@ pub fn register_tip() -> windows::core::Result<()> {
     let profile_string = format!("{{{:?}}}", GUID_PROFILE);
     let lp_key_path = HSTRING::from(format!("{ctf_tip_path}\\LanguageProfile"));
     set_reg_sz(HKEY_LOCAL_MACHINE, &lp_key_path, PCWSTR::null(), &HSTRING::from(&profile_string))?;
+    // 7. 完整 LanguageProfile —— 关联简体中文 (0x00000804)，Enable=1（允许用户添加）
+    let lang_id = "0x00000804";
+    let profile_path = HSTRING::from(format!(
+        "{ctf_tip_path}\\LanguageProfile\\{lang_id}\\{profile_string}"
+    ));
+    set_reg_sz(HKEY_LOCAL_MACHINE, &profile_path, w!("Description"), &HSTRING::from(TEXT_SERVICE_NAME))?;
+    set_reg_sz(HKEY_LOCAL_MACHINE, &profile_path, w!("IconFile"), &dll_path)?;
+    set_reg_dword(HKEY_LOCAL_MACHINE, &profile_path, w!("IconIndex"), 0)?;
+    set_reg_dword(HKEY_LOCAL_MACHINE, &profile_path, w!("Enable"), 1)?; // 1 = 允许从键盘列表添加
 
-    // 7. 把 CLSID 写入 TIP 自身边节，用于系统识别 TIP COM 类。
+    // 7.5. Display Description — 在键盘列表中显示的友好名称
+    set_reg_sz(
+        HKEY_LOCAL_MACHINE,
+        &ctf_tip_w,
+        w!("Display Description"),
+        &HSTRING::from(TEXT_SERVICE_NAME),
+    )?;
+
+    // 7.6. EnableCompatibleTsf —— 声明兼容现代 TSF。缺此键会被标记为"仅桌面"
+    set_reg_dword(
+        HKEY_LOCAL_MACHINE,
+        &ctf_tip_w,
+        w!("EnableCompatibleTsf"),
+        1,
+    )?;
+
+    // 7.7. TIP Category —— 声明为键盘输入法类别
+    let cat_tip = "{34745C63-B2F0-4784-8B67-5E12C8701A31}";
+    let cat_keyboard = "{3640E571-E878-4FE7-B341-35D393003EAB}";
+    let cat_tip_path = HSTRING::from(format!("{ctf_tip_path}\\Category\\Category{cat_tip}"));
+    let cat_kb_path = HSTRING::from(format!("{ctf_tip_path}\\Category\\Category{cat_keyboard}"));
+    set_reg_sz(HKEY_LOCAL_MACHINE, &cat_tip_path, PCWSTR::null(), &HSTRING::from(""))?;
+    set_reg_sz(HKEY_LOCAL_MACHINE, &cat_kb_path, PCWSTR::null(), &HSTRING::from(""))?;
+
+    // 8. 把 CLSID 写入 TIP 自身边节，用于系统识别 TIP COM 类。
     set_reg_sz(
         HKEY_LOCAL_MACHINE,
         &HSTRING::from(format!("{ctf_tip_path}\\CLSID")),
@@ -94,6 +138,44 @@ pub fn unregister_tip() -> windows::core::Result<()> {
     }
 
     log::info!("[TSF] unregister_tip: CLSID={clsid_str}");
+    Ok(())
+}
+
+/// 写一个 `REG_DWORD` 值。
+fn set_reg_dword(
+    root: HKEY,
+    key_path: &HSTRING,
+    value_name: PCWSTR,
+    value: u32,
+) -> windows::core::Result<()> {
+    let mut sub_key = HKEY::default();
+    let access = REG_SAM_FLAGS(KEY_SET_VALUE.0 | KEY_CREATE_SUB_KEY.0);
+    let status = unsafe {
+        RegCreateKeyExW(
+            root,
+            key_path,
+            None,
+            PCWSTR::null(),
+            REG_OPTION_NON_VOLATILE,
+            access,
+            None,
+            &mut sub_key,
+            None,
+        )
+    };
+    if status != ERROR_SUCCESS {
+        log::error!("[TSF] RegCreateKeyExW({key_path:?}) => {status:?}");
+        return Err(windows::core::HRESULT(-1).into());
+    }
+    let bytes = value.to_le_bytes();
+    let status = unsafe {
+        RegSetValueExW(sub_key, value_name, None, REG_DWORD, Some(&bytes))
+    };
+    unsafe { let _ = RegCloseKey(sub_key); };
+    if status != ERROR_SUCCESS {
+        log::error!("[TSF] RegSetValueExW({key_path:?}, {value_name:?}) => {status:?}");
+        return Err(windows::core::HRESULT(-1).into());
+    }
     Ok(())
 }
 
