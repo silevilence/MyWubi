@@ -36,6 +36,7 @@ mod tests {
             status_msg: None,
             portable: false,
             load_error: None,
+            pending_pick: None,
         }
     }
 

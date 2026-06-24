@@ -16,10 +16,13 @@ pub enum PathError {
 
 /// 解析配置文件路径。
 ///
+/// 返回 `(路径, 可选的提示消息)`。消息用于在 UI 中展示回退提示
+///（如"已切换便携模式"）。
+///
 /// 1. 若 exe 同目录存在 `config.toml` → 返回该路径（便携模式）
 /// 2. 否则回退到 `%APPDATA%\MyWubi\config.toml`，必要时创建目录与默认配置
-/// 3. 若 AppData 目录创建失败 → 回退到 exe 同目录
-pub fn resolve_config_path() -> Result<PathBuf, PathError> {
+/// 3. 若 AppData 目录创建失败 → 回退到 exe 同目录，附带提示消息
+pub fn resolve_config_path() -> Result<(PathBuf, Option<String>), PathError> {
     let exe_dir = std::env::current_exe()
         .map_err(|e| PathError::ExePath(e.to_string()))?
         .parent()
@@ -28,7 +31,7 @@ pub fn resolve_config_path() -> Result<PathBuf, PathError> {
 
     let portable = exe_dir.join("config.toml");
     if portable.exists() {
-        return Ok(portable);
+        return Ok((portable, None));
     }
 
     let appdata = dirs::config_dir()
@@ -40,7 +43,7 @@ pub fn resolve_config_path() -> Result<PathBuf, PathError> {
         if let Err(e) = std::fs::create_dir_all(&appdata) {
             // 回退便携模式
             log::warn!("无法创建 AppData 目录 ({}), 回退便携模式", e);
-            return Ok(portable);
+            return Ok((portable, Some("⚠️ 已切换便携模式（AppData 不可用）".into())));
         }
     }
 
@@ -55,7 +58,7 @@ pub fn resolve_config_path() -> Result<PathBuf, PathError> {
         }
     }
 
-    Ok(cfg_path)
+    Ok((cfg_path, None))
 }
 
 /// 判断当前是否便携模式（exe 同目录有 config.toml）。
@@ -80,8 +83,9 @@ mod tests {
         if !existed {
             fs::write(&portable, "# test placeholder\n").unwrap();
         }
-        let path = resolve_config_path().unwrap();
+        let (path, msg) = resolve_config_path().unwrap();
         assert_eq!(path, portable);
+        assert!(msg.is_none());
         if !existed {
             fs::remove_file(&portable).ok();
         }

@@ -23,4 +23,5 @@ pub fn show(ui: &mut Ui, state: &AppState) {
     ui.separator();
     ui.label("内嵌字体: Noto Sans SC 子集");
     ui.label("GUI 框架: egui / eframe");
+    ui.label("依赖致谢: rfd / dirs / simplelog / windows-rs");
 }

@@ -1,7 +1,7 @@
 //! SettingsApp：eframe::App 实现，编排侧边栏 + 面板 + 保存栏。
 
 use crate::save;
-use crate::state::{AppState, Panel};
+use crate::state::{AppState, FilePickTarget, Panel};
 use eframe::egui;
 
 pub struct SettingsApp {
@@ -58,6 +58,28 @@ impl eframe::App for SettingsApp {
                 }
             });
         });
+
+        // 后台 rfd 文件选择结果回写（避免阻塞 UI）
+        if let Some(ref pick) = self.state.pending_pick {
+            if let Ok(result) = pick.rx.try_recv() {
+                let target = pick.target;
+                self.state.pending_pick = None;
+                if let Some(path) = result {
+                    match target {
+                        FilePickTarget::SystemTable => {
+                            self.state.config.dictionary.system_table = path;
+                        }
+                        FilePickTarget::UserTable => {
+                            self.state.config.dictionary.user_table = path;
+                        }
+                    }
+                    self.state.mark_dirty();
+                }
+            } else {
+                // 后台线程仍在运行，请求下一帧重绘以再次检查
+                ctx.request_repaint();
+            }
+        }
 
         // 标题栏未保存标记
         let title = if self.state.dirty {

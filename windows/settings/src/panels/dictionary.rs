@@ -1,6 +1,6 @@
 //! 码表与词库面板。
 
-use crate::state::AppState;
+use crate::state::{AppState, FilePickTarget, PickRequest};
 use eframe::egui::Ui;
 use std::path::PathBuf;
 
@@ -14,6 +14,8 @@ pub fn show(ui: &mut Ui, state: &mut AppState) {
         &mut state.config.dictionary.system_table,
         &mut state.dirty,
         &mut state.status_msg,
+        &mut state.pending_pick,
+        FilePickTarget::SystemTable,
     );
     path_row(
         ui,
@@ -21,6 +23,8 @@ pub fn show(ui: &mut Ui, state: &mut AppState) {
         &mut state.config.dictionary.user_table,
         &mut state.dirty,
         &mut state.status_msg,
+        &mut state.pending_pick,
+        FilePickTarget::UserTable,
     );
 
     ui.separator();
@@ -56,7 +60,7 @@ pub fn show(ui: &mut Ui, state: &mut AppState) {
     }
 }
 
-fn path_row(ui: &mut Ui, label: &str, path: &mut PathBuf, dirty: &mut bool, status_msg: &mut Option<String>) {
+fn path_row(ui: &mut Ui, label: &str, path: &mut PathBuf, dirty: &mut bool, status_msg: &mut Option<String>, pending: &mut Option<PickRequest>, target: FilePickTarget) {
     ui.horizontal(|ui| {
         ui.label(label);
         let mut s = path.display().to_string();
@@ -65,12 +69,12 @@ fn path_row(ui: &mut Ui, label: &str, path: &mut PathBuf, dirty: &mut bool, stat
             *dirty = true;
             *status_msg = None;
         }
-        if ui.button("浏览…").clicked() {
-            if let Some(picked) = rfd::FileDialog::new().pick_file() {
-                *path = picked;
-                *dirty = true;
-                *status_msg = None;
-            }
+        if ui.button("浏览…").clicked() && pending.is_none() {
+            let (tx, rx) = std::sync::mpsc::channel();
+            std::thread::spawn(move || {
+                let _ = tx.send(rfd::FileDialog::new().pick_file());
+            });
+            *pending = Some(PickRequest { target, rx });
         }
     });
 }

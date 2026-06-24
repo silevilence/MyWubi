@@ -2,6 +2,7 @@
 
 use core_engine::Config;
 use std::path::PathBuf;
+use std::sync::mpsc;
 
 /// 当前激活的面板。
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
@@ -10,6 +11,19 @@ pub enum Panel {
     Appearance,
     Dictionary,
     About,
+}
+
+/// 文件选择对话框目标字段。
+#[derive(Debug, Clone, Copy)]
+pub enum FilePickTarget {
+    SystemTable,
+    UserTable,
+}
+
+/// 后台线程中进行的文件选择请求。
+pub struct PickRequest {
+    pub target: FilePickTarget,
+    pub rx: mpsc::Receiver<Option<PathBuf>>,
 }
 
 /// 应用状态。所有面板通过 `&mut AppState` 读写。
@@ -28,6 +42,8 @@ pub struct AppState {
     pub portable: bool,
     /// 启动期配置加载错误（若有）。UI 据此弹错误对话框让用户选择处理方式。
     pub load_error: Option<LoadError>,
+    /// 后台 rfd 文件选择请求（避免阻塞 UI）。
+    pub pending_pick: Option<PickRequest>,
 }
 
 /// 配置加载失败信息。用户需在 UI 中确认后才覆盖损坏文件。
@@ -64,6 +80,7 @@ impl AppState {
             status_msg: None,
             portable,
             load_error,
+            pending_pick: None,
         }
     }
 
