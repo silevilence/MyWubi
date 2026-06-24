@@ -13,3 +13,15 @@ core_engine = { path = "../../core_engine" }
 serde.workspace = true
 toml.workspace = true
 log.workspace = true
+thiserror.workspace = true
+eframe = "0.27"
+rfd = "0.14"
+dirs = "5"
+simplelog = "0.12"
+
+[target.'cfg(windows)'.dependencies]
+windows = { workspace = true, features = [
+    "Win32_Foundation",
+    "Win32_UI_ColorSystem",
+    "Win32_Graphics_Gdi",
+] }
