@@ -8,6 +8,10 @@ license.workspace = true
 name = "settings"
 path = "src/main.rs"
 
+[lib]
+name = "settings"
+path = "src/lib.rs"
+
 [dependencies]
 core_engine = { path = "../../core_engine" }
 serde.workspace = true
