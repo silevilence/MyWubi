@@ -104,6 +104,9 @@ pub struct DictionaryCfg {
     /// 启用模糊音（预留给音码输入法）。
     #[serde(default)]
     pub enable_fuzzy: bool,
+    /// 启用用户词库功能（词库数据在 config 外单独保存，后续实现）。
+    #[serde(default)]
+    pub enable_user_dict: bool,
 }
 
 /// 快捷键配置。
@@ -149,6 +152,7 @@ impl Default for DictionaryCfg {
             user_table: default_user_table(),
             enable_exact_match: true,
             enable_fuzzy: false,
+            enable_user_dict: false,
         }
     }
 }
@@ -251,6 +255,7 @@ system_table = "tables/wubi86.dict"
 user_table = "tables/user.dict"
 enable_exact_match = true
 enable_fuzzy = true
+enable_user_dict = true
 
 [hotkey]
 page_next = "comma"
@@ -267,6 +272,7 @@ toggle_simplify = "ctrl_shift_s"
         assert!(!cfg.basic.auto_commit_unique);
         assert_eq!(cfg.appearance.font_size, 16);
         assert!(cfg.dictionary.enable_fuzzy);
+        assert!(cfg.dictionary.enable_user_dict);
     }
 
     #[test]
@@ -275,6 +281,7 @@ toggle_simplify = "ctrl_shift_s"
         assert_eq!(cfg.basic.candidate_count, 3);
         assert_eq!(cfg.basic.commit_mode, CommitMode::SpaceFirst);
         assert_eq!(cfg.appearance.font_size, 14);
+        assert!(!cfg.dictionary.enable_user_dict);
     }
 
     #[test]
