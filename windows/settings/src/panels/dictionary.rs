@@ -2,11 +2,15 @@
 
 use crate::state::{self, AppState, FilePickTarget, PickRequest};
 use eframe::egui::Ui;
-use std::path::PathBuf;
+use std::path::{Path, PathBuf};
 
 pub fn show(ui: &mut Ui, state: &mut AppState) {
     ui.heading("码表与词库");
     ui.separator();
+
+    let base_dir = state.config_path.parent()
+        .unwrap_or_else(|| Path::new("."))
+        .to_path_buf();
 
     path_row(
         ui,
@@ -16,6 +20,7 @@ pub fn show(ui: &mut Ui, state: &mut AppState) {
         &mut state.status_msg,
         &mut state.pending_pick,
         FilePickTarget::SystemTable,
+        &base_dir,
     );
     path_row(
         ui,
@@ -25,6 +30,7 @@ pub fn show(ui: &mut Ui, state: &mut AppState) {
         &mut state.status_msg,
         &mut state.pending_pick,
         FilePickTarget::UserTable,
+        &base_dir,
     );
 
     ui.separator();
@@ -60,7 +66,7 @@ pub fn show(ui: &mut Ui, state: &mut AppState) {
     }
 }
 
-fn path_row(ui: &mut Ui, label: &str, path: &mut PathBuf, dirty: &mut bool, status_msg: &mut Option<String>, pending: &mut Option<PickRequest>, target: FilePickTarget) {
+fn path_row(ui: &mut Ui, label: &str, path: &mut PathBuf, dirty: &mut bool, status_msg: &mut Option<String>, pending: &mut Option<PickRequest>, target: FilePickTarget, base_dir: &Path) {
     ui.horizontal(|ui| {
         ui.label(label);
         let mut s = path.display().to_string();
@@ -70,8 +76,17 @@ fn path_row(ui: &mut Ui, label: &str, path: &mut PathBuf, dirty: &mut bool, stat
         }
         if ui.button("浏览…").clicked() && pending.is_none() {
             let (tx, rx) = std::sync::mpsc::channel();
+            // 优先在当前路径所在目录打开，若不存在则回退配置目录
+            let start_dir = path.parent()
+                .filter(|p| p.exists())
+                .map(|p| p.to_path_buf())
+                .unwrap_or_else(|| base_dir.to_path_buf());
             std::thread::spawn(move || {
-                let _ = tx.send(rfd::FileDialog::new().pick_file());
+                let _ = tx.send(
+                    rfd::FileDialog::new()
+                        .set_directory(&start_dir)
+                        .pick_file()
+                );
             });
             *pending = Some(PickRequest { target, rx });
         }
