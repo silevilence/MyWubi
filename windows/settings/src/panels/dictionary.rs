@@ -1,6 +1,6 @@
 //! 码表与词库面板。
 
-use crate::state::{AppState, FilePickTarget, PickRequest};
+use crate::state::{self, AppState, FilePickTarget, PickRequest};
 use eframe::egui::Ui;
 use std::path::PathBuf;
 
@@ -66,8 +66,7 @@ fn path_row(ui: &mut Ui, label: &str, path: &mut PathBuf, dirty: &mut bool, stat
         let mut s = path.display().to_string();
         if ui.text_edit_singleline(&mut s).changed() {
             *path = PathBuf::from(s);
-            *dirty = true;
-            *status_msg = None;
+            state::set_dirty(dirty, status_msg);
         }
         if ui.button("浏览…").clicked() && pending.is_none() {
             let (tx, rx) = std::sync::mpsc::channel();

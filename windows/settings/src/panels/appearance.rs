@@ -1,6 +1,6 @@
 //! 外观样式面板。
 
-use crate::state::AppState;
+use crate::state::{self, AppState};
 use eframe::egui::Ui;
 
 /// 预设色板（ARGB）。
@@ -13,6 +13,9 @@ const PRESETS: [u32; 7] = [
     0xFF546E7A,
     0xFF000000,
 ];
+
+/// ITU-R BT.601 亮度阈值：低于此值用白色文字，高于此值用黑色文字。
+const LUMINANCE_THRESHOLD: u32 = 128000;
 
 pub fn show(ui: &mut Ui, state: &mut AppState) {
     ui.heading("外观样式");
@@ -76,8 +79,7 @@ fn color_row(
                 .clicked()
             {
                 *value = preset;
-                *dirty = true;
-                *status_msg = None;
+                state::set_dirty(dirty, status_msg);
             }
         }
 
@@ -85,8 +87,7 @@ fn color_row(
         if ui.button("自定义…").clicked() {
             if let Some(picked) = crate::color_picker::pick_color(*value) {
                 *value = picked;
-                *dirty = true;
-                *status_msg = None;
+                state::set_dirty(dirty, status_msg);
             }
         }
 
@@ -99,8 +100,7 @@ fn color_row(
             match parse_argb(&text) {
                 Ok(v) if v != *value => {
                     *value = v;
-                    *dirty = true;
-                    *status_msg = None;
+                    state::set_dirty(dirty, status_msg);
                 }
                 Ok(_) => {}
                 Err(()) => {
@@ -167,7 +167,7 @@ fn preview(ui: &mut Ui, state: &AppState) {
         );
         // 根据背景亮度自动选黑/白文字色
         let bg_luma = (bg.r() as u32) * 299 + (bg.g() as u32) * 587 + (bg.b() as u32) * 114;
-        let text_color = if bg_luma > 128000 { eframe::egui::Color32::BLACK } else { eframe::egui::Color32::WHITE };
+        let text_color = if bg_luma > LUMINANCE_THRESHOLD { eframe::egui::Color32::BLACK } else { eframe::egui::Color32::WHITE };
         let size = state.config.appearance.font_size as f32;
         let (rect, _) = ui.allocate_exact_size(
             eframe::egui::vec2(200.0, size + 16.0),

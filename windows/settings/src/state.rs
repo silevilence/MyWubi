@@ -21,9 +21,17 @@ pub enum FilePickTarget {
 }
 
 /// 后台线程中进行的文件选择请求。
+#[derive(Debug)]
 pub struct PickRequest {
     pub target: FilePickTarget,
     pub rx: mpsc::Receiver<Option<PathBuf>>,
+}
+
+/// 无法通过 `mark_dirty` 的 panel 子函数（因双重借用限制）使用此函数
+/// 直接设置 dirty 并清空 status_msg，保持与 `mark_dirty` 语义一致。
+pub(crate) fn set_dirty(dirty: &mut bool, status_msg: &mut Option<String>) {
+    *dirty = true;
+    *status_msg = None;
 }
 
 /// 应用状态。所有面板通过 `&mut AppState` 读写。
