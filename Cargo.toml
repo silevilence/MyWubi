@@ -4,6 +4,7 @@ members = [
     "core_engine",
     "windows/im_engine",
     "windows/settings",
+    "windows/tip_manager",
 ]
 
 [workspace.package]

@@ -9,11 +9,14 @@
         - [ ] 编译 `settings.exe` (release)
         - [ ] 收集相关资源文件（默认码表、字体、默认配置文件）
     - [ ] 配置 Velopack 安装/卸载 Hook
-        - [ ] **安装/更新 Hook**：自动调用注册程序将 `im_engine.dll` 注册到系统 TSF
-        - [ ] **卸载 Hook**：解除 TSF 占用，注销 DLL，清理注册表
-- [ ] **一键打包与发布验证**
-    - [ ] 生成最终安装包 `Setup.exe`
-    - [ ] 在干净的 Windows 虚机中测试安装、激活、打字、配置修改、自动更新、卸载全流程
+        - [ ] **安装/更新 Hook**：调用 `tip_manager::install()` 自动注册 TIP
+        - [ ] **卸载 Hook**：调用 `tip_manager::uninstall()` 自动清理
+    - [ ] **一键打包与发布验证**
+        - [ ] 生成最终安装包 `Setup.exe`
+        - [ ] 在干净的 Windows 虚机中测试安装、激活、打字、配置修改、自动更新、卸载全流程
+
+- [ ] **废弃旧注册脚本**
+    - [ ] `deploy/register_tip.bat` 标记废弃，替换为提示用户使用 settings.exe 的说明文件
 
 - [ ] **Rust 核心 JNI 桥接层设计 (core_engine)**
     - [ ] 引入 `jni` crate 依赖
@@ -48,15 +51,17 @@
 
 ## 🚧 开发中
 
-- [ ] **DLL 注册与反注册脚本及 Hook 开发**
-    - [ ] 编写 `reg_script`（基于 `regsvr32` 或直接操作注册表注册 TSF 类 ID）
-    - [ ] 编写 Rust 注册逻辑，并在 DLL 导出 `DllRegisterServer` 和 `DllUnregisterServer`
-    - [ ] **在设置工具中集成 TIP 注册/启用功能**
-        - [ ] 通过 `ITfInputProcessorProfileMgr` COM 接口实现 TIP 的注册与启用（替代注册表方案，绕过未签名 DLL 的"仅桌面"灰显限制）
-        - [ ] 实现输入法的安装、启用、禁用、卸载全生命周期管理
-        - [ ] 设置工具启动时检测 TIP 注册状态并提示用户操作
+(暂无)
 
 ## ✅ 已完成
+
+- [x] **DLL 注册与反注册脚本及 Hook 开发**
+    - [x] 编写 `reg_script`（基于 `regsvr32` 或直接操作注册表注册 TSF 类 ID）
+    - [x] 编写 Rust 注册逻辑，并在 DLL 导出 `DllRegisterServer` 和 `DllUnregisterServer`
+    - [x] **在设置工具中集成 TIP 注册/启用功能**
+        - [x] 通过 `ITfInputProcessorProfileMgr` COM 接口实现 TIP 的注册与启用（替代注册表方案，绕过未签名 DLL 的"仅桌面"灰显限制）
+        - [x] 实现输入法的安装、启用、禁用、卸载全生命周期管理
+        - [x] 设置工具启动时检测 TIP 注册状态并提示用户操作
 
 - [x] **项目工作空间与多模块骨架搭建**
     - [x] 初始化 Cargo Workspace 根目录
