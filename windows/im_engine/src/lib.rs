@@ -33,7 +33,6 @@ pub mod candidate_window;
 pub mod factory;
 pub mod guids;
 pub mod key_filter;
-pub mod registrar;
 pub mod screen_geometry;
 pub mod text_service;
 
@@ -143,7 +142,7 @@ pub extern "system" fn DllMain(
     _reserved: *mut core::ffi::c_void,
 ) -> bool {
     if reason == DLL_PROCESS_ATTACH {
-        registrar::set_module_handle(h_instance.0 as usize);
+        set_module_handle(h_instance.0 as usize);
         // panic hook 移到 im_engine_init 中惰性设置，避免在 loader lock 下分配内存
     }
     true
@@ -213,25 +212,15 @@ pub extern "system" fn DllCanUnloadNow() -> HRESULT {
 /// `regsvr32 im_engine.dll` 调用，写入 CLSID / TIP 注册表节点。
 #[no_mangle]
 pub extern "system" fn DllRegisterServer() -> HRESULT {
-    let result = catch_unwind(AssertUnwindSafe(|| {
-        match registrar::register_tip() {
-            Ok(()) => {
-                // 注意：不再在此处执行 CoCreateInstance 验证——
-                // 它在 ENGINE 未初始化时必然触发 panic 导致 ctfmon 崩溃。
-                log::info!("[TSF] DllRegisterServer: 注册完成");
-                HRESULT(0)
-            }
-            Err(e) => {
-                log::error!("[TSF] DllRegisterServer: {e:?}");
-                HRESULT(-1)
-            }
-        }
-    }));
-    match result {
-        Ok(hr) => hr,
+    let dll_path = match get_this_dll_path() {
+        Ok(p) => p,
+        Err(_) => return windows::core::HRESULT(-1),
+    };
+    match ::tip_manager::install(&dll_path) {
+        Ok(()) => windows::core::HRESULT(0),
         Err(e) => {
-            log::error!("[TSF] DllRegisterServer panic: {:?}", e);
-            HRESULT(-1)
+            log::error!("DllRegisterServer 失败: {e}");
+            windows::core::HRESULT(-1)
         }
     }
 }
@@ -239,20 +228,37 @@ pub extern "system" fn DllRegisterServer() -> HRESULT {
 /// `regsvr32 /u im_engine.dll` 调用，从注册表移除 CLSID / TIP 节点。
 #[no_mangle]
 pub extern "system" fn DllUnregisterServer() -> HRESULT {
-    let result = catch_unwind(AssertUnwindSafe(|| {
-        match registrar::unregister_tip() {
-            Ok(()) => HRESULT(0),
-            Err(e) => {
-                log::error!("[TSF] DllUnregisterServer: {e:?}");
-                HRESULT(-1)
-            }
-        }
-    }));
-    match result {
-        Ok(hr) => hr,
+    match ::tip_manager::uninstall() {
+        Ok(()) => windows::core::HRESULT(0),
         Err(e) => {
-            log::error!("[TSF] DllUnregisterServer panic: {:?}", e);
-            HRESULT(-1)
+            log::error!("DllUnregisterServer 失败: {e}");
+            windows::core::HRESULT(-1)
         }
     }
+}
+
+// ── 模块句柄管理 ────────────────────────────────────────────────
+
+/// 我们的 DLL module handle（在 DllMain 中存储），供候选窗口创建等需要 HINSTANCE 的 API 使用。
+static MODULE_HANDLE: parking_lot::Mutex<usize> = parking_lot::Mutex::new(0);
+
+/// 由 DllMain 调用，缓存 `hInstance`。
+fn set_module_handle(handle: usize) {
+    *MODULE_HANDLE.lock() = handle;
+}
+
+/// 获取缓存的 DLL module handle。
+fn module_handle() -> usize {
+    *MODULE_HANDLE.lock()
+}
+
+/// 获取当前 DLL 文件绝对路径。
+fn get_this_dll_path() -> Result<String, windows::core::Error> {
+    use windows::Win32::System::LibraryLoader::GetModuleFileNameW;
+    let mut buf = vec![0u16; 260];
+    let len = unsafe { GetModuleFileNameW(None, &mut buf) as usize };
+    if len == 0 {
+        return Err(windows::core::Error::from_win32());
+    }
+    Ok(String::from_utf16_lossy(&buf[..len]))
 }

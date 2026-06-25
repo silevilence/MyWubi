@@ -18,7 +18,6 @@ use windows::Win32::UI::WindowsAndMessaging::*;
 
 use crate::candidate_data::CandidateData;
 use crate::candidate_renderer::{CandidateRenderer, EmbeddedFontProvider};
-use crate::registrar;
 use crate::screen_geometry::compute_window_rect;
 
 /// 窗口类名（使用 w!() 宏）。
@@ -111,7 +110,7 @@ impl Drop for CandidateWindow {
 // ── 窗口线程 ──────────────────────────────────────────────────────
 
 fn run_window_thread(data_src: std::sync::Arc<ArcSwap<CandidateData>>, hwnd_tx: mpsc::Sender<isize>) {
-    let hinstance = HINSTANCE(registrar::module_handle() as *mut c_void);
+    let hinstance = HINSTANCE(crate::module_handle() as *mut c_void);
     if hinstance.0.is_null() {
         log::error!("候选窗口: module_handle 未初始化");
         return;
