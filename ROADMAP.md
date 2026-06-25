@@ -51,17 +51,15 @@
 
 ## 🚧 开发中
 
-（暂无）
+- [ ] **DLL 注册与反注册脚本及 Hook 开发**
+    - [ ] 编写 `reg_script`（基于 `regsvr32` 或直接操作注册表注册 TSF 类 ID）
+    - [ ] 编写 Rust 注册逻辑，并在 DLL 导出 `DllRegisterServer` 和 `DllUnregisterServer`
+    - [ ] **在设置工具中集成 TIP 注册/启用功能**
+        - [ ] 通过 `ITfInputProcessorProfileMgr` COM 接口实现 TIP 的注册与启用（替代注册表方案，绕过未签名 DLL 的"仅桌面"灰显限制）
+        - [ ] 实现输入法的安装、启用、禁用、卸载全生命周期管理
+        - [ ] 设置工具启动时检测 TIP 注册状态并提示用户操作
 
 ## ✅ 已完成
-
-- [x] **DLL 注册与反注册脚本及 Hook 开发**
-    - [x] 编写 `reg_script`（基于 `regsvr32` 或直接操作注册表注册 TSF 类 ID）
-    - [x] 编写 Rust 注册逻辑，并在 DLL 导出 `DllRegisterServer` 和 `DllUnregisterServer`
-    - [x] **在设置工具中集成 TIP 注册/启用功能**
-        - [x] 通过 `ITfInputProcessorProfileMgr` COM 接口实现 TIP 的注册与启用（替代注册表方案，绕过未签名 DLL 的"仅桌面"灰显限制）
-        - [x] 实现输入法的安装、启用、禁用、卸载全生命周期管理
-        - [x] 设置工具启动时检测 TIP 注册状态并提示用户操作
 
 - [x] **项目工作空间与多模块骨架搭建**
     - [x] 初始化 Cargo Workspace 根目录

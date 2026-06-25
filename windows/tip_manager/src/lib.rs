@@ -35,6 +35,11 @@ pub fn install(dll_path: &str) -> Result<(), TipManagerError> {
 
     // 2. COM 注册与启用 Profile
     let mgr = profile::ComProfileManager::new()?;
+
+    // 3. 通过 ITfCategoryMgr 注册 TSF 类别（替代手动注册表写入）
+    profile::register_categories()?;
+
+    // 4. COM RegisterProfile + Enable
     mgr.register_profile()?;
     mgr.enable()?;
 
@@ -52,6 +57,8 @@ pub fn uninstall() -> Result<(), TipManagerError> {
             let _ = mgr.disable();
         }
         let _ = mgr.unregister_profile();
+        // 清理 COM 类别注册
+        let _ = profile::unregister_categories();
     } else {
         log::warn!("[tip_manager] COM 不可用，跳过 Profile 清理，仅清理注册表");
     }

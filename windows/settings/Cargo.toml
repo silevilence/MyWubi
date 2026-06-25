@@ -19,10 +19,11 @@ serde.workspace = true
 toml.workspace = true
 log.workspace = true
 thiserror.workspace = true
-eframe = "0.27"
+eframe = { version = "0.27", default-features = false, features = ["wgpu"] }
 rfd = "0.14"
 dirs = "5"
 simplelog = "0.12"
+wgpu = "0.19"
 
 [build-dependencies]
 winres = "0.1"
@@ -30,6 +31,7 @@ winres = "0.1"
 [target.'cfg(windows)'.dependencies]
 windows = { workspace = true, features = [
     "Win32_Foundation",
+    "Win32_System_Com",
     "Win32_UI_Shell",
     "Win32_UI_WindowsAndMessaging",
     "Win32_UI_ColorSystem",

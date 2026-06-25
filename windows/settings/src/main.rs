@@ -22,6 +22,14 @@ fn main() {
             }
             std::process::exit(1);
         }
+
+        // COM 初始化（tip_manager 的 ITfInputProcessorProfileMgr 调用需要）
+        unsafe {
+            let _ = windows::Win32::System::Com::CoInitializeEx(
+                None,
+                windows::Win32::System::Com::COINIT_APARTMENTTHREADED,
+            );
+        }
     }
 
     let (config_path, fallback_msg) = match config_path::resolve_config_path() {
@@ -43,6 +51,11 @@ fn main() {
             .with_title("MyWubi 设置")
             .with_inner_size([900.0, 650.0])
             .with_min_inner_size([640.0, 480.0]),
+        renderer: eframe::Renderer::Wgpu,
+        wgpu_options: eframe::egui_wgpu::WgpuConfiguration {
+            supported_backends: wgpu::Backends::DX12,
+            ..Default::default()
+        },
         ..Default::default()
     };
 

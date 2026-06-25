@@ -1,17 +1,25 @@
 //! Windows 注册表的 TIP 注册与反注册实现。
 
-use windows::core::{w, HSTRING, PCWSTR};
+use windows::core::{w, GUID, HSTRING, PCWSTR};
 use windows::Win32::Foundation::WIN32_ERROR;
 use windows::Win32::System::Registry::{
     RegCloseKey, RegCreateKeyExW, RegDeleteTreeW, RegSetValueExW, HKEY, HKEY_CLASSES_ROOT,
-    HKEY_LOCAL_MACHINE, KEY_CREATE_SUB_KEY, KEY_SET_VALUE, REG_OPTION_NON_VOLATILE,
-    REG_DWORD, REG_SAM_FLAGS, REG_SZ,
+    HKEY_CURRENT_USER, HKEY_LOCAL_MACHINE, KEY_CREATE_SUB_KEY, KEY_SET_VALUE,
+    REG_OPTION_NON_VOLATILE, REG_DWORD, REG_SAM_FLAGS, REG_SZ,
+};
+use windows::Win32::UI::TextServices::{
+    GUID_TFCAT_TIP_KEYBOARD, GUID_TFCAT_TIPCAP_IMMERSIVESUPPORT,
 };
 
 use crate::error::TipManagerError;
 use crate::guids::{clsid_string, TEXT_SERVICE_NAME, GUID_PROFILE};
 
 const ERROR_SUCCESS: WIN32_ERROR = WIN32_ERROR(0);
+
+/// GUID 转注册表键名字符串，如 `{34745C63-B2F0-4784-8B67-5E12C8701A31}`。
+fn guid_reg_key(guid: &GUID) -> String {
+    format!("{{{:?}}}", guid)
+}
 
 /// 注册本 TIP。写入所有必要的注册表项。
 pub fn register_tip(dll_path: &str) -> Result<(), TipManagerError> {
@@ -32,10 +40,18 @@ pub fn register_tip(dll_path: &str) -> Result<(), TipManagerError> {
     let progid_path = HSTRING::from(format!("CLSID\\{clsid_str}\\ProgID"));
     set_reg_sz(HKEY_CLASSES_ROOT, &progid_path, PCWSTR::null(), &HSTRING::from("MyWubi.TextService.1"))?;
 
-    // 4. Implemented Categories\{CATID_TIP}
-    let catid_tip = "{34745C63-B2F0-4784-8B67-5E12C8701A31}";
+    // 3.5. 在 CLSID 上设置 EnableCompatibleTsf（双保险：CTF TIP 键和 CLSID 键都设）
+    let clsid_cfg_path = HSTRING::from(format!("CLSID\\{clsid_str}"));
+    set_reg_dword(HKEY_CLASSES_ROOT, &clsid_cfg_path, w!("EnableCompatibleTsf"), 1)?;
+
+    // 4. Implemented Categories——使用 windows-rs 预定义常量
+    let catid_tip = guid_reg_key(&GUID_TFCAT_TIP_KEYBOARD);
     let cat_path = HSTRING::from(format!("CLSID\\{clsid_str}\\Implemented Categories\\{catid_tip}"));
     set_reg_sz(HKEY_CLASSES_ROOT, &cat_path, PCWSTR::null(), &HSTRING::from(""))?;
+    // GUID_TFCAT_TIPCAP_IMMERSIVESUPPORT——声明支持现代/UWP 应用
+    let catid_immersive = guid_reg_key(&GUID_TFCAT_TIPCAP_IMMERSIVESUPPORT);
+    let cat_imm_path = HSTRING::from(format!("CLSID\\{clsid_str}\\Implemented Categories\\{catid_immersive}"));
+    set_reg_sz(HKEY_CLASSES_ROOT, &cat_imm_path, PCWSTR::null(), &HSTRING::from(""))?;
 
     // 5. HKLM\SOFTWARE\Microsoft\CTF\TIP\{CLSID}
     let ctf_tip_path = format!("SOFTWARE\\Microsoft\\CTF\\TIP\\{clsid_str}");
@@ -56,6 +72,20 @@ pub fn register_tip(dll_path: &str) -> Result<(), TipManagerError> {
     set_reg_dword(HKEY_LOCAL_MACHINE, &profile_path, w!("IconIndex"), 0)?;
     set_reg_dword(HKEY_LOCAL_MACHINE, &profile_path, w!("Enable"), 1)?;
 
+    // 6.5. HKCU（当前用户）也注册——Windows 10/11 的键盘选择列表读取 HKCU
+    let user_ctf_path = format!("SOFTWARE\\Microsoft\\CTF\\TIP\\{clsid_str}");
+    let user_lp_path = HSTRING::from(format!("{user_ctf_path}\\LanguageProfile"));
+    // 必须先创建 TIP 根键（reg_create_key 在 set_reg_dword/sz 中自动创建）
+    let user_tip_root = HSTRING::from(&user_ctf_path);
+    set_reg_sz(HKEY_CURRENT_USER, &user_tip_root, PCWSTR::null(), &HSTRING::from(TEXT_SERVICE_NAME))?;
+    set_reg_sz(HKEY_CURRENT_USER, &lp_key_path, PCWSTR::null(), &HSTRING::from(&profile_string))?;
+    // user.dict 路径组装（skip HKLM prefix）
+    let user_profile_path = HSTRING::from(format!(
+        "{user_ctf_path}\\LanguageProfile\\{lang_id}\\{profile_string}"
+    ));
+    set_reg_sz(HKEY_CURRENT_USER, &user_profile_path, w!("Description"), &HSTRING::from(TEXT_SERVICE_NAME))?;
+    set_reg_dword(HKEY_CURRENT_USER, &user_profile_path, w!("Enable"), 1)?;
+
     // 7. Display Description
     set_reg_sz(
         HKEY_LOCAL_MACHINE,
@@ -67,12 +97,12 @@ pub fn register_tip(dll_path: &str) -> Result<(), TipManagerError> {
     // 8. EnableCompatibleTsf
     set_reg_dword(HKEY_LOCAL_MACHINE, &ctf_tip_w, w!("EnableCompatibleTsf"), 1)?;
 
-    // 9. TIP Categories
-    let cat_keyboard = "{3640E571-E878-4FE7-B341-35D393003EAB}";
+    // 9. TIP Categories——注册 TSF 标准类别
     let cat_tip_path = HSTRING::from(format!("{ctf_tip_path}\\Category\\Category{catid_tip}"));
-    let cat_kb_path = HSTRING::from(format!("{ctf_tip_path}\\Category\\Category{cat_keyboard}"));
     set_reg_sz(HKEY_LOCAL_MACHINE, &cat_tip_path, PCWSTR::null(), &HSTRING::from(""))?;
-    set_reg_sz(HKEY_LOCAL_MACHINE, &cat_kb_path, PCWSTR::null(), &HSTRING::from(""))?;
+    // GUID_TFCAT_TIPCAP_IMMERSIVESUPPORT——沉浸式/现代应用支持
+    let cat_imm_path = HSTRING::from(format!("{ctf_tip_path}\\Category\\Category{catid_immersive}"));
+    set_reg_sz(HKEY_LOCAL_MACHINE, &cat_imm_path, PCWSTR::null(), &HSTRING::from(""))?;
 
     // 10. CLSID subkey
     set_reg_sz(

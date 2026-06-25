@@ -9,7 +9,16 @@ use windows::Win32::System::Com::{
 use windows::Win32::UI::Input::KeyboardAndMouse::HKL;
 use windows::Win32::UI::TextServices::{
     ITfInputProcessorProfileMgr, ITfInputProcessorProfiles,
-    CLSID_TF_InputProcessorProfiles,
+    ITfCategoryMgr,
+    CLSID_TF_InputProcessorProfiles, CLSID_TF_CategoryMgr,
+    GUID_TFCAT_TIP_KEYBOARD,
+    GUID_TFCAT_DISPLAYATTRIBUTEPROVIDER,
+    GUID_TFCAT_TIPCAP_UIELEMENTENABLED,
+    GUID_TFCAT_TIPCAP_SECUREMODE,
+    GUID_TFCAT_TIPCAP_COMLESS,
+    GUID_TFCAT_TIPCAP_INPUTMODECOMPARTMENT,
+    GUID_TFCAT_TIPCAP_IMMERSIVESUPPORT,
+    GUID_TFCAT_TIPCAP_SYSTRAYSUPPORT,
 };
 use windows_core::Interface;
 
@@ -154,6 +163,56 @@ impl TipProfileManager for ComProfileManager {
         }
         .map_err(|e| TipManagerError::Com(format!("UnregisterProfile 失败: {e}")))
     }
+}
+
+/// TSF 标准类别列表（参考 ime-rs / Windows SDK）。
+const SUPPORT_CATEGORIES: [windows::core::GUID; 8] = [
+    GUID_TFCAT_TIP_KEYBOARD,
+    GUID_TFCAT_DISPLAYATTRIBUTEPROVIDER,
+    GUID_TFCAT_TIPCAP_UIELEMENTENABLED,
+    GUID_TFCAT_TIPCAP_SECUREMODE,
+    GUID_TFCAT_TIPCAP_COMLESS,
+    GUID_TFCAT_TIPCAP_INPUTMODECOMPARTMENT,
+    GUID_TFCAT_TIPCAP_IMMERSIVESUPPORT,
+    GUID_TFCAT_TIPCAP_SYSTRAYSUPPORT,
+];
+
+/// 通过 `ITfCategoryMgr::RegisterCategory` 注册所有 TSF 类别。
+pub fn register_categories() -> Result<(), TipManagerError> {
+    let category_manager: ITfCategoryMgr = unsafe {
+        CoCreateInstance(&CLSID_TF_CategoryMgr, None, CLSCTX_INPROC_SERVER)
+    }
+    .map_err(|e| TipManagerError::Com(format!("CoCreateInstance(ITfCategoryMgr) 失败: {e}")))?;
+
+    for guid in SUPPORT_CATEGORIES {
+        unsafe {
+            category_manager.RegisterCategory(&CLSID_TEXT_SERVICE, &guid, &CLSID_TEXT_SERVICE)
+        }
+        .map_err(|e| TipManagerError::Com(format!("RegisterCategory 失败: {e:?}")))?;
+    }
+    log::info!("[tip_manager] 已注册 {} 个 TSF 类别", SUPPORT_CATEGORIES.len());
+    Ok(())
+}
+
+/// 通过 `ITfCategoryMgr::UnregisterCategory` 反注册所有 TSF 类别。
+pub fn unregister_categories() -> Result<(), TipManagerError> {
+    let category_manager: ITfCategoryMgr = match unsafe {
+        CoCreateInstance(&CLSID_TF_CategoryMgr, None, CLSCTX_INPROC_SERVER)
+    } {
+        Ok(m) => m,
+        Err(_) => {
+            log::warn!("[tip_manager] ITfCategoryMgr 不可用，跳过类别清理");
+            return Ok(());
+        }
+    };
+
+    for guid in SUPPORT_CATEGORIES {
+        let _ = unsafe {
+            category_manager.UnregisterCategory(&CLSID_TEXT_SERVICE, &guid, &CLSID_TEXT_SERVICE)
+        };
+    }
+    log::info!("[tip_manager] 已清理 {} 个 TSF 类别", SUPPORT_CATEGORIES.len());
+    Ok(())
 }
 
 /// Mock 实现（测试用）。

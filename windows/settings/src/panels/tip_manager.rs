@@ -6,7 +6,6 @@ use tip_manager::TipStatus;
 
 /// 渲染「输入法管理」面板。
 pub fn show(ui: &mut Ui, state: &mut AppState) {
-    state.uninstall_confirm = false;
     ui.heading("输入法管理");
     ui.add_space(8.0);
 

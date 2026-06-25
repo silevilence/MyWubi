@@ -191,5 +191,6 @@ fn nav_item(ui: &mut egui::Ui, state: &mut AppState, panel: Panel, label: &str) 
     let selected = state.active_panel == panel;
     if ui.selectable_label(selected, label).clicked() {
         state.active_panel = panel;
+        state.uninstall_confirm = false;
     }
 }
