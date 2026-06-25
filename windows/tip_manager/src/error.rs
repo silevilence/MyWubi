@@ -13,11 +13,11 @@ pub enum TipManagerError {
     #[error("COM 调用失败: {0}")]
     Com(String),
 
-    /// 找不到 im_engine.dll。
+    /// 找不到 im_engine.dll（保留，供未来路径校验使用）。
     #[error("找不到 DLL: {0}")]
     DllNotFound(PathBuf),
 
-    /// 权限不足（非管理员运行）。
+    /// 权限不足（保留，供未来非管理员降级方案使用）。
     #[error("需要管理员权限")]
     AccessDenied,
 

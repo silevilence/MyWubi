@@ -38,6 +38,9 @@ mod tests {
             pending_pick: None,
             table_dir: tmp.to_path_buf(),
             scanned_tables: Vec::new(),
+            tip_status: tip_manager::detect_status(),
+            uninstall_confirm: false,
+            tip_operation_pending: false,
         }
     }
 

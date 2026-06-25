@@ -59,6 +59,10 @@ pub struct AppState {
     pub scanned_tables: Vec<String>,
     /// TIP 当前安装与启用状态（启动时检测一次）。
     pub tip_status: tip_manager::TipStatus,
+    /// 卸载确认状态：true 表示已点击一次卸载，等待二次确认。
+    pub uninstall_confirm: bool,
+    /// 是否正在执行 TIP 操作（显示 spinner）。
+    pub tip_operation_pending: bool,
 }
 
 /// 配置加载失败信息。用户需在 UI 中确认后才覆盖损坏文件。
@@ -104,6 +108,8 @@ impl AppState {
             table_dir,
             scanned_tables,
             tip_status: tip_manager::detect_status(),
+            uninstall_confirm: false,
+            tip_operation_pending: false,
         }
     }
 

@@ -72,3 +72,28 @@ pub fn detect_status_impl(
         }
     }
 }
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use crate::profile::mock::MockProfileManager;
+
+    #[test]
+    fn test_detect_enabled_via_mock() {
+        let mock = MockProfileManager::new(true, true);
+        let _ = detect_status_impl(Some(&mock));
+    }
+
+    #[test]
+    fn test_detect_disabled_via_mock() {
+        let mock = MockProfileManager::new(false, true);
+        let _ = detect_status_impl(Some(&mock));
+    }
+
+    #[test]
+    fn test_detect_com_failure_via_mock() {
+        let mock = MockProfileManager::new(false, true);
+        mock.fail_next.set(true);
+        let _ = detect_status_impl(Some(&mock));
+    }
+}

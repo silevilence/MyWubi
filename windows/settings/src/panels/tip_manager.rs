@@ -6,6 +6,7 @@ use tip_manager::TipStatus;
 
 /// 渲染「输入法管理」面板。
 pub fn show(ui: &mut Ui, state: &mut AppState) {
+    state.uninstall_confirm = false;
     ui.heading("输入法管理");
     ui.add_space(8.0);
 
@@ -14,6 +15,15 @@ pub fn show(ui: &mut Ui, state: &mut AppState) {
         TipStatus::InstalledEnabled => show_installed_enabled(ui, state),
         TipStatus::InstalledDisabled => show_installed_disabled(ui, state),
         TipStatus::Unknown => show_unknown(ui, state),
+    }
+
+    if let Some(ref msg) = state.status_msg {
+        if msg.starts_with("❌") {
+            ui.add_space(8.0);
+            ui.collapsing("查看详情", |ui| {
+                ui.label(msg);
+            });
+        }
     }
 }
 
@@ -60,7 +70,17 @@ fn show_installed_enabled(ui: &mut Ui, state: &mut AppState) {
     status_badge(ui, egui::Color32::GREEN, "已安装 · 已启用");
     ui.add_space(8.0);
     ui.label("输入法运行正常。使用 Win+Space 切换至此输入法即可开始打字。");
-    ui.add_space(12.0);
+    ui.add_space(8.0);
+    egui::Frame::group(ui.style()).show(ui, |ui| {
+        if let Ok(exe) = std::env::current_exe() {
+            if let Some(dir) = exe.parent() {
+                let dll = dir.join("im_engine.dll");
+                ui.label(format!("DLL: {}", dll.display()));
+            }
+        }
+        ui.label("CLSID: {C9F2EAA4-0AB7-49C6-9F2C-8B8FA8D5FFD8}");
+    });
+    ui.add_space(8.0);
 
     ui.horizontal(|ui| {
         if ui.button("禁用").clicked() {
@@ -74,15 +94,26 @@ fn show_installed_enabled(ui: &mut Ui, state: &mut AppState) {
                 }
             }
         }
-        if ui.button("卸载").clicked() {
-            match tip_manager::uninstall() {
-                Ok(()) => {
-                    state.tip_status = tip_manager::detect_status();
-                    state.status_msg = Some("✅ 输入法已卸载".into());
+        if state.uninstall_confirm {
+            if ui.button("确认卸载").clicked() {
+                state.uninstall_confirm = false;
+                match tip_manager::uninstall() {
+                    Ok(()) => {
+                        state.tip_status = tip_manager::detect_status();
+                        state.status_msg = Some("✅ 输入法已卸载".into());
+                    }
+                    Err(e) => {
+                        state.status_msg = Some(format!("❌ 卸载失败: {e}"));
+                    }
                 }
-                Err(e) => {
-                    state.status_msg = Some(format!("❌ 卸载失败: {e}"));
-                }
+            }
+            if ui.button("取消").clicked() {
+                state.uninstall_confirm = false;
+            }
+        } else {
+            if ui.button("卸载").clicked() {
+                state.uninstall_confirm = true;
+                state.status_msg = Some("⚠️ 确定要卸载 MyWubi 输入法吗？请再次点击「确认卸载」".into());
             }
         }
     });
@@ -106,15 +137,26 @@ fn show_installed_disabled(ui: &mut Ui, state: &mut AppState) {
                 }
             }
         }
-        if ui.button("卸载").clicked() {
-            match tip_manager::uninstall() {
-                Ok(()) => {
-                    state.tip_status = tip_manager::detect_status();
-                    state.status_msg = Some("✅ 输入法已卸载".into());
+        if state.uninstall_confirm {
+            if ui.button("确认卸载").clicked() {
+                state.uninstall_confirm = false;
+                match tip_manager::uninstall() {
+                    Ok(()) => {
+                        state.tip_status = tip_manager::detect_status();
+                        state.status_msg = Some("✅ 输入法已卸载".into());
+                    }
+                    Err(e) => {
+                        state.status_msg = Some(format!("❌ 卸载失败: {e}"));
+                    }
                 }
-                Err(e) => {
-                    state.status_msg = Some(format!("❌ 卸载失败: {e}"));
-                }
+            }
+            if ui.button("取消").clicked() {
+                state.uninstall_confirm = false;
+            }
+        } else {
+            if ui.button("卸载").clicked() {
+                state.uninstall_confirm = true;
+                state.status_msg = Some("⚠️ 确定要卸载 MyWubi 输入法吗？请再次点击「确认卸载」".into());
             }
         }
     });
