@@ -9,7 +9,7 @@ fn main() {
     let (config_path, fallback_msg) = match config_path::resolve_config_path() {
         Ok(p) => p,
         Err(e) => {
-            eprintln!("❌ 无法定位配置文件路径: {e}");
+            eprintln!("[ERR] 无法定位配置文件路径: {e}");
             std::process::exit(1);
         }
     };
@@ -33,7 +33,7 @@ fn main() {
         opts,
         Box::new(|cc| Box::new(SettingsApp::new(cc, state))),
     ) {
-        eprintln!("❌ 启动失败: {e}");
+        eprintln!("[ERR] 启动失败: {e}");
         std::process::exit(2);
     }
 }

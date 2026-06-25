@@ -122,7 +122,7 @@ pub fn show(ui: &mut Ui, state: &mut AppState) {
     });
 
     if ui.button("管理自造词…").clicked() {
-        state.status_msg = Some("ℹ️ 用户词库管理功能待开发".into());
+        state.status_msg = Some("[i] 用户词库管理功能待开发".into());
     }
 }
 

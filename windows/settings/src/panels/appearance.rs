@@ -169,10 +169,15 @@ fn preview(ui: &mut Ui, state: &AppState) {
         let text_color = if bg_luma > LUMINANCE_THRESHOLD { eframe::egui::Color32::BLACK } else { eframe::egui::Color32::WHITE };
         let size = state.config.appearance.font_size as f32;
         let font_id = eframe::egui::FontId::proportional(size);
-        // 根据实际字体度量计算"1"的宽度，确保高亮色完全覆盖
-        let digit_w = ui.ctx().fonts(|f| f.glyph_width(&font_id, '1'));
+        // 根据实际字体度量计算第一个候选项（"1 你好"）的宽度，确保高亮色完全覆盖
+        let candidate_w = ui.ctx().fonts(|f| {
+            f.glyph_width(&font_id, '1')
+                + f.glyph_width(&font_id, ' ')
+                + f.glyph_width(&font_id, '你')
+                + f.glyph_width(&font_id, '好')
+        });
         let pad = 6.0;
-        let hl_w = digit_w + pad * 2.0;
+        let hl_w = candidate_w + pad * 2.0;
         let hl_h = size + pad + 2.0;
         let (rect, _) = ui.allocate_exact_size(
             eframe::egui::vec2(200.0, size + 20.0),

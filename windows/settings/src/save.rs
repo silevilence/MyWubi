@@ -7,12 +7,12 @@ pub fn save(state: &mut AppState) -> bool {
     match state.config.save(&state.config_path) {
         Ok(()) => {
             state.dirty = false;
-            state.status_msg = Some("✅ 已保存".into());
+            state.status_msg = Some("[OK] 已保存".into());
             log::info!("配置已保存到 {}", state.config_path.display());
             true
         }
         Err(e) => {
-            state.status_msg = Some(format!("❌ 保存失败: {e}"));
+            state.status_msg = Some(format!("[ERR] 保存失败: {e}"));
             log::error!("保存配置失败: {e}");
             false
         }
@@ -48,7 +48,7 @@ mod tests {
         assert!(state.dirty);
         assert!(save(&mut state));
         assert!(!state.dirty);
-        assert_eq!(state.status_msg, Some("✅ 已保存".into()));
+        assert_eq!(state.status_msg, Some("[OK] 已保存".into()));
     }
 
     #[test]
@@ -61,6 +61,6 @@ mod tests {
         assert!(state.dirty);
         assert!(!save(&mut state));
         assert!(state.dirty);
-        assert!(state.status_msg.as_ref().unwrap().starts_with("❌ 保存失败"));
+        assert!(state.status_msg.as_ref().unwrap().starts_with("[ERR] 保存失败"));
     }
 }

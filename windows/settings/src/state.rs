@@ -113,12 +113,12 @@ impl AppState {
     pub fn apply_default_overwrite(&mut self) {
         let cfg = Config::default();
         if let Err(e) = cfg.save(&self.config_path) {
-            self.status_msg = Some(format!("❌ 覆盖失败: {e}"));
+            self.status_msg = Some(format!("[ERR] 覆盖失败: {e}"));
             log::error!("覆盖损坏配置失败: {e}");
         } else {
             self.config = cfg;
             self.load_error = None;
-            self.status_msg = Some("✅ 已用默认配置覆盖".into());
+            self.status_msg = Some("[OK] 已用默认配置覆盖".into());
             log::info!("已用默认配置覆盖损坏的 {}", self.config_path.display());
         }
     }

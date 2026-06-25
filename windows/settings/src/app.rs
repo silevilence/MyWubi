@@ -178,7 +178,7 @@ impl SettingsApp {
                     if ui.button("忽略（用默认配置，不覆盖）").clicked() {
                         self.state.load_error = None;
                         self.state.status_msg = Some(
-                            "⚠️ 配置加载失败，当前使用默认配置（原文件未改动）".into()
+                            "[!] 配置加载失败，当前使用默认配置（原文件未改动）".into()
                         );
                     }
                 });

@@ -43,7 +43,7 @@ pub fn resolve_config_path() -> Result<(PathBuf, Option<String>), PathError> {
         if let Err(e) = std::fs::create_dir_all(&appdata) {
             // 回退便携模式
             log::warn!("无法创建 AppData 目录 ({}), 回退便携模式", e);
-            return Ok((portable, Some("⚠️ 已切换便携模式（AppData 不可用）".into())));
+            return Ok((portable, Some("[!] 已切换便携模式（AppData 不可用）".into())));
         }
     }
 
