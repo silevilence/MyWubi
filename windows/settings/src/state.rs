@@ -10,6 +10,7 @@ pub enum Panel {
     Basic,
     Appearance,
     Dictionary,
+    TipManager,
     About,
 }
 
@@ -56,6 +57,8 @@ pub struct AppState {
     pub table_dir: PathBuf,
     /// 码表目录下扫描到的 .dict 文件名列表。
     pub scanned_tables: Vec<String>,
+    /// TIP 当前安装与启用状态（启动时检测一次）。
+    pub tip_status: tip_manager::TipStatus,
 }
 
 /// 配置加载失败信息。用户需在 UI 中确认后才覆盖损坏文件。
@@ -100,6 +103,7 @@ impl AppState {
             pending_pick: None,
             table_dir,
             scanned_tables,
+            tip_status: tip_manager::detect_status(),
         }
     }
 

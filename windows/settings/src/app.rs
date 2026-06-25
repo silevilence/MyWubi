@@ -48,6 +48,7 @@ impl SettingsApp {
                 nav_item(ui, &mut self.state, Panel::Basic, "常规设置");
                 nav_item(ui, &mut self.state, Panel::Appearance, "外观样式");
                 nav_item(ui, &mut self.state, Panel::Dictionary, "码表与词库");
+                nav_item(ui, &mut self.state, Panel::TipManager, "输入法管理");
                 nav_item(ui, &mut self.state, Panel::About, "关于");
             });
     }
