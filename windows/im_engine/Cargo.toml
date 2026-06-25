@@ -11,6 +11,7 @@ crate-type = ["cdylib", "rlib"]
 
 [dependencies]
 core_engine = { path = "../../core_engine" }
+tip_manager = { path = "../tip_manager" }
 log.workspace = true
 parking_lot.workspace = true
 arc-swap.workspace = true
