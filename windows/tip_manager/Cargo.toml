@@ -16,5 +16,6 @@ windows = { workspace = true, features = [
     "Win32_System_Registry",
     "Win32_System_LibraryLoader",
     "Win32_UI_TextServices",
+    "Win32_UI_Input_KeyboardAndMouse",
 ] }
 windows-core = "0.61"
