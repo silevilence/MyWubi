@@ -24,9 +24,14 @@ rfd = "0.14"
 dirs = "5"
 simplelog = "0.12"
 
+[build-dependencies]
+winres = "0.1"
+
 [target.'cfg(windows)'.dependencies]
 windows = { workspace = true, features = [
     "Win32_Foundation",
+    "Win32_UI_Shell",
+    "Win32_UI_WindowsAndMessaging",
     "Win32_UI_ColorSystem",
     "Win32_UI_Controls_Dialogs",
     "Win32_Graphics_Gdi",
