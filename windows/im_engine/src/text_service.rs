@@ -27,12 +27,16 @@ use windows::Win32::UI::TextServices::{
     ITfDisplayAttributeProvider, ITfDisplayAttributeProvider_Impl,
     ITfDocumentMgr, ITfEditSession, ITfEditSession_Impl, IEnumTfDisplayAttributeInfo,
     ITfKeyEventSink, ITfKeyEventSink_Impl, ITfKeystrokeMgr, ITfRange, ITfSource,
-    ITfTextInputProcessor, ITfTextInputProcessor_Impl, ITfThreadMgr,
+    ITfTextInputProcessor, ITfTextInputProcessorEx, ITfTextInputProcessorEx_Impl,
+    ITfTextInputProcessor_Impl, ITfThreadMgr,
     ITfThreadMgrEventSink, ITfThreadMgrEventSink_Impl,
     TF_DA_COLOR, TF_DA_COLOR_0,
     TF_DISPLAYATTRIBUTE, TF_ES_ASYNC, TF_DEFAULT_SELECTION, TF_LS_DOT,
     TF_LS_SOLID, TF_SELECTION, TF_CT_COLORREF, GUID_TFCAT_DISPLAYATTRIBUTEPROVIDER,
+    GUID_COMPARTMENT_KEYBOARD_OPENCLOSE, TF_TMAE_COMLESS,
+    TF_PRESERVEDKEY, TF_MOD_ON_KEYUP, TF_MOD_CONTROL,
 };
+use windows::Win32::UI::Input::KeyboardAndMouse::VK_SHIFT;
 
 use windows::Win32::Foundation::COLORREF;
 
@@ -50,6 +54,9 @@ use crate::screen_geometry::get_caret_position;
 const GUID_DISPLAY_ATTR_INPUT: GUID = GUID::from_u128(0x8a2e3b4c_1d5f_4a7b_9e6c_3f8d2b1a5e7d);
 /// 有候选态 display attribute 的 GUID。
 const GUID_DISPLAY_ATTR_CONVERTED: GUID = GUID::from_u128(0x6b1c8d9e_2f3a_4c5b_8d7e_1a2b3c4d5e6f);
+/// PreservedKey（Shift 切换）的 GUID。
+const GUID_PRESERVED_SHIFT: GUID = GUID::from_u128(0x1a2b3c4d_5e6f_7a8b_9c0d_1e2f3a4b5c6d);
+
 
 /// 自定义 DisplayAttributeInfo 实现。每个实例对应用户自定义的 display attribute。
 #[implement(ITfDisplayAttributeInfo)]
@@ -89,7 +96,7 @@ impl ITfDisplayAttributeInfo_Impl for DisplayAttributeInfo_Impl {
 fn make_color(r: u8, g: u8, b: u8) -> TF_DA_COLOR {
     TF_DA_COLOR {
         r#type: TF_CT_COLORREF,
-        Anonymous: TF_DA_COLOR_0 { cr: COLORREF(((r as u32) | ((g as u32) << 8) | ((b as u32) << 16))) },
+            Anonymous: TF_DA_COLOR_0 { cr: COLORREF((r as u32) | ((g as u32) << 8) | ((b as u32) << 16)) },
     }
 }
 
@@ -179,7 +186,8 @@ struct SinkState {
 /// 内部的 [`StateMachine`] 通过 `Mutex` 保护，多线程可见且无需发送数据
 /// 跨线程锁竞争（TSF 单线程模型 + Mutex 互斥访问足够）。
 #[implement(ITfTextInputProcessor, ITfThreadMgrEventSink, ITfKeyEventSink,
-             ITfCompositionSink, ITfDisplayAttributeProvider)]
+             ITfCompositionSink, ITfDisplayAttributeProvider,
+             ITfTextInputProcessorEx)]
 pub struct TextService {
     /// 跨平台核心状态机。
     sm: Mutex<StateMachine>,
@@ -205,6 +213,11 @@ pub struct TextService {
     composition: Mutex<Option<ITfComposition>>,
     /// 当前是否处于 composing 状态。
     is_composing: AtomicBool,
+    /// ── Phase 2 新增字段 ──
+    /// ITfTextInputProcessorEx 的激活标志（TF_TMAE_COMLESS 等）。
+    activate_flags: Mutex<u32>,
+    /// true=中文模式（拦截字母键），false=英文模式（Passthrough）。
+    ime_mode: Mutex<bool>,
 }
 
 impl TextService {
@@ -221,6 +234,8 @@ impl TextService {
             candidate_window: Mutex::new(None),
             composition: Mutex::new(None),
             is_composing: AtomicBool::new(false),
+            activate_flags: Mutex::new(0),
+            ime_mode: Mutex::new(true),
         }
     }
 
@@ -457,19 +472,110 @@ impl TextService {
             Err(e) => log::warn!("[TSF] 无法创建 ITfCategoryMgr: {e}，DisplayAttribute 不可用"),
         }
     }
+
+    /// 切换到中文模式。
+    pub fn set_chinese_mode(&self) {
+        *self.ime_mode.lock() = true;
+        log::debug!("[TSF] 切换到中文模式");
+    }
+
+    /// 切换到英文模式。
+    pub fn set_english_mode(&self) {
+        *self.ime_mode.lock() = false;
+        self.sm.lock().reset();
+        let theme = ThemeSnapshot::default();
+        self.candidate_tx.store(Arc::new(CandidateData::hidden(theme)));
+        log::debug!("[TSF] 切换到英文模式");
+    }
+
+    /// 反转中英文模式。
+    pub fn toggle_ime_mode(&self) {
+        let mut mode = self.ime_mode.lock();
+        let old = *mode;
+        *mode = !*mode;
+        if !*mode {
+            self.sm.lock().reset();
+            log::debug!("[TSF] Exit中文→英文");
+        };
+        if !old {
+            log::debug!("[TSF] 英文→中文");
+        }
+    }
 }
 
 impl ITfTextInputProcessor_Impl for TextService_Impl {
     fn Activate(&self, ptim: Ref<'_, ITfThreadMgr>, tid: u32) -> Result<()> {
-        // 拿到 ITfThreadMgr 拷贝并保存。
+        // ITfTextInputProcessorEx::ActivateEx 的退化调用。
+        self.ActivateEx(ptim, tid, 0)
+    }
+
+    fn Deactivate(&self) -> Result<()> {
+        // 删除 composition（如果有）
+        if let Some(comp) = self.composition.lock().take() {
+            drop(comp);
+        }
+        self.is_composing.store(false, Ordering::Release);
+
+        // 隐藏候选框并关闭候选框窗口。
+        self.candidate_tx.store(Arc::new(CandidateData::hidden(ThemeSnapshot::default())));
+        if let Some(mut cw) = self.candidate_window.lock().take() {
+            cw.shutdown();
+        }
+
+        // 先克隆 thread_mgr 引用再进行清理（避免 take 后丢失 COM 指针）。
+        let tm_hold = self.thread_mgr.lock().clone();
+        let mut state = self.cookies.lock();
+
+        if let Some(ref tm) = tm_hold {
+            // ── 主路径：ITfKeystrokeMgr::UnadviseKeyEventSink ──
+            if state.using_keystroke_mgr && state.tid != 0 {
+                if let Ok(kmgr) = tm.cast::<ITfKeystrokeMgr>() {
+                    let _ = unsafe { kmgr.UnadviseKeyEventSink(state.tid) };
+                    log::info!("[TSF] ITfKeystrokeMgr::UnadviseKeyEventSink 完成");
+                }
+            }
+
+            // ── 回退路径 + ThreadEvent：ITfSource::UnadviseSink ──
+            if let Ok(source) = tm.cast::<ITfSource>() {
+                if state.key_event != 0 {
+                    let _ = unsafe { source.UnadviseSink(state.key_event) };
+                    state.key_event = 0;
+                }
+                if state.thread_event != 0 {
+                    let _ = unsafe { source.UnadviseSink(state.thread_event) };
+                    state.thread_event = 0;
+                }
+            }
+        }
+
+        // 清理所有持有的 COM 引用。
+        *self.thread_mgr.lock() = None;
+        *self.focus_doc_mgr.lock() = None;
+        drop(state);
+
+        // 释放自我持有的 IUnknown，避免强引用循环。
+        self.release_self_unknown();
+
+        // 清理状态机内部缓冲。
+        self.sm.lock().reset();
+
+        log::info!("[TSF] TIP deactivated");
+        Ok(())
+    }
+}
+
+impl ITfTextInputProcessorEx_Impl for TextService_Impl {
+    fn ActivateEx(&self, ptim: Ref<'_, ITfThreadMgr>, tid: u32, dwflags: u32) -> Result<()> {
         let tm: ITfThreadMgr = match ptim.as_ref() {
             Some(tm) => tm.clone(),
             None => {
-                log::error!("[TSF] Activate: ptim 为空");
+                log::error!("[TSF] ActivateEx: ptim 为空");
                 return Err(HRESULT(-1).into());
             }
         };
         *self.thread_mgr.lock() = Some(tm.clone());
+        // 保存激活标志（如 TF_TMAE_COMLESS）
+        *self.activate_flags.lock() = dwflags;
 
         let mut state = self.cookies.lock();
         if let Some(punk_self) = self.clone_self_unknown() {
@@ -531,6 +637,9 @@ impl ITfTextInputProcessor_Impl for TextService_Impl {
         } else {
             log::warn!("[TSF] Activate: self_unknown 未注入，跳过所有 AdviseSink");
         }
+        // 在释放 state 之前提取需要的值
+        let saved_tid = state.tid;
+        let saved_using_kmgr = state.using_keystroke_mgr;
         drop(state);
 
         // 启动候选框窗口线程。
@@ -544,64 +653,19 @@ impl ITfTextInputProcessor_Impl for TextService_Impl {
         // 注册自定义 DisplayAttribute 类别。
         self.register_display_attribute_categories();
 
+        // 注册 PreservedKey（Shift 切换中英文）
+        if saved_tid != 0 && saved_using_kmgr {
+            if let Ok(kmgr) = tm.cast::<ITfKeystrokeMgr>() {
+                let shift_key = TF_PRESERVEDKEY {
+                    uVKey: VK_SHIFT.0 as u32,
+                    uModifiers: TF_MOD_ON_KEYUP,
+                };
+                let desc: Vec<u16> = "中英文切换 (Shift)\0".encode_utf16().collect();
+                let _ = unsafe { kmgr.PreserveKey(saved_tid, &GUID_PRESERVED_SHIFT, &shift_key, &desc) };
+            }
+        }
+
         log::info!("[TSF] TIP activated (tid={tid})");
-        Ok(())
-    }
-
-    /// 注册本 TIP 的自定义 display attribute 类别，使 TSF 能调用
-    /// ITfDisplayAttributeProvider::GetDisplayAttributeInfo。
-    fn Deactivate(&self) -> Result<()> {
-        // 隐藏候选框并关闭候选框窗口。
-        self.candidate_tx.store(Arc::new(CandidateData::hidden(ThemeSnapshot::default())));
-        if let Some(mut cw) = self.candidate_window.lock().take() {
-            cw.shutdown();
-        }
-
-        // 先克隆 thread_mgr 引用再进行清理（避免 take 后丢失 COM 指针）。
-        let tm_hold = self.thread_mgr.lock().clone();
-        let mut state = self.cookies.lock();
-
-        if let Some(ref tm) = tm_hold {
-            // ── 主路径：ITfKeystrokeMgr::UnadviseKeyEventSink ──
-            if state.using_keystroke_mgr && state.tid != 0 {
-                if let Ok(kmgr) = tm.cast::<ITfKeystrokeMgr>() {
-                    let _ = unsafe { kmgr.UnadviseKeyEventSink(state.tid) };
-                    log::info!("[TSF] ITfKeystrokeMgr::UnadviseKeyEventSink 完成");
-                }
-            }
-
-            // ── 回退路径 + ThreadEvent：ITfSource::UnadviseSink ──
-            if let Ok(source) = tm.cast::<ITfSource>() {
-                if state.key_event != 0 {
-                    let _ = unsafe { source.UnadviseSink(state.key_event) };
-                    state.key_event = 0;
-                }
-                if state.thread_event != 0 {
-                    let _ = unsafe { source.UnadviseSink(state.thread_event) };
-                    state.thread_event = 0;
-                }
-            }
-        }
-
-        // 清理所有持有的 COM 引用。
-        *self.thread_mgr.lock() = None;
-        *self.focus_doc_mgr.lock() = None;
-        drop(state);
-
-        // 释放自我持有的 IUnknown，避免强引用循环。
-        self.release_self_unknown();
-
-        // 清理 composition（如果有
-        if let Some(comp) = self.composition.lock().take() {
-            // 无法在 Deactivate 中获取有效 context 来 EndComposition，直接 drop
-            drop(comp);
-        }
-        self.is_composing.store(false, Ordering::Release);
-
-        // 清理状态机内部缓冲。
-        self.sm.lock().reset();
-
-        log::info!("[TSF] TIP deactivated");
         Ok(())
     }
 }
@@ -677,6 +741,11 @@ impl ITfKeyEventSink_Impl for TextService_Impl {
         wparam: WPARAM,
         lparam: LPARAM,
     ) -> Result<BOOL> {
+        // 英文模式：所有按键透传
+        if !*self.ime_mode.lock() {
+            return Ok(BOOL(0));
+        }
+
         // 声明对 is_intercepted_key 识别的所有按键（字母/数字/退格/空格等）的兴趣
         if !key_filter::is_intercepted_key(wparam.0 as usize) {
             return Ok(BOOL(0));
@@ -720,8 +789,14 @@ impl ITfKeyEventSink_Impl for TextService_Impl {
     fn OnPreservedKey(
         &self,
         _pic: Ref<'_, ITfContext>,
-        _rguid: *const GUID,
+        rguid: *const GUID,
     ) -> Result<BOOL> {
-        Ok(BOOL(0))
+        let guid = unsafe { &*rguid };
+        if *guid == GUID_PRESERVED_SHIFT {
+            self.toggle_ime_mode();
+            Ok(BOOL(1))
+        } else {
+            Ok(BOOL(0))
+        }
     }
 }
