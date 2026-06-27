@@ -116,20 +116,30 @@ fn run_window_thread(data_src: std::sync::Arc<ArcSwap<CandidateData>>, hwnd_tx: 
         return;
     }
 
-    // 注册窗口类
-    let class_name = CLASS_NAME;
-    let wc = WNDCLASSW {
-        style: WNDCLASS_STYLES(CS_HREDRAW.0 | CS_VREDRAW.0),
-        lpfnWndProc: Some(wnd_proc),
-        cbClsExtra: 0, cbWndExtra: 0,
-        hInstance: hinstance,
-        hIcon: HICON::default(), hCursor: HCURSOR::default(),
-        hbrBackground: HBRUSH::default(),
-        lpszMenuName: windows::core::PCWSTR::null(),
-        lpszClassName: class_name,
-    };
-    if unsafe { RegisterClassW(&wc) } == 0 {
-        log::error!("候选窗口: RegisterClassW 失败");
+    // 窗口类只需注册一次（整个进程生命周期内有效）。
+    // TSF 在同一进程中可能多次 Activate/Deactivate，重复注册会失败。
+    static CLASS_REGISTERED: std::sync::atomic::AtomicBool = std::sync::atomic::AtomicBool::new(false);
+    static REGISTER_ONCE: std::sync::Once = std::sync::Once::new();
+    REGISTER_ONCE.call_once(|| {
+        let class_name = CLASS_NAME;
+        let wc = WNDCLASSW {
+            style: WNDCLASS_STYLES(CS_HREDRAW.0 | CS_VREDRAW.0),
+            lpfnWndProc: Some(wnd_proc),
+            cbClsExtra: 0, cbWndExtra: 0,
+            hInstance: hinstance,
+            hIcon: HICON::default(), hCursor: HCURSOR::default(),
+            hbrBackground: HBRUSH::default(),
+            lpszMenuName: windows::core::PCWSTR::null(),
+            lpszClassName: class_name,
+        };
+        let ok = unsafe { RegisterClassW(&wc) } != 0;
+        CLASS_REGISTERED.store(ok, std::sync::atomic::Ordering::Release);
+        if !ok {
+            let err = unsafe { windows::Win32::Foundation::GetLastError() };
+            log::error!("候选窗口: RegisterClassW 失败, err={err:?}");
+        }
+    });
+    if !CLASS_REGISTERED.load(std::sync::atomic::Ordering::Acquire) {
         return;
     }
 
@@ -143,7 +153,7 @@ fn run_window_thread(data_src: std::sync::Arc<ArcSwap<CandidateData>>, hwnd_tx: 
             WINDOW_EX_STYLE(
                 WS_EX_NOACTIVATE.0 | WS_EX_LAYERED.0 | WS_EX_TOOLWINDOW.0 | WS_EX_TOPMOST.0,
             ),
-            class_name,
+            CLASS_NAME,
             windows::core::PCWSTR::null(),
             WS_POPUP, 0, 0, 0, 0,
             None, None, Some(hinstance), None,
@@ -157,6 +167,7 @@ fn run_window_thread(data_src: std::sync::Arc<ArcSwap<CandidateData>>, hwnd_tx: 
         }
     };
 
+    // 注意：class_name 变量在 Once 闭包内作用域，此处使用静态常量 CLASS_NAME。
     unsafe { SetWindowLongPtrW(hwnd, GWLP_USERDATA, window_data_ptr as isize); }
     unsafe { let _ = SetTimer(Some(hwnd), TIMER_ID, TIMER_INTERVAL_MS, None); }
 

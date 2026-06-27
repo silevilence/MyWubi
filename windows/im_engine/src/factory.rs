@@ -34,15 +34,22 @@ impl IClassFactory_Impl for TextServiceFactory_Impl {
             return Err(HRESULT(CLASS_E_NOAGGREGATION.0).into());
         }
 
-        // 安全获取 Engine 单例——如果未初始化（如 ctfmon 在 im_engine_init 之前加载 DLL），
-        // 降级为默认空码表，避免 panic 跨越 COM FFI 边界导致宿主进程崩溃。
+        // 确保 ENGINE 已初始化——如果尚未初始化（如 TSF 在 im_engine_init 之前
+        // 加载 DLL），在此处惰性初始化，避免降级到空码表导致打不出字。
+        if crate::ENGINE.get().is_none() {
+            let ret = crate::im_engine_init();
+            if ret != 0 {
+                log::error!("[TSF] CreateInstance: ENGINE 惰性初始化失败 ret={ret}");
+            }
+        }
+
         let (dict, candidate_data) = match crate::ENGINE.get() {
             Some(engine) => (
                 Arc::clone(engine.dict()),
                 engine.candidate_data().clone(),
             ),
             None => {
-                log::warn!("[TSF] CreateInstance: Engine 未初始化，使用空码表");
+                log::warn!("[TSF] CreateInstance: ENGINE 仍未就绪，降级为空码表");
                 let dict = match core_engine::Dictionary::from_entries(
                     Vec::new(), None, Default::default(),
                 ) {

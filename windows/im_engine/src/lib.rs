@@ -33,6 +33,7 @@ pub mod candidate_window;
 pub mod factory;
 pub mod guids;
 pub mod key_filter;
+pub mod file_log;
 pub mod screen_geometry;
 pub mod text_service;
 
@@ -69,6 +70,9 @@ static ENGINE: OnceLock<Engine> = OnceLock::new();
 /// 安装 Hook 主动初始化时调用）。
 #[no_mangle]
 pub extern "C" fn im_engine_init() -> i32 {
+    // 惰性初始化文件日志
+    file_log::init();
+
     // 惰性设置 panic hook（首次调用时），避免在 DllMain loader lock 下分配内存
     static PANIC_HOOK_SET: Once = Once::new();
     PANIC_HOOK_SET.call_once(|| {
@@ -90,17 +94,29 @@ pub extern "C" fn im_engine_init() -> i32 {
     if ENGINE.get().is_some() {
         return 0;
     }
-    let cfg = match Config::load("config.toml") {
+
+    // 所有路径均基于 DLL 所在目录解析，而非当前工作目录（ctfmon.exe 的 CWD）。
+    let dll_dir = dll_directory().unwrap_or_default();
+
+    let cfg_path = format!("{}config.toml", dll_dir);
+    let cfg = match Config::load(&cfg_path) {
         Ok(c) => c,
         Err(e) => {
-            log::error!("加载配置失败: {e}, 使用默认配置");
+            log::error!("加载配置失败 ({cfg_path}): {e}, 使用默认配置");
             Config::default()
         }
     };
-    let dict = match Dictionary::load(&cfg.dictionary.system_table) {
+
+    // 码表路径同样基于 DLL 目录解析
+    let table_path = if std::path::Path::new(&cfg.dictionary.system_table).is_relative() {
+        format!("{}{}", dll_dir, cfg.dictionary.system_table.display())
+    } else {
+        cfg.dictionary.system_table.display().to_string()
+    };
+    let dict = match Dictionary::load(&table_path) {
         Ok(d) => d,
         Err(e) => {
-            log::error!("加载码表失败: {e}");
+            log::error!("加载码表失败 ({table_path}): {e}");
             match Dictionary::from_entries(Vec::new(), None, Default::default()) {
                 Ok(d) => d,
                 Err(e2) => {
@@ -155,6 +171,9 @@ pub extern "system" fn DllGetClassObject(
     riid: *const GUID,
     ppv: *mut *mut core::ffi::c_void,
 ) -> HRESULT {
+    // 惰性初始化文件日志（安全：不在 loader lock 下）
+    file_log::init();
+
     let result = catch_unwind(AssertUnwindSafe(|| {
         dll_get_class_object_impl(rclsid, riid, ppv)
     }));
@@ -248,8 +267,15 @@ fn set_module_handle(handle: usize) {
 }
 
 /// 获取缓存的 DLL module handle。
-fn module_handle() -> usize {
+pub(crate) fn module_handle() -> usize {
     *MODULE_HANDLE.lock()
+}
+
+/// 获取 DLL 所在目录（含尾部分隔符）。
+pub(crate) fn dll_directory() -> Option<String> {
+    let dll_path = get_this_dll_path().ok()?;
+    let parent = std::path::Path::new(&dll_path).parent()?;
+    Some(parent.to_str()?.to_string() + "\\")
 }
 
 /// 获取当前 DLL 文件绝对路径。

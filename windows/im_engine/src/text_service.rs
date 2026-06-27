@@ -21,7 +21,7 @@ use std::sync::Arc;
 use windows::core::{implement, Interface, Ref, Result, BOOL, GUID, HRESULT};
 use windows::Win32::Foundation::{LPARAM, WPARAM};
 use windows::Win32::UI::TextServices::{
-    ITfContext, ITfDocumentMgr, ITfKeyEventSink, ITfKeyEventSink_Impl, ITfSource,
+    ITfContext, ITfDocumentMgr, ITfKeyEventSink, ITfKeyEventSink_Impl, ITfKeystrokeMgr, ITfSource,
     ITfTextInputProcessor, ITfTextInputProcessor_Impl, ITfThreadMgr,
     ITfThreadMgrEventSink, ITfThreadMgrEventSink_Impl,
 };
@@ -33,11 +33,18 @@ use crate::candidate_window::CandidateWindow;
 use crate::key_filter;
 use crate::screen_geometry::get_caret_position;
 
-/// 单次会话缓存的 cookie（来自 `ITfSource::AdviseSink`）。
-#[derive(Default, Clone, Copy)]
-struct SinkCookies {
+/// TSF 会话状态：跟踪已注册的 sink 及其注册方式。
+#[derive(Default)]
+struct SinkState {
+    /// ITfSource::AdviseSink cookie（仅 ITfSource 回退路径使用）。
     key_event: u32,
+    /// ITfSource::AdviseSink cookie（ITfThreadMgrEventSink）。
     thread_event: u32,
+    /// ITfTextInputProcessor::Activate 传入的 TIP 客户端 ID。
+    /// 用于 ITfKeystrokeMgr::UnadviseKeyEventSink 的反注册。
+    tid: u32,
+    /// true=使用 ITfKeystrokeMgr，false=使用 ITfSource::AdviseSink 回退。
+    using_keystroke_mgr: bool,
 }
 
 /// TSF 文本服务 COM 对象。
@@ -54,7 +61,7 @@ pub struct TextService {
     /// 当前激活的线程管理器（用于后续插入文本）。
     thread_mgr: Mutex<Option<ITfThreadMgr>>,
     /// AdviseSink 返回的 cookie，Deactivate 时用于 Unadvise。
-    cookies: Mutex<SinkCookies>,
+    cookies: Mutex<SinkState>,
     /// 当前焦点所在文档管理器（候选框定位参考）。
     focus_doc_mgr: Mutex<Option<ITfDocumentMgr>>,
     /// 外置 self 引用：由 [crate::factory::TextServiceFactory] 在创建时
@@ -77,7 +84,7 @@ impl TextService {
         Self {
             sm: Mutex::new(sm),
             thread_mgr: Mutex::new(None),
-            cookies: Mutex::new(SinkCookies::default()),
+            cookies: Mutex::new(SinkState::default()),
             focus_doc_mgr: Mutex::new(None),
             self_unknown: Mutex::new(None),
             candidate_tx,
@@ -101,7 +108,7 @@ impl TextService {
         *self.self_unknown.lock() = Some(unk);
     }
 
-    /// 内部：取一份 IUnknown 副本（已 AddRef），用于 AdviseSink 注册。
+        /// 内部：取一份 IUnknown 副本（已 AddRef），用于 AdviseSink 注册。
     fn clone_self_unknown(&self) -> Option<windows::core::IUnknown> {
         self.self_unknown.lock().clone()
     }
@@ -181,29 +188,67 @@ impl ITfTextInputProcessor_Impl for TextService_Impl {
         };
         *self.thread_mgr.lock() = Some(tm.clone());
 
-        // 把本对象的 IUnknown 作为 ITfKeyEventSink / ITfThreadMgrEventSink 注册到
-        // 线程管理器（它通过 QueryInterface 派生出 ITfSource）。
-        let mut cookies = self.cookies.lock();
+        let mut state = self.cookies.lock();
         if let Some(punk_self) = self.clone_self_unknown() {
-            match tm.cast::<ITfSource>() {
-                Ok(source) => {
-                    let iid_key = <ITfKeyEventSink as windows::core::Interface>::IID;
-                    let iid_thread = <ITfThreadMgrEventSink as windows::core::Interface>::IID;
-                    match unsafe { source.AdviseSink(&iid_key, &punk_self) } {
-                        Ok(c) => cookies.key_event = c,
-                        Err(e) => log::error!("[TSF] AdviseSink ITfKeyEventSink 失败: {e}"),
-                    }
-                    match unsafe { source.AdviseSink(&iid_thread, &punk_self) } {
-                        Ok(c) => cookies.thread_event = c,
-                        Err(e) => log::error!("[TSF] AdviseSink ITfThreadMgrEventSink 失败: {e}"),
+            // ── 主路径：通过 ITfKeystrokeMgr 注册按键事件 sink ──
+            // 这是 Microsoft 官方 TSF 示例推荐的方式，比 ITfSource::AdviseSink
+            // 更可靠，确保 OnKeyDown/OnTestKeyDown 被正确调用。
+            let kmgr_ok = match tm.cast::<ITfKeystrokeMgr>() {
+                Ok(kmgr) => {
+                    match punk_self.cast::<ITfKeyEventSink>() {
+                        Ok(key_sink) => {
+                            match unsafe { kmgr.AdviseKeyEventSink(tid, &key_sink, true) } {
+                                Ok(()) => {
+                                    state.tid = tid;
+                                    state.using_keystroke_mgr = true;
+                                    log::info!("[TSF] ITfKeystrokeMgr::AdviseKeyEventSink 成功");
+                                    true
+                                }
+                                Err(e) => {
+                                    log::error!("[TSF] AdviseKeyEventSink 失败: {e}");
+                                    false
+                                }
+                            }
+                        }
+                        Err(e) => {
+                            log::error!("[TSF] QI for ITfKeyEventSink 失败: {e}");
+                            false
+                        }
                     }
                 }
-                Err(e) => log::error!("[TSF] ITfThreadMgr::cast::<ITfSource>() 失败: {e}"),
+                Err(e) => {
+                    log::warn!("[TSF] ITfKeystrokeMgr 不可用 ({e})，回退到 ITfSource::AdviseSink");
+                    false
+                }
+            };
+
+            if !kmgr_ok {
+                // ── 回退路径：通过 ITfSource::AdviseSink 注册 ──
+                if let Ok(source) = tm.cast::<ITfSource>() {
+                    let iid_key = <ITfKeyEventSink as windows::core::Interface>::IID;
+                    match unsafe { source.AdviseSink(&iid_key, &punk_self) } {
+                        Ok(c) => {
+                            state.key_event = c;
+                            state.using_keystroke_mgr = false;
+                            log::info!("[TSF] 回退: ITfSource::AdviseSink ITfKeyEventSink 成功");
+                        }
+                        Err(e) => log::error!("[TSF] 回退: AdviseSink ITfKeyEventSink 仍然失败: {e}"),
+                    }
+                }
+            }
+
+            // ── ITfThreadMgrEventSink：始终通过 ITfSource ──
+            if let Ok(source) = tm.cast::<ITfSource>() {
+                let iid_thread = <ITfThreadMgrEventSink as windows::core::Interface>::IID;
+                match unsafe { source.AdviseSink(&iid_thread, &punk_self) } {
+                    Ok(c) => state.thread_event = c,
+                    Err(e) => log::error!("[TSF] AdviseSink ITfThreadMgrEventSink 失败: {e}"),
+                }
             }
         } else {
-            // 工厂未注入 self_unknown，跳过 AdviseSink（系统不会回调按键）。
-            log::warn!("[TSF] Activate: self_unknown 未注入，跳过 AdviseSink");
+            log::warn!("[TSF] Activate: self_unknown 未注入，跳过所有 AdviseSink");
         }
+        drop(state);
 
         // 启动候选框窗口线程。
         {
@@ -224,20 +269,36 @@ impl ITfTextInputProcessor_Impl for TextService_Impl {
             cw.shutdown();
         }
 
-        let mut cookies = self.cookies.lock();
-        if let Some(tm) = self.thread_mgr.lock().take() {
-            if let Ok(source) = tm.cast::<ITfSource>() {
-                if cookies.key_event != 0 {
-                    let _ = unsafe { source.UnadviseSink(cookies.key_event) };
-                    cookies.key_event = 0;
+        // 先克隆 thread_mgr 引用再进行清理（避免 take 后丢失 COM 指针）。
+        let tm_hold = self.thread_mgr.lock().clone();
+        let mut state = self.cookies.lock();
+
+        if let Some(ref tm) = tm_hold {
+            // ── 主路径：ITfKeystrokeMgr::UnadviseKeyEventSink ──
+            if state.using_keystroke_mgr && state.tid != 0 {
+                if let Ok(kmgr) = tm.cast::<ITfKeystrokeMgr>() {
+                    let _ = unsafe { kmgr.UnadviseKeyEventSink(state.tid) };
+                    log::info!("[TSF] ITfKeystrokeMgr::UnadviseKeyEventSink 完成");
                 }
-                if cookies.thread_event != 0 {
-                    let _ = unsafe { source.UnadviseSink(cookies.thread_event) };
-                    cookies.thread_event = 0;
+            }
+
+            // ── 回退路径 + ThreadEvent：ITfSource::UnadviseSink ──
+            if let Ok(source) = tm.cast::<ITfSource>() {
+                if state.key_event != 0 {
+                    let _ = unsafe { source.UnadviseSink(state.key_event) };
+                    state.key_event = 0;
+                }
+                if state.thread_event != 0 {
+                    let _ = unsafe { source.UnadviseSink(state.thread_event) };
+                    state.thread_event = 0;
                 }
             }
         }
+
+        // 清理所有持有的 COM 引用。
+        *self.thread_mgr.lock() = None;
         *self.focus_doc_mgr.lock() = None;
+        drop(state);
 
         // 释放自我持有的 IUnknown，避免强引用循环。
         self.release_self_unknown();
