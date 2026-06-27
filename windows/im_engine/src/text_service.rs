@@ -22,22 +22,107 @@ use std::sync::atomic::{AtomicBool, Ordering};
 use windows::core::{implement, Interface, Ref, Result, BOOL, GUID, HRESULT};
 use windows::Win32::Foundation::{LPARAM, WPARAM};
 use windows::Win32::UI::TextServices::{
-    ITfComposition, ITfCompositionSink, ITfCompositionSink_Impl, ITfContext,
-    ITfContextComposition, ITfDocumentMgr, ITfEditSession, ITfEditSession_Impl,
+    ITfCategoryMgr, ITfComposition, ITfCompositionSink, ITfCompositionSink_Impl, ITfContext,
+    ITfContextComposition, ITfDisplayAttributeInfo, ITfDisplayAttributeInfo_Impl,
+    ITfDisplayAttributeProvider, ITfDisplayAttributeProvider_Impl,
+    ITfDocumentMgr, ITfEditSession, ITfEditSession_Impl, IEnumTfDisplayAttributeInfo,
     ITfKeyEventSink, ITfKeyEventSink_Impl, ITfKeystrokeMgr, ITfRange, ITfSource,
     ITfTextInputProcessor, ITfTextInputProcessor_Impl, ITfThreadMgr,
     ITfThreadMgrEventSink, ITfThreadMgrEventSink_Impl,
-    TF_ES_ASYNC, TF_DEFAULT_SELECTION, TF_SELECTION,
+    TF_DA_COLOR, TF_DA_COLOR_0,
+    TF_DISPLAYATTRIBUTE, TF_ES_ASYNC, TF_DEFAULT_SELECTION, TF_LS_DOT,
+    TF_LS_SOLID, TF_SELECTION, TF_CT_COLORREF, GUID_TFCAT_DISPLAYATTRIBUTEPROVIDER,
 };
+
+use windows::Win32::Foundation::COLORREF;
 
 use arc_swap::ArcSwap;
 
 use crate::candidate_data::{CandidateData, CandidateItem, ThemeSnapshot};
+use crate::guids::CLSID_TEXT_SERVICE;
 use crate::candidate_window::CandidateWindow;
 use crate::key_filter;
 use crate::screen_geometry::get_caret_position;
 
 // ── 类型定义 ────────────────────────────────────────────────────────
+
+/// 编码输入态 display attribute 的 GUID。
+const GUID_DISPLAY_ATTR_INPUT: GUID = GUID::from_u128(0x8a2e3b4c_1d5f_4a7b_9e6c_3f8d2b1a5e7d);
+/// 有候选态 display attribute 的 GUID。
+const GUID_DISPLAY_ATTR_CONVERTED: GUID = GUID::from_u128(0x6b1c8d9e_2f3a_4c5b_8d7e_1a2b3c4d5e6f);
+
+/// 自定义 DisplayAttributeInfo 实现。每个实例对应用户自定义的 display attribute。
+#[implement(ITfDisplayAttributeInfo)]
+struct DisplayAttributeInfo {
+    /// 对应 GUID_DISPLAY_ATTR_INPUT 或 GUID_DISPLAY_ATTR_CONVERTED。
+    guid: GUID,
+    /// 显示名称。
+    description: &'static str,
+    /// TF_DISPLAYATTRIBUTE 数据。
+    attr: TF_DISPLAYATTRIBUTE,
+}
+
+impl ITfDisplayAttributeInfo_Impl for DisplayAttributeInfo_Impl {
+    fn GetGUID(&self) -> Result<GUID> {
+        Ok(self.guid)
+    }
+
+    fn GetDescription(&self) -> Result<windows::core::BSTR> {
+        Ok(windows::core::BSTR::from(self.description))
+    }
+
+    fn GetAttributeInfo(&self, pda: *mut TF_DISPLAYATTRIBUTE) -> Result<()> {
+        unsafe { *pda = self.attr.clone() };
+        Ok(())
+    }
+
+    fn SetAttributeInfo(&self, _pda: *const TF_DISPLAYATTRIBUTE) -> Result<()> {
+        Ok(())  // 自定义属性不支持外部修改
+    }
+
+    fn Reset(&self) -> Result<()> {
+        Ok(())
+    }
+}
+
+/// 辅助函数：创建一个 TF_DA_COLOR（指定 RGB）。
+fn make_color(r: u8, g: u8, b: u8) -> TF_DA_COLOR {
+    TF_DA_COLOR {
+        r#type: TF_CT_COLORREF,
+        Anonymous: TF_DA_COLOR_0 { cr: COLORREF(((r as u32) | ((g as u32) << 8) | ((b as u32) << 16))) },
+    }
+}
+
+/// 创建一个 ComObject 包裹的 DisplayAttributeInfo，返回其 ITfDisplayAttributeInfo 接口。
+fn make_display_attr_info(guid: GUID, desc: &'static str, attr: TF_DISPLAYATTRIBUTE) -> ITfDisplayAttributeInfo {
+    let info = DisplayAttributeInfo { guid, description: desc, attr };
+    let obj = windows::core::ComObject::new(info);
+    obj.to_interface()
+}
+
+/// 构建「编码输入态」display attribute：灰色点线。
+fn attr_input() -> TF_DISPLAYATTRIBUTE {
+    TF_DISPLAYATTRIBUTE {
+        crText: make_color(0x80, 0x80, 0x80),
+        crBk: TF_DA_COLOR { r#type: TF_CT_COLORREF, ..Default::default() },
+        lsStyle: TF_LS_DOT,
+        fBoldLine: false.into(),
+        crLine: make_color(0x80, 0x80, 0x80),
+        bAttr: Default::default(),
+    }
+}
+
+/// 构建「有候选态」display attribute：黑色实线。
+fn attr_converted() -> TF_DISPLAYATTRIBUTE {
+    TF_DISPLAYATTRIBUTE {
+        crText: make_color(0x00, 0x00, 0x00),
+        crBk: TF_DA_COLOR { r#type: TF_CT_COLORREF, ..Default::default() },
+        lsStyle: TF_LS_SOLID,
+        fBoldLine: false.into(),
+        crLine: make_color(0x00, 0x00, 0x00),
+        bAttr: Default::default(),
+    }
+}
 
 /// 异步 ITfEditSession 的操作描述。由 apply_transition 根据 Transition
 /// 构建，由 EditSession::DoEditSession 消费。
@@ -94,7 +179,7 @@ struct SinkState {
 /// 内部的 [`StateMachine`] 通过 `Mutex` 保护，多线程可见且无需发送数据
 /// 跨线程锁竞争（TSF 单线程模型 + Mutex 互斥访问足够）。
 #[implement(ITfTextInputProcessor, ITfThreadMgrEventSink, ITfKeyEventSink,
-             ITfCompositionSink)]
+             ITfCompositionSink, ITfDisplayAttributeProvider)]
 pub struct TextService {
     /// 跨平台核心状态机。
     sm: Mutex<StateMachine>,
@@ -343,6 +428,35 @@ impl TextService {
         }
         Ok(Option::clone(&sel[0].range).unwrap())
     }
+
+    /// 注册本 TIP 的自定义 display attribute 类别，使 TSF 能调用
+    /// ITfDisplayAttributeProvider::GetDisplayAttributeInfo。
+    fn register_display_attribute_categories(&self) {
+        use windows::Win32::System::Com::{CoCreateInstance, CLSCTX_INPROC_SERVER};
+
+        let category_mgr: Result<ITfCategoryMgr> = unsafe {
+            CoCreateInstance(
+                &windows::Win32::UI::TextServices::CLSID_TF_CategoryMgr,
+                None,
+                CLSCTX_INPROC_SERVER,
+            )
+        };
+        match category_mgr {
+            Ok(cat) => {
+                let guids = [GUID_DISPLAY_ATTR_INPUT, GUID_DISPLAY_ATTR_CONVERTED];
+                for guid in &guids {
+                    let _ = unsafe {
+                        cat.RegisterCategory(
+                            &CLSID_TEXT_SERVICE,
+                            &GUID_TFCAT_DISPLAYATTRIBUTEPROVIDER,
+                            guid,
+                        )
+                    };
+                }
+            }
+            Err(e) => log::warn!("[TSF] 无法创建 ITfCategoryMgr: {e}，DisplayAttribute 不可用"),
+        }
+    }
 }
 
 impl ITfTextInputProcessor_Impl for TextService_Impl {
@@ -427,10 +541,15 @@ impl ITfTextInputProcessor_Impl for TextService_Impl {
             }
         }
 
+        // 注册自定义 DisplayAttribute 类别。
+        self.register_display_attribute_categories();
+
         log::info!("[TSF] TIP activated (tid={tid})");
         Ok(())
     }
 
+    /// 注册本 TIP 的自定义 display attribute 类别，使 TSF 能调用
+    /// ITfDisplayAttributeProvider::GetDisplayAttributeInfo。
     fn Deactivate(&self) -> Result<()> {
         // 隐藏候选框并关闭候选框窗口。
         self.candidate_tx.store(Arc::new(CandidateData::hidden(ThemeSnapshot::default())));
@@ -494,6 +613,26 @@ impl ITfCompositionSink_Impl for TextService_Impl {
         self.is_composing.store(false, Ordering::Release);
         self.sm.lock().reset();
         Ok(())
+    }
+}
+
+impl ITfDisplayAttributeProvider_Impl for TextService_Impl {
+    fn EnumDisplayAttributeInfo(&self) -> Result<IEnumTfDisplayAttributeInfo> {
+        // windows-rs 0.61 未导出 IEnumTfDisplayAttributeInfo_Impl trait，
+        // 无法实现自定义枚举器。TSF 通过 RegisterCategory 注册后仍可通过
+        // GetDisplayAttributeInfo 直接获取属性信息。
+        Err(windows::core::Error::from(HRESULT(-1)))
+    }
+
+    fn GetDisplayAttributeInfo(&self, guid: *const GUID) -> Result<ITfDisplayAttributeInfo> {
+        let guid_safe = unsafe { &*guid };
+        if *guid_safe == GUID_DISPLAY_ATTR_INPUT {
+            Ok(make_display_attr_info(GUID_DISPLAY_ATTR_INPUT, "编码输入态", attr_input()))
+        } else if *guid_safe == GUID_DISPLAY_ATTR_CONVERTED {
+            Ok(make_display_attr_info(GUID_DISPLAY_ATTR_CONVERTED, "候选态", attr_converted()))
+        } else {
+            Err(HRESULT(-1).into())
+        }
     }
 }
 
