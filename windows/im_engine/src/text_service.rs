@@ -17,13 +17,17 @@
 use core_engine::{Config, Dictionary, StateMachine, Transition};
 use parking_lot::Mutex;
 use std::sync::Arc;
+use std::sync::atomic::{AtomicBool, Ordering};
 
 use windows::core::{implement, Interface, Ref, Result, BOOL, GUID, HRESULT};
 use windows::Win32::Foundation::{LPARAM, WPARAM};
 use windows::Win32::UI::TextServices::{
-    ITfContext, ITfDocumentMgr, ITfKeyEventSink, ITfKeyEventSink_Impl, ITfKeystrokeMgr, ITfSource,
+    ITfComposition, ITfCompositionSink, ITfCompositionSink_Impl, ITfContext,
+    ITfContextComposition, ITfDocumentMgr, ITfEditSession, ITfEditSession_Impl,
+    ITfKeyEventSink, ITfKeyEventSink_Impl, ITfKeystrokeMgr, ITfRange, ITfSource,
     ITfTextInputProcessor, ITfTextInputProcessor_Impl, ITfThreadMgr,
     ITfThreadMgrEventSink, ITfThreadMgrEventSink_Impl,
+    TF_ES_ASYNC, TF_DEFAULT_SELECTION, TF_SELECTION,
 };
 
 use arc_swap::ArcSwap;
@@ -32,6 +36,41 @@ use crate::candidate_data::{CandidateData, CandidateItem, ThemeSnapshot};
 use crate::candidate_window::CandidateWindow;
 use crate::key_filter;
 use crate::screen_geometry::get_caret_position;
+
+// ── 类型定义 ────────────────────────────────────────────────────────
+
+/// 异步 ITfEditSession 的操作描述。由 apply_transition 根据 Transition
+/// 构建，由 EditSession::DoEditSession 消费。
+#[derive(Debug, Clone)]
+enum EditSessionOp {
+    /// 创建或更新 composition range 上的编码文本。
+    CompositionUpdate { spelling: String },
+    /// 将 composition range 文本替换为最终候选词，终止 composition。
+    CommitAndReplace { text: String },
+    /// 终止 composition。delete_text=true 时删除 range 文本（Esc），
+    /// false 时保留文本（Passthrough）。
+    EndComposition { delete_text: bool },
+    /// 无操作。
+    NoOp,
+}
+
+/// ITfEditSession 的 COM 实现。由 schedule_edit_session 创建并传递给
+/// ITfContext::RequestEditSession 异步调度。
+#[implement(ITfEditSession)]
+struct EditSession {
+    op: EditSessionOp,
+    /// 指向 TextService 的原始指针（不增加引用计数）。
+    /// 生命周期：EditSession 在 DoEditSession 调用完成后即被释放，
+    /// 此时 TextService 一定仍然存活（Activate/Deactivate 生命周期保证）。
+    service_ptr: *const TextService,
+}
+
+impl ITfEditSession_Impl for EditSession_Impl {
+    fn DoEditSession(&self, ec: u32) -> Result<()> {
+        let service = unsafe { &*self.service_ptr };
+        service.execute_edit_session(ec, &self.op)
+    }
+}
 
 /// TSF 会话状态：跟踪已注册的 sink 及其注册方式。
 #[derive(Default)]
@@ -54,7 +93,8 @@ struct SinkState {
 ///
 /// 内部的 [`StateMachine`] 通过 `Mutex` 保护，多线程可见且无需发送数据
 /// 跨线程锁竞争（TSF 单线程模型 + Mutex 互斥访问足够）。
-#[implement(ITfTextInputProcessor, ITfThreadMgrEventSink, ITfKeyEventSink)]
+#[implement(ITfTextInputProcessor, ITfThreadMgrEventSink, ITfKeyEventSink,
+             ITfCompositionSink)]
 pub struct TextService {
     /// 跨平台核心状态机。
     sm: Mutex<StateMachine>,
@@ -75,6 +115,11 @@ pub struct TextService {
     candidate_tx: Arc<ArcSwap<CandidateData>>,
     /// 候选框窗口实例（Activate 中启动，Deactivate 中关闭）。
     candidate_window: Mutex<Option<CandidateWindow>>,
+    /// ── Phase 1 新增字段 ──
+    /// 当前激活的 composition 对象。
+    composition: Mutex<Option<ITfComposition>>,
+    /// 当前是否处于 composing 状态。
+    is_composing: AtomicBool,
 }
 
 impl TextService {
@@ -89,6 +134,8 @@ impl TextService {
             self_unknown: Mutex::new(None),
             candidate_tx,
             candidate_window: Mutex::new(None),
+            composition: Mutex::new(None),
+            is_composing: AtomicBool::new(false),
         }
     }
 
@@ -123,56 +170,178 @@ impl TextService {
 
     /// 内部：把 [`Transition`] 落实成副作用并返回 BOOL 表示“按键已消费”。
     ///
-    /// `context` 为可选的 TSF `ITfContext`，用于在候选框弹出时获取光标屏幕坐标。
+    /// `context` 为可选的 TSF `ITfContext`，用于候选框坐标获取和 EditSession 调度。
     fn apply_transition(&self, t: Transition, context: Option<&ITfContext>) -> BOOL {
         let theme = ThemeSnapshot::default();
-        match t {
-            Transition::None => BOOL(1),
+        let op = match &t {
+            Transition::None => EditSessionOp::NoOp,
             Transition::Commit(text) => {
                 log::info!("[TSF] commit text: {text}");
                 self.candidate_tx.store(Arc::new(CandidateData::hidden(theme)));
-                BOOL(1)
+                EditSessionOp::CommitAndReplace { text: text.clone() }
             }
             Transition::Candidates { spelling, candidates, page, total_pages } => {
-                // 防御：编码串为空则隐藏候选框
                 if spelling.is_empty() {
                     self.candidate_tx.store(Arc::new(CandidateData::hidden(theme)));
                     return BOOL(1);
                 }
                 let items: Vec<CandidateItem> = candidates.iter().enumerate().map(|(i, text)| {
-                    CandidateItem { label: format!("{}.", i + 1), text: text.clone() }
+                    CandidateItem { label: format!("{}. ", i + 1), text: text.clone() }
                 }).collect();
-
-                // 从 TSF 上下文获取光标屏幕坐标（若无上下文则 None，候选框仍工作但不跟随光标）
                 let anchor = context.and_then(|ctx| get_caret_position(ctx));
-                let data = CandidateData::visible(
-                    spelling.clone(), items, 0, page, total_pages, anchor, theme,
-                );
-                self.candidate_tx.store(Arc::new(data));
-                BOOL(1)
+                self.candidate_tx.store(Arc::new(CandidateData::visible(
+                    spelling.clone(), items, 0, *page, *total_pages, anchor, theme,
+                )));
+                EditSessionOp::CompositionUpdate { spelling: spelling.clone() }
             }
             Transition::SpellingUpdated(s) => {
                 log::debug!("[TSF] spelling={s}");
-                // 更新编码串但不改变候选框可见性——避免打字过程中闪烁
                 let mut data = (**self.candidate_tx.load()).clone();
                 data.spelling = s.clone();
-                // 如果之前没有候选，保持隐藏；如果有，保持可见但清空候选列表
                 if data.items.is_empty() {
                     data.visible = false;
                 }
                 self.candidate_tx.store(Arc::new(data));
-                BOOL(1)
+                EditSessionOp::CompositionUpdate { spelling: s.clone() }
             }
             Transition::Cleared => {
                 self.candidate_tx.store(Arc::new(CandidateData::hidden(theme)));
-                BOOL(1)
+                EditSessionOp::EndComposition { delete_text: true }
             }
             Transition::Passthrough(_) => {
-                // 非拦截按键时隐藏候选框，恢复应用焦点
                 self.candidate_tx.store(Arc::new(CandidateData::hidden(theme)));
-                BOOL(0)
-            },
+                EditSessionOp::EndComposition { delete_text: false }
+            }
+        };
+
+        // 异步调度 EditSession 更新 composition（候选框已同步更新）
+        if let Some(ctx) = context {
+            self.schedule_edit_session(op, ctx);
         }
+
+        match t {
+            Transition::Passthrough(_) => BOOL(0),
+            _ => BOOL(1),
+        }
+    }
+
+    /// 异步调度一条 composition 操作到 TSF 编辑会话。
+    fn schedule_edit_session(&self, op: EditSessionOp, context: &ITfContext) {
+        let tid = self.cookies.lock().tid;
+        if tid == 0 {
+            log::warn!("[TSF] schedule_edit_session: tid==0，跳过");
+            return;
+        }
+        let edit_session = EditSession {
+            op,
+            service_ptr: self as *const TextService,
+        };
+        let com_obj = windows::core::ComObject::new(edit_session);
+        let edit_session_com: ITfEditSession = com_obj.to_interface();
+        if let Err(e) = unsafe { context.RequestEditSession(tid, &edit_session_com, TF_ES_ASYNC) } {
+            log::error!("[TSF] RequestEditSession 失败: {e}");
+        }
+    }
+
+    /// 在 TSF EditSession 回调中执行实际的 composition 操作。
+    fn execute_edit_session(&self, ec: u32, op: &EditSessionOp) -> Result<()> {
+        match op {
+            EditSessionOp::NoOp => Ok(()),
+            EditSessionOp::CompositionUpdate { spelling } => {
+                self.edit_session_composition_update(ec, spelling)
+            }
+            EditSessionOp::CommitAndReplace { text } => {
+                self.edit_session_commit_and_replace(ec, text)
+            }
+            EditSessionOp::EndComposition { delete_text } => {
+                self.edit_session_end_composition(ec, *delete_text)
+            }
+        }
+    }
+
+    fn edit_session_composition_update(&self, ec: u32, spelling: &str) -> Result<()> {
+        // 获取焦点文档管理器的顶 context
+        let (ctx, _doc_mgr) = self.get_focus_context()?;
+
+        let mut comp_guard = self.composition.lock();
+
+        if comp_guard.is_none() {
+            // 首次：在光标处开始 composition
+            let ctx_comp: ITfContextComposition = ctx.cast()?;
+            let selection = self.get_selection_range(&ctx, ec)?;
+            let new_comp = unsafe {
+                ctx_comp.StartComposition(ec, &selection, None)
+            }?;
+            *comp_guard = Some(new_comp);
+            self.is_composing.store(true, Ordering::Release);
+        }
+
+        if let Some(ref comp) = *comp_guard {
+            let range: ITfRange = unsafe { comp.GetRange()? };
+            let wide: Vec<u16> = spelling.encode_utf16().collect();
+            unsafe { range.SetText(ec, 0, &wide) }?;
+        }
+
+        Ok(())
+    }
+
+    fn edit_session_commit_and_replace(&self, ec: u32, text: &str) -> Result<()> {
+        let mut comp_guard = self.composition.lock();
+
+        if let Some(comp) = comp_guard.take() {
+            let range: ITfRange = unsafe { comp.GetRange()? };
+            let wide: Vec<u16> = text.encode_utf16().collect();
+            unsafe { range.SetText(ec, 0, &wide) }?;
+            // 终止 composition
+            unsafe { comp.EndComposition(ec) }?;
+        } else {
+            // 没有 active composition，直接插入文本到光标处
+            let (ctx, _doc_mgr) = self.get_focus_context()?;
+            let range = self.get_selection_range(&ctx, ec)?;
+            let wide: Vec<u16> = text.encode_utf16().collect();
+            unsafe { range.SetText(ec, 0, &wide) }?;
+        }
+
+        self.is_composing.store(false, Ordering::Release);
+        Ok(())
+    }
+
+    fn edit_session_end_composition(&self, ec: u32, delete_text: bool) -> Result<()> {
+        let mut comp_guard = self.composition.lock();
+
+        if let Some(comp) = comp_guard.take() {
+            if delete_text {
+                let range: ITfRange = unsafe { comp.GetRange()? };
+                unsafe { range.SetText(ec, 0, &[]) }?;  // 清空文本
+            }
+            unsafe { comp.EndComposition(ec) }?;
+        }
+
+        self.is_composing.store(false, Ordering::Release);
+        Ok(())
+    }
+
+    /// 获取当前焦点文档管理器的顶 context。
+    fn get_focus_context(&self) -> Result<(ITfContext, ITfDocumentMgr)> {
+        let tm_guard = self.thread_mgr.lock();
+        let tm = tm_guard.as_ref().ok_or_else(|| {
+            windows::core::Error::from(HRESULT(-1))
+        })?;
+        let doc_mgr: ITfDocumentMgr = unsafe { tm.GetFocus() }?;
+        let ctx: ITfContext = unsafe { doc_mgr.GetBase() }?;
+        drop(tm_guard);
+        Ok((ctx, doc_mgr))
+    }
+
+    /// 获取当前光标处的文本 range。
+    fn get_selection_range(&self, ctx: &ITfContext, ec: u32) -> Result<ITfRange> {
+        let mut sel = [TF_SELECTION::default()];
+        let mut fetched: u32 = 0;
+        unsafe { ctx.GetSelection(ec, TF_DEFAULT_SELECTION, &mut sel, &mut fetched) }?;
+        if fetched == 0 || sel[0].range.is_none() {
+            return Err(windows::core::Error::from(HRESULT(-1)));
+        }
+        Ok(Option::clone(&sel[0].range).unwrap())
     }
 }
 
@@ -303,10 +472,27 @@ impl ITfTextInputProcessor_Impl for TextService_Impl {
         // 释放自我持有的 IUnknown，避免强引用循环。
         self.release_self_unknown();
 
+        // 清理 composition（如果有
+        if let Some(comp) = self.composition.lock().take() {
+            // 无法在 Deactivate 中获取有效 context 来 EndComposition，直接 drop
+            drop(comp);
+        }
+        self.is_composing.store(false, Ordering::Release);
+
         // 清理状态机内部缓冲。
         self.sm.lock().reset();
 
         log::info!("[TSF] TIP deactivated");
+        Ok(())
+    }
+}
+
+impl ITfCompositionSink_Impl for TextService_Impl {
+    fn OnCompositionTerminated(&self, _ecwrite: u32, _pcomp: Ref<'_, ITfComposition>) -> Result<()> {
+        log::warn!("[TSF] Composition 被外部终止");
+        *self.composition.lock() = None;
+        self.is_composing.store(false, Ordering::Release);
+        self.sm.lock().reset();
         Ok(())
     }
 }
