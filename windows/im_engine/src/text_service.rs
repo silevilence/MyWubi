@@ -47,7 +47,7 @@ use windows::Win32::Foundation::COLORREF;
 
 use arc_swap::ArcSwap;
 
-use crate::candidate_data::{CandidateData, CandidateItem, ThemeSnapshot};
+use crate::candidate_data::{CandidateData, CandidateItem, ScreenPoint, ThemeSnapshot};
 use crate::guids::CLSID_TEXT_SERVICE;
 use crate::candidate_window::CandidateWindow;
 use crate::key_filter;
@@ -245,6 +245,27 @@ fn should_intercept_test_key(event: Option<InputEvent>, spelling_empty: bool) ->
     }
 }
 
+fn resolve_candidate_anchor(context: Option<&ITfContext>, font_size: u16) -> Option<ScreenPoint> {
+    crate::screen_geometry::get_caret_position_win32(font_size)
+        .or_else(|| crate::screen_geometry::get_cursor_position())
+        .or_else(|| context.and_then(get_caret_position))
+}
+
+fn build_spelling_only_candidate_data(
+    mut current: CandidateData,
+    spelling: String,
+    anchor: Option<ScreenPoint>,
+) -> CandidateData {
+    current.visible = !spelling.is_empty();
+    current.spelling = spelling;
+    current.items.clear();
+    current.highlighted = 0;
+    current.page = 0;
+    current.total_pages = 0;
+    current.anchor = anchor;
+    current
+}
+
 impl TextService {
     /// 创建一个绑定码表与状态机的文本服务实例（不带 back-pointer）。
     pub fn new(dict: Arc<Dictionary>, page_size: usize, auto_commit_unique: bool, candidate_tx: Arc<ArcSwap<CandidateData>>) -> Self {
@@ -338,11 +359,7 @@ impl TextService {
                 let items: Vec<CandidateItem> = candidates.iter().enumerate().map(|(i, text)| {
                     CandidateItem { label: format!("{}. ", i + 1), text: text.clone() }
                 }).collect();
-                // 优先使用 Win32 GetCaretPos 获取光标位置（无需 TSF edit cookie），
-                // 若失败则尝试 TSF 上下文方法获取。
-                let anchor = crate::screen_geometry::get_caret_position_win32(theme.font_size)
-                    .or_else(|| crate::screen_geometry::get_cursor_position())
-                    .or_else(|| context.and_then(|ctx| get_caret_position(ctx)));
+                let anchor = resolve_candidate_anchor(context, theme.font_size);
                 self.candidate_tx.store(Arc::new(CandidateData::visible(
                     spelling.clone(), items, 0, *page, *total_pages, anchor, theme.clone(),
                 )));
@@ -351,11 +368,11 @@ impl TextService {
             }
             Transition::SpellingUpdated(s) => {
                 log::debug!("[TSF] spelling={s}");
-                let mut data = (**self.candidate_tx.load()).clone();
-                data.spelling = s.clone();
-                if data.items.is_empty() {
-                    data.visible = false;
-                }
+                let data = build_spelling_only_candidate_data(
+                    (**self.candidate_tx.load()).clone(),
+                    s.clone(),
+                    resolve_candidate_anchor(context, theme.font_size),
+                );
                 self.candidate_tx.store(Arc::new(data));
                 // 不插入 composition 文字，候选框会显示当前编码
                 EditSessionOp::NoOp
@@ -1024,5 +1041,47 @@ mod tests {
     #[test]
     fn character_input_is_still_intercepted() {
         assert!(should_intercept_test_key(Some(InputEvent::Char('g')), true));
+    }
+
+    #[test]
+    fn spelling_update_clears_stale_candidates_and_keeps_spelling_visible() {
+        let theme = ThemeSnapshot::default();
+        let current = CandidateData::visible(
+            "a".into(),
+            vec![CandidateItem { label: "1. ".into(), text: "工".into() }],
+            0,
+            0,
+            1,
+            None,
+            theme.clone(),
+        );
+
+        let updated = build_spelling_only_candidate_data(
+            current,
+            "aaa".into(),
+            Some(crate::candidate_data::ScreenPoint { x: 10, y: 20 }),
+        );
+
+        assert!(updated.visible);
+        assert_eq!(updated.spelling, "aaa");
+        assert!(updated.items.is_empty());
+        assert_eq!(updated.highlighted, 0);
+        assert_eq!(updated.page, 0);
+        assert_eq!(updated.total_pages, 0);
+        assert_eq!(updated.anchor.unwrap().x, 10);
+        assert_eq!(updated.anchor.unwrap().y, 20);
+    }
+
+    #[test]
+    fn spelling_update_shows_spelling_even_without_candidates() {
+        let theme = ThemeSnapshot::default();
+        let current = CandidateData::hidden(theme.clone());
+
+        let updated = build_spelling_only_candidate_data(current, "aaa".into(), None);
+
+        assert!(updated.visible);
+        assert_eq!(updated.spelling, "aaa");
+        assert!(updated.items.is_empty());
+        assert_eq!(updated.theme.font_size, theme.font_size);
     }
 }
