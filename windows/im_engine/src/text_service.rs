@@ -14,7 +14,7 @@
 //! * **焦点切换**：`ITfThreadMgrEventSink::OnSetFocus` 用于跟踪文档管理器焦点，
 //!   为后续候选框定位提供基础（暂记当前 ITfDocumentMgr 指针）。
 
-use core_engine::{Config, Dictionary, StateMachine, Transition};
+use core_engine::{Config, Dictionary, InputEvent, StateMachine, Transition};
 use parking_lot::Mutex;
 use std::sync::Arc;
 use std::sync::atomic::{AtomicBool, Ordering};
@@ -36,10 +36,9 @@ use windows::Win32::UI::TextServices::{
     ITfThreadMgr,
     ITfThreadMgrEventSink, ITfThreadMgrEventSink_Impl,
     TF_DA_COLOR, TF_DA_COLOR_0,
-    TF_DISPLAYATTRIBUTE, TF_ES_ASYNC, TF_DEFAULT_SELECTION, TF_LS_DOT,
+    TF_DISPLAYATTRIBUTE, TF_ES_ASYNC, TF_ES_READWRITE, TF_DEFAULT_SELECTION, TF_LS_DOT,
     TF_LS_SOLID, TF_SELECTION, TF_CT_COLORREF, GUID_TFCAT_DISPLAYATTRIBUTEPROVIDER,
-    GUID_COMPARTMENT_KEYBOARD_OPENCLOSE, TF_TMAE_COMLESS,
-    TF_PRESERVEDKEY, TF_MOD_ON_KEYUP, TF_MOD_CONTROL,
+    TF_PRESERVEDKEY, TF_MOD_ON_KEYUP,
     TKBLayoutType, TKBLT_OPTIMIZED, TKBL_OPT_SIMPLIFIED_CHINESE_PINYIN,
 };
 use windows::Win32::UI::Input::KeyboardAndMouse::VK_SHIFT;
@@ -140,6 +139,7 @@ fn attr_converted() -> TF_DISPLAYATTRIBUTE {
 /// 异步 ITfEditSession 的操作描述。由 apply_transition 根据 Transition
 /// 构建，由 EditSession::DoEditSession 消费。
 #[derive(Debug, Clone)]
+#[allow(dead_code)]
 enum EditSessionOp {
     /// 创建或更新 composition range 上的编码文本。
     CompositionUpdate { spelling: String },
@@ -216,6 +216,8 @@ pub struct TextService {
     candidate_tx: Arc<ArcSwap<CandidateData>>,
     /// 候选框窗口实例（Activate 中启动，Deactivate 中关闭）。
     candidate_window: Mutex<Option<CandidateWindow>>,
+    /// 当前候选框主题快照。
+    theme: ThemeSnapshot,
     /// ── Phase 1 新增字段 ──
     /// 当前激活的 composition 对象。
     composition: Mutex<Option<ITfComposition>>,
@@ -235,9 +237,33 @@ pub struct TextService {
     edit_sink_cookie: Mutex<u32>,
 }
 
+fn should_intercept_test_key(event: Option<InputEvent>, spelling_empty: bool) -> bool {
+    match event {
+        Some(InputEvent::Char(_)) => true,
+        Some(_) => !spelling_empty,
+        None => false,
+    }
+}
+
 impl TextService {
     /// 创建一个绑定码表与状态机的文本服务实例（不带 back-pointer）。
     pub fn new(dict: Arc<Dictionary>, page_size: usize, auto_commit_unique: bool, candidate_tx: Arc<ArcSwap<CandidateData>>) -> Self {
+        Self::with_theme(
+            dict,
+            page_size,
+            auto_commit_unique,
+            candidate_tx,
+            ThemeSnapshot::default(),
+        )
+    }
+
+    fn with_theme(
+        dict: Arc<Dictionary>,
+        page_size: usize,
+        auto_commit_unique: bool,
+        candidate_tx: Arc<ArcSwap<CandidateData>>,
+        theme: ThemeSnapshot,
+    ) -> Self {
         let sm = StateMachine::with_options(dict, page_size, auto_commit_unique);
         Self {
             sm: Mutex::new(sm),
@@ -247,6 +273,7 @@ impl TextService {
             self_unknown: Mutex::new(None),
             candidate_tx,
             candidate_window: Mutex::new(None),
+            theme,
             composition: Mutex::new(None),
             is_composing: AtomicBool::new(false),
             activate_flags: Mutex::new(0),
@@ -259,12 +286,17 @@ impl TextService {
 
     /// 从 [`Config`] 选择默认参数。
     pub fn from_config(dict: Arc<Dictionary>, cfg: &Config, candidate_tx: Arc<ArcSwap<CandidateData>>) -> Self {
-        Self::new(
+        Self::with_theme(
             dict,
             cfg.basic.candidate_count as usize,
             cfg.basic.auto_commit_unique,
             candidate_tx,
+            ThemeSnapshot::from_config(cfg),
         )
+    }
+
+    fn current_theme(&self) -> ThemeSnapshot {
+        self.theme.clone()
     }
 
     /// 仅供 IClassFactory 内部注入 self 弱强引用（见
@@ -290,27 +322,32 @@ impl TextService {
     ///
     /// `context` 为可选的 TSF `ITfContext`，用于候选框坐标获取和 EditSession 调度。
     fn apply_transition(&self, t: Transition, context: Option<&ITfContext>) -> BOOL {
-        let theme = ThemeSnapshot::default();
+        let theme = self.current_theme();
         let op = match &t {
             Transition::None => EditSessionOp::NoOp,
             Transition::Commit(text) => {
                 log::info!("[TSF] commit text: {text}");
-                self.candidate_tx.store(Arc::new(CandidateData::hidden(theme)));
+                self.candidate_tx.store(Arc::new(CandidateData::hidden(theme.clone())));
                 EditSessionOp::CommitAndReplace { text: text.clone() }
             }
             Transition::Candidates { spelling, candidates, page, total_pages } => {
                 if spelling.is_empty() {
-                    self.candidate_tx.store(Arc::new(CandidateData::hidden(theme)));
+                    self.candidate_tx.store(Arc::new(CandidateData::hidden(theme.clone())));
                     return BOOL(1);
                 }
                 let items: Vec<CandidateItem> = candidates.iter().enumerate().map(|(i, text)| {
                     CandidateItem { label: format!("{}. ", i + 1), text: text.clone() }
                 }).collect();
-                let anchor = context.and_then(|ctx| get_caret_position(ctx));
+                // 优先使用 Win32 GetCaretPos 获取光标位置（无需 TSF edit cookie），
+                // 若失败则尝试 TSF 上下文方法获取。
+                let anchor = crate::screen_geometry::get_caret_position_win32(theme.font_size)
+                    .or_else(|| crate::screen_geometry::get_cursor_position())
+                    .or_else(|| context.and_then(|ctx| get_caret_position(ctx)));
                 self.candidate_tx.store(Arc::new(CandidateData::visible(
-                    spelling.clone(), items, 0, *page, *total_pages, anchor, theme,
+                    spelling.clone(), items, 0, *page, *total_pages, anchor, theme.clone(),
                 )));
-                EditSessionOp::CompositionUpdate { spelling: spelling.clone() }
+                // 候选框显示编码和候选词，不插入 composition 文字（Wubi 输入法典型行为）
+                EditSessionOp::NoOp
             }
             Transition::SpellingUpdated(s) => {
                 log::debug!("[TSF] spelling={s}");
@@ -320,15 +357,17 @@ impl TextService {
                     data.visible = false;
                 }
                 self.candidate_tx.store(Arc::new(data));
-                EditSessionOp::CompositionUpdate { spelling: s.clone() }
+                // 不插入 composition 文字，候选框会显示当前编码
+                EditSessionOp::NoOp
             }
             Transition::Cleared => {
-                self.candidate_tx.store(Arc::new(CandidateData::hidden(theme)));
+                self.candidate_tx.store(Arc::new(CandidateData::hidden(theme.clone())));
                 EditSessionOp::EndComposition { delete_text: true }
             }
             Transition::Passthrough(_) => {
-                self.candidate_tx.store(Arc::new(CandidateData::hidden(theme)));
-                EditSessionOp::EndComposition { delete_text: false }
+                self.candidate_tx.store(Arc::new(CandidateData::hidden(theme.clone())));
+                // Passthrough 不应调度任何 EditSession，避免干扰应用自身按键处理
+                return BOOL(0);
             }
         };
 
@@ -356,14 +395,14 @@ impl TextService {
         };
         let com_obj = windows::core::ComObject::new(edit_session);
         let edit_session_com: ITfEditSession = com_obj.to_interface();
-        if let Err(e) = unsafe { context.RequestEditSession(tid, &edit_session_com, TF_ES_ASYNC) } {
+        if let Err(e) = unsafe { context.RequestEditSession(tid, &edit_session_com, TF_ES_ASYNC | TF_ES_READWRITE) } {
             log::error!("[TSF] RequestEditSession 失败: {e}");
         }
     }
 
     /// 在 TSF EditSession 回调中执行实际的 composition 操作。
     fn execute_edit_session(&self, ec: u32, op: &EditSessionOp) -> Result<()> {
-        match op {
+        let result = match op {
             EditSessionOp::NoOp => Ok(()),
             EditSessionOp::CompositionUpdate { spelling } => {
                 self.edit_session_composition_update(ec, spelling)
@@ -374,67 +413,58 @@ impl TextService {
             EditSessionOp::EndComposition { delete_text } => {
                 self.edit_session_end_composition(ec, *delete_text)
             }
+        };
+        if let Err(ref e) = result {
+            log::error!("[TSF] EditSession 操作失败: {e}");
         }
+        result
     }
 
     fn edit_session_composition_update(&self, ec: u32, spelling: &str) -> Result<()> {
-        // 获取焦点文档管理器的顶 context
-        let (ctx, _doc_mgr) = self.get_focus_context()?;
-
+        // 使用 get_focus_context 获取的文档 context 创建 composition
+        let (edit_ctx, _doc_mgr) = self.get_focus_context()?;
         let mut comp_guard = self.composition.lock();
-
         if comp_guard.is_none() {
-            // 首次：在光标处开始 composition
-            let ctx_comp: ITfContextComposition = ctx.cast()?;
-            let selection = self.get_selection_range(&ctx, ec)?;
-            let new_comp = unsafe {
-                ctx_comp.StartComposition(ec, &selection, None)
-            }?;
+            let ctx_comp: ITfContextComposition = edit_ctx.cast()?;
+            let selection = self.get_selection_range(&edit_ctx, ec)?;
+            let new_comp = unsafe { ctx_comp.StartComposition(ec, &selection, None) }?;
             *comp_guard = Some(new_comp);
             self.is_composing.store(true, Ordering::Release);
         }
-
         if let Some(ref comp) = *comp_guard {
             let range: ITfRange = unsafe { comp.GetRange()? };
             let wide: Vec<u16> = spelling.encode_utf16().collect();
             unsafe { range.SetText(ec, 0, &wide) }?;
         }
-
         Ok(())
     }
 
     fn edit_session_commit_and_replace(&self, ec: u32, text: &str) -> Result<()> {
         let mut comp_guard = self.composition.lock();
-
         if let Some(comp) = comp_guard.take() {
             let range: ITfRange = unsafe { comp.GetRange()? };
             let wide: Vec<u16> = text.encode_utf16().collect();
             unsafe { range.SetText(ec, 0, &wide) }?;
-            // 终止 composition
             unsafe { comp.EndComposition(ec) }?;
         } else {
-            // 没有 active composition，直接插入文本到光标处
-            let (ctx, _doc_mgr) = self.get_focus_context()?;
-            let range = self.get_selection_range(&ctx, ec)?;
+            let (edit_ctx, _doc_mgr) = self.get_focus_context()?;
+            let range = self.get_selection_range(&edit_ctx, ec)?;
             let wide: Vec<u16> = text.encode_utf16().collect();
             unsafe { range.SetText(ec, 0, &wide) }?;
         }
-
         self.is_composing.store(false, Ordering::Release);
         Ok(())
     }
 
     fn edit_session_end_composition(&self, ec: u32, delete_text: bool) -> Result<()> {
         let mut comp_guard = self.composition.lock();
-
         if let Some(comp) = comp_guard.take() {
             if delete_text {
                 let range: ITfRange = unsafe { comp.GetRange()? };
-                unsafe { range.SetText(ec, 0, &[]) }?;  // 清空文本
+                unsafe { range.SetText(ec, 0, &[]) }?;
             }
             unsafe { comp.EndComposition(ec) }?;
         }
-
         self.is_composing.store(false, Ordering::Release);
         Ok(())
     }
@@ -501,7 +531,7 @@ impl TextService {
     pub fn set_english_mode(&self) {
         *self.ime_mode.lock() = false;
         self.sm.lock().reset();
-        let theme = ThemeSnapshot::default();
+        let theme = self.current_theme();
         self.candidate_tx.store(Arc::new(CandidateData::hidden(theme)));
         log::debug!("[TSF] 切换到英文模式");
     }
@@ -535,7 +565,7 @@ impl ITfTextInputProcessor_Impl for TextService_Impl {
         self.is_composing.store(false, Ordering::Release);
 
         // 隐藏候选框并关闭候选框窗口。
-        self.candidate_tx.store(Arc::new(CandidateData::hidden(ThemeSnapshot::default())));
+        self.candidate_tx.store(Arc::new(CandidateData::hidden(self.current_theme())));
         if let Some(mut cw) = self.candidate_window.lock().take() {
             cw.shutdown();
         }
@@ -782,7 +812,7 @@ impl ITfThreadFocusSink_Impl for TextService_Impl {
         log::debug!("[TSF] 线程焦点丢失");
         // 清理输入状态
         self.sm.lock().reset();
-        let theme = ThemeSnapshot::default();
+        let theme = self.current_theme();
         self.candidate_tx.store(Arc::new(CandidateData::hidden(theme)));
         if self.is_composing.load(Ordering::Acquire) {
             // 异步清除 composition（需要有效的 context，Deactivate 会兜底）
@@ -901,12 +931,12 @@ impl ITfKeyEventSink_Impl for TextService_Impl {
             return Ok(BOOL(0));
         }
 
-        // 声明对 is_intercepted_key 识别的所有按键（字母/数字/退格/空格等）的兴趣
-        if !key_filter::is_intercepted_key(wparam.0 as usize) {
-            return Ok(BOOL(0));
-        }
         let _ = lparam;
-        Ok(BOOL(1))
+        let spelling_empty = self.sm.lock().spelling().is_empty();
+        Ok(BOOL(should_intercept_test_key(
+            key_filter::translate(wparam.0 as usize, lparam.0 as isize),
+            spelling_empty,
+        ) as i32))
     }
 
     fn OnTestKeyUp(
@@ -927,6 +957,11 @@ impl ITfKeyEventSink_Impl for TextService_Impl {
         let Some(event) = key_filter::translate(wparam.0 as usize, lparam.0 as isize) else {
             return Ok(BOOL(0));
         };
+
+        let spelling_empty = self.sm.lock().spelling().is_empty();
+        if !should_intercept_test_key(Some(event.clone()), spelling_empty) {
+            return Ok(BOOL(0));
+        }
 
         let t = self.sm.lock().handle(event);
         Ok(self.apply_transition(t, pic.as_ref()))
@@ -953,5 +988,41 @@ impl ITfKeyEventSink_Impl for TextService_Impl {
         } else {
             Ok(BOOL(0))
         }
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn theme_snapshot_comes_from_config_appearance() {
+        let mut cfg = Config::default();
+        cfg.appearance.font_size = 18;
+        cfg.appearance.primary_color = 0xFF102030;
+        cfg.appearance.background_color = 0xFFF0E0D0;
+        cfg.appearance.highlight_color = 0xFFABCDEF;
+
+        let theme = ThemeSnapshot::from_config(&cfg);
+
+        assert_eq!(theme.font_size, 18);
+        assert_eq!(theme.primary_color, 0xFF102030);
+        assert_eq!(theme.background_color, 0xFFF0E0D0);
+        assert_eq!(theme.highlight_color, 0xFFABCDEF);
+    }
+
+    #[test]
+    fn idle_backspace_is_not_intercepted_in_test_keydown() {
+        assert!(!should_intercept_test_key(Some(InputEvent::Backspace), true));
+    }
+
+    #[test]
+    fn composing_backspace_is_intercepted_in_test_keydown() {
+        assert!(should_intercept_test_key(Some(InputEvent::Backspace), false));
+    }
+
+    #[test]
+    fn character_input_is_still_intercepted() {
+        assert!(should_intercept_test_key(Some(InputEvent::Char('g')), true));
     }
 }

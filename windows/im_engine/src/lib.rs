@@ -20,7 +20,7 @@ use std::sync::Arc;
 use std::sync::Once;
 use std::sync::OnceLock;
 
-use crate::candidate_data::CandidateData;
+use crate::candidate_data::{CandidateData, ThemeSnapshot};
 use windows::core::{ComObject, GUID, HRESULT};
 use windows::core::Interface;
 use windows::Win32::Foundation::HMODULE;
@@ -28,29 +28,27 @@ use windows::Win32::Foundation::CLASS_E_CLASSNOTAVAILABLE;
 use windows::Win32::System::SystemServices::DLL_PROCESS_ATTACH;
 
 pub mod candidate_data;
-pub mod candidate_renderer;
 pub mod candidate_window;
 pub mod factory;
 pub mod guids;
-pub mod key_filter;
 pub mod file_log;
+pub mod key_filter;
 pub mod screen_geometry;
 pub mod text_service;
-
-slint::include_modules!();
 
 /// 内部引擎单例，对应早期 ROADMAP 阶段“工作空间骨架”：保持 C-ABI 入口
 /// `im_engine_init/_on_key/_destroy` 兼容的初始化路径。
 struct Engine {
     dict: Arc<Dictionary>,
+    config: Config,
     #[allow(dead_code)]
     sm: Mutex<StateMachine>,
     candidate_data: Arc<ArcSwap<CandidateData>>,
 }
 
 impl Engine {
-    fn new(dict: Arc<Dictionary>, sm: StateMachine, cd: Arc<ArcSwap<CandidateData>>) -> Self {
-        Self { dict, sm: Mutex::new(sm), candidate_data: cd }
+    fn new(dict: Arc<Dictionary>, config: Config, sm: StateMachine, cd: Arc<ArcSwap<CandidateData>>) -> Self {
+        Self { dict, config, sm: Mutex::new(sm), candidate_data: cd }
     }
 
     pub fn candidate_data(&self) -> &Arc<ArcSwap<CandidateData>> {
@@ -59,6 +57,10 @@ impl Engine {
 
     pub fn dict(&self) -> &Arc<Dictionary> {
         &self.dict
+    }
+
+    pub fn config(&self) -> &Config {
+        &self.config
     }
 }
 
@@ -131,8 +133,9 @@ pub extern "C" fn im_engine_init() -> i32 {
         cfg.basic.candidate_count as usize,
         cfg.basic.auto_commit_unique,
     );
-    let cd = Arc::new(ArcSwap::from_pointee(CandidateData::default()));
-    let _ = ENGINE.set(Engine::new(dict, sm, cd));
+    let theme = ThemeSnapshot::from_config(&cfg);
+    let cd = Arc::new(ArcSwap::from_pointee(CandidateData::hidden(theme)));
+    let _ = ENGINE.set(Engine::new(dict, cfg, sm, cd));
     0
 }
 
@@ -282,7 +285,13 @@ pub(crate) fn dll_directory() -> Option<String> {
 fn get_this_dll_path() -> Result<String, windows::core::Error> {
     use windows::Win32::System::LibraryLoader::GetModuleFileNameW;
     let mut buf = vec![0u16; 260];
-    let len = unsafe { GetModuleFileNameW(None, &mut buf) as usize };
+    let handle = module_handle();
+    let hmod = if handle != 0 {
+        Some(HMODULE(handle as *mut _))
+    } else {
+        None
+    };
+    let len = unsafe { GetModuleFileNameW(hmod, &mut buf) as usize };
     if len == 0 {
         return Err(windows::core::Error::from_win32());
     }

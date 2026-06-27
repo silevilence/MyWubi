@@ -8,19 +8,6 @@
     - [ ] 绑定到 `GUID_COMPARTMENT_KEYBOARD_OPENCLOSE` 自动反映状态
     - [ ] 按钮点击触发 `toggle_ime_mode()`
 
-- [ ] **windows-rs 版本升级 (0.61 → 0.62+)**
-    > 当前 0.61 缺失以下关键 TSF API 方法，需要升级后才能使用
-    - [ ] **评估变更范围**：`#[implement]` 宏 + `ComObjectInner` trait + `Interface` 绑定契约均已断裂
-    - [ ] **升级后启用的功能**：
-        - `ITfCategoryMgr::RegisterGUID()` — 获取 TfGuidAtom，在 composition range 上设置 `GUID_PROP_ATTRIBUTE` 显示编码/候选态下划线
-        - `IEnumTfDisplayAttributeInfo_Impl` trait — 完整实现 `ITfDisplayAttributeProvider::EnumDisplayAttributeInfo`（当前返回 E_FAIL）
-    - [ ] **迁移步骤**：
-        1. 更新 `Cargo.toml` 中的 workspace 依赖 `windows = "0.62"`
-        2. 适配 `#[implement]` 宏的 `IUnknownImpl` + `ComObjectInner` 新契约
-        3. 验证所有 COM 对象的 `QueryInterface` 和引用计数正确性
-        4. 恢复 `IEnumTfDisplayAttributeInfo` 枚举器实现
-        5. 在 `edit_session_composition_update` 中设置 DisplayAttr
-
 - [ ] **Velopack 打包配置与自动化构建**
     - [ ] 安装并配置 `vshere` 和 Velopack CLI 工具
     - [ ] 编写构建脚本（如 `build.rs` 或 `powershell` 脚本）
@@ -70,13 +57,18 @@
 
 ## 🚧 开发中
 
-- [ ] **DLL 注册与反注册脚本及 Hook 开发**
-    - [ ] 编写 `reg_script`（基于 `regsvr32` 或直接操作注册表注册 TSF 类 ID）
-    - [ ] 编写 Rust 注册逻辑，并在 DLL 导出 `DllRegisterServer` 和 `DllUnregisterServer`
-    - [ ] **在设置工具中集成 TIP 注册/启用功能**
-        - [ ] 通过 `ITfInputProcessorProfileMgr` COM 接口实现 TIP 的注册与启用（替代注册表方案，绕过未签名 DLL 的"仅桌面"灰显限制）
-        - [ ] 实现输入法的安装、启用、禁用、卸载全生命周期管理
-        - [ ] 设置工具启动时检测 TIP 注册状态并提示用户操作
+- [ ] **windows-rs 版本升级 (0.61 → 0.62+)**
+    > 当前 0.61 缺失以下关键 TSF API 方法，需要升级后才能使用
+    - [ ] **评估变更范围**：`#[implement]` 宏 + `ComObjectInner` trait + `Interface` 绑定契约均已断裂
+    - [ ] **升级后启用的功能**：
+        - `ITfCategoryMgr::RegisterGUID()` — 获取 TfGuidAtom，在 composition range 上设置 `GUID_PROP_ATTRIBUTE` 显示编码/候选态下划线
+        - `IEnumTfDisplayAttributeInfo_Impl` trait — 完整实现 `ITfDisplayAttributeProvider::EnumDisplayAttributeInfo`（当前返回 E_FAIL）
+    - [ ] **迁移步骤**：
+        1. 更新 `Cargo.toml` 中的 workspace 依赖 `windows = "0.62"`
+        2. 适配 `#[implement]` 宏的 `IUnknownImpl` + `ComObjectInner` 新契约
+        3. 验证所有 COM 对象的 `QueryInterface` 和引用计数正确性
+        4. 恢复 `IEnumTfDisplayAttributeInfo` 枚举器实现
+        5. 在 `edit_session_composition_update` 中设置 DisplayAttr
 
 ## ✅ 已完成
 
@@ -145,3 +137,11 @@
 - [x] **配置持久化与同步**
     - [x] 实现 `config.toml` 的读取、修改与安全写入逻辑（防写入中断损坏文件）
     - [x] 编写配置变更保存时的通知机制，确保输入法后台即时生效
+
+- [x] **DLL 注册与反注册脚本及 Hook 开发**
+    - [x] 编写 `reg_script`（基于 `regsvr32` 或直接操作注册表注册 TSF 类 ID）
+    - [x] 编写 Rust 注册逻辑，并在 DLL 导出 `DllRegisterServer` 和 `DllUnregisterServer`
+    - [x] **在设置工具中集成 TIP 注册/启用功能**
+        - [x] 通过 `ITfInputProcessorProfileMgr` COM 接口实现 TIP 的注册与启用（替代注册表方案，绕过未签名 DLL 的"仅桌面"灰显限制）
+        - [x] 实现输入法的安装、启用、禁用、卸载全生命周期管理
+        - [x] 设置工具启动时检测 TIP 注册状态并提示用户操作

@@ -1,5 +1,7 @@
 // windows/im_engine/src/candidate_data.rs
 
+use core_engine::Config;
+
 /// 候选框锚点——光标左下角的屏幕绝对坐标。
 #[derive(Debug, Clone, Copy, Default)]
 pub struct ScreenPoint {
@@ -23,6 +25,17 @@ impl Default for ThemeSnapshot {
             primary_color: 0xFF1E88E5,
             background_color: 0xFFFFFFFF,
             highlight_color: 0xFFFFD54F,
+        }
+    }
+}
+
+impl ThemeSnapshot {
+    pub fn from_config(cfg: &Config) -> Self {
+        Self {
+            font_size: cfg.appearance.font_size,
+            primary_color: cfg.appearance.primary_color,
+            background_color: cfg.appearance.background_color,
+            highlight_color: cfg.appearance.highlight_color,
         }
     }
 }

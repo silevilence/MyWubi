@@ -43,9 +43,10 @@ impl IClassFactory_Impl for TextServiceFactory_Impl {
             }
         }
 
-        let (dict, candidate_data) = match crate::ENGINE.get() {
+        let (dict, cfg, candidate_data) = match crate::ENGINE.get() {
             Some(engine) => (
                 Arc::clone(engine.dict()),
+                engine.config().clone(),
                 engine.candidate_data().clone(),
             ),
             None => {
@@ -59,14 +60,14 @@ impl IClassFactory_Impl for TextServiceFactory_Impl {
                         return Err(HRESULT(CLASS_E_CLASSNOTAVAILABLE.0).into());
                     }
                 };
-                (dict, Arc::new(ArcSwap::from_pointee(
+                (dict, core_engine::Config::default(), Arc::new(ArcSwap::from_pointee(
                     CandidateData::default(),
                 )))
             }
         };
 
         let obj = ComObject::new({
-            TextService::new(dict, 5, true, candidate_data)
+            TextService::from_config(dict, &cfg, candidate_data)
         });
 
         // 在交还外部接口之前，把 box 自己的 IUnknown 副本写回 TextService，
