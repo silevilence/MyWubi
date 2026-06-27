@@ -26,6 +26,8 @@ use windows::Win32::UI::TextServices::{
     ITfContextComposition, ITfDisplayAttributeInfo, ITfDisplayAttributeInfo_Impl,
     ITfDisplayAttributeProvider, ITfDisplayAttributeProvider_Impl,
     ITfDocumentMgr, ITfEditSession, ITfEditSession_Impl, ITfEditRecord,
+    ITfFnGetPreferredTouchKeyboardLayout, ITfFnGetPreferredTouchKeyboardLayout_Impl,
+    ITfFunction, ITfFunction_Impl, ITfFunctionProvider, ITfFunctionProvider_Impl,
     ITfKeyEventSink, ITfKeyEventSink_Impl, IEnumTfDisplayAttributeInfo,
     ITfKeystrokeMgr, ITfRange, ITfSource,
     ITfTextEditSink, ITfTextEditSink_Impl,
@@ -38,6 +40,7 @@ use windows::Win32::UI::TextServices::{
     TF_LS_SOLID, TF_SELECTION, TF_CT_COLORREF, GUID_TFCAT_DISPLAYATTRIBUTEPROVIDER,
     GUID_COMPARTMENT_KEYBOARD_OPENCLOSE, TF_TMAE_COMLESS,
     TF_PRESERVEDKEY, TF_MOD_ON_KEYUP, TF_MOD_CONTROL,
+    TKBLayoutType, TKBLT_OPTIMIZED, TKBL_OPT_SIMPLIFIED_CHINESE_PINYIN,
 };
 use windows::Win32::UI::Input::KeyboardAndMouse::VK_SHIFT;
 
@@ -191,7 +194,8 @@ struct SinkState {
 #[implement(ITfTextInputProcessor, ITfThreadMgrEventSink, ITfKeyEventSink,
              ITfCompositionSink, ITfDisplayAttributeProvider,
              ITfTextInputProcessorEx, ITfThreadFocusSink,
-             ITfTextEditSink)]
+             ITfTextEditSink, ITfFunctionProvider,
+             ITfFunction, ITfFnGetPreferredTouchKeyboardLayout)]
 pub struct TextService {
     /// 跨平台核心状态机。
     sm: Mutex<StateMachine>,
@@ -802,6 +806,52 @@ impl ITfTextEditSink_Impl for TextService_Impl {
             log::trace!("[TSF] OnEndEdit — composing 中检测到文本变更");
         }
         Ok(())
+    }
+}
+
+// ── Phase 4: ITfFunction + ITfFnGetPreferredTouchKeyboardLayout ──
+
+impl ITfFunction_Impl for TextService_Impl {
+    fn GetDisplayName(&self) -> Result<windows::core::BSTR> {
+        Ok(windows::core::BSTR::from("MyWubi"))
+    }
+}
+
+impl ITfFnGetPreferredTouchKeyboardLayout_Impl for TextService_Impl {
+    fn GetLayout(&self, ptkblayouttype: *mut TKBLayoutType, pwpreferredlayoutid: *const u16) -> Result<()> {
+        unsafe {
+            *ptkblayouttype = TKBLT_OPTIMIZED;
+            *(pwpreferredlayoutid as *mut u16) = TKBL_OPT_SIMPLIFIED_CHINESE_PINYIN as u16;
+        }
+        Ok(())
+    }
+}
+
+impl ITfFunctionProvider_Impl for TextService_Impl {
+    fn GetType(&self) -> Result<GUID> {
+        Ok(crate::guids::CLSID_TEXT_SERVICE)
+    }
+
+    fn GetDescription(&self) -> Result<windows::core::BSTR> {
+        Ok(windows::core::BSTR::from("MyWubi 形码输入法"))
+    }
+
+    fn GetFunction(&self, rguid: *const windows_core::GUID, riid: *const windows_core::GUID) -> Result<windows_core::IUnknown> {
+        let guid = unsafe { &*rguid };
+        let iid = unsafe { &*riid };
+        // 标准 TSF 中, 通过查询 IID_ITfFnGetPreferredTouchKeyboardLayout
+        // 来返回触摸键盘布局接口。TextService 同时实现了该接口。
+        if *guid == GUID::zeroed()
+            && *iid == <ITfFnGetPreferredTouchKeyboardLayout as Interface>::IID
+        {
+            if let Some(unk) = self.clone_self_unknown() {
+                let result: Result<ITfFnGetPreferredTouchKeyboardLayout> = unk.cast();
+                if let Ok(layout) = result {
+                    return Ok(layout.into());
+                }
+            }
+        }
+        Err(HRESULT(-1).into())
     }
 }
 
