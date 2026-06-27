@@ -26,6 +26,7 @@ const TIMER_INTERVAL_MS: u32 = 16;
 const SHUTDOWN_TIMEOUT_MS: u64 = 500;
 const DEFAULT_WIN_W: i32 = 200;
 const DEFAULT_WIN_H: i32 = 34;
+const WINDOW_BORDER_COLOR: u32 = 0xFFD9DEE5;
 
 /// `GWLP_USERDATA` 中嵌入的实例数据。
 struct WindowData {
@@ -303,6 +304,12 @@ fn argb_to_colorref(color: u32) -> COLORREF {
     COLORREF((b as u32) | ((g as u32) << 8) | ((r as u32) << 16))
 }
 
+fn fill_alpha_channel(pixels: &mut [u8], alpha: u8) {
+    for chunk in pixels.chunks_exact_mut(4) {
+        chunk[3] = alpha;
+    }
+}
+
 /// 使用 GDI 渲染候选框（两行：编码行 + 候选词行）并通过 UpdateLayeredWindow 贴图。
 fn gdi_render_candidate_window(
     hwnd: HWND,
@@ -397,6 +404,10 @@ fn gdi_render_candidate_window(
         let _ = FillRect(hdc_mem, &RECT { left: 0, top: 0, right: win_w, bottom: win_h }, bg);
         let _ = DeleteObject(HGDIOBJ(bg.0));
 
+        let border = CreateSolidBrush(argb_to_colorref(WINDOW_BORDER_COLOR));
+        let _ = FrameRect(hdc_mem, &RECT { left: 0, top: 0, right: win_w, bottom: win_h }, border);
+        let _ = DeleteObject(HGDIOBJ(border.0));
+
         // ── 绘制编码行（第一行）──
         if show_spelling {
             let sw: Vec<u16> = data.spelling.encode_utf16().collect();
@@ -435,15 +446,8 @@ fn gdi_render_candidate_window(
             cx += cand_max_w + item_gap;
         }
 
-        // 修复 Alpha 通道
-        for y in 0..win_h {
-            for x in 0..win_w {
-                let idx = (y * win_w + x) as usize * 4;
-                if pixels[idx] != 0 || pixels[idx + 1] != 0 || pixels[idx + 2] != 0 {
-                    pixels[idx + 3] = 255;
-                }
-            }
-        }
+        // 分层窗口上的纯黑文本也必须带 alpha，否则会被当成完全透明。
+        fill_alpha_channel(pixels, 255);
 
         // UpdateLayeredWindow
         let blend = BLENDFUNCTION {
@@ -463,5 +467,20 @@ fn gdi_render_candidate_window(
         let _ = DeleteObject(HGDIOBJ(hbitmap.0));
         let _ = DeleteDC(hdc_mem);
         let _ = ReleaseDC(None, hdc_screen);
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn opaque_alpha_fix_keeps_black_text_visible() {
+        let mut pixels = vec![0u8, 0u8, 0u8, 0u8, 255u8, 255u8, 255u8, 0u8];
+
+        fill_alpha_channel(&mut pixels, 255);
+
+        assert_eq!(pixels[3], 255);
+        assert_eq!(pixels[7], 255);
     }
 }
