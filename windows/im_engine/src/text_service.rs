@@ -25,10 +25,13 @@ use windows::Win32::UI::TextServices::{
     ITfCategoryMgr, ITfComposition, ITfCompositionSink, ITfCompositionSink_Impl, ITfContext,
     ITfContextComposition, ITfDisplayAttributeInfo, ITfDisplayAttributeInfo_Impl,
     ITfDisplayAttributeProvider, ITfDisplayAttributeProvider_Impl,
-    ITfDocumentMgr, ITfEditSession, ITfEditSession_Impl, IEnumTfDisplayAttributeInfo,
-    ITfKeyEventSink, ITfKeyEventSink_Impl, ITfKeystrokeMgr, ITfRange, ITfSource,
+    ITfDocumentMgr, ITfEditSession, ITfEditSession_Impl, ITfEditRecord,
+    ITfKeyEventSink, ITfKeyEventSink_Impl, IEnumTfDisplayAttributeInfo,
+    ITfKeystrokeMgr, ITfRange, ITfSource,
+    ITfTextEditSink, ITfTextEditSink_Impl,
     ITfTextInputProcessor, ITfTextInputProcessorEx, ITfTextInputProcessorEx_Impl,
-    ITfTextInputProcessor_Impl, ITfThreadMgr,
+    ITfTextInputProcessor_Impl, ITfThreadFocusSink, ITfThreadFocusSink_Impl,
+    ITfThreadMgr,
     ITfThreadMgrEventSink, ITfThreadMgrEventSink_Impl,
     TF_DA_COLOR, TF_DA_COLOR_0,
     TF_DISPLAYATTRIBUTE, TF_ES_ASYNC, TF_DEFAULT_SELECTION, TF_LS_DOT,
@@ -187,7 +190,8 @@ struct SinkState {
 /// 跨线程锁竞争（TSF 单线程模型 + Mutex 互斥访问足够）。
 #[implement(ITfTextInputProcessor, ITfThreadMgrEventSink, ITfKeyEventSink,
              ITfCompositionSink, ITfDisplayAttributeProvider,
-             ITfTextInputProcessorEx)]
+             ITfTextInputProcessorEx, ITfThreadFocusSink,
+             ITfTextEditSink)]
 pub struct TextService {
     /// 跨平台核心状态机。
     sm: Mutex<StateMachine>,
@@ -218,6 +222,13 @@ pub struct TextService {
     activate_flags: Mutex<u32>,
     /// true=中文模式（拦截字母键），false=英文模式（Passthrough）。
     ime_mode: Mutex<bool>,
+    /// ── Phase 3 新增字段 ──
+    /// ITfThreadFocusSink 的 AdviseSink cookie。
+    thread_focus_cookie: Mutex<u32>,
+    /// 注册了 ITfTextEditSink 的上下文（用于反注册）。
+    edit_sink_context: Mutex<Option<ITfContext>>,
+    /// ITfTextEditSink 的 AdviseSink cookie。
+    edit_sink_cookie: Mutex<u32>,
 }
 
 impl TextService {
@@ -236,6 +247,9 @@ impl TextService {
             is_composing: AtomicBool::new(false),
             activate_flags: Mutex::new(0),
             ime_mode: Mutex::new(true),
+            thread_focus_cookie: Mutex::new(0),
+            edit_sink_context: Mutex::new(None),
+            edit_sink_cookie: Mutex::new(0),
         }
     }
 
@@ -549,6 +563,30 @@ impl ITfTextInputProcessor_Impl for TextService_Impl {
         }
 
         // 清理所有持有的 COM 引用。
+        // （thread_mgr 还可能需要用于反注册，先清理 sink 再释放 thread_mgr）
+        if let Some(ref tm) = tm_hold {
+            // 反注册 ITfThreadFocusSink
+            let fc = *self.thread_focus_cookie.lock();
+            if fc != 0 {
+                if let Ok(source) = tm.cast::<ITfSource>() {
+                    let _ = unsafe { source.UnadviseSink(fc) };
+                }
+            }
+        }
+        *self.thread_focus_cookie.lock() = 0;
+
+        // 反注册 ITfTextEditSink
+        let ec = *self.edit_sink_cookie.lock();
+        if ec != 0 {
+            if let Some(ctx) = self.edit_sink_context.lock().as_ref() {
+                if let Ok(source) = ctx.cast::<ITfSource>() {
+                    let _ = unsafe { source.UnadviseSink(ec) };
+                }
+            }
+        }
+        *self.edit_sink_cookie.lock() = 0;
+        self.edit_sink_context.lock().take();
+
         *self.thread_mgr.lock() = None;
         *self.focus_doc_mgr.lock() = None;
         drop(state);
@@ -642,6 +680,9 @@ impl ITfTextInputProcessorEx_Impl for TextService_Impl {
         let saved_using_kmgr = state.using_keystroke_mgr;
         drop(state);
 
+        // 获取 self_unknown 引用于后续注册（clone 保持引用计数）
+        let punk_self_later = self.clone_self_unknown();
+
         // 启动候选框窗口线程。
         {
             let mut cw = self.candidate_window.lock();
@@ -662,6 +703,33 @@ impl ITfTextInputProcessorEx_Impl for TextService_Impl {
                 };
                 let desc: Vec<u16> = "中英文切换 (Shift)\0".encode_utf16().collect();
                 let _ = unsafe { kmgr.PreserveKey(saved_tid, &GUID_PRESERVED_SHIFT, &shift_key, &desc) };
+            }
+        }
+
+        // 注册 ITfThreadFocusSink（线程焦点变化通知）
+        if let Some(ref punk) = punk_self_later {
+            if let Ok(source) = tm.cast::<ITfSource>() {
+                let iid_thread_focus = <ITfThreadFocusSink as Interface>::IID;
+                if let Ok(cookie) = unsafe { source.AdviseSink(&iid_thread_focus, punk) } {
+                    *self.thread_focus_cookie.lock() = cookie;
+                    log::debug!("[TSF] ITfThreadFocusSink 注册成功");
+                }
+            }
+        }
+
+        // 注册 ITfTextEditSink（监听外部文本编辑）
+        if let Some(ref punk) = punk_self_later {
+            if let Ok(doc_mgr) = unsafe { tm.GetFocus() } {
+                if let Ok(ctx) = unsafe { doc_mgr.GetBase() } {
+                    if let Ok(source) = ctx.cast::<ITfSource>() {
+                        let iid_edit = <ITfTextEditSink as Interface>::IID;
+                        if let Ok(cookie) = unsafe { source.AdviseSink(&iid_edit, punk) } {
+                            *self.edit_sink_cookie.lock() = cookie;
+                            *self.edit_sink_context.lock() = Some(ctx);
+                            log::debug!("[TSF] ITfTextEditSink 注册成功");
+                        }
+                    }
+                }
             }
         }
 
@@ -697,6 +765,43 @@ impl ITfDisplayAttributeProvider_Impl for TextService_Impl {
         } else {
             Err(HRESULT(-1).into())
         }
+    }
+}
+
+impl ITfThreadFocusSink_Impl for TextService_Impl {
+    fn OnSetThreadFocus(&self) -> Result<()> {
+        log::debug!("[TSF] 线程焦点获得");
+        Ok(())
+    }
+
+    fn OnKillThreadFocus(&self) -> Result<()> {
+        log::debug!("[TSF] 线程焦点丢失");
+        // 清理输入状态
+        self.sm.lock().reset();
+        let theme = ThemeSnapshot::default();
+        self.candidate_tx.store(Arc::new(CandidateData::hidden(theme)));
+        if self.is_composing.load(Ordering::Acquire) {
+            // 异步清除 composition（需要有效的 context，Deactivate 会兜底）
+            if let Some(tm) = self.thread_mgr.lock().as_ref() {
+                if let Ok(doc_mgr) = unsafe { tm.GetFocus() } {
+                    if let Ok(ctx) = unsafe { doc_mgr.GetBase() } {
+                        self.schedule_edit_session(EditSessionOp::EndComposition { delete_text: false }, &ctx);
+                    }
+                }
+            }
+        }
+        Ok(())
+    }
+}
+
+impl ITfTextEditSink_Impl for TextService_Impl {
+    fn OnEndEdit(&self, _pic: Ref<'_, ITfContext>, _ecreadonly: u32, _peditrecord: Ref<'_, ITfEditRecord>) -> Result<()> {
+        // 如果 composition 被外部编辑破坏，ITfCompositionSink::OnCompositionTerminated
+        // 会收到通知并清理状态。此处仅做日志监控。
+        if self.is_composing.load(Ordering::Acquire) {
+            log::trace!("[TSF] OnEndEdit — composing 中检测到文本变更");
+        }
+        Ok(())
     }
 }
 

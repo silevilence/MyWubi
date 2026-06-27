@@ -2,6 +2,12 @@
 
 ## 📅 计划中
 
+- [ ] **TSF 语言栏按钮** (Phase 2.4)
+    - [ ] 实现 `ITfLangBarItemButton` 中/英状态指示按钮
+    - [ ] 通过 `ITfLangBarItemMgr::AddItem` 注册
+    - [ ] 绑定到 `GUID_COMPARTMENT_KEYBOARD_OPENCLOSE` 自动反映状态
+    - [ ] 按钮点击触发 `toggle_ime_mode()`
+
 - [ ] **Velopack 打包配置与自动化构建**
     - [ ] 安装并配置 `vshere` 和 Velopack CLI 工具
     - [ ] 编写构建脚本（如 `build.rs` 或 `powershell` 脚本）
