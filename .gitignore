@@ -23,3 +23,6 @@ Thumbs.db
 deploy/
 .agents/
 skills-lock.json
+
+# Velopack 打包产物
+Releases/

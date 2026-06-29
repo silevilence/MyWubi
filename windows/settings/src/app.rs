@@ -28,6 +28,7 @@ impl eframe::App for SettingsApp {
         self.show_sidebar(ctx);
         self.show_main_panel(ctx);
         self.poll_rfd_pick(ctx);
+        self.poll_update_worker(ctx);
         self.update_title(ctx);
         self.handle_close_request(ctx);
         self.show_close_confirm(ctx);
@@ -101,6 +102,42 @@ impl SettingsApp {
     fn update_title(&self, ctx: &egui::Context) {
         let title = if self.state.dirty { "MyWubi 设置 *" } else { "MyWubi 设置" };
         ctx.send_viewport_cmd(egui::ViewportCommand::Title(title.into()));
+    }
+
+    fn poll_update_worker(&mut self, ctx: &egui::Context) {
+        use crate::vpk::{UpdateEvent, UpdateState};
+
+        let worker = match self.state.update_worker.as_ref() {
+            Some(w) => w,
+            None => return,
+        };
+
+        // 一次性取出所有已到达事件，取最后一条作为最新状态。
+        let mut last: Option<UpdateEvent> = None;
+        while let Ok(ev) = worker.rx.try_recv() {
+            last = Some(ev);
+        }
+
+        if let Some(ev) = last {
+            self.state.update_state = match ev {
+                UpdateEvent::NoUpdate => UpdateState::NoUpdate,
+                UpdateEvent::Available { version, notes, portable, asset } => UpdateState::Available {
+                    version,
+                    notes,
+                    portable,
+                    asset,
+                },
+                UpdateEvent::DownloadProgress(p) => UpdateState::Downloading { progress: p },
+                UpdateEvent::DownloadDone { asset } => UpdateState::Ready { asset },
+                UpdateEvent::NotInstalled => UpdateState::NotInstalled,
+                UpdateEvent::Error(msg) => UpdateState::Error(msg),
+            };
+            // 事件处理完毕，释放 worker 句柄（线程已结束或进入空闲）。
+            self.state.update_worker = None;
+        } else {
+            // 仍在进行中，请求重绘以持续轮询。
+            ctx.request_repaint();
+        }
     }
 
     fn handle_close_request(&mut self, ctx: &egui::Context) {
@@ -192,5 +229,7 @@ fn nav_item(ui: &mut egui::Ui, state: &mut AppState, panel: Panel, label: &str) 
     if ui.selectable_label(selected, label).clicked() {
         state.active_panel = panel;
         state.uninstall_confirm = false;
+        // 切换面板时刷新 TIP 状态（用户可能在「输入法管理」卸载/安装后切走）。
+        state.tip_status = tip_manager::detect_status();
     }
 }

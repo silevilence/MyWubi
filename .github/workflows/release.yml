@@ -1,7 +1,7 @@
-# MyWubi 发布流水线
+# MyWubi 发布流水线（Velopack）
 #
 # 触发方式：推送版本标签（v*.*.* 或 V*.*.*，大小写不敏感）
-# 工作内容：校验变更日志 → 编译发布版 → 打包归档 → 创建 GitHub Release
+# 工作内容：校验变更日志 → 编译发布版 → vpk pack 生成安装包/便携包/增量包 → 创建 GitHub Release
 
 name: 🚀 Release
 
@@ -36,6 +36,16 @@ jobs:
         with:
           toolchain: stable
           targets: x86_64-pc-windows-msvc
+
+      # ── 安装 .NET SDK 与 Velopack CLI ────────────────────────
+      - name: Setup .NET SDK
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: "8.0.x"
+
+      - name: Install Velopack CLI (vpk)
+        shell: pwsh
+        run: dotnet tool update -g vpk
 
       # ── 解析版本号 ────────────────────────────────────────────
       - name: Parse version from tag
@@ -138,42 +148,28 @@ jobs:
           }
           Write-Host "Build completed successfully." -ForegroundColor Green
 
-      # ── 打包产物 ──────────────────────────────────────────────
-      - name: Package artifacts
+      # ── Velopack 打包（Setup.exe / Portable.zip / 增量包）─────
+      - name: Package with Velopack
         shell: pwsh
         run: |
-          Write-Host "Packaging release artifacts..." -ForegroundColor Cyan
-          # package.ps1 是 PowerShell 脚本，用 $? 判断成功状态
-          & .\package.ps1 -Release
-          if (-not $?) {
-            Write-Error "Package script failed"
+          $version = "${{ steps.version.outputs.version }}"
+          Write-Host "Running Velopack packaging for v$version..." -ForegroundColor Cyan
+          .\build.ps1 -Version $version -SkipBuild
+          if ($LASTEXITCODE -ne 0) {
+            Write-Error "Velopack packaging failed"
             exit 1
           }
           Write-Host "Packaging completed." -ForegroundColor Green
 
-      # ── 压缩为 Zip 便携包 ────────────────────────────────────
-      - name: Create ZIP archive
-        id: zip
-        shell: pwsh
-        run: |
-          $version = "${{ steps.version.outputs.version }}"
-          $zipName = "MyWubi-$version.zip"
-          $zipPath = "$env:RUNNER_TEMP\$zipName"
-
-          Write-Host "Creating ZIP archive: $zipName" -ForegroundColor Cyan
-
-          # 压缩 deploy 目录下的所有内容
-          Compress-Archive -Path "deploy\*" -DestinationPath $zipPath -Force
-
-          Write-Host "ZIP archive created: $zipPath" -ForegroundColor Green
-          "zip_name=$zipName" | Out-File -FilePath $env:GITHUB_OUTPUT -Encoding utf8 -Append
-          "zip_path=$zipPath" | Out-File -FilePath $env:GITHUB_OUTPUT -Encoding utf8 -Append
-
-      # ── 创建 GitHub Release ──────────────────────────────────
+      # ── 创建 GitHub Release（上传全部 Velopack 资产）─────────
       - name: Create Release
         uses: softprops/action-gh-release@v2
         with:
           tag_name: ${{ steps.version.outputs.tag }}
           name: MyWubi ${{ steps.version.outputs.version }}
           body_path: ${{ steps.changelog.outputs.notes_file }}
-          files: ${{ steps.zip.outputs.zip_path }}
+          files: |
+            Releases/*-Setup.exe
+            Releases/*-Portable.zip
+            Releases/*.nupkg
+            Releases/releases.*.json

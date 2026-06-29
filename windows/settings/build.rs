@@ -1,12 +1,15 @@
 //! 构建脚本：
-//! 1. 嵌入 requireAdministrator 清单，使 settings.exe 始终以管理员身份运行
+//! 1. 嵌入 asInvoker 清单，使 settings.exe 默认以调用者权限运行。
+//!    不再使用 requireAdministrator——否则 Velopack 安装器在非提升上下文
+//!    启动 settings.exe 时会报 ERROR_ELEVATION_REQUIRED。管理员权限改为
+//!    由用户在「输入法管理」面板按需触发「以管理员身份重启」。
 //! 2. 将 workspace 根目录 `assets/tables/*.dict` 复制到目标输出目录 `tables/`，
 //!    以便 settings.exe 运行时可以通过"初始化码表"功能从 exe 同目录 `tables/` 拷贝模板。
 
 use std::path::Path;
 
 fn main() {
-    // 嵌入 requireAdministrator 清单
+    // 嵌入 asInvoker 清单（默认行为，显式声明以覆盖任何系统默认）
     if std::env::var("CARGO_CFG_WINDOWS").is_ok() {
         let mut res = winres::WindowsResource::new();
         res.set_manifest(
@@ -14,7 +17,7 @@ fn main() {
 <trustInfo xmlns="urn:schemas-microsoft-com:asm.v3">
     <security>
         <requestedPrivileges>
-            <requestedExecutionLevel level="requireAdministrator" uiAccess="false"/>
+            <requestedExecutionLevel level="asInvoker" uiAccess="false"/>
         </requestedPrivileges>
     </security>
 </trustInfo>

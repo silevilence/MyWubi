@@ -5,25 +5,17 @@
 use settings::{app::SettingsApp, config_path, log as log_mod, state::AppState};
 
 fn main() {
+    // VelopackApp 必须最先运行：处理安装/更新/卸载钩子参数时可能直接退出进程。
+    // 正常启动时本调用直接返回，继续执行后续逻辑。
+    settings::vpk::init_velopack();
+
     log_mod::init();
 
     #[cfg(windows)]
     {
-        use windows::Win32::UI::Shell::IsUserAnAdmin;
-        use windows::Win32::UI::WindowsAndMessaging::{MessageBoxW, MB_ICONERROR};
-        if !unsafe { IsUserAnAdmin() }.as_bool() {
-            unsafe {
-                MessageBoxW(
-                    None,
-                    windows::core::w!("MyWubi 设置需要管理员权限才能管理输入法。请以管理员身份重新运行。"),
-                    windows::core::w!("权限不足"),
-                    MB_ICONERROR,
-                );
-            }
-            std::process::exit(1);
-        }
-
-        // COM 初始化（tip_manager 的 ITfInputProcessorProfileMgr 调用需要）
+        // COM 初始化（tip_manager 的 ITfInputProcessorProfileMgr 调用需要）。
+        // 不再强制管理员权限——非管理员也能查看/修改配置；仅「输入法管理」
+        // 面板的 TIP 注册/卸载操作需要管理员，由该面板按需触发提升重启。
         unsafe {
             let _ = windows::Win32::System::Com::CoInitializeEx(
                 None,

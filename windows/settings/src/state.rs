@@ -63,6 +63,10 @@ pub struct AppState {
     pub uninstall_confirm: bool,
     /// 是否正在执行 TIP 操作（显示 spinner）。
     pub tip_operation_pending: bool,
+    /// Velopack 按需更新状态机（关于面板「检查更新」交互）。
+    pub update_state: crate::vpk::UpdateState,
+    /// 后台更新 worker 句柄（检查/下载进行中时存在）。
+    pub update_worker: Option<crate::vpk::UpdateWorker>,
 }
 
 /// 配置加载失败信息。用户需在 UI 中确认后才覆盖损坏文件。
@@ -110,6 +114,8 @@ impl AppState {
             tip_status: tip_manager::detect_status(),
             uninstall_confirm: false,
             tip_operation_pending: false,
+            update_state: crate::vpk::UpdateState::Idle,
+            update_worker: None,
         }
     }
 

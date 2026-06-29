@@ -45,35 +45,26 @@
 
 ## 🚧 开发中
 
-- [ ] **GitHub Actions 自动化流水线构建**
-    - [ ] 触发机制：监控指定格式的版本标签（大小写不敏感，如 `v*.*.*` 或 `V*.*.*`），自动激活发布工作流
-    - [ ] 工作流步骤：
-        - [ ] 变更日志解析与健全性校验：读取 `CHANGELOG.md` 中对应版本号的发布说明，若解析失败（版本号不匹配或格式异常）则触发异常中断。格式约定如下：
-            ```markdown
-            # Change Log
-
-            ## V0.1.0
-
-            更新内容（一整个二级标题下均视为更新内容）
-            ```
-            注：版本号倒序排列（新版本在前），检索时需进行大小写不敏感匹配。
-        - [ ] 核心产物编译：执行 `cargo build --release` 编译核心二进制程序
-        - [ ] 资源归档：通过 `package.ps1` 收集构建产物及必要依赖，并压缩为 Zip 便携包
-        - [ ] 资产发布：创建 GitHub Release，将解析出的更新说明填入 Release Body，并上传 Zip 归档文件
-
-- [ ] **Velopack 打包配置与自动化构建**
-    - [ ] 运行环境与工具链配置：安装并初始化 `vshere` 和 Velopack CLI 工具
-    - [ ] 构建脚本设计与实现：编写构建脚本（如 `build.rs` 或 PowerShell 脚本）
-        - [ ] 编译 `im_engine.dll` (Release 模式)
-        - [ ] 编译 `settings.exe` (Release 模式)
-        - [ ] 静态资源收集（内置默认码表、字体文件、基础配置文件 `config.toml`）
-    - [ ] 客户端生命周期勾子（Lifecycle Hooks）注册：
+- [ ] **Velopack 分发包装配与自动化构建**
+    - [ ] **运行分发环境与更新源配置**
+        - [ ] 初始化并部署 Velopack CLI 编译工具链环境
+        - [ ] 配置 GitHub Release（`silevilence/MyWubi`）作为官方增量更新（Delta Updates）的核心分发源
+        - [ ] **按需更新触发机制**：于 `settings.exe`“关于”面板集成检查更新交互控件，实现用户自主唤醒的按需（On-demand）更新轮询
+        - [ ] **运行时更新策略决策路由**：构建宿主环境感知模块，动态判别当前软件执行模式。绿色便携版运行模式下，采用“用户确认后重定向至发布页自主下载”的被动更新策略；标准安装版运行模式下，则调用 Velopack 客户端 API 执行静默/热增量更新机制
+    - [ ] **多项目自动化编译与静态资源整合**
+        - [ ] 编写全自动构建与装配脚本（如 `build.rs` 或 PowerShell 自动化脚本）
+        - [ ] 编译核心输入法引擎：`im_engine.dll` (Release 优化模式)
+        - [ ] 编译独立配置管理器：`settings.exe` (Release 优化模式)
+        - [ ] 静态资产打包整合：内置全局默认码表、字体文件以及核心基础配置文件 `config.toml` 的自动化封装
+    - [ ] **系统服务级生命周期钩子（Lifecycle Hooks）控制**
         - [ ] **安装与更新阶段**：调用 `tip_manager::install()` 实现文本服务框架（TSF）的自动注册
         - [ ] **卸载阶段**：调用 `tip_manager::uninstall()` 实现 TSF 服务的反注册及残留清理
-    - [ ] **分发包构建与端到端验证**
-        - [ ] 生成标准安装向导 `Setup.exe`
+    - [ ] **多渠道分发验证与端到端闭环测试**
+        - [ ] 构建标准安装程序 `Setup.exe`
         - [ ] 在干净的 Windows 虚拟化测试环境中，进行安装、激活、输入法调度、配置更新、静默升级、卸载全流程的闭环验证
-    - [ ] CI/CD 渠道拓宽：在 GitHub Actions 流水线中，保留原有的 Zip 便携版发布资产，并追加 `Setup.exe` 安装包的自动上传与发布
+    - [ ] **CI/CD 流水线集成与双通道发布**
+        - [ ] 在 GitHub Actions 中废弃原有打包脚本，全面接入 Velopack 引擎
+        - [ ] 自动化流水线一键生成并发布绿色便携版（Zip）与标准安装包（`Setup.exe`）双渠道资产
 
 ## ✅ 已完成
 
@@ -166,3 +157,19 @@
         3. 验证所有 COM 对象的 `QueryInterface` 和引用计数正确性
         4. 恢复 `IEnumTfDisplayAttributeInfo` 枚举器实现
         5. 在 `edit_session_composition_update` 中设置 DisplayAttr
+
+- [x] **GitHub Actions 自动化流水线构建**
+    - [x] 触发机制：监控指定格式的版本标签（大小写不敏感，如 `v*.*.*` 或 `V*.*.*`），自动激活发布工作流
+    - [x] 工作流步骤：
+        - [x] 变更日志解析与健全性校验：读取 `CHANGELOG.md` 中对应版本号的发布说明，若解析失败（版本号不匹配或格式异常）则触发异常中断。格式约定如下：
+            ```markdown
+            # Change Log
+
+            ## V0.1.0
+
+            更新内容（一整个二级标题下均视为更新内容）
+            ```
+            注：版本号倒序排列（新版本在前），检索时需进行大小写不敏感匹配。
+        - [x] 核心产物编译：执行 `cargo build --release` 编译核心二进制程序
+        - [x] 资源归档：通过 `package.ps1` 收集构建产物及必要依赖，并压缩为 Zip 便携包
+        - [x] 资产发布：创建 GitHub Release，将解析出的更新说明填入 Release Body，并上传 Zip 归档文件
