@@ -1,15 +1,18 @@
 # MyWubi 发布打包脚本
-# 将 release 产物 + 配置文件 + 码表复制到 deploy/ 目录
+# 将 release 产物 + 码表复制到 deploy/ 目录
 #
-# 用法: .\package.ps1          # debug 构建（默认）
-#       .\package.ps1 -Release  # release 构建
+# 用法: .\package.ps1              # debug 构建（默认）
+#       .\package.ps1 -Release      # release 构建
+#       .\package.ps1 -CopyConfig   # 同时复制默认配置文件 config.toml
 
 param(
-    [switch]$Release
+    [switch]$Release,
+    [switch]$CopyConfig
 )
 
 $ErrorActionPreference = "Stop"
 
+# 选择构建配置
 $buildProfile = if ($Release) { "release" } else { "debug" }
 $targetDir = "target\$buildProfile"
 $deployDir = "deploy"
@@ -31,9 +34,11 @@ Write-Host "复制二进制文件..." -ForegroundColor Green
 Copy-Item "$targetDir\settings.exe" "$deployDir\" -Force
 Copy-Item "$targetDir\im_engine.dll" "$deployDir\" -Force
 
-# 4. 复制配置文件
-Write-Host "复制配置文件..." -ForegroundColor Green
-Copy-Item "config.toml" "$deployDir\" -Force
+# 4. 复制配置文件（默认不复制，避免覆盖已有配置）
+if ($CopyConfig) {
+    Write-Host "复制配置文件..." -ForegroundColor Green
+    Copy-Item "config.toml" "$deployDir\" -Force
+}
 
 # 5. 复制码表（排除用户词库）
 Write-Host "复制码表..." -ForegroundColor Green
