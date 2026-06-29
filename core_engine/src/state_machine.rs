@@ -6,6 +6,7 @@
 //! 状态本身非常轻量，可由 Windows TSF / Android `InputMethodService` 在每次按键时
 //! 调用 `handle` 推进；候选列表由 [`crate::dictionary::Dictionary`] 提供。
 
+use crate::config::PunctuationMode;
 use crate::dictionary::{Dictionary, Entry, SearchOptions};
 use std::sync::Arc;
 
@@ -75,8 +76,10 @@ pub struct StateMachine {
     page_size: usize,
     /// 四码唯一时自动上屏。
     auto_commit_unique: bool,
-    /// 编码缓冲区（仅小写字母/数字）。
+    /// 原始输入缓冲区：保存用户当前已输入但尚未上屏的字符串。
     spelling: String,
+    /// 标点输入处理策略。
+    punctuation_mode: PunctuationMode,
     /// 当前候选页。
     page: usize,
     /// 当前匹配到的候选快照（每页切片引用词表）。
@@ -99,12 +102,28 @@ impl StateMachine {
         page_size: usize,
         auto_commit_unique: bool,
     ) -> Self {
+        Self::with_behavior(
+            dict,
+            page_size,
+            auto_commit_unique,
+            PunctuationMode::BufferedCommit,
+        )
+    }
+
+    /// 配置页大小、自动上屏与标点处理策略。
+    pub fn with_behavior(
+        dict: Arc<Dictionary>,
+        page_size: usize,
+        auto_commit_unique: bool,
+        punctuation_mode: PunctuationMode,
+    ) -> Self {
         let page_size = page_size.clamp(1, 10);
         Self {
             dict,
             page_size,
             auto_commit_unique,
             spelling: String::new(),
+            punctuation_mode,
             page: 0,
             candidates: Vec::new(),
             total_candidates: 0,
@@ -161,15 +180,38 @@ impl StateMachine {
     }
 
     fn on_char(&mut self, c: char) -> Transition {
+        if c.is_ascii_digit() && self.can_select_with_digit(c) {
+            return self.on_select(c.to_digit(10).unwrap() as usize);
+        }
+
+        if is_buffered_punctuation(c) {
+            if self.punctuation_mode == PunctuationMode::DirectCommit {
+                return Transition::Passthrough(InputEvent::Char(c));
+            }
+
+            self.spelling.push(c);
+            self.reset_candidates();
+            self.state = InputState::Composing;
+            return Transition::SpellingUpdated(self.spelling.clone());
+        }
+
         // 仅接受 ASCII 小写字母与数字作为编码字符，其余透传。
         if !is_code_char(c) {
             return Transition::Passthrough(InputEvent::Char(c));
         }
+
         // 若处于选词状态且继续输入，则视为放弃当前候选，进入新一轮。
-        if self.state == InputState::Selecting {
+        if self.state == InputState::Selecting && !self.has_buffered_punctuation() {
             self.reset_candidates();
         }
         self.spelling.push(c);
+
+        if self.has_buffered_punctuation() {
+            self.reset_candidates();
+            self.state = InputState::Composing;
+            return Transition::SpellingUpdated(self.spelling.clone());
+        }
+
         self.page = 0;
         self.candidates_snapshot();
 
@@ -202,6 +244,13 @@ impl StateMachine {
         if self.spelling.is_empty() {
             return Transition::Passthrough(InputEvent::Space);
         }
+
+        if self.has_buffered_punctuation() {
+            let text = self.spelling.clone();
+            self.reset();
+            return Transition::Commit(text);
+        }
+
         // 空格首选上屏：提交当前第 0 个候选并补齐原编码字符（如四码不足时上屏首选）。
         if !self.candidates.is_empty() {
             let word = self.candidates[0].clone();
@@ -237,6 +286,13 @@ impl StateMachine {
             self.reset();
             return Transition::Cleared;
         }
+
+        if self.has_buffered_punctuation() {
+            self.reset_candidates();
+            self.state = InputState::Composing;
+            return Transition::SpellingUpdated(self.spelling.clone());
+        }
+
         self.page = 0;
         self.candidates_snapshot();
         if self.candidates.is_empty() {
@@ -307,7 +363,7 @@ impl StateMachine {
             prefer_exact: true,
             limit: self.dict.len().max(1),
         };
-        let all: Vec<&Entry> = self.dict.search(&self.spelling, opts);
+        let all: Vec<&Entry> = self.dict.search(self.lookup_key(), opts);
         self.total_candidates = all.len();
         let start = (self.page * self.page_size).min(all.len());
         let end = (start + self.page_size).min(all.len());
@@ -320,13 +376,34 @@ impl StateMachine {
     fn candidates_first_code_len(&self) -> usize {
         // 在五笔等形码中，候选词对应编码长度与当前输入长度一致即视为精确匹配，
         // 没有混合英文补齐。返回 spelling 长度即可。
-        self.spelling.len()
+        self.lookup_key().chars().count()
     }
 
     fn reset_candidates(&mut self) {
         self.candidates.clear();
         self.total_candidates = 0;
         self.page = 0;
+    }
+
+    fn lookup_key(&self) -> &str {
+        let mut end = self.spelling.len();
+        for (idx, ch) in self.spelling.char_indices() {
+            if !is_code_char(ch) {
+                end = idx;
+                break;
+            }
+        }
+        &self.spelling[..end]
+    }
+
+    fn has_buffered_punctuation(&self) -> bool {
+        self.lookup_key().len() != self.spelling.len()
+    }
+
+    fn can_select_with_digit(&self, c: char) -> bool {
+        self.state == InputState::Selecting
+            && !self.has_buffered_punctuation()
+            && matches!(c, '1'..='9')
     }
 }
 
@@ -335,9 +412,14 @@ fn is_code_char(c: char) -> bool {
     matches!(c, 'a'..='z' | '0'..='9')
 }
 
+fn is_buffered_punctuation(c: char) -> bool {
+    c.is_ascii_punctuation()
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
+    use crate::config::PunctuationMode;
     use crate::dictionary::{Entry, LoadOptions};
 
     fn dict() -> Arc<Dictionary> {
@@ -418,8 +500,17 @@ mod tests {
     }
 
     #[test]
-    fn non_code_chars_passthrough() {
+    fn punctuation_is_buffered_by_default() {
         let mut m = StateMachine::new(dict());
+        assert_eq!(
+            m.handle(InputEvent::Char('!')),
+            Transition::SpellingUpdated("!".to_string())
+        );
+    }
+
+    #[test]
+    fn punctuation_passthrough_in_direct_mode() {
+        let mut m = StateMachine::with_behavior(dict(), 5, true, PunctuationMode::DirectCommit);
         assert_eq!(
             m.handle(InputEvent::Char('!')),
             Transition::Passthrough(InputEvent::Char('!'))
@@ -444,5 +535,41 @@ mod tests {
         m.handle(InputEvent::Char('z'));
         m.handle(InputEvent::Char('z'));
         assert_eq!(m.handle(InputEvent::Enter), Transition::Commit("zz".to_string()));
+    }
+
+    #[test]
+    fn punctuation_is_kept_in_raw_buffer_by_default() {
+        let mut m = StateMachine::new(dict());
+        assert!(matches!(m.handle(InputEvent::Char('b')), Transition::SpellingUpdated(_) | Transition::Candidates { .. }));
+        assert!(matches!(m.handle(InputEvent::Char('a')), Transition::SpellingUpdated(_) | Transition::Candidates { .. }));
+        assert!(matches!(m.handle(InputEvent::Char('i')), Transition::SpellingUpdated(_) | Transition::Candidates { .. }));
+        assert!(matches!(m.handle(InputEvent::Char('.')), Transition::SpellingUpdated(raw) if raw == "bai."));
+        assert_eq!(m.handle(InputEvent::Enter), Transition::Commit("bai.".to_string()));
+    }
+
+    #[test]
+    fn backspace_removes_trailing_punctuation_before_code_chars() {
+        let mut m = StateMachine::new(dict());
+        let _ = m.handle(InputEvent::Char('a'));
+        assert_eq!(m.handle(InputEvent::Char('\\')), Transition::SpellingUpdated("a\\".to_string()));
+        match m.handle(InputEvent::Backspace) {
+            Transition::Candidates { spelling, candidates, .. } => {
+                assert_eq!(spelling, "a");
+                assert!(candidates.contains(&"工".to_string()));
+            }
+            other => panic!("expected candidates after removing punctuation, got {other:?}"),
+        }
+    }
+
+    #[test]
+    fn digit_char_selects_candidate_when_plain_code_is_active() {
+        let mut m = StateMachine::with_options(dict(), 5, false);
+        m.handle(InputEvent::Char('g'));
+        m.handle(InputEvent::Char('g'));
+        m.handle(InputEvent::Char('l'));
+        m.handle(InputEvent::Char('l'));
+
+        let t = m.handle(InputEvent::Char('2'));
+        assert!(matches!(t, Transition::Commit(ref s) if s == "王" || s == "壬"));
     }
 }

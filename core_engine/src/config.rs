@@ -46,6 +46,9 @@ pub struct Basic {
     /// 四码唯一时自动上屏。
     #[serde(default = "default_true")]
     pub auto_commit_unique: bool,
+    /// 标点输入处理策略。
+    #[serde(default)]
+    pub punctuation_mode: PunctuationMode,
 }
 
 /// 上屏方式。
@@ -70,6 +73,18 @@ pub enum SwitchKey {
     CapsLock,
     #[serde(rename = "ctrl_space")]
     CtrlSpace,
+}
+
+/// 标点输入处理策略。
+#[derive(Debug, Clone, Copy, Default, Serialize, Deserialize, PartialEq, Eq)]
+pub enum PunctuationMode {
+    /// 标点先加入原始输入缓冲，最后与编码一起按原样上屏。
+    #[default]
+    #[serde(rename = "buffered_commit")]
+    BufferedCommit,
+    /// 标点立即透传给应用，不加入当前编码缓冲。
+    #[serde(rename = "direct_commit")]
+    DirectCommit,
 }
 
 /// 外观样式。
@@ -130,6 +145,7 @@ impl Default for Basic {
             commit_mode: CommitMode::SpaceFirst,
             switch_key: default_switch_key(),
             auto_commit_unique: true,
+            punctuation_mode: PunctuationMode::BufferedCommit,
         }
     }
 }
@@ -243,6 +259,7 @@ candidate_count = 7
 commit_mode = "enter_commit"
 switch_key = "ctrl_space"
 auto_commit_unique = false
+punctuation_mode = "direct_commit"
 
 [appearance]
 font_size = 16
@@ -270,6 +287,7 @@ toggle_simplify = "ctrl_shift_s"
         assert_eq!(cfg.basic.commit_mode, CommitMode::EnterCommit);
         assert_eq!(cfg.basic.switch_key, SwitchKey::CtrlSpace);
         assert!(!cfg.basic.auto_commit_unique);
+        assert_eq!(cfg.basic.punctuation_mode, PunctuationMode::DirectCommit);
         assert_eq!(cfg.appearance.font_size, 16);
         assert!(cfg.dictionary.enable_fuzzy);
         assert!(cfg.dictionary.enable_user_dict);
@@ -280,6 +298,7 @@ toggle_simplify = "ctrl_shift_s"
         let cfg = Config::from_str("[basic]\ncandidate_count = 3\n").unwrap();
         assert_eq!(cfg.basic.candidate_count, 3);
         assert_eq!(cfg.basic.commit_mode, CommitMode::SpaceFirst);
+        assert_eq!(cfg.basic.punctuation_mode, PunctuationMode::BufferedCommit);
         assert_eq!(cfg.appearance.font_size, 14);
         assert!(!cfg.dictionary.enable_user_dict);
     }

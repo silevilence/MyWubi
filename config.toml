@@ -9,6 +9,8 @@ commit_mode = "space_first"
 switch_key = "shift"
 # 四码唯一时自动上屏
 auto_commit_unique = true
+# 标点输入: "buffered_commit" 加入缓冲后最后一起上屏, "direct_commit" 立即上屏
+punctuation_mode = "buffered_commit"
 
 [appearance]
 # 候选框字体大小 (pt)

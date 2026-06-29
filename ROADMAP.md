@@ -52,20 +52,11 @@
     - [ ] `settings.exe` 码表面板"管理自造词…"按钮对接真实功能（替换"待开发"提示）
     - [ ] `im_engine` 侧用户词库的检索集成与热重载
 
-## 🚧 开发中
+- [ ] **翻页热键可配置**
+    - [ ] `hotkey.page_next` / `hotkey.page_prev` 配置项实际接到按键层
+    - [ ] `settings.exe` 常规面板新增翻页键选择
 
-- [ ] **windows-rs 版本升级 (0.61 → 0.62+)**
-    > 当前 0.61 缺失以下关键 TSF API 方法，需要升级后才能使用
-    - [ ] **评估变更范围**：`#[implement]` 宏 + `ComObjectInner` trait + `Interface` 绑定契约均已断裂
-    - [ ] **升级后启用的功能**：
-        - `ITfCategoryMgr::RegisterGUID()` — 获取 TfGuidAtom，在 composition range 上设置 `GUID_PROP_ATTRIBUTE` 显示编码/候选态下划线
-        - `IEnumTfDisplayAttributeInfo_Impl` trait — 完整实现 `ITfDisplayAttributeProvider::EnumDisplayAttributeInfo`（当前返回 E_FAIL）
-    - [ ] **迁移步骤**：
-        1. 更新 `Cargo.toml` 中的 workspace 依赖 `windows = "0.62"`
-        2. 适配 `#[implement]` 宏的 `IUnknownImpl` + `ComObjectInner` 新契约
-        3. 验证所有 COM 对象的 `QueryInterface` 和引用计数正确性
-        4. 恢复 `IEnumTfDisplayAttributeInfo` 枚举器实现
-        5. 在 `edit_session_composition_update` 中设置 DisplayAttr
+## 🚧 开发中
 
 ## ✅ 已完成
 
@@ -145,3 +136,16 @@
 
 - [x] **废弃旧注册脚本**
     - [x] 所有独立安装脚本已移除（`register_tip.bat`、`enable_tip.ps1`、`reg_script.ps1` 等），统一通过 `settings.exe` 中的「输入法管理」面板安装
+
+- [x] **windows-rs 版本升级 (0.61 → 0.62+)**
+    > 当前 0.61 缺失以下关键 TSF API 方法，需要升级后才能使用
+    - [x] **评估变更范围**：`#[implement]` 宏 + `ComObjectInner` trait + `Interface` 绑定契约均已断裂
+    - [x] **升级后启用的功能**：
+        - `ITfCategoryMgr::RegisterGUID()` — 获取 TfGuidAtom，在 composition range 上设置 `GUID_PROP_ATTRIBUTE` 显示编码/候选态下划线
+        - `IEnumTfDisplayAttributeInfo_Impl` trait — 完整实现 `ITfDisplayAttributeProvider::EnumDisplayAttributeInfo`（当前返回 E_FAIL）
+    - [x] **迁移步骤**：
+        1. 更新 `Cargo.toml` 中的 workspace 依赖 `windows = "0.62"`
+        2. 适配 `#[implement]` 宏的 `IUnknownImpl` + `ComObjectInner` 新契约
+        3. 验证所有 COM 对象的 `QueryInterface` 和引用计数正确性
+        4. 恢复 `IEnumTfDisplayAttributeInfo` 枚举器实现
+        5. 在 `edit_session_composition_update` 中设置 DisplayAttr

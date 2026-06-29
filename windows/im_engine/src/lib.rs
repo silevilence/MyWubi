@@ -293,7 +293,7 @@ fn get_this_dll_path() -> Result<String, windows::core::Error> {
     };
     let len = unsafe { GetModuleFileNameW(hmod, &mut buf) as usize };
     if len == 0 {
-        return Err(windows::core::Error::from_win32());
+        return Err(windows::core::Error::from_thread());
     }
     Ok(String::from_utf16_lossy(&buf[..len]))
 }

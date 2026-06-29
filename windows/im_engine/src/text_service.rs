@@ -20,16 +20,18 @@ use std::sync::Arc;
 use std::sync::atomic::{AtomicBool, Ordering};
 
 use windows::core::{implement, Interface, Ref, Result, BOOL, GUID, HRESULT};
-use windows::Win32::Foundation::{LPARAM, WPARAM};
+use windows::Win32::Foundation::{COLORREF, E_INVALIDARG, LPARAM, S_FALSE, WPARAM};
+use windows::Win32::System::Variant::{VARIANT, VARIANT_0, VARIANT_0_0, VARIANT_0_0_0, VT_I4};
 use windows::Win32::UI::TextServices::{
+    GUID_PROP_ATTRIBUTE, IEnumTfDisplayAttributeInfo, IEnumTfDisplayAttributeInfo_Impl,
     ITfCategoryMgr, ITfComposition, ITfCompositionSink, ITfCompositionSink_Impl, ITfContext,
     ITfContextComposition, ITfDisplayAttributeInfo, ITfDisplayAttributeInfo_Impl,
     ITfDisplayAttributeProvider, ITfDisplayAttributeProvider_Impl,
     ITfDocumentMgr, ITfEditSession, ITfEditSession_Impl, ITfEditRecord,
     ITfFnGetPreferredTouchKeyboardLayout, ITfFnGetPreferredTouchKeyboardLayout_Impl,
     ITfFunction, ITfFunction_Impl, ITfFunctionProvider, ITfFunctionProvider_Impl,
-    ITfKeyEventSink, ITfKeyEventSink_Impl, IEnumTfDisplayAttributeInfo,
-    ITfKeystrokeMgr, ITfRange, ITfSource,
+    ITfKeyEventSink, ITfKeyEventSink_Impl, ITfKeystrokeMgr, ITfProperty, ITfRange,
+    ITfSource,
     ITfTextEditSink, ITfTextEditSink_Impl,
     ITfTextInputProcessor, ITfTextInputProcessorEx, ITfTextInputProcessorEx_Impl,
     ITfTextInputProcessor_Impl, ITfThreadFocusSink, ITfThreadFocusSink_Impl,
@@ -43,15 +45,13 @@ use windows::Win32::UI::TextServices::{
 };
 use windows::Win32::UI::Input::KeyboardAndMouse::VK_SHIFT;
 
-use windows::Win32::Foundation::COLORREF;
-
 use arc_swap::ArcSwap;
 
 use crate::candidate_data::{CandidateData, CandidateItem, ScreenPoint, ThemeSnapshot};
 use crate::guids::CLSID_TEXT_SERVICE;
 use crate::candidate_window::CandidateWindow;
 use crate::key_filter;
-use crate::screen_geometry::get_caret_position;
+use crate::screen_geometry::get_range_position;
 
 // ── 类型定义 ────────────────────────────────────────────────────────
 
@@ -61,6 +61,12 @@ const GUID_DISPLAY_ATTR_INPUT: GUID = GUID::from_u128(0x8a2e3b4c_1d5f_4a7b_9e6c_
 const GUID_DISPLAY_ATTR_CONVERTED: GUID = GUID::from_u128(0x6b1c8d9e_2f3a_4c5b_8d7e_1a2b3c4d5e6f);
 /// PreservedKey（Shift 切换）的 GUID。
 const GUID_PRESERVED_SHIFT: GUID = GUID::from_u128(0x1a2b3c4d_5e6f_7a8b_9c0d_1e2f3a4b5c6d);
+
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+enum DisplayAttrKind {
+    Input,
+    Converted,
+}
 
 
 /// 自定义 DisplayAttributeInfo 实现。每个实例对应用户自定义的 display attribute。
@@ -136,13 +142,101 @@ fn attr_converted() -> TF_DISPLAYATTRIBUTE {
     }
 }
 
+fn make_display_attr_infos() -> Vec<ITfDisplayAttributeInfo> {
+    vec![
+        make_display_attr_info(GUID_DISPLAY_ATTR_INPUT, "编码输入态", attr_input()),
+        make_display_attr_info(GUID_DISPLAY_ATTR_CONVERTED, "候选态", attr_converted()),
+    ]
+}
+
+#[implement(IEnumTfDisplayAttributeInfo)]
+struct DisplayAttributeInfoEnum {
+    items: Vec<ITfDisplayAttributeInfo>,
+    index: Mutex<usize>,
+}
+
+impl IEnumTfDisplayAttributeInfo_Impl for DisplayAttributeInfoEnum_Impl {
+    fn Clone(&self) -> Result<IEnumTfDisplayAttributeInfo> {
+        let cloned = DisplayAttributeInfoEnum {
+            items: self.items.clone(),
+            index: Mutex::new(*self.index.lock()),
+        };
+        Ok(windows::core::ComObject::new(cloned).to_interface())
+    }
+
+    fn Next(
+        &self,
+        ulcount: u32,
+        rginfo: *mut Option<ITfDisplayAttributeInfo>,
+        pcfetched: *mut u32,
+    ) -> Result<()> {
+        if rginfo.is_null() || (ulcount != 1 && pcfetched.is_null()) {
+            return Err(E_INVALIDARG.into());
+        }
+
+        let requested = ulcount as usize;
+        let mut index = self.index.lock();
+        let start = *index;
+        let fetched = self.items.len().saturating_sub(start).min(requested);
+
+        for offset in 0..fetched {
+            unsafe { rginfo.add(offset).write(Some(self.items[start + offset].clone())); }
+        }
+        for offset in fetched..requested {
+            unsafe { rginfo.add(offset).write(None); }
+        }
+
+        *index += fetched;
+        if !pcfetched.is_null() {
+            unsafe { *pcfetched = fetched as u32; }
+        }
+
+        if fetched == requested {
+            Ok(())
+        } else {
+            Err(S_FALSE.into())
+        }
+    }
+
+    fn Reset(&self) -> Result<()> {
+        *self.index.lock() = 0;
+        Ok(())
+    }
+
+    fn Skip(&self, ulcount: u32) -> Result<()> {
+        let requested = ulcount as usize;
+        let mut index = self.index.lock();
+        let skipped = self.items.len().saturating_sub(*index).min(requested);
+        *index += skipped;
+        if skipped == requested {
+            Ok(())
+        } else {
+            Err(S_FALSE.into())
+        }
+    }
+}
+
+fn make_i32_variant(value: i32) -> VARIANT {
+    VARIANT {
+        Anonymous: VARIANT_0 {
+            Anonymous: std::mem::ManuallyDrop::new(VARIANT_0_0 {
+                vt: VT_I4,
+                wReserved1: 0,
+                wReserved2: 0,
+                wReserved3: 0,
+                Anonymous: VARIANT_0_0_0 { lVal: value },
+            }),
+        },
+    }
+}
+
 /// 异步 ITfEditSession 的操作描述。由 apply_transition 根据 Transition
 /// 构建，由 EditSession::DoEditSession 消费。
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, PartialEq, Eq)]
 #[allow(dead_code)]
 enum EditSessionOp {
     /// 创建或更新 composition range 上的编码文本。
-    CompositionUpdate { spelling: String },
+    CompositionUpdate { spelling: String, attr: DisplayAttrKind },
     /// 将 composition range 文本替换为最终候选词，终止 composition。
     CommitAndReplace { text: String },
     /// 终止 composition。delete_text=true 时删除 range 文本（Esc），
@@ -221,6 +315,10 @@ pub struct TextService {
     /// ── Phase 1 新增字段 ──
     /// 当前激活的 composition 对象。
     composition: Mutex<Option<ITfComposition>>,
+    /// 编码输入态 display attribute 对应的 GUID atom。
+    ga_input: Mutex<u32>,
+    /// 候选态 display attribute 对应的 GUID atom。
+    ga_converted: Mutex<u32>,
     /// 当前是否处于 composing 状态。
     is_composing: AtomicBool,
     /// ── Phase 2 新增字段 ──
@@ -245,10 +343,10 @@ fn should_intercept_test_key(event: Option<InputEvent>, spelling_empty: bool) ->
     }
 }
 
-fn resolve_candidate_anchor(context: Option<&ITfContext>, font_size: u16) -> Option<ScreenPoint> {
-    crate::screen_geometry::get_caret_position_win32(font_size)
+fn resolve_candidate_anchor(current_anchor: Option<ScreenPoint>, font_size: u16) -> Option<ScreenPoint> {
+    current_anchor
+        .or_else(|| crate::screen_geometry::get_caret_position_win32(font_size))
         .or_else(|| crate::screen_geometry::get_cursor_position())
-        .or_else(|| context.and_then(get_caret_position))
 }
 
 fn build_spelling_only_candidate_data(
@@ -262,8 +360,41 @@ fn build_spelling_only_candidate_data(
     current.highlighted = 0;
     current.page = 0;
     current.total_pages = 0;
-    current.anchor = anchor;
+    current.anchor = anchor.or(current.anchor);
     current
+}
+
+fn update_candidate_anchor(
+    mut current: CandidateData,
+    anchor: Option<ScreenPoint>,
+) -> CandidateData {
+    if let Some(anchor) = anchor {
+        current.anchor = Some(anchor);
+    }
+    current
+}
+
+fn transition_to_edit_session_op(transition: &Transition) -> EditSessionOp {
+    match transition {
+        Transition::None => EditSessionOp::NoOp,
+        Transition::Commit(text) => EditSessionOp::CommitAndReplace { text: text.clone() },
+        Transition::Candidates { spelling, .. } if !spelling.is_empty() => {
+            EditSessionOp::CompositionUpdate {
+                spelling: spelling.clone(),
+                attr: DisplayAttrKind::Converted,
+            }
+        }
+        Transition::SpellingUpdated(spelling) if !spelling.is_empty() => {
+            EditSessionOp::CompositionUpdate {
+                spelling: spelling.clone(),
+                attr: DisplayAttrKind::Input,
+            }
+        }
+        Transition::Cleared => EditSessionOp::EndComposition { delete_text: true },
+        Transition::Candidates { .. } | Transition::SpellingUpdated(_) | Transition::Passthrough(_) => {
+            EditSessionOp::NoOp
+        }
+    }
 }
 
 impl TextService {
@@ -273,6 +404,7 @@ impl TextService {
             dict,
             page_size,
             auto_commit_unique,
+            core_engine::config::PunctuationMode::BufferedCommit,
             candidate_tx,
             ThemeSnapshot::default(),
         )
@@ -282,10 +414,11 @@ impl TextService {
         dict: Arc<Dictionary>,
         page_size: usize,
         auto_commit_unique: bool,
+        punctuation_mode: core_engine::config::PunctuationMode,
         candidate_tx: Arc<ArcSwap<CandidateData>>,
         theme: ThemeSnapshot,
     ) -> Self {
-        let sm = StateMachine::with_options(dict, page_size, auto_commit_unique);
+        let sm = StateMachine::with_behavior(dict, page_size, auto_commit_unique, punctuation_mode);
         Self {
             sm: Mutex::new(sm),
             thread_mgr: Mutex::new(None),
@@ -296,6 +429,8 @@ impl TextService {
             candidate_window: Mutex::new(None),
             theme,
             composition: Mutex::new(None),
+            ga_input: Mutex::new(0),
+            ga_converted: Mutex::new(0),
             is_composing: AtomicBool::new(false),
             activate_flags: Mutex::new(0),
             ime_mode: Mutex::new(true),
@@ -311,6 +446,7 @@ impl TextService {
             dict,
             cfg.basic.candidate_count as usize,
             cfg.basic.auto_commit_unique,
+            cfg.basic.punctuation_mode,
             candidate_tx,
             ThemeSnapshot::from_config(cfg),
         )
@@ -344,53 +480,51 @@ impl TextService {
     /// `context` 为可选的 TSF `ITfContext`，用于候选框坐标获取和 EditSession 调度。
     fn apply_transition(&self, t: Transition, context: Option<&ITfContext>) -> BOOL {
         let theme = self.current_theme();
-        let op = match &t {
-            Transition::None => EditSessionOp::NoOp,
+        match &t {
+            Transition::None => {}
             Transition::Commit(text) => {
                 log::info!("[TSF] commit text: {text}");
                 self.candidate_tx.store(Arc::new(CandidateData::hidden(theme.clone())));
-                EditSessionOp::CommitAndReplace { text: text.clone() }
             }
             Transition::Candidates { spelling, candidates, page, total_pages } => {
                 if spelling.is_empty() {
                     self.candidate_tx.store(Arc::new(CandidateData::hidden(theme.clone())));
-                    return BOOL(1);
+                } else {
+                    let current_anchor = self.candidate_tx.load().anchor;
+                    let items: Vec<CandidateItem> = candidates.iter().enumerate().map(|(i, text)| {
+                        CandidateItem { label: format!("{}. ", i + 1), text: text.clone() }
+                    }).collect();
+                    let anchor = resolve_candidate_anchor(current_anchor, theme.font_size);
+                    self.candidate_tx.store(Arc::new(CandidateData::visible(
+                        spelling.clone(), items, 0, *page, *total_pages, anchor, theme.clone(),
+                    )));
                 }
-                let items: Vec<CandidateItem> = candidates.iter().enumerate().map(|(i, text)| {
-                    CandidateItem { label: format!("{}. ", i + 1), text: text.clone() }
-                }).collect();
-                let anchor = resolve_candidate_anchor(context, theme.font_size);
-                self.candidate_tx.store(Arc::new(CandidateData::visible(
-                    spelling.clone(), items, 0, *page, *total_pages, anchor, theme.clone(),
-                )));
-                // 候选框显示编码和候选词，不插入 composition 文字（Wubi 输入法典型行为）
-                EditSessionOp::NoOp
             }
             Transition::SpellingUpdated(s) => {
                 log::debug!("[TSF] spelling={s}");
+                let current = self.candidate_tx.load();
                 let data = build_spelling_only_candidate_data(
-                    (**self.candidate_tx.load()).clone(),
+                    (**current).clone(),
                     s.clone(),
-                    resolve_candidate_anchor(context, theme.font_size),
+                    resolve_candidate_anchor(current.anchor, theme.font_size),
                 );
                 self.candidate_tx.store(Arc::new(data));
-                // 不插入 composition 文字，候选框会显示当前编码
-                EditSessionOp::NoOp
             }
             Transition::Cleared => {
                 self.candidate_tx.store(Arc::new(CandidateData::hidden(theme.clone())));
-                EditSessionOp::EndComposition { delete_text: true }
             }
             Transition::Passthrough(_) => {
                 self.candidate_tx.store(Arc::new(CandidateData::hidden(theme.clone())));
-                // Passthrough 不应调度任何 EditSession，避免干扰应用自身按键处理
-                return BOOL(0);
             }
-        };
+        }
+
+        let op = transition_to_edit_session_op(&t);
 
         // 异步调度 EditSession 更新 composition（候选框已同步更新）
-        if let Some(ctx) = context {
-            self.schedule_edit_session(op, ctx);
+        if !matches!(op, EditSessionOp::NoOp) {
+            if let Some(ctx) = context {
+                self.schedule_edit_session(op, ctx);
+            }
         }
 
         match t {
@@ -421,8 +555,8 @@ impl TextService {
     fn execute_edit_session(&self, ec: u32, op: &EditSessionOp) -> Result<()> {
         let result = match op {
             EditSessionOp::NoOp => Ok(()),
-            EditSessionOp::CompositionUpdate { spelling } => {
-                self.edit_session_composition_update(ec, spelling)
+            EditSessionOp::CompositionUpdate { spelling, attr } => {
+                self.edit_session_composition_update(ec, spelling, *attr)
             }
             EditSessionOp::CommitAndReplace { text } => {
                 self.edit_session_commit_and_replace(ec, text)
@@ -437,14 +571,23 @@ impl TextService {
         result
     }
 
-    fn edit_session_composition_update(&self, ec: u32, spelling: &str) -> Result<()> {
+    fn edit_session_composition_update(
+        &self,
+        ec: u32,
+        spelling: &str,
+        attr: DisplayAttrKind,
+    ) -> Result<()> {
         // 使用 get_focus_context 获取的文档 context 创建 composition
         let (edit_ctx, _doc_mgr) = self.get_focus_context()?;
         let mut comp_guard = self.composition.lock();
         if comp_guard.is_none() {
             let ctx_comp: ITfContextComposition = edit_ctx.cast()?;
             let selection = self.get_selection_range(&edit_ctx, ec)?;
-            let new_comp = unsafe { ctx_comp.StartComposition(ec, &selection, None) }?;
+            let sink = self
+                .clone_self_unknown()
+                .ok_or_else(|| windows::core::Error::from(HRESULT(-1)))?
+                .cast::<ITfCompositionSink>()?;
+            let new_comp = unsafe { ctx_comp.StartComposition(ec, &selection, &sink) }?;
             *comp_guard = Some(new_comp);
             self.is_composing.store(true, Ordering::Release);
         }
@@ -452,6 +595,14 @@ impl TextService {
             let range: ITfRange = unsafe { comp.GetRange()? };
             let wide: Vec<u16> = spelling.encode_utf16().collect();
             unsafe { range.SetText(ec, 0, &wide) }?;
+            self.set_range_display_attribute(&edit_ctx, ec, &range, attr)?;
+
+            let current = self.candidate_tx.load();
+            let updated = update_candidate_anchor(
+                (**current).clone(),
+                get_range_position(&edit_ctx, ec, &range),
+            );
+            self.candidate_tx.store(Arc::new(updated));
         }
         Ok(())
     }
@@ -536,6 +687,60 @@ impl TextService {
             }
             Err(e) => log::warn!("[TSF] 无法创建 ITfCategoryMgr: {e}，DisplayAttribute 不可用"),
         }
+    }
+
+    fn initialize_display_attribute_atoms(&self) {
+        use windows::Win32::System::Com::{CoCreateInstance, CLSCTX_INPROC_SERVER};
+
+        *self.ga_input.lock() = 0;
+        *self.ga_converted.lock() = 0;
+
+        let category_mgr: Result<ITfCategoryMgr> = unsafe {
+            CoCreateInstance(
+                &windows::Win32::UI::TextServices::CLSID_TF_CategoryMgr,
+                None,
+                CLSCTX_INPROC_SERVER,
+            )
+        };
+
+        let Ok(cat) = category_mgr else {
+            log::warn!("[TSF] 无法初始化 DisplayAttribute GUID atom");
+            return;
+        };
+
+        match unsafe { cat.RegisterGUID(&GUID_DISPLAY_ATTR_INPUT) } {
+            Ok(atom) => *self.ga_input.lock() = atom,
+            Err(e) => log::warn!("[TSF] 注册编码态 GUID atom 失败: {e}"),
+        }
+        match unsafe { cat.RegisterGUID(&GUID_DISPLAY_ATTR_CONVERTED) } {
+            Ok(atom) => *self.ga_converted.lock() = atom,
+            Err(e) => log::warn!("[TSF] 注册候选态 GUID atom 失败: {e}"),
+        }
+    }
+
+    fn display_attr_atom(&self, attr: DisplayAttrKind) -> Option<u32> {
+        let atom = match attr {
+            DisplayAttrKind::Input => *self.ga_input.lock(),
+            DisplayAttrKind::Converted => *self.ga_converted.lock(),
+        };
+        (atom != 0).then_some(atom)
+    }
+
+    fn set_range_display_attribute(
+        &self,
+        context: &ITfContext,
+        ec: u32,
+        range: &ITfRange,
+        attr: DisplayAttrKind,
+    ) -> Result<()> {
+        let Some(atom) = self.display_attr_atom(attr) else {
+            return Ok(());
+        };
+        let atom = i32::try_from(atom).map_err(|_| windows::core::Error::from(HRESULT(-1)))?;
+        let property: ITfProperty = unsafe { context.GetProperty(&GUID_PROP_ATTRIBUTE) }?;
+        let value = make_i32_variant(atom);
+        unsafe { property.SetValue(ec, range, &value) }?;
+        Ok(())
     }
 
     /// 切换到中文模式。
@@ -647,6 +852,8 @@ impl ITfTextInputProcessor_Impl for TextService_Impl {
 
         // 清理状态机内部缓冲。
         self.sm.lock().reset();
+        *self.ga_input.lock() = 0;
+        *self.ga_converted.lock() = 0;
 
         log::info!("[TSF] TIP deactivated");
         Ok(())
@@ -744,6 +951,7 @@ impl ITfTextInputProcessorEx_Impl for TextService_Impl {
 
         // 注册自定义 DisplayAttribute 类别。
         self.register_display_attribute_categories();
+        self.initialize_display_attribute_atoms();
 
         // 注册 PreservedKey（Shift 切换中英文）
         if saved_tid != 0 && saved_using_kmgr {
@@ -801,20 +1009,24 @@ impl ITfCompositionSink_Impl for TextService_Impl {
 
 impl ITfDisplayAttributeProvider_Impl for TextService_Impl {
     fn EnumDisplayAttributeInfo(&self) -> Result<IEnumTfDisplayAttributeInfo> {
-        // windows-rs 0.61 未导出 IEnumTfDisplayAttributeInfo_Impl trait，
-        // 无法实现自定义枚举器。TSF 通过 RegisterCategory 注册后仍可通过
-        // GetDisplayAttributeInfo 直接获取属性信息。
-        Err(windows::core::Error::from(HRESULT(-1)))
+        let enum_obj = DisplayAttributeInfoEnum {
+            items: make_display_attr_infos(),
+            index: Mutex::new(0),
+        };
+        Ok(windows::core::ComObject::new(enum_obj).to_interface())
     }
 
     fn GetDisplayAttributeInfo(&self, guid: *const GUID) -> Result<ITfDisplayAttributeInfo> {
+        if guid.is_null() {
+            return Err(E_INVALIDARG.into());
+        }
         let guid_safe = unsafe { &*guid };
         if *guid_safe == GUID_DISPLAY_ATTR_INPUT {
             Ok(make_display_attr_info(GUID_DISPLAY_ATTR_INPUT, "编码输入态", attr_input()))
         } else if *guid_safe == GUID_DISPLAY_ATTR_CONVERTED {
             Ok(make_display_attr_info(GUID_DISPLAY_ATTR_CONVERTED, "候选态", attr_converted()))
         } else {
-            Err(HRESULT(-1).into())
+            Err(E_INVALIDARG.into())
         }
     }
 }
@@ -1083,5 +1295,79 @@ mod tests {
         assert_eq!(updated.spelling, "aaa");
         assert!(updated.items.is_empty());
         assert_eq!(updated.theme.font_size, theme.font_size);
+    }
+
+    #[test]
+    fn spelling_update_preserves_existing_anchor_when_new_anchor_missing() {
+        let theme = ThemeSnapshot::default();
+        let current = CandidateData::visible(
+            "a".into(),
+            vec![CandidateItem { label: "1. ".into(), text: "工".into() }],
+            0,
+            0,
+            1,
+            Some(crate::candidate_data::ScreenPoint { x: 32, y: 64 }),
+            theme,
+        );
+
+        let updated = build_spelling_only_candidate_data(current, "aaa".into(), None);
+
+        assert_eq!(updated.anchor.unwrap().x, 32);
+        assert_eq!(updated.anchor.unwrap().y, 64);
+    }
+
+    #[test]
+    fn precise_anchor_update_overrides_fallback_anchor() {
+        let theme = ThemeSnapshot::default();
+        let current = CandidateData::visible(
+            "gg".into(),
+            vec![CandidateItem { label: "1. ".into(), text: "工".into() }],
+            0,
+            0,
+            1,
+            Some(crate::candidate_data::ScreenPoint { x: 5, y: 10 }),
+            theme,
+        );
+
+        let updated = update_candidate_anchor(
+            current,
+            Some(crate::candidate_data::ScreenPoint { x: 120, y: 240 }),
+        );
+
+        assert_eq!(updated.anchor.unwrap().x, 120);
+        assert_eq!(updated.anchor.unwrap().y, 240);
+        assert_eq!(updated.spelling, "gg");
+        assert_eq!(updated.items.len(), 1);
+    }
+
+    #[test]
+    fn spelling_update_maps_to_input_composition_update() {
+        let op = transition_to_edit_session_op(&Transition::SpellingUpdated("gg".into()));
+
+        assert_eq!(
+            op,
+            EditSessionOp::CompositionUpdate {
+                spelling: "gg".into(),
+                attr: DisplayAttrKind::Input,
+            }
+        );
+    }
+
+    #[test]
+    fn candidates_map_to_converted_composition_update() {
+        let op = transition_to_edit_session_op(&Transition::Candidates {
+            spelling: "gg".into(),
+            candidates: vec!["工".into()],
+            page: 0,
+            total_pages: 1,
+        });
+
+        assert_eq!(
+            op,
+            EditSessionOp::CompositionUpdate {
+                spelling: "gg".into(),
+                attr: DisplayAttrKind::Converted,
+            }
+        );
     }
 }

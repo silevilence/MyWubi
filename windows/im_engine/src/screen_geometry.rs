@@ -3,66 +3,31 @@
 use windows::core::BOOL;
 use windows::Win32::Foundation::{HWND, POINT, RECT};
 use windows::Win32::Graphics::Gdi::{ClientToScreen, GetDC, GetDeviceCaps, ReleaseDC, LOGPIXELSY};
-use windows::Win32::UI::TextServices::{ITfContext, ITfContextView, ITfRange, TF_SELECTION};
+use windows::Win32::UI::TextServices::{ITfContext, ITfContextView, ITfRange};
 use windows::Win32::UI::WindowsAndMessaging::{GetCaretPos, GetCursorPos, GetForegroundWindow, GetGUIThreadInfo, GUITHREADINFO};
 use crate::candidate_data::ScreenPoint;
-
-/// TSF 默认选择标记值。(ULONG)-1
-const TF_DEFAULT_SELECTION: u32 = u32::MAX;
 
 /// 屏幕边缘 padding（像素）。
 const EDGE_PADDING: i32 = 8;
 const DEFAULT_DPI: i32 = 96;
 
-/// 从 TSF ITfContext 获取光标屏幕坐标。
-///
-/// 步骤：
-/// 1. ITfContext::GetSelection 获取当前退化选区（即光标位置）；
-/// 2. ITfContext::GetActiveView 获取 ITfContextView；
-/// 3. ITfContextView::GetTextExt 获取选区文本坐标矩形；
-/// 4. ITfContextView::GetWnd 获取文档窗口 HWND；
-/// 5. ClientToScreen 将文本坐标转换为屏幕绝对坐标。
-pub fn get_caret_position(context: &ITfContext) -> Option<ScreenPoint> {
-    // 1. 获取当前选区（退化选区 == 光标位置）
-    let mut selection = [unsafe { std::mem::zeroed::<TF_SELECTION>() }];
-    let mut fetched: u32 = 0;
-    unsafe {
-        context
-            .GetSelection(TF_DEFAULT_SELECTION, 0, &mut selection, &mut fetched)
-            .ok()?;
-    }
-    if fetched == 0 {
-        return None;
-    }
-    let sel = &selection[0];
-    // TF_SELECTION.range 是 ManuallyDrop<ITfRange>，&* 安全解引用。
-    // 若 windows-rs 版本变更导致布局不同，此处需调整。
-
-    // 2. 获取活动视图
+/// 使用带有效 edit cookie 的 TSF range 获取屏幕锚点。
+pub fn get_range_position(context: &ITfContext, ec: u32, range: &ITfRange) -> Option<ScreenPoint> {
     let view: ITfContextView = unsafe { context.GetActiveView().ok()? };
-
-    // 3. 获取选区 bounding rect（文本坐标）
     let mut rect = RECT::default();
     let mut clipped = BOOL::default();
-    let range: &ITfRange = (&*sel.range).as_ref()?;
     unsafe {
-        view.GetTextExt(TF_DEFAULT_SELECTION, range, &mut rect, &mut clipped)
+        view.GetTextExt(ec, range, &mut rect, &mut clipped)
             .ok()?;
     }
 
-    // 4. 获取文档窗口 HWND
-    let hwnd: HWND = unsafe { view.GetWnd().ok()? };
-
-    // 5. 转换到屏幕坐标（取光标左下角）
-    let mut pt = POINT {
-        x: rect.left,
-        y: rect.bottom,
-    };
-    unsafe {
-        let _ = ClientToScreen(hwnd, &mut pt);
+    // TSF 文档窗口最小化/不可见时会返回 {0,0,0,0}。
+    if rect.left == 0 && rect.top == 0 && rect.right == 0 && rect.bottom == 0 {
+        return None;
     }
 
-    Some(ScreenPoint { x: pt.x, y: pt.y })
+    let _ = clipped;
+    Some(ScreenPoint { x: rect.left, y: rect.bottom })
 }
 
 fn get_window_dpi(hwnd: HWND) -> i32 {

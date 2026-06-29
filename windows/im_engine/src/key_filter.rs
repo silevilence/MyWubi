@@ -6,12 +6,12 @@
 //!
 //! 翻译规则对应 ROADMAP“按键拦截规则”：
 //! * 字母键 (A-Z) → 缓冲为编码字符（小写化）；
-//! * 数字键 1..=9 → 候选词选择；
+//! * 可打印标点键 → 原样回传字符，具体是缓冲还是直接上屏由状态机决定；
+//! * 数字键 → 原样回传字符，状态机可在选词态把 1..=9 解释为候选选择；
 //! * 空格键 → 空格首选；
 //! * 回车键 → 回车上屏原始编码；
 //! * 退格键 → 删除最后一个编码字符；
 //! * Esc 键 → 清空缓冲；
-//! * 逗号 / 句号 → 翻页。
 
 use core_engine::InputEvent;
 use windows::Win32::UI::Input::KeyboardAndMouse::*;
@@ -28,9 +28,9 @@ pub fn translate(wparam: usize, _lparam: isize) -> Option<InputEvent> {
             Some(InputEvent::Char((b'a' + (v - VK_A.0) as u8) as char))
         }
 
-        // 数字 1..=9 选择第 N 个候选词
-        v if (VK_1.0..=VK_9.0).contains(&v) => {
-            Some(InputEvent::Select((v - VK_0.0) as usize))
+        // 数字键：保留原始字符，由状态机判定是否作为候选快捷键。
+        v if (VK_0.0..=VK_9.0).contains(&v) => {
+            Some(InputEvent::Char((b'0' + (v - VK_0.0) as u8) as char))
         }
 
         // 空格首选上屏
@@ -45,9 +45,18 @@ pub fn translate(wparam: usize, _lparam: isize) -> Option<InputEvent> {
         // Esc 清空
         v if v == VK_ESCAPE.0 => Some(InputEvent::Esc),
 
-        // 默认翻页键：逗号上一页 / 句号下一页
-        v if v == VK_OEM_COMMA.0 => Some(InputEvent::PagePrev),
-        v if v == VK_OEM_PERIOD.0 => Some(InputEvent::PageNext),
+        // 常见 ASCII 标点按键：原样回传字符。
+        v if v == VK_OEM_1.0 => Some(InputEvent::Char(';')),
+        v if v == VK_OEM_PLUS.0 => Some(InputEvent::Char('=')),
+        v if v == VK_OEM_COMMA.0 => Some(InputEvent::Char(',')),
+        v if v == VK_OEM_MINUS.0 => Some(InputEvent::Char('-')),
+        v if v == VK_OEM_PERIOD.0 => Some(InputEvent::Char('.')),
+        v if v == VK_OEM_2.0 => Some(InputEvent::Char('/')),
+        v if v == VK_OEM_3.0 => Some(InputEvent::Char('`')),
+        v if v == VK_OEM_4.0 => Some(InputEvent::Char('[')),
+        v if v == VK_OEM_5.0 => Some(InputEvent::Char('\\')),
+        v if v == VK_OEM_6.0 => Some(InputEvent::Char(']')),
+        v if v == VK_OEM_7.0 => Some(InputEvent::Char('\'')),
 
         _ => None,
     }
@@ -57,13 +66,22 @@ pub fn translate(wparam: usize, _lparam: isize) -> Option<InputEvent> {
 pub fn is_intercepted_key(wparam: usize) -> bool {
     let vk = wparam as u16;
     (VK_A.0..=VK_Z.0).contains(&vk)
-        || (VK_1.0..=VK_9.0).contains(&vk)
+    || (VK_0.0..=VK_9.0).contains(&vk)
         || vk == VK_SPACE.0
         || vk == VK_RETURN.0
         || vk == VK_BACK.0
         || vk == VK_ESCAPE.0
+    || vk == VK_OEM_1.0
+    || vk == VK_OEM_PLUS.0
         || vk == VK_OEM_COMMA.0
+    || vk == VK_OEM_MINUS.0
         || vk == VK_OEM_PERIOD.0
+    || vk == VK_OEM_2.0
+    || vk == VK_OEM_3.0
+    || vk == VK_OEM_4.0
+    || vk == VK_OEM_5.0
+    || vk == VK_OEM_6.0
+    || vk == VK_OEM_7.0
 }
 
 #[cfg(test)]
@@ -77,9 +95,10 @@ mod tests {
     }
 
     #[test]
-    fn translate_digit_select() {
-        assert_eq!(translate(VK_1.0 as usize, 0), Some(InputEvent::Select(1)));
-        assert_eq!(translate(VK_9.0 as usize, 0), Some(InputEvent::Select(9)));
+    fn translate_digit_chars() {
+        assert_eq!(translate(VK_0.0 as usize, 0), Some(InputEvent::Char('0')));
+        assert_eq!(translate(VK_1.0 as usize, 0), Some(InputEvent::Char('1')));
+        assert_eq!(translate(VK_9.0 as usize, 0), Some(InputEvent::Char('9')));
     }
 
     #[test]
@@ -95,15 +114,11 @@ mod tests {
     }
 
     #[test]
-    fn translate_page_keys() {
-        assert_eq!(
-            translate(VK_OEM_COMMA.0 as usize, 0),
-            Some(InputEvent::PagePrev)
-        );
-        assert_eq!(
-            translate(VK_OEM_PERIOD.0 as usize, 0),
-            Some(InputEvent::PageNext)
-        );
+    fn translate_common_punctuation_keys() {
+        assert_eq!(translate(VK_OEM_COMMA.0 as usize, 0), Some(InputEvent::Char(',')));
+        assert_eq!(translate(VK_OEM_PERIOD.0 as usize, 0), Some(InputEvent::Char('.')));
+        assert_eq!(translate(VK_OEM_5.0 as usize, 0), Some(InputEvent::Char('\\')));
+        assert_eq!(translate(VK_OEM_2.0 as usize, 0), Some(InputEvent::Char('/')));
     }
 
     #[test]

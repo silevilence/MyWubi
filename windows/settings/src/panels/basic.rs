@@ -1,7 +1,7 @@
 //! 常规设置面板。
 
 use crate::state::AppState;
-use core_engine::config::{CommitMode, SwitchKey};
+use core_engine::config::{CommitMode, PunctuationMode, SwitchKey};
 use eframe::egui::Ui;
 
 pub fn show(ui: &mut Ui, state: &mut AppState) {
@@ -62,6 +62,21 @@ pub fn show(ui: &mut Ui, state: &mut AppState) {
             state.mark_dirty();
         }
     });
+
+    ui.horizontal(|ui| {
+        ui.label("标点输入:");
+        let mut mode = state.config.basic.punctuation_mode;
+        let resp = eframe::egui::ComboBox::from_id_source("punctuation_mode")
+            .selected_text(punctuation_mode_label(mode))
+            .show_ui(ui, |ui| {
+                ui.selectable_value(&mut mode, PunctuationMode::BufferedCommit, "加入缓冲，最后一起上屏");
+                ui.selectable_value(&mut mode, PunctuationMode::DirectCommit, "立即上屏，不进入编码");
+            });
+        if resp.response.changed() && mode != state.config.basic.punctuation_mode {
+            state.config.basic.punctuation_mode = mode;
+            state.mark_dirty();
+        }
+    });
 }
 
 fn commit_mode_label(m: CommitMode) -> &'static str {
@@ -76,5 +91,12 @@ fn switch_key_label(k: SwitchKey) -> &'static str {
         SwitchKey::Shift => "Shift",
         SwitchKey::CapsLock => "CapsLock",
         SwitchKey::CtrlSpace => "Ctrl+Space",
+    }
+}
+
+fn punctuation_mode_label(m: PunctuationMode) -> &'static str {
+    match m {
+        PunctuationMode::BufferedCommit => "加入缓冲，最后一起上屏",
+        PunctuationMode::DirectCommit => "立即上屏，不进入编码",
     }
 }
