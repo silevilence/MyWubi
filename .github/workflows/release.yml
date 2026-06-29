@@ -1,0 +1,221 @@
+# MyWubi 发布流水线
+#
+# 触发方式：推送版本标签（v*.*.* 或 V*.*.*，大小写不敏感）
+# 工作内容：校验变更日志 → 编译发布版 → 打包归档 → 创建 GitHub Release
+
+name: 🚀 Release
+
+on:
+  push:
+    tags:
+      - "v*.*.*"
+      - "V*.*.*"
+
+env:
+  CARGO_TERM_COLOR: always
+  CARGO_INCREMENTAL: 0
+
+jobs:
+  release:
+    name: Build & Release
+    runs-on: windows-latest
+
+    steps:
+      # ── 检出代码 ──────────────────────────────────────────────
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      # ── 安装 Rust 工具链 ──────────────────────────────────────
+      - name: Install Rust toolchain
+        uses: dtolnay/rust-toolchain@stable
+        with:
+          toolchain: stable
+          targets: x86_64-pc-windows-msvc
+
+      # ── 解析版本号 ────────────────────────────────────────────
+      - name: Parse version from tag
+        id: version
+        shell: pwsh
+        run: |
+          # 从 GITHUB_REF 提取版本号，统一转为小写
+          $rawTag = "$env:GITHUB_REF" -replace '^refs/tags/', ''
+          $version = $rawTag.TrimStart('v', 'V')
+          Write-Host "Raw tag: $rawTag"
+          Write-Host "Parsed version: $version"
+
+          # 校验版本号格式（必须为 x.y.z）
+          if ($version -notmatch '^\d+\.\d+\.\d+$') {
+            Write-Error "Invalid version format: '$version'. Expected semver (x.y.z)."
+            exit 1
+          }
+
+          # 输出供后续步骤使用
+          "version=$version" | Out-File -FilePath $env:GITHUB_OUTPUT -Encoding utf8 -Append
+          "tag=$rawTag" | Out-File -FilePath $env:GITHUB_OUTPUT -Encoding utf8 -Append
+
+      # ── 解析变更日志 ──────────────────────────────────────────
+      - name: Parse CHANGELOG for release notes
+        id: changelog
+        shell: pwsh
+        run: |
+          $version = "${{ steps.version.outputs.version }}"
+          $changelogPath = "CHANGELOG.md"
+
+          if (-not (Test-Path $changelogPath)) {
+            Write-Error "CHANGELOG.md not found!"
+            exit 1
+          }
+
+          $content = Get-Content $changelogPath -Raw
+          $lines = $content -split "`n"
+
+          # 查找匹配的版本标题（大小写不敏感）
+          $targetHeader = "## V$version"
+          $startIndex = -1
+
+          for ($i = 0; $i -lt $lines.Length; $i++) {
+            if ($lines[$i].TrimStart() -match "^##\s+[Vv]$version\s*$") {
+              $startIndex = $i
+              break
+            }
+          }
+
+          if ($startIndex -eq -1) {
+            Write-Error "Version 'V$version' not found in CHANGELOG.md! " +
+                        "Make sure a '## V$version' heading exists in the changelog."
+            exit 1
+          }
+
+          # 从标题下一行开始收集，直到遇到下一个二级标题（##）或文件末尾
+          $notes = [System.Collections.ArrayList]@()
+          $started = $false
+          for ($j = $startIndex + 1; $j -lt $lines.Length; $j++) {
+            $line = $lines[$j]
+            # 遇到下一个二级标题则停止
+            if ($line.TrimStart() -match "^##\s+" -and $j -gt $startIndex) {
+              break
+            }
+            # 跳过标题行自身
+            if (-not $started -and $line.Trim() -eq "") {
+              continue
+            }
+            $started = $true
+            $null = $notes.Add($line)
+          }
+
+          if ($notes.Count -eq 0) {
+            Write-Error "No release notes found under '## V$version' in CHANGELOG.md!"
+            exit 1
+          }
+
+          $releaseBody = ($notes -join "`n").Trim()
+
+          Write-Host "=== Release Notes ==="
+          Write-Host $releaseBody
+          Write-Host "====================="
+
+          # 写入文件供后续步骤使用（避免 GITHUB_OUTPUT 的换行截断问题）
+          $notesFile = "$env:RUNNER_TEMP\release_notes.md"
+          $releaseBody | Out-File -FilePath $notesFile -Encoding utf8
+          Write-Host "Release notes saved to: $notesFile"
+
+          "notes_file=$notesFile" | Out-File -FilePath $env:GITHUB_OUTPUT -Encoding utf8 -Append
+
+      # ── 编译发布版 ────────────────────────────────────────────
+      - name: Build release binaries
+        shell: pwsh
+        run: |
+          Write-Host "Building MyWubi release binaries..." -ForegroundColor Cyan
+          cargo build --release
+          if ($LASTEXITCODE -ne 0) {
+            Write-Error "Cargo build failed with exit code $LASTEXITCODE"
+            exit 1
+          }
+          Write-Host "Build completed successfully." -ForegroundColor Green
+
+      # ── 打包产物 ──────────────────────────────────────────────
+      - name: Package artifacts
+        shell: pwsh
+        run: |
+          Write-Host "Packaging release artifacts..." -ForegroundColor Cyan
+          # 使用 -Release -CopyConfig 参数打包
+          & .\package.ps1 -Release -CopyConfig
+          if ($LASTEXITCODE -ne 0) {
+            Write-Error "Package script failed with exit code $LASTEXITCODE"
+            exit 1
+          }
+          Write-Host "Packaging completed." -ForegroundColor Green
+
+      # ── 压缩为 Zip 便携包 ────────────────────────────────────
+      - name: Create ZIP archive
+        id: zip
+        shell: pwsh
+        run: |
+          $version = "${{ steps.version.outputs.version }}"
+          $zipName = "MyWubi-$version.zip"
+          $zipPath = "$env:RUNNER_TEMP\$zipName"
+
+          Write-Host "Creating ZIP archive: $zipName" -ForegroundColor Cyan
+
+          # 压缩 deploy 目录下的所有内容
+          Compress-Archive -Path "deploy\*" -DestinationPath $zipPath -Force
+
+          Write-Host "ZIP archive created: $zipPath" -ForegroundColor Green
+          "zip_name=$zipName" | Out-File -FilePath $env:GITHUB_OUTPUT -Encoding utf8 -Append
+          "zip_path=$zipPath" | Out-File -FilePath $env:GITHUB_OUTPUT -Encoding utf8 -Append
+
+      # ── 创建 GitHub Release ──────────────────────────────────
+      - name: Create Release
+        shell: pwsh
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          $tag = "${{ steps.version.outputs.tag }}"
+          $version = "${{ steps.version.outputs.version }}"
+          $notesFile = "${{ steps.changelog.outputs.notes_file }}"
+          $zipPath = "${{ steps.zip.outputs.zip_path }}"
+          $zipName = "${{ steps.zip.outputs.zip_name }}"
+
+          Write-Host "Creating GitHub Release for $tag..." -ForegroundColor Cyan
+
+          # 读取 Release Notes
+          $notes = Get-Content $notesFile -Raw
+
+          # 检查 Release 是否已存在
+          $existing = gh release view "$tag" --json id 2>$null | ConvertFrom-Json
+          if ($existing) {
+            Write-Host "Release $tag already exists, updating..." -ForegroundColor Yellow
+            gh release edit "$tag" --notes "$notes" --title "MyWubi $version"
+          } else {
+            Write-Host "Creating new release $tag..." -ForegroundColor Green
+            gh release create "$tag" `
+              --title "MyWubi $version" `
+              --notes "$notes" `
+              "$zipPath#$zipName"
+          }
+
+          if ($LASTEXITCODE -ne 0) {
+            Write-Error "Release creation failed!"
+            exit 1
+          }
+
+          Write-Host "Release $tag published successfully!" -ForegroundColor Green
+
+  # ── 发布完成通知 ────────────────────────────────────────────
+  notify:
+    name: Notify
+    needs: release
+    if: always()
+    runs-on: windows-latest
+    steps:
+      - name: Check release status
+        shell: pwsh
+        run: |
+          if ("${{ needs.release.result }}" -eq "success") {
+            Write-Host "✅ Release workflow completed successfully!" -ForegroundColor Green
+          } else {
+            Write-Host "❌ Release workflow failed: ${{ needs.release.result }}" -ForegroundColor Red
+            exit 1
+          }

@@ -8,19 +8,6 @@
     - [ ] 绑定到 `GUID_COMPARTMENT_KEYBOARD_OPENCLOSE` 自动反映状态
     - [ ] 按钮点击触发 `toggle_ime_mode()`
 
-- [ ] **Velopack 打包配置与自动化构建**
-    - [ ] 安装并配置 `vshere` 和 Velopack CLI 工具
-    - [ ] 编写构建脚本（如 `build.rs` 或 `powershell` 脚本）
-        - [ ] 编译 `im_engine.dll` (release)
-        - [ ] 编译 `settings.exe` (release)
-        - [ ] 收集相关资源文件（默认码表、字体、默认配置文件）
-    - [ ] 配置 Velopack 安装/卸载 Hook
-        - [ ] **安装/更新 Hook**：调用 `tip_manager::install()` 自动注册 TIP
-        - [ ] **卸载 Hook**：调用 `tip_manager::uninstall()` 自动清理
-    - [ ] **一键打包与发布验证**
-        - [ ] 生成最终安装包 `Setup.exe`
-        - [ ] 在干净的 Windows 虚机中测试安装、激活、打字、配置修改、自动更新、卸载全流程
-
 - [ ] **Rust 核心 JNI 桥接层设计 (core_engine)**
     - [ ] 引入 `jni` crate 依赖
     - [ ] 导出适配 Android 的 C-ABI 接口
@@ -57,6 +44,36 @@
     - [ ] `settings.exe` 常规面板新增翻页键选择
 
 ## 🚧 开发中
+
+- [ ] **GitHub Actions 自动化流水线构建**
+    - [ ] 触发机制：监控指定格式的版本标签（大小写不敏感，如 `v*.*.*` 或 `V*.*.*`），自动激活发布工作流
+    - [ ] 工作流步骤：
+        - [ ] 变更日志解析与健全性校验：读取 `CHANGELOG.md` 中对应版本号的发布说明，若解析失败（版本号不匹配或格式异常）则触发异常中断。格式约定如下：
+            ```markdown
+            # Change Log
+
+            ## V0.1.0
+
+            更新内容（一整个二级标题下均视为更新内容）
+            ```
+            注：版本号倒序排列（新版本在前），检索时需进行大小写不敏感匹配。
+        - [ ] 核心产物编译：执行 `cargo build --release` 编译核心二进制程序
+        - [ ] 资源归档：通过 `package.ps1` 收集构建产物及必要依赖，并压缩为 Zip 便携包
+        - [ ] 资产发布：创建 GitHub Release，将解析出的更新说明填入 Release Body，并上传 Zip 归档文件
+
+- [ ] **Velopack 打包配置与自动化构建**
+    - [ ] 运行环境与工具链配置：安装并初始化 `vshere` 和 Velopack CLI 工具
+    - [ ] 构建脚本设计与实现：编写构建脚本（如 `build.rs` 或 PowerShell 脚本）
+        - [ ] 编译 `im_engine.dll` (Release 模式)
+        - [ ] 编译 `settings.exe` (Release 模式)
+        - [ ] 静态资源收集（内置默认码表、字体文件、基础配置文件 `config.toml`）
+    - [ ] 客户端生命周期勾子（Lifecycle Hooks）注册：
+        - [ ] **安装与更新阶段**：调用 `tip_manager::install()` 实现文本服务框架（TSF）的自动注册
+        - [ ] **卸载阶段**：调用 `tip_manager::uninstall()` 实现 TSF 服务的反注册及残留清理
+    - [ ] **分发包构建与端到端验证**
+        - [ ] 生成标准安装向导 `Setup.exe`
+        - [ ] 在干净的 Windows 虚拟化测试环境中，进行安装、激活、输入法调度、配置更新、静默升级、卸载全流程的闭环验证
+    - [ ] CI/CD 渠道拓宽：在 GitHub Actions 流水线中，保留原有的 Zip 便携版发布资产，并追加 `Setup.exe` 安装包的自动上传与发布
 
 ## ✅ 已完成
 
