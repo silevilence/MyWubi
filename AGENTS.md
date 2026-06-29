@@ -239,3 +239,17 @@ Refs: ROADMAP OPDS 书源服务构建与分发
 ## 5. 依赖管理
 
 所有依赖管理，尽可能使用工具实现（如 `cargo add`）。
+
+## Agent skills
+
+### Issue tracker
+
+Issues are tracked as local markdown files under `.scratch/`. See `docs/agents/issue-tracker.md`.
+
+### Triage labels
+
+The five canonical roles use default label names. See `docs/agents/triage-labels.md`.
+
+### Domain docs
+
+Single-context layout. See `docs/agents/domain.md`.

@@ -21,3 +21,5 @@ Thumbs.db
 
 .superpowers/
 deploy/
+.agents/
+skills-lock.json
