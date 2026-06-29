@@ -15,6 +15,9 @@ env:
   CARGO_TERM_COLOR: always
   CARGO_INCREMENTAL: 0
 
+permissions:
+  contents: write
+
 jobs:
   release:
     name: Build & Release
@@ -168,54 +171,9 @@ jobs:
 
       # ── 创建 GitHub Release ──────────────────────────────────
       - name: Create Release
-        shell: pwsh
-        env:
-          GH_TOKEN: ${{ github.token }}
-        run: |
-          $tag = "${{ steps.version.outputs.tag }}"
-          $version = "${{ steps.version.outputs.version }}"
-          $notesFile = "${{ steps.changelog.outputs.notes_file }}"
-          $zipPath = "${{ steps.zip.outputs.zip_path }}"
-          $zipName = "${{ steps.zip.outputs.zip_name }}"
-
-          Write-Host "Creating GitHub Release for $tag..." -ForegroundColor Cyan
-
-          # 读取 Release Notes
-          $notes = Get-Content $notesFile -Raw
-
-          # 检查 Release 是否已存在
-          $existing = gh release view "$tag" --json id 2>$null | ConvertFrom-Json
-          if ($existing) {
-            Write-Host "Release $tag already exists, updating..." -ForegroundColor Yellow
-            gh release edit "$tag" --notes "$notes" --title "MyWubi $version"
-          } else {
-            Write-Host "Creating new release $tag..." -ForegroundColor Green
-            gh release create "$tag" `
-              --title "MyWubi $version" `
-              --notes "$notes" `
-              "$zipPath#$zipName"
-          }
-
-          if ($LASTEXITCODE -ne 0) {
-            Write-Error "Release creation failed!"
-            exit 1
-          }
-
-          Write-Host "Release $tag published successfully!" -ForegroundColor Green
-
-  # ── 发布完成通知 ────────────────────────────────────────────
-  notify:
-    name: Notify
-    needs: release
-    if: always()
-    runs-on: windows-latest
-    steps:
-      - name: Check release status
-        shell: pwsh
-        run: |
-          if ("${{ needs.release.result }}" -eq "success") {
-            Write-Host "✅ Release workflow completed successfully!" -ForegroundColor Green
-          } else {
-            Write-Host "❌ Release workflow failed: ${{ needs.release.result }}" -ForegroundColor Red
-            exit 1
-          }
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: ${{ steps.version.outputs.tag }}
+          name: MyWubi ${{ steps.version.outputs.version }}
+          body_path: ${{ steps.changelog.outputs.notes_file }}
+          files: ${{ steps.zip.outputs.zip_path }}
