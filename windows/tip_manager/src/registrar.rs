@@ -74,7 +74,7 @@ pub fn register_tip(dll_path: &str) -> Result<(), TipManagerError> {
 
     // 6.5. HKCU（当前用户）也注册——Windows 10/11 的键盘选择列表读取 HKCU
     let user_ctf_path = format!("SOFTWARE\\Microsoft\\CTF\\TIP\\{clsid_str}");
-    let user_lp_path = HSTRING::from(format!("{user_ctf_path}\\LanguageProfile"));
+
     // 必须先创建 TIP 根键（reg_create_key 在 set_reg_dword/sz 中自动创建）
     let user_tip_root = HSTRING::from(&user_ctf_path);
     set_reg_sz(HKEY_CURRENT_USER, &user_tip_root, PCWSTR::null(), &HSTRING::from(TEXT_SERVICE_NAME))?;

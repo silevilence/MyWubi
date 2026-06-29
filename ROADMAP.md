@@ -21,9 +21,6 @@
         - [ ] 生成最终安装包 `Setup.exe`
         - [ ] 在干净的 Windows 虚机中测试安装、激活、打字、配置修改、自动更新、卸载全流程
 
-- [ ] **废弃旧注册脚本**
-    - [ ] `deploy/register_tip.bat` 标记废弃，替换为提示用户使用 settings.exe 的说明文件
-
 - [ ] **Rust 核心 JNI 桥接层设计 (core_engine)**
     - [ ] 引入 `jni` crate 依赖
     - [ ] 导出适配 Android 的 C-ABI 接口
@@ -145,3 +142,6 @@
         - [x] 通过 `ITfInputProcessorProfileMgr` COM 接口实现 TIP 的注册与启用（替代注册表方案，绕过未签名 DLL 的"仅桌面"灰显限制）
         - [x] 实现输入法的安装、启用、禁用、卸载全生命周期管理
         - [x] 设置工具启动时检测 TIP 注册状态并提示用户操作
+
+- [x] **废弃旧注册脚本**
+    - [x] 所有独立安装脚本已移除（`register_tip.bat`、`enable_tip.ps1`、`reg_script.ps1` 等），统一通过 `settings.exe` 中的「输入法管理」面板安装

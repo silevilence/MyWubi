@@ -338,4 +338,4 @@ fn main() {
 
 - Velopack 安装 Hook 调用 `tip_manager::install()` 实现自动注册
 - Velopack 卸载 Hook 调用 `tip_manager::uninstall()` 实现自动清理
-- `deploy/register_tip.bat` 标记废弃，改为提示用户使用 settings.exe
+- 所有独立安装脚本已移除（`register_tip.bat`、`enable_tip.ps1`、`reg_script.ps1` 等），统一使用 `settings.exe` 的「输入法管理」面板

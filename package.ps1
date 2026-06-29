@@ -10,16 +10,16 @@ param(
 
 $ErrorActionPreference = "Stop"
 
-$profile = if ($Release) { "release" } else { "debug" }
-$targetDir = "target\$profile"
+$buildProfile = if ($Release) { "release" } else { "debug" }
+$targetDir = "target\$buildProfile"
 $deployDir = "deploy"
 
-Write-Host "=== MyWubi 打包 ($profile) ===" -ForegroundColor Cyan
+Write-Host "=== MyWubi 打包 ($buildProfile) ===" -ForegroundColor Cyan
 
 # 1. 确保已构建
 if (-not (Test-Path "$targetDir\settings.exe")) {
-    Write-Host "尚未构建，执行 cargo build --$profile ..." -ForegroundColor Yellow
-    cargo build --$profile
+    Write-Host "尚未构建，执行 cargo build --$buildProfile ..." -ForegroundColor Yellow
+    cargo build --$buildProfile
     if ($LASTEXITCODE -ne 0) { throw "构建失败" }
 }
 
