@@ -2,7 +2,7 @@
 
 ## 📅 计划中
 
-- [ ] **TSF 语言栏按钮** (Phase 2.4)
+- [ ] **TSF 语言栏按钮** (2026-06-27-tsf-full-integration-plan Phase 2.4)
     - [ ] 实现 `ITfLangBarItemButton` 中/英状态指示按钮
     - [ ] 通过 `ITfLangBarItemMgr::AddItem` 注册
     - [ ] 绑定到 `GUID_COMPARTMENT_KEYBOARD_OPENCLOSE` 自动反映状态
