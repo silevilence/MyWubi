@@ -140,10 +140,10 @@ jobs:
         shell: pwsh
         run: |
           Write-Host "Packaging release artifacts..." -ForegroundColor Cyan
-          # 使用 -Release -CopyConfig 参数打包
-          & .\package.ps1 -Release -CopyConfig
-          if ($LASTEXITCODE -ne 0) {
-            Write-Error "Package script failed with exit code $LASTEXITCODE"
+          # package.ps1 是 PowerShell 脚本，用 $? 判断成功状态
+          & .\package.ps1 -Release
+          if (-not $?) {
+            Write-Error "Package script failed"
             exit 1
           }
           Write-Host "Packaging completed." -ForegroundColor Green
