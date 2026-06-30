@@ -55,11 +55,11 @@ use crate::screen_geometry::get_range_position;
 
 // ── 类型定义 ────────────────────────────────────────────────────────
 
-/// 编码输入态 display attribute 的 GUID。
+/// 编码输入态 display attribute 的 GUID.
 const GUID_DISPLAY_ATTR_INPUT: GUID = GUID::from_u128(0x8a2e3b4c_1d5f_4a7b_9e6c_3f8d2b1a5e7d);
-/// 有候选态 display attribute 的 GUID。
+/// 有候选态 display attribute 的 GUID.
 const GUID_DISPLAY_ATTR_CONVERTED: GUID = GUID::from_u128(0x6b1c8d9e_2f3a_4c5b_8d7e_1a2b3c4d5e6f);
-/// PreservedKey（Shift 切换）的 GUID。
+/// PreservedKey（Shift 切换）的 GUID.
 const GUID_PRESERVED_SHIFT: GUID = GUID::from_u128(0x1a2b3c4d_5e6f_7a8b_9c0d_1e2f3a4b5c6d);
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
@@ -312,6 +312,8 @@ pub struct TextService {
     candidate_window: Mutex<Option<CandidateWindow>>,
     /// 当前候选框主题快照。
     theme: ThemeSnapshot,
+    /// 全局配置（用于翻页热键等动态映射）。
+    cfg: Config,
     /// ── Phase 1 新增字段 ──
     /// 当前激活的 composition 对象。
     composition: Mutex<Option<ITfComposition>>,
@@ -407,6 +409,7 @@ impl TextService {
             core_engine::config::PunctuationMode::BufferedCommit,
             candidate_tx,
             ThemeSnapshot::default(),
+            Config::default(),
         )
     }
 
@@ -417,6 +420,7 @@ impl TextService {
         punctuation_mode: core_engine::config::PunctuationMode,
         candidate_tx: Arc<ArcSwap<CandidateData>>,
         theme: ThemeSnapshot,
+        cfg: Config,
     ) -> Self {
         let sm = StateMachine::with_behavior(dict, page_size, auto_commit_unique, punctuation_mode);
         Self {
@@ -428,6 +432,9 @@ impl TextService {
             candidate_tx,
             candidate_window: Mutex::new(None),
             theme,
+            cfg,
+            edit_sink_context: Mutex::new(None),
+            edit_sink_cookie: Mutex::new(0),
             composition: Mutex::new(None),
             ga_input: Mutex::new(0),
             ga_converted: Mutex::new(0),
@@ -435,8 +442,6 @@ impl TextService {
             activate_flags: Mutex::new(0),
             ime_mode: Mutex::new(true),
             thread_focus_cookie: Mutex::new(0),
-            edit_sink_context: Mutex::new(None),
-            edit_sink_cookie: Mutex::new(0),
         }
     }
 
@@ -449,20 +454,16 @@ impl TextService {
             cfg.basic.punctuation_mode,
             candidate_tx,
             ThemeSnapshot::from_config(cfg),
+            cfg.clone(),
         )
     }
 
-    fn current_theme(&self) -> ThemeSnapshot {
-        self.theme.clone()
-    }
-
-    /// 仅供 IClassFactory 内部注入 self 弱强引用（见
-    /// [`crate::factory::TextServiceFactory`])。
+    /// 仅供 IClassFactory 内部注入 self 弱强引用（见 [`crate::factory::TextServiceFactory`])。
     pub(crate) fn set_self_unknown(&self, unk: windows::core::IUnknown) {
         *self.self_unknown.lock() = Some(unk);
     }
 
-        /// 内部：取一份 IUnknown 副本（已 AddRef），用于 AdviseSink 注册。
+    /// 内部：取一份 IUnknown 副本（已 AddRef），用于 AdviseSink 注册。
     fn clone_self_unknown(&self) -> Option<windows::core::IUnknown> {
         self.self_unknown.lock().clone()
     }
@@ -479,7 +480,7 @@ impl TextService {
     ///
     /// `context` 为可选的 TSF `ITfContext`，用于候选框坐标获取和 EditSession 调度。
     fn apply_transition(&self, t: Transition, context: Option<&ITfContext>) -> BOOL {
-        let theme = self.current_theme();
+        let theme = self.theme.clone();
         match &t {
             Transition::None => {}
             Transition::Commit(text) => {
@@ -637,7 +638,7 @@ impl TextService {
         Ok(())
     }
 
-    /// 获取当前焦点文档管理器的顶 context。
+    /// 获取当前焦点文档管理器的顶 context.
     fn get_focus_context(&self) -> Result<(ITfContext, ITfDocumentMgr)> {
         let tm_guard = self.thread_mgr.lock();
         let tm = tm_guard.as_ref().ok_or_else(|| {
@@ -649,7 +650,7 @@ impl TextService {
         Ok((ctx, doc_mgr))
     }
 
-    /// 获取当前光标处的文本 range。
+    /// 获取当前光标处的文本 range.
     fn get_selection_range(&self, ctx: &ITfContext, ec: u32) -> Result<ITfRange> {
         let mut sel = [TF_SELECTION::default()];
         let mut fetched: u32 = 0;
@@ -753,7 +754,7 @@ impl TextService {
     pub fn set_english_mode(&self) {
         *self.ime_mode.lock() = false;
         self.sm.lock().reset();
-        let theme = self.current_theme();
+        let theme = self.theme.clone();
         self.candidate_tx.store(Arc::new(CandidateData::hidden(theme)));
         log::debug!("[TSF] 切换到英文模式");
     }
@@ -787,7 +788,7 @@ impl ITfTextInputProcessor_Impl for TextService_Impl {
         self.is_composing.store(false, Ordering::Release);
 
         // 隐藏候选框并关闭候选框窗口。
-        self.candidate_tx.store(Arc::new(CandidateData::hidden(self.current_theme())));
+        self.candidate_tx.store(Arc::new(CandidateData::hidden(self.theme.clone())));
         if let Some(mut cw) = self.candidate_window.lock().take() {
             cw.shutdown();
         }
@@ -1041,7 +1042,7 @@ impl ITfThreadFocusSink_Impl for TextService_Impl {
         log::debug!("[TSF] 线程焦点丢失");
         // 清理输入状态
         self.sm.lock().reset();
-        let theme = self.current_theme();
+        let theme = self.theme.clone();
         self.candidate_tx.store(Arc::new(CandidateData::hidden(theme)));
         if self.is_composing.load(Ordering::Acquire) {
             // 异步清除 composition（需要有效的 context，Deactivate 会兜底）
@@ -1160,10 +1161,9 @@ impl ITfKeyEventSink_Impl for TextService_Impl {
             return Ok(BOOL(0));
         }
 
-        let _ = lparam;
         let spelling_empty = self.sm.lock().spelling().is_empty();
         Ok(BOOL(should_intercept_test_key(
-            key_filter::translate(wparam.0 as usize, lparam.0 as isize),
+            key_filter::translate(wparam.0 as usize, lparam.0 as isize, &self.cfg.hotkey.page_next, &self.cfg.hotkey.page_prev),
             spelling_empty,
         ) as i32))
     }
@@ -1183,15 +1183,11 @@ impl ITfKeyEventSink_Impl for TextService_Impl {
         wparam: WPARAM,
         lparam: LPARAM,
     ) -> Result<BOOL> {
-        let Some(event) = key_filter::translate(wparam.0 as usize, lparam.0 as isize) else {
-            return Ok(BOOL(0));
-        };
-
+        let Some(event) = key_filter::translate(wparam.0 as usize, lparam.0 as isize, &self.cfg.hotkey.page_next, &self.cfg.hotkey.page_prev) else { return Ok(BOOL(0)); };
         let spelling_empty = self.sm.lock().spelling().is_empty();
         if !should_intercept_test_key(Some(event.clone()), spelling_empty) {
             return Ok(BOOL(0));
         }
-
         let t = self.sm.lock().handle(event);
         Ok(self.apply_transition(t, pic.as_ref()))
     }
@@ -1371,3 +1367,5 @@ mod tests {
         );
     }
 }
+
+

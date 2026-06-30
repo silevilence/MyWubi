@@ -63,6 +63,7 @@ pub fn show(ui: &mut Ui, state: &mut AppState) {
         }
     });
 
+    // 标点输入
     ui.horizontal(|ui| {
         ui.label("标点输入:");
         let mut mode = state.config.basic.punctuation_mode;
@@ -74,6 +75,52 @@ pub fn show(ui: &mut Ui, state: &mut AppState) {
             });
         if resp.response.changed() && mode != state.config.basic.punctuation_mode {
             state.config.basic.punctuation_mode = mode;
+            state.mark_dirty();
+        }
+    });
+
+    // 翻页热键
+    ui.separator();
+    ui.label("翻页热键:");
+    ui.horizontal(|ui| {
+        ui.label("下一页:");
+        let mut next = state.config.hotkey.page_next.clone();
+        let resp = eframe::egui::ComboBox::from_id_source("page_next")
+            .selected_text(page_key_label(&next))
+            .show_ui(ui, |ui| {
+                ui.selectable_value(&mut next, "comma".to_string(), "逗号 (,)");
+                ui.selectable_value(&mut next, "period".to_string(), "句号 (.)");
+                ui.selectable_value(&mut next, "minus".to_string(), "减号 (-)");
+                ui.selectable_value(&mut next, "equal".to_string(), "等号 (=)");
+                ui.selectable_value(&mut next, "space".to_string(), "空格");
+                ui.selectable_value(&mut next, "left".to_string(), "左箭头");
+                ui.selectable_value(&mut next, "right".to_string(), "右箭头");
+                ui.selectable_value(&mut next, "page_down".to_string(), "PageDown");
+                ui.selectable_value(&mut next, "page_up".to_string(), "PageUp");
+            });
+        if resp.response.changed() && next != state.config.hotkey.page_next {
+            state.config.hotkey.page_next = next;
+            state.mark_dirty();
+        }
+    });
+    ui.horizontal(|ui| {
+        ui.label("上一页:");
+        let mut prev = state.config.hotkey.page_prev.clone();
+        let resp = eframe::egui::ComboBox::from_id_source("page_prev")
+            .selected_text(page_key_label(&prev))
+            .show_ui(ui, |ui| {
+                ui.selectable_value(&mut prev, "comma".to_string(), "逗号 (,)");
+                ui.selectable_value(&mut prev, "period".to_string(), "句号 (.)");
+                ui.selectable_value(&mut prev, "minus".to_string(), "减号 (-)");
+                ui.selectable_value(&mut prev, "equal".to_string(), "等号 (=)");
+                ui.selectable_value(&mut prev, "space".to_string(), "空格");
+                ui.selectable_value(&mut prev, "left".to_string(), "左箭头");
+                ui.selectable_value(&mut prev, "right".to_string(), "右箭头");
+                ui.selectable_value(&mut prev, "page_down".to_string(), "PageDown");
+                ui.selectable_value(&mut prev, "page_up".to_string(), "PageUp");
+            });
+        if resp.response.changed() && prev != state.config.hotkey.page_prev {
+            state.config.hotkey.page_prev = prev;
             state.mark_dirty();
         }
     });
@@ -98,5 +145,20 @@ fn punctuation_mode_label(m: PunctuationMode) -> &'static str {
     match m {
         PunctuationMode::BufferedCommit => "加入缓冲，最后一起上屏",
         PunctuationMode::DirectCommit => "立即上屏，不进入编码",
+    }
+}
+
+fn page_key_label(k: &str) -> &'static str {
+    match k {
+        "comma" => "逗号 (,)",
+        "period" => "句号 (.)",
+        "minus" => "减号 (-)",
+        "equal" => "等号 (=)",
+        "space" => "空格",
+        "left" => "左箭头",
+        "right" => "右箭头",
+        "page_down" => "PageDown",
+        "page_up" => "PageUp",
+        _ => "未知",
     }
 }

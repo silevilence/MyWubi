@@ -41,6 +41,8 @@ mod tests {
             tip_status: tip_manager::detect_status(),
             uninstall_confirm: false,
             tip_operation_pending: false,
+            update_state: crate::vpk::UpdateState::Idle,
+            update_worker: None,
         }
     }
 

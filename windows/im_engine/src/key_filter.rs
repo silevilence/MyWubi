@@ -16,12 +16,39 @@
 use core_engine::InputEvent;
 use windows::Win32::UI::Input::KeyboardAndMouse::*;
 
+/// 配置中翻页键的字符串标识 → 虚拟键码映射。
+fn key_name_to_vk(name: &str) -> Option<u16> {
+    match name {
+        "comma" => Some(VK_OEM_COMMA.0),
+        "period" => Some(VK_OEM_PERIOD.0),
+        "minus" => Some(VK_OEM_MINUS.0),
+        "equal" => Some(VK_OEM_PLUS.0),
+        "space" => Some(VK_SPACE.0),
+        "left" => Some(VK_LEFT.0),
+        "right" => Some(VK_RIGHT.0),
+        "page_up" => Some(VK_PRIOR.0),
+        "page_down" => Some(VK_NEXT.0),
+        _ => None,
+    }
+}
+
 /// 把 (`wparam`, `lparam`) 解析为通用 [`InputEvent`]；返回 `None` 表示该按键与本输入法无关。
 ///
 /// `wparam` 为虚拟键码；`lparam` 仅用于判断过渡状态与扩展键（本实现中不直接使用，
 /// 保留参数以契合回调签名）。
-pub fn translate(wparam: usize, _lparam: isize) -> Option<InputEvent> {
+pub fn translate(wparam: usize, _lparam: isize, page_next: &str, page_prev: &str) -> Option<InputEvent> {
     let vk = wparam as u16;
+    // 翻页键优先匹配：若当前按键被配置为翻页键，则返回翻页事件。
+    if let Some(pn_vk) = key_name_to_vk(page_next) {
+        if vk == pn_vk {
+            return Some(InputEvent::PageNext);
+        }
+    }
+    if let Some(pp_vk) = key_name_to_vk(page_prev) {
+        if vk == pp_vk {
+            return Some(InputEvent::PagePrev);
+        }
+    }
     match vk {
         // 字母键：A..Z → 小写 c
         v if (VK_A.0..=VK_Z.0).contains(&v) => {
@@ -62,67 +89,106 @@ pub fn translate(wparam: usize, _lparam: isize) -> Option<InputEvent> {
     }
 }
 
-/// 仅作快速过滤用：当前按键是否为输入法可能关注的键。
-pub fn is_intercepted_key(wparam: usize) -> bool {
-    let vk = wparam as u16;
-    (VK_A.0..=VK_Z.0).contains(&vk)
-    || (VK_0.0..=VK_9.0).contains(&vk)
-        || vk == VK_SPACE.0
-        || vk == VK_RETURN.0
-        || vk == VK_BACK.0
-        || vk == VK_ESCAPE.0
-    || vk == VK_OEM_1.0
-    || vk == VK_OEM_PLUS.0
-        || vk == VK_OEM_COMMA.0
-    || vk == VK_OEM_MINUS.0
-        || vk == VK_OEM_PERIOD.0
-    || vk == VK_OEM_2.0
-    || vk == VK_OEM_3.0
-    || vk == VK_OEM_4.0
-    || vk == VK_OEM_5.0
-    || vk == VK_OEM_6.0
-    || vk == VK_OEM_7.0
-}
-
 #[cfg(test)]
 mod tests {
     use super::*;
+    use windows::Win32::UI::Input::KeyboardAndMouse::{VK_OEM_COMMA, VK_OEM_MINUS, VK_OEM_PLUS};
 
     #[test]
     fn translate_letter_lowercase() {
-        assert_eq!(translate(VK_A.0 as usize, 0), Some(InputEvent::Char('a')));
-        assert_eq!(translate(VK_Z.0 as usize, 0), Some(InputEvent::Char('z')));
+        assert_eq!(translate(VK_A.0 as usize, 0, "comma", "period"), Some(InputEvent::Char('a')));
+        assert_eq!(translate(VK_Z.0 as usize, 0, "comma", "period"), Some(InputEvent::Char('z')));
     }
 
     #[test]
     fn translate_digit_chars() {
-        assert_eq!(translate(VK_0.0 as usize, 0), Some(InputEvent::Char('0')));
-        assert_eq!(translate(VK_1.0 as usize, 0), Some(InputEvent::Char('1')));
-        assert_eq!(translate(VK_9.0 as usize, 0), Some(InputEvent::Char('9')));
+        assert_eq!(translate(VK_0.0 as usize, 0, "comma", "period"), Some(InputEvent::Char('0')));
+        assert_eq!(translate(VK_1.0 as usize, 0, "comma", "period"), Some(InputEvent::Char('1')));
+        assert_eq!(translate(VK_9.0 as usize, 0, "comma", "period"), Some(InputEvent::Char('9')));
     }
 
     #[test]
     fn translate_space_and_enter() {
-        assert_eq!(translate(VK_SPACE.0 as usize, 0), Some(InputEvent::Space));
-        assert_eq!(translate(VK_RETURN.0 as usize, 0), Some(InputEvent::Enter));
+        assert_eq!(translate(VK_SPACE.0 as usize, 0, "comma", "period"), Some(InputEvent::Space));
+        assert_eq!(translate(VK_RETURN.0 as usize, 0, "comma", "period"), Some(InputEvent::Enter));
     }
 
     #[test]
     fn translate_backspace_and_esc() {
-        assert_eq!(translate(VK_BACK.0 as usize, 0), Some(InputEvent::Backspace));
-        assert_eq!(translate(VK_ESCAPE.0 as usize, 0), Some(InputEvent::Esc));
+        assert_eq!(translate(VK_BACK.0 as usize, 0, "comma", "period"), Some(InputEvent::Backspace));
+        assert_eq!(translate(VK_ESCAPE.0 as usize, 0, "comma", "period"), Some(InputEvent::Esc));
     }
 
     #[test]
     fn translate_common_punctuation_keys() {
-        assert_eq!(translate(VK_OEM_COMMA.0 as usize, 0), Some(InputEvent::Char(',')));
-        assert_eq!(translate(VK_OEM_PERIOD.0 as usize, 0), Some(InputEvent::Char('.')));
-        assert_eq!(translate(VK_OEM_5.0 as usize, 0), Some(InputEvent::Char('\\')));
-        assert_eq!(translate(VK_OEM_2.0 as usize, 0), Some(InputEvent::Char('/')));
+        // 默认配置下逗号/句号被映射为翻页键，不再返回标点字符
+        assert_eq!(translate(VK_OEM_COMMA.0 as usize, 0, "comma", "period"), Some(InputEvent::PageNext));
+        assert_eq!(translate(VK_OEM_PERIOD.0 as usize, 0, "comma", "period"), Some(InputEvent::PagePrev));
+        // 未配置为翻页的标点键仍返回字符
+        assert_eq!(translate(VK_OEM_5.0 as usize, 0, "comma", "period"), Some(InputEvent::Char('\\')));
+        assert_eq!(translate(VK_OEM_2.0 as usize, 0, "comma", "period"), Some(InputEvent::Char('/')));
     }
 
     #[test]
     fn translate_unknown_returns_none() {
-        assert_eq!(translate(0xFF as usize, 0), None);
+        assert_eq!(translate(0xFF as usize, 0, "comma", "period"), None);
+    }
+
+    #[test]
+    fn page_next_takes_priority_over_page_prev() {
+        // 同一个键配置为 page_next 和 page_prev 时，PageNext 先匹配
+        assert_eq!(
+            translate(VK_OEM_COMMA.0 as usize, 0, "comma", "comma"),
+            Some(InputEvent::PageNext)
+        );
+    }
+
+    #[test]
+    fn page_prev_works_for_non_default_key() {
+        // page_prev 配置为逗号键时，按逗号应返回 PagePrev
+        assert_eq!(
+            translate(VK_OEM_COMMA.0 as usize, 0, "period", "comma"),
+            Some(InputEvent::PagePrev)
+        );
+    }
+
+    #[test]
+    fn page_key_non_default_minus_equal() {
+        assert_eq!(
+            translate(VK_OEM_MINUS.0 as usize, 0, "minus", "equal"),
+            Some(InputEvent::PageNext)
+        );
+        assert_eq!(
+            translate(VK_OEM_PLUS.0 as usize, 0, "minus", "equal"),
+            Some(InputEvent::PagePrev)
+        );
+        // 未配置为翻页的逗号/句号回归标点字符
+        assert_eq!(
+            translate(VK_OEM_COMMA.0 as usize, 0, "minus", "equal"),
+            Some(InputEvent::Char(','))
+        );
+    }
+
+    #[test]
+    fn page_key_space_overrides_space_input() {
+        // 空格配为翻页键时，按空格返回 PageNext 而非 Space
+        assert_eq!(
+            translate(VK_SPACE.0 as usize, 0, "space", "period"),
+            Some(InputEvent::PageNext)
+        );
+    }
+
+    #[test]
+    fn key_name_to_vk_maps_all_options() {
+        assert_eq!(key_name_to_vk("comma"), Some(VK_OEM_COMMA.0));
+        assert_eq!(key_name_to_vk("period"), Some(VK_OEM_PERIOD.0));
+        assert_eq!(key_name_to_vk("minus"), Some(VK_OEM_MINUS.0));
+        assert_eq!(key_name_to_vk("equal"), Some(VK_OEM_PLUS.0));
+        assert_eq!(key_name_to_vk("space"), Some(VK_SPACE.0));
+        assert_eq!(key_name_to_vk("left"), Some(VK_LEFT.0));
+        assert_eq!(key_name_to_vk("right"), Some(VK_RIGHT.0));
+        assert_eq!(key_name_to_vk("page_up"), Some(VK_PRIOR.0));
+        assert_eq!(key_name_to_vk("page_down"), Some(VK_NEXT.0));
+        assert_eq!(key_name_to_vk("unknown"), None);
     }
 }
