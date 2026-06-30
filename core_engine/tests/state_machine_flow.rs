@@ -239,18 +239,31 @@ fn typing_during_selecting_resets_candidates() {
 // ── 11. 非编码字符透传 ───────────────────────────────────
 
 #[test]
-fn non_code_char_passthrough_during_idle() {
+fn symbol_passthrough_during_idle() {
     let mut m = StateMachine::new(dict());
-    let t = m.handle(InputEvent::Char('!'));
-    assert_eq!(t, Transition::Passthrough(InputEvent::Char('!')));
+    let t = m.handle(InputEvent::Symbol('!'));
+    assert_eq!(t, Transition::Passthrough(InputEvent::Symbol('!')));
     assert_eq!(m.spelling(), "");
 }
 
 #[test]
-fn uppercase_letter_passthrough() {
+fn uppercase_letter_is_kept_in_spelling_buffer() {
     let mut m = StateMachine::new(dict());
     let t = m.handle(InputEvent::Char('A'));
-    assert_eq!(t, Transition::Passthrough(InputEvent::Char('A')));
+    assert_eq!(t, Transition::SpellingUpdated("A".to_string()));
+    assert_eq!(m.spelling(), "A");
+}
+
+#[test]
+fn symbol_after_spelling_commits_raw_spelling_then_symbol() {
+    let mut m = StateMachine::new(dict());
+    drive_chars(&mut m, "gg");
+
+    let t = m.handle(InputEvent::Symbol('!'));
+
+    assert_eq!(t, Transition::Commit("gg!".to_string()));
+    assert_eq!(m.state(), core_engine::state_machine::InputState::Idle);
+    assert_eq!(m.spelling(), "");
 }
 
 // ── 12. 完整写作流：多句上屏 ─────────────────────────────────

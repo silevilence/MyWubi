@@ -27,6 +27,8 @@ pub enum InputState {
 pub enum InputEvent {
     /// 字母/数字按键输入（编码字符）。
     Char(char),
+    /// 由前端按当前键盘布局翻译出的符号字符；不进入编码缓冲。
+    Symbol(char),
     /// 空格键（按 `commit_mode` 行为决定上屏/翻页/选定）。
     Space,
     /// 回车键。
@@ -169,6 +171,7 @@ impl StateMachine {
     pub fn handle(&mut self, event: InputEvent) -> Transition {
         match event {
             InputEvent::Char(c) => self.on_char(c),
+            InputEvent::Symbol(c) => self.on_symbol(c),
             InputEvent::Space => self.on_space(),
             InputEvent::Enter => self.on_enter(),
             InputEvent::Backspace => self.on_backspace(),
@@ -238,6 +241,17 @@ impl StateMachine {
             page: self.page,
             total_pages: self.total_pages(),
         }
+    }
+
+    fn on_symbol(&mut self, c: char) -> Transition {
+        if self.spelling.is_empty() {
+            return Transition::Passthrough(InputEvent::Symbol(c));
+        }
+
+        let mut text = self.spelling.clone();
+        text.push(c);
+        self.reset();
+        Transition::Commit(text)
     }
 
     fn on_space(&mut self) -> Transition {
@@ -407,9 +421,9 @@ impl StateMachine {
     }
 }
 
-/// 编码字符白名单：小写字母 + 数字。
+/// 编码字符白名单：ASCII 字母 + 数字。
 fn is_code_char(c: char) -> bool {
-    matches!(c, 'a'..='z' | '0'..='9')
+    matches!(c, 'a'..='z' | 'A'..='Z' | '0'..='9')
 }
 
 fn is_buffered_punctuation(c: char) -> bool {
@@ -515,6 +529,36 @@ mod tests {
             m.handle(InputEvent::Char('!')),
             Transition::Passthrough(InputEvent::Char('!'))
         );
+    }
+
+    #[test]
+    fn symbol_passthroughs_when_idle() {
+        let mut m = StateMachine::new(dict());
+        assert_eq!(
+            m.handle(InputEvent::Symbol('!')),
+            Transition::Passthrough(InputEvent::Symbol('!'))
+        );
+    }
+
+    #[test]
+    fn symbol_commits_raw_spelling_when_composing() {
+        let mut m = StateMachine::new(dict());
+        m.handle(InputEvent::Char('g'));
+        m.handle(InputEvent::Char('g'));
+
+        assert_eq!(m.handle(InputEvent::Symbol('!')), Transition::Commit("gg!".to_string()));
+        assert_eq!(m.state(), InputState::Idle);
+    }
+
+    #[test]
+    fn uppercase_code_char_is_kept_in_spelling_buffer() {
+        let mut m = StateMachine::new(dict());
+
+        assert_eq!(
+            m.handle(InputEvent::Char('A')),
+            Transition::SpellingUpdated("A".to_string())
+        );
+        assert_eq!(m.spelling(), "A");
     }
 
     #[test]

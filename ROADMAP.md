@@ -29,10 +29,6 @@
     - [ ] 配置 `rust-android-gradle` 插件
     - [ ] 实现通过 Gradle 一键编译 Rust 底层、拷贝 `.so` 到相应 ABI 目录并打包输出 `.apk`
 
-- [ ] **im_engine 配置路径定位同步**
-    - [ ] `im_engine.dll` 的 `notify` 监听路径需采用与 `settings.exe` 相同的 `resolve_config_path` 定位逻辑（exe 同目录优先，回退 `%APPDATA%\MyWubi\`）
-    - [ ] 确保双进程读写同一份 `config.toml`，避免便携模式与用户模式路径不一致导致热重载失效
-
 - [ ] **用户词库功能（core_engine + UI 联调）**
     - [ ] `core_engine` 设计用户词库数据结构（独立于 `config.toml` 的存储格式）
     - [ ] `core_engine` 暴露用户词库 CRUD / 导入导出 C-ABI 接口
@@ -40,6 +36,11 @@
     - [ ] `im_engine` 侧用户词库的检索集成与热重载
 
 ## 🚧 开发中
+
+- [ ] **配置路径一致性保障与热重载机制**
+    - [ ] **统一配置路径解析策略**：`im_engine.dll` 的 `notify` 文件监听路径须与 `settings.exe` 共用同一套 `resolve_config_path` 路径解析逻辑（优先定位 exe 同级目录，若不可用则回退至 `%APPDATA%\MyWubi\` 用户数据目录）
+    - [ ] **消除双进程路径分歧**：确保 `im_engine.dll` 与 `settings.exe` 读写同一份 `config.toml` 配置实例，避免便携模式与标准安装模式因路径不一致导致配置热重载失效
+    - [ ] **热重载触发闭环**：`settings.exe` 保存配置后，`im_engine.dll` 监听器即时响应并重新加载最新配置
 
 ## ✅ 已完成
 
@@ -173,3 +174,7 @@
 - [x] **翻页热键可配置**
     - [x] `hotkey.page_next` / `hotkey.page_prev` 配置项实际接到按键层
     - [x] `settings.exe` 常规面板新增翻页键选择
+
+- [x] **组合键过滤与修饰键状态感知**
+    - [x] **问题修复**：当前输入法引擎未识别系统修饰键状态，导致 `Ctrl+C`、`Alt+Tab` 等功能性组合键被误捕获为字符编码输入
+    - [x] **实现方案**：在按键事件处理流水线中注入修饰键检测逻辑，当 `Ctrl`、`Alt`、`Win`、`Meta` 等修饰键处于按下状态时，将按键事件放行至系统，不进入形码编码解析流程

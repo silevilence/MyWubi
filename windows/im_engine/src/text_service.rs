@@ -43,7 +43,7 @@ use windows::Win32::UI::TextServices::{
     TF_PRESERVEDKEY, TF_MOD_ON_KEYUP,
     TKBLayoutType, TKBLT_OPTIMIZED, TKBL_OPT_SIMPLIFIED_CHINESE_PINYIN,
 };
-use windows::Win32::UI::Input::KeyboardAndMouse::VK_SHIFT;
+use windows::Win32::UI::Input::KeyboardAndMouse::{VK_LSHIFT, VK_RSHIFT, VK_SHIFT};
 
 use arc_swap::ArcSwap;
 
@@ -66,6 +66,31 @@ const GUID_PRESERVED_SHIFT: GUID = GUID::from_u128(0x1a2b3c4d_5e6f_7a8b_9c0d_1e2
 enum DisplayAttrKind {
     Input,
     Converted,
+}
+
+#[derive(Debug, Default, Clone, Copy, PartialEq, Eq)]
+struct ShiftKeyToggleTracker {
+    used_with_other_key: bool,
+}
+
+impl ShiftKeyToggleTracker {
+    fn on_key_down(&mut self, vk: u16, shift_pressed: bool) {
+        if is_shift_vk(vk) {
+            self.used_with_other_key = false;
+        } else if shift_pressed {
+            self.used_with_other_key = true;
+        }
+    }
+
+    fn consume_preserved_key(&mut self) -> bool {
+        let should_toggle = !self.used_with_other_key;
+        self.used_with_other_key = false;
+        should_toggle
+    }
+}
+
+fn is_shift_vk(vk: u16) -> bool {
+    matches!(vk, v if v == VK_SHIFT.0 || v == VK_LSHIFT.0 || v == VK_RSHIFT.0)
 }
 
 
@@ -328,6 +353,8 @@ pub struct TextService {
     activate_flags: Mutex<u32>,
     /// true=中文模式（拦截字母键），false=英文模式（Passthrough）。
     ime_mode: Mutex<bool>,
+    /// 跟踪本轮 Shift 是否与其他按键组合使用，避免组合键误触发中英文切换。
+    shift_toggle_tracker: Mutex<ShiftKeyToggleTracker>,
     /// ── Phase 3 新增字段 ──
     /// ITfThreadFocusSink 的 AdviseSink cookie。
     thread_focus_cookie: Mutex<u32>,
@@ -441,6 +468,7 @@ impl TextService {
             is_composing: AtomicBool::new(false),
             activate_flags: Mutex::new(0),
             ime_mode: Mutex::new(true),
+            shift_toggle_tracker: Mutex::new(ShiftKeyToggleTracker::default()),
             thread_focus_cookie: Mutex::new(0),
         }
     }
@@ -756,6 +784,7 @@ impl TextService {
         self.sm.lock().reset();
         let theme = self.theme.clone();
         self.candidate_tx.store(Arc::new(CandidateData::hidden(theme)));
+        self.end_active_composition();
         log::debug!("[TSF] 切换到英文模式");
     }
 
@@ -766,10 +795,28 @@ impl TextService {
         *mode = !*mode;
         if !*mode {
             self.sm.lock().reset();
+            self.end_active_composition();
             log::debug!("[TSF] Exit中文→英文");
         };
         if !old {
             log::debug!("[TSF] 英文→中文");
+        }
+    }
+
+    fn track_shift_toggle_keydown(&self, wparam: WPARAM) {
+        self.shift_toggle_tracker
+            .lock()
+            .on_key_down(wparam.0 as u16, key_filter::is_shift_pressed());
+    }
+
+    /// 结束当前活跃的 TSF composition（若存在）。
+    ///
+    /// 切换到英文模式时调用，避免残留的 composition 吞掉后续按键。
+    fn end_active_composition(&self) {
+        if self.is_composing.load(Ordering::Acquire) {
+            if let Ok((ctx, _)) = self.get_focus_context() {
+                self.schedule_edit_session(EditSessionOp::EndComposition { delete_text: true }, &ctx);
+            }
         }
     }
 }
@@ -1156,8 +1203,15 @@ impl ITfKeyEventSink_Impl for TextService_Impl {
         wparam: WPARAM,
         lparam: LPARAM,
     ) -> Result<BOOL> {
+        self.track_shift_toggle_keydown(wparam);
+
         // 英文模式：所有按键透传
         if !*self.ime_mode.lock() {
+            return Ok(BOOL(0));
+        }
+
+        // Ctrl/Alt/Win 按下时放行，避免拦截 Ctrl+C 等系统组合键
+        if key_filter::is_system_modifier_pressed() {
             return Ok(BOOL(0));
         }
 
@@ -1183,6 +1237,13 @@ impl ITfKeyEventSink_Impl for TextService_Impl {
         wparam: WPARAM,
         lparam: LPARAM,
     ) -> Result<BOOL> {
+        self.track_shift_toggle_keydown(wparam);
+
+        // Ctrl/Alt/Win 按下时放行，避免拦截 Ctrl+C 等系统组合键
+        if key_filter::is_system_modifier_pressed() {
+            return Ok(BOOL(0));
+        }
+
         let Some(event) = key_filter::translate(wparam.0 as usize, lparam.0 as isize, &self.cfg.hotkey.page_next, &self.cfg.hotkey.page_prev) else { return Ok(BOOL(0)); };
         let spelling_empty = self.sm.lock().spelling().is_empty();
         if !should_intercept_test_key(Some(event.clone()), spelling_empty) {
@@ -1208,8 +1269,12 @@ impl ITfKeyEventSink_Impl for TextService_Impl {
     ) -> Result<BOOL> {
         let guid = unsafe { &*rguid };
         if *guid == GUID_PRESERVED_SHIFT {
-            self.toggle_ime_mode();
-            Ok(BOOL(1))
+            if self.shift_toggle_tracker.lock().consume_preserved_key() {
+                self.toggle_ime_mode();
+                Ok(BOOL(1))
+            } else {
+                Ok(BOOL(0))
+            }
         } else {
             Ok(BOOL(0))
         }
@@ -1249,6 +1314,37 @@ mod tests {
     #[test]
     fn character_input_is_still_intercepted() {
         assert!(should_intercept_test_key(Some(InputEvent::Char('g')), true));
+    }
+
+    #[test]
+    fn shift_toggle_tracker_toggles_for_shift_alone() {
+        let mut tracker = ShiftKeyToggleTracker::default();
+
+        tracker.on_key_down(VK_SHIFT.0, false);
+
+        assert!(tracker.consume_preserved_key());
+    }
+
+    #[test]
+    fn shift_toggle_tracker_ignores_shift_letter_combo() {
+        let mut tracker = ShiftKeyToggleTracker::default();
+
+        tracker.on_key_down(VK_SHIFT.0, false);
+        tracker.on_key_down(b'A' as u16, true);
+
+        assert!(!tracker.consume_preserved_key());
+    }
+
+    #[test]
+    fn shift_toggle_tracker_resets_after_combo() {
+        let mut tracker = ShiftKeyToggleTracker::default();
+
+        tracker.on_key_down(VK_SHIFT.0, false);
+        tracker.on_key_down(b'A' as u16, true);
+        assert!(!tracker.consume_preserved_key());
+
+        tracker.on_key_down(VK_SHIFT.0, false);
+        assert!(tracker.consume_preserved_key());
     }
 
     #[test]
