@@ -17,7 +17,7 @@
 use core_engine::{Config, Dictionary, InputEvent, StateMachine, Transition};
 use parking_lot::Mutex;
 use std::sync::Arc;
-use std::sync::atomic::{AtomicBool, Ordering};
+use std::sync::atomic::{AtomicBool, AtomicU64, Ordering};
 
 use windows::core::{implement, Interface, Ref, Result, BOOL, GUID, HRESULT};
 use windows::Win32::Foundation::{COLORREF, E_INVALIDARG, LPARAM, S_FALSE, WPARAM};
@@ -52,6 +52,7 @@ use crate::guids::CLSID_TEXT_SERVICE;
 use crate::candidate_window::CandidateWindow;
 use crate::key_filter;
 use crate::screen_geometry::get_range_position;
+use crate::RuntimeSnapshot;
 
 // ── 类型定义 ────────────────────────────────────────────────────────
 
@@ -318,6 +319,10 @@ struct SinkState {
 pub struct TextService {
     /// 跨平台核心状态机。
     sm: Mutex<StateMachine>,
+    /// 可热替换的运行时快照（配置 + 码表 + 路径）。
+    runtime: Arc<ArcSwap<RuntimeSnapshot>>,
+    /// 当前实例已同步到的运行时版本。
+    runtime_revision: AtomicU64,
     /// 当前激活的线程管理器（用于后续插入文本）。
     thread_mgr: Mutex<Option<ITfThreadMgr>>,
     /// AdviseSink 返回的 cookie，Deactivate 时用于 Unadvise。
@@ -336,9 +341,9 @@ pub struct TextService {
     /// 候选框窗口实例（Activate 中启动，Deactivate 中关闭）。
     candidate_window: Mutex<Option<CandidateWindow>>,
     /// 当前候选框主题快照。
-    theme: ThemeSnapshot,
+    theme: Mutex<ThemeSnapshot>,
     /// 全局配置（用于翻页热键等动态映射）。
-    cfg: Config,
+    cfg: Mutex<Config>,
     /// ── Phase 1 新增字段 ──
     /// 当前激活的 composition 对象。
     composition: Mutex<Option<ITfComposition>>,
@@ -452,14 +457,23 @@ impl TextService {
         let sm = StateMachine::with_behavior(dict, page_size, auto_commit_unique, punctuation_mode);
         Self {
             sm: Mutex::new(sm),
+            runtime: Arc::new(ArcSwap::from_pointee(RuntimeSnapshot {
+                revision: 0,
+                dict: Dictionary::from_entries(Vec::new(), None, Default::default())
+                    .expect("empty dictionary should construct"),
+                config: cfg.clone(),
+                config_path: std::path::PathBuf::from("config.toml"),
+                system_table_path: std::path::PathBuf::from("tables/wubi86.dict"),
+            })),
+            runtime_revision: AtomicU64::new(0),
             thread_mgr: Mutex::new(None),
             cookies: Mutex::new(SinkState::default()),
             focus_doc_mgr: Mutex::new(None),
             self_unknown: Mutex::new(None),
             candidate_tx,
             candidate_window: Mutex::new(None),
-            theme,
-            cfg,
+            theme: Mutex::new(theme),
+            cfg: Mutex::new(cfg),
             edit_sink_context: Mutex::new(None),
             edit_sink_cookie: Mutex::new(0),
             composition: Mutex::new(None),
@@ -486,6 +500,47 @@ impl TextService {
         )
     }
 
+    pub(crate) fn from_runtime(
+        runtime: Arc<ArcSwap<RuntimeSnapshot>>,
+        candidate_tx: Arc<ArcSwap<CandidateData>>,
+    ) -> Self {
+        let snapshot = runtime.load();
+        let cfg = snapshot.config.clone();
+        let revision = snapshot.revision;
+        let theme = ThemeSnapshot::from_config(&cfg);
+        let sm = StateMachine::with_behavior(
+            Arc::clone(&snapshot.dict),
+            cfg.basic.candidate_count as usize,
+            cfg.basic.auto_commit_unique,
+            cfg.basic.punctuation_mode,
+        );
+        drop(snapshot);
+
+        Self {
+            sm: Mutex::new(sm),
+            runtime,
+            runtime_revision: AtomicU64::new(revision),
+            thread_mgr: Mutex::new(None),
+            cookies: Mutex::new(SinkState::default()),
+            focus_doc_mgr: Mutex::new(None),
+            self_unknown: Mutex::new(None),
+            candidate_tx,
+            candidate_window: Mutex::new(None),
+            theme: Mutex::new(theme),
+            cfg: Mutex::new(cfg),
+            edit_sink_context: Mutex::new(None),
+            edit_sink_cookie: Mutex::new(0),
+            composition: Mutex::new(None),
+            ga_input: Mutex::new(0),
+            ga_converted: Mutex::new(0),
+            is_composing: AtomicBool::new(false),
+            activate_flags: Mutex::new(0),
+            ime_mode: Mutex::new(true),
+            shift_toggle_tracker: Mutex::new(ShiftKeyToggleTracker::default()),
+            thread_focus_cookie: Mutex::new(0),
+        }
+    }
+
     /// 仅供 IClassFactory 内部注入 self 弱强引用（见 [`crate::factory::TextServiceFactory`])。
     pub(crate) fn set_self_unknown(&self, unk: windows::core::IUnknown) {
         *self.self_unknown.lock() = Some(unk);
@@ -494,6 +549,40 @@ impl TextService {
     /// 内部：取一份 IUnknown 副本（已 AddRef），用于 AdviseSink 注册。
     fn clone_self_unknown(&self) -> Option<windows::core::IUnknown> {
         self.self_unknown.lock().clone()
+    }
+
+    fn theme_snapshot(&self) -> ThemeSnapshot {
+        self.theme.lock().clone()
+    }
+
+    fn config_snapshot(&self) -> Config {
+        self.cfg.lock().clone()
+    }
+
+    fn sync_runtime_if_needed(&self) {
+        let snapshot = self.runtime.load();
+        if self.runtime_revision.load(Ordering::Acquire) == snapshot.revision {
+            return;
+        }
+
+        let cfg = snapshot.config.clone();
+        let theme = ThemeSnapshot::from_config(&cfg);
+        let sm = StateMachine::with_behavior(
+            Arc::clone(&snapshot.dict),
+            cfg.basic.candidate_count as usize,
+            cfg.basic.auto_commit_unique,
+            cfg.basic.punctuation_mode,
+        );
+        let revision = snapshot.revision;
+        drop(snapshot);
+
+        *self.sm.lock() = sm;
+        *self.cfg.lock() = cfg;
+        *self.theme.lock() = theme.clone();
+        self.candidate_tx
+            .store(Arc::new(CandidateData::hidden(theme)));
+        self.runtime_revision.store(revision, Ordering::Release);
+        log::info!("[TSF] 已同步最新配置/码表 revision={revision}");
     }
 
     /// Deactivate / Drop 之前清理自身保护：
@@ -508,7 +597,7 @@ impl TextService {
     ///
     /// `context` 为可选的 TSF `ITfContext`，用于候选框坐标获取和 EditSession 调度。
     fn apply_transition(&self, t: Transition, context: Option<&ITfContext>) -> BOOL {
-        let theme = self.theme.clone();
+        let theme = self.theme_snapshot();
         match &t {
             Transition::None => {}
             Transition::Commit(text) => {
@@ -782,7 +871,7 @@ impl TextService {
     pub fn set_english_mode(&self) {
         *self.ime_mode.lock() = false;
         self.sm.lock().reset();
-        let theme = self.theme.clone();
+        let theme = self.theme_snapshot();
         self.candidate_tx.store(Arc::new(CandidateData::hidden(theme)));
         self.end_active_composition();
         log::debug!("[TSF] 切换到英文模式");
@@ -835,7 +924,8 @@ impl ITfTextInputProcessor_Impl for TextService_Impl {
         self.is_composing.store(false, Ordering::Release);
 
         // 隐藏候选框并关闭候选框窗口。
-        self.candidate_tx.store(Arc::new(CandidateData::hidden(self.theme.clone())));
+        self.candidate_tx
+            .store(Arc::new(CandidateData::hidden(self.theme_snapshot())));
         if let Some(mut cw) = self.candidate_window.lock().take() {
             cw.shutdown();
         }
@@ -1089,7 +1179,7 @@ impl ITfThreadFocusSink_Impl for TextService_Impl {
         log::debug!("[TSF] 线程焦点丢失");
         // 清理输入状态
         self.sm.lock().reset();
-        let theme = self.theme.clone();
+        let theme = self.theme_snapshot();
         self.candidate_tx.store(Arc::new(CandidateData::hidden(theme)));
         if self.is_composing.load(Ordering::Acquire) {
             // 异步清除 composition（需要有效的 context，Deactivate 会兜底）
@@ -1203,6 +1293,7 @@ impl ITfKeyEventSink_Impl for TextService_Impl {
         wparam: WPARAM,
         lparam: LPARAM,
     ) -> Result<BOOL> {
+        self.sync_runtime_if_needed();
         self.track_shift_toggle_keydown(wparam);
 
         // 英文模式：所有按键透传
@@ -1216,8 +1307,14 @@ impl ITfKeyEventSink_Impl for TextService_Impl {
         }
 
         let spelling_empty = self.sm.lock().spelling().is_empty();
+        let cfg = self.config_snapshot();
         Ok(BOOL(should_intercept_test_key(
-            key_filter::translate(wparam.0 as usize, lparam.0 as isize, &self.cfg.hotkey.page_next, &self.cfg.hotkey.page_prev),
+            key_filter::translate(
+                wparam.0 as usize,
+                lparam.0 as isize,
+                &cfg.hotkey.page_next,
+                &cfg.hotkey.page_prev,
+            ),
             spelling_empty,
         ) as i32))
     }
@@ -1237,6 +1334,7 @@ impl ITfKeyEventSink_Impl for TextService_Impl {
         wparam: WPARAM,
         lparam: LPARAM,
     ) -> Result<BOOL> {
+        self.sync_runtime_if_needed();
         self.track_shift_toggle_keydown(wparam);
 
         // Ctrl/Alt/Win 按下时放行，避免拦截 Ctrl+C 等系统组合键
@@ -1244,7 +1342,13 @@ impl ITfKeyEventSink_Impl for TextService_Impl {
             return Ok(BOOL(0));
         }
 
-        let Some(event) = key_filter::translate(wparam.0 as usize, lparam.0 as isize, &self.cfg.hotkey.page_next, &self.cfg.hotkey.page_prev) else { return Ok(BOOL(0)); };
+        let cfg = self.config_snapshot();
+        let Some(event) = key_filter::translate(
+            wparam.0 as usize,
+            lparam.0 as isize,
+            &cfg.hotkey.page_next,
+            &cfg.hotkey.page_prev,
+        ) else { return Ok(BOOL(0)); };
         let spelling_empty = self.sm.lock().spelling().is_empty();
         if !should_intercept_test_key(Some(event.clone()), spelling_empty) {
             return Ok(BOOL(0));

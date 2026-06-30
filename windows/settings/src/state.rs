@@ -83,8 +83,7 @@ impl AppState {
     ///
     /// 若配置损坏，**不立即覆盖**——而是记录 `load_error`，由 UI 弹对话框
     /// 让用户选择"加载默认配置"（此时才覆盖）或"打开文件位置"自行修复。
-    pub fn load(config_path: PathBuf) -> Self {
-        let portable = crate::config_path::is_portable();
+    pub fn load(config_path: PathBuf, portable: bool) -> Self {
         let (config, load_error) = match Config::load(&config_path) {
             Ok(cfg) => (cfg, None),
             Err(e) => {
@@ -95,7 +94,11 @@ impl AppState {
                 }))
             }
         };
-        let table_dir = config.dictionary.system_table
+        let resolved_system_table = crate::config_path::resolve_resource_path(
+            &config_path,
+            &config.dictionary.system_table,
+        );
+        let table_dir = resolved_system_table
             .parent()
             .unwrap_or_else(|| std::path::Path::new("."))
             .to_path_buf();

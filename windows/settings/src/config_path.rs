@@ -1,107 +1,24 @@
-//! 配置文件路径定位：exe 同目录优先（便携模式），回退 `%APPDATA%\MyWubi\`。
+//! 配置文件路径定位：复用 `core_engine` 的共享规则。
 
-use std::path::PathBuf;
-use thiserror::Error;
+use std::path::{Path, PathBuf};
 
-/// 路径定位错误。
-#[derive(Debug, Error)]
-pub enum PathError {
-    #[error("无法获取 exe 路径: {0}")]
-    ExePath(String),
-    #[error("无法获取 AppData 路径")]
-    AppData,
-    #[error("无法创建配置目录 {0}: {1}")]
-    CreateDir(PathBuf, String),
-}
+pub use core_engine::config_path::PathError;
 
 /// 解析配置文件路径。
-///
-/// 返回 `(路径, 可选的提示消息)`。消息用于在 UI 中展示回退提示
-///（如"已切换便携模式"）。
-///
-/// 1. 若 exe 同目录存在 `config.toml` → 返回该路径（便携模式）
-/// 2. 否则回退到 `%APPDATA%\MyWubi\config.toml`，必要时创建目录与默认配置
-/// 3. 若 AppData 目录创建失败 → 回退到 exe 同目录，附带提示消息
-pub fn resolve_config_path() -> Result<(PathBuf, Option<String>), PathError> {
-    let exe_dir = std::env::current_exe()
-        .map_err(|e| PathError::ExePath(e.to_string()))?
-        .parent()
-        .ok_or_else(|| PathError::ExePath("exe 无父目录".into()))?
-        .to_path_buf();
-
-    let portable = exe_dir.join("config.toml");
-    if portable.exists() {
-        return Ok((portable, None));
-    }
-
-    let appdata = dirs::config_dir()
-        .ok_or(PathError::AppData)?
-        .join("MyWubi");
-    let cfg_path = appdata.join("config.toml");
-
-    if !appdata.exists() {
-        if let Err(e) = std::fs::create_dir_all(&appdata) {
-            // 回退便携模式
-            log::warn!("无法创建 AppData 目录 ({}), 回退便携模式", e);
-            return Ok((portable, Some("[!] 已切换便携模式（AppData 不可用）".into())));
-        }
-    }
-
-    if !cfg_path.exists() {
-        // 从 exe 同目录的默认模板复制，或写入内置默认
-        let template = exe_dir.join("config.toml");
-        if template.exists() {
-            let _ = std::fs::copy(&template, &cfg_path);
-        } else {
-            let cfg = core_engine::Config::default();
-            let _ = cfg.save(&cfg_path);
-        }
-    }
-
-    Ok((cfg_path, None))
+pub fn resolve_config_path() -> Result<(PathBuf, bool, Option<String>), PathError> {
+    let resolved = core_engine::config_path::resolve_config_path()?;
+    Ok((resolved.path, resolved.portable, resolved.fallback_message))
 }
 
-/// 判断当前是否便携模式（exe 同目录有 config.toml）。
+/// 判断当前 exe 目录是否处于便携模式。
 pub fn is_portable() -> bool {
     std::env::current_exe()
         .ok()
-        .and_then(|p| p.parent().map(|d| d.join("config.toml")))
-        .map(|p| p.exists())
+        .and_then(|p| p.parent().map(core_engine::config_path::is_portable_mode))
         .unwrap_or(false)
 }
 
-#[cfg(test)]
-mod tests {
-    use super::*;
-    use std::fs;
-
-    #[test]
-    fn portable_mode_when_exe_dir_has_config() {
-        let exe_dir = std::env::current_exe().unwrap().parent().unwrap().to_path_buf();
-        let portable = exe_dir.join("config.toml");
-        let existed = portable.exists();
-        if !existed {
-            fs::write(&portable, "# test placeholder\n").unwrap();
-        }
-        let (path, msg) = resolve_config_path().unwrap();
-        assert_eq!(path, portable);
-        assert!(msg.is_none());
-        if !existed {
-            fs::remove_file(&portable).ok();
-        }
-    }
-
-    #[test]
-    fn is_portable_reflects_exe_dir_config() {
-        let exe_dir = std::env::current_exe().unwrap().parent().unwrap().to_path_buf();
-        let portable = exe_dir.join("config.toml");
-        let existed = portable.exists();
-        if !existed {
-            fs::write(&portable, "# test\n").unwrap();
-        }
-        assert!(is_portable());
-        if !existed {
-            fs::remove_file(&portable).ok();
-        }
-    }
+/// 将资源路径按配置文件所在目录解析为绝对路径。
+pub fn resolve_resource_path(config_path: &Path, resource_path: &Path) -> PathBuf {
+    core_engine::config_path::resolve_resource_path(config_path, resource_path)
 }

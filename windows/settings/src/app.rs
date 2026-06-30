@@ -66,7 +66,7 @@ impl SettingsApp {
                     }
                 }
                 if ui.button("重新加载").clicked() {
-                    self.state = AppState::load(self.state.config_path.clone());
+                    self.state = AppState::load(self.state.config_path.clone(), self.state.portable);
                 }
                 if let Some(msg) = &self.state.status_msg {
                     ui.label(msg);

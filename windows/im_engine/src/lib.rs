@@ -16,6 +16,8 @@ use arc_swap::ArcSwap;
 use core_engine::{Config, Dictionary, StateMachine};
 use parking_lot::Mutex;
 use std::panic::{catch_unwind, AssertUnwindSafe};
+use std::path::PathBuf;
+use std::sync::atomic::{AtomicU64, Ordering};
 use std::sync::Arc;
 use std::sync::Once;
 use std::sync::OnceLock;
@@ -33,38 +35,114 @@ pub mod factory;
 pub mod guids;
 pub mod file_log;
 pub mod key_filter;
+pub mod reload;
 pub mod screen_geometry;
 pub mod text_service;
 
 /// 内部引擎单例，对应早期 ROADMAP 阶段“工作空间骨架”：保持 C-ABI 入口
 /// `im_engine_init/_on_key/_destroy` 兼容的初始化路径。
 struct Engine {
-    dict: Arc<Dictionary>,
-    config: Config,
+    runtime: Arc<ArcSwap<RuntimeSnapshot>>,
     #[allow(dead_code)]
     sm: Mutex<StateMachine>,
     candidate_data: Arc<ArcSwap<CandidateData>>,
 }
 
 impl Engine {
-    fn new(dict: Arc<Dictionary>, config: Config, sm: StateMachine, cd: Arc<ArcSwap<CandidateData>>) -> Self {
-        Self { dict, config, sm: Mutex::new(sm), candidate_data: cd }
+    fn new(runtime: Arc<ArcSwap<RuntimeSnapshot>>, sm: StateMachine, cd: Arc<ArcSwap<CandidateData>>) -> Self {
+        Self { runtime, sm: Mutex::new(sm), candidate_data: cd }
     }
 
     pub fn candidate_data(&self) -> &Arc<ArcSwap<CandidateData>> {
         &self.candidate_data
     }
 
-    pub fn dict(&self) -> &Arc<Dictionary> {
-        &self.dict
-    }
-
-    pub fn config(&self) -> &Config {
-        &self.config
+    pub fn runtime(&self) -> &Arc<ArcSwap<RuntimeSnapshot>> {
+        &self.runtime
     }
 }
 
 static ENGINE: OnceLock<Engine> = OnceLock::new();
+static NEXT_RUNTIME_REVISION: AtomicU64 = AtomicU64::new(1);
+
+#[derive(Debug)]
+pub(crate) struct RuntimeSnapshot {
+    pub revision: u64,
+    pub dict: Arc<Dictionary>,
+    pub config: Config,
+    pub config_path: PathBuf,
+    pub system_table_path: PathBuf,
+}
+
+impl RuntimeSnapshot {
+    fn initial_from_config(config_path: PathBuf, config: Config) -> Result<Self, String> {
+        let system_table_path = core_engine::config_path::resolve_resource_path(
+            &config_path,
+            &config.dictionary.system_table,
+        );
+        let dict = Dictionary::load(&system_table_path)
+            .map_err(|e| format!("加载码表失败 ({}): {e}", system_table_path.display()))?;
+        Ok(Self {
+            revision: NEXT_RUNTIME_REVISION.fetch_add(1, Ordering::Relaxed),
+            dict,
+            config,
+            config_path,
+            system_table_path,
+        })
+    }
+}
+
+pub(crate) fn load_runtime_snapshot() -> Result<RuntimeSnapshot, String> {
+    let exe_dir = dll_directory()
+        .map(PathBuf::from)
+        .ok_or_else(|| "无法定位 DLL 目录".to_string())?;
+    let app_dir = dirs::config_dir()
+        .ok_or_else(|| "无法获取 AppData 路径".to_string())?
+        .join("MyWubi");
+    let resolved = core_engine::config_path::resolve_config_path_from(&exe_dir, &app_dir)
+        .map_err(|e| format!("定位配置路径失败: {e}"))?;
+    let config = Config::load(&resolved.path)
+        .map_err(|e| format!("加载配置失败 ({}): {e}", resolved.path.display()))?;
+    RuntimeSnapshot::initial_from_config(resolved.path, config)
+}
+
+fn load_initial_runtime_snapshot() -> RuntimeSnapshot {
+    match load_runtime_snapshot() {
+        Ok(snapshot) => snapshot,
+        Err(err) => {
+            log::error!("{err}");
+            let exe_dir = dll_directory().map(PathBuf::from);
+            let app_dir = dirs::config_dir().map(|p| p.join("MyWubi"));
+            let resolved_path = exe_dir
+                .as_ref()
+                .zip(app_dir.as_ref())
+                .and_then(|(exe_dir, app_dir)| {
+                    core_engine::config_path::resolve_config_path_from(exe_dir, app_dir)
+                        .ok()
+                        .map(|r| r.path)
+                })
+                .unwrap_or_else(|| PathBuf::from("config.toml"));
+
+            let config = Config::load(&resolved_path).unwrap_or_default();
+            let system_table_path = core_engine::config_path::resolve_resource_path(
+                &resolved_path,
+                &config.dictionary.system_table,
+            );
+            let dict = Dictionary::load(&system_table_path).unwrap_or_else(|dict_err| {
+                log::error!("加载码表失败 ({}): {dict_err}", system_table_path.display());
+                Dictionary::from_entries(Vec::new(), None, Default::default())
+                    .expect("empty dictionary should construct")
+            });
+            RuntimeSnapshot {
+                revision: NEXT_RUNTIME_REVISION.fetch_add(1, Ordering::Relaxed),
+                dict,
+                config,
+                config_path: resolved_path,
+                system_table_path,
+            }
+        }
+    }
+}
 
 /// 初始化引擎：加载配置与码表，构建状态机。返回 0 表示成功。
 ///
@@ -97,45 +175,17 @@ pub extern "C" fn im_engine_init() -> i32 {
         return 0;
     }
 
-    // 所有路径均基于 DLL 所在目录解析，而非当前工作目录（ctfmon.exe 的 CWD）。
-    let dll_dir = dll_directory().unwrap_or_default();
-
-    let cfg_path = format!("{}config.toml", dll_dir);
-    let cfg = match Config::load(&cfg_path) {
-        Ok(c) => c,
-        Err(e) => {
-            log::error!("加载配置失败 ({cfg_path}): {e}, 使用默认配置");
-            Config::default()
-        }
-    };
-
-    // 码表路径同样基于 DLL 目录解析
-    let table_path = if std::path::Path::new(&cfg.dictionary.system_table).is_relative() {
-        format!("{}{}", dll_dir, cfg.dictionary.system_table.display())
-    } else {
-        cfg.dictionary.system_table.display().to_string()
-    };
-    let dict = match Dictionary::load(&table_path) {
-        Ok(d) => d,
-        Err(e) => {
-            log::error!("加载码表失败 ({table_path}): {e}");
-            match Dictionary::from_entries(Vec::new(), None, Default::default()) {
-                Ok(d) => d,
-                Err(e2) => {
-                    log::error!("创建空码表失败: {e2}");
-                    return -1;
-                }
-            }
-        }
-    };
+    let runtime_snapshot = load_initial_runtime_snapshot();
     let sm = StateMachine::with_options(
-        Arc::clone(&dict),
-        cfg.basic.candidate_count as usize,
-        cfg.basic.auto_commit_unique,
+        Arc::clone(&runtime_snapshot.dict),
+        runtime_snapshot.config.basic.candidate_count as usize,
+        runtime_snapshot.config.basic.auto_commit_unique,
     );
-    let theme = ThemeSnapshot::from_config(&cfg);
+    let theme = ThemeSnapshot::from_config(&runtime_snapshot.config);
     let cd = Arc::new(ArcSwap::from_pointee(CandidateData::hidden(theme)));
-    let _ = ENGINE.set(Engine::new(dict, cfg, sm, cd));
+    let runtime = Arc::new(ArcSwap::from_pointee(runtime_snapshot));
+    reload::spawn(Arc::clone(&runtime));
+    let _ = ENGINE.set(Engine::new(runtime, sm, cd));
     0
 }
 
@@ -275,6 +325,7 @@ pub(crate) fn module_handle() -> usize {
 }
 
 /// 获取 DLL 所在目录（含尾部分隔符）。
+#[allow(dead_code)]
 pub(crate) fn dll_directory() -> Option<String> {
     let dll_path = get_this_dll_path().ok()?;
     let parent = std::path::Path::new(&dll_path).parent()?;

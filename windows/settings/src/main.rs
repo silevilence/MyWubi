@@ -24,7 +24,7 @@ fn main() {
         }
     }
 
-    let (config_path, fallback_msg) = match config_path::resolve_config_path() {
+    let (config_path, portable, fallback_msg) = match config_path::resolve_config_path() {
         Ok(p) => p,
         Err(e) => {
             eprintln!("[ERR] 无法定位配置文件路径: {e}");
@@ -33,7 +33,7 @@ fn main() {
     };
     log::info!("配置文件路径: {}", config_path.display());
 
-    let mut state = AppState::load(config_path);
+    let mut state = AppState::load(config_path, portable);
     if let Some(msg) = fallback_msg {
         state.status_msg = Some(msg);
     }

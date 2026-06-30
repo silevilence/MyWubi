@@ -43,10 +43,9 @@ impl IClassFactory_Impl for TextServiceFactory_Impl {
             }
         }
 
-        let (dict, cfg, candidate_data) = match crate::ENGINE.get() {
+        let (runtime, candidate_data) = match crate::ENGINE.get() {
             Some(engine) => (
-                Arc::clone(engine.dict()),
-                engine.config().clone(),
+                Arc::clone(engine.runtime()),
                 engine.candidate_data().clone(),
             ),
             None => {
@@ -60,14 +59,19 @@ impl IClassFactory_Impl for TextServiceFactory_Impl {
                         return Err(HRESULT(CLASS_E_CLASSNOTAVAILABLE.0).into());
                     }
                 };
-                (dict, core_engine::Config::default(), Arc::new(ArcSwap::from_pointee(
-                    CandidateData::default(),
-                )))
+                let runtime = Arc::new(ArcSwap::from_pointee(crate::RuntimeSnapshot {
+                    revision: 0,
+                    dict,
+                    config: core_engine::Config::default(),
+                    config_path: std::path::PathBuf::from("config.toml"),
+                    system_table_path: std::path::PathBuf::from("tables/wubi86.dict"),
+                }));
+                (runtime, Arc::new(ArcSwap::from_pointee(CandidateData::default())))
             }
         };
 
         let obj = ComObject::new({
-            TextService::from_config(dict, &cfg, candidate_data)
+            TextService::from_runtime(runtime, candidate_data)
         });
 
         // 在交还外部接口之前，把 box 自己的 IUnknown 副本写回 TextService，
