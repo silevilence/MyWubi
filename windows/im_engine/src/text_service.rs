@@ -16,23 +16,39 @@
 
 use core_engine::{Config, Dictionary, InputEvent, StateMachine, Transition};
 use parking_lot::Mutex;
+use std::ffi::c_void;
+use std::mem;
+use std::ptr;
 use std::sync::Arc;
 use std::sync::atomic::{AtomicBool, AtomicU64, Ordering};
 
-use windows::core::{implement, Interface, Ref, Result, BOOL, GUID, HRESULT};
-use windows::Win32::Foundation::{COLORREF, E_INVALIDARG, LPARAM, S_FALSE, WPARAM};
+use windows::core::{implement, w, Interface, Ref, Result, BOOL, GUID, HRESULT};
+use windows::Win32::Foundation::{
+    COLORREF, E_FAIL, E_INVALIDARG, E_NOINTERFACE, LPARAM, POINT, RECT, S_FALSE, WPARAM,
+};
+use windows::Win32::Graphics::Gdi::{
+    CreateBitmap, CreateCompatibleDC, CreateDIBSection, CreateFontW, DeleteDC, DeleteObject,
+    DrawTextW, GdiFlush, SelectObject, SetBkMode, SetTextColor, ANTIALIASED_QUALITY, BI_RGB,
+    BITMAPINFO, BITMAPINFOHEADER, CLIP_DEFAULT_PRECIS, DEFAULT_CHARSET, DEFAULT_PITCH,
+    DIB_RGB_COLORS, DT_CENTER, DT_SINGLELINE, DT_VCENTER, FF_DONTCARE, FW_NORMAL, HGDIOBJ,
+    OUT_DEFAULT_PRECIS, RGBQUAD, TRANSPARENT,
+};
+use windows::Win32::System::Com::{CoCreateInstance, CLSCTX_INPROC_SERVER};
+use windows::Win32::System::Ole::{CONNECT_E_ADVISELIMIT, CONNECT_E_NOCONNECTION};
 use windows::Win32::System::Variant::{VARIANT, VARIANT_0, VARIANT_0_0, VARIANT_0_0_0, VT_I4};
 use windows::Win32::UI::TextServices::{
-    GUID_PROP_ATTRIBUTE, IEnumTfDisplayAttributeInfo, IEnumTfDisplayAttributeInfo_Impl,
-    ITfCategoryMgr, ITfCompartment, ITfCompartmentEventSink, ITfCompartmentEventSink_Impl,
+    CLSID_TF_LangBarItemMgr, GUID_PROP_ATTRIBUTE, IEnumTfDisplayAttributeInfo,
+    IEnumTfDisplayAttributeInfo_Impl, ITfCategoryMgr, ITfCompartment, ITfCompartmentEventSink,
+    ITfCompartmentEventSink_Impl,
     ITfCompartmentMgr, ITfComposition, ITfCompositionSink, ITfCompositionSink_Impl, ITfContext,
     ITfContextComposition, ITfDisplayAttributeInfo, ITfDisplayAttributeInfo_Impl,
     ITfDisplayAttributeProvider, ITfDisplayAttributeProvider_Impl,
     ITfDocumentMgr, ITfEditSession, ITfEditSession_Impl, ITfEditRecord,
     ITfFnGetPreferredTouchKeyboardLayout, ITfFnGetPreferredTouchKeyboardLayout_Impl,
     ITfFunction, ITfFunction_Impl, ITfFunctionProvider, ITfFunctionProvider_Impl,
-    ITfKeyEventSink, ITfKeyEventSink_Impl, ITfKeystrokeMgr, ITfLangBarItemSink, ITfProperty, ITfRange,
-    ITfSource,
+    ITfKeyEventSink, ITfKeyEventSink_Impl, ITfKeystrokeMgr, ITfLangBarItem,
+    ITfLangBarItemButton, ITfLangBarItemButton_Impl, ITfLangBarItem_Impl, ITfLangBarItemMgr,
+    ITfLangBarItemSink, ITfMenu, ITfProperty, ITfRange, ITfSource, ITfSource_Impl,
     ITfTextEditSink, ITfTextEditSink_Impl,
     ITfTextInputProcessor, ITfTextInputProcessorEx, ITfTextInputProcessorEx_Impl,
     ITfTextInputProcessor_Impl, ITfThreadFocusSink, ITfThreadFocusSink_Impl,
@@ -41,11 +57,13 @@ use windows::Win32::UI::TextServices::{
     TF_DA_COLOR, TF_DA_COLOR_0,
     TF_DISPLAYATTRIBUTE, TF_ES_ASYNC, TF_ES_READWRITE, TF_DEFAULT_SELECTION, TF_LS_DOT,
     TF_LS_SOLID, TF_SELECTION, TF_CT_COLORREF, GUID_TFCAT_DISPLAYATTRIBUTEPROVIDER,
-    GUID_COMPARTMENT_KEYBOARD_OPENCLOSE, TF_LBI_ICON, TF_LBI_STATUS, TF_LBI_TEXT,
-    TF_LBI_TOOLTIP, TF_PRESERVEDKEY, TF_MOD_ON_KEYUP,
+    GUID_COMPARTMENT_KEYBOARD_OPENCLOSE, TF_LANGBARITEMINFO, TF_LBI_CLK_LEFT, TF_LBI_ICON,
+    TF_LBI_STATUS, TF_LBI_STATUS_HIDDEN, TF_LBI_STYLE_BTN_BUTTON, TF_LBI_STYLE_SHOWNINTRAY,
+    TF_LBI_TEXT, TF_LBI_TOOLTIP, TF_PRESERVEDKEY, TF_MOD_ON_KEYUP, TfLBIClick,
     TKBLayoutType, TKBLT_OPTIMIZED, TKBL_OPT_SIMPLIFIED_CHINESE_PINYIN,
 };
 use windows::Win32::UI::Input::KeyboardAndMouse::{VK_LSHIFT, VK_RSHIFT, VK_SHIFT};
+use windows::Win32::UI::WindowsAndMessaging::{CreateIconIndirect, HICON, ICONINFO};
 
 use arc_swap::ArcSwap;
 
@@ -64,6 +82,8 @@ const GUID_DISPLAY_ATTR_INPUT: GUID = GUID::from_u128(0x8a2e3b4c_1d5f_4a7b_9e6c_
 const GUID_DISPLAY_ATTR_CONVERTED: GUID = GUID::from_u128(0x6b1c8d9e_2f3a_4c5b_8d7e_1a2b3c4d5e6f);
 /// PreservedKey（Shift 切换）的 GUID.
 const GUID_PRESERVED_SHIFT: GUID = GUID::from_u128(0x1a2b3c4d_5e6f_7a8b_9c0d_1e2f3a4b5c6d);
+/// 语言栏按钮的稳定标识。
+const GUID_LANG_BAR_ITEM: GUID = GUID::from_u128(0xd74292fb_2b8d_4b54_89e2_978953e4386f);
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 enum DisplayAttrKind {
@@ -106,6 +126,106 @@ fn lang_bar_display(chinese: bool) -> (&'static str, &'static str) {
 
 fn mode_changed(current: bool, next: bool) -> bool {
     current != next
+}
+
+fn fixed_utf16<const N: usize>(text: &str) -> [u16; N] {
+    let mut output = [0; N];
+    if N > 0 {
+        for (slot, value) in output[..N - 1].iter_mut().zip(text.encode_utf16()) {
+            *slot = value;
+        }
+    }
+    output
+}
+
+fn create_lang_bar_icon(text: &str) -> Result<HICON> {
+    const SIZE: i32 = 16;
+
+    // SAFETY: Every GDI handle created here is restored/deleted before return.
+    // CreateIconIndirect copies both bitmaps, so the returned HICON owns no
+    // reference to the temporary color and mask bitmaps.
+    unsafe {
+        let dc = CreateCompatibleDC(None);
+        if dc.is_invalid() {
+            return Err(E_FAIL.into());
+        }
+
+        let bmi = BITMAPINFO {
+            bmiHeader: BITMAPINFOHEADER {
+                biSize: mem::size_of::<BITMAPINFOHEADER>() as u32,
+                biWidth: SIZE,
+                biHeight: -SIZE,
+                biPlanes: 1,
+                biBitCount: 32,
+                biCompression: BI_RGB.0,
+                ..Default::default()
+            },
+            bmiColors: [RGBQUAD::default(); 1],
+        };
+        let mut bits: *mut c_void = ptr::null_mut();
+        let color = match CreateDIBSection(Some(dc), &bmi, DIB_RGB_COLORS, &mut bits, None, 0) {
+            Ok(bitmap) if !bitmap.is_invalid() && !bits.is_null() => bitmap,
+            Ok(_) => {
+                let _ = DeleteDC(dc);
+                return Err(E_FAIL.into());
+            }
+            Err(error) => {
+                let _ = DeleteDC(dc);
+                return Err(error);
+            }
+        };
+        let old_bitmap = SelectObject(dc, HGDIOBJ(color.0));
+
+        let font = CreateFontW(
+            -14, 0, 0, 0, FW_NORMAL.0 as i32, 0, 0, 0,
+            DEFAULT_CHARSET, OUT_DEFAULT_PRECIS, CLIP_DEFAULT_PRECIS,
+            ANTIALIASED_QUALITY, (DEFAULT_PITCH.0 | FF_DONTCARE.0).into(),
+            w!("Microsoft YaHei UI"),
+        );
+        if font.is_invalid() {
+            let _ = SelectObject(dc, old_bitmap);
+            let _ = DeleteObject(HGDIOBJ(color.0));
+            let _ = DeleteDC(dc);
+            return Err(E_FAIL.into());
+        }
+        let old_font = SelectObject(dc, HGDIOBJ(font.0));
+        let _ = SetBkMode(dc, TRANSPARENT);
+        let _ = SetTextColor(dc, COLORREF(0x00ff0000));
+
+        let pixels = std::slice::from_raw_parts_mut(bits.cast::<u8>(), (SIZE * SIZE * 4) as usize);
+        pixels.fill(0);
+        let mut utf16: Vec<u16> = text.encode_utf16().collect();
+        let mut rect = RECT { left: 0, top: 0, right: SIZE, bottom: SIZE };
+        let drawn = DrawTextW(dc, &mut utf16, &mut rect, DT_CENTER | DT_VCENTER | DT_SINGLELINE);
+        let _ = GdiFlush();
+
+        for pixel in pixels.chunks_exact_mut(4) {
+            pixel[3] = pixel[0].max(pixel[1]).max(pixel[2]);
+        }
+
+        let mask_bits = [0u8; 32];
+        let mask = CreateBitmap(SIZE, SIZE, 1, 1, Some(mask_bits.as_ptr().cast()));
+        let icon = if drawn != 0 && !mask.is_invalid() {
+            CreateIconIndirect(&ICONINFO {
+                fIcon: true.into(),
+                hbmColor: color,
+                hbmMask: mask,
+                ..Default::default()
+            })
+        } else {
+            Err(E_FAIL.into())
+        };
+
+        let _ = SelectObject(dc, old_font);
+        let _ = SelectObject(dc, old_bitmap);
+        let _ = DeleteObject(HGDIOBJ(font.0));
+        let _ = DeleteObject(HGDIOBJ(color.0));
+        if !mask.is_invalid() {
+            let _ = DeleteObject(HGDIOBJ(mask.0));
+        }
+        let _ = DeleteDC(dc);
+        icon
+    }
 }
 
 /// 自定义 DisplayAttributeInfo 实现。每个实例对应用户自定义的 display attribute。
@@ -329,7 +449,8 @@ struct SinkState {
              ITfTextInputProcessorEx, ITfThreadFocusSink,
              ITfTextEditSink, ITfFunctionProvider,
              ITfFunction, ITfFnGetPreferredTouchKeyboardLayout,
-             ITfCompartmentEventSink)]
+             ITfCompartmentEventSink, ITfLangBarItemButton,
+             ITfSource)]
 pub struct TextService {
     /// 跨平台核心状态机。
     sm: Mutex<StateMachine>,
@@ -912,14 +1033,50 @@ impl TextService {
         unsafe { self.keyboard_openclose_compartment()?.SetValue(tid, &value) }
     }
 
-    fn notify_lang_bar(&self) {
+    fn notify_lang_bar_flags(&self, flags: u32) {
         let sink = self.lang_bar_sink.lock().clone();
         if let Some(sink) = sink {
-            let flags = TF_LBI_ICON | TF_LBI_TEXT | TF_LBI_TOOLTIP | TF_LBI_STATUS;
             if let Err(error) = unsafe { sink.OnUpdate(flags) } {
                 log::warn!("[TSF] 语言栏更新通知失败: {error}");
             }
         }
+    }
+
+    fn notify_lang_bar(&self) {
+        self.notify_lang_bar_flags(TF_LBI_ICON | TF_LBI_TEXT | TF_LBI_TOOLTIP | TF_LBI_STATUS);
+    }
+
+    fn register_language_bar(&self, punk: &windows::core::IUnknown) -> Result<()> {
+        let manager: ITfLangBarItemMgr =
+            unsafe { CoCreateInstance(&CLSID_TF_LangBarItemMgr, None, CLSCTX_INPROC_SERVER) }?;
+        let item: ITfLangBarItem = punk.cast()?;
+        unsafe { manager.AddItem(&item) }
+    }
+
+    fn remove_language_bar(&self, punk: &windows::core::IUnknown) -> Result<()> {
+        let manager: ITfLangBarItemMgr =
+            unsafe { CoCreateInstance(&CLSID_TF_LangBarItemMgr, None, CLSCTX_INPROC_SERVER) }?;
+        let item: ITfLangBarItem = punk.cast()?;
+        unsafe { manager.RemoveItem(&item) }
+    }
+
+    fn register_compartment_sink(&self, punk: &windows::core::IUnknown) -> Result<()> {
+        let compartment = self.keyboard_openclose_compartment()?;
+        let source: ITfSource = compartment.cast()?;
+        let sink: ITfCompartmentEventSink = punk.cast()?;
+        let cookie =
+            unsafe { source.AdviseSink(&<ITfCompartmentEventSink as Interface>::IID, &sink) }?;
+        *self.compartment_sink_cookie.lock() = cookie;
+
+        match self.read_compartment_mode() {
+            Ok(chinese) => self.apply_ime_mode(chinese),
+            Err(error) => {
+                log::debug!("[TSF] 键盘开关 compartment 尚无可读值: {error}");
+                let chinese = *self.ime_mode.lock();
+                self.write_compartment_mode(chinese)?;
+            }
+        }
+        Ok(())
     }
 
     fn apply_ime_mode(&self, chinese: bool) {
@@ -979,6 +1136,110 @@ impl TextService {
     }
 }
 
+impl ITfSource_Impl for TextService_Impl {
+    fn AdviseSink(&self, riid: *const GUID, punk: Ref<'_, windows::core::IUnknown>) -> Result<u32> {
+        if riid.is_null() {
+            return Err(E_INVALIDARG.into());
+        }
+        if unsafe { *riid } != <ITfLangBarItemSink as Interface>::IID {
+            return Err(E_NOINTERFACE.into());
+        }
+        if self.lang_bar_sink.lock().is_some() {
+            return Err(CONNECT_E_ADVISELIMIT.into());
+        }
+        let punk = punk
+            .as_ref()
+            .ok_or_else(|| windows::core::Error::from(E_INVALIDARG))?;
+        let sink: ITfLangBarItemSink = punk.cast()?;
+
+        let mut current = self.lang_bar_sink.lock();
+        if current.is_some() {
+            return Err(CONNECT_E_ADVISELIMIT.into());
+        }
+        *current = Some(sink);
+        Ok(1)
+    }
+
+    fn UnadviseSink(&self, dwcookie: u32) -> Result<()> {
+        if dwcookie != 1 {
+            return Err(CONNECT_E_NOCONNECTION.into());
+        }
+        let sink = self.lang_bar_sink.lock().take();
+        if sink.is_none() {
+            return Err(CONNECT_E_NOCONNECTION.into());
+        }
+        drop(sink);
+        Ok(())
+    }
+}
+
+impl ITfLangBarItem_Impl for TextService_Impl {
+    fn GetInfo(&self, pinfo: *mut TF_LANGBARITEMINFO) -> Result<()> {
+        if pinfo.is_null() {
+            return Err(E_INVALIDARG.into());
+        }
+        let info = TF_LANGBARITEMINFO {
+            clsidService: CLSID_TEXT_SERVICE,
+            guidItem: GUID_LANG_BAR_ITEM,
+            dwStyle: TF_LBI_STYLE_BTN_BUTTON | TF_LBI_STYLE_SHOWNINTRAY,
+            ulSort: 0,
+            szDescription: fixed_utf16("MyWubi 中英文切换"),
+        };
+        // SAFETY: pinfo was checked non-null and TSF supplies writable storage
+        // for exactly one TF_LANGBARITEMINFO value.
+        unsafe { pinfo.write(info) };
+        Ok(())
+    }
+
+    fn GetStatus(&self) -> Result<u32> {
+        Ok(if self.lang_bar_visible.load(Ordering::Acquire) {
+            0
+        } else {
+            TF_LBI_STATUS_HIDDEN
+        })
+    }
+
+    fn Show(&self, fshow: BOOL) -> Result<()> {
+        let visible = fshow.as_bool();
+        if self.lang_bar_visible.swap(visible, Ordering::AcqRel) != visible {
+            self.notify_lang_bar_flags(TF_LBI_STATUS);
+        }
+        Ok(())
+    }
+
+    fn GetTooltipString(&self) -> Result<windows::core::BSTR> {
+        let chinese = *self.ime_mode.lock();
+        Ok(windows::core::BSTR::from(lang_bar_display(chinese).1))
+    }
+}
+
+impl ITfLangBarItemButton_Impl for TextService_Impl {
+    fn OnClick(&self, click: TfLBIClick, _pt: &POINT, _prcarea: *const RECT) -> Result<()> {
+        if click == TF_LBI_CLK_LEFT {
+            self.toggle_ime_mode();
+        }
+        Ok(())
+    }
+
+    fn InitMenu(&self, _pmenu: Ref<'_, ITfMenu>) -> Result<()> {
+        Ok(())
+    }
+
+    fn OnMenuSelect(&self, _wid: u32) -> Result<()> {
+        Ok(())
+    }
+
+    fn GetIcon(&self) -> Result<HICON> {
+        let chinese = *self.ime_mode.lock();
+        create_lang_bar_icon(lang_bar_display(chinese).0)
+    }
+
+    fn GetText(&self) -> Result<windows::core::BSTR> {
+        let chinese = *self.ime_mode.lock();
+        Ok(windows::core::BSTR::from(lang_bar_display(chinese).0))
+    }
+}
+
 impl ITfTextInputProcessor_Impl for TextService_Impl {
     fn Activate(&self, ptim: Ref<'_, ITfThreadMgr>, tid: u32) -> Result<()> {
         // ITfTextInputProcessorEx::ActivateEx 的退化调用。
@@ -1001,6 +1262,26 @@ impl ITfTextInputProcessor_Impl for TextService_Impl {
 
         // 先克隆 thread_mgr 引用再进行清理（避免 take 后丢失 COM 指针）。
         let tm_hold = self.thread_mgr.lock().clone();
+
+        let compartment_cookie = mem::take(&mut *self.compartment_sink_cookie.lock());
+        if compartment_cookie != 0 {
+            let result = self
+                .keyboard_openclose_compartment()
+                .and_then(|compartment| compartment.cast::<ITfSource>())
+                .and_then(|source| unsafe { source.UnadviseSink(compartment_cookie) });
+            if let Err(error) = result {
+                log::warn!("[TSF] 反注册键盘开关 compartment sink 失败: {error}");
+            }
+        }
+
+        if let Some(punk) = self.clone_self_unknown() {
+            if let Err(error) = self.remove_language_bar(&punk) {
+                log::warn!("[TSF] 移除语言栏按钮失败: {error}");
+            }
+        }
+        let lang_bar_sink = self.lang_bar_sink.lock().take();
+        drop(lang_bar_sink);
+
         let mut state = self.cookies.lock();
 
         if let Some(ref tm) = tm_hold {
@@ -1147,6 +1428,15 @@ impl ITfTextInputProcessorEx_Impl for TextService_Impl {
 
         // 获取 self_unknown 引用于后续注册（clone 保持引用计数）
         let punk_self_later = self.clone_self_unknown();
+
+        if let Some(ref punk) = punk_self_later {
+            if let Err(error) = self.register_language_bar(punk) {
+                log::warn!("[TSF] 注册语言栏按钮失败: {error}");
+            }
+            if let Err(error) = self.register_compartment_sink(punk) {
+                log::warn!("[TSF] 注册键盘开关 compartment sink 失败: {error}");
+            }
+        }
 
         // 启动候选框窗口线程。
         {
@@ -1513,6 +1803,13 @@ mod tests {
     }
 
     #[test]
+    fn fixed_utf16_fills_description_and_keeps_trailing_nul() {
+        let value = fixed_utf16::<8>("MyWubi");
+
+        assert_eq!(value, [77, 121, 87, 117, 98, 105, 0, 0]);
+    }
+
+    #[test]
     fn unchanged_compartment_mode_needs_no_update() {
         assert!(!mode_changed(true, true));
     }
@@ -1520,6 +1817,41 @@ mod tests {
     #[test]
     fn changed_compartment_mode_needs_update() {
         assert!(mode_changed(true, false));
+    }
+
+    #[test]
+    fn switching_to_english_clears_input_state_and_hides_candidates() {
+        let dict = Dictionary::from_entries(
+            vec![core_engine::dictionary::Entry {
+                code: "a".into(),
+                word: "工".into(),
+                weight: 1,
+            }],
+            None,
+            Default::default(),
+        )
+        .unwrap();
+        let theme = ThemeSnapshot::default();
+        let candidate_tx = Arc::new(ArcSwap::from_pointee(CandidateData::visible(
+            "a".into(),
+            vec![CandidateItem {
+                label: "1. ".into(),
+                text: "工".into(),
+            }],
+            0,
+            0,
+            1,
+            None,
+            theme,
+        )));
+        let service = TextService::new(dict, 5, false, Arc::clone(&candidate_tx));
+        service.sm.lock().handle(InputEvent::Char('a'));
+
+        service.set_english_mode();
+
+        assert!(!*service.ime_mode.lock());
+        assert!(service.sm.lock().spelling().is_empty());
+        assert!(!candidate_tx.load().visible);
     }
 
     #[test]
