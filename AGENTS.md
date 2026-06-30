@@ -39,7 +39,7 @@
 | **Windows TIP 管理器** | Rust + `windows-rs` COM | 编译为静态库 `tip_manager`，被 `im_engine.dll` 和 `settings.exe` 共用。封装 TIP 全生命周期（注册/安装/启用/禁用/卸载）。 |
 | **Android 端外壳** | Kotlin + Jetpack Compose | 继承系统的 `InputMethodService`，实现标准的输入法服务。 |
 | **Android 核心调用** | JNI + Rust 核心静态库 | 通过 JNI 将 Rust 核心编进 Android `.so`，并在 Kotlin 层直接调用。 |
-| **Windows 打包发布** | **Velopack**（计划中） | 实现双端程序打包、静默更新、安装时通过 Hook 自动注册 TIP。 |
+| **Windows 打包发布** | **Velopack**（`build.ps1`） | 通过 `build.ps1` 一键编译 Release 产物并调用 `vpk pack` 生成安装包（Setup.exe）、便携包（Portable.zip）和增量更新包。CI 通过 `.github/workflows/release.yml` 在推送版本标签时自动触发。 |
 
 ---
 
@@ -52,7 +52,11 @@ MyWubi/
 ├── Cargo.toml                  # Workspace 配置文件
 ├── AGENTS.md                   # 本开发规范文档
 ├── config.toml                 # 输入法全局配置文件（双端通用格式）
-├── package.ps1                 # 发布打包脚本
+├── build.ps1                   # Velopack 打包脚本（主要）
+├── package.ps1                 # 简易打包脚本（拷贝到 deploy/）
+│
+├── .github/workflows/
+│   └── release.yml             # CI 发布流水线（Velopack）
 │
 ├── core_engine/                # 核心算法层 (库项目)
 │   ├── Cargo.toml
@@ -90,7 +94,10 @@ MyWubi/
 │   │       ├── state.rs        # AppState 状态容器
 │   │       ├── save.rs         # 原子写入保存
 │   │       ├── config_path.rs  # 配置路径定位（便携优先，回退 AppData）
-│   │       ├── panels/         # 四个配置面板（常规/外观/码表/关于）
+│   │       ├── vpk.rs          # Velopack 按需更新检查
+│   │       ├── log.rs          # 日志初始化
+│   │       ├── elevation.rs    # 管理员权限检测与提权
+│   │       ├── panels/         # 五个配置面板（常规/外观/码表/输入法管理/关于）
 │   │       ├── color_picker.rs # Win32 ChooseColor 原生颜色对话框
 │   │       └── fonts.rs        # 内嵌 Noto Sans SC 字体管理
 │   │
@@ -105,7 +112,8 @@ MyWubi/
 │
 ├── tables/                     # 码表目录
 │   └── wubi86.dict             # 五笔 86 版码表
-├── deploy/                     # 打包输出目录
+├── Releases/                   # Velopack 打包产物目录
+├── deploy/                     # 简易打包输出目录
 ├── docs/                       # 设计文档与计划
 └── CHANGELOG.md                # 版本发布日志
 ```
@@ -131,15 +139,16 @@ MyWubi/
     1. 启动时检查管理员权限（必需，否则弹窗退出）。
     2. 初始化 COM（`CoInitializeEx`），供 `tip_manager` 调用。
     3. 通过 `config_path::resolve_config_path()` 定位配置目录（便携模式优先，回退 `%APPDATA%\MyWubi\`）。
-    4. 使用 `egui` 提供直观的 Tab 页切换（常规设置、外观设置、码表管理、关于）。
+    4. 使用 `egui` 提供直观的 Tab 页切换（常规设置、外观设置、码表管理、输入法管理、关于）。
     5. 点击"保存"时，通过 `Config::save` 原子写回 `config.toml`。
+    6. 关于面板通过 `vpk` 模块支持「检查更新」功能，调用 Velopack API 查询新版本。
 
 ### 3.3 Windows 输入法本体 (im_engine) - TSF + GDI
 *   **定位**：无焦点、超轻量、常驻后台的系统级 DLL。
 *   **技术选型**：`windows-rs` (TSF) + **GDI**。
     *   *候选框渲染*：采用纯 Win32 GDI `UpdateLayeredWindow` 透明分层窗口，独立线程 + 16ms 定时器轮询刷新，通过 `ArcSwap` 无锁读取候选数据。**不要在 DLL 里初始化大型 GUI 运行环境**。
 *   **核心逻辑**：
-    *   通过 TSF 框架接管系统输入事件，`ITfKeyEventSink::OnKeyDown` 将虚拟键码通过 `key_filter` 模块翻译为 [`InputEvent`]，驱动 [`StateMachine`] 并依据 [`Transition`] 决定是否拦截按键。
+    *   通过 TSF 框架接管系统输入事件，`ITfKeyEventSink::OnKeyDown` 将虚拟键码通过 `key_filter` 模块翻译为 [`InputEvent`]（翻页键按 `config.toml` 中 `[hotkey]` 的 `page_next`/`page_prev` 配置动态映射），驱动 [`StateMachine`] 并依据 [`Transition`] 决定是否拦截按键。
     *   TSF 激活时通过 `ITfTextInputProcessorEx::Activate` 保存线程管理器，注册 `ITfKeyEventSink`、`ITfThreadMgrEventSink`、`ITfThreadFocusSink`、`ITfTextEditSink` 等事件接收器。
     *   候选框通过 `ArcSwap` 无锁原子替换共享 [`CandidateData`]，渲染线程每 16ms 读取一次最新数据绘制到 GDI 分层窗口。
     *   配置热重载通过 `ArcSwap` 原子替换实现（无需 `notify` 文件监听，由 TSF 事件或定时器触发重新加载）。
