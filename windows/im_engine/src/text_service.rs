@@ -24,13 +24,14 @@ use windows::Win32::Foundation::{COLORREF, E_INVALIDARG, LPARAM, S_FALSE, WPARAM
 use windows::Win32::System::Variant::{VARIANT, VARIANT_0, VARIANT_0_0, VARIANT_0_0_0, VT_I4};
 use windows::Win32::UI::TextServices::{
     GUID_PROP_ATTRIBUTE, IEnumTfDisplayAttributeInfo, IEnumTfDisplayAttributeInfo_Impl,
-    ITfCategoryMgr, ITfComposition, ITfCompositionSink, ITfCompositionSink_Impl, ITfContext,
+    ITfCategoryMgr, ITfCompartment, ITfCompartmentEventSink, ITfCompartmentEventSink_Impl,
+    ITfCompartmentMgr, ITfComposition, ITfCompositionSink, ITfCompositionSink_Impl, ITfContext,
     ITfContextComposition, ITfDisplayAttributeInfo, ITfDisplayAttributeInfo_Impl,
     ITfDisplayAttributeProvider, ITfDisplayAttributeProvider_Impl,
     ITfDocumentMgr, ITfEditSession, ITfEditSession_Impl, ITfEditRecord,
     ITfFnGetPreferredTouchKeyboardLayout, ITfFnGetPreferredTouchKeyboardLayout_Impl,
     ITfFunction, ITfFunction_Impl, ITfFunctionProvider, ITfFunctionProvider_Impl,
-    ITfKeyEventSink, ITfKeyEventSink_Impl, ITfKeystrokeMgr, ITfProperty, ITfRange,
+    ITfKeyEventSink, ITfKeyEventSink_Impl, ITfKeystrokeMgr, ITfLangBarItemSink, ITfProperty, ITfRange,
     ITfSource,
     ITfTextEditSink, ITfTextEditSink_Impl,
     ITfTextInputProcessor, ITfTextInputProcessorEx, ITfTextInputProcessorEx_Impl,
@@ -40,7 +41,8 @@ use windows::Win32::UI::TextServices::{
     TF_DA_COLOR, TF_DA_COLOR_0,
     TF_DISPLAYATTRIBUTE, TF_ES_ASYNC, TF_ES_READWRITE, TF_DEFAULT_SELECTION, TF_LS_DOT,
     TF_LS_SOLID, TF_SELECTION, TF_CT_COLORREF, GUID_TFCAT_DISPLAYATTRIBUTEPROVIDER,
-    TF_PRESERVEDKEY, TF_MOD_ON_KEYUP,
+    GUID_COMPARTMENT_KEYBOARD_OPENCLOSE, TF_LBI_ICON, TF_LBI_STATUS, TF_LBI_TEXT,
+    TF_LBI_TOOLTIP, TF_PRESERVEDKEY, TF_MOD_ON_KEYUP,
     TKBLayoutType, TKBLT_OPTIMIZED, TKBL_OPT_SIMPLIFIED_CHINESE_PINYIN,
 };
 use windows::Win32::UI::Input::KeyboardAndMouse::{VK_LSHIFT, VK_RSHIFT, VK_SHIFT};
@@ -326,7 +328,8 @@ struct SinkState {
              ITfCompositionSink, ITfDisplayAttributeProvider,
              ITfTextInputProcessorEx, ITfThreadFocusSink,
              ITfTextEditSink, ITfFunctionProvider,
-             ITfFunction, ITfFnGetPreferredTouchKeyboardLayout)]
+             ITfFunction, ITfFnGetPreferredTouchKeyboardLayout,
+             ITfCompartmentEventSink)]
 pub struct TextService {
     /// 跨平台核心状态机。
     sm: Mutex<StateMachine>,
@@ -378,6 +381,12 @@ pub struct TextService {
     edit_sink_context: Mutex<Option<ITfContext>>,
     /// ITfTextEditSink 的 AdviseSink cookie。
     edit_sink_cookie: Mutex<u32>,
+    /// 语言栏按钮更新通知 sink。
+    lang_bar_sink: Mutex<Option<ITfLangBarItemSink>>,
+    /// 语言栏按钮是否可见。
+    lang_bar_visible: AtomicBool,
+    /// 键盘开关 compartment 的 AdviseSink cookie。
+    compartment_sink_cookie: Mutex<u32>,
 }
 
 fn should_intercept_test_key(event: Option<InputEvent>, spelling_empty: bool) -> bool {
@@ -495,6 +504,9 @@ impl TextService {
             ime_mode: Mutex::new(true),
             shift_toggle_tracker: Mutex::new(ShiftKeyToggleTracker::default()),
             thread_focus_cookie: Mutex::new(0),
+            lang_bar_sink: Mutex::new(None),
+            lang_bar_visible: AtomicBool::new(true),
+            compartment_sink_cookie: Mutex::new(0),
         }
     }
 
@@ -549,6 +561,9 @@ impl TextService {
             ime_mode: Mutex::new(true),
             shift_toggle_tracker: Mutex::new(ShiftKeyToggleTracker::default()),
             thread_focus_cookie: Mutex::new(0),
+            lang_bar_sink: Mutex::new(None),
+            lang_bar_visible: AtomicBool::new(true),
+            compartment_sink_cookie: Mutex::new(0),
         }
     }
 
@@ -872,35 +887,78 @@ impl TextService {
         Ok(())
     }
 
+    fn keyboard_openclose_compartment(&self) -> Result<ITfCompartment> {
+        let thread_mgr = self
+            .thread_mgr
+            .lock()
+            .clone()
+            .ok_or_else(|| windows::core::Error::from(E_INVALIDARG))?;
+        let manager: ITfCompartmentMgr = thread_mgr.cast()?;
+        unsafe { manager.GetCompartment(&GUID_COMPARTMENT_KEYBOARD_OPENCLOSE) }
+    }
+
+    fn read_compartment_mode(&self) -> Result<bool> {
+        let value = unsafe { self.keyboard_openclose_compartment()?.GetValue() }?;
+        let inner = unsafe { &value.Anonymous.Anonymous };
+        if inner.vt != VT_I4 {
+            return Err(E_INVALIDARG.into());
+        }
+        Ok(unsafe { inner.Anonymous.lVal != 0 })
+    }
+
+    fn write_compartment_mode(&self, chinese: bool) -> Result<()> {
+        let tid = self.cookies.lock().tid;
+        let value = make_i32_variant(i32::from(chinese));
+        unsafe { self.keyboard_openclose_compartment()?.SetValue(tid, &value) }
+    }
+
+    fn notify_lang_bar(&self) {
+        let sink = self.lang_bar_sink.lock().clone();
+        if let Some(sink) = sink {
+            let flags = TF_LBI_ICON | TF_LBI_TEXT | TF_LBI_TOOLTIP | TF_LBI_STATUS;
+            if let Err(error) = unsafe { sink.OnUpdate(flags) } {
+                log::warn!("[TSF] 语言栏更新通知失败: {error}");
+            }
+        }
+    }
+
+    fn apply_ime_mode(&self, chinese: bool) {
+        let mut current = self.ime_mode.lock();
+        if !mode_changed(*current, chinese) {
+            return;
+        }
+        *current = chinese;
+        drop(current);
+
+        if chinese {
+            log::debug!("[TSF] 切换到中文模式");
+        } else {
+            self.sm.lock().reset();
+            self.end_active_composition();
+            self.candidate_tx
+                .store(Arc::new(CandidateData::hidden(self.theme_snapshot())));
+            log::debug!("[TSF] 切换到英文模式");
+        }
+        self.notify_lang_bar();
+    }
+
     /// 切换到中文模式。
     pub fn set_chinese_mode(&self) {
-        *self.ime_mode.lock() = true;
-        log::debug!("[TSF] 切换到中文模式");
+        self.apply_ime_mode(true);
     }
 
     /// 切换到英文模式。
     pub fn set_english_mode(&self) {
-        *self.ime_mode.lock() = false;
-        self.sm.lock().reset();
-        let theme = self.theme_snapshot();
-        self.candidate_tx.store(Arc::new(CandidateData::hidden(theme)));
-        self.end_active_composition();
-        log::debug!("[TSF] 切换到英文模式");
+        self.apply_ime_mode(false);
     }
 
     /// 反转中英文模式。
     pub fn toggle_ime_mode(&self) {
-        let mut mode = self.ime_mode.lock();
-        let old = *mode;
-        *mode = !*mode;
-        if !*mode {
-            self.sm.lock().reset();
-            self.end_active_composition();
-            log::debug!("[TSF] Exit中文→英文");
-        };
-        if !old {
-            log::debug!("[TSF] 英文→中文");
+        let next = !*self.ime_mode.lock();
+        if let Err(error) = self.write_compartment_mode(next) {
+            log::warn!("[TSF] 写入键盘开关 compartment 失败: {error}");
         }
+        self.apply_ime_mode(next);
     }
 
     fn track_shift_toggle_keydown(&self, wparam: WPARAM) {
@@ -1023,6 +1081,7 @@ impl ITfTextInputProcessorEx_Impl for TextService_Impl {
         *self.activate_flags.lock() = dwflags;
 
         let mut state = self.cookies.lock();
+        state.tid = tid;
         if let Some(punk_self) = self.clone_self_unknown() {
             // ── 主路径：通过 ITfKeystrokeMgr 注册按键事件 sink ──
             // 这是 Microsoft 官方 TSF 示例推荐的方式，比 ITfSource::AdviseSink
@@ -1033,7 +1092,6 @@ impl ITfTextInputProcessorEx_Impl for TextService_Impl {
                         Ok(key_sink) => {
                             match unsafe { kmgr.AdviseKeyEventSink(tid, &key_sink, true) } {
                                 Ok(()) => {
-                                    state.tid = tid;
                                     state.using_keystroke_mgr = true;
                                     log::info!("[TSF] ITfKeystrokeMgr::AdviseKeyEventSink 成功");
                                     true
@@ -1260,6 +1318,19 @@ impl ITfFunctionProvider_Impl for TextService_Impl {
             }
         }
         Err(HRESULT(-1).into())
+    }
+}
+
+impl ITfCompartmentEventSink_Impl for TextService_Impl {
+    fn OnChange(&self, rguid: *const GUID) -> Result<()> {
+        if rguid.is_null() || unsafe { *rguid } != GUID_COMPARTMENT_KEYBOARD_OPENCLOSE {
+            return Ok(());
+        }
+        match self.read_compartment_mode() {
+            Ok(chinese) => self.apply_ime_mode(chinese),
+            Err(error) => log::warn!("[TSF] 读取键盘开关 compartment 失败: {error}"),
+        }
+        Ok(())
     }
 }
 
