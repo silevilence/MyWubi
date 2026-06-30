@@ -94,6 +94,17 @@ fn is_shift_vk(vk: u16) -> bool {
     matches!(vk, v if v == VK_SHIFT.0 || v == VK_LSHIFT.0 || v == VK_RSHIFT.0)
 }
 
+fn lang_bar_display(chinese: bool) -> (&'static str, &'static str) {
+    if chinese {
+        ("中", "中文模式")
+    } else {
+        ("英", "英文模式")
+    }
+}
+
+fn mode_changed(current: bool, next: bool) -> bool {
+    current != next
+}
 
 /// 自定义 DisplayAttributeInfo 实现。每个实例对应用户自定义的 display attribute。
 #[implement(ITfDisplayAttributeInfo)]
@@ -1418,6 +1429,26 @@ mod tests {
     #[test]
     fn character_input_is_still_intercepted() {
         assert!(should_intercept_test_key(Some(InputEvent::Char('g')), true));
+    }
+
+    #[test]
+    fn chinese_mode_uses_chinese_language_bar_text() {
+        assert_eq!(lang_bar_display(true), ("中", "中文模式"));
+    }
+
+    #[test]
+    fn english_mode_uses_english_language_bar_text() {
+        assert_eq!(lang_bar_display(false), ("英", "英文模式"));
+    }
+
+    #[test]
+    fn unchanged_compartment_mode_needs_no_update() {
+        assert!(!mode_changed(true, true));
+    }
+
+    #[test]
+    fn changed_compartment_mode_needs_update() {
+        assert!(mode_changed(true, false));
     }
 
     #[test]
