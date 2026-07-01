@@ -64,7 +64,8 @@ MyWubi/
 │   │   ├── lib.rs              # 导出 C-ABI 接口与 Rust 内部接口
 │   │   ├── dictionary.rs       # 码表解析与检索 (Trie 树/二分查找)
 │   │   ├── state_machine.rs    # 输入状态机（处理上屏、清码、候选词切换）
-│   │   └── config.rs           # 配置文件解析 (toml-rs)
+│   │   ├── config.rs           # 配置文件解析 (toml-rs)
+│   │   └── config_path.rs      # 共享配置路径定位（便携/AppData 回退）
 │   ├── tests/                  # 集成测试（状态机端到端流程）
 │   └── benches/                # 性能基准测试 (criterion)
 │
@@ -74,10 +75,11 @@ MyWubi/
 │   │   ├── build.rs            # 构建脚本（当前为空：候选框已是纯 GDI）
 │   │   └── src/
 │   │       ├── lib.rs          # COM 服务器入口 (DllMain/DllGetClassObject)
-│   │       ├── text_service.rs # TSF 全部 COM 接口实现
+│   │       ├── text_service.rs # TSF 全部 COM 接口实现 + 语言栏按钮
 │   │       ├── candidate_window.rs # GDI 透明分层候选框窗口
 │   │       ├── factory.rs      # IClassFactory 实现
-│   │       ├── key_filter.rs   # 虚拟键码→InputEvent 映射
+│   │       ├── key_filter.rs   # 虚拟键码→InputEvent 映射 + 组合键过滤
+│   │       ├── reload.rs       # 配置文件热重载（notify 文件监听）
 │   │       ├── screen_geometry.rs # 光标定位与屏幕避让
 │   │       ├── candidate_data.rs   # 候选框共享数据结构
 │   │       ├── file_log.rs     # 文件日志输出
@@ -85,18 +87,18 @@ MyWubi/
 │   │
 │   ├── settings/               # 独立配置程序 exe
 │   │   ├── Cargo.toml
-│   │   ├── build.rs            # 嵌入 requireAdministrator 清单 + 码表复制
+│   │   ├── build.rs            # 码表复制
 │   │   ├── assets/tables/      # 构建时自动复制到输出的码表模板
 │   │   └── src/
-│   │       ├── main.rs         # 入口（管理员检查 + COM 初始化）
+│   │       ├── main.rs         # 入口（COM 初始化，不再强制管理员权限）
 │   │       ├── lib.rs          # 模块导出
 │   │       ├── app.rs          # SettingsApp 编排
 │   │       ├── state.rs        # AppState 状态容器
 │   │       ├── save.rs         # 原子写入保存
-│   │       ├── config_path.rs  # 配置路径定位（便携优先，回退 AppData）
+│   │       ├── config_path.rs  # 委托 core_engine 的路径定位封装
 │   │       ├── vpk.rs          # Velopack 按需更新检查
 │   │       ├── log.rs          # 日志初始化
-│   │       ├── elevation.rs    # 管理员权限检测与提权
+│   │       ├── elevation.rs    # 管理员权限检测与按需提权
 │   │       ├── panels/         # 五个配置面板（常规/外观/码表/输入法管理/关于）
 │   │       ├── color_picker.rs # Win32 ChooseColor 原生颜色对话框
 │   │       └── fonts.rs        # 内嵌 Noto Sans SC 字体管理
@@ -136,12 +138,11 @@ MyWubi/
 *   **技术选型**：**egui + eframe**。
     *   *为什么选择 egui*：它是目前 Rust 生态中**最成熟、最常规、社区最活跃**的 GUI 框架之一。采用即时渲染（Immediate Mode），没有复杂的生命周期和所有权心智负担，界面开箱即用，自带大量常规表单控件（Slider, Checkbox, ComboBox, TextEdit 等），非常适合写配置面板这种"表单堆砌"型界面。同时它是纯 Rust 像素级渲染（基于 wgpu/glow），不需要配置复杂的 C++ 编译链。
 *   **核心逻辑**：
-    1. 启动时检查管理员权限（必需，否则弹窗退出）。
-    2. 初始化 COM（`CoInitializeEx`），供 `tip_manager` 调用。
-    3. 通过 `config_path::resolve_config_path()` 定位配置目录（便携模式优先，回退 `%APPDATA%\MyWubi\`）。
-    4. 使用 `egui` 提供直观的 Tab 页切换（常规设置、外观设置、码表管理、输入法管理、关于）。
-    5. 点击"保存"时，通过 `Config::save` 原子写回 `config.toml`。
-    6. 关于面板通过 `vpk` 模块支持「检查更新」功能，调用 Velopack API 查询新版本。
+    1. 启动时初始化 COM（`CoInitializeEx`），供 `tip_manager` 调用。**不再强制管理员权限**——非管理员也能查看/修改配置；仅「输入法管理」面板的 TIP 注册/卸载操作需要管理员，由该面板按需触发提权重启。
+    2. 通过 `config_path::resolve_config_path()` 定位配置目录（委托 `core_engine::config_path`，便携模式优先，回退 `%APPDATA%\MyWubi\`）。
+    3. 使用 `egui` 提供直观的 Tab 页切换（常规设置、外观设置、码表管理、输入法管理、关于）。
+    4. 点击"保存"时，通过 `Config::save` 原子写回 `config.toml`。
+    5. 关于面板通过 `vpk` 模块支持「检查更新」功能，调用 Velopack API 查询新版本。
 
 ### 3.3 Windows 输入法本体 (im_engine) - TSF + GDI
 *   **定位**：无焦点、超轻量、常驻后台的系统级 DLL。
@@ -149,9 +150,11 @@ MyWubi/
     *   *候选框渲染*：采用纯 Win32 GDI `UpdateLayeredWindow` 透明分层窗口，独立线程 + 16ms 定时器轮询刷新，通过 `ArcSwap` 无锁读取候选数据。**不要在 DLL 里初始化大型 GUI 运行环境**。
 *   **核心逻辑**：
     *   通过 TSF 框架接管系统输入事件，`ITfKeyEventSink::OnKeyDown` 将虚拟键码通过 `key_filter` 模块翻译为 [`InputEvent`]（翻页键按 `config.toml` 中 `[hotkey]` 的 `page_next`/`page_prev` 配置动态映射），驱动 [`StateMachine`] 并依据 [`Transition`] 决定是否拦截按键。
-    *   TSF 激活时通过 `ITfTextInputProcessorEx::Activate` 保存线程管理器，注册 `ITfKeyEventSink`、`ITfThreadMgrEventSink`、`ITfThreadFocusSink`、`ITfTextEditSink` 等事件接收器。
+    *   `key_filter` 模块在翻译前先检测组合键状态——当 Ctrl/Alt/Win 等系统修饰键按下时直接放行，避免干扰快捷键操作。同时支持 CapsLock 开启时输入大写字母参与编码。
+    *   TSF 激活时通过 `ITfTextInputProcessorEx::Activate` 保存线程管理器，注册 `ITfKeyEventSink`、`ITfThreadMgrEventSink`、`ITfThreadFocusSink`、`ITfTextEditSink`、`ITfCompartmentEventSink` 等事件接收器。
+    *   **语言栏按钮**：实现 `ITfLangBarItemButton` 接口，在 Windows 语言栏显示「中」/「英」状态按钮。通过 `ITfLangBarItemMgr::AddItem` 注册，绑定 `GUID_COMPARTMENT_KEYBOARD_OPENCLOSE` 与系统键盘开关同步状态。按钮点击触发 `toggle_ime_mode()` 切换中英文模式。
     *   候选框通过 `ArcSwap` 无锁原子替换共享 [`CandidateData`]，渲染线程每 16ms 读取一次最新数据绘制到 GDI 分层窗口。
-    *   配置热重载通过 `ArcSwap` 原子替换实现（无需 `notify` 文件监听，由 TSF 事件或定时器触发重新加载）。
+    *   配置热重载由 `reload` 模块通过 `notify` 文件监听实现——监听配置目录的文件变更事件，检测到 `config.toml` 写入后重新加载配置、码表和状态机，通过 `ArcSwap` 原子替换 `RuntimeSnapshot`。
 
 ### 3.4 TIP 管理器 (tip_manager)
 *   **定位**：被 `im_engine.dll` 和 `settings.exe` 共同链接的静态库，封装 TSF TIP 全生命周期操作。
@@ -177,7 +180,8 @@ MyWubi/
     *   若修改核心算法，严禁混入任何平台专属（Windows/Android）的系统调用。
     *   UI 的改动应分别在 `windows/settings` (egui)、`windows/im_engine` (GDI) 或 `android` (Compose) 中进行。
 2.  **配置文件一致性**：
-    *   修改 `config.toml` 格式时，必须同时更新 `core/src/config.rs` 的反序列化结构体，以及双端（egui 和 Compose）对应的配置界面。
+    *   修改 `config.toml` 格式时，必须同时更新 `core_engine/src/config.rs` 的反序列化结构体，以及双端（egui 和 Compose）对应的配置界面。
+    *   配置路径定位统一使用 `core_engine::config_path::resolve_config_path()`。`windows/settings/src/config_path.rs` 仅做薄封装委托，`windows/im_engine/src/reload.rs` 直接引用 core_engine 的路径解析结果。
 3.  **日志规范**：
     *   严禁在 Windows TSF 核心中使用 `println!`。由于是 DLL 注入运行，使用 `log` 库并重定向到本地隐藏文件夹下的 `debug.log`。
 4. **文档修改禁令**：

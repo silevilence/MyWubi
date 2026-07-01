@@ -2,12 +2,6 @@
 
 ## 📅 计划中
 
-- [ ] **TSF 语言栏按钮** (2026-06-27-tsf-full-integration-plan Phase 2.4)
-    - [ ] 实现 `ITfLangBarItemButton` 中/英状态指示按钮
-    - [ ] 通过 `ITfLangBarItemMgr::AddItem` 注册
-    - [ ] 绑定到 `GUID_COMPARTMENT_KEYBOARD_OPENCLOSE` 自动反映状态
-    - [ ] 按钮点击触发 `toggle_ime_mode()`
-
 - [ ] **Rust 核心 JNI 桥接层设计 (core_engine)**
     - [ ] 引入 `jni` crate 依赖
     - [ ] 导出适配 Android 的 C-ABI 接口
@@ -178,3 +172,10 @@
     - [x] **统一配置路径解析策略**：`im_engine.dll` 的 `notify` 文件监听路径须与 `settings.exe` 共用同一套 `resolve_config_path` 路径解析逻辑（优先定位 exe 同级目录，若不可用则回退至 `%APPDATA%\MyWubi\` 用户数据目录）
     - [x] **消除双进程路径分歧**：确保 `im_engine.dll` 与 `settings.exe` 读写同一份 `config.toml` 配置实例，避免便携模式与标准安装模式因路径不一致导致配置热重载失效
     - [x] **热重载触发闭环**：`settings.exe` 保存配置后，`im_engine.dll` 监听器即时响应并重新加载最新配置
+
+- [x] **TSF 语言栏按钮** (2026-06-27-tsf-full-integration-plan Phase 2.4)
+    - [x] 实现 `ITfLangBarItemButton` 中/英状态指示按钮
+    - [x] 通过 `ITfLangBarItemMgr::AddItem` 注册
+    - [x] 绑定到 `GUID_COMPARTMENT_KEYBOARD_OPENCLOSE` 自动反映状态
+    - [x] 按钮点击触发 `toggle_ime_mode()`
+    - [x] 如需要用到多媒体资源的，先在assets下生成一个占位用的文件，并在最后像我说明文件的用途与要求
