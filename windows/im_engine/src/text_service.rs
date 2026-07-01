@@ -1028,28 +1028,22 @@ impl TextService {
         unsafe { manager.GetCompartment(&GUID_COMPARTMENT_KEYBOARD_OPENCLOSE) }
     }
 
-    fn unregister_compartment_sink(&self, thread_mgr: &ITfThreadMgr) {
+    fn unregister_compartment_sink(&self, thread_mgr: &ITfThreadMgr) -> Result<()> {
         let Some(cookie) = *self.compartment_sink_cookie.lock() else {
-            return;
+            return Ok(());
         };
-        let result = thread_mgr
+        thread_mgr
             .cast::<ITfCompartmentMgr>()
             .and_then(|manager| unsafe {
                 manager.GetCompartment(&GUID_COMPARTMENT_KEYBOARD_OPENCLOSE)
             })
             .and_then(|compartment| compartment.cast::<ITfSource>())
-            .and_then(|source| unsafe { source.UnadviseSink(cookie) });
-        match result {
-            Ok(()) => {
-                let mut current = self.compartment_sink_cookie.lock();
-                if *current == Some(cookie) {
-                    *current = None;
-                }
-            }
-            Err(error) => {
-                log::warn!("[TSF] 反注册键盘开关 compartment sink 失败: {error}");
-            }
+            .and_then(|source| unsafe { source.UnadviseSink(cookie) })?;
+        let mut current = self.compartment_sink_cookie.lock();
+        if *current == Some(cookie) {
+            *current = None;
         }
+        Ok(())
     }
 
     fn read_compartment_mode(&self) -> Result<bool> {
@@ -1296,8 +1290,11 @@ impl ITfTextInputProcessor_Impl for TextService_Impl {
         // 先克隆 thread_mgr 引用再进行清理（避免 take 后丢失 COM 指针）。
         let tm_hold = self.thread_mgr.lock().clone();
 
-        if let Some(ref tm) = tm_hold {
-            self.unregister_compartment_sink(tm);
+        let compartment_unadvise_error = tm_hold
+            .as_ref()
+            .and_then(|tm| self.unregister_compartment_sink(tm).err());
+        if let Some(ref error) = compartment_unadvise_error {
+            log::warn!("[TSF] 反注册键盘开关 compartment sink 失败: {error}");
         }
 
         let mut lang_bar_remove_error = None;
@@ -1365,7 +1362,9 @@ impl ITfTextInputProcessor_Impl for TextService_Impl {
             }
         }
 
-        *self.thread_mgr.lock() = None;
+        if compartment_unadvise_error.is_none() {
+            *self.thread_mgr.lock() = None;
+        }
         *self.focus_doc_mgr.lock() = None;
 
         // 清理状态机内部缓冲。
@@ -1373,7 +1372,7 @@ impl ITfTextInputProcessor_Impl for TextService_Impl {
         *self.ga_input.lock() = 0;
         *self.ga_converted.lock() = 0;
 
-        if let Some(error) = lang_bar_remove_error {
+        if let Some(error) = compartment_unadvise_error.or(lang_bar_remove_error) {
             return Err(error);
         }
 
