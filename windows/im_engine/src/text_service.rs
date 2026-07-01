@@ -165,7 +165,10 @@ fn create_lang_bar_icon(text: &str) -> Result<HICON> {
         let mut bits: *mut c_void = ptr::null_mut();
         let color = match CreateDIBSection(Some(dc), &bmi, DIB_RGB_COLORS, &mut bits, None, 0) {
             Ok(bitmap) if !bitmap.is_invalid() && !bits.is_null() => bitmap,
-            Ok(_) => {
+            Ok(bitmap) => {
+                if !bitmap.is_invalid() {
+                    let _ = DeleteObject(HGDIOBJ(bitmap.0));
+                }
                 let _ = DeleteDC(dc);
                 return Err(E_FAIL.into());
             }
