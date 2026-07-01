@@ -409,14 +409,16 @@ enum EditSessionOp {
 #[implement(ITfEditSession)]
 struct EditSession {
     op: EditSessionOp,
-    /// 指向 TextService 的原始指针（不增加引用计数）。
-    /// 生命周期：EditSession 在 DoEditSession 调用完成后即被释放，
-    /// 此时 TextService 一定仍然存活（Activate/Deactivate 生命周期保证）。
+    /// 指向 `_service_owner` 持有的 TextService COM 对象。
     service_ptr: *const TextService,
+    /// 保持 TextService COM 对象存活直到异步 EditSession 完成。
+    _service_owner: windows::core::IUnknown,
 }
 
 impl ITfEditSession_Impl for EditSession_Impl {
     fn DoEditSession(&self, ec: u32) -> Result<()> {
+        // SAFETY: _service_owner keeps the COM allocation containing
+        // service_ptr alive for the entire EditSession lifetime.
         let service = unsafe { &*self.service_ptr };
         service.execute_edit_session(ec, &self.op)
     }
@@ -508,7 +510,7 @@ pub struct TextService {
     /// 语言栏按钮是否已注册到系统。
     lang_bar_registered: AtomicBool,
     /// 键盘开关 compartment 的 AdviseSink cookie。
-    compartment_sink_cookie: Mutex<u32>,
+    compartment_sink_cookie: Mutex<Option<u32>>,
 }
 
 fn should_intercept_test_key(event: Option<InputEvent>, spelling_empty: bool) -> bool {
@@ -629,7 +631,7 @@ impl TextService {
             lang_bar_sink: Mutex::new(None),
             lang_bar_visible: AtomicBool::new(true),
             lang_bar_registered: AtomicBool::new(false),
-            compartment_sink_cookie: Mutex::new(0),
+            compartment_sink_cookie: Mutex::new(None),
         }
     }
 
@@ -687,7 +689,7 @@ impl TextService {
             lang_bar_sink: Mutex::new(None),
             lang_bar_visible: AtomicBool::new(true),
             lang_bar_registered: AtomicBool::new(false),
-            compartment_sink_cookie: Mutex::new(0),
+            compartment_sink_cookie: Mutex::new(None),
         }
     }
 
@@ -803,6 +805,10 @@ impl TextService {
 
     /// 异步调度一条 composition 操作到 TSF 编辑会话。
     fn schedule_edit_session(&self, op: EditSessionOp, context: &ITfContext) {
+        let Some(service_owner) = self.clone_self_unknown() else {
+            log::warn!("[TSF] schedule_edit_session: self_unknown 缺失，跳过");
+            return;
+        };
         let tid = self.cookies.lock().tid;
         if tid == 0 {
             log::warn!("[TSF] schedule_edit_session: tid==0，跳过");
@@ -811,6 +817,7 @@ impl TextService {
         let edit_session = EditSession {
             op,
             service_ptr: self as *const TextService,
+            _service_owner: service_owner,
         };
         let com_obj = windows::core::ComObject::new(edit_session);
         let edit_session_com: ITfEditSession = com_obj.to_interface();
@@ -1022,10 +1029,9 @@ impl TextService {
     }
 
     fn unregister_compartment_sink(&self, thread_mgr: &ITfThreadMgr) {
-        let cookie = *self.compartment_sink_cookie.lock();
-        if cookie == 0 {
+        let Some(cookie) = *self.compartment_sink_cookie.lock() else {
             return;
-        }
+        };
         let result = thread_mgr
             .cast::<ITfCompartmentMgr>()
             .and_then(|manager| unsafe {
@@ -1036,8 +1042,8 @@ impl TextService {
         match result {
             Ok(()) => {
                 let mut current = self.compartment_sink_cookie.lock();
-                if *current == cookie {
-                    *current = 0;
+                if *current == Some(cookie) {
+                    *current = None;
                 }
             }
             Err(error) => {
@@ -1089,12 +1095,15 @@ impl TextService {
     }
 
     fn register_compartment_sink(&self, punk: &windows::core::IUnknown) -> Result<()> {
+        if self.compartment_sink_cookie.lock().is_some() {
+            return Ok(());
+        }
         let compartment = self.keyboard_openclose_compartment()?;
         let source: ITfSource = compartment.cast()?;
         let sink: ITfCompartmentEventSink = punk.cast()?;
         let cookie =
             unsafe { source.AdviseSink(&<ITfCompartmentEventSink as Interface>::IID, &sink) }?;
-        *self.compartment_sink_cookie.lock() = cookie;
+        *self.compartment_sink_cookie.lock() = Some(cookie);
 
         match self.read_compartment_mode() {
             Ok(chinese) => self.apply_ime_mode(chinese),
@@ -1291,10 +1300,17 @@ impl ITfTextInputProcessor_Impl for TextService_Impl {
             self.unregister_compartment_sink(tm);
         }
 
-        if self.lang_bar_registered.swap(false, Ordering::AcqRel) {
-            if let Some(punk) = self.clone_self_unknown() {
-                if let Err(error) = self.remove_language_bar(&punk) {
+        let mut lang_bar_remove_error = None;
+        if self.lang_bar_registered.load(Ordering::Acquire) {
+            let result = self
+                .clone_self_unknown()
+                .ok_or_else(|| windows::core::Error::from(E_FAIL))
+                .and_then(|punk| self.remove_language_bar(&punk));
+            match result {
+                Ok(()) => self.lang_bar_registered.store(false, Ordering::Release),
+                Err(error) => {
                     log::warn!("[TSF] 移除语言栏按钮失败: {error}");
+                    lang_bar_remove_error = Some(error);
                 }
             }
         }
@@ -1348,14 +1364,17 @@ impl ITfTextInputProcessor_Impl for TextService_Impl {
         *self.thread_mgr.lock() = None;
         *self.focus_doc_mgr.lock() = None;
 
-        // 释放自我持有的 IUnknown，避免强引用循环。
-        self.release_self_unknown();
-
         // 清理状态机内部缓冲。
         self.sm.lock().reset();
         *self.ga_input.lock() = 0;
         *self.ga_converted.lock() = 0;
 
+        if let Some(error) = lang_bar_remove_error {
+            return Err(error);
+        }
+
+        // 语言栏未注册或已成功移除，可以释放自我持有避免循环引用。
+        self.release_self_unknown();
         log::info!("[TSF] TIP deactivated");
         Ok(())
     }
@@ -1790,6 +1809,13 @@ mod tests {
             ThemeSnapshot::default(),
         )));
         windows::core::ComObject::new(TextService::new(dict, 5, false, candidate_tx))
+    }
+
+    #[test]
+    fn compartment_sink_starts_unregistered() {
+        let service = com_text_service();
+
+        assert!(service.compartment_sink_cookie.lock().is_none());
     }
 
     #[test]
