@@ -1022,7 +1022,7 @@ impl TextService {
     }
 
     fn unregister_compartment_sink(&self, thread_mgr: &ITfThreadMgr) {
-        let cookie = mem::take(&mut *self.compartment_sink_cookie.lock());
+        let cookie = *self.compartment_sink_cookie.lock();
         if cookie == 0 {
             return;
         }
@@ -1033,8 +1033,16 @@ impl TextService {
             })
             .and_then(|compartment| compartment.cast::<ITfSource>())
             .and_then(|source| unsafe { source.UnadviseSink(cookie) });
-        if let Err(error) = result {
-            log::warn!("[TSF] 反注册键盘开关 compartment sink 失败: {error}");
+        match result {
+            Ok(()) => {
+                let mut current = self.compartment_sink_cookie.lock();
+                if *current == cookie {
+                    *current = 0;
+                }
+            }
+            Err(error) => {
+                log::warn!("[TSF] 反注册键盘开关 compartment sink 失败: {error}");
+            }
         }
     }
 
@@ -1273,8 +1281,6 @@ impl ITfTextInputProcessor_Impl for TextService_Impl {
 
         if let Some(ref tm) = tm_hold {
             self.unregister_compartment_sink(tm);
-        } else {
-            mem::take(&mut *self.compartment_sink_cookie.lock());
         }
 
         if self.lang_bar_registered.swap(false, Ordering::AcqRel) {
@@ -1349,17 +1355,18 @@ impl ITfTextInputProcessor_Impl for TextService_Impl {
 
 impl ITfTextInputProcessorEx_Impl for TextService_Impl {
     fn ActivateEx(&self, ptim: Ref<'_, ITfThreadMgr>, tid: u32, dwflags: u32) -> Result<()> {
-        let tm: ITfThreadMgr = match ptim.as_ref() {
-            Some(tm) => tm.clone(),
+        let tm = match ptim.as_ref() {
+            Some(tm) => tm,
             None => {
                 log::error!("[TSF] ActivateEx: ptim 为空");
                 return Err(HRESULT(-1).into());
             }
         };
-        let old_tm = self.thread_mgr.lock().clone();
-        if let Some(ref old_tm) = old_tm {
-            self.unregister_compartment_sink(old_tm);
+        if self.thread_mgr.lock().is_some() {
+            log::warn!("[TSF] ActivateEx: TIP 已激活，忽略重复激活");
+            return Ok(());
         }
+        let tm = tm.clone();
         *self.thread_mgr.lock() = Some(tm.clone());
         // 保存激活标志（如 TF_TMAE_COMLESS）
         *self.activate_flags.lock() = dwflags;
