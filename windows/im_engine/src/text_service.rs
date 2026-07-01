@@ -24,7 +24,7 @@ use std::sync::atomic::{AtomicBool, AtomicU64, Ordering};
 
 use windows::core::{implement, w, Interface, Ref, Result, BOOL, GUID, HRESULT};
 use windows::Win32::Foundation::{
-    COLORREF, E_FAIL, E_INVALIDARG, E_NOINTERFACE, LPARAM, POINT, RECT, S_FALSE, WPARAM,
+    COLORREF, E_FAIL, E_INVALIDARG, LPARAM, POINT, RECT, S_FALSE, WPARAM,
 };
 use windows::Win32::Graphics::Gdi::{
     CreateBitmap, CreateCompatibleDC, CreateDIBSection, CreateFontW, DeleteDC, DeleteObject,
@@ -34,7 +34,9 @@ use windows::Win32::Graphics::Gdi::{
     OUT_DEFAULT_PRECIS, RGBQUAD, TRANSPARENT,
 };
 use windows::Win32::System::Com::{CoCreateInstance, CLSCTX_INPROC_SERVER};
-use windows::Win32::System::Ole::{CONNECT_E_ADVISELIMIT, CONNECT_E_NOCONNECTION};
+use windows::Win32::System::Ole::{
+    CONNECT_E_ADVISELIMIT, CONNECT_E_CANNOTCONNECT, CONNECT_E_NOCONNECTION,
+};
 use windows::Win32::System::Variant::{VARIANT, VARIANT_0, VARIANT_0_0, VARIANT_0_0_0, VT_I4};
 use windows::Win32::UI::TextServices::{
     CLSID_TF_LangBarItemMgr, GUID_PROP_ATTRIBUTE, IEnumTfDisplayAttributeInfo,
@@ -57,10 +59,10 @@ use windows::Win32::UI::TextServices::{
     TF_DA_COLOR, TF_DA_COLOR_0,
     TF_DISPLAYATTRIBUTE, TF_ES_ASYNC, TF_ES_READWRITE, TF_DEFAULT_SELECTION, TF_LS_DOT,
     TF_LS_SOLID, TF_SELECTION, TF_CT_COLORREF, GUID_TFCAT_DISPLAYATTRIBUTEPROVIDER,
-    GUID_COMPARTMENT_KEYBOARD_OPENCLOSE, TF_LANGBARITEMINFO, TF_LBI_CLK_LEFT, TF_LBI_ICON,
-    TF_LBI_STATUS, TF_LBI_STATUS_HIDDEN, TF_LBI_STYLE_BTN_BUTTON, TF_LBI_STYLE_SHOWNINTRAY,
-    TF_LBI_TEXT, TF_LBI_TOOLTIP, TF_PRESERVEDKEY, TF_MOD_ON_KEYUP, TfLBIClick,
-    TKBLayoutType, TKBLT_OPTIMIZED, TKBL_OPT_SIMPLIFIED_CHINESE_PINYIN,
+    GUID_COMPARTMENT_KEYBOARD_OPENCLOSE, GUID_LBI_INPUTMODE, TF_LANGBARITEMINFO, TF_LBI_CLK_LEFT,
+    TF_LBI_ICON, TF_LBI_STATUS, TF_LBI_STATUS_HIDDEN, TF_LBI_STYLE_BTN_BUTTON,
+    TF_LBI_STYLE_SHOWNINTRAY, TF_LBI_TEXT, TF_LBI_TOOLTIP, TF_MOD_ON_KEYUP, TF_PRESERVEDKEY,
+    TKBLayoutType, TfLBIClick, TKBLT_OPTIMIZED, TKBL_OPT_SIMPLIFIED_CHINESE_PINYIN,
 };
 use windows::Win32::UI::Input::KeyboardAndMouse::{VK_LSHIFT, VK_RSHIFT, VK_SHIFT};
 use windows::Win32::UI::WindowsAndMessaging::{CreateIconIndirect, HICON, ICONINFO};
@@ -82,8 +84,6 @@ const GUID_DISPLAY_ATTR_INPUT: GUID = GUID::from_u128(0x8a2e3b4c_1d5f_4a7b_9e6c_
 const GUID_DISPLAY_ATTR_CONVERTED: GUID = GUID::from_u128(0x6b1c8d9e_2f3a_4c5b_8d7e_1a2b3c4d5e6f);
 /// PreservedKey（Shift 切换）的 GUID.
 const GUID_PRESERVED_SHIFT: GUID = GUID::from_u128(0x1a2b3c4d_5e6f_7a8b_9c0d_1e2f3a4b5c6d);
-/// 语言栏按钮的稳定标识。
-const GUID_LANG_BAR_ITEM: GUID = GUID::from_u128(0xd74292fb_2b8d_4b54_89e2_978953e4386f);
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 enum DisplayAttrKind {
@@ -122,10 +122,6 @@ fn lang_bar_display(chinese: bool) -> (&'static str, &'static str) {
     } else {
         ("英", "英文模式")
     }
-}
-
-fn mode_changed(current: bool, next: bool) -> bool {
-    current != next
 }
 
 fn fixed_utf16<const N: usize>(text: &str) -> [u16; N] {
@@ -509,6 +505,8 @@ pub struct TextService {
     lang_bar_sink: Mutex<Option<ITfLangBarItemSink>>,
     /// 语言栏按钮是否可见。
     lang_bar_visible: AtomicBool,
+    /// 语言栏按钮是否已注册到系统。
+    lang_bar_registered: AtomicBool,
     /// 键盘开关 compartment 的 AdviseSink cookie。
     compartment_sink_cookie: Mutex<u32>,
 }
@@ -630,6 +628,7 @@ impl TextService {
             thread_focus_cookie: Mutex::new(0),
             lang_bar_sink: Mutex::new(None),
             lang_bar_visible: AtomicBool::new(true),
+            lang_bar_registered: AtomicBool::new(false),
             compartment_sink_cookie: Mutex::new(0),
         }
     }
@@ -687,6 +686,7 @@ impl TextService {
             thread_focus_cookie: Mutex::new(0),
             lang_bar_sink: Mutex::new(None),
             lang_bar_visible: AtomicBool::new(true),
+            lang_bar_registered: AtomicBool::new(false),
             compartment_sink_cookie: Mutex::new(0),
         }
     }
@@ -1021,6 +1021,23 @@ impl TextService {
         unsafe { manager.GetCompartment(&GUID_COMPARTMENT_KEYBOARD_OPENCLOSE) }
     }
 
+    fn unregister_compartment_sink(&self, thread_mgr: &ITfThreadMgr) {
+        let cookie = mem::take(&mut *self.compartment_sink_cookie.lock());
+        if cookie == 0 {
+            return;
+        }
+        let result = thread_mgr
+            .cast::<ITfCompartmentMgr>()
+            .and_then(|manager| unsafe {
+                manager.GetCompartment(&GUID_COMPARTMENT_KEYBOARD_OPENCLOSE)
+            })
+            .and_then(|compartment| compartment.cast::<ITfSource>())
+            .and_then(|source| unsafe { source.UnadviseSink(cookie) });
+        if let Err(error) = result {
+            log::warn!("[TSF] 反注册键盘开关 compartment sink 失败: {error}");
+        }
+    }
+
     fn read_compartment_mode(&self) -> Result<bool> {
         let value = unsafe { self.keyboard_openclose_compartment()?.GetValue() }?;
         let inner = unsafe { &value.Anonymous.Anonymous };
@@ -1084,7 +1101,7 @@ impl TextService {
 
     fn apply_ime_mode(&self, chinese: bool) {
         let mut current = self.ime_mode.lock();
-        if !mode_changed(*current, chinese) {
+        if *current == chinese {
             return;
         }
         *current = chinese;
@@ -1100,16 +1117,6 @@ impl TextService {
             log::debug!("[TSF] 切换到英文模式");
         }
         self.notify_lang_bar();
-    }
-
-    /// 切换到中文模式。
-    pub fn set_chinese_mode(&self) {
-        self.apply_ime_mode(true);
-    }
-
-    /// 切换到英文模式。
-    pub fn set_english_mode(&self) {
-        self.apply_ime_mode(false);
     }
 
     /// 反转中英文模式。
@@ -1141,19 +1148,21 @@ impl TextService {
 
 impl ITfSource_Impl for TextService_Impl {
     fn AdviseSink(&self, riid: *const GUID, punk: Ref<'_, windows::core::IUnknown>) -> Result<u32> {
+        let punk = punk
+            .as_ref()
+            .ok_or_else(|| windows::core::Error::from(E_INVALIDARG))?;
         if riid.is_null() {
             return Err(E_INVALIDARG.into());
         }
         if unsafe { *riid } != <ITfLangBarItemSink as Interface>::IID {
-            return Err(E_NOINTERFACE.into());
+            return Err(CONNECT_E_CANNOTCONNECT.into());
         }
         if self.lang_bar_sink.lock().is_some() {
             return Err(CONNECT_E_ADVISELIMIT.into());
         }
-        let punk = punk
-            .as_ref()
-            .ok_or_else(|| windows::core::Error::from(E_INVALIDARG))?;
-        let sink: ITfLangBarItemSink = punk.cast()?;
+        let sink: ITfLangBarItemSink = punk
+            .cast()
+            .map_err(|_| windows::core::Error::from(CONNECT_E_CANNOTCONNECT))?;
 
         let mut current = self.lang_bar_sink.lock();
         if current.is_some() {
@@ -1167,11 +1176,9 @@ impl ITfSource_Impl for TextService_Impl {
         if dwcookie != 1 {
             return Err(CONNECT_E_NOCONNECTION.into());
         }
-        let sink = self.lang_bar_sink.lock().take();
-        if sink.is_none() {
+        if self.lang_bar_sink.lock().take().is_none() {
             return Err(CONNECT_E_NOCONNECTION.into());
         }
-        drop(sink);
         Ok(())
     }
 }
@@ -1183,7 +1190,7 @@ impl ITfLangBarItem_Impl for TextService_Impl {
         }
         let info = TF_LANGBARITEMINFO {
             clsidService: CLSID_TEXT_SERVICE,
-            guidItem: GUID_LANG_BAR_ITEM,
+            guidItem: GUID_LBI_INPUTMODE,
             dwStyle: TF_LBI_STYLE_BTN_BUTTON | TF_LBI_STYLE_SHOWNINTRAY,
             ulSort: 0,
             szDescription: fixed_utf16("MyWubi 中英文切换"),
@@ -1251,9 +1258,7 @@ impl ITfTextInputProcessor_Impl for TextService_Impl {
 
     fn Deactivate(&self) -> Result<()> {
         // 删除 composition（如果有）
-        if let Some(comp) = self.composition.lock().take() {
-            drop(comp);
-        }
+        self.composition.lock().take();
         self.is_composing.store(false, Ordering::Release);
 
         // 隐藏候选框并关闭候选框窗口。
@@ -1266,26 +1271,22 @@ impl ITfTextInputProcessor_Impl for TextService_Impl {
         // 先克隆 thread_mgr 引用再进行清理（避免 take 后丢失 COM 指针）。
         let tm_hold = self.thread_mgr.lock().clone();
 
-        let compartment_cookie = mem::take(&mut *self.compartment_sink_cookie.lock());
-        if compartment_cookie != 0 {
-            let result = self
-                .keyboard_openclose_compartment()
-                .and_then(|compartment| compartment.cast::<ITfSource>())
-                .and_then(|source| unsafe { source.UnadviseSink(compartment_cookie) });
-            if let Err(error) = result {
-                log::warn!("[TSF] 反注册键盘开关 compartment sink 失败: {error}");
-            }
+        if let Some(ref tm) = tm_hold {
+            self.unregister_compartment_sink(tm);
+        } else {
+            mem::take(&mut *self.compartment_sink_cookie.lock());
         }
 
-        if let Some(punk) = self.clone_self_unknown() {
-            if let Err(error) = self.remove_language_bar(&punk) {
-                log::warn!("[TSF] 移除语言栏按钮失败: {error}");
+        if self.lang_bar_registered.swap(false, Ordering::AcqRel) {
+            if let Some(punk) = self.clone_self_unknown() {
+                if let Err(error) = self.remove_language_bar(&punk) {
+                    log::warn!("[TSF] 移除语言栏按钮失败: {error}");
+                }
             }
         }
-        let lang_bar_sink = self.lang_bar_sink.lock().take();
-        drop(lang_bar_sink);
+        self.lang_bar_sink.lock().take();
 
-        let mut state = self.cookies.lock();
+        let state = mem::take(&mut *self.cookies.lock());
 
         if let Some(ref tm) = tm_hold {
             // ── 主路径：ITfKeystrokeMgr::UnadviseKeyEventSink ──
@@ -1300,43 +1301,38 @@ impl ITfTextInputProcessor_Impl for TextService_Impl {
             if let Ok(source) = tm.cast::<ITfSource>() {
                 if state.key_event != 0 {
                     let _ = unsafe { source.UnadviseSink(state.key_event) };
-                    state.key_event = 0;
                 }
                 if state.thread_event != 0 {
                     let _ = unsafe { source.UnadviseSink(state.thread_event) };
-                    state.thread_event = 0;
                 }
             }
         }
 
         // 清理所有持有的 COM 引用。
         // （thread_mgr 还可能需要用于反注册，先清理 sink 再释放 thread_mgr）
+        // 反注册 ITfThreadFocusSink
+        let fc = mem::take(&mut *self.thread_focus_cookie.lock());
         if let Some(ref tm) = tm_hold {
-            // 反注册 ITfThreadFocusSink
-            let fc = *self.thread_focus_cookie.lock();
             if fc != 0 {
                 if let Ok(source) = tm.cast::<ITfSource>() {
                     let _ = unsafe { source.UnadviseSink(fc) };
                 }
             }
         }
-        *self.thread_focus_cookie.lock() = 0;
 
         // 反注册 ITfTextEditSink
-        let ec = *self.edit_sink_cookie.lock();
+        let ec = mem::take(&mut *self.edit_sink_cookie.lock());
+        let edit_sink_context = self.edit_sink_context.lock().take();
         if ec != 0 {
-            if let Some(ctx) = self.edit_sink_context.lock().as_ref() {
+            if let Some(ctx) = edit_sink_context.as_ref() {
                 if let Ok(source) = ctx.cast::<ITfSource>() {
                     let _ = unsafe { source.UnadviseSink(ec) };
                 }
             }
         }
-        *self.edit_sink_cookie.lock() = 0;
-        self.edit_sink_context.lock().take();
 
         *self.thread_mgr.lock() = None;
         *self.focus_doc_mgr.lock() = None;
-        drop(state);
 
         // 释放自我持有的 IUnknown，避免强引用循环。
         self.release_self_unknown();
@@ -1360,12 +1356,19 @@ impl ITfTextInputProcessorEx_Impl for TextService_Impl {
                 return Err(HRESULT(-1).into());
             }
         };
+        let old_tm = self.thread_mgr.lock().clone();
+        if let Some(ref old_tm) = old_tm {
+            self.unregister_compartment_sink(old_tm);
+        }
         *self.thread_mgr.lock() = Some(tm.clone());
         // 保存激活标志（如 TF_TMAE_COMLESS）
         *self.activate_flags.lock() = dwflags;
 
-        let mut state = self.cookies.lock();
-        state.tid = tid;
+        {
+            let mut state = self.cookies.lock();
+            state.tid = tid;
+            state.using_keystroke_mgr = false;
+        }
         if let Some(punk_self) = self.clone_self_unknown() {
             // ── 主路径：通过 ITfKeystrokeMgr 注册按键事件 sink ──
             // 这是 Microsoft 官方 TSF 示例推荐的方式，比 ITfSource::AdviseSink
@@ -1376,7 +1379,7 @@ impl ITfTextInputProcessorEx_Impl for TextService_Impl {
                         Ok(key_sink) => {
                             match unsafe { kmgr.AdviseKeyEventSink(tid, &key_sink, true) } {
                                 Ok(()) => {
-                                    state.using_keystroke_mgr = true;
+                                    self.cookies.lock().using_keystroke_mgr = true;
                                     log::info!("[TSF] ITfKeystrokeMgr::AdviseKeyEventSink 成功");
                                     true
                                 }
@@ -1404,6 +1407,7 @@ impl ITfTextInputProcessorEx_Impl for TextService_Impl {
                     let iid_key = <ITfKeyEventSink as windows::core::Interface>::IID;
                     match unsafe { source.AdviseSink(&iid_key, &punk_self) } {
                         Ok(c) => {
+                            let mut state = self.cookies.lock();
                             state.key_event = c;
                             state.using_keystroke_mgr = false;
                             log::info!("[TSF] 回退: ITfSource::AdviseSink ITfKeyEventSink 成功");
@@ -1417,24 +1421,25 @@ impl ITfTextInputProcessorEx_Impl for TextService_Impl {
             if let Ok(source) = tm.cast::<ITfSource>() {
                 let iid_thread = <ITfThreadMgrEventSink as windows::core::Interface>::IID;
                 match unsafe { source.AdviseSink(&iid_thread, &punk_self) } {
-                    Ok(c) => state.thread_event = c,
+                    Ok(c) => self.cookies.lock().thread_event = c,
                     Err(e) => log::error!("[TSF] AdviseSink ITfThreadMgrEventSink 失败: {e}"),
                 }
             }
         } else {
             log::warn!("[TSF] Activate: self_unknown 未注入，跳过所有 AdviseSink");
         }
-        // 在释放 state 之前提取需要的值
-        let saved_tid = state.tid;
-        let saved_using_kmgr = state.using_keystroke_mgr;
-        drop(state);
+        let saved_using_kmgr = self.cookies.lock().using_keystroke_mgr;
+        let saved_tid = tid;
 
         // 获取 self_unknown 引用于后续注册（clone 保持引用计数）
         let punk_self_later = self.clone_self_unknown();
 
         if let Some(ref punk) = punk_self_later {
-            if let Err(error) = self.register_language_bar(punk) {
-                log::warn!("[TSF] 注册语言栏按钮失败: {error}");
+            if !self.lang_bar_registered.load(Ordering::Acquire) {
+                match self.register_language_bar(punk) {
+                    Ok(()) => self.lang_bar_registered.store(true, Ordering::Release),
+                    Err(error) => log::warn!("[TSF] 注册语言栏按钮失败: {error}"),
+                }
             }
             if let Err(error) = self.register_compartment_sink(punk) {
                 log::warn!("[TSF] 注册键盘开关 compartment sink 失败: {error}");
@@ -1764,6 +1769,60 @@ impl ITfKeyEventSink_Impl for TextService_Impl {
 mod tests {
     use super::*;
 
+    fn com_text_service() -> windows::core::ComObject<TextService> {
+        let dict = Dictionary::from_entries(Vec::new(), None, Default::default()).unwrap();
+        let candidate_tx = Arc::new(ArcSwap::from_pointee(CandidateData::hidden(
+            ThemeSnapshot::default(),
+        )));
+        windows::core::ComObject::new(TextService::new(dict, 5, false, candidate_tx))
+    }
+
+    #[test]
+    fn language_bar_item_uses_sdk_input_mode_guid() {
+        let service = com_text_service();
+        let button: ITfLangBarItemButton = service.to_interface();
+        let item: ITfLangBarItem = button.cast().unwrap();
+        let mut info = TF_LANGBARITEMINFO::default();
+
+        unsafe { item.GetInfo(&mut info) }.unwrap();
+
+        assert_eq!(
+            info.guidItem,
+            windows::Win32::UI::TextServices::GUID_LBI_INPUTMODE
+        );
+    }
+
+    #[test]
+    fn advise_sink_rejects_wrong_iid_with_cannot_connect() {
+        let service = com_text_service();
+        let source: ITfSource = service.to_interface();
+        let unknown: windows::core::IUnknown = service.to_interface();
+
+        let error = unsafe { source.AdviseSink(&GUID::from_u128(0), &unknown) }.unwrap_err();
+
+        assert_eq!(
+            error.code(),
+            windows::Win32::System::Ole::CONNECT_E_CANNOTCONNECT
+        );
+    }
+
+    #[test]
+    fn advise_sink_maps_sink_query_failure_to_cannot_connect() {
+        let service = com_text_service();
+        let source: ITfSource = service.to_interface();
+        let unknown: windows::core::IUnknown = service.to_interface();
+
+        let error = unsafe {
+            source.AdviseSink(&<ITfLangBarItemSink as Interface>::IID, &unknown)
+        }
+        .unwrap_err();
+
+        assert_eq!(
+            error.code(),
+            windows::Win32::System::Ole::CONNECT_E_CANNOTCONNECT
+        );
+    }
+
     #[test]
     fn theme_snapshot_comes_from_config_appearance() {
         let mut cfg = Config::default();
@@ -1813,16 +1872,6 @@ mod tests {
     }
 
     #[test]
-    fn unchanged_compartment_mode_needs_no_update() {
-        assert!(!mode_changed(true, true));
-    }
-
-    #[test]
-    fn changed_compartment_mode_needs_update() {
-        assert!(mode_changed(true, false));
-    }
-
-    #[test]
     fn switching_to_english_clears_input_state_and_hides_candidates() {
         let dict = Dictionary::from_entries(
             vec![core_engine::dictionary::Entry {
@@ -1850,7 +1899,7 @@ mod tests {
         let service = TextService::new(dict, 5, false, Arc::clone(&candidate_tx));
         service.sm.lock().handle(InputEvent::Char('a'));
 
-        service.set_english_mode();
+        service.apply_ime_mode(false);
 
         assert!(!*service.ime_mode.lock());
         assert!(service.sm.lock().spelling().is_empty());
