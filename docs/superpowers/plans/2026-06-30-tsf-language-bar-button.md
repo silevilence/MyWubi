@@ -87,7 +87,7 @@ Extend `TextService` with only the required state:
 ```rust
 lang_bar_sink: Mutex<Option<ITfLangBarItemSink>>,
 lang_bar_visible: AtomicBool,
-compartment_sink_cookie: Mutex<u32>,
+compartment_sink_cookie: Mutex<Option<u32>>,
 lang_bar_registered: AtomicBool,
 ```
 
@@ -96,7 +96,7 @@ Initialize them in both `with_theme` and `from_runtime`:
 ```rust
 lang_bar_sink: Mutex::new(None),
 lang_bar_visible: AtomicBool::new(true),
-compartment_sink_cookie: Mutex::new(0),
+compartment_sink_cookie: Mutex::new(None),
 lang_bar_registered: AtomicBool::new(false),
 ```
 
@@ -281,10 +281,15 @@ If it has no readable value, write the existing local mode as the initial value.
 
 Before releasing `thread_mgr` and `self_unknown`:
 
-1. Unadvise the compartment sink using the saved cookie.
+1. Unadvise the compartment sink using the saved `Option<u32>` cookie; retain the
+   cookie, thread manager, and self reference if unadvising fails so cleanup can retry.
 2. Recreate `ITfLangBarItemMgr` and call `RemoveItem`.
-3. Clear `lang_bar_sink`.
+3. Clear `lang_bar_sink` and registration state only after successful removal.
 4. Log individual failures and continue cleanup.
+
+Any asynchronous composition cleanup scheduled by a mode switch retains a cloned
+service `IUnknown` inside `EditSession`, so `TF_ES_ASYNC` cannot outlive its raw
+`TextService` pointer.
 
 - [ ] **Step 7: Compile and fix interface signatures**
 
