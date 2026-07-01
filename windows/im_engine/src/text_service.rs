@@ -1307,14 +1307,18 @@ impl ITfTextInputProcessor_Impl for TextService_Impl {
                 .ok_or_else(|| windows::core::Error::from(E_FAIL))
                 .and_then(|punk| self.remove_language_bar(&punk));
             match result {
-                Ok(()) => self.lang_bar_registered.store(false, Ordering::Release),
+                Ok(()) => {
+                    self.lang_bar_sink.lock().take();
+                    self.lang_bar_registered.store(false, Ordering::Release);
+                }
                 Err(error) => {
                     log::warn!("[TSF] 移除语言栏按钮失败: {error}");
                     lang_bar_remove_error = Some(error);
                 }
             }
+        } else {
+            self.lang_bar_sink.lock().take();
         }
-        self.lang_bar_sink.lock().take();
 
         let state = mem::take(&mut *self.cookies.lock());
 
