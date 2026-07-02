@@ -67,6 +67,58 @@ fn wildcard_occupies_exactly_one_code_position() {
 }
 
 #[test]
+fn punctuation_wildcard_is_treated_as_code_input() {
+    let path = std::env::temp_dir().join(format!(
+        "mywubi-symbol-wildcard-{}.dict",
+        SystemTime::now()
+            .duration_since(UNIX_EPOCH)
+            .unwrap()
+            .as_nanos()
+    ));
+    std::fs::write(
+        &path,
+        "---\nwildcard_key: \"?\"\ncharset: \"abc?\"\n---\nabc\t目标\t100\n",
+    )
+    .unwrap();
+    let dictionary = Dictionary::load(&path).unwrap();
+    let _ = std::fs::remove_file(path);
+    let mut machine = StateMachine::with_options(dictionary, 5, false);
+    drive_chars(&mut machine, "ab");
+
+    let transition = machine.handle(InputEvent::Symbol('?'));
+
+    assert!(
+        matches!(transition, Transition::Candidates { candidates, .. } if candidates == ["目标"])
+    );
+}
+
+#[test]
+fn digit_wildcard_is_not_used_as_candidate_selection() {
+    let path = std::env::temp_dir().join(format!(
+        "mywubi-digit-wildcard-{}.dict",
+        SystemTime::now()
+            .duration_since(UNIX_EPOCH)
+            .unwrap()
+            .as_nanos()
+    ));
+    std::fs::write(
+        &path,
+        "---\nwildcard_key: \"1\"\ncharset: \"abc1\"\n---\nabc\t目标\t100\nabd\t其他\t90\n",
+    )
+    .unwrap();
+    let dictionary = Dictionary::load(&path).unwrap();
+    let _ = std::fs::remove_file(path);
+    let mut machine = StateMachine::with_options(dictionary, 5, false);
+    drive_chars(&mut machine, "ab");
+
+    let transition = machine.handle(InputEvent::Char('1'));
+
+    assert!(
+        matches!(transition, Transition::Candidates { candidates, .. } if candidates == ["目标", "其他"])
+    );
+}
+
+#[test]
 fn candidate_words_are_unique_across_matching_codes() {
     let dictionary = Dictionary::from_entries(
         vec![

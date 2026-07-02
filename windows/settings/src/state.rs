@@ -1,8 +1,13 @@
 //! 配置程序全局状态容器。
 
-use core_engine::{Config, UserDictionary};
+use std::cmp::Reverse;
 use std::path::PathBuf;
 use std::sync::mpsc;
+
+use core_engine::{
+    read_table, save_table, validate_table, Config, Entry, TableConfig, TableValidationIssue,
+    TableValidationReport, UserDictionary,
+};
 
 /// 当前激活的面板。
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
@@ -28,6 +33,187 @@ pub enum FilePickTarget {
 pub struct PickRequest {
     pub target: FilePickTarget,
     pub rx: mpsc::Receiver<Option<PathBuf>>,
+}
+
+pub struct TableEditor {
+    pub open: bool,
+    pub path: PathBuf,
+    pub config: TableConfig,
+    pub wildcard_key: String,
+    pub entries: Vec<Entry>,
+    pub search: String,
+    pub filtered_indices: Option<Vec<usize>>,
+    pub selected: Option<usize>,
+    pub code: String,
+    pub word: String,
+    pub weight: u32,
+    pub save_as_name: String,
+    pub validation: TableValidationReport,
+    pub validation_stale: bool,
+    pub dirty: bool,
+    pub load_error: Option<String>,
+}
+
+impl Default for TableEditor {
+    fn default() -> Self {
+        Self {
+            open: false,
+            path: PathBuf::new(),
+            config: TableConfig::default(),
+            wildcard_key: String::new(),
+            entries: Vec::new(),
+            search: String::new(),
+            filtered_indices: None,
+            selected: None,
+            code: String::new(),
+            word: String::new(),
+            weight: 1,
+            save_as_name: String::new(),
+            validation: TableValidationReport::default(),
+            validation_stale: false,
+            dirty: false,
+            load_error: None,
+        }
+    }
+}
+
+impl TableEditor {
+    pub fn load(path: PathBuf) -> Self {
+        let mut editor = Self {
+            path: path.clone(),
+            ..Self::default()
+        };
+        match read_table(&path) {
+            Ok((config, entries)) => {
+                editor.wildcard_key = config
+                    .wildcard_key
+                    .map(|character| character.to_string())
+                    .unwrap_or_default();
+                editor.config = config;
+                editor.entries = entries;
+                editor.refresh_validation();
+            }
+            Err(error) => editor.load_error = Some(error.to_string()),
+        }
+        editor
+    }
+
+    pub fn draft_config(&self) -> Result<TableConfig, String> {
+        let wildcard = self.wildcard_key.trim();
+        let wildcard_key = if wildcard.is_empty() {
+            None
+        } else {
+            let mut characters = wildcard.chars();
+            let first = characters.next().unwrap_or_default();
+            if characters.next().is_some() {
+                return Err("wildcard_key 必须为空或单个字符".into());
+            }
+            Some(first)
+        };
+        Ok(TableConfig {
+            wildcard_key,
+            charset: self.config.charset.clone(),
+        })
+    }
+
+    pub fn refresh_filter(&mut self) {
+        let query = self.search.trim();
+        self.filtered_indices = if query.is_empty() {
+            None
+        } else {
+            let mut matches: Vec<_> = self
+                .entries
+                .iter()
+                .enumerate()
+                .filter_map(|(index, entry)| {
+                    search_relevance(entry, query).map(|relevance| (relevance, index))
+                })
+                .collect();
+            matches.sort_by_key(|(relevance, index)| (*relevance, *index));
+            Some(matches.into_iter().map(|(_, index)| index).collect())
+        };
+    }
+
+    pub fn visible_len(&self) -> usize {
+        self.filtered_indices
+            .as_ref()
+            .map_or(self.entries.len(), Vec::len)
+    }
+
+    pub fn visible_entry_index(&self, row: usize) -> usize {
+        self.filtered_indices
+            .as_ref()
+            .map_or(row, |indices| indices[row])
+    }
+
+    pub fn select(&mut self, index: usize) {
+        let Some(entry) = self.entries.get(index) else {
+            return;
+        };
+        self.code.clone_from(&entry.code);
+        self.word.clone_from(&entry.word);
+        self.weight = entry.weight;
+        self.selected = Some(index);
+    }
+
+    pub fn update_selected(&mut self) -> Result<(), String> {
+        let index = self.selected.ok_or_else(|| "请先选择词条".to_string())?;
+        let entry = self
+            .entries
+            .get_mut(index)
+            .ok_or_else(|| "所选词条已不存在".to_string())?;
+        entry.code = self.code.trim().to_string();
+        entry.word = self.word.trim().to_string();
+        entry.weight = self.weight;
+        self.dirty = true;
+        self.refresh_filter();
+        self.refresh_validation();
+        Ok(())
+    }
+
+    pub fn refresh_validation(&mut self) {
+        self.validation = match self.draft_config() {
+            Ok(config) => validate_table(&config, &self.entries, 100),
+            Err(message) => TableValidationReport {
+                issue_count: 1,
+                issues: vec![TableValidationIssue {
+                    entry_index: None,
+                    message,
+                }],
+            },
+        };
+        self.validation_stale = false;
+    }
+
+    pub fn save_to(&mut self, path: PathBuf) -> Result<(), String> {
+        let config = self.draft_config()?;
+        save_table(&path, &config, &self.entries).map_err(|error| error.to_string())?;
+        self.path = path;
+        self.config = config;
+        self.validation = TableValidationReport::default();
+        self.validation_stale = false;
+        self.dirty = false;
+        self.load_error = None;
+        Ok(())
+    }
+}
+
+fn search_relevance(entry: &Entry, query: &str) -> Option<(u8, usize, Reverse<u32>)> {
+    [entry.code.as_str(), entry.word.as_str()]
+        .into_iter()
+        .filter_map(|value| {
+            let rank = if value == query {
+                0
+            } else if value.starts_with(query) {
+                1
+            } else if value.contains(query) {
+                2
+            } else {
+                return None;
+            };
+            Some((rank, value.chars().count(), Reverse(entry.weight)))
+        })
+        .min()
 }
 
 pub struct UserDictionaryEditor {
@@ -102,6 +288,8 @@ pub struct AppState {
     pub update_worker: Option<crate::vpk::UpdateWorker>,
     /// 用户词库管理窗口状态。
     pub user_dictionary_editor: UserDictionaryEditor,
+    /// 当前系统码表的编辑状态。
+    pub table_editor: TableEditor,
 }
 
 /// 配置加载失败信息。用户需在 UI 中确认后才覆盖损坏文件。
@@ -123,10 +311,13 @@ impl AppState {
             Ok(cfg) => (cfg, None),
             Err(e) => {
                 log::warn!("配置加载失败，暂用默认配置（未覆盖原文件）: {e}");
-                (Config::default(), Some(LoadError {
-                    message: e.to_string(),
-                    path: config_path.clone(),
-                }))
+                (
+                    Config::default(),
+                    Some(LoadError {
+                        message: e.to_string(),
+                        path: config_path.clone(),
+                    }),
+                )
             }
         };
         let resolved_system_table = crate::config_path::resolve_resource_path(
@@ -138,6 +329,7 @@ impl AppState {
             .unwrap_or_else(|| std::path::Path::new("."))
             .to_path_buf();
         let scanned_tables = scan_table_dir(&table_dir);
+        let table_editor = TableEditor::load(resolved_system_table);
         Self {
             config,
             dirty: false,
@@ -155,6 +347,7 @@ impl AppState {
             update_state: crate::vpk::UpdateState::Idle,
             update_worker: None,
             user_dictionary_editor: UserDictionaryEditor::default(),
+            table_editor,
         }
     }
 
@@ -182,16 +375,22 @@ impl AppState {
     /// 若当前 system_table 文件不在新目录中，自动选第一个 .dict。
     pub fn rescan_tables(&mut self) {
         self.scanned_tables = scan_table_dir(&self.table_dir);
-        if !self.scanned_tables.is_empty() {
-            let current = self.config.dictionary.system_table
-                .file_name()
-                .and_then(|f| f.to_str())
-                .unwrap_or("");
-            if !self.scanned_tables.iter().any(|t| t == current) {
-                if let Some(first) = self.scanned_tables.first() {
-                    self.config.dictionary.system_table = self.table_dir.join(first);
-                }
-            }
+        if self.table_editor.dirty {
+            return;
+        }
+        let current = self
+            .config
+            .dictionary
+            .system_table
+            .file_name()
+            .and_then(|file| file.to_str());
+        let selected = current
+            .filter(|name| self.scanned_tables.iter().any(|table| table == name))
+            .or_else(|| self.scanned_tables.first().map(String::as_str));
+        if let Some(selected) = selected {
+            let path = self.table_dir.join(selected);
+            self.config.dictionary.system_table = path.clone();
+            self.table_editor = TableEditor::load(path);
         }
     }
 }
@@ -207,4 +406,101 @@ fn scan_table_dir(dir: &std::path::Path) -> Vec<String> {
         .collect();
     files.sort();
     files
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn table_editor_filters_by_code_or_word() {
+        let mut editor = TableEditor {
+            entries: vec![
+                Entry {
+                    code: "abcd".into(),
+                    word: "目标".into(),
+                    weight: 1,
+                },
+                Entry {
+                    code: "wxyz".into(),
+                    word: "其他".into(),
+                    weight: 1,
+                },
+            ],
+            search: "目标".into(),
+            ..TableEditor::default()
+        };
+
+        editor.refresh_filter();
+
+        assert_eq!(editor.filtered_indices, Some(vec![0]));
+    }
+
+    #[test]
+    fn table_editor_ranks_code_exact_then_prefix_then_contains() {
+        let mut editor = TableEditor {
+            entries: vec![
+                Entry {
+                    code: "ba".into(),
+                    word: "包含".into(),
+                    weight: 1,
+                },
+                Entry {
+                    code: "aa".into(),
+                    word: "前缀".into(),
+                    weight: 1,
+                },
+                Entry {
+                    code: "a".into(),
+                    word: "完全".into(),
+                    weight: 1,
+                },
+            ],
+            search: "a".into(),
+            ..TableEditor::default()
+        };
+
+        editor.refresh_filter();
+
+        assert_eq!(editor.filtered_indices, Some(vec![2, 1, 0]));
+    }
+
+    #[test]
+    fn table_editor_ranks_word_exact_then_prefix_then_contains() {
+        let mut editor = TableEditor {
+            entries: vec![
+                Entry {
+                    code: "a".into(),
+                    word: "施工".into(),
+                    weight: 1,
+                },
+                Entry {
+                    code: "b".into(),
+                    word: "工作".into(),
+                    weight: 1,
+                },
+                Entry {
+                    code: "c".into(),
+                    word: "工".into(),
+                    weight: 1,
+                },
+            ],
+            search: "工".into(),
+            ..TableEditor::default()
+        };
+
+        editor.refresh_filter();
+
+        assert_eq!(editor.filtered_indices, Some(vec![2, 1, 0]));
+    }
+
+    #[test]
+    fn table_editor_rejects_multi_character_wildcard() {
+        let editor = TableEditor {
+            wildcard_key: "zz".into(),
+            ..TableEditor::default()
+        };
+
+        assert!(editor.draft_config().is_err());
+    }
 }

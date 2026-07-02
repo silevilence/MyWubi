@@ -63,6 +63,18 @@ pub fn show(ui: &mut Ui, state: &mut AppState) {
         }
     });
 
+    ui.horizontal(|ui| {
+        ui.label("当前码表万能键:");
+        if let Some(error) = &state.table_editor.load_error {
+            ui.colored_label(eframe::egui::Color32::LIGHT_RED, format!("读取失败：{error}"));
+        } else if let Some(wildcard) = state.table_editor.config.wildcard_key {
+            ui.monospace(wildcard.to_string());
+        } else {
+            ui.label("未启用");
+        }
+    });
+    ui.small("万能键由当前码表 YAML 头配置，请在“码表与词库”面板编辑。");
+
     // 标点输入
     ui.horizontal(|ui| {
         ui.label("标点输入:");

@@ -13,7 +13,10 @@ pub mod user_dictionary;
 
 pub use config::{Config, Error as ConfigError};
 pub use config_path::{PathError as ConfigPathError, ResolvedConfigPath};
-pub use dictionary::{Dictionary, Entry, MatchKind, SearchOptions, TableConfig};
+pub use dictionary::{
+    read_table, save_table, validate_table, Dictionary, Entry, MatchKind, SearchOptions,
+    TableConfig, TableValidationIssue, TableValidationReport,
+};
 pub use state_machine::{InputEvent, StateMachine, Transition};
 pub use user_dictionary::{UserDictionary, UserDictionaryError};
 

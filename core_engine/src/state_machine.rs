@@ -158,6 +158,11 @@ impl StateMachine {
         self.total_candidates.div_ceil(self.page_size).max(1)
     }
 
+    /// 判断字符能否作为当前码表编码输入。
+    pub fn accepts_code_char(&self, character: char) -> bool {
+        is_code_char(character) || self.dict.table_config().charset.contains(character)
+    }
+
     /// 重置全部状态（不释放码表绑定）。
     pub fn reset(&mut self) {
         self.spelling.clear();
@@ -171,6 +176,9 @@ impl StateMachine {
     pub fn handle(&mut self, event: InputEvent) -> Transition {
         match event {
             InputEvent::Char(c) => self.on_char(c),
+            InputEvent::Symbol(c) if self.dict.table_config().charset.contains(c) => {
+                self.on_char(c)
+            }
             InputEvent::Symbol(c) => self.on_symbol(c),
             InputEvent::Space => self.on_space(),
             InputEvent::Enter => self.on_enter(),
@@ -183,11 +191,15 @@ impl StateMachine {
     }
 
     fn on_char(&mut self, c: char) -> Transition {
-        if c.is_ascii_digit() && self.can_select_with_digit(c) {
+        if c.is_ascii_digit()
+            && !self.dict.table_config().charset.contains(c)
+            && self.can_select_with_digit(c)
+        {
             return self.on_select(c.to_digit(10).unwrap() as usize);
         }
 
-        if is_buffered_punctuation(c) {
+        let is_table_code_char = self.dict.table_config().charset.contains(c);
+        if is_buffered_punctuation(c) && !is_table_code_char {
             if self.punctuation_mode == PunctuationMode::DirectCommit {
                 return Transition::Passthrough(InputEvent::Char(c));
             }
@@ -198,8 +210,8 @@ impl StateMachine {
             return Transition::SpellingUpdated(self.spelling.clone());
         }
 
-        // 仅接受 ASCII 小写字母与数字作为编码字符，其余透传。
-        if !is_code_char(c) {
+        // 兼容传统字母数字编码，同时允许码表 charset 声明的自定义字符。
+        if !is_code_char(c) && !is_table_code_char {
             return Transition::Passthrough(InputEvent::Char(c));
         }
 
@@ -402,7 +414,7 @@ impl StateMachine {
     fn lookup_key(&self) -> &str {
         let mut end = self.spelling.len();
         for (idx, ch) in self.spelling.char_indices() {
-            if !is_code_char(ch) {
+            if !self.accepts_code_char(ch) {
                 end = idx;
                 break;
             }

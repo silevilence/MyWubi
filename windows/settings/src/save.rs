@@ -4,6 +4,14 @@ use crate::state::AppState;
 
 /// 保存配置到磁盘。成功返回 true，失败返回 false 并设置状态消息。
 pub fn save(state: &mut AppState) -> bool {
+    if state.table_editor.dirty {
+        let path = state.table_editor.path.clone();
+        if let Err(error) = state.table_editor.save_to(path) {
+            state.status_msg = Some(format!("[ERR] 保存码表失败: {error}"));
+            log::error!("保存码表失败: {error}");
+            return false;
+        }
+    }
     match state.config.save(&state.config_path) {
         Ok(()) => {
             state.dirty = false;
@@ -44,6 +52,7 @@ mod tests {
             update_state: crate::vpk::UpdateState::Idle,
             update_worker: None,
             user_dictionary_editor: Default::default(),
+            table_editor: Default::default(),
         }
     }
 
@@ -68,5 +77,23 @@ mod tests {
         assert!(!save(&mut state));
         assert!(state.dirty);
         assert!(state.status_msg.as_ref().unwrap().starts_with("[ERR] 保存失败"));
+    }
+
+    #[test]
+    fn save_writes_dirty_table_editor() {
+        let dir = tempfile::tempdir().unwrap();
+        let mut state = test_state(dir.path());
+        state.table_editor.path = dir.path().join("edited.dict");
+        state.table_editor.entries = vec![core_engine::Entry {
+            code: "a".into(),
+            word: "工".into(),
+            weight: 999,
+        }];
+        state.table_editor.dirty = true;
+
+        assert!(save(&mut state));
+        let table = core_engine::Dictionary::load(&state.table_editor.path).unwrap();
+
+        assert_eq!(table.exact("a")[0].word, "工");
     }
 }

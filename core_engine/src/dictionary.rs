@@ -15,7 +15,7 @@ use std::collections::{BTreeMap, HashSet};
 use std::path::{Path, PathBuf};
 use std::sync::Arc;
 
-use serde::{Deserialize, Deserializer};
+use serde::{Deserialize, Deserializer, Serialize, Serializer};
 use thiserror::Error;
 
 const DEFAULT_CHARSET: &str = "abcdefghijklmnopqrstuvwxyz";
@@ -34,14 +34,43 @@ pub enum DictError {
 }
 
 /// 码表 YAML 头中的配置。
-#[derive(Debug, Clone, PartialEq, Eq, Deserialize)]
+#[derive(Debug, Clone, PartialEq, Eq, Deserialize, Serialize)]
 pub struct TableConfig {
     /// 万能键字符；`None` 表示禁用。
-    #[serde(default, deserialize_with = "deserialize_wildcard_key")]
+    #[serde(
+        default,
+        deserialize_with = "deserialize_wildcard_key",
+        serialize_with = "serialize_wildcard_key"
+    )]
     pub wildcard_key: Option<char>,
     /// 码表可用编码字符。
     #[serde(default = "default_charset")]
     pub charset: String,
+}
+
+/// 码表配置或词条校验问题。
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub struct TableValidationIssue {
+    /// 违规词条下标；`None` 表示 YAML 头配置问题。
+    pub entry_index: Option<usize>,
+    /// 可直接展示给用户的错误说明。
+    pub message: String,
+}
+
+/// 码表校验结果，仅保留调用方要求数量的明细。
+#[derive(Debug, Clone, Default, PartialEq, Eq)]
+pub struct TableValidationReport {
+    /// 全部违规项数量。
+    pub issue_count: usize,
+    /// 前若干条违规明细。
+    pub issues: Vec<TableValidationIssue>,
+}
+
+impl TableValidationReport {
+    /// 是否通过校验。
+    pub fn is_valid(&self) -> bool {
+        self.issue_count == 0
+    }
 }
 
 impl Default for TableConfig {
@@ -73,6 +102,13 @@ where
         return Err(serde::de::Error::custom("wildcard_key 必须是单个字符"));
     }
     Ok(Some(wildcard))
+}
+
+fn serialize_wildcard_key<S>(value: &Option<char>, serializer: S) -> Result<S::Ok, S::Error>
+where
+    S: Serializer,
+{
+    serializer.serialize_str(&value.map(|character| character.to_string()).unwrap_or_default())
 }
 
 /// 码表中的单个词条。
@@ -523,6 +559,127 @@ fn validate_table_config(config: &TableConfig) -> Result<(), DictError> {
     Ok(())
 }
 
+/// 读取可编辑码表，不因语义校验问题拒绝加载。
+pub fn read_table<P: AsRef<Path>>(path: P) -> Result<(TableConfig, Vec<Entry>), DictError> {
+    let path = path.as_ref();
+    let text = std::fs::read_to_string(path)
+        .map_err(|error| DictError::Io(path.to_path_buf(), error.to_string()))?;
+    let (config, body, line_offset) = split_yaml_header(&text)?;
+    let entries = parse_lines_with_config(body, line_offset, None)?;
+    Ok((config, entries))
+}
+
+/// 校验码表 YAML 头与词条编码，最多保留 `max_issues` 条明细。
+pub fn validate_table(
+    config: &TableConfig,
+    entries: &[Entry],
+    max_issues: usize,
+) -> TableValidationReport {
+    let mut report = TableValidationReport::default();
+    let mut push_issue = |entry_index, message| {
+        report.issue_count += 1;
+        if report.issues.len() < max_issues {
+            report.issues.push(TableValidationIssue {
+                entry_index,
+                message,
+            });
+        }
+    };
+
+    if config.charset.is_empty() {
+        push_issue(None, "charset 不能为空".into());
+    }
+    if config
+        .charset
+        .chars()
+        .any(|character| character.is_whitespace() || character.is_control())
+    {
+        push_issue(None, "charset 不能包含空白或控制字符".into());
+    }
+    if let Some(wildcard) = config.wildcard_key {
+        if !config.charset.contains(wildcard) {
+            push_issue(
+                None,
+                format!("wildcard_key `{wildcard}` 不在 charset 中"),
+            );
+        }
+    }
+
+    for (index, entry) in entries.iter().enumerate() {
+        if entry.code.is_empty() || entry.word.is_empty() {
+            push_issue(Some(index), "编码或词条为空".into());
+            continue;
+        }
+        if entry.code.contains(['\t', '\r', '\n'])
+            || entry.word.contains(['\t', '\r', '\n'])
+        {
+            push_issue(Some(index), "编码或词条不能包含制表符或换行".into());
+            continue;
+        }
+        if let Some(character) = entry
+            .code
+            .chars()
+            .find(|character| !config.charset.contains(*character))
+        {
+            push_issue(
+                Some(index),
+                format!("编码 `{}` 含 charset 外字符 `{character}`", entry.code),
+            );
+        }
+        if let Some(wildcard) = config.wildcard_key {
+            if entry.code.contains(wildcard) {
+                push_issue(
+                    Some(index),
+                    format!("编码 `{}` 不得包含万能键 `{wildcard}`", entry.code),
+                );
+            }
+        }
+    }
+
+    report
+}
+
+/// 保存完整码表文件。
+pub fn save_table<P: AsRef<Path>>(
+    path: P,
+    config: &TableConfig,
+    entries: &[Entry],
+) -> Result<(), DictError> {
+    let path = path.as_ref();
+    let report = validate_table(config, entries, 1);
+    if let Some(issue) = report.issues.first() {
+        return match issue.entry_index {
+            Some(index) => Err(DictError::InvalidLine(index + 1, issue.message.clone())),
+            None => Err(DictError::InvalidHeader(issue.message.clone())),
+        };
+    }
+
+    if let Some(parent) = path.parent() {
+        if !parent.as_os_str().is_empty() {
+            std::fs::create_dir_all(parent)
+                .map_err(|error| DictError::Io(parent.to_path_buf(), error.to_string()))?;
+        }
+    }
+
+    let header = serde_yaml_ng::to_string(config)
+        .map_err(|error| DictError::InvalidHeader(error.to_string()))?;
+    let body_size = entries
+        .iter()
+        .map(|entry| entry.code.len() + entry.word.len() + 16)
+        .sum::<usize>();
+    let mut text = String::with_capacity(header.len() + body_size + 8);
+    text.push_str("---\n");
+    text.push_str(&header);
+    text.push_str("---\n");
+    for entry in entries {
+        use std::fmt::Write;
+        let _ = writeln!(text, "{}\t{}\t{}", entry.code, entry.word, entry.weight);
+    }
+
+    std::fs::write(path, text)
+        .map_err(|error| DictError::Io(path.to_path_buf(), error.to_string()))
+}
+
 fn parse_lines_with_config(
     text: &str,
     line_offset: usize,
@@ -713,6 +870,49 @@ mod tests {
         let error = parse_dictionary("---\ncharset: abc\n", 4096).unwrap_err();
 
         assert!(matches!(error, DictError::MissingHeader(_)));
+    }
+
+    #[test]
+    fn validate_table_reports_charset_and_wildcard_violations() {
+        let config = TableConfig {
+            wildcard_key: Some('z'),
+            charset: "abz".into(),
+        };
+        let entries = vec![
+            Entry { code: "ac".into(), word: "越界".into(), weight: 1 },
+            Entry { code: "az".into(), word: "万能键".into(), weight: 1 },
+        ];
+
+        let report = validate_table(&config, &entries, 10);
+
+        assert_eq!(report.issue_count, 2);
+    }
+
+    #[test]
+    fn save_table_roundtrip_preserves_header_and_entries() {
+        let path = std::env::temp_dir().join(format!(
+            "mywubi-save-table-{}-{}.dict",
+            std::process::id(),
+            std::time::SystemTime::now()
+                .duration_since(std::time::UNIX_EPOCH)
+                .unwrap()
+                .as_nanos()
+        ));
+        let config = TableConfig {
+            wildcard_key: Some('?'),
+            charset: "abc?".into(),
+        };
+        let entries = vec![Entry {
+            code: "abc".into(),
+            word: "目标".into(),
+            weight: 42,
+        }];
+
+        save_table(&path, &config, &entries).unwrap();
+        let (loaded_config, loaded_entries) = read_table(&path).unwrap();
+        let _ = std::fs::remove_file(path);
+
+        assert_eq!((loaded_config, loaded_entries), (config, entries));
     }
 
     #[test]

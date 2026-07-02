@@ -513,9 +513,14 @@ pub struct TextService {
     compartment_sink_cookie: Mutex<Option<u32>>,
 }
 
-fn should_intercept_test_key(event: Option<InputEvent>, spelling_empty: bool) -> bool {
+fn should_intercept_test_key(
+    event: Option<InputEvent>,
+    spelling_empty: bool,
+    accepts_code_char: bool,
+) -> bool {
     match event {
         Some(InputEvent::Char(_)) => true,
+        Some(InputEvent::Symbol(_)) if accepts_code_char => true,
         Some(_) => !spelling_empty,
         None => false,
     }
@@ -1724,16 +1729,25 @@ impl ITfKeyEventSink_Impl for TextService_Impl {
             return Ok(BOOL(0));
         }
 
-        let spelling_empty = self.sm.lock().spelling().is_empty();
         let cfg = self.config_snapshot();
+        let event = key_filter::translate(
+            wparam.0 as usize,
+            lparam.0 as isize,
+            &cfg.hotkey.page_next,
+            &cfg.hotkey.page_prev,
+        );
+        let sm = self.sm.lock();
+        let spelling_empty = sm.spelling().is_empty();
+        let accepts_code_char = event.as_ref().is_some_and(|event| match event {
+            InputEvent::Char(character) | InputEvent::Symbol(character) => {
+                sm.accepts_code_char(*character)
+            }
+            _ => false,
+        });
         Ok(BOOL(should_intercept_test_key(
-            key_filter::translate(
-                wparam.0 as usize,
-                lparam.0 as isize,
-                &cfg.hotkey.page_next,
-                &cfg.hotkey.page_prev,
-            ),
+            event,
             spelling_empty,
+            accepts_code_char,
         ) as i32))
     }
 
@@ -1767,8 +1781,16 @@ impl ITfKeyEventSink_Impl for TextService_Impl {
             &cfg.hotkey.page_next,
             &cfg.hotkey.page_prev,
         ) else { return Ok(BOOL(0)); };
-        let spelling_empty = self.sm.lock().spelling().is_empty();
-        if !should_intercept_test_key(Some(event.clone()), spelling_empty) {
+        let sm = self.sm.lock();
+        let spelling_empty = sm.spelling().is_empty();
+        let accepts_code_char = match &event {
+            InputEvent::Char(character) | InputEvent::Symbol(character) => {
+                sm.accepts_code_char(*character)
+            }
+            _ => false,
+        };
+        drop(sm);
+        if !should_intercept_test_key(Some(event.clone()), spelling_empty, accepts_code_char) {
             return Ok(BOOL(0));
         }
         let t = self.sm.lock().handle(event);
@@ -1886,17 +1908,38 @@ mod tests {
 
     #[test]
     fn idle_backspace_is_not_intercepted_in_test_keydown() {
-        assert!(!should_intercept_test_key(Some(InputEvent::Backspace), true));
+        assert!(!should_intercept_test_key(
+            Some(InputEvent::Backspace),
+            true,
+            false,
+        ));
     }
 
     #[test]
     fn composing_backspace_is_intercepted_in_test_keydown() {
-        assert!(should_intercept_test_key(Some(InputEvent::Backspace), false));
+        assert!(should_intercept_test_key(
+            Some(InputEvent::Backspace),
+            false,
+            false,
+        ));
     }
 
     #[test]
     fn character_input_is_still_intercepted() {
-        assert!(should_intercept_test_key(Some(InputEvent::Char('g')), true));
+        assert!(should_intercept_test_key(
+            Some(InputEvent::Char('g')),
+            true,
+            true,
+        ));
+    }
+
+    #[test]
+    fn idle_table_symbol_is_intercepted_in_test_keydown() {
+        assert!(should_intercept_test_key(
+            Some(InputEvent::Symbol('?')),
+            true,
+            true,
+        ));
     }
 
     #[test]
