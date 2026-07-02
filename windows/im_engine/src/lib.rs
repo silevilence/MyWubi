@@ -123,7 +123,8 @@ fn load_dictionary(
             .filter(|entry| !user_keys.contains(&(entry.code.as_str(), entry.word.as_str())))
             .cloned(),
     );
-    Dictionary::from_entries(entries, Some(system_table_path.to_path_buf()), Default::default())
+    system
+        .rebuild_with_entries(entries, Default::default())
         .map_err(|error| format!("合并用户词库失败: {error}"))
 }
 
@@ -410,7 +411,11 @@ mod runtime_tests {
         std::fs::create_dir_all(&root).unwrap();
         let system_path = root.join("system.dict");
         let user_path = root.join("user.dict");
-        std::fs::write(&system_path, "abcd\t系统词\t1\nabcd\t覆盖词\t1\n").unwrap();
+        std::fs::write(
+            &system_path,
+            "---\nwildcard_key: z\ncharset: abcdefghijklmnopqrstuvwxyz\n---\nabcd\t系统词\t1\nabcd\t覆盖词\t1\n",
+        )
+        .unwrap();
         let mut user = UserDictionary::load(&user_path).unwrap();
         user.add(Entry {
             code: "abcd".into(),
@@ -431,6 +436,7 @@ mod runtime_tests {
                 .collect::<Vec<_>>(),
             ["覆盖词", "系统词"]
         );
+        assert_eq!(dictionary.table_config().wildcard_key, Some('z'));
         let _ = std::fs::remove_dir_all(root);
     }
 }

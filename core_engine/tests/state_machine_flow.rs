@@ -10,6 +10,7 @@ use core_engine::{
     Dictionary,
 };
 use std::sync::Arc;
+use std::time::{SystemTime, UNIX_EPOCH};
 
 /// 构建一份五笔风格的小型码表。
 fn dict() -> Arc<Dictionary> {
@@ -37,6 +38,69 @@ fn drive_chars(sm: &mut StateMachine, chars: &str) -> Vec<String> {
         }
     }
     commits
+}
+
+#[test]
+fn wildcard_occupies_exactly_one_code_position() {
+    let path = std::env::temp_dir().join(format!(
+        "mywubi-wildcard-{}.dict",
+        SystemTime::now()
+            .duration_since(UNIX_EPOCH)
+            .unwrap()
+            .as_nanos()
+    ));
+    std::fs::write(
+        &path,
+        "---\nwildcard_key: z\ncharset: abcdefghijklmnopqrstuvwxyz\n---\ngdqq\t目标\t100\ngdqaa\t不应出现\t1000\n",
+    )
+    .unwrap();
+    let dictionary = Dictionary::load(&path).unwrap();
+    let _ = std::fs::remove_file(path);
+    let mut machine = StateMachine::with_options(dictionary, 5, false);
+    drive_chars(&mut machine, "gdq");
+
+    let transition = machine.handle(InputEvent::Char('z'));
+
+    assert!(
+        matches!(transition, Transition::Candidates { candidates, .. } if candidates == ["目标"])
+    );
+}
+
+#[test]
+fn candidate_words_are_unique_across_matching_codes() {
+    let dictionary = Dictionary::from_entries(
+        vec![
+            Entry { code: "eh".into(), word: "用".into(), weight: 100 },
+            Entry { code: "eht".into(), word: "用".into(), weight: 50 },
+            Entry { code: "ehv".into(), word: "月".into(), weight: 80 },
+        ],
+        None,
+        LoadOptions::default(),
+    )
+    .unwrap();
+    let mut machine = StateMachine::with_options(dictionary, 5, false);
+    machine.handle(InputEvent::Char('e'));
+
+    let transition = machine.handle(InputEvent::Char('h'));
+
+    assert!(
+        matches!(transition, Transition::Candidates { candidates, .. } if candidates == ["用", "月"])
+    );
+}
+
+#[test]
+fn real_wubi06_eh_candidates_contain_one_yong() {
+    let path = std::path::Path::new(env!("CARGO_MANIFEST_DIR"))
+        .join("../tables/wubi06.dict");
+    let dictionary = Dictionary::load(path).unwrap();
+    let mut machine = StateMachine::with_options(dictionary, 100, false);
+    machine.handle(InputEvent::Char('e'));
+
+    let transition = machine.handle(InputEvent::Char('h'));
+
+    assert!(
+        matches!(transition, Transition::Candidates { candidates, .. } if candidates.iter().filter(|word| word.as_str() == "用").count() == 1)
+    );
 }
 
 // ── 1. 经典四码 + 空格首选 ────────────────────────────────────

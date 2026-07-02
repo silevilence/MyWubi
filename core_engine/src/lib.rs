@@ -13,7 +13,7 @@ pub mod user_dictionary;
 
 pub use config::{Config, Error as ConfigError};
 pub use config_path::{PathError as ConfigPathError, ResolvedConfigPath};
-pub use dictionary::{Dictionary, Entry, MatchKind, SearchOptions};
+pub use dictionary::{Dictionary, Entry, MatchKind, SearchOptions, TableConfig};
 pub use state_machine::{InputEvent, StateMachine, Transition};
 pub use user_dictionary::{UserDictionary, UserDictionaryError};
 
@@ -24,7 +24,7 @@ pub const VERSION: &str = env!("CARGO_PKG_VERSION");
 pub mod prelude {
     pub use crate::{
         config::Config,
-        dictionary::{Dictionary, Entry, MatchKind, SearchOptions},
+        dictionary::{Dictionary, Entry, MatchKind, SearchOptions, TableConfig},
         state_machine::{InputEvent, StateMachine, Transition},
     };
 }

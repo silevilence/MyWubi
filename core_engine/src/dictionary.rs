@@ -11,11 +11,14 @@
 //! 调用方可在 [`LoadOptions`] 中开启 `lazy_prefix` 仅构建索引骨架，按需加载。
 
 use std::cmp::Ordering;
-use std::collections::BTreeMap;
+use std::collections::{BTreeMap, HashSet};
 use std::path::{Path, PathBuf};
 use std::sync::Arc;
 
+use serde::{Deserialize, Deserializer};
 use thiserror::Error;
+
+const DEFAULT_CHARSET: &str = "abcdefghijklmnopqrstuvwxyz";
 
 /// 字典加载/解析错误。
 #[derive(Debug, Error)]
@@ -26,6 +29,50 @@ pub enum DictError {
     InvalidLine(usize, String),
     #[error("码表头部声明缺失: {0}")]
     MissingHeader(String),
+    #[error("码表 YAML 头格式非法: {0}")]
+    InvalidHeader(String),
+}
+
+/// 码表 YAML 头中的配置。
+#[derive(Debug, Clone, PartialEq, Eq, Deserialize)]
+pub struct TableConfig {
+    /// 万能键字符；`None` 表示禁用。
+    #[serde(default, deserialize_with = "deserialize_wildcard_key")]
+    pub wildcard_key: Option<char>,
+    /// 码表可用编码字符。
+    #[serde(default = "default_charset")]
+    pub charset: String,
+}
+
+impl Default for TableConfig {
+    fn default() -> Self {
+        Self {
+            wildcard_key: None,
+            charset: default_charset(),
+        }
+    }
+}
+
+fn default_charset() -> String {
+    DEFAULT_CHARSET.to_owned()
+}
+
+fn deserialize_wildcard_key<'de, D>(deserializer: D) -> Result<Option<char>, D::Error>
+where
+    D: Deserializer<'de>,
+{
+    let value = Option::<String>::deserialize(deserializer)?;
+    let Some(value) = value.filter(|value| !value.is_empty()) else {
+        return Ok(None);
+    };
+    let mut chars = value.chars();
+    let Some(wildcard) = chars.next() else {
+        return Ok(None);
+    };
+    if chars.next().is_some() {
+        return Err(serde::de::Error::custom("wildcard_key 必须是单个字符"));
+    }
+    Ok(Some(wildcard))
 }
 
 /// 码表中的单个词条。
@@ -96,6 +143,8 @@ pub struct Dictionary {
     trie: Option<TrieNode>,
     /// 来源路径（用于热重载比对）。
     source: Option<PathBuf>,
+    /// 码表 YAML 头配置。
+    table_config: TableConfig,
 }
 
 #[derive(Debug, Default)]
@@ -124,15 +173,24 @@ impl Dictionary {
         let path = path.as_ref();
         let text = std::fs::read_to_string(path)
             .map_err(|e| DictError::Io(path.to_path_buf(), e.to_string()))?;
-        let entries = parse_lines(&text, opts.chunk_lines)?;
-        Self::from_entries(entries, Some(path.to_path_buf()), opts)
+        let (table_config, entries) = parse_dictionary(&text, opts.chunk_lines)?;
+        Self::from_entries_and_config(entries, Some(path.to_path_buf()), opts, table_config)
     }
 
     /// 从内存条目构建（用于测试与用户词库）。
     pub fn from_entries(
+        entries: Vec<Entry>,
+        source: Option<PathBuf>,
+        opts: LoadOptions,
+    ) -> Result<Arc<Self>, DictError> {
+        Self::from_entries_and_config(entries, source, opts, TableConfig::default())
+    }
+
+    fn from_entries_and_config(
         mut entries: Vec<Entry>,
         source: Option<PathBuf>,
         opts: LoadOptions,
+        table_config: TableConfig,
     ) -> Result<Arc<Self>, DictError> {
         // 排序：先按编码字典序，再按 weight 倒序（保证同编码高频在前）。
         entries.sort_by(|a, b| {
@@ -162,7 +220,22 @@ impl Dictionary {
             prefix_index,
             trie,
             source,
+            table_config,
         }))
+    }
+
+    /// 使用当前码表配置重建条目视图。
+    pub fn rebuild_with_entries(
+        &self,
+        entries: Vec<Entry>,
+        opts: LoadOptions,
+    ) -> Result<Arc<Self>, DictError> {
+        Self::from_entries_and_config(
+            entries,
+            self.source.clone(),
+            opts,
+            self.table_config.clone(),
+        )
     }
 
     /// 码表条目总数。
@@ -180,6 +253,11 @@ impl Dictionary {
     /// 来源路径。
     pub fn source(&self) -> Option<&Path> {
         self.source.as_deref()
+    }
+
+    /// 码表 YAML 头配置。
+    pub fn table_config(&self) -> &TableConfig {
+        &self.table_config
     }
 
     /// 返回只读词条视图，供系统码表与用户词库合并。
@@ -203,12 +281,24 @@ impl Dictionary {
         if prefix.is_empty() {
             return Vec::new();
         }
+        if let Some(wildcard) = self
+            .table_config
+            .wildcard_key
+            .filter(|wildcard| prefix.contains(*wildcard))
+        {
+            return self.search_wildcard(prefix, wildcard, opts);
+        }
 
         let mut results: Vec<&Entry> = Vec::new();
+        let mut seen = HashSet::new();
 
         // 1) 精确匹配块。
         if opts.prefer_exact {
-            results.extend(self.exact(prefix));
+            results.extend(
+                self.exact(prefix)
+                    .into_iter()
+                    .filter(|entry| seen.insert(entry.word.as_str())),
+            );
         }
 
         // 2) 前缀匹配块（在排序数组上二分定位前缀区间下界）。
@@ -225,9 +315,11 @@ impl Dictionary {
             if e.code == prefix {
                 continue; // 已在 exact 阶段收集过
             }
-            results.push(e);
-            if results.len() >= opts.limit {
-                break;
+            if seen.insert(e.word.as_str()) {
+                results.push(e);
+                if results.len() >= opts.limit {
+                    break;
+                }
             }
         }
 
@@ -246,8 +338,45 @@ impl Dictionary {
         results
     }
 
+    fn search_wildcard(
+        &self,
+        pattern: &str,
+        wildcard: char,
+        opts: SearchOptions,
+    ) -> Vec<&Entry> {
+        let literal_prefix = pattern
+            .split_once(wildcard)
+            .map_or(pattern, |(prefix, _)| prefix);
+        let lower = self
+            .entries
+            .partition_point(|entry| entry.code.as_str() < literal_prefix);
+        // ponytail: 万能键在首位时扫描全表；实测成为瓶颈后再加位置索引。
+        let upper = if literal_prefix.is_empty() {
+            self.entries.len()
+        } else {
+            lower
+                + self.entries[lower..]
+                    .partition_point(|entry| entry.code.starts_with(literal_prefix))
+        };
+        let mut results: Vec<&Entry> = self.entries[lower..upper]
+            .iter()
+            .filter(|entry| wildcard_match(&entry.code, pattern, wildcard))
+            .collect();
+        results.sort_by_key(|entry| std::cmp::Reverse(entry.weight));
+        dedup_by_word(&mut results);
+        results.truncate(opts.limit);
+        results
+    }
+
     /// 通过前缀 Trie 进行检索（若未构建则回退 `search`）。
     pub fn search_trie(&self, prefix: &str, opts: SearchOptions) -> Vec<&Entry> {
+        if self
+            .table_config
+            .wildcard_key
+            .is_some_and(|wildcard| prefix.contains(wildcard))
+        {
+            return self.search(prefix, opts);
+        }
         if self.trie.is_some() && opts.prefer_exact {
             if let Some(node) = self.trie.as_ref().and_then(|t| t.lookup(prefix)) {
                 if !node.words.is_empty() {
@@ -255,15 +384,17 @@ impl Dictionary {
                     let mut ws: Vec<(String, u32)> = node.words.clone();
                     ws.sort_by_key(|entry| std::cmp::Reverse(entry.1));
                     // 复用 search 的全局视图保证返回引用来自 entries。
-                    return ws
+                    let mut results: Vec<&Entry> = ws
                         .into_iter()
                         .flat_map(|(w, _)| {
                             self.entries
                                 .iter()
                                 .filter(move |e| e.code == prefix && e.word == w)
                         })
-                        .take(opts.limit)
                         .collect();
+                    dedup_by_word(&mut results);
+                    results.truncate(opts.limit);
+                    return results;
                 }
             }
         }
@@ -311,12 +442,95 @@ fn build_trie(entries: &[Entry]) -> TrieNode {
     root
 }
 
+fn wildcard_match(code: &str, pattern: &str, wildcard: char) -> bool {
+    let mut code_chars = code.chars();
+    for pattern_char in pattern.chars() {
+        let Some(code_char) = code_chars.next() else {
+            return false;
+        };
+        if pattern_char != wildcard && pattern_char != code_char {
+            return false;
+        }
+    }
+    code_chars.next().is_none()
+}
+
+fn dedup_by_word(entries: &mut Vec<&Entry>) {
+    let mut seen = HashSet::new();
+    entries.retain(|entry| seen.insert(entry.word.as_str()));
+}
+
 /// 分块解析码表文本为条目列表。
 ///
 /// 行格式：`code\tword[\tweight]`，`#` 开头行为注释/头部声明，跳过。
+#[cfg(test)]
 fn parse_lines(text: &str, _chunk_lines: usize) -> Result<Vec<Entry>, DictError> {
+    parse_lines_with_config(text, 0, None)
+}
+
+fn parse_dictionary(
+    text: &str,
+    _chunk_lines: usize,
+) -> Result<(TableConfig, Vec<Entry>), DictError> {
+    let (config, body, line_offset) = split_yaml_header(text)?;
+    validate_table_config(&config)?;
+    let entries = parse_lines_with_config(body, line_offset, config.wildcard_key)?;
+    Ok((config, entries))
+}
+
+fn split_yaml_header(text: &str) -> Result<(TableConfig, &str, usize), DictError> {
+    let mut lines = text.split_inclusive('\n');
+    let Some(first) = lines.next() else {
+        return Ok((TableConfig::default(), text, 0));
+    };
+    let first_line = first
+        .trim_end_matches(&['\r', '\n'][..])
+        .trim_start_matches('\u{feff}');
+    if first_line != "---" {
+        return Ok((TableConfig::default(), text, 0));
+    }
+
+    let header_start = first.len();
+    let mut header_end = header_start;
+    for (index, line) in lines.enumerate() {
+        let line_number = index + 2;
+        if line.trim_end_matches(&['\r', '\n'][..]) == "---" {
+            let header = &text[header_start..header_end];
+            let config = if header.trim().is_empty() {
+                TableConfig::default()
+            } else {
+                serde_yaml_ng::from_str(header)
+                    .map_err(|error| DictError::InvalidHeader(error.to_string()))?
+            };
+            return Ok((config, &text[header_end + line.len()..], line_number));
+        }
+        header_end += line.len();
+    }
+
+    Err(DictError::MissingHeader(
+        "YAML 头缺少结束分隔符 `---`".into(),
+    ))
+}
+
+fn validate_table_config(config: &TableConfig) -> Result<(), DictError> {
+    if let Some(wildcard) = config.wildcard_key {
+        if !config.charset.contains(wildcard) {
+            return Err(DictError::InvalidHeader(format!(
+                "wildcard_key `{wildcard}` 不在 charset 中"
+            )));
+        }
+    }
+    Ok(())
+}
+
+fn parse_lines_with_config(
+    text: &str,
+    line_offset: usize,
+    wildcard_key: Option<char>,
+) -> Result<Vec<Entry>, DictError> {
     let mut out = Vec::new();
     for (i, raw) in text.lines().enumerate() {
+        let line_number = line_offset + i + 1;
         let line = raw.trim();
         if line.is_empty() || line.starts_with(HEADER_PREFIX) {
             continue;
@@ -324,12 +538,12 @@ fn parse_lines(text: &str, _chunk_lines: usize) -> Result<Vec<Entry>, DictError>
         let mut parts = line.split('\t');
         let code = parts
             .next()
-            .ok_or_else(|| DictError::InvalidLine(i + 1, "缺少编码".into()))?
+            .ok_or_else(|| DictError::InvalidLine(line_number, "缺少编码".into()))?
             .trim()
             .to_string();
         let word = parts
             .next()
-            .ok_or_else(|| DictError::InvalidLine(i + 1, "缺少词条".into()))?
+            .ok_or_else(|| DictError::InvalidLine(line_number, "缺少词条".into()))?
             .trim()
             .to_string();
         let weight = parts
@@ -337,7 +551,15 @@ fn parse_lines(text: &str, _chunk_lines: usize) -> Result<Vec<Entry>, DictError>
             .and_then(|s| s.trim().parse::<u32>().ok())
             .unwrap_or(1);
         if code.is_empty() || word.is_empty() {
-            return Err(DictError::InvalidLine(i + 1, "编码或词条为空".into()));
+            return Err(DictError::InvalidLine(line_number, "编码或词条为空".into()));
+        }
+        if let Some(wildcard) = wildcard_key {
+            if code.contains(wildcard) {
+                return Err(DictError::InvalidLine(
+                    line_number,
+                    format!("编码 `{code}` 不得包含万能键 `{wildcard}`"),
+                ));
+            }
         }
         out.push(Entry { code, word, weight });
     }
@@ -434,6 +656,63 @@ mod tests {
         assert_eq!(e[0].code, "a");
         assert_eq!(e[0].word, "工");
         assert_eq!(e[0].weight, 999);
+    }
+
+    #[test]
+    fn parse_dictionary_uses_defaults_without_yaml_header() {
+        let (config, entries) = parse_dictionary("a\t工\t999\n", 4096).unwrap();
+
+        assert_eq!((config, entries.len()), (TableConfig::default(), 1));
+    }
+
+    #[test]
+    fn parse_dictionary_reads_yaml_header() {
+        let text = "---\nwildcard_key: z\ncharset: abcdefghijklmnopqrstuvwxyz\n---\na\t工\t999\n";
+        let (config, entries) = parse_dictionary(text, 4096).unwrap();
+
+        assert_eq!(
+            (config.wildcard_key, config.charset.as_str(), entries.len()),
+            (Some('z'), DEFAULT_CHARSET, 1)
+        );
+    }
+
+    #[test]
+    fn parse_dictionary_treats_empty_wildcard_as_disabled() {
+        let text = "---\nwildcard_key: \"\"\ncharset: abcdefghijklmnopqrstuvwxyz\n---\na\t工\n";
+        let (config, _) = parse_dictionary(text, 4096).unwrap();
+
+        assert_eq!(config.wildcard_key, None);
+    }
+
+    #[test]
+    fn parse_dictionary_rejects_wildcard_outside_charset() {
+        let text = "---\nwildcard_key: z\ncharset: abc\n---\na\t工\n";
+        let error = parse_dictionary(text, 4096).unwrap_err();
+
+        assert!(matches!(error, DictError::InvalidHeader(_)));
+    }
+
+    #[test]
+    fn parse_dictionary_rejects_wildcard_in_body_code() {
+        let text = "---\nwildcard_key: z\ncharset: az\n---\naz\t工\n";
+        let error = parse_dictionary(text, 4096).unwrap_err();
+
+        assert!(matches!(error, DictError::InvalidLine(5, _)));
+    }
+
+    #[test]
+    fn parse_dictionary_rejects_multi_character_wildcard() {
+        let text = "---\nwildcard_key: zz\ncharset: az\n---\na\t工\n";
+        let error = parse_dictionary(text, 4096).unwrap_err();
+
+        assert!(matches!(error, DictError::InvalidHeader(_)));
+    }
+
+    #[test]
+    fn parse_dictionary_rejects_unclosed_yaml_header() {
+        let error = parse_dictionary("---\ncharset: abc\n", 4096).unwrap_err();
+
+        assert!(matches!(error, DictError::MissingHeader(_)));
     }
 
     #[test]

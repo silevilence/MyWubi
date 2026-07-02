@@ -1,3 +1,7 @@
+---
+wildcard_key: z
+charset: abcdefghijklmnopqrstuvwxyz
+---
 # 五笔86 简易示例码表 — 仅供 core_engine 单元测试与开发联调使用
 # 格式: code<TAB>word[<TAB>weight]
 # 行首 "#" 视为注释，解析时跳过
