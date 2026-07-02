@@ -182,6 +182,11 @@ impl Dictionary {
         self.source.as_deref()
     }
 
+    /// 返回只读词条视图，供系统码表与用户词库合并。
+    pub fn entries(&self) -> &[Entry] {
+        &self.entries
+    }
+
     /// 返回码表中所有编码完全等于 `code` 的词条（按 weight 倒序）。
     pub fn exact(&self, code: &str) -> Vec<&Entry> {
         let Some(&start) = self.prefix_index.get(code) else {
@@ -248,7 +253,7 @@ impl Dictionary {
                 if !node.words.is_empty() {
                     // 走 Trie 精确分支，再用 weight 排序。
                     let mut ws: Vec<(String, u32)> = node.words.clone();
-                    ws.sort_by(|a, b| b.1.cmp(&a.1));
+                    ws.sort_by_key(|entry| std::cmp::Reverse(entry.1));
                     // 复用 search 的全局视图保证返回引用来自 entries。
                     return ws
                         .into_iter()

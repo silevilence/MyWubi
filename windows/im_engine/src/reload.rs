@@ -25,7 +25,14 @@ fn watch_loop(runtime: Arc<ArcSwap<RuntimeSnapshot>>) -> notify::Result<()> {
     let mut watcher: RecommendedWatcher = notify::recommended_watcher(move |result| {
         let _ = tx.send(result);
     })?;
-    watcher.watch(&watch_dir, RecursiveMode::NonRecursive)?;
+    watcher.watch(&watch_dir, RecursiveMode::Recursive)?;
+    let snapshot = runtime.load();
+    for path in [&snapshot.system_table_path, &snapshot.user_table_path] {
+        if let Some(parent) = path.parent().filter(|parent| !parent.starts_with(&watch_dir)) {
+            watcher.watch(parent, RecursiveMode::NonRecursive)?;
+        }
+    }
+    drop(snapshot);
     log::info!("[reload] 开始监听 {}", watch_dir.display());
 
     while let Ok(result) = rx.recv() {
@@ -63,6 +70,7 @@ fn event_requires_reload(event: &Event, runtime: &RuntimeSnapshot) -> bool {
         same_path(path, &runtime.config_path)
             || same_file_in_dir(path, &runtime.config_path)
             || same_path(path, &runtime.system_table_path)
+            || same_path(path, &runtime.user_table_path)
     })
 }
 
@@ -87,6 +95,7 @@ mod tests {
             config: Config::default(),
             config_path: PathBuf::from(r"C:\Users\test\AppData\Roaming\MyWubi\config.toml"),
             system_table_path: PathBuf::from(r"C:\Users\test\AppData\Roaming\MyWubi\tables\wubi86.dict"),
+            user_table_path: PathBuf::from(r"C:\Users\test\AppData\Roaming\MyWubi\tables\user.dict"),
         }
     }
 
@@ -112,6 +121,20 @@ mod tests {
                 notify::event::DataChange::Content,
             )),
             paths: vec![runtime.system_table_path.clone()],
+            attrs: Default::default(),
+        };
+
+        assert!(event_requires_reload(&event, &runtime));
+    }
+
+    #[test]
+    fn user_table_event_triggers_reload() {
+        let runtime = runtime_snapshot();
+        let event = Event {
+            kind: notify::EventKind::Modify(notify::event::ModifyKind::Data(
+                notify::event::DataChange::Content,
+            )),
+            paths: vec![runtime.user_table_path.clone()],
             attrs: Default::default(),
         };
 

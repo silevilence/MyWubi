@@ -608,6 +608,7 @@ impl TextService {
                 config: cfg.clone(),
                 config_path: std::path::PathBuf::from("config.toml"),
                 system_table_path: std::path::PathBuf::from("tables/wubi86.dict"),
+                user_table_path: std::path::PathBuf::from("tables/user.dict"),
             })),
             runtime_revision: AtomicU64::new(0),
             thread_mgr: Mutex::new(None),

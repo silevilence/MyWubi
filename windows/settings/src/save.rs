@@ -43,6 +43,7 @@ mod tests {
             tip_operation_pending: false,
             update_state: crate::vpk::UpdateState::Idle,
             update_worker: None,
+            user_dictionary_editor: Default::default(),
         }
     }
 

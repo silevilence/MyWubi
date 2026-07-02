@@ -65,6 +65,7 @@ impl IClassFactory_Impl for TextServiceFactory_Impl {
                     config: core_engine::Config::default(),
                     config_path: std::path::PathBuf::from("config.toml"),
                     system_table_path: std::path::PathBuf::from("tables/wubi86.dict"),
+                    user_table_path: std::path::PathBuf::from("tables/user.dict"),
                 }));
                 (runtime, Arc::new(ArcSwap::from_pointee(CandidateData::default())))
             }

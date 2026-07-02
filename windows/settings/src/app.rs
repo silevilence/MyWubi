@@ -90,6 +90,40 @@ impl SettingsApp {
                         FilePickTarget::UserTable => {
                             self.state.config.dictionary.user_table = path;
                         }
+                        FilePickTarget::UserDictionaryImport => {
+                            let result = self
+                                .state
+                                .user_dictionary_editor
+                                .dictionary
+                                .as_mut()
+                                .ok_or_else(|| "用户词库尚未打开".to_string())
+                                .and_then(|dictionary| {
+                                    dictionary
+                                        .import(&path)
+                                        .map(|count| format!("[OK] 已导入 {count} 个新词条"))
+                                        .map_err(|error| error.to_string())
+                                });
+                            self.state.status_msg =
+                                Some(result.unwrap_or_else(|error| format!("[ERR] {error}")));
+                            return;
+                        }
+                        FilePickTarget::UserDictionaryExport => {
+                            let result = self
+                                .state
+                                .user_dictionary_editor
+                                .dictionary
+                                .as_ref()
+                                .ok_or_else(|| "用户词库尚未打开".to_string())
+                                .and_then(|dictionary| {
+                                    dictionary
+                                        .export(&path)
+                                        .map(|()| format!("[OK] 已导出到 {}", path.display()))
+                                        .map_err(|error| error.to_string())
+                                });
+                            self.state.status_msg =
+                                Some(result.unwrap_or_else(|error| format!("[ERR] {error}")));
+                            return;
+                        }
                     }
                     self.state.mark_dirty();
                 }

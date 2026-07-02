@@ -12,15 +12,15 @@
 
 #![cfg_attr(not(windows), allow(unused))]
 
-use arc_swap::ArcSwap;
-use core_engine::{Config, Dictionary, StateMachine};
-use parking_lot::Mutex;
+use std::collections::HashSet;
 use std::panic::{catch_unwind, AssertUnwindSafe};
 use std::path::PathBuf;
 use std::sync::atomic::{AtomicU64, Ordering};
-use std::sync::Arc;
-use std::sync::Once;
-use std::sync::OnceLock;
+use std::sync::{Arc, Once, OnceLock};
+
+use arc_swap::ArcSwap;
+use core_engine::{Config, Dictionary, StateMachine, UserDictionary};
+use parking_lot::Mutex;
 
 use crate::candidate_data::{CandidateData, ThemeSnapshot};
 use windows::core::{ComObject, GUID, HRESULT};
@@ -72,6 +72,7 @@ pub(crate) struct RuntimeSnapshot {
     pub config: Config,
     pub config_path: PathBuf,
     pub system_table_path: PathBuf,
+    pub user_table_path: PathBuf,
 }
 
 impl RuntimeSnapshot {
@@ -80,16 +81,50 @@ impl RuntimeSnapshot {
             &config_path,
             &config.dictionary.system_table,
         );
-        let dict = Dictionary::load(&system_table_path)
-            .map_err(|e| format!("加载码表失败 ({}): {e}", system_table_path.display()))?;
+        let user_table_path = core_engine::config_path::resolve_resource_path(
+            &config_path,
+            &config.dictionary.user_table,
+        );
+        let dict = load_dictionary(&system_table_path, &user_table_path, &config)?;
         Ok(Self {
             revision: NEXT_RUNTIME_REVISION.fetch_add(1, Ordering::Relaxed),
             dict,
             config,
             config_path,
             system_table_path,
+            user_table_path,
         })
     }
+}
+
+fn load_dictionary(
+    system_table_path: &std::path::Path,
+    user_table_path: &std::path::Path,
+    config: &Config,
+) -> Result<Arc<Dictionary>, String> {
+    let system = Dictionary::load(system_table_path)
+        .map_err(|error| format!("加载码表失败 ({}): {error}", system_table_path.display()))?;
+    if !config.dictionary.enable_user_dict {
+        return Ok(system);
+    }
+
+    let user = UserDictionary::load(user_table_path)
+        .map_err(|error| format!("加载用户词库失败 ({}): {error}", user_table_path.display()))?;
+    let user_keys: HashSet<(&str, &str)> = user
+        .entries()
+        .iter()
+        .map(|entry| (entry.code.as_str(), entry.word.as_str()))
+        .collect();
+    let mut entries = user.entries().to_vec();
+    entries.extend(
+        system
+            .entries()
+            .iter()
+            .filter(|entry| !user_keys.contains(&(entry.code.as_str(), entry.word.as_str())))
+            .cloned(),
+    );
+    Dictionary::from_entries(entries, Some(system_table_path.to_path_buf()), Default::default())
+        .map_err(|error| format!("合并用户词库失败: {error}"))
 }
 
 pub(crate) fn load_runtime_snapshot() -> Result<RuntimeSnapshot, String> {
@@ -128,7 +163,12 @@ fn load_initial_runtime_snapshot() -> RuntimeSnapshot {
                 &resolved_path,
                 &config.dictionary.system_table,
             );
-            let dict = Dictionary::load(&system_table_path).unwrap_or_else(|dict_err| {
+            let user_table_path = core_engine::config_path::resolve_resource_path(
+                &resolved_path,
+                &config.dictionary.user_table,
+            );
+            let dict = load_dictionary(&system_table_path, &user_table_path, &config)
+                .unwrap_or_else(|dict_err| {
                 log::error!("加载码表失败 ({}): {dict_err}", system_table_path.display());
                 Dictionary::from_entries(Vec::new(), None, Default::default())
                     .expect("empty dictionary should construct")
@@ -139,6 +179,7 @@ fn load_initial_runtime_snapshot() -> RuntimeSnapshot {
                 config,
                 config_path: resolved_path,
                 system_table_path,
+                user_table_path,
             }
         }
     }
@@ -347,4 +388,49 @@ fn get_this_dll_path() -> Result<String, windows::core::Error> {
         return Err(windows::core::Error::from_thread());
     }
     Ok(String::from_utf16_lossy(&buf[..len]))
+}
+
+#[cfg(test)]
+mod runtime_tests {
+    use std::time::{SystemTime, UNIX_EPOCH};
+
+    use core_engine::Entry;
+
+    use super::*;
+
+    #[test]
+    fn user_dictionary_is_merged_without_duplicate_candidates() {
+        let root = std::env::temp_dir().join(format!(
+            "mywubi-runtime-{}",
+            SystemTime::now()
+                .duration_since(UNIX_EPOCH)
+                .unwrap()
+                .as_nanos()
+        ));
+        std::fs::create_dir_all(&root).unwrap();
+        let system_path = root.join("system.dict");
+        let user_path = root.join("user.dict");
+        std::fs::write(&system_path, "abcd\t系统词\t1\nabcd\t覆盖词\t1\n").unwrap();
+        let mut user = UserDictionary::load(&user_path).unwrap();
+        user.add(Entry {
+            code: "abcd".into(),
+            word: "覆盖词".into(),
+            weight: 100,
+        })
+        .unwrap();
+        let mut config = Config::default();
+        config.dictionary.enable_user_dict = true;
+
+        let dictionary = load_dictionary(&system_path, &user_path, &config).unwrap();
+
+        assert_eq!(
+            dictionary
+                .exact("abcd")
+                .iter()
+                .map(|entry| entry.word.as_str())
+                .collect::<Vec<_>>(),
+            ["覆盖词", "系统词"]
+        );
+        let _ = std::fs::remove_dir_all(root);
+    }
 }

@@ -119,7 +119,7 @@ pub struct DictionaryCfg {
     /// 启用模糊音（预留给音码输入法）。
     #[serde(default)]
     pub enable_fuzzy: bool,
-    /// 启用用户词库功能（词库数据在 config 外单独保存，后续实现）。
+    /// 启用用户词库功能（词库数据在 config 外单独保存）。
     #[serde(default)]
     pub enable_user_dict: bool,
 }

@@ -9,11 +9,13 @@ pub mod config;
 pub mod config_path;
 pub mod dictionary;
 pub mod state_machine;
+pub mod user_dictionary;
 
 pub use config::{Config, Error as ConfigError};
 pub use config_path::{PathError as ConfigPathError, ResolvedConfigPath};
 pub use dictionary::{Dictionary, Entry, MatchKind, SearchOptions};
 pub use state_machine::{InputEvent, StateMachine, Transition};
+pub use user_dictionary::{UserDictionary, UserDictionaryError};
 
 /// 核心库版本号。
 pub const VERSION: &str = env!("CARGO_PKG_VERSION");

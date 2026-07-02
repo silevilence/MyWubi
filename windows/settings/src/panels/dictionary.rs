@@ -1,6 +1,7 @@
 //! 码表与词库面板。
 
 use crate::state::{self, AppState, FilePickTarget, PickRequest};
+use core_engine::{Entry, UserDictionary};
 use eframe::egui::{self, Ui};
 use std::path::{Path, PathBuf};
 
@@ -122,8 +123,201 @@ pub fn show(ui: &mut Ui, state: &mut AppState) {
     });
 
     if ui.button("管理自造词…").clicked() {
-        state.status_msg = Some("[i] 用户词库管理功能待开发".into());
+        open_user_dictionary(state);
     }
+
+    show_user_dictionary_window(ui.ctx(), state);
+}
+
+fn open_user_dictionary(state: &mut AppState) {
+    let path = crate::config_path::resolve_resource_path(
+        &state.config_path,
+        &state.config.dictionary.user_table,
+    );
+    match UserDictionary::load(&path) {
+        Ok(dictionary) => {
+            state.user_dictionary_editor.dictionary = Some(dictionary);
+            state.user_dictionary_editor.clear_form();
+            state.user_dictionary_editor.open = true;
+            state.status_msg = Some(format!("[OK] 已打开用户词库 {}", path.display()));
+        }
+        Err(error) => state.status_msg = Some(format!("[ERR] {error}")),
+    }
+}
+
+fn show_user_dictionary_window(ctx: &egui::Context, state: &mut AppState) {
+    if !state.user_dictionary_editor.open {
+        return;
+    }
+
+    let mut open = true;
+    let mut requested_pick = None;
+    let mut action = None;
+    egui::Window::new("管理自造词")
+        .open(&mut open)
+        .default_width(560.0)
+        .show(ctx, |ui| {
+            let editor = &mut state.user_dictionary_editor;
+            let Some(dictionary) = editor.dictionary.as_mut() else {
+                ui.label("用户词库未加载");
+                return;
+            };
+
+            ui.label(format!(
+                "{}（{} 条）",
+                dictionary.path().display(),
+                dictionary.entries().len()
+            ));
+            ui.horizontal(|ui| {
+                if ui.button("导入…").clicked() && state.pending_pick.is_none() {
+                    requested_pick = Some((
+                        FilePickTarget::UserDictionaryImport,
+                        dictionary.path().to_path_buf(),
+                    ));
+                }
+                if ui.button("导出…").clicked() && state.pending_pick.is_none() {
+                    requested_pick = Some((
+                        FilePickTarget::UserDictionaryExport,
+                        dictionary.path().to_path_buf(),
+                    ));
+                }
+            });
+            ui.separator();
+
+            let mut selected = None;
+            egui::ScrollArea::vertical()
+                .max_height(260.0)
+                .show(ui, |ui| {
+                    egui::Grid::new("user_dictionary_entries")
+                        .striped(true)
+                        .show(ui, |ui| {
+                            ui.strong("编码");
+                            ui.strong("词条");
+                            ui.strong("词频");
+                            ui.end_row();
+                            for (index, entry) in dictionary.entries().iter().enumerate() {
+                                if ui
+                                    .selectable_label(editor.selected == Some(index), &entry.code)
+                                    .clicked()
+                                {
+                                    selected = Some(index);
+                                }
+                                ui.label(&entry.word);
+                                ui.label(entry.weight.to_string());
+                                ui.end_row();
+                            }
+                        });
+                });
+
+            if let Some(index) = selected {
+                let entry = &dictionary.entries()[index];
+                editor.code.clone_from(&entry.code);
+                editor.word.clone_from(&entry.word);
+                editor.weight = entry.weight;
+                editor.selected = Some(index);
+            }
+
+            ui.separator();
+            ui.horizontal(|ui| {
+                ui.label("编码");
+                ui.text_edit_singleline(&mut editor.code);
+                ui.label("词条");
+                ui.text_edit_singleline(&mut editor.word);
+                ui.label("词频");
+                ui.add(egui::DragValue::new(&mut editor.weight));
+            });
+            ui.horizontal(|ui| {
+                if ui.button("新增").clicked() {
+                    action = Some(UserDictionaryAction::Add(Entry {
+                        code: editor.code.trim().to_string(),
+                        word: editor.word.trim().to_string(),
+                        weight: editor.weight,
+                    }));
+                }
+                if ui
+                    .add_enabled(editor.selected.is_some(), egui::Button::new("更新"))
+                    .clicked()
+                {
+                    action = Some(UserDictionaryAction::Update(
+                        editor.selected.unwrap_or_default(),
+                        Entry {
+                            code: editor.code.trim().to_string(),
+                            word: editor.word.trim().to_string(),
+                            weight: editor.weight,
+                        },
+                    ));
+                }
+                if ui
+                    .add_enabled(editor.selected.is_some(), egui::Button::new("删除"))
+                    .clicked()
+                {
+                    action = Some(UserDictionaryAction::Remove(
+                        editor.selected.unwrap_or_default(),
+                    ));
+                }
+                if ui.button("清空表单").clicked() {
+                    editor.clear_form();
+                }
+            });
+        });
+    state.user_dictionary_editor.open = open;
+    if let Some(action) = action {
+        apply_user_dictionary_action(state, action);
+    }
+    if let Some((target, path)) = requested_pick {
+        start_dictionary_pick(state, target, &path);
+    }
+}
+
+enum UserDictionaryAction {
+    Add(Entry),
+    Update(usize, Entry),
+    Remove(usize),
+}
+
+fn apply_user_dictionary_action(state: &mut AppState, action: UserDictionaryAction) {
+    let editor = &mut state.user_dictionary_editor;
+    let Some(dictionary) = editor.dictionary.as_mut() else {
+        state.status_msg = Some("[ERR] 用户词库尚未打开".into());
+        return;
+    };
+    let (result, success) = match action {
+        UserDictionaryAction::Add(entry) => (dictionary.add(entry), "已新增词条"),
+        UserDictionaryAction::Update(index, entry) => {
+            (dictionary.update(index, entry), "已更新词条")
+        }
+        UserDictionaryAction::Remove(index) => {
+            (dictionary.remove(index).map(|_| ()), "已删除词条")
+        }
+    };
+    match result {
+        Ok(()) => {
+            editor.clear_form();
+            state.status_msg = Some(format!("[OK] {success}，输入法将自动热重载"));
+        }
+        Err(error) => state.status_msg = Some(format!("[ERR] {error}")),
+    }
+}
+
+fn start_dictionary_pick(state: &mut AppState, target: FilePickTarget, path: &Path) {
+    let (tx, rx) = std::sync::mpsc::channel();
+    let directory = path
+        .parent()
+        .unwrap_or_else(|| Path::new("."))
+        .to_path_buf();
+    std::thread::spawn(move || {
+        let dialog = rfd::FileDialog::new()
+            .set_directory(directory)
+            .add_filter("MyWubi 用户词库", &["dict"]);
+        let result = match target {
+            FilePickTarget::UserDictionaryExport => dialog
+                .set_file_name("user.dict")
+                .save_file(),
+            _ => dialog.pick_file(),
+        };
+        let _ = tx.send(result);
+    });
+    state.pending_pick = Some(PickRequest { target, rx });
 }
 
 /// 从 exe 同目录 `tables/` 复制所有 .dict 文件到当前 table_dir。
@@ -184,11 +378,14 @@ fn path_row(ui: &mut Ui, label: &str, path: &mut PathBuf, dirty: &mut bool, stat
                 .map(|p| p.to_path_buf())
                 .unwrap_or_else(|| base_dir.to_path_buf());
             std::thread::spawn(move || {
-                let _ = tx.send(
-                    rfd::FileDialog::new()
-                        .set_directory(&start_dir)
-                        .pick_file()
-                );
+                let dialog = rfd::FileDialog::new().set_directory(&start_dir);
+                let result = match target {
+                    FilePickTarget::UserTable => dialog
+                        .set_file_name("user.dict")
+                        .save_file(),
+                    _ => dialog.pick_file(),
+                };
+                let _ = tx.send(result);
             });
             *pending = Some(PickRequest { target, rx });
         }

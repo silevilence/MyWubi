@@ -1,6 +1,6 @@
 //! 配置程序全局状态容器。
 
-use core_engine::Config;
+use core_engine::{Config, UserDictionary};
 use std::path::PathBuf;
 use std::sync::mpsc;
 
@@ -19,6 +19,8 @@ pub enum Panel {
 pub enum FilePickTarget {
     SystemTableDir,
     UserTable,
+    UserDictionaryImport,
+    UserDictionaryExport,
 }
 
 /// 后台线程中进行的文件选择请求。
@@ -26,6 +28,37 @@ pub enum FilePickTarget {
 pub struct PickRequest {
     pub target: FilePickTarget,
     pub rx: mpsc::Receiver<Option<PathBuf>>,
+}
+
+pub struct UserDictionaryEditor {
+    pub open: bool,
+    pub dictionary: Option<UserDictionary>,
+    pub code: String,
+    pub word: String,
+    pub weight: u32,
+    pub selected: Option<usize>,
+}
+
+impl Default for UserDictionaryEditor {
+    fn default() -> Self {
+        Self {
+            open: false,
+            dictionary: None,
+            code: String::new(),
+            word: String::new(),
+            weight: 1000,
+            selected: None,
+        }
+    }
+}
+
+impl UserDictionaryEditor {
+    pub fn clear_form(&mut self) {
+        self.code.clear();
+        self.word.clear();
+        self.weight = 1000;
+        self.selected = None;
+    }
 }
 
 /// 无法通过 `mark_dirty` 的 panel 子函数（因双重借用限制）使用此函数
@@ -67,6 +100,8 @@ pub struct AppState {
     pub update_state: crate::vpk::UpdateState,
     /// 后台更新 worker 句柄（检查/下载进行中时存在）。
     pub update_worker: Option<crate::vpk::UpdateWorker>,
+    /// 用户词库管理窗口状态。
+    pub user_dictionary_editor: UserDictionaryEditor,
 }
 
 /// 配置加载失败信息。用户需在 UI 中确认后才覆盖损坏文件。
@@ -119,6 +154,7 @@ impl AppState {
             tip_operation_pending: false,
             update_state: crate::vpk::UpdateState::Idle,
             update_worker: None,
+            user_dictionary_editor: UserDictionaryEditor::default(),
         }
     }
 

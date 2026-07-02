@@ -23,12 +23,6 @@
     - [ ] 配置 `rust-android-gradle` 插件
     - [ ] 实现通过 Gradle 一键编译 Rust 底层、拷贝 `.so` 到相应 ABI 目录并打包输出 `.apk`
 
-- [ ] **用户词库功能（core_engine + UI 联调）**
-    - [ ] `core_engine` 设计用户词库数据结构（独立于 `config.toml` 的存储格式）
-    - [ ] `core_engine` 暴露用户词库 CRUD / 导入导出 C-ABI 接口
-    - [ ] `settings.exe` 码表面板"管理自造词…"按钮对接真实功能（替换"待开发"提示）
-    - [ ] `im_engine` 侧用户词库的检索集成与热重载
-
 ## 🚧 开发中
 
 ## ✅ 已完成
@@ -179,3 +173,9 @@
     - [x] 绑定到 `GUID_COMPARTMENT_KEYBOARD_OPENCLOSE` 自动反映状态
     - [x] 按钮点击触发 `toggle_ime_mode()`
     - [x] 如需要用到多媒体资源的，先在assets下生成一个占位用的文件，并在最后像我说明文件的用途与要求
+
+- [x] **用户词库功能（core_engine + UI 联调）**
+    - [x] `core_engine` 设计用户词库数据结构（独立于 `config.toml` 的存储格式）
+    - [x] `core_engine` 暴露用户词库 CRUD / 导入导出 C-ABI 接口
+    - [x] `settings.exe` 码表面板"管理自造词…"按钮对接真实功能（替换"待开发"提示）
+    - [x] `im_engine` 侧用户词库的检索集成与热重载
