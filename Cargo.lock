@@ -753,7 +753,7 @@ dependencies = [
 
 [[package]]
 name = "core_engine"
-version = "0.1.6"
+version = "0.2.0"
 dependencies = [
  "arc-swap",
  "criterion",
@@ -1720,7 +1720,7 @@ dependencies = [
 
 [[package]]
 name = "im_engine"
-version = "0.1.6"
+version = "0.2.0"
 dependencies = [
  "arc-swap",
  "core_engine",
@@ -3000,7 +3000,7 @@ dependencies = [
 
 [[package]]
 name = "settings"
-version = "0.1.6"
+version = "0.2.0"
 dependencies = [
  "core_engine",
  "dirs 5.0.1",
@@ -3330,7 +3330,7 @@ dependencies = [
 
 [[package]]
 name = "tip_manager"
-version = "0.1.6"
+version = "0.2.0"
 dependencies = [
  "log",
  "thiserror 1.0.69",
