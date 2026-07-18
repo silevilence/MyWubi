@@ -47,6 +47,8 @@ pub struct CandidateItem {
     pub label: String,
     /// 候选词文本。
     pub text: String,
+    /// 候选词对应的后续编码提示。
+    pub hint: String,
 }
 
 /// 候选框共享数据——TSF 线程写入，渲染线程读取。

@@ -115,6 +115,10 @@ fn classify_printable_char(c: char, shift_pressed: bool) -> InputEvent {
     InputEvent::Char(c)
 }
 
+fn should_passthrough_printable_char(c: char, shift_pressed: bool) -> bool {
+    shift_pressed && c.is_ascii_alphabetic()
+}
+
 /// 把 (`wparam`, `lparam`) 解析为通用 [`InputEvent`]；返回 `None` 表示该按键与本输入法无关。
 ///
 /// `wparam` 为虚拟键码；`lparam` 包含扫描码与扩展键标志，传给 `ToUnicode`
@@ -160,8 +164,15 @@ pub fn translate(wparam: usize, lparam: isize, is_selecting: bool, hotkey: &Hotk
         _ => {}
     }
 
-    // 可打印字符：由系统根据键盘布局 + 修饰键状态自动映射
-    to_char(vk, lparam).map(|c| classify_printable_char(c, shift_pressed))
+    // 可打印字符：由系统根据键盘布局 + 修饰键状态自动映射。
+    // Shift+字母保留给应用，避免中文态吞掉临时大写输入。
+    to_char(vk, lparam).and_then(|c| {
+        if should_passthrough_printable_char(c, shift_pressed) {
+            None
+        } else {
+            Some(classify_printable_char(c, shift_pressed))
+        }
+    })
 }
 
 #[cfg(test)]
@@ -263,6 +274,12 @@ mod tests {
     #[test]
     fn classify_shifted_uppercase_as_code_char() {
         assert_eq!(classify_printable_char('A', true), InputEvent::Char('A'));
+    }
+
+    #[test]
+    fn shifted_letters_passthrough_to_application() {
+        assert!(should_passthrough_printable_char('A', true));
+        assert!(!should_passthrough_printable_char('!', true));
     }
 
     #[test]

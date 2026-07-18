@@ -113,6 +113,7 @@ impl TableEditor {
         Ok(TableConfig {
             wildcard_key,
             charset: self.config.charset.clone(),
+            max_code_len: self.config.max_code_len,
         })
     }
 

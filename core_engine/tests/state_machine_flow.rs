@@ -5,8 +5,9 @@
 //! 回车上屏原始编码、自动上屏等）。
 
 use core_engine::{
+    config::PunctuationMode,
     dictionary::{Entry, LoadOptions},
-    state_machine::{InputEvent, StateMachine, Transition},
+    state_machine::{InputEvent, InputState, StateMachine, Transition},
     Dictionary,
 };
 use std::sync::Arc;
@@ -51,7 +52,7 @@ fn wildcard_occupies_exactly_one_code_position() {
     ));
     std::fs::write(
         &path,
-        "---\nwildcard_key: z\ncharset: abcdefghijklmnopqrstuvwxyz\n---\ngdqq\t目标\t100\ngdqaa\t不应出现\t1000\n",
+        "---\nwildcard_key: z\ncharset: abcdefghijklmnopqrstuvwxyz\nmax_code_len: 5\n---\ngdqq\t目标\t100\ngdqaa\t不应出现\t1000\n",
     )
     .unwrap();
     let dictionary = Dictionary::load(&path).unwrap();
@@ -103,7 +104,7 @@ fn digit_wildcard_is_not_used_as_candidate_selection() {
     ));
     std::fs::write(
         &path,
-        "---\nwildcard_key: \"1\"\ncharset: \"abc1\"\n---\nabc\t目标\t100\nabd\t其他\t90\n",
+        "---\nwildcard_key: \"1\"\ncharset: \"abcd1\"\n---\nabc\t目标\t100\nabd\t其他\t90\n",
     )
     .unwrap();
     let dictionary = Dictionary::load(&path).unwrap();
@@ -363,23 +364,88 @@ fn symbol_passthrough_during_idle() {
 }
 
 #[test]
-fn uppercase_letter_is_kept_in_spelling_buffer() {
+fn uppercase_letter_matches_lowercase_code() {
     let mut m = StateMachine::new(dict());
     let t = m.handle(InputEvent::Char('A'));
-    assert_eq!(t, Transition::SpellingUpdated("A".to_string()));
-    assert_eq!(m.spelling(), "A");
+    assert!(matches!(t, Transition::Candidates { spelling, candidates, .. } if spelling == "a" && candidates == ["工"]));
 }
 
 #[test]
-fn symbol_after_spelling_commits_raw_spelling_then_symbol() {
+fn symbol_after_no_candidate_stays_in_spelling_buffer() {
     let mut m = StateMachine::new(dict());
-    drive_chars(&mut m, "gg");
+    drive_chars(&mut m, "zz");
 
     let t = m.handle(InputEvent::Symbol('!'));
 
-    assert_eq!(t, Transition::Commit("gg!".to_string()));
-    assert_eq!(m.state(), core_engine::state_machine::InputState::Idle);
-    assert_eq!(m.spelling(), "");
+    assert_eq!(t, Transition::SpellingUpdated("zz!".to_string()));
+}
+
+#[test]
+fn punctuation_after_candidate_commits_first_candidate_then_punctuation() {
+    let mut m = StateMachine::with_options(dict(), 5, false);
+    m.handle(InputEvent::Char('a'));
+
+    let t = m.handle(InputEvent::Symbol('!'));
+
+    assert_eq!(t, Transition::Commit("工!".to_string()));
+}
+
+#[test]
+fn punctuation_after_no_candidate_stays_editable_in_buffer() {
+    let mut m = StateMachine::with_options(dict(), 5, false);
+    drive_chars(&mut m, "zz");
+
+    let t = m.handle(InputEvent::Symbol('!'));
+
+    assert_eq!(t, Transition::SpellingUpdated("zz!".to_string()));
+    assert_eq!(m.handle(InputEvent::Backspace), Transition::SpellingUpdated("zz".to_string()));
+}
+
+#[test]
+fn uppercase_letters_match_lowercase_codes() {
+    let mut m = StateMachine::with_options(dict(), 5, false);
+
+    let t = m.handle(InputEvent::Char('A'));
+
+    assert!(matches!(t, Transition::Candidates { candidates, .. } if candidates == ["工"]));
+}
+
+#[test]
+fn overflow_code_commits_first_candidate_and_starts_next_code_when_enabled() {
+    let mut m = StateMachine::with_full_behavior(dict(), 5, false, PunctuationMode::BufferedCommit, 4, true);
+    drive_chars(&mut m, "ggll");
+
+    let t = m.handle(InputEvent::Char('a'));
+
+    assert!(matches!(
+        t,
+        Transition::CommitThenCandidates { text, replace_len, spelling, candidates, .. }
+            if text == "王" && replace_len == 4 && spelling == "a" && candidates == ["工"]
+    ));
+}
+
+#[test]
+fn prefix_candidates_include_remaining_code_hints() {
+    let mut m = StateMachine::with_options(dict(), 5, false);
+
+    let t = m.handle(InputEvent::Char('g'));
+
+    assert!(matches!(
+        t,
+        Transition::Candidates { candidates, code_hints, .. }
+            if candidates[0] == "五" && code_hints[0] == "ghg"
+    ));
+}
+
+#[test]
+fn overflow_code_stays_in_buffer_when_auto_commit_disabled() {
+    let mut m = StateMachine::with_full_behavior(dict(), 5, false, PunctuationMode::BufferedCommit, 4, false);
+    drive_chars(&mut m, "ggll");
+
+    let t = m.handle(InputEvent::Char('a'));
+
+    assert_eq!(t, Transition::SpellingUpdated("gglla".to_string()));
+    assert_eq!(m.state(), InputState::Composing);
 }
 
 // ── 12. 完整写作流：多句上屏 ─────────────────────────────────

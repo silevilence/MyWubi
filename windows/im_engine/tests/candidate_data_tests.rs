@@ -15,8 +15,8 @@ fn hidden_has_visible_false() {
 fn visible_constructor_sets_all_fields() {
     let theme = ThemeSnapshot::default();
     let items = vec![
-        CandidateItem { label: "1.".into(), text: "五".into() },
-        CandidateItem { label: "2.".into(), text: "一".into() },
+        CandidateItem { label: "1.".into(), text: "五".into(), hint: String::new() },
+        CandidateItem { label: "2.".into(), text: "一".into(), hint: String::new() },
     ];
     let data = CandidateData::visible(
         "gggg".into(), items.clone(), 0, 0, 3, None, theme.clone(),

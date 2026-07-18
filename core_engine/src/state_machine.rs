@@ -52,10 +52,27 @@ pub enum Transition {
     None,
     /// 待上屏文本（输入法应将文本插入到光标处）。
     Commit(String),
+    /// 上屏文本后继续显示下一轮候选。
+    CommitThenCandidates {
+        text: String,
+        replace_len: usize,
+        spelling: String,
+        candidates: Vec<String>,
+        code_hints: Vec<String>,
+        page: usize,
+        total_pages: usize,
+    },
+    /// 上屏文本后继续显示下一轮原始编码。
+    CommitThenSpelling {
+        text: String,
+        replace_len: usize,
+        spelling: String,
+    },
     /// 候选列表变更（连同当前编码字符串一起回传，供 UI 渲染）。
     Candidates {
         spelling: String,
         candidates: Vec<String>,
+        code_hints: Vec<String>,
         page: usize,
         total_pages: usize,
     },
@@ -78,14 +95,18 @@ pub struct StateMachine {
     page_size: usize,
     /// 四码唯一时自动上屏。
     auto_commit_unique: bool,
+    /// 码表允许的最大编码长度。
+    max_code_len: usize,
+    /// 超过最大编码长度时，已有候选则先上屏首选并把新按键作为下一轮编码。
+    commit_on_max_code_overflow: bool,
     /// 原始输入缓冲区：保存用户当前已输入但尚未上屏的字符串。
     spelling: String,
-    /// 标点输入处理策略。
-    punctuation_mode: PunctuationMode,
     /// 当前候选页。
     page: usize,
     /// 当前匹配到的候选快照（每页切片引用词表）。
     candidates: Vec<String>,
+    /// 当前候选相对当前编码的后续编码提示。
+    code_hints: Vec<String>,
     /// 总候选数（用于换页判断）。
     total_candidates: usize,
     /// 当前状态。
@@ -119,15 +140,37 @@ impl StateMachine {
         auto_commit_unique: bool,
         punctuation_mode: PunctuationMode,
     ) -> Self {
+        let max_code_len = dict.table_config().max_code_len as usize;
+        Self::with_full_behavior(
+            dict,
+            page_size,
+            auto_commit_unique,
+            punctuation_mode,
+            max_code_len,
+            true,
+        )
+    }
+
+    /// 配置全部输入行为。
+    pub fn with_full_behavior(
+        dict: Arc<Dictionary>,
+        page_size: usize,
+        auto_commit_unique: bool,
+        _punctuation_mode: PunctuationMode,
+        max_code_len: usize,
+        commit_on_max_code_overflow: bool,
+    ) -> Self {
         let page_size = page_size.clamp(1, 10);
         Self {
             dict,
             page_size,
             auto_commit_unique,
+            max_code_len: max_code_len.max(1),
+            commit_on_max_code_overflow,
             spelling: String::new(),
-            punctuation_mode,
             page: 0,
             candidates: Vec::new(),
+            code_hints: Vec::new(),
             total_candidates: 0,
             state: InputState::Idle,
         }
@@ -160,6 +203,7 @@ impl StateMachine {
 
     /// 判断字符能否作为当前码表编码输入。
     pub fn accepts_code_char(&self, character: char) -> bool {
+        let character = normalize_code_char(character);
         is_code_char(character) || self.dict.table_config().charset.contains(character)
     }
 
@@ -168,8 +212,24 @@ impl StateMachine {
         self.spelling.clear();
         self.page = 0;
         self.candidates.clear();
+        self.code_hints.clear();
         self.total_candidates = 0;
         self.state = InputState::Idle;
+    }
+
+    /// 提交当前输入：有候选上屏首选，否则上屏原始缓冲。
+    pub fn commit_current(&mut self) -> Option<(String, usize)> {
+        if self.spelling.is_empty() {
+            return None;
+        }
+        let replace_len = self.spelling.chars().count();
+        let text = if self.has_buffered_punctuation() || self.candidates.is_empty() {
+            self.spelling.clone()
+        } else {
+            self.candidates[0].clone()
+        };
+        self.reset();
+        Some((text, replace_len))
     }
 
     /// 处理一个输入事件并返回对外行为。
@@ -191,6 +251,7 @@ impl StateMachine {
     }
 
     fn on_char(&mut self, c: char) -> Transition {
+        let c = normalize_code_char(c);
         if c.is_ascii_digit()
             && !self.dict.table_config().charset.contains(c)
             && self.can_select_with_digit(c)
@@ -200,14 +261,10 @@ impl StateMachine {
 
         let is_table_code_char = self.dict.table_config().charset.contains(c);
         if is_buffered_punctuation(c) && !is_table_code_char {
-            if self.punctuation_mode == PunctuationMode::DirectCommit {
+            if self.spelling.is_empty() {
                 return Transition::Passthrough(InputEvent::Char(c));
             }
-
-            self.spelling.push(c);
-            self.reset_candidates();
-            self.state = InputState::Composing;
-            return Transition::SpellingUpdated(self.spelling.clone());
+            return self.on_symbol(c);
         }
 
         // 兼容传统字母数字编码，同时允许码表 charset 声明的自定义字符。
@@ -217,6 +274,14 @@ impl StateMachine {
 
         // 若处于选词状态且继续输入，则视为放弃当前候选，进入新一轮。
         if self.state == InputState::Selecting && !self.has_buffered_punctuation() {
+            if self.commit_on_max_code_overflow
+                && self.lookup_key().chars().count() >= self.max_code_len
+                && !self.candidates.is_empty()
+            {
+                let word = self.candidates[0].clone();
+                let replace_len = self.spelling.chars().count();
+                return self.commit_and_start_next(word, replace_len, c);
+            }
             self.reset_candidates();
         }
         self.spelling.push(c);
@@ -232,7 +297,7 @@ impl StateMachine {
 
         // 四码唯一自动上屏。
         if self.auto_commit_unique
-            && self.spelling.len() >= 4
+            && self.lookup_key().chars().count() >= self.max_code_len
             && self.total_candidates == 1
         {
             let word = self.candidates[0].clone();
@@ -250,6 +315,7 @@ impl StateMachine {
         Transition::Candidates {
             spelling: self.spelling.clone(),
             candidates: self.candidates.clone(),
+            code_hints: self.code_hints.clone(),
             page: self.page,
             total_pages: self.total_pages(),
         }
@@ -260,10 +326,17 @@ impl StateMachine {
             return Transition::Passthrough(InputEvent::Symbol(c));
         }
 
-        let mut text = self.spelling.clone();
-        text.push(c);
-        self.reset();
-        Transition::Commit(text)
+        if !self.has_buffered_punctuation() && !self.candidates.is_empty() {
+            let mut text = self.candidates[0].clone();
+            text.push(c);
+            self.reset();
+            return Transition::Commit(text);
+        }
+
+        self.spelling.push(c);
+        self.reset_candidates();
+        self.state = InputState::Composing;
+        Transition::SpellingUpdated(self.spelling.clone())
     }
 
     fn on_space(&mut self) -> Transition {
@@ -329,6 +402,7 @@ impl StateMachine {
         Transition::Candidates {
             spelling: self.spelling.clone(),
             candidates: self.candidates.clone(),
+            code_hints: self.code_hints.clone(),
             page: self.page,
             total_pages: self.total_pages(),
         }
@@ -360,6 +434,7 @@ impl StateMachine {
             return Transition::Candidates {
                 spelling: self.spelling.clone(),
                 candidates: self.candidates.clone(),
+                code_hints: self.code_hints.clone(),
                 page: self.page,
                 total_pages: pages,
             };
@@ -374,6 +449,7 @@ impl StateMachine {
             return Transition::Candidates {
                 spelling: self.spelling.clone(),
                 candidates: self.candidates.clone(),
+                code_hints: self.code_hints.clone(),
                 page: self.page,
                 total_pages: self.total_pages(),
             };
@@ -389,13 +465,20 @@ impl StateMachine {
             prefer_exact: true,
             limit: self.dict.len().max(1),
         };
-        let all: Vec<&Entry> = self.dict.search(self.lookup_key(), opts);
+        let lookup_key = self.lookup_key().to_string();
+        let all: Vec<&Entry> = self.dict.search(&lookup_key, opts);
         self.total_candidates = all.len();
         let start = (self.page * self.page_size).min(all.len());
         let end = (start + self.page_size).min(all.len());
-        self.candidates = all[start..end]
+        self.candidates = all[start..end].iter().map(|e| e.word.clone()).collect();
+        self.code_hints = all[start..end]
             .iter()
-            .map(|e| e.word.clone())
+            .map(|e| {
+                e.code
+                    .strip_prefix(&lookup_key)
+                    .unwrap_or_default()
+                    .to_string()
+            })
             .collect();
     }
 
@@ -407,8 +490,33 @@ impl StateMachine {
 
     fn reset_candidates(&mut self) {
         self.candidates.clear();
+        self.code_hints.clear();
         self.total_candidates = 0;
         self.page = 0;
+    }
+
+    fn commit_and_start_next(&mut self, text: String, replace_len: usize, c: char) -> Transition {
+        self.reset();
+        self.spelling.push(c);
+        self.candidates_snapshot();
+        if self.candidates.is_empty() {
+            self.state = InputState::Composing;
+            return Transition::CommitThenSpelling {
+                text,
+                replace_len,
+                spelling: self.spelling.clone(),
+            };
+        }
+        self.state = InputState::Selecting;
+        Transition::CommitThenCandidates {
+            text,
+            replace_len,
+            spelling: self.spelling.clone(),
+            candidates: self.candidates.clone(),
+            code_hints: self.code_hints.clone(),
+            page: self.page,
+            total_pages: self.total_pages(),
+        }
     }
 
     fn lookup_key(&self) -> &str {
@@ -436,6 +544,14 @@ impl StateMachine {
 /// 编码字符白名单：ASCII 字母 + 数字。
 fn is_code_char(c: char) -> bool {
     matches!(c, 'a'..='z' | 'A'..='Z' | '0'..='9')
+}
+
+fn normalize_code_char(c: char) -> char {
+    if c.is_ascii_alphabetic() {
+        c.to_ascii_lowercase()
+    } else {
+        c
+    }
 }
 
 fn is_buffered_punctuation(c: char) -> bool {
@@ -526,11 +642,11 @@ mod tests {
     }
 
     #[test]
-    fn punctuation_is_buffered_by_default() {
+    fn punctuation_passthroughs_when_idle() {
         let mut m = StateMachine::new(dict());
         assert_eq!(
             m.handle(InputEvent::Char('!')),
-            Transition::SpellingUpdated("!".to_string())
+            Transition::Passthrough(InputEvent::Char('!'))
         );
     }
 
@@ -555,22 +671,24 @@ mod tests {
     #[test]
     fn symbol_commits_raw_spelling_when_composing() {
         let mut m = StateMachine::new(dict());
-        m.handle(InputEvent::Char('g'));
-        m.handle(InputEvent::Char('g'));
+        m.handle(InputEvent::Char('z'));
+        m.handle(InputEvent::Char('z'));
 
-        assert_eq!(m.handle(InputEvent::Symbol('!')), Transition::Commit("gg!".to_string()));
-        assert_eq!(m.state(), InputState::Idle);
+        assert_eq!(
+            m.handle(InputEvent::Symbol('!')),
+            Transition::SpellingUpdated("zz!".to_string())
+        );
     }
 
     #[test]
-    fn uppercase_code_char_is_kept_in_spelling_buffer() {
+    fn uppercase_code_char_matches_lowercase_code() {
         let mut m = StateMachine::new(dict());
 
-        assert_eq!(
+        assert!(matches!(
             m.handle(InputEvent::Char('A')),
-            Transition::SpellingUpdated("A".to_string())
-        );
-        assert_eq!(m.spelling(), "A");
+            Transition::Candidates { spelling, candidates, .. }
+                if spelling == "a" && candidates == ["工"]
+        ));
     }
 
     #[test]
@@ -606,14 +724,11 @@ mod tests {
     #[test]
     fn backspace_removes_trailing_punctuation_before_code_chars() {
         let mut m = StateMachine::new(dict());
-        let _ = m.handle(InputEvent::Char('a'));
-        assert_eq!(m.handle(InputEvent::Char('\\')), Transition::SpellingUpdated("a\\".to_string()));
+        let _ = m.handle(InputEvent::Char('z'));
+        assert_eq!(m.handle(InputEvent::Char('\\')), Transition::SpellingUpdated("z\\".to_string()));
         match m.handle(InputEvent::Backspace) {
-            Transition::Candidates { spelling, candidates, .. } => {
-                assert_eq!(spelling, "a");
-                assert!(candidates.contains(&"工".to_string()));
-            }
-            other => panic!("expected candidates after removing punctuation, got {other:?}"),
+            Transition::SpellingUpdated(spelling) => assert_eq!(spelling, "z"),
+            other => panic!("expected spelling after removing punctuation, got {other:?}"),
         }
     }
 

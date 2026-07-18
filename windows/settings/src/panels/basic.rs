@@ -76,6 +76,20 @@ pub fn show(ui: &mut Ui, state: &mut AppState) {
             state.mark_dirty();
         }
     });
+    ui.horizontal(|ui| {
+        let mut commit = state.config.basic.commit_on_max_code_overflow;
+        if ui.checkbox(&mut commit, "超过最大码长时顶首选并开始下一码").changed() {
+            state.config.basic.commit_on_max_code_overflow = commit;
+            state.mark_dirty();
+        }
+    });
+    ui.horizontal(|ui| {
+        let mut show = state.config.basic.show_code_hints;
+        if ui.checkbox(&mut show, "候选编码不全时显示后续编码提示").changed() {
+            state.config.basic.show_code_hints = show;
+            state.mark_dirty();
+        }
+    });
 
     ui.horizontal(|ui| {
         ui.label("当前码表万能键:");

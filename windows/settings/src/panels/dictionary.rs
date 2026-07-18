@@ -209,13 +209,18 @@ fn show_table_editor(ui: &mut Ui, state: &mut AppState) {
             changed |= ui
                 .add(egui::TextEdit::singleline(&mut editor.config.charset).desired_width(260.0))
                 .changed();
+            ui.label("最大码长:");
+            changed |= ui
+                .add(egui::DragValue::new(&mut editor.config.max_code_len).clamp_range(1..=32))
+                .changed();
             validate_now = ui.button("验证码表").clicked();
         });
         ui.collapsing("YAML 头预览", |ui| {
             let wildcard = editor.wildcard_key.trim();
             ui.monospace(format!(
-                "---\nwildcard_key: {wildcard:?}\ncharset: {:?}\n---",
+                "---\nwildcard_key: {wildcard:?}\ncharset: {:?}\nmax_code_len: {}\n---",
                 editor.config.charset,
+                editor.config.max_code_len,
             ));
         });
 

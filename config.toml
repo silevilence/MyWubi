@@ -9,6 +9,10 @@ commit_mode = "space_first"
 switch_key = "shift"
 # 四码唯一时自动上屏
 auto_commit_unique = true
+# 超过码表最大码长时，已有候选则顶首选并开始下一码
+commit_on_max_code_overflow = true
+# 候选编码不全时显示后续编码提示
+show_code_hints = true
 # 标点输入: "buffered_commit" 加入缓冲后最后一起上屏, "direct_commit" 立即上屏
 punctuation_mode = "buffered_commit"
 

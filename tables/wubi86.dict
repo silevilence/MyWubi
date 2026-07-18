@@ -1,6 +1,7 @@
 ---
 wildcard_key: z
 charset: abcdefghijklmnopqrstuvwxyz
+max_code_len: 4
 ---
 # 五笔86 简易示例码表 — 仅供 core_engine 单元测试与开发联调使用
 # 格式: code<TAB>word[<TAB>weight]

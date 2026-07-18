@@ -46,6 +46,12 @@ pub struct Basic {
     /// 四码唯一时自动上屏。
     #[serde(default = "default_true")]
     pub auto_commit_unique: bool,
+    /// 超过码表最大码长时，已有候选则自动上屏首选并开始下一轮编码。
+    #[serde(default = "default_true")]
+    pub commit_on_max_code_overflow: bool,
+    /// 候选编码不全时显示后续编码提示。
+    #[serde(default = "default_true")]
+    pub show_code_hints: bool,
     /// 标点输入处理策略。
     #[serde(default)]
     pub punctuation_mode: PunctuationMode,
@@ -151,6 +157,8 @@ impl Default for Basic {
             commit_mode: CommitMode::SpaceFirst,
             switch_key: default_switch_key(),
             auto_commit_unique: true,
+            commit_on_max_code_overflow: true,
+            show_code_hints: true,
             punctuation_mode: PunctuationMode::BufferedCommit,
         }
     }
@@ -293,6 +301,8 @@ candidate_count = 7
 commit_mode = "enter_commit"
 switch_key = "ctrl_space"
 auto_commit_unique = false
+commit_on_max_code_overflow = false
+show_code_hints = false
 punctuation_mode = "direct_commit"
 
 [appearance]
@@ -323,6 +333,8 @@ toggle_simplify = "ctrl_shift_s"
         assert_eq!(cfg.basic.commit_mode, CommitMode::EnterCommit);
         assert_eq!(cfg.basic.switch_key, SwitchKey::CtrlSpace);
         assert!(!cfg.basic.auto_commit_unique);
+        assert!(!cfg.basic.commit_on_max_code_overflow);
+        assert!(!cfg.basic.show_code_hints);
         assert_eq!(cfg.basic.punctuation_mode, PunctuationMode::DirectCommit);
         assert_eq!(cfg.appearance.font_size, 16);
         assert!(cfg.dictionary.enable_fuzzy);
@@ -334,6 +346,8 @@ toggle_simplify = "ctrl_shift_s"
         let cfg = Config::from_str("[basic]\ncandidate_count = 3\n").unwrap();
         assert_eq!(cfg.basic.candidate_count, 3);
         assert_eq!(cfg.basic.commit_mode, CommitMode::SpaceFirst);
+        assert!(cfg.basic.commit_on_max_code_overflow);
+        assert!(cfg.basic.show_code_hints);
         assert_eq!(cfg.basic.punctuation_mode, PunctuationMode::BufferedCommit);
         assert_eq!(cfg.appearance.font_size, 14);
         assert!(!cfg.dictionary.enable_user_dict);

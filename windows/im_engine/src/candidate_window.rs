@@ -270,17 +270,21 @@ fn get_monitor_rect(hwnd: HWND) -> (i32, i32, i32, i32) {
 }
 
 /// 根据候选数据和编码计算窗口尺寸（双行显示：编码行 + 候选行）。
-fn measure_candidate_window_size(hwnd: HWND, data: &CandidateData) -> (i32, i32) {
+fn measure_candidate_window_size(_hwnd: HWND, data: &CandidateData) -> (i32, i32) {
     if data.items.is_empty() && data.spelling.is_empty() {
         return (DEFAULT_WIN_W, DEFAULT_WIN_H);
     }
-    let fs_px = crate::screen_geometry::pt_to_px_for_window(hwnd, data.theme.font_size).max(12);
+    let fs_px = crate::screen_geometry::pt_to_px(data.theme.font_size).max(12);
     if data.items.is_empty() {
         let approx_w = (data.spelling.len() as i32) * fs_px + 24;
         return (approx_w.max(60).min(800), fs_px + 20);
     }
-    let item_width = 80i32.max(fs_px * 5);
-    let total_w = data.items.len() as i32 * item_width + 20;
+    let total_w = data
+        .items
+        .iter()
+        .map(|item| (item.label.chars().count() + item.text.chars().count() + item.hint.chars().count()) as i32 * fs_px / 2 + 16)
+        .sum::<i32>()
+        + 20;
     let show_spelling = !data.spelling.is_empty();
     let row_h = (fs_px as f64 * 1.4) as i32;
     let total_h = if show_spelling { row_h * 2 + 6 } else { row_h + 6 };
@@ -327,7 +331,7 @@ fn gdi_render_candidate_window(
         if hdc_mem.is_invalid() { let _ = ReleaseDC(None, hdc_screen); return; }
 
         // font_size 以 pt 为单位，转换为像素
-        let fs_px = crate::screen_geometry::pt_to_px_for_window(hwnd, data.theme.font_size).max(12);
+        let fs_px = crate::screen_geometry::pt_to_px(data.theme.font_size).max(12);
         let row_h = (fs_px as f64 * 1.4) as i32;
         let padding = 8i32;
         let item_gap = 8i32;
@@ -349,17 +353,22 @@ fn gdi_render_candidate_window(
         let _ = SetBkMode(hdc_mem, TRANSPARENT);
 
         // 计算窗口宽度
-        let mut cand_max_w = 60i32;
+        let mut item_widths = Vec::with_capacity(data.items.len());
         for item in &data.items {
             let lw: Vec<u16> = item.label.encode_utf16().collect();
             let tw: Vec<u16> = item.text.encode_utf16().collect();
+            let hw: Vec<u16> = item.hint.encode_utf16().collect();
             let mut ls = SIZE::default();
             let mut ts = SIZE::default();
+            let mut hs = SIZE::default();
             let _ = GetTextExtentPoint32W(hdc_mem, &lw, &mut ls);
             let _ = GetTextExtentPoint32W(hdc_mem, &tw, &mut ts);
-            cand_max_w = cand_max_w.max(ls.cx + ts.cx + 4);
+            let _ = GetTextExtentPoint32W(hdc_mem, &hw, &mut hs);
+            item_widths.push((ls.cx + ts.cx + hs.cx + 4).max(24));
         }
-        let total_cand_w = data.items.len() as i32 * (cand_max_w + item_gap) + padding * 2;
+        let total_cand_w = item_widths.iter().sum::<i32>()
+            + item_gap * data.items.len().saturating_sub(1) as i32
+            + padding * 2;
         let mut spell_w = 0i32;
         if show_spelling {
             let sw: Vec<u16> = data.spelling.encode_utf16().collect();
@@ -423,27 +432,34 @@ fn gdi_render_candidate_window(
         for (i, item) in data.items.iter().enumerate() {
             let lw: Vec<u16> = item.label.encode_utf16().collect();
             let tw: Vec<u16> = item.text.encode_utf16().collect();
+            let hw: Vec<u16> = item.hint.encode_utf16().collect();
             let mut ls = SIZE::default();
             let mut ts = SIZE::default();
+            let mut hs = SIZE::default();
             let _ = GetTextExtentPoint32W(hdc_mem, &lw, &mut ls);
             let _ = GetTextExtentPoint32W(hdc_mem, &tw, &mut ts);
+            let _ = GetTextExtentPoint32W(hdc_mem, &hw, &mut hs);
+            let item_w = item_widths.get(i).copied().unwrap_or(ls.cx + ts.cx + hs.cx + 4);
             if i == data.highlighted {
                 let hl = CreateSolidBrush(argb_to_colorref(data.theme.highlight_color));
                 let _ = FillRect(hdc_mem, &RECT {
                     left: cx - 2, top: cand_y + 1,
-                    right: cx + cand_max_w + 2, bottom: cand_y + row_h - 1,
+                    right: cx + item_w + 2, bottom: cand_y + row_h - 1,
                 }, hl);
                 let _ = DeleteObject(HGDIOBJ(hl.0));
                 let _ = SetTextColor(hdc_mem, COLORREF(0x00FFFFFF));
                 let _ = TextOutW(hdc_mem, cx, cand_y + (row_h - ls.cy) / 2, &lw);
                 let _ = TextOutW(hdc_mem, cx + ls.cx, cand_y + (row_h - ts.cy) / 2, &tw);
+                let _ = TextOutW(hdc_mem, cx + ls.cx + ts.cx, cand_y + (row_h - hs.cy) / 2, &hw);
             } else {
                 let _ = SetTextColor(hdc_mem, argb_to_colorref(data.theme.primary_color));
                 let _ = TextOutW(hdc_mem, cx, cand_y + (row_h - ls.cy) / 2, &lw);
                 let _ = SetTextColor(hdc_mem, COLORREF(0x00000000));
                 let _ = TextOutW(hdc_mem, cx + ls.cx, cand_y + (row_h - ts.cy) / 2, &tw);
+                let _ = SetTextColor(hdc_mem, argb_to_colorref(data.theme.primary_color));
+                let _ = TextOutW(hdc_mem, cx + ls.cx + ts.cx, cand_y + (row_h - hs.cy) / 2, &hw);
             }
-            cx += cand_max_w + item_gap;
+            cx += item_w + item_gap;
         }
 
         // 分层窗口上的纯黑文本也必须带 alpha，否则会被当成完全透明。

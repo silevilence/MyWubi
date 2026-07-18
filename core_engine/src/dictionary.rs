@@ -46,6 +46,9 @@ pub struct TableConfig {
     /// 码表可用编码字符。
     #[serde(default = "default_charset")]
     pub charset: String,
+    /// 码表允许的最大编码长度。
+    #[serde(default = "default_max_code_len")]
+    pub max_code_len: u8,
 }
 
 /// 码表配置或词条校验问题。
@@ -78,12 +81,17 @@ impl Default for TableConfig {
         Self {
             wildcard_key: None,
             charset: default_charset(),
+            max_code_len: default_max_code_len(),
         }
     }
 }
 
 fn default_charset() -> String {
     DEFAULT_CHARSET.to_owned()
+}
+
+fn default_max_code_len() -> u8 {
+    4
 }
 
 fn deserialize_wildcard_key<'de, D>(deserializer: D) -> Result<Option<char>, D::Error>
@@ -511,6 +519,12 @@ fn parse_dictionary(
     let (config, body, line_offset) = split_yaml_header(text)?;
     validate_table_config(&config)?;
     let entries = parse_lines_with_config(body, line_offset, config.wildcard_key)?;
+    if let Some(issue) = validate_table(&config, &entries, 1).issues.first() {
+        return match issue.entry_index {
+            Some(index) => Err(DictError::InvalidLine(index + line_offset + 1, issue.message.clone())),
+            None => Err(DictError::InvalidHeader(issue.message.clone())),
+        };
+    }
     Ok((config, entries))
 }
 
@@ -549,6 +563,9 @@ fn split_yaml_header(text: &str) -> Result<(TableConfig, &str, usize), DictError
 }
 
 fn validate_table_config(config: &TableConfig) -> Result<(), DictError> {
+    if config.max_code_len == 0 {
+        return Err(DictError::InvalidHeader("max_code_len 必须大于 0".into()));
+    }
     if let Some(wildcard) = config.wildcard_key {
         if !config.charset.contains(wildcard) {
             return Err(DictError::InvalidHeader(format!(
@@ -589,6 +606,9 @@ pub fn validate_table(
     if config.charset.is_empty() {
         push_issue(None, "charset 不能为空".into());
     }
+    if config.max_code_len == 0 {
+        push_issue(None, "max_code_len 必须大于 0".into());
+    }
     if config
         .charset
         .chars()
@@ -624,6 +644,12 @@ pub fn validate_table(
             push_issue(
                 Some(index),
                 format!("编码 `{}` 含 charset 外字符 `{character}`", entry.code),
+            );
+        }
+        if entry.code.chars().count() > config.max_code_len as usize {
+            push_issue(
+                Some(index),
+                format!("编码 `{}` 超过最大码长 {}", entry.code, config.max_code_len),
             );
         }
         if let Some(wildcard) = config.wildcard_key {
@@ -873,10 +899,19 @@ mod tests {
     }
 
     #[test]
+    fn parse_dictionary_rejects_code_longer_than_max_code_len() {
+        let text = "---\ncharset: abcde\nmax_code_len: 4\n---\nabcde\t超长\t1\n";
+        let error = parse_dictionary(text, 4096).unwrap_err();
+
+        assert!(matches!(error, DictError::InvalidLine(_, _)));
+    }
+
+    #[test]
     fn validate_table_reports_charset_and_wildcard_violations() {
         let config = TableConfig {
             wildcard_key: Some('z'),
             charset: "abz".into(),
+            max_code_len: 4,
         };
         let entries = vec![
             Entry { code: "ac".into(), word: "越界".into(), weight: 1 },
@@ -901,6 +936,7 @@ mod tests {
         let config = TableConfig {
             wildcard_key: Some('?'),
             charset: "abc?".into(),
+            max_code_len: 4,
         };
         let entries = vec![Entry {
             code: "abc".into(),
