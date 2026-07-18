@@ -96,4 +96,15 @@ mod tests {
 
         assert_eq!(table.exact("a")[0].word, "工");
     }
+
+    #[test]
+    fn save_rejects_conflicting_hotkeys() {
+        let dir = tempfile::tempdir().unwrap();
+        let mut state = test_state(dir.path());
+        state.config.hotkey.page_prev = state.config.hotkey.page_next.clone();
+
+        assert!(!save(&mut state));
+        assert!(state.dirty);
+        assert!(state.status_msg.as_deref().is_some_and(|msg| msg.contains("冲突")));
+    }
 }

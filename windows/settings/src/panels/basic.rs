@@ -4,6 +4,20 @@ use crate::state::AppState;
 use core_engine::config::{CommitMode, PunctuationMode, SwitchKey};
 use eframe::egui::Ui;
 
+const HOTKEY_OPTIONS: [(&str, &str); 11] = [
+    ("comma", "逗号 (, )"),
+    ("period", "句号 (.)"),
+    ("semicolon", "分号 (;)"),
+    ("quote", "单引号 (')"),
+    ("minus", "减号 (-)"),
+    ("equal", "等号 (=)"),
+    ("space", "空格"),
+    ("left", "左箭头"),
+    ("right", "右箭头"),
+    ("page_down", "PageDown"),
+    ("page_up", "PageUp"),
+];
+
 pub fn show(ui: &mut Ui, state: &mut AppState) {
     ui.heading("常规设置");
     ui.separator();
@@ -93,48 +107,54 @@ pub fn show(ui: &mut Ui, state: &mut AppState) {
 
     // 翻页热键
     ui.separator();
+    ui.label("快速选词热键:");
+    ui.small("候选列表显示时，可直接上屏第 2 项和第 3 项。");
+    ui.horizontal(|ui| {
+        ui.label("第二候选:");
+        let mut select_second = state.config.hotkey.select_second.clone();
+        hotkey_combo(ui, "select_second", &mut select_second);
+        apply_hotkey_change(
+            &mut state.config.hotkey.select_second,
+            select_second,
+            &mut state.dirty,
+            &mut state.status_msg,
+        );
+    });
+    ui.horizontal(|ui| {
+        ui.label("第三候选:");
+        let mut select_third = state.config.hotkey.select_third.clone();
+        hotkey_combo(ui, "select_third", &mut select_third);
+        apply_hotkey_change(
+            &mut state.config.hotkey.select_third,
+            select_third,
+            &mut state.dirty,
+            &mut state.status_msg,
+        );
+    });
+
+    ui.separator();
     ui.label("翻页热键:");
     ui.horizontal(|ui| {
         ui.label("下一页:");
         let mut next = state.config.hotkey.page_next.clone();
-        let resp = eframe::egui::ComboBox::from_id_source("page_next")
-            .selected_text(page_key_label(&next))
-            .show_ui(ui, |ui| {
-                ui.selectable_value(&mut next, "comma".to_string(), "逗号 (,)");
-                ui.selectable_value(&mut next, "period".to_string(), "句号 (.)");
-                ui.selectable_value(&mut next, "minus".to_string(), "减号 (-)");
-                ui.selectable_value(&mut next, "equal".to_string(), "等号 (=)");
-                ui.selectable_value(&mut next, "space".to_string(), "空格");
-                ui.selectable_value(&mut next, "left".to_string(), "左箭头");
-                ui.selectable_value(&mut next, "right".to_string(), "右箭头");
-                ui.selectable_value(&mut next, "page_down".to_string(), "PageDown");
-                ui.selectable_value(&mut next, "page_up".to_string(), "PageUp");
-            });
-        if resp.response.changed() && next != state.config.hotkey.page_next {
-            state.config.hotkey.page_next = next;
-            state.mark_dirty();
-        }
+        hotkey_combo(ui, "page_next", &mut next);
+        apply_hotkey_change(
+            &mut state.config.hotkey.page_next,
+            next,
+            &mut state.dirty,
+            &mut state.status_msg,
+        );
     });
     ui.horizontal(|ui| {
         ui.label("上一页:");
         let mut prev = state.config.hotkey.page_prev.clone();
-        let resp = eframe::egui::ComboBox::from_id_source("page_prev")
-            .selected_text(page_key_label(&prev))
-            .show_ui(ui, |ui| {
-                ui.selectable_value(&mut prev, "comma".to_string(), "逗号 (,)");
-                ui.selectable_value(&mut prev, "period".to_string(), "句号 (.)");
-                ui.selectable_value(&mut prev, "minus".to_string(), "减号 (-)");
-                ui.selectable_value(&mut prev, "equal".to_string(), "等号 (=)");
-                ui.selectable_value(&mut prev, "space".to_string(), "空格");
-                ui.selectable_value(&mut prev, "left".to_string(), "左箭头");
-                ui.selectable_value(&mut prev, "right".to_string(), "右箭头");
-                ui.selectable_value(&mut prev, "page_down".to_string(), "PageDown");
-                ui.selectable_value(&mut prev, "page_up".to_string(), "PageUp");
-            });
-        if resp.response.changed() && prev != state.config.hotkey.page_prev {
-            state.config.hotkey.page_prev = prev;
-            state.mark_dirty();
-        }
+        hotkey_combo(ui, "page_prev", &mut prev);
+        apply_hotkey_change(
+            &mut state.config.hotkey.page_prev,
+            prev,
+            &mut state.dirty,
+            &mut state.status_msg,
+        );
     });
 }
 
@@ -160,10 +180,37 @@ fn punctuation_mode_label(m: PunctuationMode) -> &'static str {
     }
 }
 
-fn page_key_label(k: &str) -> &'static str {
+fn hotkey_combo(ui: &mut Ui, id_source: &str, value: &mut String) {
+    eframe::egui::ComboBox::from_id_source(id_source)
+        .selected_text(hotkey_label(value))
+        .show_ui(ui, |ui| {
+            for (key, label) in HOTKEY_OPTIONS {
+                ui.selectable_value(value, key.to_string(), label);
+            }
+        });
+}
+
+fn apply_hotkey_change(
+    current: &mut String,
+    pending: String,
+    dirty: &mut bool,
+    status_msg: &mut Option<String>,
+) -> bool {
+    if *current == pending {
+        return false;
+    }
+
+    *current = pending;
+    crate::state::set_dirty(dirty, status_msg);
+    true
+}
+
+fn hotkey_label(k: &str) -> &'static str {
     match k {
         "comma" => "逗号 (,)",
         "period" => "句号 (.)",
+        "semicolon" => "分号 (;)",
+        "quote" => "单引号 (')",
         "minus" => "减号 (-)",
         "equal" => "等号 (=)",
         "space" => "空格",
@@ -172,5 +219,29 @@ fn page_key_label(k: &str) -> &'static str {
         "page_down" => "PageDown",
         "page_up" => "PageUp",
         _ => "未知",
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn apply_hotkey_change_updates_value_and_marks_dirty() {
+        let mut current = "comma".to_string();
+        let mut dirty = false;
+        let mut status_msg = Some("已保存".to_string());
+
+        let changed = apply_hotkey_change(
+            &mut current,
+            "period".to_string(),
+            &mut dirty,
+            &mut status_msg,
+        );
+
+        assert!(changed);
+        assert_eq!(current, "period");
+        assert!(dirty);
+        assert_eq!(status_msg, None);
     }
 }

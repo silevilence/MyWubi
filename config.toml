@@ -36,5 +36,8 @@ enable_fuzzy = false
 # 翻页键
 page_next = "comma"
 page_prev = "period"
+# 快速选择候选
+select_second = "semicolon"
+select_third = "quote"
 # 二三级简码切换
 toggle_simplify = "ctrl_shift_s"

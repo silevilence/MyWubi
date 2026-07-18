@@ -1730,13 +1730,13 @@ impl ITfKeyEventSink_Impl for TextService_Impl {
         }
 
         let cfg = self.config_snapshot();
+        let sm = self.sm.lock();
         let event = key_filter::translate(
             wparam.0 as usize,
             lparam.0 as isize,
-            &cfg.hotkey.page_next,
-            &cfg.hotkey.page_prev,
+            sm.state() == core_engine::state_machine::InputState::Selecting,
+            &cfg.hotkey,
         );
-        let sm = self.sm.lock();
         let spelling_empty = sm.spelling().is_empty();
         let accepts_code_char = event.as_ref().is_some_and(|event| match event {
             InputEvent::Char(character) | InputEvent::Symbol(character) => {
@@ -1775,13 +1775,13 @@ impl ITfKeyEventSink_Impl for TextService_Impl {
         }
 
         let cfg = self.config_snapshot();
+        let sm = self.sm.lock();
         let Some(event) = key_filter::translate(
             wparam.0 as usize,
             lparam.0 as isize,
-            &cfg.hotkey.page_next,
-            &cfg.hotkey.page_prev,
+            sm.state() == core_engine::state_machine::InputState::Selecting,
+            &cfg.hotkey,
         ) else { return Ok(BOOL(0)); };
-        let sm = self.sm.lock();
         let spelling_empty = sm.spelling().is_empty();
         let accepts_code_char = match &event {
             InputEvent::Char(character) | InputEvent::Symbol(character) => {

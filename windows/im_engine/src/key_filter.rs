@@ -10,7 +10,7 @@
 //! * 其他可打印字符 → 通过 `ToUnicode` API 由系统根据当前键盘布局和修饰键状态
 //!   返回实际输入字符（支持 AZERTY、Dvorak 等任意布局），避免硬编码映射表；
 
-use core_engine::InputEvent;
+use core_engine::{config::Hotkey, InputEvent};
 use windows::Win32::UI::Input::KeyboardAndMouse::*;
 
 /// 检测系统修饰键（Ctrl / Alt / Win）是否处于按下状态。
@@ -48,6 +48,8 @@ fn key_name_to_vk(name: &str) -> Option<u16> {
     match name {
         "comma" => Some(VK_OEM_COMMA.0),
         "period" => Some(VK_OEM_PERIOD.0),
+        "semicolon" => Some(VK_OEM_1.0),
+        "quote" => Some(VK_OEM_7.0),
         "minus" => Some(VK_OEM_MINUS.0),
         "equal" => Some(VK_OEM_PLUS.0),
         "space" => Some(VK_SPACE.0),
@@ -117,18 +119,32 @@ fn classify_printable_char(c: char, shift_pressed: bool) -> InputEvent {
 ///
 /// `wparam` 为虚拟键码；`lparam` 包含扫描码与扩展键标志，传给 `ToUnicode`
 /// 以准确获取当前键盘布局下的实际字符。
-pub fn translate(wparam: usize, lparam: isize, page_next: &str, page_prev: &str) -> Option<InputEvent> {
+pub fn translate(wparam: usize, lparam: isize, is_selecting: bool, hotkey: &Hotkey) -> Option<InputEvent> {
     let vk = wparam as u16;
     let shift_pressed = is_shift_pressed();
 
+    // 候选态下的快速选词优先于翻页（仅 Shift 未按下时）。
+    if !shift_pressed && is_selecting {
+        if let Some(select_second_vk) = key_name_to_vk(&hotkey.select_second) {
+            if vk == select_second_vk {
+                return Some(InputEvent::Select(2));
+            }
+        }
+        if let Some(select_third_vk) = key_name_to_vk(&hotkey.select_third) {
+            if vk == select_third_vk {
+                return Some(InputEvent::Select(3));
+            }
+        }
+    }
+
     // 翻页键优先匹配（仅 Shift 未按下时）
     if !shift_pressed {
-        if let Some(pn_vk) = key_name_to_vk(page_next) {
+        if let Some(pn_vk) = key_name_to_vk(&hotkey.page_next) {
             if vk == pn_vk {
                 return Some(InputEvent::PageNext);
             }
         }
-        if let Some(pp_vk) = key_name_to_vk(page_prev) {
+        if let Some(pp_vk) = key_name_to_vk(&hotkey.page_prev) {
             if vk == pp_vk {
                 return Some(InputEvent::PagePrev);
             }
@@ -151,18 +167,32 @@ pub fn translate(wparam: usize, lparam: isize, page_next: &str, page_prev: &str)
 #[cfg(test)]
 mod tests {
     use super::*;
-    use windows::Win32::UI::Input::KeyboardAndMouse::{VK_OEM_COMMA, VK_OEM_MINUS, VK_OEM_PLUS};
+    use windows::Win32::UI::Input::KeyboardAndMouse::{
+        VK_OEM_1,
+        VK_OEM_7,
+        VK_OEM_COMMA,
+        VK_OEM_MINUS,
+        VK_OEM_PLUS,
+    };
+
+    fn default_hotkey() -> Hotkey {
+        Hotkey::default()
+    }
+
+    fn translate_idle(wparam: usize, lparam: isize) -> Option<InputEvent> {
+        translate(wparam, lparam, false, &default_hotkey())
+    }
 
     #[test]
     fn translate_space_and_enter() {
-        assert_eq!(translate(VK_SPACE.0 as usize, 0, "comma", "period"), Some(InputEvent::Space));
-        assert_eq!(translate(VK_RETURN.0 as usize, 0, "comma", "period"), Some(InputEvent::Enter));
+        assert_eq!(translate_idle(VK_SPACE.0 as usize, 0), Some(InputEvent::Space));
+        assert_eq!(translate_idle(VK_RETURN.0 as usize, 0), Some(InputEvent::Enter));
     }
 
     #[test]
     fn translate_backspace_and_esc() {
-        assert_eq!(translate(VK_BACK.0 as usize, 0, "comma", "period"), Some(InputEvent::Backspace));
-        assert_eq!(translate(VK_ESCAPE.0 as usize, 0, "comma", "period"), Some(InputEvent::Esc));
+        assert_eq!(translate_idle(VK_BACK.0 as usize, 0), Some(InputEvent::Backspace));
+        assert_eq!(translate_idle(VK_ESCAPE.0 as usize, 0), Some(InputEvent::Esc));
     }
 
     /// 以下 ToUnicode 相关测试依赖系统键盘布局为英文（QWERTY）。
@@ -176,40 +206,51 @@ mod tests {
     #[test]
     fn translate_unknown_returns_none() {
         // 虚拟键码 0xFF 通常不产生任何字符
-        assert_eq!(translate(0xFF as usize, 0, "comma", "period"), None);
+        assert_eq!(translate_idle(0xFF as usize, 0), None);
     }
 
     #[test]
     fn translate_common_punctuation_keys() {
         // 默认配置下逗号/句号被映射为翻页键（无 Shift）
-        assert_eq!(translate(VK_OEM_COMMA.0 as usize, 0, "comma", "period"), Some(InputEvent::PageNext));
-        assert_eq!(translate(VK_OEM_PERIOD.0 as usize, 0, "comma", "period"), Some(InputEvent::PagePrev));
+        assert_eq!(translate_idle(VK_OEM_COMMA.0 as usize, 0), Some(InputEvent::PageNext));
+        assert_eq!(translate_idle(VK_OEM_PERIOD.0 as usize, 0), Some(InputEvent::PagePrev));
     }
 
     #[test]
     fn page_next_takes_priority_over_page_prev() {
+        let mut hotkey = default_hotkey();
+        hotkey.page_prev = hotkey.page_next.clone();
+
         assert_eq!(
-            translate(VK_OEM_COMMA.0 as usize, 0, "comma", "comma"),
+            translate(VK_OEM_COMMA.0 as usize, 0, false, &hotkey),
             Some(InputEvent::PageNext)
         );
     }
 
     #[test]
     fn page_prev_works_for_non_default_key() {
+        let mut hotkey = default_hotkey();
+        hotkey.page_next = "period".to_string();
+        hotkey.page_prev = "comma".to_string();
+
         assert_eq!(
-            translate(VK_OEM_COMMA.0 as usize, 0, "period", "comma"),
+            translate(VK_OEM_COMMA.0 as usize, 0, false, &hotkey),
             Some(InputEvent::PagePrev)
         );
     }
 
     #[test]
     fn page_key_non_default_minus_equal() {
+        let mut hotkey = default_hotkey();
+        hotkey.page_next = "minus".to_string();
+        hotkey.page_prev = "equal".to_string();
+
         assert_eq!(
-            translate(VK_OEM_MINUS.0 as usize, 0, "minus", "equal"),
+            translate(VK_OEM_MINUS.0 as usize, 0, false, &hotkey),
             Some(InputEvent::PageNext)
         );
         assert_eq!(
-            translate(VK_OEM_PLUS.0 as usize, 0, "minus", "equal"),
+            translate(VK_OEM_PLUS.0 as usize, 0, false, &hotkey),
             Some(InputEvent::PagePrev)
         );
     }
@@ -228,6 +269,8 @@ mod tests {
     fn key_name_to_vk_maps_all_options() {
         assert_eq!(key_name_to_vk("comma"), Some(VK_OEM_COMMA.0));
         assert_eq!(key_name_to_vk("period"), Some(VK_OEM_PERIOD.0));
+        assert_eq!(key_name_to_vk("semicolon"), Some(VK_OEM_1.0));
+        assert_eq!(key_name_to_vk("quote"), Some(VK_OEM_7.0));
         assert_eq!(key_name_to_vk("minus"), Some(VK_OEM_MINUS.0));
         assert_eq!(key_name_to_vk("equal"), Some(VK_OEM_PLUS.0));
         assert_eq!(key_name_to_vk("space"), Some(VK_SPACE.0));
@@ -236,5 +279,19 @@ mod tests {
         assert_eq!(key_name_to_vk("page_up"), Some(VK_PRIOR.0));
         assert_eq!(key_name_to_vk("page_down"), Some(VK_NEXT.0));
         assert_eq!(key_name_to_vk("unknown"), None);
+    }
+
+    #[test]
+    fn selecting_state_maps_quick_select_hotkeys() {
+        let hotkey = default_hotkey();
+
+        assert_eq!(
+            translate(VK_OEM_1.0 as usize, 0, true, &hotkey),
+            Some(InputEvent::Select(2))
+        );
+        assert_eq!(
+            translate(VK_OEM_7.0 as usize, 0, true, &hotkey),
+            Some(InputEvent::Select(3))
+        );
     }
 }

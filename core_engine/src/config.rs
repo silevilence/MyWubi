@@ -133,6 +133,12 @@ pub struct Hotkey {
     /// 上一页键。
     #[serde(default = "default_page_prev")]
     pub page_prev: String,
+    /// 快速选择第二候选。
+    #[serde(default = "default_select_second")]
+    pub select_second: String,
+    /// 快速选择第三候选。
+    #[serde(default = "default_select_third")]
+    pub select_third: String,
     /// 二三级简码切换。
     #[serde(default = "default_toggle_simplify")]
     pub toggle_simplify: String,
@@ -178,6 +184,8 @@ impl Default for Hotkey {
         Self {
             page_next: default_page_next(),
             page_prev: default_page_prev(),
+            select_second: default_select_second(),
+            select_third: default_select_third(),
             toggle_simplify: default_toggle_simplify(),
         }
     }
@@ -194,6 +202,8 @@ fn default_system_table() -> PathBuf { PathBuf::from("tables/wubi86.dict") }
 fn default_user_table() -> PathBuf { PathBuf::from("tables/user.dict") }
 fn default_page_next() -> String { "comma".into() }
 fn default_page_prev() -> String { "period".into() }
+fn default_select_second() -> String { "semicolon".into() }
+fn default_select_third() -> String { "quote".into() }
 fn default_toggle_simplify() -> String { "ctrl_shift_s".into() }
 
 impl Config {
@@ -222,6 +232,8 @@ impl Config {
     /// 安全写入：先写入临时文件再原子性改名，避免写入中断损坏原配置。
     pub fn save<P: AsRef<Path>>(&self, path: P) -> Result<(), Error> {
         let path = path.as_ref();
+        self.validate()?;
+        self.validate_hotkey_conflicts()?;
         let text = self.to_string_toml()?;
         let tmp = path.with_extension("toml.tmp");
         std::fs::write(&tmp, text.as_bytes())
@@ -245,6 +257,28 @@ impl Config {
                 "不能为 0".into(),
             ));
         }
+        Ok(())
+    }
+
+    fn validate_hotkey_conflicts(&self) -> Result<(), Error> {
+        let bindings = [
+            ("hotkey.page_next", self.hotkey.page_next.as_str()),
+            ("hotkey.page_prev", self.hotkey.page_prev.as_str()),
+            ("hotkey.select_second", self.hotkey.select_second.as_str()),
+            ("hotkey.select_third", self.hotkey.select_third.as_str()),
+        ];
+
+        for (index, (field, key)) in bindings.iter().enumerate() {
+            for (other_field, other_key) in bindings.iter().skip(index + 1) {
+                if key == other_key {
+                    return Err(Error::Invalid(
+                        (*other_field).into(),
+                        format!("与 `{field}` 冲突：都绑定到 `{key}`"),
+                    ));
+                }
+            }
+        }
+
         Ok(())
     }
 }
@@ -277,6 +311,8 @@ enable_user_dict = true
 [hotkey]
 page_next = "comma"
 page_prev = "period"
+select_second = "semicolon"
+select_third = "quote"
 toggle_simplify = "ctrl_shift_s"
 "#;
 
@@ -316,5 +352,18 @@ toggle_simplify = "ctrl_shift_s"
         let cfg2 = Config::from_str(&s).unwrap();
         assert_eq!(cfg2.basic.candidate_count, 7);
         assert_eq!(cfg2.basic.commit_mode, CommitMode::EnterCommit);
+    }
+
+    #[test]
+    fn quick_select_hotkeys_roundtrip_and_default() {
+        let cfg = Config::from_str(SAMPLE).unwrap();
+        let serialized = cfg.to_string_toml().unwrap();
+        assert!(serialized.contains("select_second = \"semicolon\""));
+        assert!(serialized.contains("select_third = \"quote\""));
+
+        let defaulted = Config::from_str("[basic]\ncandidate_count = 3\n").unwrap();
+        let default_text = defaulted.to_string_toml().unwrap();
+        assert!(default_text.contains("select_second = \"semicolon\""));
+        assert!(default_text.contains("select_third = \"quote\""));
     }
 }
