@@ -219,8 +219,7 @@ fn show_table_editor(ui: &mut Ui, state: &mut AppState) {
             let wildcard = editor.wildcard_key.trim();
             ui.monospace(format!(
                 "---\nwildcard_key: {wildcard:?}\ncharset: {:?}\nmax_code_len: {}\n---",
-                editor.config.charset,
-                editor.config.max_code_len,
+                editor.config.charset, editor.config.max_code_len,
             ));
         });
 

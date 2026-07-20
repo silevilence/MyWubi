@@ -31,7 +31,8 @@ fn main() {
 
     let manifest_dir = std::env::var("CARGO_MANIFEST_DIR").unwrap();
     let profile = std::env::var("PROFILE").unwrap_or_else(|_| "debug".to_string());
-    let ws_root = Path::new(&manifest_dir).parent()
+    let ws_root = Path::new(&manifest_dir)
+        .parent()
         .and_then(|p| p.parent())
         .expect("workspace root");
     let target_root = ws_root.join("target");

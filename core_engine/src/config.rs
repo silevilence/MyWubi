@@ -199,20 +199,48 @@ impl Default for Hotkey {
     }
 }
 
-fn default_candidate_count() -> u8 { 5 }
-fn default_true() -> bool { true }
-fn default_switch_key() -> SwitchKey { SwitchKey::Shift }
-fn default_font_size() -> u16 { 14 }
-fn default_primary() -> u32 { 0xFF1E88E5 }
-fn default_background() -> u32 { 0xFFFFFFFF }
-fn default_highlight() -> u32 { 0xFFFFD54F }
-fn default_system_table() -> PathBuf { PathBuf::from("tables/wubi86.dict") }
-fn default_user_table() -> PathBuf { PathBuf::from("tables/user.dict") }
-fn default_page_next() -> String { "comma".into() }
-fn default_page_prev() -> String { "period".into() }
-fn default_select_second() -> String { "semicolon".into() }
-fn default_select_third() -> String { "quote".into() }
-fn default_toggle_simplify() -> String { "ctrl_shift_s".into() }
+fn default_candidate_count() -> u8 {
+    5
+}
+fn default_true() -> bool {
+    true
+}
+fn default_switch_key() -> SwitchKey {
+    SwitchKey::Shift
+}
+fn default_font_size() -> u16 {
+    14
+}
+fn default_primary() -> u32 {
+    0xFF1E88E5
+}
+fn default_background() -> u32 {
+    0xFFFFFFFF
+}
+fn default_highlight() -> u32 {
+    0xFFFFD54F
+}
+fn default_system_table() -> PathBuf {
+    PathBuf::from("tables/wubi86.dict")
+}
+fn default_user_table() -> PathBuf {
+    PathBuf::from("tables/user.dict")
+}
+fn default_page_next() -> String {
+    "comma".into()
+}
+fn default_page_prev() -> String {
+    "period".into()
+}
+fn default_select_second() -> String {
+    "semicolon".into()
+}
+fn default_select_third() -> String {
+    "quote".into()
+}
+fn default_toggle_simplify() -> String {
+    "ctrl_shift_s".into()
+}
 
 impl Config {
     /// 从 TOML 字符串解析。
@@ -233,8 +261,7 @@ impl Config {
 
     /// 序列化为 TOML 字符串。
     pub fn to_string_toml(&self) -> Result<String, Error> {
-        toml::to_string_pretty(self)
-            .map_err(|e| Error::Invalid("serialize".into(), e.to_string()))
+        toml::to_string_pretty(self).map_err(|e| Error::Invalid("serialize".into(), e.to_string()))
     }
 
     /// 安全写入：先写入临时文件再原子性改名，避免写入中断损坏原配置。
@@ -244,10 +271,8 @@ impl Config {
         self.validate_hotkey_conflicts()?;
         let text = self.to_string_toml()?;
         let tmp = path.with_extension("toml.tmp");
-        std::fs::write(&tmp, text.as_bytes())
-            .map_err(|e| Error::Io(tmp.clone(), e.to_string()))?;
-        std::fs::rename(&tmp, path)
-            .map_err(|e| Error::Io(path.to_path_buf(), e.to_string()))?;
+        std::fs::write(&tmp, text.as_bytes()).map_err(|e| Error::Io(tmp.clone(), e.to_string()))?;
+        std::fs::rename(&tmp, path).map_err(|e| Error::Io(path.to_path_buf(), e.to_string()))?;
         Ok(())
     }
 

@@ -78,14 +78,20 @@ pub fn show(ui: &mut Ui, state: &mut AppState) {
     });
     ui.horizontal(|ui| {
         let mut commit = state.config.basic.commit_on_max_code_overflow;
-        if ui.checkbox(&mut commit, "超过最大码长时顶首选并开始下一码").changed() {
+        if ui
+            .checkbox(&mut commit, "超过最大码长时顶首选并开始下一码")
+            .changed()
+        {
             state.config.basic.commit_on_max_code_overflow = commit;
             state.mark_dirty();
         }
     });
     ui.horizontal(|ui| {
         let mut show = state.config.basic.show_code_hints;
-        if ui.checkbox(&mut show, "候选编码不全时显示后续编码提示").changed() {
+        if ui
+            .checkbox(&mut show, "候选编码不全时显示后续编码提示")
+            .changed()
+        {
             state.config.basic.show_code_hints = show;
             state.mark_dirty();
         }
@@ -94,7 +100,10 @@ pub fn show(ui: &mut Ui, state: &mut AppState) {
     ui.horizontal(|ui| {
         ui.label("当前码表万能键:");
         if let Some(error) = &state.table_editor.load_error {
-            ui.colored_label(eframe::egui::Color32::LIGHT_RED, format!("读取失败：{error}"));
+            ui.colored_label(
+                eframe::egui::Color32::LIGHT_RED,
+                format!("读取失败：{error}"),
+            );
         } else if let Some(wildcard) = state.table_editor.config.wildcard_key {
             ui.monospace(wildcard.to_string());
         } else {
@@ -110,8 +119,16 @@ pub fn show(ui: &mut Ui, state: &mut AppState) {
         let resp = eframe::egui::ComboBox::from_id_source("punctuation_mode")
             .selected_text(punctuation_mode_label(mode))
             .show_ui(ui, |ui| {
-                ui.selectable_value(&mut mode, PunctuationMode::BufferedCommit, "加入缓冲，最后一起上屏");
-                ui.selectable_value(&mut mode, PunctuationMode::DirectCommit, "立即上屏，不进入编码");
+                ui.selectable_value(
+                    &mut mode,
+                    PunctuationMode::BufferedCommit,
+                    "加入缓冲，最后一起上屏",
+                );
+                ui.selectable_value(
+                    &mut mode,
+                    PunctuationMode::DirectCommit,
+                    "立即上屏，不进入编码",
+                );
             });
         if resp.response.changed() && mode != state.config.basic.punctuation_mode {
             state.config.basic.punctuation_mode = mode;

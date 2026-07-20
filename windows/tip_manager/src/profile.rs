@@ -3,22 +3,14 @@
 //! 提供 `TipProfileManager` trait 及其 COM 实现，用于 TIP Profile 的
 //! 注册/反注册/启用/禁用操作。
 
-use windows::Win32::System::Com::{
-    CoCreateInstance, CLSCTX_INPROC_SERVER,
-};
+use windows::Win32::System::Com::{CoCreateInstance, CLSCTX_INPROC_SERVER};
 use windows::Win32::UI::Input::KeyboardAndMouse::HKL;
 use windows::Win32::UI::TextServices::{
-    ITfInputProcessorProfileMgr, ITfInputProcessorProfiles,
-    ITfCategoryMgr,
-    CLSID_TF_InputProcessorProfiles, CLSID_TF_CategoryMgr,
-    GUID_TFCAT_TIP_KEYBOARD,
-    GUID_TFCAT_DISPLAYATTRIBUTEPROVIDER,
-    GUID_TFCAT_TIPCAP_UIELEMENTENABLED,
-    GUID_TFCAT_TIPCAP_SECUREMODE,
-    GUID_TFCAT_TIPCAP_COMLESS,
-    GUID_TFCAT_TIPCAP_INPUTMODECOMPARTMENT,
-    GUID_TFCAT_TIPCAP_IMMERSIVESUPPORT,
-    GUID_TFCAT_TIPCAP_SYSTRAYSUPPORT,
+    CLSID_TF_CategoryMgr, CLSID_TF_InputProcessorProfiles, ITfCategoryMgr,
+    ITfInputProcessorProfileMgr, ITfInputProcessorProfiles, GUID_TFCAT_DISPLAYATTRIBUTEPROVIDER,
+    GUID_TFCAT_TIPCAP_COMLESS, GUID_TFCAT_TIPCAP_IMMERSIVESUPPORT,
+    GUID_TFCAT_TIPCAP_INPUTMODECOMPARTMENT, GUID_TFCAT_TIPCAP_SECUREMODE,
+    GUID_TFCAT_TIPCAP_SYSTRAYSUPPORT, GUID_TFCAT_TIPCAP_UIELEMENTENABLED, GUID_TFCAT_TIP_KEYBOARD,
 };
 use windows_core::Interface;
 
@@ -66,11 +58,7 @@ impl ComProfileManager {
         // 先以 CLSID_TF_InputProcessorProfiles 创建 COM 对象，
         // 它同时实现了 ITfInputProcessorProfiles 和 ITfInputProcessorProfileMgr。
         let profiles: ITfInputProcessorProfiles = unsafe {
-            CoCreateInstance(
-                &CLSID_TF_InputProcessorProfiles,
-                None,
-                CLSCTX_INPROC_SERVER,
-            )
+            CoCreateInstance(&CLSID_TF_InputProcessorProfiles, None, CLSCTX_INPROC_SERVER)
         }
         .map_err(|e| {
             TipManagerError::Com(format!(
@@ -96,11 +84,8 @@ impl ComProfileManager {
 impl TipProfileManager for ComProfileManager {
     fn is_enabled(&self) -> Result<bool, TipManagerError> {
         let result = unsafe {
-            self.profiles.IsEnabledLanguageProfile(
-                &CLSID_TEXT_SERVICE,
-                self.lang_id,
-                &GUID_PROFILE,
-            )
+            self.profiles
+                .IsEnabledLanguageProfile(&CLSID_TEXT_SERVICE, self.lang_id, &GUID_PROFILE)
         }
         .map_err(|e| TipManagerError::Com(format!("IsEnabledLanguageProfile 失败: {e}")))?;
         Ok(result.as_bool())
@@ -141,12 +126,12 @@ impl TipProfileManager for ComProfileManager {
                 self.lang_id,
                 &GUID_PROFILE,
                 &desc,
-                &[], // pchIconFile — 空，注册表中已有 IconFile
-                0,   // uiconindex
+                &[],      // pchIconFile — 空，注册表中已有 IconFile
+                0,        // uiconindex
                 NULL_HKL, // hklSubstitute — 零值表示无替代布局
-                0,   // dwPreferredLayout
-                true, // bEnabledByDefault
-                0,   // dwFlags
+                0,        // dwPreferredLayout
+                true,     // bEnabledByDefault
+                0,        // dwFlags
             )
         }
         .map_err(|e| TipManagerError::Com(format!("RegisterProfile 失败: {e}")))
@@ -179,10 +164,10 @@ const SUPPORT_CATEGORIES: [windows::core::GUID; 8] = [
 
 /// 通过 `ITfCategoryMgr::RegisterCategory` 注册所有 TSF 类别。
 pub fn register_categories() -> Result<(), TipManagerError> {
-    let category_manager: ITfCategoryMgr = unsafe {
-        CoCreateInstance(&CLSID_TF_CategoryMgr, None, CLSCTX_INPROC_SERVER)
-    }
-    .map_err(|e| TipManagerError::Com(format!("CoCreateInstance(ITfCategoryMgr) 失败: {e}")))?;
+    let category_manager: ITfCategoryMgr =
+        unsafe { CoCreateInstance(&CLSID_TF_CategoryMgr, None, CLSCTX_INPROC_SERVER) }.map_err(
+            |e| TipManagerError::Com(format!("CoCreateInstance(ITfCategoryMgr) 失败: {e}")),
+        )?;
 
     for guid in SUPPORT_CATEGORIES {
         unsafe {
@@ -190,28 +175,33 @@ pub fn register_categories() -> Result<(), TipManagerError> {
         }
         .map_err(|e| TipManagerError::Com(format!("RegisterCategory 失败: {e:?}")))?;
     }
-    log::info!("[tip_manager] 已注册 {} 个 TSF 类别", SUPPORT_CATEGORIES.len());
+    log::info!(
+        "[tip_manager] 已注册 {} 个 TSF 类别",
+        SUPPORT_CATEGORIES.len()
+    );
     Ok(())
 }
 
 /// 通过 `ITfCategoryMgr::UnregisterCategory` 反注册所有 TSF 类别。
 pub fn unregister_categories() -> Result<(), TipManagerError> {
-    let category_manager: ITfCategoryMgr = match unsafe {
-        CoCreateInstance(&CLSID_TF_CategoryMgr, None, CLSCTX_INPROC_SERVER)
-    } {
-        Ok(m) => m,
-        Err(_) => {
-            log::warn!("[tip_manager] ITfCategoryMgr 不可用，跳过类别清理");
-            return Ok(());
-        }
-    };
+    let category_manager: ITfCategoryMgr =
+        match unsafe { CoCreateInstance(&CLSID_TF_CategoryMgr, None, CLSCTX_INPROC_SERVER) } {
+            Ok(m) => m,
+            Err(_) => {
+                log::warn!("[tip_manager] ITfCategoryMgr 不可用，跳过类别清理");
+                return Ok(());
+            }
+        };
 
     for guid in SUPPORT_CATEGORIES {
         let _ = unsafe {
             category_manager.UnregisterCategory(&CLSID_TEXT_SERVICE, &guid, &CLSID_TEXT_SERVICE)
         };
     }
-    log::info!("[tip_manager] 已清理 {} 个 TSF 类别", SUPPORT_CATEGORIES.len());
+    log::info!(
+        "[tip_manager] 已清理 {} 个 TSF 类别",
+        SUPPORT_CATEGORIES.len()
+    );
     Ok(())
 }
 

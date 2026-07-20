@@ -16,15 +16,61 @@ use std::time::{SystemTime, UNIX_EPOCH};
 /// 构建一份五笔风格的小型码表。
 fn dict() -> Arc<Dictionary> {
     let entries = vec![
-        Entry { code: "a".into(),     word: "工".into(),  weight: 999 },
-        Entry { code: "ggll".into(),  word: "王".into(),  weight: 100 },
-        Entry { code: "ggll".into(),  word: "壬".into(),  weight: 50 },
-        Entry { code: "ggll".into(),  word: "丰".into(),  weight: 20 },
-        Entry { code: "ggh".into(),   word: "理".into(),  weight: 80 },
-        Entry { code: "gghg".into(),  word: "五".into(),  weight: 200 },
-        Entry { code: "ggtt".into(),  word: "五笔".into(), weight: 60 },
-        Entry { code: "ggli".into(),  word: "班".into(),  weight: 30 },
-        Entry { code: "gt".into(),    word: "五".into(),  weight: 10 },
+        Entry {
+            code: "a".into(),
+            word: "工".into(),
+            weight: 999,
+        },
+        Entry {
+            code: "A".into(),
+            word: "大".into(),
+            weight: 998,
+        },
+        Entry {
+            code: "aaaa".into(),
+            word: "式".into(),
+            weight: 120,
+        },
+        Entry {
+            code: "ggll".into(),
+            word: "王".into(),
+            weight: 100,
+        },
+        Entry {
+            code: "ggll".into(),
+            word: "壬".into(),
+            weight: 50,
+        },
+        Entry {
+            code: "ggll".into(),
+            word: "丰".into(),
+            weight: 20,
+        },
+        Entry {
+            code: "ggh".into(),
+            word: "理".into(),
+            weight: 80,
+        },
+        Entry {
+            code: "gghg".into(),
+            word: "五".into(),
+            weight: 200,
+        },
+        Entry {
+            code: "ggtt".into(),
+            word: "五笔".into(),
+            weight: 60,
+        },
+        Entry {
+            code: "ggli".into(),
+            word: "班".into(),
+            weight: 30,
+        },
+        Entry {
+            code: "gt".into(),
+            word: "五".into(),
+            weight: 10,
+        },
     ];
     Dictionary::from_entries(entries, None, LoadOptions::default()).unwrap()
 }
@@ -123,9 +169,21 @@ fn digit_wildcard_is_not_used_as_candidate_selection() {
 fn candidate_words_are_unique_across_matching_codes() {
     let dictionary = Dictionary::from_entries(
         vec![
-            Entry { code: "eh".into(), word: "用".into(), weight: 100 },
-            Entry { code: "eht".into(), word: "用".into(), weight: 50 },
-            Entry { code: "ehv".into(), word: "月".into(), weight: 80 },
+            Entry {
+                code: "eh".into(),
+                word: "用".into(),
+                weight: 100,
+            },
+            Entry {
+                code: "eht".into(),
+                word: "用".into(),
+                weight: 50,
+            },
+            Entry {
+                code: "ehv".into(),
+                word: "月".into(),
+                weight: 80,
+            },
         ],
         None,
         LoadOptions::default(),
@@ -143,8 +201,7 @@ fn candidate_words_are_unique_across_matching_codes() {
 
 #[test]
 fn real_wubi06_eh_candidates_contain_one_yong() {
-    let path = std::path::Path::new(env!("CARGO_MANIFEST_DIR"))
-        .join("../tables/wubi06.dict");
+    let path = std::path::Path::new(env!("CARGO_MANIFEST_DIR")).join("../tables/wubi06.dict");
     let dictionary = Dictionary::load(path).unwrap();
     let mut machine = StateMachine::with_options(dictionary, 100, false);
     machine.handle(InputEvent::Char('e'));
@@ -364,10 +421,12 @@ fn symbol_passthrough_during_idle() {
 }
 
 #[test]
-fn uppercase_letter_matches_lowercase_code() {
+fn uppercase_letter_matches_uppercase_code_only() {
     let mut m = StateMachine::new(dict());
     let t = m.handle(InputEvent::Char('A'));
-    assert!(matches!(t, Transition::Candidates { spelling, candidates, .. } if spelling == "a" && candidates == ["工"]));
+    assert!(
+        matches!(t, Transition::Candidates { spelling, candidates, .. } if spelling == "A" && candidates == ["大"])
+    );
 }
 
 #[test]
@@ -398,21 +457,31 @@ fn punctuation_after_no_candidate_stays_editable_in_buffer() {
     let t = m.handle(InputEvent::Symbol('!'));
 
     assert_eq!(t, Transition::SpellingUpdated("zz!".to_string()));
-    assert_eq!(m.handle(InputEvent::Backspace), Transition::SpellingUpdated("zz".to_string()));
+    assert_eq!(
+        m.handle(InputEvent::Backspace),
+        Transition::SpellingUpdated("zz".to_string())
+    );
 }
 
 #[test]
-fn uppercase_letters_match_lowercase_codes() {
+fn uppercase_letters_are_case_sensitive_codes() {
     let mut m = StateMachine::with_options(dict(), 5, false);
 
     let t = m.handle(InputEvent::Char('A'));
 
-    assert!(matches!(t, Transition::Candidates { candidates, .. } if candidates == ["工"]));
+    assert!(matches!(t, Transition::Candidates { candidates, .. } if candidates == ["大"]));
 }
 
 #[test]
 fn overflow_code_commits_first_candidate_and_starts_next_code_when_enabled() {
-    let mut m = StateMachine::with_full_behavior(dict(), 5, false, PunctuationMode::BufferedCommit, 4, true);
+    let mut m = StateMachine::with_full_behavior(
+        dict(),
+        5,
+        false,
+        PunctuationMode::BufferedCommit,
+        4,
+        true,
+    );
     drive_chars(&mut m, "ggll");
 
     let t = m.handle(InputEvent::Char('a'));
@@ -420,8 +489,38 @@ fn overflow_code_commits_first_candidate_and_starts_next_code_when_enabled() {
     assert!(matches!(
         t,
         Transition::CommitThenCandidates { text, replace_len, spelling, candidates, .. }
-            if text == "王" && replace_len == 4 && spelling == "a" && candidates == ["工"]
+            if text == "王" && replace_len == 4 && spelling == "a" && candidates[0] == "工"
     ));
+}
+
+#[test]
+fn overflow_exact_code_commits_first_candidate_and_starts_next_code() {
+    let mut m = StateMachine::with_full_behavior(
+        dict(),
+        5,
+        false,
+        PunctuationMode::BufferedCommit,
+        4,
+        true,
+    );
+    drive_chars(&mut m, "aaaa");
+
+    let t = m.handle(InputEvent::Char('a'));
+
+    assert!(matches!(
+        t,
+        Transition::CommitThenCandidates { text, replace_len, spelling, candidates, .. }
+            if text == "式" && replace_len == 4 && spelling == "a" && candidates[0] == "工"
+    ));
+}
+
+#[test]
+fn idle_chinese_symbol_commits_directly() {
+    let mut m = StateMachine::new(dict());
+
+    let t = m.handle(InputEvent::Symbol('，'));
+
+    assert_eq!(t, Transition::Commit("，".to_string()));
 }
 
 #[test]
@@ -439,7 +538,14 @@ fn prefix_candidates_include_remaining_code_hints() {
 
 #[test]
 fn overflow_code_stays_in_buffer_when_auto_commit_disabled() {
-    let mut m = StateMachine::with_full_behavior(dict(), 5, false, PunctuationMode::BufferedCommit, 4, false);
+    let mut m = StateMachine::with_full_behavior(
+        dict(),
+        5,
+        false,
+        PunctuationMode::BufferedCommit,
+        4,
+        false,
+    );
     drive_chars(&mut m, "ggll");
 
     let t = m.handle(InputEvent::Char('a'));

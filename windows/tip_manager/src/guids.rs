@@ -24,8 +24,7 @@ pub const IM_ENGINE_DLL: &str = "im_engine.dll";
 pub const GUID_PROFILE: GUID = GUID::from_u128(0xC9F2EAA4_0AB7_49C6_9F2C_8B8FA8D5FFD9);
 
 /// TSF 键盘输入法类别（windows-rs 0.61 预定义值）。
-pub const GUID_TFCAT_TIP_KEYBOARD: GUID =
-    GUID::from_u128(0x34745C63_B2F0_4784_8B67_5E12C8701A31);
+pub const GUID_TFCAT_TIP_KEYBOARD: GUID = GUID::from_u128(0x34745C63_B2F0_4784_8B67_5E12C8701A31);
 
 /// 让 `CLSID_TEXT_SERVICE` 的字符串表示可用于注册表键名。
 pub fn clsid_string() -> String {

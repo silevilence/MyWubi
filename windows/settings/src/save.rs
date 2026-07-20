@@ -76,7 +76,11 @@ mod tests {
         assert!(state.dirty);
         assert!(!save(&mut state));
         assert!(state.dirty);
-        assert!(state.status_msg.as_ref().unwrap().starts_with("[ERR] 保存失败"));
+        assert!(state
+            .status_msg
+            .as_ref()
+            .unwrap()
+            .starts_with("[ERR] 保存失败"));
     }
 
     #[test]
@@ -105,6 +109,9 @@ mod tests {
 
         assert!(!save(&mut state));
         assert!(state.dirty);
-        assert!(state.status_msg.as_deref().is_some_and(|msg| msg.contains("冲突")));
+        assert!(state
+            .status_msg
+            .as_deref()
+            .is_some_and(|msg| msg.contains("冲突")));
     }
 }

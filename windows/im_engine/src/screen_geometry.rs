@@ -1,11 +1,13 @@
 // windows/im_engine/src/screen_geometry.rs
 
+use crate::candidate_data::ScreenPoint;
 use windows::core::BOOL;
 use windows::Win32::Foundation::{HWND, POINT, RECT};
 use windows::Win32::Graphics::Gdi::{ClientToScreen, GetDC, GetDeviceCaps, ReleaseDC, LOGPIXELSY};
 use windows::Win32::UI::TextServices::{ITfContext, ITfContextView, ITfRange};
-use windows::Win32::UI::WindowsAndMessaging::{GetCaretPos, GetCursorPos, GetForegroundWindow, GetGUIThreadInfo, GUITHREADINFO};
-use crate::candidate_data::ScreenPoint;
+use windows::Win32::UI::WindowsAndMessaging::{
+    GetCaretPos, GetCursorPos, GetForegroundWindow, GetGUIThreadInfo, GUITHREADINFO,
+};
 
 /// 屏幕边缘 padding（像素）。
 const EDGE_PADDING: i32 = 8;
@@ -17,8 +19,7 @@ pub fn get_range_position(context: &ITfContext, ec: u32, range: &ITfRange) -> Op
     let mut rect = RECT::default();
     let mut clipped = BOOL::default();
     unsafe {
-        view.GetTextExt(ec, range, &mut rect, &mut clipped)
-            .ok()?;
+        view.GetTextExt(ec, range, &mut rect, &mut clipped).ok()?;
     }
 
     // TSF 文档窗口最小化/不可见时会返回 {0,0,0,0}。
@@ -27,7 +28,10 @@ pub fn get_range_position(context: &ITfContext, ec: u32, range: &ITfRange) -> Op
     }
 
     let _ = clipped;
-    Some(ScreenPoint { x: rect.left, y: rect.bottom })
+    Some(ScreenPoint {
+        x: rect.left,
+        y: rect.bottom,
+    })
 }
 
 fn get_window_dpi(hwnd: HWND) -> i32 {
@@ -43,7 +47,11 @@ fn get_window_dpi(hwnd: HWND) -> i32 {
         }
         let dpi = GetDeviceCaps(Some(hdc), LOGPIXELSY);
         let _ = ReleaseDC(release_target, hdc);
-        if dpi > 0 { dpi } else { DEFAULT_DPI }
+        if dpi > 0 {
+            dpi
+        } else {
+            DEFAULT_DPI
+        }
     }
 }
 
@@ -96,7 +104,10 @@ pub fn get_caret_position_win32(font_size_pt: u16) -> Option<ScreenPoint> {
             }
             let _ = ClientToScreen(fg, &mut pt);
             let line_h = pt_to_line_height_for_window(fg, font_size_pt);
-            return Some(ScreenPoint { x: pt.x, y: pt.y + line_h + 2 });
+            return Some(ScreenPoint {
+                x: pt.x,
+                y: pt.y + line_h + 2,
+            });
         }
         let mut pt = POINT::default();
         if GetCaretPos(&mut pt).is_err() {
@@ -107,7 +118,10 @@ pub fn get_caret_position_win32(font_size_pt: u16) -> Option<ScreenPoint> {
         // GetCaretPos 返回的 y 是文字基线 (baseline) 坐标。
         // 候选框应位于文字行下方：基线 y + 行高 + 2px 间距
         let line_h = pt_to_line_height_for_window(caret_hwnd, font_size_pt);
-        Some(ScreenPoint { x: pt.x, y: pt.y + line_h + 2 })
+        Some(ScreenPoint {
+            x: pt.x,
+            y: pt.y + line_h + 2,
+        })
     }
 }
 
@@ -118,7 +132,10 @@ pub fn get_cursor_position() -> Option<ScreenPoint> {
         if GetCursorPos(&mut pt).is_err() {
             return None;
         }
-        Some(ScreenPoint { x: pt.x, y: pt.y + 20 })
+        Some(ScreenPoint {
+            x: pt.x,
+            y: pt.y + 20,
+        })
     }
 }
 

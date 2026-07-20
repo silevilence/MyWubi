@@ -19,8 +19,8 @@ use parking_lot::Mutex;
 use std::ffi::c_void;
 use std::mem;
 use std::ptr;
-use std::sync::Arc;
 use std::sync::atomic::{AtomicBool, AtomicU64, Ordering};
+use std::sync::Arc;
 
 use windows::core::{implement, w, Interface, Ref, Result, BOOL, GUID, HRESULT};
 use windows::Win32::Foundation::{
@@ -28,53 +28,49 @@ use windows::Win32::Foundation::{
 };
 use windows::Win32::Graphics::Gdi::{
     CreateBitmap, CreateCompatibleDC, CreateDIBSection, CreateFontW, DeleteDC, DeleteObject,
-    DrawTextW, GdiFlush, SelectObject, SetBkMode, SetTextColor, ANTIALIASED_QUALITY, BI_RGB,
-    BITMAPINFO, BITMAPINFOHEADER, CLIP_DEFAULT_PRECIS, DEFAULT_CHARSET, DEFAULT_PITCH,
-    DIB_RGB_COLORS, DT_CENTER, DT_SINGLELINE, DT_VCENTER, FF_DONTCARE, FW_NORMAL, HGDIOBJ,
-    OUT_DEFAULT_PRECIS, RGBQUAD, TRANSPARENT,
+    DrawTextW, GdiFlush, SelectObject, SetBkMode, SetTextColor, ANTIALIASED_QUALITY, BITMAPINFO,
+    BITMAPINFOHEADER, BI_RGB, CLIP_DEFAULT_PRECIS, DEFAULT_CHARSET, DEFAULT_PITCH, DIB_RGB_COLORS,
+    DT_CENTER, DT_SINGLELINE, DT_VCENTER, FF_DONTCARE, FW_NORMAL, HGDIOBJ, OUT_DEFAULT_PRECIS,
+    RGBQUAD, TRANSPARENT,
 };
 use windows::Win32::System::Com::{CoCreateInstance, CLSCTX_INPROC_SERVER};
 use windows::Win32::System::Ole::{
     CONNECT_E_ADVISELIMIT, CONNECT_E_CANNOTCONNECT, CONNECT_E_NOCONNECTION,
 };
 use windows::Win32::System::Variant::{VARIANT, VARIANT_0, VARIANT_0_0, VARIANT_0_0_0, VT_I4};
-use windows::Win32::UI::TextServices::{
-    CLSID_TF_LangBarItemMgr, GUID_PROP_ATTRIBUTE, IEnumTfDisplayAttributeInfo,
-    IEnumTfDisplayAttributeInfo_Impl, ITfCategoryMgr, ITfCompartment, ITfCompartmentEventSink,
-    ITfCompartmentEventSink_Impl,
-    ITfCompartmentMgr, ITfComposition, ITfCompositionSink, ITfCompositionSink_Impl, ITfContext,
-    ITfContextComposition, ITfDisplayAttributeInfo, ITfDisplayAttributeInfo_Impl,
-    ITfDisplayAttributeProvider, ITfDisplayAttributeProvider_Impl,
-    ITfDocumentMgr, ITfEditSession, ITfEditSession_Impl, ITfEditRecord,
-    ITfFnGetPreferredTouchKeyboardLayout, ITfFnGetPreferredTouchKeyboardLayout_Impl,
-    ITfFunction, ITfFunction_Impl, ITfFunctionProvider, ITfFunctionProvider_Impl,
-    ITfKeyEventSink, ITfKeyEventSink_Impl, ITfKeystrokeMgr, ITfLangBarItem,
-    ITfLangBarItemButton, ITfLangBarItemButton_Impl, ITfLangBarItem_Impl, ITfLangBarItemMgr,
-    ITfLangBarItemSink, ITfMenu, ITfProperty, ITfRange, ITfSource, ITfSource_Impl,
-    ITfTextEditSink, ITfTextEditSink_Impl,
-    ITfTextInputProcessor, ITfTextInputProcessorEx, ITfTextInputProcessorEx_Impl,
-    ITfTextInputProcessor_Impl, ITfThreadFocusSink, ITfThreadFocusSink_Impl,
-    ITfThreadMgr,
-    ITfThreadMgrEventSink, ITfThreadMgrEventSink_Impl,
-    TF_DA_COLOR, TF_DA_COLOR_0,
-    TF_ANCHOR_START, TF_DISPLAYATTRIBUTE, TF_ES_ASYNC, TF_ES_READWRITE, TF_DEFAULT_SELECTION, TF_LS_DOT,
-    TF_LS_SOLID, TF_SELECTION, TF_CT_COLORREF, GUID_TFCAT_DISPLAYATTRIBUTEPROVIDER,
-    GUID_COMPARTMENT_KEYBOARD_OPENCLOSE, GUID_LBI_INPUTMODE, TF_LANGBARITEMINFO, TF_LBI_CLK_LEFT,
-    TF_LBI_ICON, TF_LBI_STATUS, TF_LBI_STATUS_HIDDEN, TF_LBI_STYLE_BTN_BUTTON,
-    TF_LBI_STYLE_SHOWNINTRAY, TF_LBI_TEXT, TF_LBI_TOOLTIP, TF_MOD_CONTROL, TF_MOD_ON_KEYUP,
-    TF_PRESERVEDKEY,
-    TKBLayoutType, TfLBIClick, TKBLT_OPTIMIZED, TKBL_OPT_SIMPLIFIED_CHINESE_PINYIN,
-};
 use windows::Win32::UI::Input::KeyboardAndMouse::{
     VK_CAPITAL, VK_LSHIFT, VK_RSHIFT, VK_SHIFT, VK_SPACE,
+};
+use windows::Win32::UI::TextServices::{
+    CLSID_TF_LangBarItemMgr, IEnumTfDisplayAttributeInfo, IEnumTfDisplayAttributeInfo_Impl,
+    ITfCategoryMgr, ITfCompartment, ITfCompartmentEventSink, ITfCompartmentEventSink_Impl,
+    ITfCompartmentMgr, ITfComposition, ITfCompositionSink, ITfCompositionSink_Impl, ITfContext,
+    ITfContextComposition, ITfDisplayAttributeInfo, ITfDisplayAttributeInfo_Impl,
+    ITfDisplayAttributeProvider, ITfDisplayAttributeProvider_Impl, ITfDocumentMgr, ITfEditRecord,
+    ITfEditSession, ITfEditSession_Impl, ITfFnGetPreferredTouchKeyboardLayout,
+    ITfFnGetPreferredTouchKeyboardLayout_Impl, ITfFunction, ITfFunctionProvider,
+    ITfFunctionProvider_Impl, ITfFunction_Impl, ITfKeyEventSink, ITfKeyEventSink_Impl,
+    ITfKeystrokeMgr, ITfLangBarItem, ITfLangBarItemButton, ITfLangBarItemButton_Impl,
+    ITfLangBarItemMgr, ITfLangBarItemSink, ITfLangBarItem_Impl, ITfMenu, ITfProperty, ITfRange,
+    ITfSource, ITfSource_Impl, ITfTextEditSink, ITfTextEditSink_Impl, ITfTextInputProcessor,
+    ITfTextInputProcessorEx, ITfTextInputProcessorEx_Impl, ITfTextInputProcessor_Impl,
+    ITfThreadFocusSink, ITfThreadFocusSink_Impl, ITfThreadMgr, ITfThreadMgrEventSink,
+    ITfThreadMgrEventSink_Impl, TKBLayoutType, TfLBIClick, GUID_COMPARTMENT_KEYBOARD_OPENCLOSE,
+    GUID_LBI_INPUTMODE, GUID_PROP_ATTRIBUTE, GUID_TFCAT_DISPLAYATTRIBUTEPROVIDER, TF_AE_END,
+    TF_ANCHOR_END, TF_ANCHOR_START, TF_CT_COLORREF, TF_DA_COLOR, TF_DA_COLOR_0,
+    TF_DEFAULT_SELECTION, TF_DISPLAYATTRIBUTE, TF_ES_READWRITE, TF_ES_SYNC, TF_LANGBARITEMINFO,
+    TF_LBI_CLK_LEFT, TF_LBI_ICON, TF_LBI_STATUS, TF_LBI_STATUS_HIDDEN, TF_LBI_STYLE_BTN_BUTTON,
+    TF_LBI_STYLE_SHOWNINTRAY, TF_LBI_TEXT, TF_LBI_TOOLTIP, TF_LS_DOT, TF_LS_SOLID, TF_MOD_CONTROL,
+    TF_MOD_ON_KEYUP, TF_PRESERVEDKEY, TF_SELECTION, TF_SELECTIONSTYLE, TKBLT_OPTIMIZED,
+    TKBL_OPT_SIMPLIFIED_CHINESE_PINYIN,
 };
 use windows::Win32::UI::WindowsAndMessaging::{CreateIconIndirect, HICON, ICONINFO};
 
 use arc_swap::ArcSwap;
 
 use crate::candidate_data::{CandidateData, CandidateItem, ScreenPoint, ThemeSnapshot};
-use crate::guids::CLSID_TEXT_SERVICE;
 use crate::candidate_window::CandidateWindow;
+use crate::guids::CLSID_TEXT_SERVICE;
 use crate::key_filter;
 use crate::screen_geometry::get_range_position;
 use crate::RuntimeSnapshot;
@@ -205,9 +201,19 @@ fn create_lang_bar_icon(text: &str) -> Result<HICON> {
         let old_bitmap = SelectObject(dc, HGDIOBJ(color.0));
 
         let font = CreateFontW(
-            -14, 0, 0, 0, FW_NORMAL.0 as i32, 0, 0, 0,
-            DEFAULT_CHARSET, OUT_DEFAULT_PRECIS, CLIP_DEFAULT_PRECIS,
-            ANTIALIASED_QUALITY, (DEFAULT_PITCH.0 | FF_DONTCARE.0).into(),
+            -14,
+            0,
+            0,
+            0,
+            FW_NORMAL.0 as i32,
+            0,
+            0,
+            0,
+            DEFAULT_CHARSET,
+            OUT_DEFAULT_PRECIS,
+            CLIP_DEFAULT_PRECIS,
+            ANTIALIASED_QUALITY,
+            (DEFAULT_PITCH.0 | FF_DONTCARE.0).into(),
             w!("Microsoft YaHei UI"),
         );
         if font.is_invalid() {
@@ -223,8 +229,18 @@ fn create_lang_bar_icon(text: &str) -> Result<HICON> {
         let pixels = std::slice::from_raw_parts_mut(bits.cast::<u8>(), (SIZE * SIZE * 4) as usize);
         pixels.fill(0);
         let mut utf16: Vec<u16> = text.encode_utf16().collect();
-        let mut rect = RECT { left: 0, top: 0, right: SIZE, bottom: SIZE };
-        let drawn = DrawTextW(dc, &mut utf16, &mut rect, DT_CENTER | DT_VCENTER | DT_SINGLELINE);
+        let mut rect = RECT {
+            left: 0,
+            top: 0,
+            right: SIZE,
+            bottom: SIZE,
+        };
+        let drawn = DrawTextW(
+            dc,
+            &mut utf16,
+            &mut rect,
+            DT_CENTER | DT_VCENTER | DT_SINGLELINE,
+        );
         let _ = GdiFlush();
 
         for pixel in pixels.chunks_exact_mut(4) {
@@ -282,7 +298,7 @@ impl ITfDisplayAttributeInfo_Impl for DisplayAttributeInfo_Impl {
     }
 
     fn SetAttributeInfo(&self, _pda: *const TF_DISPLAYATTRIBUTE) -> Result<()> {
-        Ok(())  // 自定义属性不支持外部修改
+        Ok(()) // 自定义属性不支持外部修改
     }
 
     fn Reset(&self) -> Result<()> {
@@ -294,13 +310,23 @@ impl ITfDisplayAttributeInfo_Impl for DisplayAttributeInfo_Impl {
 fn make_color(r: u8, g: u8, b: u8) -> TF_DA_COLOR {
     TF_DA_COLOR {
         r#type: TF_CT_COLORREF,
-            Anonymous: TF_DA_COLOR_0 { cr: COLORREF((r as u32) | ((g as u32) << 8) | ((b as u32) << 16)) },
+        Anonymous: TF_DA_COLOR_0 {
+            cr: COLORREF((r as u32) | ((g as u32) << 8) | ((b as u32) << 16)),
+        },
     }
 }
 
 /// 创建一个 ComObject 包裹的 DisplayAttributeInfo，返回其 ITfDisplayAttributeInfo 接口。
-fn make_display_attr_info(guid: GUID, desc: &'static str, attr: TF_DISPLAYATTRIBUTE) -> ITfDisplayAttributeInfo {
-    let info = DisplayAttributeInfo { guid, description: desc, attr };
+fn make_display_attr_info(
+    guid: GUID,
+    desc: &'static str,
+    attr: TF_DISPLAYATTRIBUTE,
+) -> ITfDisplayAttributeInfo {
+    let info = DisplayAttributeInfo {
+        guid,
+        description: desc,
+        attr,
+    };
     let obj = windows::core::ComObject::new(info);
     obj.to_interface()
 }
@@ -309,7 +335,10 @@ fn make_display_attr_info(guid: GUID, desc: &'static str, attr: TF_DISPLAYATTRIB
 fn attr_input() -> TF_DISPLAYATTRIBUTE {
     TF_DISPLAYATTRIBUTE {
         crText: make_color(0x80, 0x80, 0x80),
-        crBk: TF_DA_COLOR { r#type: TF_CT_COLORREF, ..Default::default() },
+        crBk: TF_DA_COLOR {
+            r#type: TF_CT_COLORREF,
+            ..Default::default()
+        },
         lsStyle: TF_LS_DOT,
         fBoldLine: false.into(),
         crLine: make_color(0x80, 0x80, 0x80),
@@ -321,7 +350,10 @@ fn attr_input() -> TF_DISPLAYATTRIBUTE {
 fn attr_converted() -> TF_DISPLAYATTRIBUTE {
     TF_DISPLAYATTRIBUTE {
         crText: make_color(0x00, 0x00, 0x00),
-        crBk: TF_DA_COLOR { r#type: TF_CT_COLORREF, ..Default::default() },
+        crBk: TF_DA_COLOR {
+            r#type: TF_CT_COLORREF,
+            ..Default::default()
+        },
         lsStyle: TF_LS_SOLID,
         fBoldLine: false.into(),
         crLine: make_color(0x00, 0x00, 0x00),
@@ -367,15 +399,23 @@ impl IEnumTfDisplayAttributeInfo_Impl for DisplayAttributeInfoEnum_Impl {
         let fetched = self.items.len().saturating_sub(start).min(requested);
 
         for offset in 0..fetched {
-            unsafe { rginfo.add(offset).write(Some(self.items[start + offset].clone())); }
+            unsafe {
+                rginfo
+                    .add(offset)
+                    .write(Some(self.items[start + offset].clone()));
+            }
         }
         for offset in fetched..requested {
-            unsafe { rginfo.add(offset).write(None); }
+            unsafe {
+                rginfo.add(offset).write(None);
+            }
         }
 
         *index += fetched;
         if !pcfetched.is_null() {
-            unsafe { *pcfetched = fetched as u32; }
+            unsafe {
+                *pcfetched = fetched as u32;
+            }
         }
 
         if fetched == requested {
@@ -423,7 +463,10 @@ fn make_i32_variant(value: i32) -> VARIANT {
 #[allow(dead_code)]
 enum EditSessionOp {
     /// 创建或更新 composition range 上的编码文本。
-    CompositionUpdate { spelling: String, attr: DisplayAttrKind },
+    CompositionUpdate {
+        spelling: String,
+        attr: DisplayAttrKind,
+    },
     /// 将 composition range 文本替换为最终候选词，终止 composition。
     CommitAndReplace { text: String, replace_len: usize },
     /// 提交当前 composition 后立刻开始下一轮 composition。
@@ -441,7 +484,7 @@ enum EditSessionOp {
 }
 
 /// ITfEditSession 的 COM 实现。由 schedule_edit_session 创建并传递给
-/// ITfContext::RequestEditSession 异步调度。
+/// ITfContext::RequestEditSession 调度。
 #[implement(ITfEditSession)]
 struct EditSession {
     op: EditSessionOp,
@@ -481,13 +524,22 @@ struct SinkState {
 ///
 /// 内部的 [`StateMachine`] 通过 `Mutex` 保护，多线程可见且无需发送数据
 /// 跨线程锁竞争（TSF 单线程模型 + Mutex 互斥访问足够）。
-#[implement(ITfTextInputProcessor, ITfThreadMgrEventSink, ITfKeyEventSink,
-             ITfCompositionSink, ITfDisplayAttributeProvider,
-             ITfTextInputProcessorEx, ITfThreadFocusSink,
-             ITfTextEditSink, ITfFunctionProvider,
-             ITfFunction, ITfFnGetPreferredTouchKeyboardLayout,
-             ITfCompartmentEventSink, ITfLangBarItemButton,
-             ITfSource)]
+#[implement(
+    ITfTextInputProcessor,
+    ITfThreadMgrEventSink,
+    ITfKeyEventSink,
+    ITfCompositionSink,
+    ITfDisplayAttributeProvider,
+    ITfTextInputProcessorEx,
+    ITfThreadFocusSink,
+    ITfTextEditSink,
+    ITfFunctionProvider,
+    ITfFunction,
+    ITfFnGetPreferredTouchKeyboardLayout,
+    ITfCompartmentEventSink,
+    ITfLangBarItemButton,
+    ITfSource
+)]
 pub struct TextService {
     /// 跨平台核心状态机。
     sm: Mutex<StateMachine>,
@@ -558,6 +610,7 @@ fn should_intercept_test_key(
         Some(InputEvent::Char(_)) if accepts_code_char => true,
         Some(InputEvent::Char(_)) => !spelling_empty,
         Some(InputEvent::Symbol(_)) if accepts_code_char => true,
+        Some(InputEvent::Symbol(character)) if !character.is_ascii() => true,
         Some(_) => !spelling_empty,
         None => false,
     }
@@ -583,7 +636,10 @@ fn candidate_items(
         .collect()
 }
 
-fn resolve_candidate_anchor(current_anchor: Option<ScreenPoint>, font_size: u16) -> Option<ScreenPoint> {
+fn resolve_candidate_anchor(
+    current_anchor: Option<ScreenPoint>,
+    font_size: u16,
+) -> Option<ScreenPoint> {
     current_anchor
         .or_else(|| crate::screen_geometry::get_caret_position_win32(font_size))
         .or_else(|| crate::screen_geometry::get_cursor_position())
@@ -655,15 +711,20 @@ fn transition_to_edit_session_op(transition: &Transition) -> EditSessionOp {
             }
         }
         Transition::Cleared => EditSessionOp::EndComposition { delete_text: true },
-        Transition::Candidates { .. } | Transition::SpellingUpdated(_) | Transition::Passthrough(_) => {
-            EditSessionOp::NoOp
-        }
+        Transition::Candidates { .. }
+        | Transition::SpellingUpdated(_)
+        | Transition::Passthrough(_) => EditSessionOp::NoOp,
     }
 }
 
 impl TextService {
     /// 创建一个绑定码表与状态机的文本服务实例（不带 back-pointer）。
-    pub fn new(dict: Arc<Dictionary>, page_size: usize, auto_commit_unique: bool, candidate_tx: Arc<ArcSwap<CandidateData>>) -> Self {
+    pub fn new(
+        dict: Arc<Dictionary>,
+        page_size: usize,
+        auto_commit_unique: bool,
+        candidate_tx: Arc<ArcSwap<CandidateData>>,
+    ) -> Self {
         Self::with_theme(
             dict,
             page_size,
@@ -731,7 +792,11 @@ impl TextService {
     }
 
     /// 从 [`Config`] 选择默认参数。
-    pub fn from_config(dict: Arc<Dictionary>, cfg: &Config, candidate_tx: Arc<ArcSwap<CandidateData>>) -> Self {
+    pub fn from_config(
+        dict: Arc<Dictionary>,
+        cfg: &Config,
+        candidate_tx: Arc<ArcSwap<CandidateData>>,
+    ) -> Self {
         Self::with_theme(
             dict,
             cfg.basic.candidate_count as usize,
@@ -853,7 +918,8 @@ impl TextService {
             Transition::None => {}
             Transition::Commit(text) => {
                 log::info!("[TSF] commit text: {text}");
-                self.candidate_tx.store(Arc::new(CandidateData::hidden(theme.clone())));
+                self.candidate_tx
+                    .store(Arc::new(CandidateData::hidden(theme.clone())));
             }
             Transition::CommitThenCandidates {
                 text,
@@ -870,7 +936,13 @@ impl TextService {
                 let items = candidate_items(candidates, code_hints, cfg.basic.show_code_hints);
                 let anchor = resolve_candidate_anchor(current_anchor, theme.font_size);
                 self.candidate_tx.store(Arc::new(CandidateData::visible(
-                    spelling.clone(), items, 0, *page, *total_pages, anchor, theme.clone(),
+                    spelling.clone(),
+                    items,
+                    0,
+                    *page,
+                    *total_pages,
+                    anchor,
+                    theme.clone(),
                 )));
             }
             Transition::CommitThenSpelling { text, spelling, .. } => {
@@ -883,16 +955,29 @@ impl TextService {
                 );
                 self.candidate_tx.store(Arc::new(data));
             }
-            Transition::Candidates { spelling, candidates, code_hints, page, total_pages } => {
+            Transition::Candidates {
+                spelling,
+                candidates,
+                code_hints,
+                page,
+                total_pages,
+            } => {
                 if spelling.is_empty() {
-                    self.candidate_tx.store(Arc::new(CandidateData::hidden(theme.clone())));
+                    self.candidate_tx
+                        .store(Arc::new(CandidateData::hidden(theme.clone())));
                 } else {
                     let current_anchor = self.candidate_tx.load().anchor;
                     let cfg = self.config_snapshot();
                     let items = candidate_items(candidates, code_hints, cfg.basic.show_code_hints);
                     let anchor = resolve_candidate_anchor(current_anchor, theme.font_size);
                     self.candidate_tx.store(Arc::new(CandidateData::visible(
-                        spelling.clone(), items, 0, *page, *total_pages, anchor, theme.clone(),
+                        spelling.clone(),
+                        items,
+                        0,
+                        *page,
+                        *total_pages,
+                        anchor,
+                        theme.clone(),
                     )));
                 }
             }
@@ -907,10 +992,12 @@ impl TextService {
                 self.candidate_tx.store(Arc::new(data));
             }
             Transition::Cleared => {
-                self.candidate_tx.store(Arc::new(CandidateData::hidden(theme.clone())));
+                self.candidate_tx
+                    .store(Arc::new(CandidateData::hidden(theme.clone())));
             }
             Transition::Passthrough(_) => {
-                self.candidate_tx.store(Arc::new(CandidateData::hidden(theme.clone())));
+                self.candidate_tx
+                    .store(Arc::new(CandidateData::hidden(theme.clone())));
             }
         }
 
@@ -929,7 +1016,7 @@ impl TextService {
         }
     }
 
-    /// 异步调度一条 composition 操作到 TSF 编辑会话。
+    /// 调度一条 composition 操作到 TSF 编辑会话。
     fn schedule_edit_session(&self, op: EditSessionOp, context: &ITfContext) {
         let Some(service_owner) = self.clone_self_unknown() else {
             log::warn!("[TSF] schedule_edit_session: self_unknown 缺失，跳过");
@@ -947,7 +1034,9 @@ impl TextService {
         };
         let com_obj = windows::core::ComObject::new(edit_session);
         let edit_session_com: ITfEditSession = com_obj.to_interface();
-        if let Err(e) = unsafe { context.RequestEditSession(tid, &edit_session_com, TF_ES_ASYNC | TF_ES_READWRITE) } {
+        if let Err(e) = unsafe {
+            context.RequestEditSession(tid, &edit_session_com, TF_ES_SYNC | TF_ES_READWRITE)
+        } {
             log::error!("[TSF] RequestEditSession 失败: {e}");
         }
     }
@@ -962,7 +1051,12 @@ impl TextService {
             EditSessionOp::CommitAndReplace { text, replace_len } => {
                 self.edit_session_commit_and_replace(ec, text, *replace_len)
             }
-            EditSessionOp::CommitThenUpdate { text, replace_len, spelling, attr } => {
+            EditSessionOp::CommitThenUpdate {
+                text,
+                replace_len,
+                spelling,
+                attr,
+            } => {
                 self.edit_session_commit_and_replace(ec, text, *replace_len)?;
                 self.edit_session_composition_update(ec, spelling, *attr)
             }
@@ -1012,13 +1106,21 @@ impl TextService {
         Ok(())
     }
 
-    fn edit_session_commit_and_replace(&self, ec: u32, text: &str, replace_len: usize) -> Result<()> {
+    fn edit_session_commit_and_replace(
+        &self,
+        ec: u32,
+        text: &str,
+        replace_len: usize,
+    ) -> Result<()> {
         let mut comp_guard = self.composition.lock();
         if let Some(comp) = comp_guard.take() {
+            let (edit_ctx, _doc_mgr) = self.get_focus_context()?;
             let range: ITfRange = unsafe { comp.GetRange()? };
             let wide: Vec<u16> = text.encode_utf16().collect();
             unsafe { range.SetText(ec, 0, &wide) }?;
+            unsafe { range.Collapse(ec, TF_ANCHOR_END) }?;
             unsafe { comp.EndComposition(ec) }?;
+            self.set_selection_to_range_end(&edit_ctx, ec, &range)?;
         } else {
             let (edit_ctx, _doc_mgr) = self.get_focus_context()?;
             let range = self.get_selection_range(&edit_ctx, ec)?;
@@ -1032,6 +1134,8 @@ impl TextService {
             }
             let wide: Vec<u16> = text.encode_utf16().collect();
             unsafe { range.SetText(ec, 0, &wide) }?;
+            unsafe { range.Collapse(ec, TF_ANCHOR_END) }?;
+            self.set_selection_to_range_end(&edit_ctx, ec, &range)?;
         }
         self.is_composing.store(false, Ordering::Release);
         Ok(())
@@ -1053,9 +1157,9 @@ impl TextService {
     /// 获取当前焦点文档管理器的顶 context.
     fn get_focus_context(&self) -> Result<(ITfContext, ITfDocumentMgr)> {
         let tm_guard = self.thread_mgr.lock();
-        let tm = tm_guard.as_ref().ok_or_else(|| {
-            windows::core::Error::from(HRESULT(-1))
-        })?;
+        let tm = tm_guard
+            .as_ref()
+            .ok_or_else(|| windows::core::Error::from(HRESULT(-1)))?;
         let doc_mgr: ITfDocumentMgr = unsafe { tm.GetFocus() }?;
         let ctx: ITfContext = unsafe { doc_mgr.GetBase() }?;
         drop(tm_guard);
@@ -1071,6 +1175,24 @@ impl TextService {
             return Err(windows::core::Error::from(HRESULT(-1)));
         }
         Ok(Option::clone(&sel[0].range).unwrap())
+    }
+
+    fn set_selection_to_range_end(
+        &self,
+        ctx: &ITfContext,
+        ec: u32,
+        range: &ITfRange,
+    ) -> Result<()> {
+        let mut selection = [TF_SELECTION {
+            range: mem::ManuallyDrop::new(Some(range.clone())),
+            style: TF_SELECTIONSTYLE {
+                ase: TF_AE_END,
+                fInterimChar: BOOL(0),
+            },
+        }];
+        let result = unsafe { ctx.SetSelection(ec, &selection) };
+        unsafe { mem::ManuallyDrop::drop(&mut selection[0].range) };
+        result
     }
 
     /// 注册本 TIP 的自定义 display attribute 类别，使 TSF 能调用
@@ -1259,9 +1381,12 @@ impl TextService {
         if chinese {
             log::debug!("[TSF] 切换到中文模式");
         } else {
-            if let Some((text, replace_len)) = self.sm.lock().commit_current() {
+            if let Some((text, replace_len)) = self.sm.lock().commit_raw_current() {
                 if let Ok((ctx, _)) = self.get_focus_context() {
-                    self.schedule_edit_session(EditSessionOp::CommitAndReplace { text, replace_len }, &ctx);
+                    self.schedule_edit_session(
+                        EditSessionOp::CommitAndReplace { text, replace_len },
+                        &ctx,
+                    );
                 }
             } else {
                 self.end_active_composition();
@@ -1294,7 +1419,10 @@ impl TextService {
     fn end_active_composition(&self) {
         if self.is_composing.load(Ordering::Acquire) {
             if let Ok((ctx, _)) = self.get_focus_context() {
-                self.schedule_edit_session(EditSessionOp::EndComposition { delete_text: true }, &ctx);
+                self.schedule_edit_session(
+                    EditSessionOp::EndComposition { delete_text: true },
+                    &ctx,
+                );
             }
         }
     }
@@ -1554,27 +1682,25 @@ impl ITfTextInputProcessorEx_Impl for TextService_Impl {
             // 这是 Microsoft 官方 TSF 示例推荐的方式，比 ITfSource::AdviseSink
             // 更可靠，确保 OnKeyDown/OnTestKeyDown 被正确调用。
             let kmgr_ok = match tm.cast::<ITfKeystrokeMgr>() {
-                Ok(kmgr) => {
-                    match punk_self.cast::<ITfKeyEventSink>() {
-                        Ok(key_sink) => {
-                            match unsafe { kmgr.AdviseKeyEventSink(tid, &key_sink, true) } {
-                                Ok(()) => {
-                                    self.cookies.lock().using_keystroke_mgr = true;
-                                    log::info!("[TSF] ITfKeystrokeMgr::AdviseKeyEventSink 成功");
-                                    true
-                                }
-                                Err(e) => {
-                                    log::error!("[TSF] AdviseKeyEventSink 失败: {e}");
-                                    false
-                                }
+                Ok(kmgr) => match punk_self.cast::<ITfKeyEventSink>() {
+                    Ok(key_sink) => {
+                        match unsafe { kmgr.AdviseKeyEventSink(tid, &key_sink, true) } {
+                            Ok(()) => {
+                                self.cookies.lock().using_keystroke_mgr = true;
+                                log::info!("[TSF] ITfKeystrokeMgr::AdviseKeyEventSink 成功");
+                                true
+                            }
+                            Err(e) => {
+                                log::error!("[TSF] AdviseKeyEventSink 失败: {e}");
+                                false
                             }
                         }
-                        Err(e) => {
-                            log::error!("[TSF] QI for ITfKeyEventSink 失败: {e}");
-                            false
-                        }
                     }
-                }
+                    Err(e) => {
+                        log::error!("[TSF] QI for ITfKeyEventSink 失败: {e}");
+                        false
+                    }
+                },
                 Err(e) => {
                     log::warn!("[TSF] ITfKeystrokeMgr 不可用 ({e})，回退到 ITfSource::AdviseSink");
                     false
@@ -1592,7 +1718,9 @@ impl ITfTextInputProcessorEx_Impl for TextService_Impl {
                             state.using_keystroke_mgr = false;
                             log::info!("[TSF] 回退: ITfSource::AdviseSink ITfKeyEventSink 成功");
                         }
-                        Err(e) => log::error!("[TSF] 回退: AdviseSink ITfKeyEventSink 仍然失败: {e}"),
+                        Err(e) => {
+                            log::error!("[TSF] 回退: AdviseSink ITfKeyEventSink 仍然失败: {e}")
+                        }
                     }
                 }
             }
@@ -1683,7 +1811,11 @@ impl ITfTextInputProcessorEx_Impl for TextService_Impl {
 }
 
 impl ITfCompositionSink_Impl for TextService_Impl {
-    fn OnCompositionTerminated(&self, _ecwrite: u32, _pcomp: Ref<'_, ITfComposition>) -> Result<()> {
+    fn OnCompositionTerminated(
+        &self,
+        _ecwrite: u32,
+        _pcomp: Ref<'_, ITfComposition>,
+    ) -> Result<()> {
         log::warn!("[TSF] Composition 被外部终止");
         *self.composition.lock() = None;
         self.is_composing.store(false, Ordering::Release);
@@ -1707,9 +1839,17 @@ impl ITfDisplayAttributeProvider_Impl for TextService_Impl {
         }
         let guid_safe = unsafe { &*guid };
         if *guid_safe == GUID_DISPLAY_ATTR_INPUT {
-            Ok(make_display_attr_info(GUID_DISPLAY_ATTR_INPUT, "编码输入态", attr_input()))
+            Ok(make_display_attr_info(
+                GUID_DISPLAY_ATTR_INPUT,
+                "编码输入态",
+                attr_input(),
+            ))
         } else if *guid_safe == GUID_DISPLAY_ATTR_CONVERTED {
-            Ok(make_display_attr_info(GUID_DISPLAY_ATTR_CONVERTED, "候选态", attr_converted()))
+            Ok(make_display_attr_info(
+                GUID_DISPLAY_ATTR_CONVERTED,
+                "候选态",
+                attr_converted(),
+            ))
         } else {
             Err(E_INVALIDARG.into())
         }
@@ -1727,13 +1867,17 @@ impl ITfThreadFocusSink_Impl for TextService_Impl {
         // 清理输入状态
         self.sm.lock().reset();
         let theme = self.theme_snapshot();
-        self.candidate_tx.store(Arc::new(CandidateData::hidden(theme)));
+        self.candidate_tx
+            .store(Arc::new(CandidateData::hidden(theme)));
         if self.is_composing.load(Ordering::Acquire) {
             // 异步清除 composition（需要有效的 context，Deactivate 会兜底）
             if let Some(tm) = self.thread_mgr.lock().as_ref() {
                 if let Ok(doc_mgr) = unsafe { tm.GetFocus() } {
                     if let Ok(ctx) = unsafe { doc_mgr.GetBase() } {
-                        self.schedule_edit_session(EditSessionOp::EndComposition { delete_text: false }, &ctx);
+                        self.schedule_edit_session(
+                            EditSessionOp::EndComposition { delete_text: false },
+                            &ctx,
+                        );
                     }
                 }
             }
@@ -1743,7 +1887,12 @@ impl ITfThreadFocusSink_Impl for TextService_Impl {
 }
 
 impl ITfTextEditSink_Impl for TextService_Impl {
-    fn OnEndEdit(&self, _pic: Ref<'_, ITfContext>, _ecreadonly: u32, _peditrecord: Ref<'_, ITfEditRecord>) -> Result<()> {
+    fn OnEndEdit(
+        &self,
+        _pic: Ref<'_, ITfContext>,
+        _ecreadonly: u32,
+        _peditrecord: Ref<'_, ITfEditRecord>,
+    ) -> Result<()> {
         // 如果 composition 被外部编辑破坏，ITfCompositionSink::OnCompositionTerminated
         // 会收到通知并清理状态。此处仅做日志监控。
         if self.is_composing.load(Ordering::Acquire) {
@@ -1762,7 +1911,11 @@ impl ITfFunction_Impl for TextService_Impl {
 }
 
 impl ITfFnGetPreferredTouchKeyboardLayout_Impl for TextService_Impl {
-    fn GetLayout(&self, ptkblayouttype: *mut TKBLayoutType, pwpreferredlayoutid: *const u16) -> Result<()> {
+    fn GetLayout(
+        &self,
+        ptkblayouttype: *mut TKBLayoutType,
+        pwpreferredlayoutid: *const u16,
+    ) -> Result<()> {
         unsafe {
             *ptkblayouttype = TKBLT_OPTIMIZED;
             *(pwpreferredlayoutid as *mut u16) = TKBL_OPT_SIMPLIFIED_CHINESE_PINYIN as u16;
@@ -1780,7 +1933,11 @@ impl ITfFunctionProvider_Impl for TextService_Impl {
         Ok(windows::core::BSTR::from("MyWubi 形码输入法"))
     }
 
-    fn GetFunction(&self, rguid: *const windows_core::GUID, riid: *const windows_core::GUID) -> Result<windows_core::IUnknown> {
+    fn GetFunction(
+        &self,
+        rguid: *const windows_core::GUID,
+        riid: *const windows_core::GUID,
+    ) -> Result<windows_core::IUnknown> {
         let guid = unsafe { &*rguid };
         let iid = unsafe { &*riid };
         // 标准 TSF 中, 通过查询 IID_ITfFnGetPreferredTouchKeyboardLayout
@@ -1843,7 +2000,10 @@ impl ITfThreadMgrEventSink_Impl for TextService_Impl {
 
 impl ITfKeyEventSink_Impl for TextService_Impl {
     fn OnSetFocus(&self, fforeground: BOOL) -> Result<()> {
-        log::debug!("[TSF] KeyEventSink OnSetFocus foreground={:?}", fforeground.0);
+        log::debug!(
+            "[TSF] KeyEventSink OnSetFocus foreground={:?}",
+            fforeground.0
+        );
         Ok(())
     }
 
@@ -1866,6 +2026,11 @@ impl ITfKeyEventSink_Impl for TextService_Impl {
             return Ok(BOOL(0));
         }
 
+        // 英文模式：所有按键透传
+        if !*self.ime_mode.lock() {
+            return Ok(BOOL(0));
+        }
+
         let cfg = self.config_snapshot();
         let sm = self.sm.lock();
         let event = key_filter::translate(
@@ -1881,11 +2046,9 @@ impl ITfKeyEventSink_Impl for TextService_Impl {
             }
             _ => false,
         });
-        Ok(BOOL(should_intercept_test_key(
-            event,
-            spelling_empty,
-            accepts_code_char,
-        ) as i32))
+        Ok(BOOL(
+            should_intercept_test_key(event, spelling_empty, accepts_code_char) as i32,
+        ))
     }
 
     fn OnTestKeyUp(
@@ -1897,12 +2060,7 @@ impl ITfKeyEventSink_Impl for TextService_Impl {
         Ok(BOOL(0))
     }
 
-    fn OnKeyDown(
-        &self,
-        pic: Ref<'_, ITfContext>,
-        wparam: WPARAM,
-        lparam: LPARAM,
-    ) -> Result<BOOL> {
+    fn OnKeyDown(&self, pic: Ref<'_, ITfContext>, wparam: WPARAM, lparam: LPARAM) -> Result<BOOL> {
         self.sync_runtime_if_needed();
         self.track_shift_toggle_keydown(wparam);
 
@@ -1918,7 +2076,9 @@ impl ITfKeyEventSink_Impl for TextService_Impl {
             lparam.0 as isize,
             sm.state() == core_engine::state_machine::InputState::Selecting,
             &cfg.hotkey,
-        ) else { return Ok(BOOL(0)); };
+        ) else {
+            return Ok(BOOL(0));
+        };
         let spelling_empty = sm.spelling().is_empty();
         let accepts_code_char = match &event {
             InputEvent::Char(character) | InputEvent::Symbol(character) => {
@@ -1934,20 +2094,11 @@ impl ITfKeyEventSink_Impl for TextService_Impl {
         Ok(self.apply_transition(t, pic.as_ref()))
     }
 
-    fn OnKeyUp(
-        &self,
-        _pic: Ref<'_, ITfContext>,
-        _wparam: WPARAM,
-        _lparam: LPARAM,
-    ) -> Result<BOOL> {
+    fn OnKeyUp(&self, _pic: Ref<'_, ITfContext>, _wparam: WPARAM, _lparam: LPARAM) -> Result<BOOL> {
         Ok(BOOL(0))
     }
 
-    fn OnPreservedKey(
-        &self,
-        _pic: Ref<'_, ITfContext>,
-        rguid: *const GUID,
-    ) -> Result<BOOL> {
+    fn OnPreservedKey(&self, _pic: Ref<'_, ITfContext>, rguid: *const GUID) -> Result<BOOL> {
         let guid = unsafe { &*rguid };
         if *guid == GUID_PRESERVED_SHIFT {
             let cfg = self.config_snapshot();
@@ -2019,10 +2170,8 @@ mod tests {
         let source: ITfSource = service.to_interface();
         let unknown: windows::core::IUnknown = service.to_interface();
 
-        let error = unsafe {
-            source.AdviseSink(&<ITfLangBarItemSink as Interface>::IID, &unknown)
-        }
-        .unwrap_err();
+        let error = unsafe { source.AdviseSink(&<ITfLangBarItemSink as Interface>::IID, &unknown) }
+            .unwrap_err();
 
         assert_eq!(
             error.code(),
@@ -2059,6 +2208,15 @@ mod tests {
     fn idle_punctuation_is_not_intercepted_in_test_keydown() {
         assert!(!should_intercept_test_key(
             Some(InputEvent::Char('[')),
+            true,
+            false,
+        ));
+    }
+
+    #[test]
+    fn idle_chinese_symbol_is_intercepted_in_test_keydown() {
+        assert!(should_intercept_test_key(
+            Some(InputEvent::Symbol('，')),
             true,
             false,
         ));
@@ -2180,7 +2338,11 @@ mod tests {
         let theme = ThemeSnapshot::default();
         let current = CandidateData::visible(
             "a".into(),
-            vec![CandidateItem { label: "1. ".into(), text: "工".into(), hint: String::new() }],
+            vec![CandidateItem {
+                label: "1. ".into(),
+                text: "工".into(),
+                hint: String::new(),
+            }],
             0,
             0,
             1,
@@ -2222,7 +2384,11 @@ mod tests {
         let theme = ThemeSnapshot::default();
         let current = CandidateData::visible(
             "a".into(),
-            vec![CandidateItem { label: "1. ".into(), text: "工".into(), hint: String::new() }],
+            vec![CandidateItem {
+                label: "1. ".into(),
+                text: "工".into(),
+                hint: String::new(),
+            }],
             0,
             0,
             1,
@@ -2241,7 +2407,11 @@ mod tests {
         let theme = ThemeSnapshot::default();
         let current = CandidateData::visible(
             "gg".into(),
-            vec![CandidateItem { label: "1. ".into(), text: "工".into(), hint: String::new() }],
+            vec![CandidateItem {
+                label: "1. ".into(),
+                text: "工".into(),
+                hint: String::new(),
+            }],
             0,
             0,
             1,
@@ -2310,5 +2480,3 @@ mod tests {
         ));
     }
 }
-
-

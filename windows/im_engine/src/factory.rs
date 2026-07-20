@@ -51,7 +51,9 @@ impl IClassFactory_Impl for TextServiceFactory_Impl {
             None => {
                 log::warn!("[TSF] CreateInstance: ENGINE 仍未就绪，降级为空码表");
                 let dict = match core_engine::Dictionary::from_entries(
-                    Vec::new(), None, Default::default(),
+                    Vec::new(),
+                    None,
+                    Default::default(),
                 ) {
                     Ok(d) => d,
                     Err(e) => {
@@ -67,13 +69,14 @@ impl IClassFactory_Impl for TextServiceFactory_Impl {
                     system_table_path: std::path::PathBuf::from("tables/wubi86.dict"),
                     user_table_path: std::path::PathBuf::from("tables/user.dict"),
                 }));
-                (runtime, Arc::new(ArcSwap::from_pointee(CandidateData::default())))
+                (
+                    runtime,
+                    Arc::new(ArcSwap::from_pointee(CandidateData::default())),
+                )
             }
         };
 
-        let obj = ComObject::new({
-            TextService::from_runtime(runtime, candidate_data)
-        });
+        let obj = ComObject::new(TextService::from_runtime(runtime, candidate_data));
 
         // 在交还外部接口之前，把 box 自己的 IUnknown 副本写回 TextService，
         // 供 AdviseSink 使用 `IID_ITfKeyEventSink` 进行自注册。
@@ -95,11 +98,15 @@ impl IClassFactory_Impl for TextServiceFactory_Impl {
         let hr = unsafe { Interface::query(&unk_for_qi, iid, &mut raw) };
         if hr.is_ok() && !raw.is_null() {
             // QueryInterface 已 AddRef；调用方负责 Release。
-            unsafe { *ppvobject = raw; }
+            unsafe {
+                *ppvobject = raw;
+            }
             Ok(())
         } else {
             log::error!("[TSF] CreateInstance: QueryInterface({iid:?}) failed hr={hr:?}");
-            unsafe { *ppvobject = std::ptr::null_mut(); }
+            unsafe {
+                *ppvobject = std::ptr::null_mut();
+            }
             Err(HRESULT(-1).into())
         }
     }

@@ -66,7 +66,8 @@ impl SettingsApp {
                     }
                 }
                 if ui.button("重新加载").clicked() {
-                    self.state = AppState::load(self.state.config_path.clone(), self.state.portable);
+                    self.state =
+                        AppState::load(self.state.config_path.clone(), self.state.portable);
                 }
                 if let Some(msg) = &self.state.status_msg {
                     ui.label(msg);
@@ -134,7 +135,11 @@ impl SettingsApp {
     }
 
     fn update_title(&self, ctx: &egui::Context) {
-        let title = if self.state.dirty { "MyWubi 设置 *" } else { "MyWubi 设置" };
+        let title = if self.state.dirty {
+            "MyWubi 设置 *"
+        } else {
+            "MyWubi 设置"
+        };
         ctx.send_viewport_cmd(egui::ViewportCommand::Title(title.into()));
     }
 
@@ -155,7 +160,12 @@ impl SettingsApp {
         if let Some(ev) = last {
             self.state.update_state = match ev {
                 UpdateEvent::NoUpdate => UpdateState::NoUpdate,
-                UpdateEvent::Available { version, notes, portable, asset } => UpdateState::Available {
+                UpdateEvent::Available {
+                    version,
+                    notes,
+                    portable,
+                    asset,
+                } => UpdateState::Available {
                     version,
                     notes,
                     portable,
@@ -183,9 +193,12 @@ impl SettingsApp {
     }
 
     fn show_close_confirm(&mut self, ctx: &egui::Context) {
-        if !self.close_confirm { return; }
+        if !self.close_confirm {
+            return;
+        }
         egui::Window::new("未保存的改动")
-            .collapsible(false).resizable(false)
+            .collapsible(false)
+            .resizable(false)
             .show(ctx, |ui| {
                 ui.label("有未保存的配置改动，是否保存？");
                 if let Some(msg) = &self.state.status_msg {
@@ -214,7 +227,8 @@ impl SettingsApp {
             let err = err.clone(); // clone once for the modal, then clear
             self.save_error = None;
             egui::Window::new("保存失败")
-                .collapsible(false).resizable(false)
+                .collapsible(false)
+                .resizable(false)
                 .show(ctx, |ui| {
                     ui.label(&err);
                     if ui.button("确定").clicked() {
@@ -225,9 +239,12 @@ impl SettingsApp {
     }
 
     fn show_load_error_modal(&mut self, ctx: &egui::Context) {
-        if self.state.load_error.is_none() { return; }
+        if self.state.load_error.is_none() {
+            return;
+        }
         egui::Window::new("配置加载失败")
-            .collapsible(false).resizable(false)
+            .collapsible(false)
+            .resizable(false)
             .show(ctx, |ui| {
                 let err = self.state.load_error.clone().unwrap();
                 ui.label(format!("配置文件解析失败：{}", err.message));
@@ -244,14 +261,14 @@ impl SettingsApp {
                             use std::process::Command;
                             let path_str = err.path.display().to_string();
                             let _ = Command::new("explorer")
-                                .args(["/select,", &path_str]).spawn();
+                                .args(["/select,", &path_str])
+                                .spawn();
                         }
                     }
                     if ui.button("忽略（用默认配置，不覆盖）").clicked() {
                         self.state.load_error = None;
-                        self.state.status_msg = Some(
-                            "[!] 配置加载失败，当前使用默认配置（原文件未改动）".into()
-                        );
+                        self.state.status_msg =
+                            Some("[!] 配置加载失败，当前使用默认配置（原文件未改动）".into());
                     }
                 });
             });

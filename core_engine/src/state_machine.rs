@@ -120,11 +120,7 @@ impl StateMachine {
     }
 
     /// 配置页大小与自动上屏策略。
-    pub fn with_options(
-        dict: Arc<Dictionary>,
-        page_size: usize,
-        auto_commit_unique: bool,
-    ) -> Self {
+    pub fn with_options(dict: Arc<Dictionary>, page_size: usize, auto_commit_unique: bool) -> Self {
         Self::with_behavior(
             dict,
             page_size,
@@ -203,7 +199,6 @@ impl StateMachine {
 
     /// 判断字符能否作为当前码表编码输入。
     pub fn accepts_code_char(&self, character: char) -> bool {
-        let character = normalize_code_char(character);
         is_code_char(character) || self.dict.table_config().charset.contains(character)
     }
 
@@ -232,6 +227,17 @@ impl StateMachine {
         Some((text, replace_len))
     }
 
+    /// 提交当前原始编码，不选候选词。
+    pub fn commit_raw_current(&mut self) -> Option<(String, usize)> {
+        if self.spelling.is_empty() {
+            return None;
+        }
+        let text = self.spelling.clone();
+        let replace_len = self.spelling.chars().count();
+        self.reset();
+        Some((text, replace_len))
+    }
+
     /// 处理一个输入事件并返回对外行为。
     pub fn handle(&mut self, event: InputEvent) -> Transition {
         match event {
@@ -251,7 +257,6 @@ impl StateMachine {
     }
 
     fn on_char(&mut self, c: char) -> Transition {
-        let c = normalize_code_char(c);
         if c.is_ascii_digit()
             && !self.dict.table_config().charset.contains(c)
             && self.can_select_with_digit(c)
@@ -323,6 +328,9 @@ impl StateMachine {
 
     fn on_symbol(&mut self, c: char) -> Transition {
         if self.spelling.is_empty() {
+            if !c.is_ascii() {
+                return Transition::Commit(c.to_string());
+            }
             return Transition::Passthrough(InputEvent::Symbol(c));
         }
 
@@ -353,7 +361,11 @@ impl StateMachine {
         // 空格首选上屏：提交当前第 0 个候选并补齐原编码字符（如四码不足时上屏首选）。
         if !self.candidates.is_empty() {
             let word = self.candidates[0].clone();
-            let extra: String = self.spelling.chars().skip(self.candidates_first_code_len()).collect();
+            let extra: String = self
+                .spelling
+                .chars()
+                .skip(self.candidates_first_code_len())
+                .collect();
             self.reset();
             if extra.is_empty() {
                 return Transition::Commit(word);
@@ -546,14 +558,6 @@ fn is_code_char(c: char) -> bool {
     matches!(c, 'a'..='z' | 'A'..='Z' | '0'..='9')
 }
 
-fn normalize_code_char(c: char) -> char {
-    if c.is_ascii_alphabetic() {
-        c.to_ascii_lowercase()
-    } else {
-        c
-    }
-}
-
 fn is_buffered_punctuation(c: char) -> bool {
     c.is_ascii_punctuation()
 }
@@ -566,11 +570,36 @@ mod tests {
 
     fn dict() -> Arc<Dictionary> {
         let entries = vec![
-            Entry { code: "a".into(), word: "工".into(), weight: 999 },
-            Entry { code: "ggll".into(), word: "王".into(), weight: 100 },
-            Entry { code: "ggll".into(), word: "壬".into(), weight: 50 },
-            Entry { code: "ggh".into(), word: "理".into(), weight: 80 },
-            Entry { code: "gghg".into(), word: "五".into(), weight: 200 },
+            Entry {
+                code: "a".into(),
+                word: "工".into(),
+                weight: 999,
+            },
+            Entry {
+                code: "A".into(),
+                word: "大".into(),
+                weight: 998,
+            },
+            Entry {
+                code: "ggll".into(),
+                word: "王".into(),
+                weight: 100,
+            },
+            Entry {
+                code: "ggll".into(),
+                word: "壬".into(),
+                weight: 50,
+            },
+            Entry {
+                code: "ggh".into(),
+                word: "理".into(),
+                weight: 80,
+            },
+            Entry {
+                code: "gghg".into(),
+                word: "五".into(),
+                weight: 200,
+            },
         ];
         Dictionary::from_entries(entries, None, LoadOptions::default()).unwrap()
     }
@@ -578,7 +607,10 @@ mod tests {
     #[test]
     fn passthrough_empty_buffer_on_space() {
         let mut m = StateMachine::new(dict());
-        assert_eq!(m.handle(InputEvent::Space), Transition::Passthrough(InputEvent::Space));
+        assert_eq!(
+            m.handle(InputEvent::Space),
+            Transition::Passthrough(InputEvent::Space)
+        );
     }
 
     #[test]
@@ -586,7 +618,11 @@ mod tests {
         let mut m = StateMachine::new(dict());
         let t = m.handle(InputEvent::Char('a'));
         match t {
-            Transition::Candidates { spelling, candidates, .. } => {
+            Transition::Candidates {
+                spelling,
+                candidates,
+                ..
+            } => {
                 assert_eq!(spelling, "a");
                 assert!(candidates.contains(&"工".to_string()));
             }
@@ -633,7 +669,12 @@ mod tests {
     fn auto_commit_unique_on_four_code() {
         let mut m = StateMachine::with_options(dict(), 5, true);
         let t = m.handle(InputEvent::Char('a'));
-        if let Transition::Candidates { spelling, candidates, .. } = t {
+        if let Transition::Candidates {
+            spelling,
+            candidates,
+            ..
+        } = t
+        {
             assert_eq!(spelling, "a");
             assert_eq!(candidates.len(), 1);
         } else {
@@ -681,13 +722,13 @@ mod tests {
     }
 
     #[test]
-    fn uppercase_code_char_matches_lowercase_code() {
+    fn uppercase_code_char_matches_uppercase_code_only() {
         let mut m = StateMachine::new(dict());
 
         assert!(matches!(
             m.handle(InputEvent::Char('A')),
             Transition::Candidates { spelling, candidates, .. }
-                if spelling == "a" && candidates == ["工"]
+                if spelling == "A" && candidates == ["大"]
         ));
     }
 
@@ -708,24 +749,60 @@ mod tests {
         let mut m = StateMachine::new(dict());
         m.handle(InputEvent::Char('z'));
         m.handle(InputEvent::Char('z'));
-        assert_eq!(m.handle(InputEvent::Enter), Transition::Commit("zz".to_string()));
+        assert_eq!(
+            m.handle(InputEvent::Enter),
+            Transition::Commit("zz".to_string())
+        );
+    }
+
+    #[test]
+    fn commit_raw_current_ignores_candidates() {
+        let mut m = StateMachine::new(dict());
+        m.handle(InputEvent::Char('a'));
+
+        assert_eq!(m.commit_raw_current(), Some(("a".to_string(), 1)));
+    }
+
+    #[test]
+    fn commit_raw_current_preserves_uppercase() {
+        let mut m = StateMachine::new(dict());
+        m.handle(InputEvent::Char('A'));
+
+        assert_eq!(m.commit_raw_current(), Some(("A".to_string(), 1)));
     }
 
     #[test]
     fn punctuation_is_kept_in_raw_buffer_by_default() {
         let mut m = StateMachine::new(dict());
-        assert!(matches!(m.handle(InputEvent::Char('b')), Transition::SpellingUpdated(_) | Transition::Candidates { .. }));
-        assert!(matches!(m.handle(InputEvent::Char('a')), Transition::SpellingUpdated(_) | Transition::Candidates { .. }));
-        assert!(matches!(m.handle(InputEvent::Char('i')), Transition::SpellingUpdated(_) | Transition::Candidates { .. }));
-        assert!(matches!(m.handle(InputEvent::Char('.')), Transition::SpellingUpdated(raw) if raw == "bai."));
-        assert_eq!(m.handle(InputEvent::Enter), Transition::Commit("bai.".to_string()));
+        assert!(matches!(
+            m.handle(InputEvent::Char('b')),
+            Transition::SpellingUpdated(_) | Transition::Candidates { .. }
+        ));
+        assert!(matches!(
+            m.handle(InputEvent::Char('a')),
+            Transition::SpellingUpdated(_) | Transition::Candidates { .. }
+        ));
+        assert!(matches!(
+            m.handle(InputEvent::Char('i')),
+            Transition::SpellingUpdated(_) | Transition::Candidates { .. }
+        ));
+        assert!(
+            matches!(m.handle(InputEvent::Char('.')), Transition::SpellingUpdated(raw) if raw == "bai.")
+        );
+        assert_eq!(
+            m.handle(InputEvent::Enter),
+            Transition::Commit("bai.".to_string())
+        );
     }
 
     #[test]
     fn backspace_removes_trailing_punctuation_before_code_chars() {
         let mut m = StateMachine::new(dict());
         let _ = m.handle(InputEvent::Char('z'));
-        assert_eq!(m.handle(InputEvent::Char('\\')), Transition::SpellingUpdated("z\\".to_string()));
+        assert_eq!(
+            m.handle(InputEvent::Char('\\')),
+            Transition::SpellingUpdated("z\\".to_string())
+        );
         match m.handle(InputEvent::Backspace) {
             Transition::SpellingUpdated(spelling) => assert_eq!(spelling, "z"),
             other => panic!("expected spelling after removing punctuation, got {other:?}"),

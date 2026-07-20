@@ -3,9 +3,9 @@
 //! 用以确保单次检索（exact / 前缀 / Trie）延迟控制在微秒级。
 //! 运行方式：`cargo bench -p core_engine`。
 
-use criterion::{black_box, criterion_group, criterion_main, Criterion};
 use core_engine::dictionary::{Entry, LoadOptions, SearchOptions};
 use core_engine::Dictionary;
+use criterion::{black_box, criterion_group, criterion_main, Criterion};
 use std::sync::Arc;
 
 /// 生成一份约 1 万条、形如 `aaaa`..`zzzz` 的伪五笔码表，
@@ -42,7 +42,10 @@ fn bench_exact(c: &mut Criterion) {
 
 fn bench_prefix_search(c: &mut Criterion) {
     let d = build_dict(2000, 5);
-    let opts = SearchOptions { prefer_exact: true, limit: 10 };
+    let opts = SearchOptions {
+        prefer_exact: true,
+        limit: 10,
+    };
     c.bench_function("prefix_search_limit_10", |b| {
         b.iter(|| {
             let r = black_box(&d).search(black_box("aa"), black_box(opts));
@@ -53,7 +56,10 @@ fn bench_prefix_search(c: &mut Criterion) {
 
 fn bench_trie_search(c: &mut Criterion) {
     let d = build_dict(2000, 5);
-    let opts = SearchOptions { prefer_exact: true, limit: 10 };
+    let opts = SearchOptions {
+        prefer_exact: true,
+        limit: 10,
+    };
     c.bench_function("trie_search_limit_10", |b| {
         b.iter(|| {
             let r = black_box(&d).search_trie(black_box("aa"), black_box(opts));

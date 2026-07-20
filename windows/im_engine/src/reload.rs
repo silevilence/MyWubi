@@ -28,7 +28,10 @@ fn watch_loop(runtime: Arc<ArcSwap<RuntimeSnapshot>>) -> notify::Result<()> {
     watcher.watch(&watch_dir, RecursiveMode::Recursive)?;
     let snapshot = runtime.load();
     for path in [&snapshot.system_table_path, &snapshot.user_table_path] {
-        if let Some(parent) = path.parent().filter(|parent| !parent.starts_with(&watch_dir)) {
+        if let Some(parent) = path
+            .parent()
+            .filter(|parent| !parent.starts_with(&watch_dir))
+        {
             watcher.watch(parent, RecursiveMode::NonRecursive)?;
         }
     }
@@ -94,8 +97,12 @@ mod tests {
             dict: Dictionary::from_entries(Vec::new(), None, Default::default()).unwrap(),
             config: Config::default(),
             config_path: PathBuf::from(r"C:\Users\test\AppData\Roaming\MyWubi\config.toml"),
-            system_table_path: PathBuf::from(r"C:\Users\test\AppData\Roaming\MyWubi\tables\wubi86.dict"),
-            user_table_path: PathBuf::from(r"C:\Users\test\AppData\Roaming\MyWubi\tables\user.dict"),
+            system_table_path: PathBuf::from(
+                r"C:\Users\test\AppData\Roaming\MyWubi\tables\wubi86.dict",
+            ),
+            user_table_path: PathBuf::from(
+                r"C:\Users\test\AppData\Roaming\MyWubi\tables\user.dict",
+            ),
         }
     }
 
@@ -148,7 +155,9 @@ mod tests {
             kind: notify::EventKind::Modify(notify::event::ModifyKind::Data(
                 notify::event::DataChange::Content,
             )),
-            paths: vec![PathBuf::from(r"C:\Users\test\AppData\Roaming\MyWubi\debug.log")],
+            paths: vec![PathBuf::from(
+                r"C:\Users\test\AppData\Roaming\MyWubi\debug.log",
+            )],
             attrs: Default::default(),
         };
 

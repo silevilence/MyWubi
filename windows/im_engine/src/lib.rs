@@ -23,17 +23,17 @@ use core_engine::{Config, Dictionary, StateMachine, UserDictionary};
 use parking_lot::Mutex;
 
 use crate::candidate_data::{CandidateData, ThemeSnapshot};
-use windows::core::{ComObject, GUID, HRESULT};
 use windows::core::Interface;
-use windows::Win32::Foundation::HMODULE;
+use windows::core::{ComObject, GUID, HRESULT};
 use windows::Win32::Foundation::CLASS_E_CLASSNOTAVAILABLE;
+use windows::Win32::Foundation::HMODULE;
 use windows::Win32::System::SystemServices::DLL_PROCESS_ATTACH;
 
 pub mod candidate_data;
 pub mod candidate_window;
 pub mod factory;
-pub mod guids;
 pub mod file_log;
+pub mod guids;
 pub mod key_filter;
 pub mod reload;
 pub mod screen_geometry;
@@ -49,8 +49,16 @@ struct Engine {
 }
 
 impl Engine {
-    fn new(runtime: Arc<ArcSwap<RuntimeSnapshot>>, sm: StateMachine, cd: Arc<ArcSwap<CandidateData>>) -> Self {
-        Self { runtime, sm: Mutex::new(sm), candidate_data: cd }
+    fn new(
+        runtime: Arc<ArcSwap<RuntimeSnapshot>>,
+        sm: StateMachine,
+        cd: Arc<ArcSwap<CandidateData>>,
+    ) -> Self {
+        Self {
+            runtime,
+            sm: Mutex::new(sm),
+            candidate_data: cd,
+        }
     }
 
     pub fn candidate_data(&self) -> &Arc<ArcSwap<CandidateData>> {
@@ -170,10 +178,10 @@ fn load_initial_runtime_snapshot() -> RuntimeSnapshot {
             );
             let dict = load_dictionary(&system_table_path, &user_table_path, &config)
                 .unwrap_or_else(|dict_err| {
-                log::error!("加载码表失败 ({}): {dict_err}", system_table_path.display());
-                Dictionary::from_entries(Vec::new(), None, Default::default())
-                    .expect("empty dictionary should construct")
-            });
+                    log::error!("加载码表失败 ({}): {dict_err}", system_table_path.display());
+                    Dictionary::from_entries(Vec::new(), None, Default::default())
+                        .expect("empty dictionary should construct")
+                });
             RuntimeSnapshot {
                 revision: NEXT_RUNTIME_REVISION.fetch_add(1, Ordering::Relaxed),
                 dict,
@@ -206,7 +214,8 @@ pub extern "C" fn im_engine_init() -> i32 {
             } else {
                 "unknown panic".to_string()
             };
-            let loc = info.location()
+            let loc = info
+                .location()
                 .map(|l| format!("{}:{}", l.file(), l.line()))
                 .unwrap_or_default();
             log::error!("[PANIC] {msg} at {loc}");
@@ -289,7 +298,9 @@ fn dll_get_class_object_impl(
     if rclsid.is_null() || riid.is_null() || ppv.is_null() {
         return CLASS_E_CLASSNOTAVAILABLE;
     }
-    unsafe { *ppv = std::ptr::null_mut(); }
+    unsafe {
+        *ppv = std::ptr::null_mut();
+    }
 
     let clsid = unsafe { &*rclsid };
     if *clsid != guids::CLSID_TEXT_SERVICE {
@@ -306,7 +317,9 @@ fn dll_get_class_object_impl(
     let mut raw: *mut core::ffi::c_void = std::ptr::null_mut();
     let hr = unsafe { Interface::query(&unk, iid, &mut raw) };
     if hr.is_ok() && !raw.is_null() {
-        unsafe { *ppv = raw; }
+        unsafe {
+            *ppv = raw;
+        }
         HRESULT(0)
     } else {
         log::error!("[TSF] DllGetClassObject: QueryInterface({iid:?}) => {hr:?}");

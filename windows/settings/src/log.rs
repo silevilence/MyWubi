@@ -13,9 +13,7 @@ pub fn init() -> Option<PathBuf> {
     fs::create_dir_all(&log_dir).ok()?;
 
     let log_path = log_dir.join("settings.log");
-    let config = ConfigBuilder::new()
-        .set_time_format_rfc3339()
-        .build();
+    let config = ConfigBuilder::new().set_time_format_rfc3339().build();
 
     let level = std::env::var("RUST_LOG")
         .ok()

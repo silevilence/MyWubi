@@ -54,8 +54,12 @@ pub enum UpdateState {
         portable: bool,
         asset: VelopackAsset,
     },
-    Downloading { progress: i16 },
-    Ready { asset: VelopackAsset },
+    Downloading {
+        progress: i16,
+    },
+    Ready {
+        asset: VelopackAsset,
+    },
     Error(String),
 }
 
@@ -75,11 +79,8 @@ pub fn init_velopack() {
 pub fn start_check() -> UpdateWorker {
     let (tx, rx) = mpsc::channel();
     thread::spawn(move || {
-        let mgr = match UpdateManager::new(
-            GithubSource::new(RELEASE_REPO, None, false),
-            None,
-            None,
-        ) {
+        let mgr = match UpdateManager::new(GithubSource::new(RELEASE_REPO, None, false), None, None)
+        {
             Ok(m) => m,
             Err(e) => {
                 log::info!("[vpk] UpdateManager 不可用（非 Velopack 安装）: {e}");
@@ -123,11 +124,8 @@ pub fn start_download(asset: VelopackAsset) -> UpdateWorker {
     let (tx, rx) = mpsc::channel();
     let asset_clone = asset.clone();
     thread::spawn(move || {
-        let mgr = match UpdateManager::new(
-            GithubSource::new(RELEASE_REPO, None, false),
-            None,
-            None,
-        ) {
+        let mgr = match UpdateManager::new(GithubSource::new(RELEASE_REPO, None, false), None, None)
+        {
             Ok(m) => m,
             Err(e) => {
                 let _ = tx.send(UpdateEvent::Error(format!("初始化更新管理器失败: {e}")));
@@ -162,11 +160,9 @@ pub fn start_download(asset: VelopackAsset) -> UpdateWorker {
 /// 应用已下载的更新并重启进程。调用后进程会立即退出。
 pub fn apply_and_restart(asset: VelopackAsset) {
     thread::spawn(move || {
-        if let Ok(mgr) = UpdateManager::new(
-            GithubSource::new(RELEASE_REPO, None, false),
-            None,
-            None,
-        ) {
+        if let Ok(mgr) =
+            UpdateManager::new(GithubSource::new(RELEASE_REPO, None, false), None, None)
+        {
             if let Err(e) = mgr.apply_updates_and_restart(&asset) {
                 log::error!("[vpk] 应用更新失败: {e}");
             }
@@ -185,6 +181,8 @@ pub fn open_releases_page() {
     }
     #[cfg(not(windows))]
     {
-        let _ = std::process::Command::new("xdg-open").arg(RELEASES_PAGE_URL).spawn();
+        let _ = std::process::Command::new("xdg-open")
+            .arg(RELEASES_PAGE_URL)
+            .spawn();
     }
 }

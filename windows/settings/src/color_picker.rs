@@ -4,10 +4,10 @@
 
 #[cfg(windows)]
 pub fn pick_color(initial_rgb: u32) -> Option<u32> {
-    use windows::Win32::UI::Controls::Dialogs::{
-        ChooseColorW, CHOOSECOLORW, CC_FULLOPEN, CC_RGBINIT,
-    };
     use windows::Win32::Foundation::{COLORREF, HWND};
+    use windows::Win32::UI::Controls::Dialogs::{
+        ChooseColorW, CC_FULLOPEN, CC_RGBINIT, CHOOSECOLORW,
+    };
 
     let mut custom_colors = [COLORREF(0); 16];
     let mut cc = CHOOSECOLORW {

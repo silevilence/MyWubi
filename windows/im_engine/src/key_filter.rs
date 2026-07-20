@@ -71,14 +71,16 @@ fn key_name_to_vk(name: &str) -> Option<u16> {
 fn to_char(vk: u16, lparam: isize) -> Option<char> {
     // 读取当前完整键盘状态（256 字节数组，每字节对应一个 VK，高位=按下）
     let mut key_state = [0u8; 256];
-    unsafe { let _ = GetKeyboardState(&mut key_state); };
+    unsafe {
+        let _ = GetKeyboardState(&mut key_state);
+    };
 
     // 清除 Ctrl/Alt/Win 的状态位，避免 ToUnicode 把它们当作 AltGr（
     // 某些键盘布局上 AltGr 会合成特殊字符，我们只关心 Shift/CapsLock）。
     key_state[VK_CONTROL.0 as usize] = 0;
     key_state[VK_LCONTROL.0 as usize] = 0;
     key_state[VK_RCONTROL.0 as usize] = 0;
-    key_state[VK_MENU.0 as usize] = 0;    // Alt
+    key_state[VK_MENU.0 as usize] = 0; // Alt
     key_state[VK_LMENU.0 as usize] = 0;
     key_state[VK_RMENU.0 as usize] = 0;
     key_state[VK_LWIN.0 as usize] = 0;
@@ -89,7 +91,11 @@ fn to_char(vk: u16, lparam: isize) -> Option<char> {
     // LPARAM 的 bit 24 为扩展键标志
     let extended = ((lparam >> 24) & 1) != 0;
     // 构造 ToUnicode 的扫描码参数：扩展键需设置 bit 24
-    let sc = if extended { scan_code | 0x0100_0000 } else { scan_code };
+    let sc = if extended {
+        scan_code | 0x0100_0000
+    } else {
+        scan_code
+    };
 
     let mut buf = [0u16; 4];
     let n = unsafe { ToUnicode(vk as u32, sc, Some(&key_state), &mut buf, 0) };
@@ -107,23 +113,41 @@ fn to_char(vk: u16, lparam: isize) -> Option<char> {
     }
 }
 
-fn classify_printable_char(c: char, shift_pressed: bool) -> InputEvent {
-    if shift_pressed && c.is_ascii_punctuation() {
-        return InputEvent::Symbol(c);
-    }
-
-    InputEvent::Char(c)
+fn classify_printable_char(c: char, _shift_pressed: bool) -> InputEvent {
+    ascii_to_chinese_punctuation(c).map_or(InputEvent::Char(c), InputEvent::Symbol)
 }
 
-fn should_passthrough_printable_char(c: char, shift_pressed: bool) -> bool {
-    shift_pressed && c.is_ascii_alphabetic()
+fn ascii_to_chinese_punctuation(c: char) -> Option<char> {
+    match c {
+        ',' => Some('，'),
+        '.' => Some('。'),
+        '?' => Some('？'),
+        '!' => Some('！'),
+        ';' => Some('；'),
+        ':' => Some('：'),
+        '\'' => Some('’'),
+        '"' => Some('”'),
+        '(' => Some('（'),
+        ')' => Some('）'),
+        '[' => Some('【'),
+        ']' => Some('】'),
+        '<' => Some('《'),
+        '>' => Some('》'),
+        '/' | '\\' => Some('、'),
+        _ => None,
+    }
 }
 
 /// 把 (`wparam`, `lparam`) 解析为通用 [`InputEvent`]；返回 `None` 表示该按键与本输入法无关。
 ///
 /// `wparam` 为虚拟键码；`lparam` 包含扫描码与扩展键标志，传给 `ToUnicode`
 /// 以准确获取当前键盘布局下的实际字符。
-pub fn translate(wparam: usize, lparam: isize, is_selecting: bool, hotkey: &Hotkey) -> Option<InputEvent> {
+pub fn translate(
+    wparam: usize,
+    lparam: isize,
+    is_selecting: bool,
+    hotkey: &Hotkey,
+) -> Option<InputEvent> {
     let vk = wparam as u16;
     let shift_pressed = is_shift_pressed();
 
@@ -141,8 +165,8 @@ pub fn translate(wparam: usize, lparam: isize, is_selecting: bool, hotkey: &Hotk
         }
     }
 
-    // 翻页键优先匹配（仅 Shift 未按下时）
-    if !shift_pressed {
+    // 翻页键优先匹配（仅候选态且 Shift 未按下时）
+    if !shift_pressed && is_selecting {
         if let Some(pn_vk) = key_name_to_vk(&hotkey.page_next) {
             if vk == pn_vk {
                 return Some(InputEvent::PageNext);
@@ -165,25 +189,14 @@ pub fn translate(wparam: usize, lparam: isize, is_selecting: bool, hotkey: &Hotk
     }
 
     // 可打印字符：由系统根据键盘布局 + 修饰键状态自动映射。
-    // Shift+字母保留给应用，避免中文态吞掉临时大写输入。
-    to_char(vk, lparam).and_then(|c| {
-        if should_passthrough_printable_char(c, shift_pressed) {
-            None
-        } else {
-            Some(classify_printable_char(c, shift_pressed))
-        }
-    })
+    to_char(vk, lparam).map(|c| classify_printable_char(c, shift_pressed))
 }
 
 #[cfg(test)]
 mod tests {
     use super::*;
     use windows::Win32::UI::Input::KeyboardAndMouse::{
-        VK_OEM_1,
-        VK_OEM_7,
-        VK_OEM_COMMA,
-        VK_OEM_MINUS,
-        VK_OEM_PLUS,
+        VK_OEM_1, VK_OEM_7, VK_OEM_COMMA, VK_OEM_MINUS, VK_OEM_PLUS,
     };
 
     fn default_hotkey() -> Hotkey {
@@ -196,14 +209,26 @@ mod tests {
 
     #[test]
     fn translate_space_and_enter() {
-        assert_eq!(translate_idle(VK_SPACE.0 as usize, 0), Some(InputEvent::Space));
-        assert_eq!(translate_idle(VK_RETURN.0 as usize, 0), Some(InputEvent::Enter));
+        assert_eq!(
+            translate_idle(VK_SPACE.0 as usize, 0),
+            Some(InputEvent::Space)
+        );
+        assert_eq!(
+            translate_idle(VK_RETURN.0 as usize, 0),
+            Some(InputEvent::Enter)
+        );
     }
 
     #[test]
     fn translate_backspace_and_esc() {
-        assert_eq!(translate_idle(VK_BACK.0 as usize, 0), Some(InputEvent::Backspace));
-        assert_eq!(translate_idle(VK_ESCAPE.0 as usize, 0), Some(InputEvent::Esc));
+        assert_eq!(
+            translate_idle(VK_BACK.0 as usize, 0),
+            Some(InputEvent::Backspace)
+        );
+        assert_eq!(
+            translate_idle(VK_ESCAPE.0 as usize, 0),
+            Some(InputEvent::Esc)
+        );
     }
 
     /// 以下 ToUnicode 相关测试依赖系统键盘布局为英文（QWERTY）。
@@ -221,10 +246,16 @@ mod tests {
     }
 
     #[test]
-    fn translate_common_punctuation_keys() {
-        // 默认配置下逗号/句号被映射为翻页键（无 Shift）
-        assert_eq!(translate_idle(VK_OEM_COMMA.0 as usize, 0), Some(InputEvent::PageNext));
-        assert_eq!(translate_idle(VK_OEM_PERIOD.0 as usize, 0), Some(InputEvent::PagePrev));
+    fn translate_common_punctuation_hotkeys_when_selecting() {
+        // 默认配置下逗号/句号在候选态映射为翻页键（无 Shift）
+        assert_eq!(
+            translate(VK_OEM_COMMA.0 as usize, 0, true, &default_hotkey()),
+            Some(InputEvent::PageNext)
+        );
+        assert_eq!(
+            translate(VK_OEM_PERIOD.0 as usize, 0, true, &default_hotkey()),
+            Some(InputEvent::PagePrev)
+        );
     }
 
     #[test]
@@ -233,7 +264,7 @@ mod tests {
         hotkey.page_prev = hotkey.page_next.clone();
 
         assert_eq!(
-            translate(VK_OEM_COMMA.0 as usize, 0, false, &hotkey),
+            translate(VK_OEM_COMMA.0 as usize, 0, true, &hotkey),
             Some(InputEvent::PageNext)
         );
     }
@@ -245,7 +276,7 @@ mod tests {
         hotkey.page_prev = "comma".to_string();
 
         assert_eq!(
-            translate(VK_OEM_COMMA.0 as usize, 0, false, &hotkey),
+            translate(VK_OEM_COMMA.0 as usize, 0, true, &hotkey),
             Some(InputEvent::PagePrev)
         );
     }
@@ -257,18 +288,18 @@ mod tests {
         hotkey.page_prev = "equal".to_string();
 
         assert_eq!(
-            translate(VK_OEM_MINUS.0 as usize, 0, false, &hotkey),
+            translate(VK_OEM_MINUS.0 as usize, 0, true, &hotkey),
             Some(InputEvent::PageNext)
         );
         assert_eq!(
-            translate(VK_OEM_PLUS.0 as usize, 0, false, &hotkey),
+            translate(VK_OEM_PLUS.0 as usize, 0, true, &hotkey),
             Some(InputEvent::PagePrev)
         );
     }
 
     #[test]
     fn classify_shifted_punctuation_as_symbol() {
-        assert_eq!(classify_printable_char('!', true), InputEvent::Symbol('!'));
+        assert_eq!(classify_printable_char('!', true), InputEvent::Symbol('！'));
     }
 
     #[test]
@@ -277,9 +308,12 @@ mod tests {
     }
 
     #[test]
-    fn shifted_letters_passthrough_to_application() {
-        assert!(should_passthrough_printable_char('A', true));
-        assert!(!should_passthrough_printable_char('!', true));
+    fn ascii_punctuation_maps_to_chinese_symbol() {
+        assert_eq!(
+            classify_printable_char(',', false),
+            InputEvent::Symbol('，')
+        );
+        assert_eq!(classify_printable_char('!', true), InputEvent::Symbol('！'));
     }
 
     #[test]

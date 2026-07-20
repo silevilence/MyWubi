@@ -38,16 +38,7 @@ pub fn relaunch_elevated() -> bool {
         let operation = HSTRING::from("runas");
         let file = HSTRING::from(exe_str);
         // 借用 HSTRING 以满足 Param<PCWSTR, CopyType> 约束。
-        let result = unsafe {
-            ShellExecuteW(
-                None,
-                &operation,
-                &file,
-                None,
-                None,
-                SW_SHOWNORMAL,
-            )
-        };
+        let result = unsafe { ShellExecuteW(None, &operation, &file, None, None, SW_SHOWNORMAL) };
         // ShellExecuteW 返回 HINSTANCE，<= 32 表示失败。
         result.0 as isize > 32
     }

@@ -5,7 +5,7 @@
 use windows::core::HSTRING;
 use windows::Win32::Foundation::WIN32_ERROR;
 use windows::Win32::System::Registry::{
-    RegOpenKeyExW, RegCloseKey, HKEY, HKEY_CLASSES_ROOT, KEY_READ,
+    RegCloseKey, RegOpenKeyExW, HKEY, HKEY_CLASSES_ROOT, KEY_READ,
 };
 
 use crate::guids::clsid_string;
@@ -19,17 +19,12 @@ fn is_registry_present() -> bool {
     let clsid_str = clsid_string();
     let inproc_path = HSTRING::from(format!("CLSID\\{clsid_str}\\InprocServer32"));
     let mut key = HKEY::default();
-    let status = unsafe {
-        RegOpenKeyExW(
-            HKEY_CLASSES_ROOT,
-            &inproc_path,
-            None,
-            KEY_READ,
-            &mut key,
-        )
-    };
+    let status =
+        unsafe { RegOpenKeyExW(HKEY_CLASSES_ROOT, &inproc_path, None, KEY_READ, &mut key) };
     if status == ERROR_SUCCESS {
-        unsafe { let _ = RegCloseKey(key); };
+        unsafe {
+            let _ = RegCloseKey(key);
+        };
         true
     } else {
         false
@@ -40,9 +35,7 @@ fn is_registry_present() -> bool {
 ///
 /// `profile_mgr` 参数允许注入 mock 用于测试。
 /// 若传 `None`，内部创建真实 `ComProfileManager`。
-pub fn detect_status_impl(
-    profile_mgr: Option<&dyn TipProfileManager>,
-) -> TipStatus {
+pub fn detect_status_impl(profile_mgr: Option<&dyn TipProfileManager>) -> TipStatus {
     if !is_registry_present() {
         return TipStatus::NotInstalled;
     }

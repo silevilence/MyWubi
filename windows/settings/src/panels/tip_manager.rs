@@ -25,7 +25,10 @@ pub fn show(ui: &mut Ui, state: &mut AppState) {
                 // 发起重启后退出当前非提升实例。
                 std::process::exit(0);
             } else {
-                state.status_msg = Some("❌ 无法发起管理员重启，请手动右键 settings.exe 选择「以管理员身份运行」。".into());
+                state.status_msg = Some(
+                    "❌ 无法发起管理员重启，请手动右键 settings.exe 选择「以管理员身份运行」。"
+                        .into(),
+                );
             }
         }
         ui.separator();
@@ -75,14 +78,17 @@ fn show_not_installed(ui: &mut Ui, state: &mut AppState, is_admin: bool) {
                 Some(path) => match tip_manager::install(&path) {
                     Ok(()) => {
                         state.tip_status = tip_manager::detect_status();
-                        state.status_msg = Some("✅ 输入法安装成功！使用 Win+Space 切换至此输入法。".into());
+                        state.status_msg =
+                            Some("✅ 输入法安装成功！使用 Win+Space 切换至此输入法。".into());
                     }
                     Err(e) => {
                         state.status_msg = Some(format!("❌ 安装失败: {e}"));
                     }
                 },
                 None => {
-                    state.status_msg = Some("❌ 找不到 im_engine.dll，请确保它与 settings.exe 在同一目录。".into());
+                    state.status_msg = Some(
+                        "❌ 找不到 im_engine.dll，请确保它与 settings.exe 在同一目录。".into(),
+                    );
                 }
             }
         }
@@ -140,7 +146,8 @@ fn show_installed_enabled(ui: &mut Ui, state: &mut AppState, is_admin: bool) {
             } else {
                 if ui.button("卸载").clicked() {
                     state.uninstall_confirm = true;
-                    state.status_msg = Some("⚠️ 确定要卸载 MyWubi 输入法吗？请再次点击「确认卸载」".into());
+                    state.status_msg =
+                        Some("⚠️ 确定要卸载 MyWubi 输入法吗？请再次点击「确认卸载」".into());
                 }
             }
         });
@@ -185,7 +192,8 @@ fn show_installed_disabled(ui: &mut Ui, state: &mut AppState, is_admin: bool) {
             } else {
                 if ui.button("卸载").clicked() {
                     state.uninstall_confirm = true;
-                    state.status_msg = Some("⚠️ 确定要卸载 MyWubi 输入法吗？请再次点击「确认卸载」".into());
+                    state.status_msg =
+                        Some("⚠️ 确定要卸载 MyWubi 输入法吗？请再次点击「确认卸载」".into());
                 }
             }
         });

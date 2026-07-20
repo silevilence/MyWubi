@@ -116,7 +116,9 @@ fn copy_default_tables(exe_dir: &Path, app_config_dir: &Path) -> Result<(), Path
     for entry in entries.flatten() {
         let path = entry.path();
         if path.extension().is_some_and(|ext| ext == "dict") {
-            let Some(file_name) = path.file_name() else { continue; };
+            let Some(file_name) = path.file_name() else {
+                continue;
+            };
             let _ = std::fs::copy(&path, dst_dir.join(file_name));
         }
     }
@@ -169,7 +171,10 @@ mod tests {
         assert!(resolved.path.exists());
 
         let loaded = Config::load(&resolved.path).unwrap();
-        assert_eq!(loaded.basic.candidate_count, Config::default().basic.candidate_count);
+        assert_eq!(
+            loaded.basic.candidate_count,
+            Config::default().basic.candidate_count
+        );
     }
 
     #[test]

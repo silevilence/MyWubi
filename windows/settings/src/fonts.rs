@@ -13,9 +13,10 @@ pub fn load_chinese_fonts(ctx: &eframe::egui::Context) {
         return;
     }
     let mut fonts = FontDefinitions::default();
-    fonts
-        .font_data
-        .insert("noto_sans_sc".to_owned(), FontData::from_static(NOTO_SANS_SC));
+    fonts.font_data.insert(
+        "noto_sans_sc".to_owned(),
+        FontData::from_static(NOTO_SANS_SC),
+    );
     // 插入到 Proportional 和 Monospace 的最高优先级
     fonts
         .families

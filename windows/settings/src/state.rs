@@ -329,7 +329,7 @@ impl AppState {
             .parent()
             .unwrap_or_else(|| std::path::Path::new("."))
             .to_path_buf();
-        let scanned_tables = scan_table_dir(&table_dir);
+        let scanned_tables = scan_table_dir(&table_dir, Some(&config.dictionary.user_table));
         let table_editor = TableEditor::load(resolved_system_table);
         Self {
             config,
@@ -375,7 +375,8 @@ impl AppState {
     /// 重新扫描码表目录，更新 scanned_tables。
     /// 若当前 system_table 文件不在新目录中，自动选第一个 .dict。
     pub fn rescan_tables(&mut self) {
-        self.scanned_tables = scan_table_dir(&self.table_dir);
+        self.scanned_tables =
+            scan_table_dir(&self.table_dir, Some(&self.config.dictionary.user_table));
         if self.table_editor.dirty {
             return;
         }
@@ -397,13 +398,17 @@ impl AppState {
 }
 
 /// 扫描目录下所有 .dict 文件，返回排序后的文件名列表（不含路径）。
-fn scan_table_dir(dir: &std::path::Path) -> Vec<String> {
+fn scan_table_dir(dir: &std::path::Path, excluded: Option<&std::path::Path>) -> Vec<String> {
+    let excluded_name = excluded
+        .and_then(|path| path.file_name())
+        .and_then(|name| name.to_str());
     let mut files: Vec<String> = std::fs::read_dir(dir)
         .into_iter()
         .flatten()
         .filter_map(|e| e.ok())
         .filter(|e| e.path().extension().map_or(false, |ext| ext == "dict"))
         .filter_map(|e| e.file_name().into_string().ok())
+        .filter(|name| excluded_name != Some(name.as_str()))
         .collect();
     files.sort();
     files
@@ -503,5 +508,24 @@ mod tests {
         };
 
         assert!(editor.draft_config().is_err());
+    }
+
+    #[test]
+    fn scan_table_dir_hides_configured_user_dictionary() {
+        let dir = std::env::temp_dir().join(format!(
+            "mywubi-settings-tables-{}",
+            std::time::SystemTime::now()
+                .duration_since(std::time::UNIX_EPOCH)
+                .unwrap()
+                .as_nanos()
+        ));
+        std::fs::create_dir_all(&dir).unwrap();
+        std::fs::write(dir.join("wubi86.dict"), "").unwrap();
+        std::fs::write(dir.join("user.dict"), "").unwrap();
+
+        let tables = scan_table_dir(&dir, Some(std::path::Path::new("tables/user.dict")));
+        let _ = std::fs::remove_dir_all(dir);
+
+        assert_eq!(tables, vec!["wubi86.dict"]);
     }
 }

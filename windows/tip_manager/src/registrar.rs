@@ -4,15 +4,15 @@ use windows::core::{w, GUID, HSTRING, PCWSTR};
 use windows::Win32::Foundation::WIN32_ERROR;
 use windows::Win32::System::Registry::{
     RegCloseKey, RegCreateKeyExW, RegDeleteTreeW, RegSetValueExW, HKEY, HKEY_CLASSES_ROOT,
-    HKEY_CURRENT_USER, HKEY_LOCAL_MACHINE, KEY_CREATE_SUB_KEY, KEY_SET_VALUE,
-    REG_OPTION_NON_VOLATILE, REG_DWORD, REG_SAM_FLAGS, REG_SZ,
+    HKEY_CURRENT_USER, HKEY_LOCAL_MACHINE, KEY_CREATE_SUB_KEY, KEY_SET_VALUE, REG_DWORD,
+    REG_OPTION_NON_VOLATILE, REG_SAM_FLAGS, REG_SZ,
 };
 use windows::Win32::UI::TextServices::{
-    GUID_TFCAT_TIP_KEYBOARD, GUID_TFCAT_TIPCAP_IMMERSIVESUPPORT,
+    GUID_TFCAT_TIPCAP_IMMERSIVESUPPORT, GUID_TFCAT_TIP_KEYBOARD,
 };
 
 use crate::error::TipManagerError;
-use crate::guids::{clsid_string, TEXT_SERVICE_NAME, GUID_PROFILE};
+use crate::guids::{clsid_string, GUID_PROFILE, TEXT_SERVICE_NAME};
 
 const ERROR_SUCCESS: WIN32_ERROR = WIN32_ERROR(0);
 
@@ -29,45 +29,94 @@ pub fn register_tip(dll_path: &str) -> Result<(), TipManagerError> {
 
     // 1. HKCR\CLSID\{CLSID}
     let clsid_path = HSTRING::from(format!("CLSID\\{clsid_str}"));
-    set_reg_sz(HKEY_CLASSES_ROOT, &clsid_path, PCWSTR::null(), &HSTRING::from(TEXT_SERVICE_NAME))?;
+    set_reg_sz(
+        HKEY_CLASSES_ROOT,
+        &clsid_path,
+        PCWSTR::null(),
+        &HSTRING::from(TEXT_SERVICE_NAME),
+    )?;
 
     // 2. InprocServer32
     let inproc_path = HSTRING::from(format!("CLSID\\{clsid_str}\\InprocServer32"));
     set_reg_sz(HKEY_CLASSES_ROOT, &inproc_path, PCWSTR::null(), &dll_wide)?;
-    set_reg_sz(HKEY_CLASSES_ROOT, &inproc_path, w!("ThreadingModel"), &HSTRING::from("Apartment"))?;
+    set_reg_sz(
+        HKEY_CLASSES_ROOT,
+        &inproc_path,
+        w!("ThreadingModel"),
+        &HSTRING::from("Apartment"),
+    )?;
 
     // 3. ProgID
     let progid_path = HSTRING::from(format!("CLSID\\{clsid_str}\\ProgID"));
-    set_reg_sz(HKEY_CLASSES_ROOT, &progid_path, PCWSTR::null(), &HSTRING::from("MyWubi.TextService.1"))?;
+    set_reg_sz(
+        HKEY_CLASSES_ROOT,
+        &progid_path,
+        PCWSTR::null(),
+        &HSTRING::from("MyWubi.TextService.1"),
+    )?;
 
     // 3.5. 在 CLSID 上设置 EnableCompatibleTsf（双保险：CTF TIP 键和 CLSID 键都设）
     let clsid_cfg_path = HSTRING::from(format!("CLSID\\{clsid_str}"));
-    set_reg_dword(HKEY_CLASSES_ROOT, &clsid_cfg_path, w!("EnableCompatibleTsf"), 1)?;
+    set_reg_dword(
+        HKEY_CLASSES_ROOT,
+        &clsid_cfg_path,
+        w!("EnableCompatibleTsf"),
+        1,
+    )?;
 
     // 4. Implemented Categories——使用 windows-rs 预定义常量
     let catid_tip = guid_reg_key(&GUID_TFCAT_TIP_KEYBOARD);
-    let cat_path = HSTRING::from(format!("CLSID\\{clsid_str}\\Implemented Categories\\{catid_tip}"));
-    set_reg_sz(HKEY_CLASSES_ROOT, &cat_path, PCWSTR::null(), &HSTRING::from(""))?;
+    let cat_path = HSTRING::from(format!(
+        "CLSID\\{clsid_str}\\Implemented Categories\\{catid_tip}"
+    ));
+    set_reg_sz(
+        HKEY_CLASSES_ROOT,
+        &cat_path,
+        PCWSTR::null(),
+        &HSTRING::from(""),
+    )?;
     // GUID_TFCAT_TIPCAP_IMMERSIVESUPPORT——声明支持现代/UWP 应用
     let catid_immersive = guid_reg_key(&GUID_TFCAT_TIPCAP_IMMERSIVESUPPORT);
-    let cat_imm_path = HSTRING::from(format!("CLSID\\{clsid_str}\\Implemented Categories\\{catid_immersive}"));
-    set_reg_sz(HKEY_CLASSES_ROOT, &cat_imm_path, PCWSTR::null(), &HSTRING::from(""))?;
+    let cat_imm_path = HSTRING::from(format!(
+        "CLSID\\{clsid_str}\\Implemented Categories\\{catid_immersive}"
+    ));
+    set_reg_sz(
+        HKEY_CLASSES_ROOT,
+        &cat_imm_path,
+        PCWSTR::null(),
+        &HSTRING::from(""),
+    )?;
 
     // 5. HKLM\SOFTWARE\Microsoft\CTF\TIP\{CLSID}
     let ctf_tip_path = format!("SOFTWARE\\Microsoft\\CTF\\TIP\\{clsid_str}");
     let ctf_tip_w = HSTRING::from(&ctf_tip_path);
-    set_reg_sz(HKEY_LOCAL_MACHINE, &ctf_tip_w, PCWSTR::null(), &HSTRING::from(TEXT_SERVICE_NAME))?;
+    set_reg_sz(
+        HKEY_LOCAL_MACHINE,
+        &ctf_tip_w,
+        PCWSTR::null(),
+        &HSTRING::from(TEXT_SERVICE_NAME),
+    )?;
 
     // 6. LanguageProfile
     let profile_string = format!("{{{:?}}}", GUID_PROFILE);
     let lp_key_path = HSTRING::from(format!("{ctf_tip_path}\\LanguageProfile"));
-    set_reg_sz(HKEY_LOCAL_MACHINE, &lp_key_path, PCWSTR::null(), &HSTRING::from(&profile_string))?;
+    set_reg_sz(
+        HKEY_LOCAL_MACHINE,
+        &lp_key_path,
+        PCWSTR::null(),
+        &HSTRING::from(&profile_string),
+    )?;
 
     let lang_id = "0x00000804";
     let profile_path = HSTRING::from(format!(
         "{ctf_tip_path}\\LanguageProfile\\{lang_id}\\{profile_string}"
     ));
-    set_reg_sz(HKEY_LOCAL_MACHINE, &profile_path, w!("Description"), &HSTRING::from(TEXT_SERVICE_NAME))?;
+    set_reg_sz(
+        HKEY_LOCAL_MACHINE,
+        &profile_path,
+        w!("Description"),
+        &HSTRING::from(TEXT_SERVICE_NAME),
+    )?;
     set_reg_sz(HKEY_LOCAL_MACHINE, &profile_path, w!("IconFile"), &dll_wide)?;
     set_reg_dword(HKEY_LOCAL_MACHINE, &profile_path, w!("IconIndex"), 0)?;
     set_reg_dword(HKEY_LOCAL_MACHINE, &profile_path, w!("Enable"), 1)?;
@@ -77,13 +126,28 @@ pub fn register_tip(dll_path: &str) -> Result<(), TipManagerError> {
 
     // 必须先创建 TIP 根键（reg_create_key 在 set_reg_dword/sz 中自动创建）
     let user_tip_root = HSTRING::from(&user_ctf_path);
-    set_reg_sz(HKEY_CURRENT_USER, &user_tip_root, PCWSTR::null(), &HSTRING::from(TEXT_SERVICE_NAME))?;
-    set_reg_sz(HKEY_CURRENT_USER, &lp_key_path, PCWSTR::null(), &HSTRING::from(&profile_string))?;
+    set_reg_sz(
+        HKEY_CURRENT_USER,
+        &user_tip_root,
+        PCWSTR::null(),
+        &HSTRING::from(TEXT_SERVICE_NAME),
+    )?;
+    set_reg_sz(
+        HKEY_CURRENT_USER,
+        &lp_key_path,
+        PCWSTR::null(),
+        &HSTRING::from(&profile_string),
+    )?;
     // user.dict 路径组装（skip HKLM prefix）
     let user_profile_path = HSTRING::from(format!(
         "{user_ctf_path}\\LanguageProfile\\{lang_id}\\{profile_string}"
     ));
-    set_reg_sz(HKEY_CURRENT_USER, &user_profile_path, w!("Description"), &HSTRING::from(TEXT_SERVICE_NAME))?;
+    set_reg_sz(
+        HKEY_CURRENT_USER,
+        &user_profile_path,
+        w!("Description"),
+        &HSTRING::from(TEXT_SERVICE_NAME),
+    )?;
     set_reg_dword(HKEY_CURRENT_USER, &user_profile_path, w!("Enable"), 1)?;
 
     // 7. Display Description
@@ -99,10 +163,22 @@ pub fn register_tip(dll_path: &str) -> Result<(), TipManagerError> {
 
     // 9. TIP Categories——注册 TSF 标准类别
     let cat_tip_path = HSTRING::from(format!("{ctf_tip_path}\\Category\\Category{catid_tip}"));
-    set_reg_sz(HKEY_LOCAL_MACHINE, &cat_tip_path, PCWSTR::null(), &HSTRING::from(""))?;
+    set_reg_sz(
+        HKEY_LOCAL_MACHINE,
+        &cat_tip_path,
+        PCWSTR::null(),
+        &HSTRING::from(""),
+    )?;
     // GUID_TFCAT_TIPCAP_IMMERSIVESUPPORT——沉浸式/现代应用支持
-    let cat_imm_path = HSTRING::from(format!("{ctf_tip_path}\\Category\\Category{catid_immersive}"));
-    set_reg_sz(HKEY_LOCAL_MACHINE, &cat_imm_path, PCWSTR::null(), &HSTRING::from(""))?;
+    let cat_imm_path = HSTRING::from(format!(
+        "{ctf_tip_path}\\Category\\Category{catid_immersive}"
+    ));
+    set_reg_sz(
+        HKEY_LOCAL_MACHINE,
+        &cat_imm_path,
+        PCWSTR::null(),
+        &HSTRING::from(""),
+    )?;
 
     // 10. CLSID subkey
     set_reg_sz(
@@ -164,7 +240,9 @@ fn set_reg_dword(
     }
     let bytes = value.to_le_bytes();
     let status = unsafe { RegSetValueExW(sub_key, value_name, None, REG_DWORD, Some(&bytes)) };
-    unsafe { let _ = RegCloseKey(sub_key); };
+    unsafe {
+        let _ = RegCloseKey(sub_key);
+    };
     if status != ERROR_SUCCESS {
         return Err(TipManagerError::Registry(format!(
             "RegSetValueExW(DWORD) 失败: {status:?}"
@@ -203,13 +281,12 @@ fn set_reg_sz(
     let mut value_wide: Vec<u16> = value.iter().copied().collect();
     value_wide.push(0);
     let bytes: &[u8] = unsafe {
-        std::slice::from_raw_parts(
-            value_wide.as_ptr() as *const u8,
-            value_wide.len() * 2,
-        )
+        std::slice::from_raw_parts(value_wide.as_ptr() as *const u8, value_wide.len() * 2)
     };
     let status = unsafe { RegSetValueExW(sub_key, value_name, None, REG_SZ, Some(bytes)) };
-    unsafe { let _ = RegCloseKey(sub_key); };
+    unsafe {
+        let _ = RegCloseKey(sub_key);
+    };
     if status != ERROR_SUCCESS {
         return Err(TipManagerError::Registry(format!(
             "RegSetValueExW(SZ) 失败: {status:?}"

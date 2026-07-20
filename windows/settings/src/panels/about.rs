@@ -61,8 +61,16 @@ fn show_update_ui(ui: &mut Ui, state: &mut AppState) {
                 state.update_state = UpdateState::Checking;
             }
         }
-        UpdateState::Available { version, notes, portable, asset } => {
-            ui.colored_label(egui::Color32::from_rgb(33, 150, 243), format!("🆕 发现新版本: {version}"));
+        UpdateState::Available {
+            version,
+            notes,
+            portable,
+            asset,
+        } => {
+            ui.colored_label(
+                egui::Color32::from_rgb(33, 150, 243),
+                format!("🆕 发现新版本: {version}"),
+            );
             if !notes.trim().is_empty() {
                 ui.collapsing("更新说明", |ui| {
                     ui.label(notes);
@@ -75,7 +83,10 @@ fn show_update_ui(ui: &mut Ui, state: &mut AppState) {
                 }
             } else {
                 // 输入法 DLL 会被 TSF 宿主进程加载锁定，更新前必须先卸载 TIP 释放文件。
-                let tip_installed = matches!(state.tip_status, TipStatus::InstalledEnabled | TipStatus::InstalledDisabled);
+                let tip_installed = matches!(
+                    state.tip_status,
+                    TipStatus::InstalledEnabled | TipStatus::InstalledDisabled
+                );
                 if tip_installed {
                     ui.add_space(4.0);
                     ui.colored_label(
@@ -101,7 +112,10 @@ fn show_update_ui(ui: &mut Ui, state: &mut AppState) {
         UpdateState::Ready { asset } => {
             ui.colored_label(egui::Color32::GREEN, "✅ 更新已下载完成。");
             // 应用更新前再次确认 TIP 已卸载（用户可能在下载期间重新安装了输入法）。
-            let tip_installed = matches!(state.tip_status, TipStatus::InstalledEnabled | TipStatus::InstalledDisabled);
+            let tip_installed = matches!(
+                state.tip_status,
+                TipStatus::InstalledEnabled | TipStatus::InstalledDisabled
+            );
             if tip_installed {
                 ui.colored_label(
                     egui::Color32::from_rgb(255, 152, 0),

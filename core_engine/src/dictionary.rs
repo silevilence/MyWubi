@@ -116,7 +116,11 @@ fn serialize_wildcard_key<S>(value: &Option<char>, serializer: S) -> Result<S::O
 where
     S: Serializer,
 {
-    serializer.serialize_str(&value.map(|character| character.to_string()).unwrap_or_default())
+    serializer.serialize_str(
+        &value
+            .map(|character| character.to_string())
+            .unwrap_or_default(),
+    )
 }
 
 /// 码表中的单个词条。
@@ -210,10 +214,7 @@ impl Dictionary {
     }
 
     /// 带选项加载。
-    pub fn load_with<P: AsRef<Path>>(
-        path: P,
-        opts: LoadOptions,
-    ) -> Result<Arc<Self>, DictError> {
+    pub fn load_with<P: AsRef<Path>>(path: P, opts: LoadOptions) -> Result<Arc<Self>, DictError> {
         let path = path.as_ref();
         let text = std::fs::read_to_string(path)
             .map_err(|e| DictError::Io(path.to_path_buf(), e.to_string()))?;
@@ -237,19 +238,15 @@ impl Dictionary {
         table_config: TableConfig,
     ) -> Result<Arc<Self>, DictError> {
         // 排序：先按编码字典序，再按 weight 倒序（保证同编码高频在前）。
-        entries.sort_by(|a, b| {
-            match a.code.cmp(&b.code) {
-                Ordering::Equal => b.weight.cmp(&a.weight),
-                other => other,
-            }
+        entries.sort_by(|a, b| match a.code.cmp(&b.code) {
+            Ordering::Equal => b.weight.cmp(&a.weight),
+            other => other,
         });
 
         // 构建前缀索引（按每个编码完整键入 BTreeMap，用于二分初定位）。
         let mut prefix_index = BTreeMap::new();
         for (idx, e) in entries.iter().enumerate() {
-            prefix_index
-                .entry(e.code.clone())
-                .or_insert(idx);
+            prefix_index.entry(e.code.clone()).or_insert(idx);
         }
 
         // 单独维护同编码 word 去重的稳定视图（保留 weight 最大者）。
@@ -349,12 +346,9 @@ impl Dictionary {
         // 数组按完整编码字典序排序，以 `prefix` 为前缀的条目构成一段连续区间：
         //   下界 = 第一条 code >= prefix；
         //   上界 = 从下界起连续 `starts_with(prefix)` 的条目数。
-        let lower = self
-            .entries
-            .partition_point(|e| e.code.as_str() < prefix);
-        let upper = lower
-            + self.entries[lower..]
-                .partition_point(|e| e.code.as_str().starts_with(prefix));
+        let lower = self.entries.partition_point(|e| e.code.as_str() < prefix);
+        let upper =
+            lower + self.entries[lower..].partition_point(|e| e.code.as_str().starts_with(prefix));
         for e in &self.entries[lower..upper] {
             if e.code == prefix {
                 continue; // 已在 exact 阶段收集过
@@ -382,12 +376,7 @@ impl Dictionary {
         results
     }
 
-    fn search_wildcard(
-        &self,
-        pattern: &str,
-        wildcard: char,
-        opts: SearchOptions,
-    ) -> Vec<&Entry> {
+    fn search_wildcard(&self, pattern: &str, wildcard: char, opts: SearchOptions) -> Vec<&Entry> {
         let literal_prefix = pattern
             .split_once(wildcard)
             .map_or(pattern, |(prefix, _)| prefix);
@@ -450,9 +439,7 @@ impl Dictionary {
         if prefix.is_empty() {
             return false;
         }
-        self.entries
-            .partition_point(|e| e.code.as_str() < prefix)
-            < self.entries.len()
+        self.entries.partition_point(|e| e.code.as_str() < prefix) < self.entries.len()
             && self.entries[self.entries.partition_point(|e| e.code.as_str() < prefix)]
                 .code
                 .starts_with(prefix)
@@ -521,7 +508,10 @@ fn parse_dictionary(
     let entries = parse_lines_with_config(body, line_offset, config.wildcard_key)?;
     if let Some(issue) = validate_table(&config, &entries, 1).issues.first() {
         return match issue.entry_index {
-            Some(index) => Err(DictError::InvalidLine(index + line_offset + 1, issue.message.clone())),
+            Some(index) => Err(DictError::InvalidLine(
+                index + line_offset + 1,
+                issue.message.clone(),
+            )),
             None => Err(DictError::InvalidHeader(issue.message.clone())),
         };
     }
@@ -618,10 +608,7 @@ pub fn validate_table(
     }
     if let Some(wildcard) = config.wildcard_key {
         if !config.charset.contains(wildcard) {
-            push_issue(
-                None,
-                format!("wildcard_key `{wildcard}` 不在 charset 中"),
-            );
+            push_issue(None, format!("wildcard_key `{wildcard}` 不在 charset 中"));
         }
     }
 
@@ -630,9 +617,7 @@ pub fn validate_table(
             push_issue(Some(index), "编码或词条为空".into());
             continue;
         }
-        if entry.code.contains(['\t', '\r', '\n'])
-            || entry.word.contains(['\t', '\r', '\n'])
-        {
+        if entry.code.contains(['\t', '\r', '\n']) || entry.word.contains(['\t', '\r', '\n']) {
             push_issue(Some(index), "编码或词条不能包含制表符或换行".into());
             continue;
         }
@@ -702,8 +687,7 @@ pub fn save_table<P: AsRef<Path>>(
         let _ = writeln!(text, "{}\t{}\t{}", entry.code, entry.word, entry.weight);
     }
 
-    std::fs::write(path, text)
-        .map_err(|error| DictError::Io(path.to_path_buf(), error.to_string()))
+    std::fs::write(path, text).map_err(|error| DictError::Io(path.to_path_buf(), error.to_string()))
 }
 
 fn parse_lines_with_config(
@@ -753,10 +737,7 @@ fn parse_lines_with_config(
 ///
 /// 由于 `Dictionary` 不可变，新增词应当重建一个新实例并替换。该函数默认导出，
 /// 供 `settings.exe` / Compose 配置界面调用。
-pub fn append_user_table<P: AsRef<Path>>(
-    path: P,
-    entry: &Entry,
-) -> Result<(), DictError> {
+pub fn append_user_table<P: AsRef<Path>>(path: P, entry: &Entry) -> Result<(), DictError> {
     use std::io::Write;
     let path = path.as_ref();
     if let Some(parent) = path.parent() {
@@ -782,12 +763,36 @@ mod tests {
 
     fn dict() -> Arc<Dictionary> {
         let entries = vec![
-            Entry { code: "ggll".into(), word: "王".into(), weight: 100 },
-            Entry { code: "ggll".into(), word: "丰".into(), weight: 20 },
-            Entry { code: "ggll".into(), word: "壬".into(), weight: 50 },
-            Entry { code: "ggh".into(), word: "理".into(), weight: 80 },
-            Entry { code: "gghg".into(), word: "五".into(), weight: 200 },
-            Entry { code: "a".into(), word: "工".into(), weight: 999 },
+            Entry {
+                code: "ggll".into(),
+                word: "王".into(),
+                weight: 100,
+            },
+            Entry {
+                code: "ggll".into(),
+                word: "丰".into(),
+                weight: 20,
+            },
+            Entry {
+                code: "ggll".into(),
+                word: "壬".into(),
+                weight: 50,
+            },
+            Entry {
+                code: "ggh".into(),
+                word: "理".into(),
+                weight: 80,
+            },
+            Entry {
+                code: "gghg".into(),
+                word: "五".into(),
+                weight: 200,
+            },
+            Entry {
+                code: "a".into(),
+                word: "工".into(),
+                weight: 999,
+            },
         ];
         Dictionary::from_entries(entries, None, LoadOptions::default()).unwrap()
     }
@@ -796,7 +801,10 @@ mod tests {
     fn exact_match_returns_by_weight_desc() {
         let d = dict();
         let r = d.exact("ggll");
-        assert_eq!(r.iter().map(|e| e.word.as_str()).collect::<Vec<_>>(), ["王", "壬", "丰"]);
+        assert_eq!(
+            r.iter().map(|e| e.word.as_str()).collect::<Vec<_>>(),
+            ["王", "壬", "丰"]
+        );
     }
 
     #[test]
@@ -809,7 +817,13 @@ mod tests {
     #[test]
     fn prefix_search() {
         let d = dict();
-        let r = d.search("gg", SearchOptions { prefer_exact: true, limit: 10 });
+        let r = d.search(
+            "gg",
+            SearchOptions {
+                prefer_exact: true,
+                limit: 10,
+            },
+        );
         assert_eq!(r.len(), 5);
         assert_eq!(r[0].word, "五");
         // 完全匹配 "ggll" 应当优先于仅前缀。
@@ -819,7 +833,13 @@ mod tests {
     #[test]
     fn limit_truncates() {
         let d = dict();
-        let r = d.search("gg", SearchOptions { prefer_exact: true, limit: 2 });
+        let r = d.search(
+            "gg",
+            SearchOptions {
+                prefer_exact: true,
+                limit: 2,
+            },
+        );
         assert_eq!(r.len(), 2);
     }
 
@@ -914,8 +934,16 @@ mod tests {
             max_code_len: 4,
         };
         let entries = vec![
-            Entry { code: "ac".into(), word: "越界".into(), weight: 1 },
-            Entry { code: "az".into(), word: "万能键".into(), weight: 1 },
+            Entry {
+                code: "ac".into(),
+                word: "越界".into(),
+                weight: 1,
+            },
+            Entry {
+                code: "az".into(),
+                word: "万能键".into(),
+                weight: 1,
+            },
         ];
 
         let report = validate_table(&config, &entries, 10);
@@ -1102,8 +1130,16 @@ mod tests {
     #[test]
     fn from_entries_handles_duplicate_codes() {
         let entries = vec![
-            Entry { code: "x".into(), word: "甲".into(), weight: 5 },
-            Entry { code: "x".into(), word: "乙".into(), weight: 10 },
+            Entry {
+                code: "x".into(),
+                word: "甲".into(),
+                weight: 5,
+            },
+            Entry {
+                code: "x".into(),
+                word: "乙".into(),
+                weight: 10,
+            },
         ];
         let d = Dictionary::from_entries(entries, None, LoadOptions::default()).unwrap();
         let r = d.exact("x");
@@ -1122,7 +1158,10 @@ mod tests {
     #[test]
     fn search_limit_zero_returns_empty() {
         let d = dict();
-        let opts = SearchOptions { prefer_exact: true, limit: 0 };
+        let opts = SearchOptions {
+            prefer_exact: true,
+            limit: 0,
+        };
         assert!(d.search("a", opts).is_empty());
     }
 
@@ -1148,8 +1187,20 @@ mod tests {
     #[test]
     fn search_trie_falls_back_when_no_trie() {
         // 强制不构建 Trie（阈值 0）。
-        let entries = vec![Entry { code: "a".into(), word: "工".into(), weight: 999 }];
-        let d = Dictionary::from_entries(entries, None, LoadOptions { trie_threshold: 0, chunk_lines: 4096 }).unwrap();
+        let entries = vec![Entry {
+            code: "a".into(),
+            word: "工".into(),
+            weight: 999,
+        }];
+        let d = Dictionary::from_entries(
+            entries,
+            None,
+            LoadOptions {
+                trie_threshold: 0,
+                chunk_lines: 4096,
+            },
+        )
+        .unwrap();
         let r = d.search_trie("a", SearchOptions::default());
         assert_eq!(r.len(), 1);
         assert_eq!(r[0].word, "工");

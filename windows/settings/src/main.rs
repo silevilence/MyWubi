@@ -2,6 +2,8 @@
 //!
 //! MyWubi 配置程序入口。
 
+#![cfg_attr(windows, windows_subsystem = "windows")]
+
 use settings::{app::SettingsApp, config_path, log as log_mod, state::AppState};
 
 fn main() {

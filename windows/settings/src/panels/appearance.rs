@@ -5,13 +5,7 @@ use eframe::egui::Ui;
 
 /// 预设色板（ARGB）。
 const PRESETS: [u32; 7] = [
-    0xFF1E88E5,
-    0xFFE53935,
-    0xFF43A047,
-    0xFFFB8C00,
-    0xFF8E24AA,
-    0xFF546E7A,
-    0xFF000000,
+    0xFF1E88E5, 0xFFE53935, 0xFF43A047, 0xFFFB8C00, 0xFF8E24AA, 0xFF546E7A, 0xFF000000,
 ];
 
 /// ITU-R BT.601 亮度阈值：低于此值用白色文字，高于此值用黑色文字。
@@ -37,9 +31,27 @@ pub fn show(ui: &mut Ui, state: &mut AppState) {
         }
     });
 
-    color_row(ui, "主色", &mut state.config.appearance.primary_color, &mut state.dirty, &mut state.status_msg);
-    color_row(ui, "背景色", &mut state.config.appearance.background_color, &mut state.dirty, &mut state.status_msg);
-    color_row(ui, "高亮色", &mut state.config.appearance.highlight_color, &mut state.dirty, &mut state.status_msg);
+    color_row(
+        ui,
+        "主色",
+        &mut state.config.appearance.primary_color,
+        &mut state.dirty,
+        &mut state.status_msg,
+    );
+    color_row(
+        ui,
+        "背景色",
+        &mut state.config.appearance.background_color,
+        &mut state.dirty,
+        &mut state.status_msg,
+    );
+    color_row(
+        ui,
+        "高亮色",
+        &mut state.config.appearance.highlight_color,
+        &mut state.dirty,
+        &mut state.status_msg,
+    );
 }
 
 fn color_row(
@@ -57,10 +69,8 @@ fn color_row(
             ((*value >> 8) & 0xFF) as u8,
             (*value & 0xFF) as u8,
         );
-        let (rect, _) = ui.allocate_exact_size(
-            eframe::egui::vec2(24.0, 24.0),
-            eframe::egui::Sense::hover(),
-        );
+        let (rect, _) =
+            ui.allocate_exact_size(eframe::egui::vec2(24.0, 24.0), eframe::egui::Sense::hover());
         ui.painter().rect_filled(rect, 2.0, color);
 
         // 预设色块
@@ -93,8 +103,7 @@ fn color_row(
 
         // ARGB 文本输入（非法输入标红 + tooltip）
         let mut text = format!("0x{:08X}", *value);
-        let te = eframe::egui::TextEdit::singleline(&mut text)
-            .desired_width(90.0);
+        let te = eframe::egui::TextEdit::singleline(&mut text).desired_width(90.0);
         let resp = ui.add(te);
         if resp.lost_focus() {
             match parse_argb(&text) {
@@ -106,9 +115,7 @@ fn color_row(
                 Err(()) => {
                     resp.on_hover_text("格式应为 0xAARRGGBB 或 #RRGGBB")
                         .request_focus();
-                    *status_msg = Some(
-                        "⚠️ 颜色格式非法，应为 0xAARRGGBB 或 #RRGGBB".into(),
-                    );
+                    *status_msg = Some("⚠️ 颜色格式非法，应为 0xAARRGGBB 或 #RRGGBB".into());
                 }
             }
         }
@@ -121,7 +128,10 @@ fn color_row(
 pub(crate) fn parse_argb(s: &str) -> Result<u32, ()> {
     let s = s.trim();
     // 去掉 0x / 0X / # 前缀
-    let s = s.trim_start_matches("0x").trim_start_matches("0X").trim_start_matches('#');
+    let s = s
+        .trim_start_matches("0x")
+        .trim_start_matches("0X")
+        .trim_start_matches('#');
     if s.len() == 8 {
         u32::from_str_radix(s, 16).map_err(|_| ())
     } else if s.len() == 6 {
@@ -166,7 +176,11 @@ fn preview(ui: &mut Ui, state: &AppState) {
             (state.config.appearance.highlight_color & 0xFF) as u8,
         );
         let bg_luma = (bg.r() as u32) * 299 + (bg.g() as u32) * 587 + (bg.b() as u32) * 114;
-        let text_color = if bg_luma > LUMINANCE_THRESHOLD { eframe::egui::Color32::BLACK } else { eframe::egui::Color32::WHITE };
+        let text_color = if bg_luma > LUMINANCE_THRESHOLD {
+            eframe::egui::Color32::BLACK
+        } else {
+            eframe::egui::Color32::WHITE
+        };
         let size = state.config.appearance.font_size as f32;
         let font_id = eframe::egui::FontId::proportional(size);
         // 根据实际字体度量计算第一个候选项（"1 你好"）的宽度，确保高亮色完全覆盖

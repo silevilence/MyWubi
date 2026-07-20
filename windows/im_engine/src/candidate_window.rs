@@ -51,7 +51,10 @@ impl CandidateWindow {
             Ok(h) => Some(h),
             Err(e) => {
                 log::error!("候选窗口线程启动失败: {e}");
-                return Self { join_handle: None, hwnd: HWND::default() };
+                return Self {
+                    join_handle: None,
+                    hwnd: HWND::default(),
+                };
             }
         };
         let hwnd = match hwnd_rx.recv() {
@@ -59,8 +62,13 @@ impl CandidateWindow {
             Err(e) => {
                 log::error!("候选窗口线程未能发送 HWND: {e}");
                 // join_handle 已有效但窗口未创建——join 之
-                if let Some(h) = join_handle { let _ = h.join(); }
-                return Self { join_handle: None, hwnd: HWND::default() };
+                if let Some(h) = join_handle {
+                    let _ = h.join();
+                }
+                return Self {
+                    join_handle: None,
+                    hwnd: HWND::default(),
+                };
             }
         };
         Self { join_handle, hwnd }
@@ -102,12 +110,17 @@ impl CandidateWindow {
 }
 
 impl Drop for CandidateWindow {
-    fn drop(&mut self) { self.shutdown(); }
+    fn drop(&mut self) {
+        self.shutdown();
+    }
 }
 
 // ── 窗口线程 ──────────────────────────────────────────────────────
 
-fn run_window_thread(data_src: std::sync::Arc<ArcSwap<CandidateData>>, hwnd_tx: mpsc::Sender<isize>) {
+fn run_window_thread(
+    data_src: std::sync::Arc<ArcSwap<CandidateData>>,
+    hwnd_tx: mpsc::Sender<isize>,
+) {
     let hinstance = HINSTANCE(crate::module_handle() as *mut c_void);
     if hinstance.0.is_null() {
         log::error!("候选窗口: module_handle 未初始化");
@@ -116,16 +129,19 @@ fn run_window_thread(data_src: std::sync::Arc<ArcSwap<CandidateData>>, hwnd_tx: 
 
     // 窗口类只需注册一次（整个进程生命周期内有效）。
     // TSF 在同一进程中可能多次 Activate/Deactivate，重复注册会失败。
-    static CLASS_REGISTERED: std::sync::atomic::AtomicBool = std::sync::atomic::AtomicBool::new(false);
+    static CLASS_REGISTERED: std::sync::atomic::AtomicBool =
+        std::sync::atomic::AtomicBool::new(false);
     static REGISTER_ONCE: std::sync::Once = std::sync::Once::new();
     REGISTER_ONCE.call_once(|| {
         let class_name = CLASS_NAME;
         let wc = WNDCLASSW {
             style: WNDCLASS_STYLES(CS_HREDRAW.0 | CS_VREDRAW.0),
             lpfnWndProc: Some(wnd_proc),
-            cbClsExtra: 0, cbWndExtra: 0,
+            cbClsExtra: 0,
+            cbWndExtra: 0,
             hInstance: hinstance,
-            hIcon: HICON::default(), hCursor: HCURSOR::default(),
+            hIcon: HICON::default(),
+            hCursor: HCURSOR::default(),
             hbrBackground: HBRUSH::default(),
             lpszMenuName: windows::core::PCWSTR::null(),
             lpszClassName: class_name,
@@ -153,21 +169,34 @@ fn run_window_thread(data_src: std::sync::Arc<ArcSwap<CandidateData>>, hwnd_tx: 
             ),
             CLASS_NAME,
             windows::core::PCWSTR::null(),
-            WS_POPUP, 0, 0, 0, 0,
-            None, None, Some(hinstance), None,
+            WS_POPUP,
+            0,
+            0,
+            0,
+            0,
+            None,
+            None,
+            Some(hinstance),
+            None,
         )
     } {
         Ok(h) => h,
         Err(e) => {
             log::error!("候选窗口: CreateWindowExW 失败: {e}");
-            unsafe { let _ = Box::from_raw(window_data_ptr); }
+            unsafe {
+                let _ = Box::from_raw(window_data_ptr);
+            }
             return;
         }
     };
 
     // 注意：class_name 变量在 Once 闭包内作用域，此处使用静态常量 CLASS_NAME。
-    unsafe { SetWindowLongPtrW(hwnd, GWLP_USERDATA, window_data_ptr as isize); }
-    unsafe { let _ = SetTimer(Some(hwnd), TIMER_ID, TIMER_INTERVAL_MS, None); }
+    unsafe {
+        SetWindowLongPtrW(hwnd, GWLP_USERDATA, window_data_ptr as isize);
+    }
+    unsafe {
+        let _ = SetTimer(Some(hwnd), TIMER_ID, TIMER_INTERVAL_MS, None);
+    }
 
     // 将 HWND 发回给 CandidateWindow，以便 shutdown 时可以发消息。
     let _ = hwnd_tx.send(hwnd.0 as isize);
@@ -184,14 +213,18 @@ fn run_window_thread(data_src: std::sync::Arc<ArcSwap<CandidateData>>, hwnd_tx: 
     }));
     if let Err(e) = result {
         log::error!("候选窗口消息泵 panic: {:?}", e);
-        unsafe { let _ = ShowWindow(hwnd, SW_HIDE); }
+        unsafe {
+            let _ = ShowWindow(hwnd, SW_HIDE);
+        }
     }
 
     // 清理
     unsafe {
         let _ = KillTimer(Some(hwnd), TIMER_ID);
         let ptr = GetWindowLongPtrW(hwnd, GWLP_USERDATA) as *mut WindowData;
-        if !ptr.is_null() { let _ = Box::from_raw(ptr); }
+        if !ptr.is_null() {
+            let _ = Box::from_raw(ptr);
+        }
         let _ = DestroyWindow(hwnd);
     }
 }
@@ -199,11 +232,20 @@ fn run_window_thread(data_src: std::sync::Arc<ArcSwap<CandidateData>>, hwnd_tx: 
 // ── 窗口过程 ──────────────────────────────────────────────────────
 
 unsafe extern "system" fn wnd_proc(
-    hwnd: HWND, msg: u32, wparam: WPARAM, lparam: LPARAM,
+    hwnd: HWND,
+    msg: u32,
+    wparam: WPARAM,
+    lparam: LPARAM,
 ) -> LRESULT {
     match msg {
-        WM_TIMER if wparam.0 == TIMER_ID => { handle_timer(hwnd); LRESULT(0) }
-        WM_DESTROY => { PostQuitMessage(0); LRESULT(0) }
+        WM_TIMER if wparam.0 == TIMER_ID => {
+            handle_timer(hwnd);
+            LRESULT(0)
+        }
+        WM_DESTROY => {
+            PostQuitMessage(0);
+            LRESULT(0)
+        }
         _ => DefWindowProcW(hwnd, msg, wparam, lparam),
     }
 }
@@ -212,7 +254,9 @@ unsafe extern "system" fn wnd_proc(
 
 fn handle_timer(hwnd: HWND) {
     let ptr = unsafe { GetWindowLongPtrW(hwnd, GWLP_USERDATA) as *mut WindowData };
-    if ptr.is_null() { return; }
+    if ptr.is_null() {
+        return;
+    }
     let window_data = unsafe { &*ptr };
 
     let data = window_data.data_src.load();
@@ -237,7 +281,12 @@ fn handle_timer(hwnd: HWND) {
         };
         unsafe {
             let _ = SetWindowPos(
-                hwnd, Some(HWND_TOPMOST), pos_x, pos_y, win_w, win_h,
+                hwnd,
+                Some(HWND_TOPMOST),
+                pos_x,
+                pos_y,
+                win_w,
+                win_h,
                 SET_WINDOW_POS_FLAGS(SWP_NOACTIVATE.0),
             );
         }
@@ -245,9 +294,13 @@ fn handle_timer(hwnd: HWND) {
         // 使用 GDI 渲染候选框并贴图
         gdi_render_candidate_window(hwnd, window_data, &data);
 
-        unsafe { let _ = ShowWindow(hwnd, SW_SHOWNA); }
+        unsafe {
+            let _ = ShowWindow(hwnd, SW_SHOWNA);
+        }
     } else {
-        unsafe { let _ = ShowWindow(hwnd, SW_HIDE); }
+        unsafe {
+            let _ = ShowWindow(hwnd, SW_HIDE);
+        }
     }
 }
 
@@ -264,7 +317,12 @@ fn get_monitor_rect(hwnd: HWND) -> (i32, i32, i32, i32) {
             let r = info.rcMonitor;
             (r.left, r.top, r.right, r.bottom)
         } else {
-            (0, 0, GetSystemMetrics(SM_CXSCREEN), GetSystemMetrics(SM_CYSCREEN))
+            (
+                0,
+                0,
+                GetSystemMetrics(SM_CXSCREEN),
+                GetSystemMetrics(SM_CYSCREEN),
+            )
         }
     }
 }
@@ -282,12 +340,22 @@ fn measure_candidate_window_size(_hwnd: HWND, data: &CandidateData) -> (i32, i32
     let total_w = data
         .items
         .iter()
-        .map(|item| (item.label.chars().count() + item.text.chars().count() + item.hint.chars().count()) as i32 * fs_px / 2 + 16)
+        .map(|item| {
+            (item.label.chars().count() + item.text.chars().count() + item.hint.chars().count())
+                as i32
+                * fs_px
+                / 2
+                + 16
+        })
         .sum::<i32>()
         + 20;
     let show_spelling = !data.spelling.is_empty();
     let row_h = (fs_px as f64 * 1.4) as i32;
-    let total_h = if show_spelling { row_h * 2 + 6 } else { row_h + 6 };
+    let total_h = if show_spelling {
+        row_h * 2 + 6
+    } else {
+        row_h + 6
+    };
     (total_w.min(800), total_h.max(DEFAULT_WIN_H))
 }
 
@@ -315,20 +383,21 @@ fn fill_alpha_channel(pixels: &mut [u8], alpha: u8) {
 }
 
 /// 使用 GDI 渲染候选框（两行：编码行 + 候选词行）并通过 UpdateLayeredWindow 贴图。
-fn gdi_render_candidate_window(
-    hwnd: HWND,
-    _window_data: &WindowData,
-    data: &CandidateData,
-) {
+fn gdi_render_candidate_window(hwnd: HWND, _window_data: &WindowData, data: &CandidateData) {
     if data.items.is_empty() && data.spelling.is_empty() {
         return;
     }
 
     unsafe {
         let hdc_screen = GetDC(Some(HWND::default()));
-        if hdc_screen.is_invalid() { return; }
+        if hdc_screen.is_invalid() {
+            return;
+        }
         let hdc_mem = CreateCompatibleDC(Some(hdc_screen));
-        if hdc_mem.is_invalid() { let _ = ReleaseDC(None, hdc_screen); return; }
+        if hdc_mem.is_invalid() {
+            let _ = ReleaseDC(None, hdc_screen);
+            return;
+        }
 
         // font_size 以 pt 为单位，转换为像素
         let fs_px = crate::screen_geometry::pt_to_px(data.theme.font_size).max(12);
@@ -336,12 +405,26 @@ fn gdi_render_candidate_window(
         let padding = 8i32;
         let item_gap = 8i32;
         let show_spelling = !data.spelling.is_empty();
-        let total_h = if show_spelling { row_h * 2 + 6 } else { row_h + 6 };
+        let total_h = if show_spelling {
+            row_h * 2 + 6
+        } else {
+            row_h + 6
+        };
 
         let font = CreateFontW(
-            -fs_px, 0, 0, 0, FW_NORMAL.0 as i32, 0, 0, 0,
-            DEFAULT_CHARSET, OUT_DEFAULT_PRECIS, CLIP_DEFAULT_PRECIS,
-            ANTIALIASED_QUALITY, (DEFAULT_PITCH.0 | FF_DONTCARE.0).into(),
+            -fs_px,
+            0,
+            0,
+            0,
+            FW_NORMAL.0 as i32,
+            0,
+            0,
+            0,
+            DEFAULT_CHARSET,
+            OUT_DEFAULT_PRECIS,
+            CLIP_DEFAULT_PRECIS,
+            ANTIALIASED_QUALITY,
+            (DEFAULT_PITCH.0 | FF_DONTCARE.0).into(),
             w!("Microsoft YaHei"),
         );
         if font.is_invalid() {
@@ -383,23 +466,26 @@ fn gdi_render_candidate_window(
         let bmi = BITMAPINFO {
             bmiHeader: BITMAPINFOHEADER {
                 biSize: mem::size_of::<BITMAPINFOHEADER>() as u32,
-                biWidth: win_w, biHeight: -win_h,
-                biPlanes: 1, biBitCount: 32,
+                biWidth: win_w,
+                biHeight: -win_h,
+                biPlanes: 1,
+                biBitCount: 32,
                 biCompression: BI_RGB.0,
                 ..mem::zeroed()
             },
             bmiColors: [RGBQUAD::default(); 1],
         };
         let mut bits: *mut c_void = ptr::null_mut();
-        let hbitmap = match CreateDIBSection(Some(hdc_mem), &bmi, DIB_RGB_COLORS, &mut bits, None, 0) {
-            Ok(b) => b,
-            Err(e) => {
-                log::error!("候选窗口: CreateDIBSection 失败: {e}");
-                let _ = DeleteDC(hdc_mem);
-                let _ = ReleaseDC(None, hdc_screen);
-                return;
-            }
-        };
+        let hbitmap =
+            match CreateDIBSection(Some(hdc_mem), &bmi, DIB_RGB_COLORS, &mut bits, None, 0) {
+                Ok(b) => b,
+                Err(e) => {
+                    log::error!("候选窗口: CreateDIBSection 失败: {e}");
+                    let _ = DeleteDC(hdc_mem);
+                    let _ = ReleaseDC(None, hdc_screen);
+                    return;
+                }
+            };
         if hbitmap.is_invalid() || bits.is_null() {
             let _ = DeleteDC(hdc_mem);
             let _ = ReleaseDC(None, hdc_screen);
@@ -410,11 +496,29 @@ fn gdi_render_candidate_window(
 
         // 填充背景
         let bg = CreateSolidBrush(argb_to_colorref(data.theme.background_color));
-        let _ = FillRect(hdc_mem, &RECT { left: 0, top: 0, right: win_w, bottom: win_h }, bg);
+        let _ = FillRect(
+            hdc_mem,
+            &RECT {
+                left: 0,
+                top: 0,
+                right: win_w,
+                bottom: win_h,
+            },
+            bg,
+        );
         let _ = DeleteObject(HGDIOBJ(bg.0));
 
         let border = CreateSolidBrush(argb_to_colorref(WINDOW_BORDER_COLOR));
-        let _ = FrameRect(hdc_mem, &RECT { left: 0, top: 0, right: win_w, bottom: win_h }, border);
+        let _ = FrameRect(
+            hdc_mem,
+            &RECT {
+                left: 0,
+                top: 0,
+                right: win_w,
+                bottom: win_h,
+            },
+            border,
+        );
         let _ = DeleteObject(HGDIOBJ(border.0));
 
         // ── 绘制编码行（第一行）──
@@ -439,25 +543,44 @@ fn gdi_render_candidate_window(
             let _ = GetTextExtentPoint32W(hdc_mem, &lw, &mut ls);
             let _ = GetTextExtentPoint32W(hdc_mem, &tw, &mut ts);
             let _ = GetTextExtentPoint32W(hdc_mem, &hw, &mut hs);
-            let item_w = item_widths.get(i).copied().unwrap_or(ls.cx + ts.cx + hs.cx + 4);
+            let item_w = item_widths
+                .get(i)
+                .copied()
+                .unwrap_or(ls.cx + ts.cx + hs.cx + 4);
             if i == data.highlighted {
                 let hl = CreateSolidBrush(argb_to_colorref(data.theme.highlight_color));
-                let _ = FillRect(hdc_mem, &RECT {
-                    left: cx - 2, top: cand_y + 1,
-                    right: cx + item_w + 2, bottom: cand_y + row_h - 1,
-                }, hl);
+                let _ = FillRect(
+                    hdc_mem,
+                    &RECT {
+                        left: cx - 2,
+                        top: cand_y + 1,
+                        right: cx + item_w + 2,
+                        bottom: cand_y + row_h - 1,
+                    },
+                    hl,
+                );
                 let _ = DeleteObject(HGDIOBJ(hl.0));
                 let _ = SetTextColor(hdc_mem, COLORREF(0x00FFFFFF));
                 let _ = TextOutW(hdc_mem, cx, cand_y + (row_h - ls.cy) / 2, &lw);
                 let _ = TextOutW(hdc_mem, cx + ls.cx, cand_y + (row_h - ts.cy) / 2, &tw);
-                let _ = TextOutW(hdc_mem, cx + ls.cx + ts.cx, cand_y + (row_h - hs.cy) / 2, &hw);
+                let _ = TextOutW(
+                    hdc_mem,
+                    cx + ls.cx + ts.cx,
+                    cand_y + (row_h - hs.cy) / 2,
+                    &hw,
+                );
             } else {
                 let _ = SetTextColor(hdc_mem, argb_to_colorref(data.theme.primary_color));
                 let _ = TextOutW(hdc_mem, cx, cand_y + (row_h - ls.cy) / 2, &lw);
                 let _ = SetTextColor(hdc_mem, COLORREF(0x00000000));
                 let _ = TextOutW(hdc_mem, cx + ls.cx, cand_y + (row_h - ts.cy) / 2, &tw);
                 let _ = SetTextColor(hdc_mem, argb_to_colorref(data.theme.primary_color));
-                let _ = TextOutW(hdc_mem, cx + ls.cx + ts.cx, cand_y + (row_h - hs.cy) / 2, &hw);
+                let _ = TextOutW(
+                    hdc_mem,
+                    cx + ls.cx + ts.cx,
+                    cand_y + (row_h - hs.cy) / 2,
+                    &hw,
+                );
             }
             cx += item_w + item_gap;
         }
@@ -468,13 +591,23 @@ fn gdi_render_candidate_window(
         // UpdateLayeredWindow
         let blend = BLENDFUNCTION {
             BlendOp: AC_SRC_OVER as u8,
-            BlendFlags: 0, SourceConstantAlpha: 255,
+            BlendFlags: 0,
+            SourceConstantAlpha: 255,
             AlphaFormat: AC_SRC_ALPHA as u8,
         };
         let _ = UpdateLayeredWindow(
-            hwnd, Some(hdc_screen), None, Some(&SIZE { cx: win_w, cy: win_h }),
-            Some(hdc_mem), Some(&POINT { x: 0, y: 0 }),
-            COLORREF::default(), Some(&blend), ULW_ALPHA,
+            hwnd,
+            Some(hdc_screen),
+            None,
+            Some(&SIZE {
+                cx: win_w,
+                cy: win_h,
+            }),
+            Some(hdc_mem),
+            Some(&POINT { x: 0, y: 0 }),
+            COLORREF::default(),
+            Some(&blend),
+            ULW_ALPHA,
         );
 
         let _ = SelectObject(hdc_mem, old_font);
