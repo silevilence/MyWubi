@@ -34,6 +34,7 @@ pub mod candidate_window;
 pub mod factory;
 pub mod file_log;
 pub mod guids;
+mod input_session;
 pub mod key_filter;
 mod lifecycle;
 pub mod reload;

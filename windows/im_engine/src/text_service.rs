@@ -8,18 +8,18 @@
 //!   并把本对象作为 `ITfKeyEventSink` / `ITfThreadMgrEventSink` 注册到 TSF；
 //!   `Deactivate` 中反转该过程，释放 cookie 与线程管理器引用。
 //! * **按键过滤**：`ITfKeyEventSink::OnKeyDown` 把虚拟键翻译为
-//!   [`InputEvent`] 后驱动 [`StateMachine`]，依据 [`Transition`]
-//!   决定是否“吃掉”按键。上屏文本通过日志记录（实际文本插入将在
-//!   “基于 Slint 的候选框”阶段使用 ITfEditSession 完成）。
+//!   [`InputEvent`] 后驱动输入会话，依据处理结果
+//!   决定是否“吃掉”按键。上屏文本由同步 EditSession 写入，
+//!   候选框由 GDI 独立渲染。
 //! * **焦点切换**：`ITfThreadMgrEventSink::OnSetFocus` 用于跟踪文档管理器焦点，
 //!   为后续候选框定位提供基础（暂记当前 ITfDocumentMgr 指针）。
 
-use core_engine::{config::SwitchKey, Config, Dictionary, InputEvent, StateMachine, Transition};
+use core_engine::{config::SwitchKey, Config, Dictionary, InputEvent};
 use parking_lot::Mutex;
 use std::ffi::c_void;
 use std::mem;
 use std::ptr;
-use std::sync::atomic::{AtomicBool, AtomicU64, Ordering};
+use std::sync::atomic::{AtomicBool, Ordering};
 use std::sync::Arc;
 
 use windows::core::{implement, w, Interface, Ref, Result, BOOL, GUID, HRESULT};
@@ -68,9 +68,10 @@ use windows::Win32::UI::WindowsAndMessaging::{CreateIconIndirect, HICON, ICONINF
 
 use arc_swap::ArcSwap;
 
-use crate::candidate_data::{CandidateData, CandidateItem, ScreenPoint, ThemeSnapshot};
+use crate::candidate_data::{CandidateData, ScreenPoint, ThemeSnapshot};
 use crate::candidate_window::CandidateWindow;
 use crate::guids::{CLSID_TEXT_SERVICE, GUID_PRESERVED_SHIFT};
+use crate::input_session::{DisplayAttrKind, EditSessionOp, InputSession};
 use crate::key_filter;
 use crate::lifecycle::{remove_registration, Registration, TsfLifecycle};
 use crate::screen_geometry::get_range_position;
@@ -82,14 +83,6 @@ use crate::RuntimeSnapshot;
 const GUID_DISPLAY_ATTR_INPUT: GUID = GUID::from_u128(0x8a2e3b4c_1d5f_4a7b_9e6c_3f8d2b1a5e7d);
 /// 有候选态 display attribute 的 GUID.
 const GUID_DISPLAY_ATTR_CONVERTED: GUID = GUID::from_u128(0x6b1c8d9e_2f3a_4c5b_8d7e_1a2b3c4d5e6f);
-/// PreservedKey（Shift 切换）的 GUID.
-
-#[derive(Debug, Clone, Copy, PartialEq, Eq)]
-enum DisplayAttrKind {
-    Input,
-    Converted,
-}
-
 #[derive(Debug, Default, Clone, Copy, PartialEq, Eq)]
 struct ShiftKeyToggleTracker {
     used_with_other_key: bool,
@@ -457,40 +450,16 @@ fn make_i32_variant(value: i32) -> VARIANT {
     }
 }
 
-/// 异步 ITfEditSession 的操作描述。由 apply_transition 根据 Transition
-/// 构建，由 EditSession::DoEditSession 消费。
-#[derive(Debug, Clone, PartialEq, Eq)]
-#[allow(dead_code)]
-enum EditSessionOp {
-    /// 创建或更新 composition range 上的编码文本。
-    CompositionUpdate {
-        spelling: String,
-        attr: DisplayAttrKind,
-    },
-    /// 将 composition range 文本替换为最终候选词，终止 composition。
-    CommitAndReplace { text: String, replace_len: usize },
-    /// 提交当前 composition 后立刻开始下一轮 composition。
-    CommitThenUpdate {
-        text: String,
-        replace_len: usize,
-        spelling: String,
-        attr: DisplayAttrKind,
-    },
-    /// 终止 composition。delete_text=true 时删除 range 文本（Esc），
-    /// false 时保留文本（Passthrough）。
-    EndComposition { delete_text: bool },
-    /// 无操作。
-    NoOp,
-}
-
-/// ITfEditSession 的 COM 实现。由 schedule_edit_session 创建并传递给
+/// ITfEditSession 的 COM 实现。由 run_edit 创建并传递给
 /// ITfContext::RequestEditSession 调度。
 #[implement(ITfEditSession)]
 struct EditSession {
     op: EditSessionOp,
+    context: ITfContext,
+    anchor: Arc<Mutex<Option<ScreenPoint>>>,
     /// 指向 `_service_owner` 持有的 TextService COM 对象。
     service_ptr: *const TextService,
-    /// 保持 TextService COM 对象存活直到异步 EditSession 完成。
+    /// 保持 TextService COM 对象存活直到同步 EditSession 完成。
     _service_owner: windows::core::IUnknown,
 }
 
@@ -499,7 +468,8 @@ impl ITfEditSession_Impl for EditSession_Impl {
         // SAFETY: _service_owner keeps the COM allocation containing
         // service_ptr alive for the entire EditSession lifetime.
         let service = unsafe { &*self.service_ptr };
-        service.execute_edit_session(ec, &self.op)
+        *self.anchor.lock() = service.execute_edit_session(ec, &self.op, &self.context)?;
+        Ok(())
     }
 }
 
@@ -508,7 +478,7 @@ impl ITfEditSession_Impl for EditSession_Impl {
 /// 一次实例对应一次 TIP 激活；`Activate` 时由系统通过 ClassFactory 创建并
 /// 注入线程管理器，`Deactivate` 时自动反转连接并使本对象自洽回收。
 ///
-/// 内部的 [`StateMachine`] 通过 `Mutex` 保护，多线程可见且无需发送数据
+/// 内部的输入会话 通过 `Mutex` 保护，多线程可见且无需发送数据
 /// 跨线程锁竞争（TSF 单线程模型 + Mutex 互斥访问足够）。
 #[implement(
     ITfTextInputProcessor,
@@ -527,12 +497,10 @@ impl ITfEditSession_Impl for EditSession_Impl {
     ITfSource
 )]
 pub struct TextService {
-    /// 跨平台核心状态机。
-    sm: Mutex<StateMachine>,
+    /// 编码、候选显示与编辑结果的统一会话。
+    input: InputSession,
     /// 可热替换的运行时快照（配置 + 码表 + 路径）。
     runtime: Arc<ArcSwap<RuntimeSnapshot>>,
-    /// 当前实例已同步到的运行时版本。
-    runtime_revision: AtomicU64,
     /// 注册记录、管理器与自身 owner 由生命周期模块共同持有。
     lifecycle: TsfLifecycle,
     /// 当前焦点所在文档管理器。
@@ -541,10 +509,6 @@ pub struct TextService {
     candidate_tx: Arc<ArcSwap<CandidateData>>,
     /// 候选框窗口实例（Activate 中启动，Deactivate 中关闭）。
     candidate_window: Mutex<Option<CandidateWindow>>,
-    /// 当前候选框主题快照。
-    theme: Mutex<ThemeSnapshot>,
-    /// 全局配置（用于翻页热键等动态映射）。
-    cfg: Mutex<Config>,
     /// ── Phase 1 新增字段 ──
     /// 当前激活的 composition 对象。
     composition: Mutex<Option<ITfComposition>>,
@@ -552,13 +516,11 @@ pub struct TextService {
     ga_input: Mutex<u32>,
     /// 候选态 display attribute 对应的 GUID atom。
     ga_converted: Mutex<u32>,
-    /// 当前是否处于 composing 状态。
-    is_composing: AtomicBool,
+    /// 自己发起的 EndComposition 回调不应重置下一轮输入。
+    ending_composition: AtomicBool,
     /// ── Phase 2 新增字段 ──
     /// ITfTextInputProcessorEx 的激活标志（TF_TMAE_COMLESS 等）。
     activate_flags: Mutex<u32>,
-    /// true=中文模式（拦截字母键），false=英文模式（Passthrough）。
-    ime_mode: Mutex<bool>,
     /// 跟踪本轮 Shift 是否与其他按键组合使用，避免组合键误触发中英文切换。
     shift_toggle_tracker: Mutex<ShiftKeyToggleTracker>,
     /// ── Phase 3 新增字段 ──
@@ -566,122 +528,6 @@ pub struct TextService {
     lang_bar_sink: Mutex<Option<ITfLangBarItemSink>>,
     /// 语言栏按钮是否可见。
     lang_bar_visible: AtomicBool,
-}
-
-fn should_intercept_test_key(
-    event: Option<InputEvent>,
-    spelling_empty: bool,
-    accepts_code_char: bool,
-) -> bool {
-    match event {
-        Some(InputEvent::Char(_)) if accepts_code_char => true,
-        Some(InputEvent::Char(_)) => !spelling_empty,
-        Some(InputEvent::Symbol(_)) if accepts_code_char => true,
-        Some(InputEvent::Symbol(character)) if !character.is_ascii() => true,
-        Some(_) => !spelling_empty,
-        None => false,
-    }
-}
-
-fn candidate_items(
-    candidates: &[String],
-    code_hints: &[String],
-    show_code_hints: bool,
-) -> Vec<CandidateItem> {
-    candidates
-        .iter()
-        .enumerate()
-        .map(|(i, text)| CandidateItem {
-            label: format!("{}. ", i + 1),
-            text: text.clone(),
-            hint: if show_code_hints {
-                code_hints.get(i).cloned().unwrap_or_default()
-            } else {
-                String::new()
-            },
-        })
-        .collect()
-}
-
-fn resolve_candidate_anchor(
-    current_anchor: Option<ScreenPoint>,
-    font_size: u16,
-) -> Option<ScreenPoint> {
-    current_anchor
-        .or_else(|| crate::screen_geometry::get_caret_position_win32(font_size))
-        .or_else(|| crate::screen_geometry::get_cursor_position())
-}
-
-fn build_spelling_only_candidate_data(
-    mut current: CandidateData,
-    spelling: String,
-    anchor: Option<ScreenPoint>,
-) -> CandidateData {
-    current.visible = !spelling.is_empty();
-    current.spelling = spelling;
-    current.items.clear();
-    current.highlighted = 0;
-    current.page = 0;
-    current.total_pages = 0;
-    current.anchor = anchor.or(current.anchor);
-    current
-}
-
-fn update_candidate_anchor(
-    mut current: CandidateData,
-    anchor: Option<ScreenPoint>,
-) -> CandidateData {
-    if let Some(anchor) = anchor {
-        current.anchor = Some(anchor);
-    }
-    current
-}
-
-fn transition_to_edit_session_op(transition: &Transition) -> EditSessionOp {
-    match transition {
-        Transition::None => EditSessionOp::NoOp,
-        Transition::Commit(text) => EditSessionOp::CommitAndReplace {
-            text: text.clone(),
-            replace_len: 0,
-        },
-        Transition::CommitThenCandidates {
-            text,
-            replace_len,
-            spelling,
-            ..
-        } => EditSessionOp::CommitThenUpdate {
-            text: text.clone(),
-            replace_len: *replace_len,
-            spelling: spelling.clone(),
-            attr: DisplayAttrKind::Converted,
-        },
-        Transition::CommitThenSpelling {
-            text,
-            replace_len,
-            spelling,
-        } => EditSessionOp::CommitThenUpdate {
-            text: text.clone(),
-            replace_len: *replace_len,
-            spelling: spelling.clone(),
-            attr: DisplayAttrKind::Input,
-        },
-        Transition::Candidates { spelling, .. } if !spelling.is_empty() => {
-            EditSessionOp::CompositionUpdate {
-                spelling: spelling.clone(),
-                attr: DisplayAttrKind::Converted,
-            }
-        }
-        Transition::SpellingUpdated(spelling) if !spelling.is_empty() => {
-            EditSessionOp::CompositionUpdate {
-                spelling: spelling.clone(),
-                attr: DisplayAttrKind::Input,
-            }
-        }
-        Transition::Cleared => EditSessionOp::EndComposition { delete_text: true },
-        Transition::Candidates { .. }
-        | Transition::SpellingUpdated(_)
-        | Transition::Passthrough(_) => EditSessionOp::NoOp,
-    }
 }
 
 impl TextService {
@@ -692,80 +538,27 @@ impl TextService {
         auto_commit_unique: bool,
         candidate_tx: Arc<ArcSwap<CandidateData>>,
     ) -> Self {
-        Self::with_theme(
-            dict,
-            page_size,
-            auto_commit_unique,
-            core_engine::config::PunctuationMode::BufferedCommit,
-            candidate_tx,
-            ThemeSnapshot::default(),
-            Config::default(),
-        )
+        let mut cfg = Config::default();
+        cfg.basic.candidate_count = page_size.clamp(1, 10) as u8;
+        cfg.basic.auto_commit_unique = auto_commit_unique;
+        Self::from_config(dict, &cfg, candidate_tx)
     }
 
-    fn with_theme(
-        dict: Arc<Dictionary>,
-        page_size: usize,
-        auto_commit_unique: bool,
-        punctuation_mode: core_engine::config::PunctuationMode,
-        candidate_tx: Arc<ArcSwap<CandidateData>>,
-        theme: ThemeSnapshot,
-        cfg: Config,
-    ) -> Self {
-        let max_code_len = dict.table_config().max_code_len as usize;
-        let sm = StateMachine::with_full_behavior(
-            dict,
-            page_size,
-            auto_commit_unique,
-            punctuation_mode,
-            max_code_len,
-            cfg.basic.commit_on_max_code_overflow,
-        );
-        Self {
-            sm: Mutex::new(sm),
-            runtime: Arc::new(ArcSwap::from_pointee(RuntimeSnapshot {
-                revision: 0,
-                dict: Dictionary::from_entries(Vec::new(), None, Default::default())
-                    .expect("empty dictionary should construct"),
-                config: cfg.clone(),
-                config_path: std::path::PathBuf::from("config.toml"),
-                system_table_path: std::path::PathBuf::from("tables/wubi86.dict"),
-                user_table_path: std::path::PathBuf::from("tables/user.dict"),
-            })),
-            runtime_revision: AtomicU64::new(0),
-            lifecycle: TsfLifecycle::default(),
-            focus_doc_mgr: Mutex::new(None),
-            candidate_tx,
-            candidate_window: Mutex::new(None),
-            theme: Mutex::new(theme),
-            cfg: Mutex::new(cfg),
-            composition: Mutex::new(None),
-            ga_input: Mutex::new(0),
-            ga_converted: Mutex::new(0),
-            is_composing: AtomicBool::new(false),
-            activate_flags: Mutex::new(0),
-            ime_mode: Mutex::new(true),
-            shift_toggle_tracker: Mutex::new(ShiftKeyToggleTracker::default()),
-            lang_bar_sink: Mutex::new(None),
-            lang_bar_visible: AtomicBool::new(true),
-        }
-    }
-
-    /// 从 [`Config`] 选择默认参数。
+    /// 从配置创建独立会话。
     pub fn from_config(
         dict: Arc<Dictionary>,
         cfg: &Config,
         candidate_tx: Arc<ArcSwap<CandidateData>>,
     ) -> Self {
-        Self::with_theme(
+        let runtime = Arc::new(ArcSwap::from_pointee(RuntimeSnapshot {
+            revision: 0,
             dict,
-            cfg.basic.candidate_count as usize,
-            cfg.basic.auto_commit_unique,
-            cfg.basic.punctuation_mode,
-            candidate_tx,
-            ThemeSnapshot::from_config(cfg),
-            cfg.clone(),
-        )
+            config: cfg.clone(),
+            config_path: "config.toml".into(),
+            system_table_path: "tables/wubi86.dict".into(),
+            user_table_path: "tables/user.dict".into(),
+        }));
+        Self::from_runtime(runtime, candidate_tx)
     }
 
     pub(crate) fn from_runtime(
@@ -773,35 +566,26 @@ impl TextService {
         candidate_tx: Arc<ArcSwap<CandidateData>>,
     ) -> Self {
         let snapshot = runtime.load();
-        let cfg = snapshot.config.clone();
-        let revision = snapshot.revision;
-        let theme = ThemeSnapshot::from_config(&cfg);
-        let sm = StateMachine::with_full_behavior(
+        let input = InputSession::new(
             Arc::clone(&snapshot.dict),
-            cfg.basic.candidate_count as usize,
-            cfg.basic.auto_commit_unique,
-            cfg.basic.punctuation_mode,
-            snapshot.dict.table_config().max_code_len as usize,
-            cfg.basic.commit_on_max_code_overflow,
+            snapshot.config.clone(),
+            snapshot.revision,
+            Arc::clone(&candidate_tx),
         );
         drop(snapshot);
 
         Self {
-            sm: Mutex::new(sm),
+            input,
             runtime,
-            runtime_revision: AtomicU64::new(revision),
             lifecycle: TsfLifecycle::default(),
             focus_doc_mgr: Mutex::new(None),
             candidate_tx,
             candidate_window: Mutex::new(None),
-            theme: Mutex::new(theme),
-            cfg: Mutex::new(cfg),
             composition: Mutex::new(None),
             ga_input: Mutex::new(0),
             ga_converted: Mutex::new(0),
-            is_composing: AtomicBool::new(false),
+            ending_composition: AtomicBool::new(false),
             activate_flags: Mutex::new(0),
-            ime_mode: Mutex::new(true),
             shift_toggle_tracker: Mutex::new(ShiftKeyToggleTracker::default()),
             lang_bar_sink: Mutex::new(None),
             lang_bar_visible: AtomicBool::new(true),
@@ -819,39 +603,16 @@ impl TextService {
     }
 
     fn theme_snapshot(&self) -> ThemeSnapshot {
-        self.theme.lock().clone()
+        self.input.theme()
     }
 
     fn config_snapshot(&self) -> Config {
-        self.cfg.lock().clone()
+        self.input.config()
     }
 
     fn sync_runtime_if_needed(&self) {
-        let snapshot = self.runtime.load();
-        if self.runtime_revision.load(Ordering::Acquire) == snapshot.revision {
-            return;
-        }
-
-        let cfg = snapshot.config.clone();
-        let theme = ThemeSnapshot::from_config(&cfg);
-        let sm = StateMachine::with_full_behavior(
-            Arc::clone(&snapshot.dict),
-            cfg.basic.candidate_count as usize,
-            cfg.basic.auto_commit_unique,
-            cfg.basic.punctuation_mode,
-            snapshot.dict.table_config().max_code_len as usize,
-            cfg.basic.commit_on_max_code_overflow,
-        );
-        let revision = snapshot.revision;
-        drop(snapshot);
-
-        *self.sm.lock() = sm;
-        *self.cfg.lock() = cfg;
-        *self.theme.lock() = theme.clone();
-        self.candidate_tx
-            .store(Arc::new(CandidateData::hidden(theme)));
-        self.runtime_revision.store(revision, Ordering::Release);
-        log::info!("[TSF] 已同步最新配置/码表 revision={revision}");
+        let snapshot = self.runtime.load_full();
+        self.input.reload(&snapshot, |op| self.run_edit(op, None));
     }
 
     /// Deactivate / Drop 之前清理自身保护：
@@ -862,147 +623,66 @@ impl TextService {
         self.lifecycle.release_unactivated_owner();
     }
 
-    /// 内部：把 [`Transition`] 落实成副作用并返回 BOOL 表示“按键已消费”。
-    ///
-    /// `context` 为可选的 TSF `ITfContext`，用于候选框坐标获取和 EditSession 调度。
-    fn apply_transition(&self, t: Transition, context: Option<&ITfContext>) -> BOOL {
-        let theme = self.theme_snapshot();
-        match &t {
-            Transition::None => {}
-            Transition::Commit(text) => {
-                log::info!("[TSF] commit text: {text}");
-                self.candidate_tx
-                    .store(Arc::new(CandidateData::hidden(theme.clone())));
-            }
-            Transition::CommitThenCandidates {
-                text,
-                spelling,
-                candidates,
-                code_hints,
-                page,
-                total_pages,
-                ..
-            } => {
-                log::info!("[TSF] commit text: {text}");
-                let current_anchor = self.candidate_tx.load().anchor;
-                let cfg = self.config_snapshot();
-                let items = candidate_items(candidates, code_hints, cfg.basic.show_code_hints);
-                let anchor = resolve_candidate_anchor(current_anchor, theme.font_size);
-                self.candidate_tx.store(Arc::new(CandidateData::visible(
-                    spelling.clone(),
-                    items,
-                    0,
-                    *page,
-                    *total_pages,
-                    anchor,
-                    theme.clone(),
-                )));
-            }
-            Transition::CommitThenSpelling { text, spelling, .. } => {
-                log::info!("[TSF] commit text: {text}");
-                let current = self.candidate_tx.load();
-                let data = build_spelling_only_candidate_data(
-                    (**current).clone(),
-                    spelling.clone(),
-                    resolve_candidate_anchor(current.anchor, theme.font_size),
-                );
-                self.candidate_tx.store(Arc::new(data));
-            }
-            Transition::Candidates {
-                spelling,
-                candidates,
-                code_hints,
-                page,
-                total_pages,
-            } => {
-                if spelling.is_empty() {
-                    self.candidate_tx
-                        .store(Arc::new(CandidateData::hidden(theme.clone())));
-                } else {
-                    let current_anchor = self.candidate_tx.load().anchor;
-                    let cfg = self.config_snapshot();
-                    let items = candidate_items(candidates, code_hints, cfg.basic.show_code_hints);
-                    let anchor = resolve_candidate_anchor(current_anchor, theme.font_size);
-                    self.candidate_tx.store(Arc::new(CandidateData::visible(
-                        spelling.clone(),
-                        items,
-                        0,
-                        *page,
-                        *total_pages,
-                        anchor,
-                        theme.clone(),
-                    )));
-                }
-            }
-            Transition::SpellingUpdated(s) => {
-                log::debug!("[TSF] spelling={s}");
-                let current = self.candidate_tx.load();
-                let data = build_spelling_only_candidate_data(
-                    (**current).clone(),
-                    s.clone(),
-                    resolve_candidate_anchor(current.anchor, theme.font_size),
-                );
-                self.candidate_tx.store(Arc::new(data));
-            }
-            Transition::Cleared => {
-                self.candidate_tx
-                    .store(Arc::new(CandidateData::hidden(theme.clone())));
-            }
-            Transition::Passthrough(_) => {
-                self.candidate_tx
-                    .store(Arc::new(CandidateData::hidden(theme.clone())));
-            }
+    /// 将会话操作交给当前文档 adapter，并同时检查请求与执行 HRESULT。
+    fn run_edit(
+        &self,
+        op: &EditSessionOp,
+        context: Option<&ITfContext>,
+    ) -> Result<Option<ScreenPoint>> {
+        if matches!(op, EditSessionOp::NoOp) {
+            return Ok(None);
         }
-
-        let op = transition_to_edit_session_op(&t);
-
-        // 异步调度 EditSession 更新 composition（候选框已同步更新）
-        if !matches!(op, EditSessionOp::NoOp) {
-            if let Some(ctx) = context {
-                self.schedule_edit_session(op, ctx);
-            }
+        let composition = self.composition.lock().clone();
+        if matches!(op, EditSessionOp::EndComposition { .. }) && composition.is_none() {
+            return Ok(None);
         }
-
-        match t {
-            Transition::Passthrough(_) => BOOL(0),
-            _ => BOOL(1),
-        }
-    }
-
-    /// 调度一条 composition 操作到 TSF 编辑会话。
-    fn schedule_edit_session(&self, op: EditSessionOp, context: &ITfContext) {
-        let Some(service_owner) = self.clone_self_unknown() else {
-            log::warn!("[TSF] schedule_edit_session: self_unknown 缺失，跳过");
-            return;
+        let context = if let Some(comp) = composition {
+            unsafe { comp.GetRange()?.GetContext()? }
+        } else if let Some(ctx) = context {
+            ctx.clone()
+        } else {
+            self.get_focus_context()?.0
         };
+        let service_owner = self
+            .clone_self_unknown()
+            .ok_or_else(|| windows::core::Error::from(E_FAIL))?;
         let tid = self.lifecycle.tid();
         if tid == 0 {
-            log::warn!("[TSF] schedule_edit_session: tid==0，跳过");
-            return;
+            return Err(E_FAIL.into());
         }
+        let anchor = Arc::new(Mutex::new(None));
         let edit_session = EditSession {
-            op,
+            op: op.clone(),
+            context: context.clone(),
+            anchor: Arc::clone(&anchor),
             service_ptr: self as *const TextService,
             _service_owner: service_owner,
         };
         let com_obj = windows::core::ComObject::new(edit_session);
         let edit_session_com: ITfEditSession = com_obj.to_interface();
-        if let Err(e) = unsafe {
+        unsafe {
             context.RequestEditSession(tid, &edit_session_com, TF_ES_SYNC | TF_ES_READWRITE)
-        } {
-            log::error!("[TSF] RequestEditSession 失败: {e}");
-        }
+        }?
+        .ok()?;
+        let position = *anchor.lock();
+        Ok(position)
     }
 
     /// 在 TSF EditSession 回调中执行实际的 composition 操作。
-    fn execute_edit_session(&self, ec: u32, op: &EditSessionOp) -> Result<()> {
-        let result = match op {
-            EditSessionOp::NoOp => Ok(()),
+    fn execute_edit_session(
+        &self,
+        ec: u32,
+        op: &EditSessionOp,
+        context: &ITfContext,
+    ) -> Result<Option<ScreenPoint>> {
+        match op {
+            EditSessionOp::NoOp => Ok(None),
             EditSessionOp::CompositionUpdate { spelling, attr } => {
-                self.edit_session_composition_update(ec, spelling, *attr)
+                self.edit_session_composition_update(ec, spelling, *attr, context)
             }
             EditSessionOp::CommitAndReplace { text, replace_len } => {
-                self.edit_session_commit_and_replace(ec, text, *replace_len)
+                self.edit_session_commit_and_replace(ec, text, *replace_len, context)?;
+                Ok(None)
             }
             EditSessionOp::CommitThenUpdate {
                 text,
@@ -1010,17 +690,14 @@ impl TextService {
                 spelling,
                 attr,
             } => {
-                self.edit_session_commit_and_replace(ec, text, *replace_len)?;
-                self.edit_session_composition_update(ec, spelling, *attr)
+                self.edit_session_commit_and_replace(ec, text, *replace_len, context)?;
+                self.edit_session_composition_update(ec, spelling, *attr, context)
             }
             EditSessionOp::EndComposition { delete_text } => {
-                self.edit_session_end_composition(ec, *delete_text)
+                self.edit_session_end_composition(ec, *delete_text)?;
+                Ok(None)
             }
-        };
-        if let Err(ref e) = result {
-            log::error!("[TSF] EditSession 操作失败: {e}");
         }
-        result
     }
 
     fn edit_session_composition_update(
@@ -1028,35 +705,27 @@ impl TextService {
         ec: u32,
         spelling: &str,
         attr: DisplayAttrKind,
-    ) -> Result<()> {
-        // 使用 get_focus_context 获取的文档 context 创建 composition
-        let (edit_ctx, _doc_mgr) = self.get_focus_context()?;
-        let mut comp_guard = self.composition.lock();
-        if comp_guard.is_none() {
-            let ctx_comp: ITfContextComposition = edit_ctx.cast()?;
-            let selection = self.get_selection_range(&edit_ctx, ec)?;
+        context: &ITfContext,
+    ) -> Result<Option<ScreenPoint>> {
+        let current = self.composition.lock().clone();
+        let comp = if let Some(comp) = current {
+            comp
+        } else {
+            let ctx_comp: ITfContextComposition = context.cast()?;
+            let selection = self.get_selection_range(context, ec)?;
             let sink = self
                 .clone_self_unknown()
-                .ok_or_else(|| windows::core::Error::from(HRESULT(-1)))?
+                .ok_or_else(|| windows::core::Error::from(E_FAIL))?
                 .cast::<ITfCompositionSink>()?;
-            let new_comp = unsafe { ctx_comp.StartComposition(ec, &selection, &sink) }?;
-            *comp_guard = Some(new_comp);
-            self.is_composing.store(true, Ordering::Release);
-        }
-        if let Some(ref comp) = *comp_guard {
-            let range: ITfRange = unsafe { comp.GetRange()? };
-            let wide: Vec<u16> = spelling.encode_utf16().collect();
-            unsafe { range.SetText(ec, 0, &wide) }?;
-            self.set_range_display_attribute(&edit_ctx, ec, &range, attr)?;
-
-            let current = self.candidate_tx.load();
-            let updated = update_candidate_anchor(
-                (**current).clone(),
-                get_range_position(&edit_ctx, ec, &range),
-            );
-            self.candidate_tx.store(Arc::new(updated));
-        }
-        Ok(())
+            let comp = unsafe { ctx_comp.StartComposition(ec, &selection, &sink) }?;
+            *self.composition.lock() = Some(comp.clone());
+            comp
+        };
+        let range = unsafe { comp.GetRange() }?;
+        let wide: Vec<u16> = spelling.encode_utf16().collect();
+        unsafe { range.SetText(ec, 0, &wide) }?;
+        self.set_range_display_attribute(context, ec, &range, attr)?;
+        Ok(get_range_position(context, ec, &range))
     }
 
     fn edit_session_commit_and_replace(
@@ -1064,19 +733,13 @@ impl TextService {
         ec: u32,
         text: &str,
         replace_len: usize,
+        context: &ITfContext,
     ) -> Result<()> {
-        let mut comp_guard = self.composition.lock();
-        if let Some(comp) = comp_guard.take() {
-            let (edit_ctx, _doc_mgr) = self.get_focus_context()?;
-            let range: ITfRange = unsafe { comp.GetRange()? };
-            let wide: Vec<u16> = text.encode_utf16().collect();
-            unsafe { range.SetText(ec, 0, &wide) }?;
-            unsafe { range.Collapse(ec, TF_ANCHOR_END) }?;
-            unsafe { comp.EndComposition(ec) }?;
-            self.set_selection_to_range_end(&edit_ctx, ec, &range)?;
+        let comp = self.composition.lock().clone();
+        let range = if let Some(comp) = &comp {
+            unsafe { comp.GetRange() }?
         } else {
-            let (edit_ctx, _doc_mgr) = self.get_focus_context()?;
-            let range = self.get_selection_range(&edit_ctx, ec)?;
+            let range = self.get_selection_range(context, ec)?;
             if replace_len > 0 {
                 let mut shifted = 0;
                 unsafe {
@@ -1085,25 +748,40 @@ impl TextService {
                     range.ShiftEnd(ec, replace_len as i32, &mut shifted, ptr::null())?;
                 }
             }
-            let wide: Vec<u16> = text.encode_utf16().collect();
-            unsafe { range.SetText(ec, 0, &wide) }?;
-            unsafe { range.Collapse(ec, TF_ANCHOR_END) }?;
-            self.set_selection_to_range_end(&edit_ctx, ec, &range)?;
+            range
+        };
+        let wide: Vec<u16> = text.encode_utf16().collect();
+        unsafe { range.SetText(ec, 0, &wide) }?;
+        unsafe { range.Collapse(ec, TF_ANCHOR_END) }?;
+        if let Some(comp) = comp {
+            self.end_composition(ec, &comp)?;
         }
-        self.is_composing.store(false, Ordering::Release);
-        Ok(())
+        self.set_selection_to_range_end(context, ec, &range)
     }
 
     fn edit_session_end_composition(&self, ec: u32, delete_text: bool) -> Result<()> {
-        let mut comp_guard = self.composition.lock();
-        if let Some(comp) = comp_guard.take() {
+        let comp = self.composition.lock().clone();
+        if let Some(comp) = comp {
             if delete_text {
-                let range: ITfRange = unsafe { comp.GetRange()? };
-                unsafe { range.SetText(ec, 0, &[]) }?;
+                unsafe { comp.GetRange()?.SetText(ec, 0, &[]) }?;
             }
-            unsafe { comp.EndComposition(ec) }?;
+            self.end_composition(ec, &comp)?;
         }
-        self.is_composing.store(false, Ordering::Release);
+        Ok(())
+    }
+
+    fn end_composition(&self, ec: u32, comp: &ITfComposition) -> Result<()> {
+        struct EndGuard<'a>(&'a AtomicBool);
+        impl Drop for EndGuard<'_> {
+            fn drop(&mut self) {
+                self.0.store(false, Ordering::Release);
+            }
+        }
+        self.ending_composition.store(true, Ordering::Release);
+        let _guard = EndGuard(&self.ending_composition);
+        unsafe { comp.EndComposition(ec) }?;
+        let old = self.composition.lock().take();
+        drop(old);
         Ok(())
     }
 
@@ -1286,7 +964,7 @@ impl TextService {
             Ok(chinese) => self.apply_ime_mode(chinese),
             Err(error) => {
                 log::debug!("[TSF] 键盘开关 compartment 尚无可读值: {error}");
-                let chinese = *self.ime_mode.lock();
+                let chinese = self.input.chinese();
                 self.write_compartment_mode(chinese)?;
             }
         }
@@ -1294,36 +972,14 @@ impl TextService {
     }
 
     fn apply_ime_mode(&self, chinese: bool) {
-        let mut current = self.ime_mode.lock();
-        if *current == chinese {
-            return;
-        }
-        *current = chinese;
-        drop(current);
-
-        if chinese {
-            log::debug!("[TSF] 切换到中文模式");
-        } else {
-            if let Some((text, replace_len)) = self.sm.lock().commit_raw_current() {
-                if let Ok((ctx, _)) = self.get_focus_context() {
-                    self.schedule_edit_session(
-                        EditSessionOp::CommitAndReplace { text, replace_len },
-                        &ctx,
-                    );
-                }
-            } else {
-                self.end_active_composition();
-            }
-            self.candidate_tx
-                .store(Arc::new(CandidateData::hidden(self.theme_snapshot())));
-            log::debug!("[TSF] 切换到英文模式");
-        }
+        self.input
+            .set_chinese(chinese, |op| self.run_edit(op, None));
         self.notify_lang_bar();
     }
 
     /// 反转中英文模式。
     pub fn toggle_ime_mode(&self) {
-        let next = !*self.ime_mode.lock();
+        let next = !self.input.chinese();
         if let Err(error) = self.write_compartment_mode(next) {
             log::warn!("[TSF] 写入键盘开关 compartment 失败: {error}");
         }
@@ -1336,18 +992,18 @@ impl TextService {
             .on_key_down(wparam.0 as u16, key_filter::is_shift_pressed());
     }
 
-    /// 结束当前活跃的 TSF composition（若存在）。
-    ///
-    /// 切换到英文模式时调用，避免残留的 composition 吞掉后续按键。
-    fn end_active_composition(&self) {
-        if self.is_composing.load(Ordering::Acquire) {
-            if let Ok((ctx, _)) = self.get_focus_context() {
-                self.schedule_edit_session(
-                    EditSessionOp::EndComposition { delete_text: true },
-                    &ctx,
-                );
-            }
+    /// 两个按键回调共用同一组模式、修饰键与编码规则。
+    fn translated_key(&self, wparam: WPARAM, lparam: LPARAM) -> Option<InputEvent> {
+        self.sync_runtime_if_needed();
+        self.track_shift_toggle_keydown(wparam);
+        if !self.input.recover(|op| self.run_edit(op, None))
+            || !self.input.chinese()
+            || key_filter::is_system_modifier_pressed()
+        {
+            return None;
         }
+        let config = self.config_snapshot();
+        key_filter::translate(wparam.0, lparam.0, self.input.selecting(), &config.hotkey)
     }
 }
 
@@ -1431,7 +1087,7 @@ impl ITfLangBarItem_Impl for TextService_Impl {
     }
 
     fn GetTooltipString(&self) -> Result<windows::core::BSTR> {
-        let chinese = *self.ime_mode.lock();
+        let chinese = self.input.chinese();
         Ok(windows::core::BSTR::from(lang_bar_display(chinese).1))
     }
 }
@@ -1453,12 +1109,12 @@ impl ITfLangBarItemButton_Impl for TextService_Impl {
     }
 
     fn GetIcon(&self) -> Result<HICON> {
-        let chinese = *self.ime_mode.lock();
+        let chinese = self.input.chinese();
         create_lang_bar_icon(lang_bar_display(chinese).0)
     }
 
     fn GetText(&self) -> Result<windows::core::BSTR> {
-        let chinese = *self.ime_mode.lock();
+        let chinese = self.input.chinese();
         Ok(windows::core::BSTR::from(lang_bar_display(chinese).0))
     }
 }
@@ -1470,13 +1126,10 @@ impl ITfTextInputProcessor_Impl for TextService_Impl {
     }
 
     fn Deactivate(&self) -> Result<()> {
-        // 删除 composition（如果有）
-        self.composition.lock().take();
-        self.is_composing.store(false, Ordering::Release);
-
-        // 隐藏候选框并关闭候选框窗口。
-        self.candidate_tx
-            .store(Arc::new(CandidateData::hidden(self.theme_snapshot())));
+        self.input.lose_focus(|op| self.run_edit(op, None));
+        let old = self.composition.lock().take();
+        drop(old);
+        self.input.terminated();
         if let Some(mut cw) = self.candidate_window.lock().take() {
             cw.shutdown();
         }
@@ -1488,7 +1141,6 @@ impl ITfTextInputProcessor_Impl for TextService_Impl {
         *self.focus_doc_mgr.lock() = None;
 
         // 清理状态机内部缓冲。
-        self.sm.lock().reset();
         *self.ga_input.lock() = 0;
         *self.ga_converted.lock() = 0;
 
@@ -1659,10 +1311,19 @@ impl ITfCompositionSink_Impl for TextService_Impl {
         _ecwrite: u32,
         _pcomp: Ref<'_, ITfComposition>,
     ) -> Result<()> {
-        log::warn!("[TSF] Composition 被外部终止");
-        *self.composition.lock() = None;
-        self.is_composing.store(false, Ordering::Release);
-        self.sm.lock().reset();
+        if self.ending_composition.load(Ordering::Acquire) {
+            return Ok(());
+        }
+        let mut current = self.composition.lock();
+        if let (Some(comp), Some(terminated)) = (current.as_ref(), _pcomp.as_ref()) {
+            if Interface::as_raw(comp) != Interface::as_raw(terminated) {
+                return Ok(());
+            }
+        }
+        let old = current.take();
+        drop(current);
+        drop(old);
+        self.input.terminated();
         Ok(())
     }
 }
@@ -1707,24 +1368,7 @@ impl ITfThreadFocusSink_Impl for TextService_Impl {
 
     fn OnKillThreadFocus(&self) -> Result<()> {
         log::debug!("[TSF] 线程焦点丢失");
-        // 清理输入状态
-        self.sm.lock().reset();
-        let theme = self.theme_snapshot();
-        self.candidate_tx
-            .store(Arc::new(CandidateData::hidden(theme)));
-        if self.is_composing.load(Ordering::Acquire) {
-            // 异步清除 composition（需要有效的 context，Deactivate 会兜底）
-            if let Some(tm) = self.lifecycle.manager().as_ref() {
-                if let Ok(doc_mgr) = unsafe { tm.GetFocus() } {
-                    if let Ok(ctx) = unsafe { doc_mgr.GetBase() } {
-                        self.schedule_edit_session(
-                            EditSessionOp::EndComposition { delete_text: false },
-                            &ctx,
-                        );
-                    }
-                }
-            }
-        }
+        self.input.lose_focus(|op| self.run_edit(op, None));
         Ok(())
     }
 }
@@ -1738,7 +1382,7 @@ impl ITfTextEditSink_Impl for TextService_Impl {
     ) -> Result<()> {
         // 如果 composition 被外部编辑破坏，ITfCompositionSink::OnCompositionTerminated
         // 会收到通知并清理状态。此处仅做日志监控。
-        if self.is_composing.load(Ordering::Acquire) {
+        if self.composition.lock().is_some() {
             log::trace!("[TSF] OnEndEdit — composing 中检测到文本变更");
         }
         Ok(())
@@ -1856,41 +1500,9 @@ impl ITfKeyEventSink_Impl for TextService_Impl {
         wparam: WPARAM,
         lparam: LPARAM,
     ) -> Result<BOOL> {
-        self.sync_runtime_if_needed();
-        self.track_shift_toggle_keydown(wparam);
-
-        // 英文模式：所有按键透传
-        if !*self.ime_mode.lock() {
-            return Ok(BOOL(0));
-        }
-
-        // Ctrl/Alt/Win 按下时放行，避免拦截 Ctrl+C 等系统组合键
-        if key_filter::is_system_modifier_pressed() {
-            return Ok(BOOL(0));
-        }
-
-        // 英文模式：所有按键透传
-        if !*self.ime_mode.lock() {
-            return Ok(BOOL(0));
-        }
-
-        let cfg = self.config_snapshot();
-        let sm = self.sm.lock();
-        let event = key_filter::translate(
-            wparam.0 as usize,
-            lparam.0 as isize,
-            sm.state() == core_engine::state_machine::InputState::Selecting,
-            &cfg.hotkey,
-        );
-        let spelling_empty = sm.spelling().is_empty();
-        let accepts_code_char = event.as_ref().is_some_and(|event| match event {
-            InputEvent::Char(character) | InputEvent::Symbol(character) => {
-                sm.accepts_code_char(*character)
-            }
-            _ => false,
-        });
         Ok(BOOL(
-            should_intercept_test_key(event, spelling_empty, accepts_code_char) as i32,
+            self.translated_key(wparam, lparam)
+                .is_some_and(|event| self.input.test_key(&event, false)) as i32,
         ))
     }
 
@@ -1904,37 +1516,21 @@ impl ITfKeyEventSink_Impl for TextService_Impl {
     }
 
     fn OnKeyDown(&self, pic: Ref<'_, ITfContext>, wparam: WPARAM, lparam: LPARAM) -> Result<BOOL> {
-        self.sync_runtime_if_needed();
-        self.track_shift_toggle_keydown(wparam);
-
-        // Ctrl/Alt/Win 按下时放行，避免拦截 Ctrl+C 等系统组合键
-        if key_filter::is_system_modifier_pressed() {
-            return Ok(BOOL(0));
-        }
-
-        let cfg = self.config_snapshot();
-        let sm = self.sm.lock();
-        let Some(event) = key_filter::translate(
-            wparam.0 as usize,
-            lparam.0 as isize,
-            sm.state() == core_engine::state_machine::InputState::Selecting,
-            &cfg.hotkey,
-        ) else {
+        let Some(event) = self.translated_key(wparam, lparam) else {
             return Ok(BOOL(0));
         };
-        let spelling_empty = sm.spelling().is_empty();
-        let accepts_code_char = match &event {
-            InputEvent::Char(character) | InputEvent::Symbol(character) => {
-                sm.accepts_code_char(*character)
-            }
-            _ => false,
-        };
-        drop(sm);
-        if !should_intercept_test_key(Some(event.clone()), spelling_empty, accepts_code_char) {
-            return Ok(BOOL(0));
-        }
-        let t = self.sm.lock().handle(event);
-        Ok(self.apply_transition(t, pic.as_ref()))
+        let theme = self.theme_snapshot();
+        let anchor = self
+            .candidate_tx
+            .load()
+            .anchor
+            .or_else(|| crate::screen_geometry::get_caret_position_win32(theme.font_size))
+            .or_else(crate::screen_geometry::get_cursor_position);
+        Ok(BOOL(
+            self.input
+                .handle(event, false, anchor, |op| self.run_edit(op, pic.as_ref()))
+                as i32,
+        ))
     }
 
     fn OnKeyUp(&self, _pic: Ref<'_, ITfContext>, _wparam: WPARAM, _lparam: LPARAM) -> Result<BOOL> {
@@ -2039,60 +1635,6 @@ mod tests {
     }
 
     #[test]
-    fn idle_backspace_is_not_intercepted_in_test_keydown() {
-        assert!(!should_intercept_test_key(
-            Some(InputEvent::Backspace),
-            true,
-            false,
-        ));
-    }
-
-    #[test]
-    fn idle_punctuation_is_not_intercepted_in_test_keydown() {
-        assert!(!should_intercept_test_key(
-            Some(InputEvent::Char('[')),
-            true,
-            false,
-        ));
-    }
-
-    #[test]
-    fn idle_chinese_symbol_is_intercepted_in_test_keydown() {
-        assert!(should_intercept_test_key(
-            Some(InputEvent::Symbol('，')),
-            true,
-            false,
-        ));
-    }
-
-    #[test]
-    fn composing_backspace_is_intercepted_in_test_keydown() {
-        assert!(should_intercept_test_key(
-            Some(InputEvent::Backspace),
-            false,
-            false,
-        ));
-    }
-
-    #[test]
-    fn character_input_is_still_intercepted() {
-        assert!(should_intercept_test_key(
-            Some(InputEvent::Char('g')),
-            true,
-            true,
-        ));
-    }
-
-    #[test]
-    fn idle_table_symbol_is_intercepted_in_test_keydown() {
-        assert!(should_intercept_test_key(
-            Some(InputEvent::Symbol('?')),
-            true,
-            true,
-        ));
-    }
-
-    #[test]
     fn chinese_mode_uses_chinese_language_bar_text() {
         assert_eq!(lang_bar_display(true), ("中", "中文模式"));
     }
@@ -2107,42 +1649,6 @@ mod tests {
         let value = fixed_utf16::<8>("MyWubi");
 
         assert_eq!(value, [77, 121, 87, 117, 98, 105, 0, 0]);
-    }
-
-    #[test]
-    fn switching_to_english_clears_input_state_and_hides_candidates() {
-        let dict = Dictionary::from_entries(
-            vec![core_engine::dictionary::Entry {
-                code: "a".into(),
-                word: "工".into(),
-                weight: 1,
-            }],
-            None,
-            Default::default(),
-        )
-        .unwrap();
-        let theme = ThemeSnapshot::default();
-        let candidate_tx = Arc::new(ArcSwap::from_pointee(CandidateData::visible(
-            "a".into(),
-            vec![CandidateItem {
-                label: "1. ".into(),
-                text: "工".into(),
-                hint: String::new(),
-            }],
-            0,
-            0,
-            1,
-            None,
-            theme,
-        )));
-        let service = TextService::new(dict, 5, false, Arc::clone(&candidate_tx));
-        service.sm.lock().handle(InputEvent::Char('a'));
-
-        service.apply_ime_mode(false);
-
-        assert!(!*service.ime_mode.lock());
-        assert!(service.sm.lock().spelling().is_empty());
-        assert!(!candidate_tx.load().visible);
     }
 
     #[test]
@@ -2174,152 +1680,5 @@ mod tests {
 
         tracker.on_key_down(VK_SHIFT.0, false);
         assert!(tracker.consume_preserved_key());
-    }
-
-    #[test]
-    fn spelling_update_clears_stale_candidates_and_keeps_spelling_visible() {
-        let theme = ThemeSnapshot::default();
-        let current = CandidateData::visible(
-            "a".into(),
-            vec![CandidateItem {
-                label: "1. ".into(),
-                text: "工".into(),
-                hint: String::new(),
-            }],
-            0,
-            0,
-            1,
-            None,
-            theme.clone(),
-        );
-
-        let updated = build_spelling_only_candidate_data(
-            current,
-            "aaa".into(),
-            Some(crate::candidate_data::ScreenPoint { x: 10, y: 20 }),
-        );
-
-        assert!(updated.visible);
-        assert_eq!(updated.spelling, "aaa");
-        assert!(updated.items.is_empty());
-        assert_eq!(updated.highlighted, 0);
-        assert_eq!(updated.page, 0);
-        assert_eq!(updated.total_pages, 0);
-        assert_eq!(updated.anchor.unwrap().x, 10);
-        assert_eq!(updated.anchor.unwrap().y, 20);
-    }
-
-    #[test]
-    fn spelling_update_shows_spelling_even_without_candidates() {
-        let theme = ThemeSnapshot::default();
-        let current = CandidateData::hidden(theme.clone());
-
-        let updated = build_spelling_only_candidate_data(current, "aaa".into(), None);
-
-        assert!(updated.visible);
-        assert_eq!(updated.spelling, "aaa");
-        assert!(updated.items.is_empty());
-        assert_eq!(updated.theme.font_size, theme.font_size);
-    }
-
-    #[test]
-    fn spelling_update_preserves_existing_anchor_when_new_anchor_missing() {
-        let theme = ThemeSnapshot::default();
-        let current = CandidateData::visible(
-            "a".into(),
-            vec![CandidateItem {
-                label: "1. ".into(),
-                text: "工".into(),
-                hint: String::new(),
-            }],
-            0,
-            0,
-            1,
-            Some(crate::candidate_data::ScreenPoint { x: 32, y: 64 }),
-            theme,
-        );
-
-        let updated = build_spelling_only_candidate_data(current, "aaa".into(), None);
-
-        assert_eq!(updated.anchor.unwrap().x, 32);
-        assert_eq!(updated.anchor.unwrap().y, 64);
-    }
-
-    #[test]
-    fn precise_anchor_update_overrides_fallback_anchor() {
-        let theme = ThemeSnapshot::default();
-        let current = CandidateData::visible(
-            "gg".into(),
-            vec![CandidateItem {
-                label: "1. ".into(),
-                text: "工".into(),
-                hint: String::new(),
-            }],
-            0,
-            0,
-            1,
-            Some(crate::candidate_data::ScreenPoint { x: 5, y: 10 }),
-            theme,
-        );
-
-        let updated = update_candidate_anchor(
-            current,
-            Some(crate::candidate_data::ScreenPoint { x: 120, y: 240 }),
-        );
-
-        assert_eq!(updated.anchor.unwrap().x, 120);
-        assert_eq!(updated.anchor.unwrap().y, 240);
-        assert_eq!(updated.spelling, "gg");
-        assert_eq!(updated.items.len(), 1);
-    }
-
-    #[test]
-    fn spelling_update_maps_to_input_composition_update() {
-        let op = transition_to_edit_session_op(&Transition::SpellingUpdated("gg".into()));
-
-        assert_eq!(
-            op,
-            EditSessionOp::CompositionUpdate {
-                spelling: "gg".into(),
-                attr: DisplayAttrKind::Input,
-            }
-        );
-    }
-
-    #[test]
-    fn candidates_map_to_converted_composition_update() {
-        let op = transition_to_edit_session_op(&Transition::Candidates {
-            spelling: "gg".into(),
-            candidates: vec!["工".into()],
-            code_hints: vec![String::new()],
-            page: 0,
-            total_pages: 1,
-        });
-
-        assert_eq!(
-            op,
-            EditSessionOp::CompositionUpdate {
-                spelling: "gg".into(),
-                attr: DisplayAttrKind::Converted,
-            }
-        );
-    }
-
-    #[test]
-    fn commit_then_candidates_preserves_replace_len_for_edit_session() {
-        let op = transition_to_edit_session_op(&Transition::CommitThenCandidates {
-            text: "王".into(),
-            replace_len: 4,
-            spelling: "a".into(),
-            candidates: vec!["工".into()],
-            code_hints: vec![String::new()],
-            page: 0,
-            total_pages: 1,
-        });
-
-        assert!(matches!(
-            op,
-            EditSessionOp::CommitThenUpdate { replace_len: 4, .. }
-        ));
     }
 }
