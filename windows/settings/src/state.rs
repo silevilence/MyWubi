@@ -1,13 +1,10 @@
 //! 配置程序全局状态容器。
 
-use std::cmp::Reverse;
 use std::path::PathBuf;
 use std::sync::mpsc;
 
-use core_engine::{
-    read_table, save_table, validate_table, Config, Entry, TableConfig, TableValidationIssue,
-    TableValidationReport, UserDictionary,
-};
+use crate::table_session::TableSession;
+use core_engine::{Config, UserDictionary};
 
 /// 当前激活的面板。
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
@@ -33,188 +30,6 @@ pub enum FilePickTarget {
 pub struct PickRequest {
     pub target: FilePickTarget,
     pub rx: mpsc::Receiver<Option<PathBuf>>,
-}
-
-pub struct TableEditor {
-    pub open: bool,
-    pub path: PathBuf,
-    pub config: TableConfig,
-    pub wildcard_key: String,
-    pub entries: Vec<Entry>,
-    pub search: String,
-    pub filtered_indices: Option<Vec<usize>>,
-    pub selected: Option<usize>,
-    pub code: String,
-    pub word: String,
-    pub weight: u32,
-    pub save_as_name: String,
-    pub validation: TableValidationReport,
-    pub validation_stale: bool,
-    pub dirty: bool,
-    pub load_error: Option<String>,
-}
-
-impl Default for TableEditor {
-    fn default() -> Self {
-        Self {
-            open: false,
-            path: PathBuf::new(),
-            config: TableConfig::default(),
-            wildcard_key: String::new(),
-            entries: Vec::new(),
-            search: String::new(),
-            filtered_indices: None,
-            selected: None,
-            code: String::new(),
-            word: String::new(),
-            weight: 1,
-            save_as_name: String::new(),
-            validation: TableValidationReport::default(),
-            validation_stale: false,
-            dirty: false,
-            load_error: None,
-        }
-    }
-}
-
-impl TableEditor {
-    pub fn load(path: PathBuf) -> Self {
-        let mut editor = Self {
-            path: path.clone(),
-            ..Self::default()
-        };
-        match read_table(&path) {
-            Ok((config, entries)) => {
-                editor.wildcard_key = config
-                    .wildcard_key
-                    .map(|character| character.to_string())
-                    .unwrap_or_default();
-                editor.config = config;
-                editor.entries = entries;
-                editor.refresh_validation();
-            }
-            Err(error) => editor.load_error = Some(error.to_string()),
-        }
-        editor
-    }
-
-    pub fn draft_config(&self) -> Result<TableConfig, String> {
-        let wildcard = self.wildcard_key.trim();
-        let wildcard_key = if wildcard.is_empty() {
-            None
-        } else {
-            let mut characters = wildcard.chars();
-            let first = characters.next().unwrap_or_default();
-            if characters.next().is_some() {
-                return Err("wildcard_key 必须为空或单个字符".into());
-            }
-            Some(first)
-        };
-        Ok(TableConfig {
-            wildcard_key,
-            charset: self.config.charset.clone(),
-            max_code_len: self.config.max_code_len,
-        })
-    }
-
-    pub fn refresh_filter(&mut self) {
-        let query = self.search.trim();
-        self.filtered_indices = if query.is_empty() {
-            None
-        } else {
-            let mut matches: Vec<_> = self
-                .entries
-                .iter()
-                .enumerate()
-                .filter_map(|(index, entry)| {
-                    search_relevance(entry, query).map(|relevance| (relevance, index))
-                })
-                .collect();
-            matches.sort_by_key(|(relevance, index)| (*relevance, *index));
-            Some(matches.into_iter().map(|(_, index)| index).collect())
-        };
-    }
-
-    pub fn visible_len(&self) -> usize {
-        self.filtered_indices
-            .as_ref()
-            .map_or(self.entries.len(), Vec::len)
-    }
-
-    pub fn visible_entry_index(&self, row: usize) -> usize {
-        self.filtered_indices
-            .as_ref()
-            .map_or(row, |indices| indices[row])
-    }
-
-    pub fn select(&mut self, index: usize) {
-        let Some(entry) = self.entries.get(index) else {
-            return;
-        };
-        self.code.clone_from(&entry.code);
-        self.word.clone_from(&entry.word);
-        self.weight = entry.weight;
-        self.selected = Some(index);
-    }
-
-    pub fn update_selected(&mut self) -> Result<(), String> {
-        let index = self.selected.ok_or_else(|| "请先选择词条".to_string())?;
-        let entry = self
-            .entries
-            .get_mut(index)
-            .ok_or_else(|| "所选词条已不存在".to_string())?;
-        entry.code = self.code.trim().to_string();
-        entry.word = self.word.trim().to_string();
-        entry.weight = self.weight;
-        self.dirty = true;
-        self.refresh_filter();
-        self.refresh_validation();
-        Ok(())
-    }
-
-    pub fn refresh_validation(&mut self) {
-        self.validation = match self.draft_config() {
-            Ok(config) => validate_table(&config, &self.entries, 100),
-            Err(message) => TableValidationReport {
-                issue_count: 1,
-                issues: vec![TableValidationIssue {
-                    entry_index: None,
-                    message,
-                }],
-            },
-        };
-        self.validation_stale = false;
-    }
-
-    pub fn save_to(&mut self, path: PathBuf) -> Result<(), String> {
-        let config = self.draft_config()?;
-        save_table(&path, &config, &self.entries).map_err(|error| error.to_string())?;
-        self.path = path;
-        self.config = config;
-        self.validation = TableValidationReport::default();
-        self.validation_stale = false;
-        self.dirty = false;
-        self.load_error = None;
-        Ok(())
-    }
-}
-
-fn search_relevance(entry: &Entry, query: &str) -> Option<(u8, usize, Reverse<u32>)> {
-    [entry.code.as_str(), entry.word.as_str()]
-        .into_iter()
-        .filter_map(|value| {
-            let rank = if value == query {
-                0
-            } else if value.starts_with(query) {
-                1
-            } else if value.contains(query) {
-                2
-            } else {
-                return None;
-            };
-            Some((rank, value.chars().count(), Reverse(entry.weight)))
-        })
-        .min()
 }
 
 pub struct UserDictionaryEditor {
@@ -273,10 +88,7 @@ pub struct AppState {
     pub load_error: Option<LoadError>,
     /// 后台 rfd 文件选择请求（避免阻塞 UI）。
     pub pending_pick: Option<PickRequest>,
-    /// 当前浏览的码表目录（从 system_table 父目录解析）。
-    pub table_dir: PathBuf,
-    /// 码表目录下扫描到的 .dict 文件名列表。
-    pub scanned_tables: Vec<String>,
+
     /// TIP 当前安装与启用状态（启动时检测一次）。
     pub tip_status: tip_manager::TipStatus,
     /// 卸载确认状态：true 表示已点击一次卸载，等待二次确认。
@@ -290,7 +102,7 @@ pub struct AppState {
     /// 用户词库管理窗口状态。
     pub user_dictionary_editor: UserDictionaryEditor,
     /// 当前系统码表的编辑状态。
-    pub table_editor: TableEditor,
+    pub tables: TableSession,
 }
 
 /// 配置加载失败信息。用户需在 UI 中确认后才覆盖损坏文件。
@@ -325,12 +137,7 @@ impl AppState {
             &config_path,
             &config.dictionary.system_table,
         );
-        let table_dir = resolved_system_table
-            .parent()
-            .unwrap_or_else(|| std::path::Path::new("."))
-            .to_path_buf();
-        let scanned_tables = scan_table_dir(&table_dir, Some(&config.dictionary.user_table));
-        let table_editor = TableEditor::load(resolved_system_table);
+        let tables = TableSession::load(resolved_system_table, &config.dictionary.user_table);
         Self {
             config,
             dirty: false,
@@ -340,15 +147,13 @@ impl AppState {
             portable,
             load_error,
             pending_pick: None,
-            table_dir,
-            scanned_tables,
             tip_status: tip_manager::detect_status(),
             uninstall_confirm: false,
             tip_operation_pending: false,
             update_state: crate::vpk::UpdateState::Idle,
             update_worker: None,
             user_dictionary_editor: UserDictionaryEditor::default(),
-            table_editor,
+            tables,
         }
     }
 
@@ -372,160 +177,25 @@ impl AppState {
         }
     }
 
-    /// 重新扫描码表目录，更新 scanned_tables。
-    /// 若当前 system_table 文件不在新目录中，自动选第一个 .dict。
+    pub fn has_unsaved_changes(&self) -> bool {
+        self.dirty || self.tables.is_dirty()
+    }
+
+    pub fn browse_tables(&mut self, directory: PathBuf) {
+        match self.tables.browse(directory, &mut self.config) {
+            Ok(()) => self.mark_dirty(),
+            Err(error) => self.status_msg = Some(format!("[ERR] {error}")),
+        }
+    }
+
+    pub fn select_table(&mut self, path: PathBuf) {
+        match self.tables.select(path, &mut self.config) {
+            Ok(()) => self.mark_dirty(),
+            Err(error) => self.status_msg = Some(format!("[ERR] {error}")),
+        }
+    }
+
     pub fn rescan_tables(&mut self) {
-        self.scanned_tables =
-            scan_table_dir(&self.table_dir, Some(&self.config.dictionary.user_table));
-        if self.table_editor.dirty {
-            return;
-        }
-        let current = self
-            .config
-            .dictionary
-            .system_table
-            .file_name()
-            .and_then(|file| file.to_str());
-        let selected = current
-            .filter(|name| self.scanned_tables.iter().any(|table| table == name))
-            .or_else(|| self.scanned_tables.first().map(String::as_str));
-        if let Some(selected) = selected {
-            let path = self.table_dir.join(selected);
-            self.config.dictionary.system_table = path.clone();
-            self.table_editor = TableEditor::load(path);
-        }
-    }
-}
-
-/// 扫描目录下所有 .dict 文件，返回排序后的文件名列表（不含路径）。
-fn scan_table_dir(dir: &std::path::Path, excluded: Option<&std::path::Path>) -> Vec<String> {
-    let excluded_name = excluded
-        .and_then(|path| path.file_name())
-        .and_then(|name| name.to_str());
-    let mut files: Vec<String> = std::fs::read_dir(dir)
-        .into_iter()
-        .flatten()
-        .filter_map(|e| e.ok())
-        .filter(|e| e.path().extension().map_or(false, |ext| ext == "dict"))
-        .filter_map(|e| e.file_name().into_string().ok())
-        .filter(|name| excluded_name != Some(name.as_str()))
-        .collect();
-    files.sort();
-    files
-}
-
-#[cfg(test)]
-mod tests {
-    use super::*;
-
-    #[test]
-    fn table_editor_filters_by_code_or_word() {
-        let mut editor = TableEditor {
-            entries: vec![
-                Entry {
-                    code: "abcd".into(),
-                    word: "目标".into(),
-                    weight: 1,
-                },
-                Entry {
-                    code: "wxyz".into(),
-                    word: "其他".into(),
-                    weight: 1,
-                },
-            ],
-            search: "目标".into(),
-            ..TableEditor::default()
-        };
-
-        editor.refresh_filter();
-
-        assert_eq!(editor.filtered_indices, Some(vec![0]));
-    }
-
-    #[test]
-    fn table_editor_ranks_code_exact_then_prefix_then_contains() {
-        let mut editor = TableEditor {
-            entries: vec![
-                Entry {
-                    code: "ba".into(),
-                    word: "包含".into(),
-                    weight: 1,
-                },
-                Entry {
-                    code: "aa".into(),
-                    word: "前缀".into(),
-                    weight: 1,
-                },
-                Entry {
-                    code: "a".into(),
-                    word: "完全".into(),
-                    weight: 1,
-                },
-            ],
-            search: "a".into(),
-            ..TableEditor::default()
-        };
-
-        editor.refresh_filter();
-
-        assert_eq!(editor.filtered_indices, Some(vec![2, 1, 0]));
-    }
-
-    #[test]
-    fn table_editor_ranks_word_exact_then_prefix_then_contains() {
-        let mut editor = TableEditor {
-            entries: vec![
-                Entry {
-                    code: "a".into(),
-                    word: "施工".into(),
-                    weight: 1,
-                },
-                Entry {
-                    code: "b".into(),
-                    word: "工作".into(),
-                    weight: 1,
-                },
-                Entry {
-                    code: "c".into(),
-                    word: "工".into(),
-                    weight: 1,
-                },
-            ],
-            search: "工".into(),
-            ..TableEditor::default()
-        };
-
-        editor.refresh_filter();
-
-        assert_eq!(editor.filtered_indices, Some(vec![2, 1, 0]));
-    }
-
-    #[test]
-    fn table_editor_rejects_multi_character_wildcard() {
-        let editor = TableEditor {
-            wildcard_key: "zz".into(),
-            ..TableEditor::default()
-        };
-
-        assert!(editor.draft_config().is_err());
-    }
-
-    #[test]
-    fn scan_table_dir_hides_configured_user_dictionary() {
-        let dir = std::env::temp_dir().join(format!(
-            "mywubi-settings-tables-{}",
-            std::time::SystemTime::now()
-                .duration_since(std::time::UNIX_EPOCH)
-                .unwrap()
-                .as_nanos()
-        ));
-        std::fs::create_dir_all(&dir).unwrap();
-        std::fs::write(dir.join("wubi86.dict"), "").unwrap();
-        std::fs::write(dir.join("user.dict"), "").unwrap();
-
-        let tables = scan_table_dir(&dir, Some(std::path::Path::new("tables/user.dict")));
-        let _ = std::fs::remove_dir_all(dir);
-
-        assert_eq!(tables, vec!["wubi86.dict"]);
+        self.tables.rescan(&self.config.dictionary.user_table);
     }
 }

@@ -84,9 +84,8 @@ impl SettingsApp {
                 if let Some(path) = result {
                     match target {
                         FilePickTarget::SystemTableDir => {
-                            self.state.table_dir = path;
-                            self.state.rescan_tables();
-                            self.state.mark_dirty();
+                            self.state.browse_tables(path);
+                            return;
                         }
                         FilePickTarget::UserTable => {
                             self.state.config.dictionary.user_table = path;
@@ -135,7 +134,7 @@ impl SettingsApp {
     }
 
     fn update_title(&self, ctx: &egui::Context) {
-        let title = if self.state.dirty {
+        let title = if self.state.has_unsaved_changes() {
             "MyWubi 设置 *"
         } else {
             "MyWubi 设置"
@@ -186,7 +185,7 @@ impl SettingsApp {
 
     fn handle_close_request(&mut self, ctx: &egui::Context) {
         let close_requested = ctx.input(|i| i.viewport().close_requested());
-        if close_requested && self.state.dirty && !self.close_confirm {
+        if close_requested && self.state.has_unsaved_changes() && !self.close_confirm {
             self.close_confirm = true;
             ctx.send_viewport_cmd(egui::ViewportCommand::CancelClose);
         }

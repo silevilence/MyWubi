@@ -12,3 +12,5 @@ pub mod panels;
 pub mod save;
 pub mod state;
 pub mod vpk;
+
+pub mod table_session;

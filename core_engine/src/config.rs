@@ -267,13 +267,18 @@ impl Config {
     /// 安全写入：先写入临时文件再原子性改名，避免写入中断损坏原配置。
     pub fn save<P: AsRef<Path>>(&self, path: P) -> Result<(), Error> {
         let path = path.as_ref();
-        self.validate()?;
-        self.validate_hotkey_conflicts()?;
+        self.validate_for_save()?;
         let text = self.to_string_toml()?;
         let tmp = path.with_extension("toml.tmp");
         std::fs::write(&tmp, text.as_bytes()).map_err(|e| Error::Io(tmp.clone(), e.to_string()))?;
         std::fs::rename(&tmp, path).map_err(|e| Error::Io(path.to_path_buf(), e.to_string()))?;
         Ok(())
+    }
+
+    /// 写入前的完整校验；允许多个文件的保存协调者先完成预检。
+    pub fn validate_for_save(&self) -> Result<(), Error> {
+        self.validate()?;
+        self.validate_hotkey_conflicts()
     }
 
     /// 语义校验。

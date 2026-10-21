@@ -12,19 +12,17 @@ pub fn show(ui: &mut Ui, state: &mut AppState) {
     // ── 码表目录 ──
     ui.horizontal(|ui| {
         ui.label("码表目录:");
-        let mut s = state.table_dir.display().to_string();
+        let mut s = state.tables.directory().display().to_string();
         if ui.text_edit_singleline(&mut s).changed() {
             let new_dir = PathBuf::from(s);
             if new_dir.is_dir() {
-                state.table_dir = new_dir;
-                state.rescan_tables();
-                state.mark_dirty();
+                state.browse_tables(new_dir);
             }
         }
         if ui.button("浏览…").clicked() && state.pending_pick.is_none() {
             let (tx, rx) = std::sync::mpsc::channel();
-            let start_dir = if state.table_dir.exists() {
-                state.table_dir.clone()
+            let start_dir = if state.tables.directory().exists() {
+                state.tables.directory().to_path_buf()
             } else {
                 state
                     .config_path
@@ -47,7 +45,7 @@ pub fn show(ui: &mut Ui, state: &mut AppState) {
     });
 
     // ── 码表文件选择 ──
-    if !state.scanned_tables.is_empty() {
+    if !state.tables.tables().is_empty() {
         ui.horizontal(|ui| {
             ui.label("使用码表:");
             let current = state
@@ -58,27 +56,22 @@ pub fn show(ui: &mut Ui, state: &mut AppState) {
                 .and_then(|f| f.to_str())
                 .unwrap_or("");
             let current_idx = state
-                .scanned_tables
+                .tables
+                .tables()
                 .iter()
                 .position(|t| t == current)
                 .unwrap_or(0);
             let mut idx = current_idx;
             egui::ComboBox::from_id_source("table_select")
-                .selected_text(&state.scanned_tables[current_idx])
+                .selected_text(&state.tables.tables()[current_idx])
                 .show_ui(ui, |ui| {
-                    for (i, name) in state.scanned_tables.iter().enumerate() {
+                    for (i, name) in state.tables.tables().iter().enumerate() {
                         ui.selectable_value(&mut idx, i, name);
                     }
                 });
             if idx != current_idx {
-                if state.table_editor.dirty {
-                    state.status_msg = Some("[!] 请先保存当前码表改动".into());
-                } else {
-                    let path = state.table_dir.join(&state.scanned_tables[idx]);
-                    state.config.dictionary.system_table = path.clone();
-                    state.table_editor = crate::state::TableEditor::load(path);
-                    state.mark_dirty();
-                }
+                let path = state.tables.directory().join(&state.tables.tables()[idx]);
+                state.select_table(path);
             }
         });
     } else {
@@ -96,11 +89,11 @@ pub fn show(ui: &mut Ui, state: &mut AppState) {
 
     ui.horizontal(|ui| {
         if ui.button("管理当前码表…").clicked() {
-            state.table_editor.open = true;
+            state.tables.editor.open = true;
         }
         ui.label(format!(
             "当前码表共 {} 条",
-            state.table_editor.entries.len()
+            state.tables.editor.entries.len()
         ));
     });
 
@@ -160,7 +153,7 @@ pub fn show(ui: &mut Ui, state: &mut AppState) {
 }
 
 fn show_table_editor_window(ctx: &egui::Context, state: &mut AppState) {
-    if !state.table_editor.open {
+    if !state.tables.editor.open {
         return;
     }
 
@@ -173,11 +166,11 @@ fn show_table_editor_window(ctx: &egui::Context, state: &mut AppState) {
         .resizable(true)
         .vscroll(true)
         .show(ctx, |ui| show_table_editor(ui, state));
-    state.table_editor.open = open;
+    state.tables.editor.open = open;
 }
 
 fn show_table_editor(ui: &mut Ui, state: &mut AppState) {
-    if let Some(error) = &state.table_editor.load_error {
+    if let Some(error) = &state.tables.editor.load_error {
         ui.colored_label(egui::Color32::LIGHT_RED, format!("码表读取失败：{error}"));
         return;
     }
@@ -189,10 +182,10 @@ fn show_table_editor(ui: &mut Ui, state: &mut AppState) {
     let mut validate_now = false;
     let mut changed = false;
     {
-        let editor = &mut state.table_editor;
+        let editor = &mut state.tables.editor;
         ui.label(format!(
             "{}（{} 条）",
-            editor.path.display(),
+            editor.path().display(),
             editor.entries.len()
         ));
 
@@ -305,31 +298,29 @@ fn show_table_editor(ui: &mut Ui, state: &mut AppState) {
             );
             save_as = ui.button("保存到码表目录").clicked();
             save_now = ui
-                .add_enabled(editor.dirty, egui::Button::new("保存当前码表"))
+                .add_enabled(editor.is_dirty(), egui::Button::new("保存当前码表"))
                 .clicked();
         });
     }
 
     if changed {
-        state.table_editor.dirty = true;
-        state.table_editor.validation_stale = true;
-        state.mark_dirty();
+        state.tables.editor.mark_changed();
+        state.status_msg = None;
     }
     if validate_now {
-        state.table_editor.refresh_validation();
-        state.status_msg = Some(if state.table_editor.validation.is_valid() {
+        state.tables.editor.refresh_validation();
+        state.status_msg = Some(if state.tables.editor.validation.is_valid() {
             "[OK] 码表校验通过".into()
         } else {
             format!(
                 "[ERR] 发现 {} 个码表违规项",
-                state.table_editor.validation.issue_count
+                state.tables.editor.validation.issue_count
             )
         });
     }
     if update_entry {
-        match state.table_editor.update_selected() {
+        match state.tables.editor.update_selected() {
             Ok(()) => {
-                state.mark_dirty();
                 state.status_msg = Some("[OK] 已更新词条，等待保存".into());
             }
             Err(error) => state.status_msg = Some(format!("[ERR] {error}")),
@@ -342,12 +333,12 @@ fn show_table_editor(ui: &mut Ui, state: &mut AppState) {
         crate::save::save(state);
     }
 
-    if let Err(error) = state.table_editor.draft_config() {
+    if let Err(error) = state.tables.editor.draft_config() {
         ui.colored_label(egui::Color32::LIGHT_RED, error);
-    } else if state.table_editor.validation_stale {
+    } else if state.tables.editor.validation_stale() {
         ui.colored_label(egui::Color32::YELLOW, "配置已修改，请点击“验证码表”");
     } else {
-        show_validation_report(ui, &state.table_editor.validation);
+        show_validation_report(ui, &state.tables.editor.validation);
     }
 }
 
@@ -380,35 +371,9 @@ fn show_validation_report(ui: &mut Ui, report: &core_engine::TableValidationRepo
 }
 
 fn save_table_as(state: &mut AppState) {
-    let name = state.table_editor.save_as_name.trim();
-    if name.is_empty() {
-        state.status_msg = Some("[ERR] 请输入自定义码表名称".into());
-        return;
-    }
-    if !matches!(
-        Path::new(name).components().next(),
-        Some(std::path::Component::Normal(_))
-    ) || Path::new(name).components().count() != 1
-    {
-        state.status_msg = Some("[ERR] 码表名称不能包含路径".into());
-        return;
-    }
-
-    let file_name = if name.ends_with(".dict") {
-        name.to_string()
-    } else {
-        format!("{name}.dict")
-    };
-    let path = state.table_dir.join(file_name);
-    if path.exists() {
-        state.status_msg = Some(format!("[ERR] {} 已存在", path.display()));
-        return;
-    }
-
-    match state.table_editor.save_to(path.clone()) {
-        Ok(()) => {
-            state.config.dictionary.system_table = path.clone();
-            state.rescan_tables();
+    let name = state.tables.editor.save_as_name.clone();
+    match state.tables.save_as(&name, &mut state.config) {
+        Ok(path) => {
             state.mark_dirty();
             state.status_msg = Some(format!("[OK] 已另存为 {}", path.display()));
         }
@@ -618,7 +583,7 @@ fn init_tables(state: &mut AppState) {
         }
     };
 
-    if let Err(e) = std::fs::create_dir_all(&state.table_dir) {
+    if let Err(e) = std::fs::create_dir_all(&state.tables.directory()) {
         state.status_msg = Some(format!("❌ 无法创建码表目录: {e}"));
         return;
     }
@@ -628,7 +593,7 @@ fn init_tables(state: &mut AppState) {
         for entry in entries.flatten() {
             let path = entry.path();
             if path.extension().map_or(false, |e| e == "dict") {
-                let dest = state.table_dir.join(path.file_name().unwrap());
+                let dest = state.tables.directory().join(path.file_name().unwrap());
                 match std::fs::copy(&path, &dest) {
                     Ok(_) => copied += 1,
                     Err(e) => log::warn!("复制码表失败 {}: {e}", path.display()),

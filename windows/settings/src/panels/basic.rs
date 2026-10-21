@@ -99,12 +99,12 @@ pub fn show(ui: &mut Ui, state: &mut AppState) {
 
     ui.horizontal(|ui| {
         ui.label("当前码表万能键:");
-        if let Some(error) = &state.table_editor.load_error {
+        if let Some(error) = &state.tables.editor.load_error {
             ui.colored_label(
                 eframe::egui::Color32::LIGHT_RED,
                 format!("读取失败：{error}"),
             );
-        } else if let Some(wildcard) = state.table_editor.config.wildcard_key {
+        } else if let Some(wildcard) = state.tables.editor.config.wildcard_key {
             ui.monospace(wildcard.to_string());
         } else {
             ui.label("未启用");
