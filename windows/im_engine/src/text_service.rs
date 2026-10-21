@@ -70,8 +70,9 @@ use arc_swap::ArcSwap;
 
 use crate::candidate_data::{CandidateData, CandidateItem, ScreenPoint, ThemeSnapshot};
 use crate::candidate_window::CandidateWindow;
-use crate::guids::CLSID_TEXT_SERVICE;
+use crate::guids::{CLSID_TEXT_SERVICE, GUID_PRESERVED_SHIFT};
 use crate::key_filter;
+use crate::lifecycle::{remove_registration, Registration, TsfLifecycle};
 use crate::screen_geometry::get_range_position;
 use crate::RuntimeSnapshot;
 
@@ -82,7 +83,6 @@ const GUID_DISPLAY_ATTR_INPUT: GUID = GUID::from_u128(0x8a2e3b4c_1d5f_4a7b_9e6c_
 /// 有候选态 display attribute 的 GUID.
 const GUID_DISPLAY_ATTR_CONVERTED: GUID = GUID::from_u128(0x6b1c8d9e_2f3a_4c5b_8d7e_1a2b3c4d5e6f);
 /// PreservedKey（Shift 切换）的 GUID.
-const GUID_PRESERVED_SHIFT: GUID = GUID::from_u128(0x1a2b3c4d_5e6f_7a8b_9c0d_1e2f3a4b5c6d);
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 enum DisplayAttrKind {
@@ -503,20 +503,6 @@ impl ITfEditSession_Impl for EditSession_Impl {
     }
 }
 
-/// TSF 会话状态：跟踪已注册的 sink 及其注册方式。
-#[derive(Default)]
-struct SinkState {
-    /// ITfSource::AdviseSink cookie（仅 ITfSource 回退路径使用）。
-    key_event: u32,
-    /// ITfSource::AdviseSink cookie（ITfThreadMgrEventSink）。
-    thread_event: u32,
-    /// ITfTextInputProcessor::Activate 传入的 TIP 客户端 ID。
-    /// 用于 ITfKeystrokeMgr::UnadviseKeyEventSink 的反注册。
-    tid: u32,
-    /// true=使用 ITfKeystrokeMgr，false=使用 ITfSource::AdviseSink 回退。
-    using_keystroke_mgr: bool,
-}
-
 /// TSF 文本服务 COM 对象。
 ///
 /// 一次实例对应一次 TIP 激活；`Activate` 时由系统通过 ClassFactory 创建并
@@ -547,19 +533,10 @@ pub struct TextService {
     runtime: Arc<ArcSwap<RuntimeSnapshot>>,
     /// 当前实例已同步到的运行时版本。
     runtime_revision: AtomicU64,
-    /// 当前激活的线程管理器（用于后续插入文本）。
-    thread_mgr: Mutex<Option<ITfThreadMgr>>,
-    /// AdviseSink 返回的 cookie，Deactivate 时用于 Unadvise。
-    cookies: Mutex<SinkState>,
-    /// 当前焦点所在文档管理器（候选框定位参考）。
+    /// 注册记录、管理器与自身 owner 由生命周期模块共同持有。
+    lifecycle: TsfLifecycle,
+    /// 当前焦点所在文档管理器。
     focus_doc_mgr: Mutex<Option<ITfDocumentMgr>>,
-    /// 外置 self 引用：由 [crate::factory::TextServiceFactory] 在创建时
-    /// 注入本对象对应的 `IUnknown`，用于在 `Activate` 中调用
-    /// `ITfSource::AdviseSink(IID_ITfKeyEventSink, self, ...)`。
-    /// 始终是自身 COM 对象的强引用，但 [`TextService`] 是其内部状态，
-    /// 进入 Drop 之前必须先 `take()` 出来否则会循环引用—正确做法见
-    /// [`Self::release_self_unknown`]。
-    self_unknown: Mutex<Option<windows::core::IUnknown>>,
     /// 候选框数据发布通道——TSF 按键处理通过 ArcSwap 推送 CandidateData。
     candidate_tx: Arc<ArcSwap<CandidateData>>,
     /// 候选框窗口实例（Activate 中启动，Deactivate 中关闭）。
@@ -585,20 +562,10 @@ pub struct TextService {
     /// 跟踪本轮 Shift 是否与其他按键组合使用，避免组合键误触发中英文切换。
     shift_toggle_tracker: Mutex<ShiftKeyToggleTracker>,
     /// ── Phase 3 新增字段 ──
-    /// ITfThreadFocusSink 的 AdviseSink cookie。
-    thread_focus_cookie: Mutex<u32>,
-    /// 注册了 ITfTextEditSink 的上下文（用于反注册）。
-    edit_sink_context: Mutex<Option<ITfContext>>,
-    /// ITfTextEditSink 的 AdviseSink cookie。
-    edit_sink_cookie: Mutex<u32>,
     /// 语言栏按钮更新通知 sink。
     lang_bar_sink: Mutex<Option<ITfLangBarItemSink>>,
     /// 语言栏按钮是否可见。
     lang_bar_visible: AtomicBool,
-    /// 语言栏按钮是否已注册到系统。
-    lang_bar_registered: AtomicBool,
-    /// 键盘开关 compartment 的 AdviseSink cookie。
-    compartment_sink_cookie: Mutex<Option<u32>>,
 }
 
 fn should_intercept_test_key(
@@ -766,16 +733,12 @@ impl TextService {
                 user_table_path: std::path::PathBuf::from("tables/user.dict"),
             })),
             runtime_revision: AtomicU64::new(0),
-            thread_mgr: Mutex::new(None),
-            cookies: Mutex::new(SinkState::default()),
+            lifecycle: TsfLifecycle::default(),
             focus_doc_mgr: Mutex::new(None),
-            self_unknown: Mutex::new(None),
             candidate_tx,
             candidate_window: Mutex::new(None),
             theme: Mutex::new(theme),
             cfg: Mutex::new(cfg),
-            edit_sink_context: Mutex::new(None),
-            edit_sink_cookie: Mutex::new(0),
             composition: Mutex::new(None),
             ga_input: Mutex::new(0),
             ga_converted: Mutex::new(0),
@@ -783,11 +746,8 @@ impl TextService {
             activate_flags: Mutex::new(0),
             ime_mode: Mutex::new(true),
             shift_toggle_tracker: Mutex::new(ShiftKeyToggleTracker::default()),
-            thread_focus_cookie: Mutex::new(0),
             lang_bar_sink: Mutex::new(None),
             lang_bar_visible: AtomicBool::new(true),
-            lang_bar_registered: AtomicBool::new(false),
-            compartment_sink_cookie: Mutex::new(None),
         }
     }
 
@@ -830,16 +790,12 @@ impl TextService {
             sm: Mutex::new(sm),
             runtime,
             runtime_revision: AtomicU64::new(revision),
-            thread_mgr: Mutex::new(None),
-            cookies: Mutex::new(SinkState::default()),
+            lifecycle: TsfLifecycle::default(),
             focus_doc_mgr: Mutex::new(None),
-            self_unknown: Mutex::new(None),
             candidate_tx,
             candidate_window: Mutex::new(None),
             theme: Mutex::new(theme),
             cfg: Mutex::new(cfg),
-            edit_sink_context: Mutex::new(None),
-            edit_sink_cookie: Mutex::new(0),
             composition: Mutex::new(None),
             ga_input: Mutex::new(0),
             ga_converted: Mutex::new(0),
@@ -847,22 +803,19 @@ impl TextService {
             activate_flags: Mutex::new(0),
             ime_mode: Mutex::new(true),
             shift_toggle_tracker: Mutex::new(ShiftKeyToggleTracker::default()),
-            thread_focus_cookie: Mutex::new(0),
             lang_bar_sink: Mutex::new(None),
             lang_bar_visible: AtomicBool::new(true),
-            lang_bar_registered: AtomicBool::new(false),
-            compartment_sink_cookie: Mutex::new(None),
         }
     }
 
     /// 仅供 IClassFactory 内部注入 self 弱强引用（见 [`crate::factory::TextServiceFactory`])。
     pub(crate) fn set_self_unknown(&self, unk: windows::core::IUnknown) {
-        *self.self_unknown.lock() = Some(unk);
+        self.lifecycle.set_owner(unk);
     }
 
     /// 内部：取一份 IUnknown 副本（已 AddRef），用于 AdviseSink 注册。
     fn clone_self_unknown(&self) -> Option<windows::core::IUnknown> {
-        self.self_unknown.lock().clone()
+        self.lifecycle.owner()
     }
 
     fn theme_snapshot(&self) -> ThemeSnapshot {
@@ -906,7 +859,7 @@ impl TextService {
     /// 在 [`ITfTextInputProcessor::Deactivate`] 完成后调用一次，移除自我持有
     /// 的 IUnknown 引用，避免循环引用。
     pub(crate) fn release_self_unknown(&self) {
-        *self.self_unknown.lock() = None;
+        self.lifecycle.release_unactivated_owner();
     }
 
     /// 内部：把 [`Transition`] 落实成副作用并返回 BOOL 表示“按键已消费”。
@@ -1022,7 +975,7 @@ impl TextService {
             log::warn!("[TSF] schedule_edit_session: self_unknown 缺失，跳过");
             return;
         };
-        let tid = self.cookies.lock().tid;
+        let tid = self.lifecycle.tid();
         if tid == 0 {
             log::warn!("[TSF] schedule_edit_session: tid==0，跳过");
             return;
@@ -1156,13 +1109,12 @@ impl TextService {
 
     /// 获取当前焦点文档管理器的顶 context.
     fn get_focus_context(&self) -> Result<(ITfContext, ITfDocumentMgr)> {
-        let tm_guard = self.thread_mgr.lock();
-        let tm = tm_guard
-            .as_ref()
+        let tm = self
+            .lifecycle
+            .manager()
             .ok_or_else(|| windows::core::Error::from(HRESULT(-1)))?;
         let doc_mgr: ITfDocumentMgr = unsafe { tm.GetFocus() }?;
         let ctx: ITfContext = unsafe { doc_mgr.GetBase() }?;
-        drop(tm_guard);
         Ok((ctx, doc_mgr))
     }
 
@@ -1280,30 +1232,11 @@ impl TextService {
 
     fn keyboard_openclose_compartment(&self) -> Result<ITfCompartment> {
         let thread_mgr = self
-            .thread_mgr
-            .lock()
-            .clone()
+            .lifecycle
+            .manager()
             .ok_or_else(|| windows::core::Error::from(E_INVALIDARG))?;
         let manager: ITfCompartmentMgr = thread_mgr.cast()?;
         unsafe { manager.GetCompartment(&GUID_COMPARTMENT_KEYBOARD_OPENCLOSE) }
-    }
-
-    fn unregister_compartment_sink(&self, thread_mgr: &ITfThreadMgr) -> Result<()> {
-        let Some(cookie) = *self.compartment_sink_cookie.lock() else {
-            return Ok(());
-        };
-        thread_mgr
-            .cast::<ITfCompartmentMgr>()
-            .and_then(|manager| unsafe {
-                manager.GetCompartment(&GUID_COMPARTMENT_KEYBOARD_OPENCLOSE)
-            })
-            .and_then(|compartment| compartment.cast::<ITfSource>())
-            .and_then(|source| unsafe { source.UnadviseSink(cookie) })?;
-        let mut current = self.compartment_sink_cookie.lock();
-        if *current == Some(cookie) {
-            *current = None;
-        }
-        Ok(())
     }
 
     fn read_compartment_mode(&self) -> Result<bool> {
@@ -1316,7 +1249,7 @@ impl TextService {
     }
 
     fn write_compartment_mode(&self, chinese: bool) -> Result<()> {
-        let tid = self.cookies.lock().tid;
+        let tid = self.lifecycle.tid();
         let value = make_i32_variant(i32::from(chinese));
         unsafe { self.keyboard_openclose_compartment()?.SetValue(tid, &value) }
     }
@@ -1341,23 +1274,13 @@ impl TextService {
         unsafe { manager.AddItem(&item) }
     }
 
-    fn remove_language_bar(&self, punk: &windows::core::IUnknown) -> Result<()> {
-        let manager: ITfLangBarItemMgr =
-            unsafe { CoCreateInstance(&CLSID_TF_LangBarItemMgr, None, CLSCTX_INPROC_SERVER) }?;
-        let item: ITfLangBarItem = punk.cast()?;
-        unsafe { manager.RemoveItem(&item) }
-    }
-
     fn register_compartment_sink(&self, punk: &windows::core::IUnknown) -> Result<()> {
-        if self.compartment_sink_cookie.lock().is_some() {
-            return Ok(());
-        }
         let compartment = self.keyboard_openclose_compartment()?;
         let source: ITfSource = compartment.cast()?;
         let sink: ITfCompartmentEventSink = punk.cast()?;
         let cookie =
             unsafe { source.AdviseSink(&<ITfCompartmentEventSink as Interface>::IID, &sink) }?;
-        *self.compartment_sink_cookie.lock() = Some(cookie);
+        self.lifecycle.record(Registration::Compartment(cookie));
 
         match self.read_compartment_mode() {
             Ok(chinese) => self.apply_ime_mode(chinese),
@@ -1558,83 +1481,9 @@ impl ITfTextInputProcessor_Impl for TextService_Impl {
             cw.shutdown();
         }
 
-        // 先克隆 thread_mgr 引用再进行清理（避免 take 后丢失 COM 指针）。
-        let tm_hold = self.thread_mgr.lock().clone();
-
-        let compartment_unadvise_error = tm_hold
-            .as_ref()
-            .and_then(|tm| self.unregister_compartment_sink(tm).err());
-        if let Some(ref error) = compartment_unadvise_error {
-            log::warn!("[TSF] 反注册键盘开关 compartment sink 失败: {error}");
-        }
-
-        let mut lang_bar_remove_error = None;
-        if self.lang_bar_registered.load(Ordering::Acquire) {
-            let result = self
-                .clone_self_unknown()
-                .ok_or_else(|| windows::core::Error::from(E_FAIL))
-                .and_then(|punk| self.remove_language_bar(&punk));
-            match result {
-                Ok(()) => {
-                    self.lang_bar_sink.lock().take();
-                    self.lang_bar_registered.store(false, Ordering::Release);
-                }
-                Err(error) => {
-                    log::warn!("[TSF] 移除语言栏按钮失败: {error}");
-                    lang_bar_remove_error = Some(error);
-                }
-            }
-        } else {
+        let result = self.lifecycle.deactivate(remove_registration);
+        if !self.lifecycle.has_language_bar() {
             self.lang_bar_sink.lock().take();
-        }
-
-        let state = mem::take(&mut *self.cookies.lock());
-
-        if let Some(ref tm) = tm_hold {
-            // ── 主路径：ITfKeystrokeMgr::UnadviseKeyEventSink ──
-            if state.using_keystroke_mgr && state.tid != 0 {
-                if let Ok(kmgr) = tm.cast::<ITfKeystrokeMgr>() {
-                    let _ = unsafe { kmgr.UnadviseKeyEventSink(state.tid) };
-                    log::info!("[TSF] ITfKeystrokeMgr::UnadviseKeyEventSink 完成");
-                }
-            }
-
-            // ── 回退路径 + ThreadEvent：ITfSource::UnadviseSink ──
-            if let Ok(source) = tm.cast::<ITfSource>() {
-                if state.key_event != 0 {
-                    let _ = unsafe { source.UnadviseSink(state.key_event) };
-                }
-                if state.thread_event != 0 {
-                    let _ = unsafe { source.UnadviseSink(state.thread_event) };
-                }
-            }
-        }
-
-        // 清理所有持有的 COM 引用。
-        // （thread_mgr 还可能需要用于反注册，先清理 sink 再释放 thread_mgr）
-        // 反注册 ITfThreadFocusSink
-        let fc = mem::take(&mut *self.thread_focus_cookie.lock());
-        if let Some(ref tm) = tm_hold {
-            if fc != 0 {
-                if let Ok(source) = tm.cast::<ITfSource>() {
-                    let _ = unsafe { source.UnadviseSink(fc) };
-                }
-            }
-        }
-
-        // 反注册 ITfTextEditSink
-        let ec = mem::take(&mut *self.edit_sink_cookie.lock());
-        let edit_sink_context = self.edit_sink_context.lock().take();
-        if ec != 0 {
-            if let Some(ctx) = edit_sink_context.as_ref() {
-                if let Ok(source) = ctx.cast::<ITfSource>() {
-                    let _ = unsafe { source.UnadviseSink(ec) };
-                }
-            }
-        }
-
-        if compartment_unadvise_error.is_none() {
-            *self.thread_mgr.lock() = None;
         }
         *self.focus_doc_mgr.lock() = None;
 
@@ -1643,12 +1492,7 @@ impl ITfTextInputProcessor_Impl for TextService_Impl {
         *self.ga_input.lock() = 0;
         *self.ga_converted.lock() = 0;
 
-        if let Some(error) = compartment_unadvise_error.or(lang_bar_remove_error) {
-            return Err(error);
-        }
-
-        // 语言栏未注册或已成功移除，可以释放自我持有避免循环引用。
-        self.release_self_unknown();
+        result?;
         log::info!("[TSF] TIP deactivated");
         Ok(())
     }
@@ -1663,20 +1507,17 @@ impl ITfTextInputProcessorEx_Impl for TextService_Impl {
                 return Err(HRESULT(-1).into());
             }
         };
-        if self.thread_mgr.lock().is_some() {
+        if self.lifecycle.owner().is_none() {
+            return Err(E_FAIL.into());
+        }
+        if !self.lifecycle.begin(tm.clone(), tid) {
             log::warn!("[TSF] ActivateEx: TIP 已激活，忽略重复激活");
             return Ok(());
         }
         let tm = tm.clone();
-        *self.thread_mgr.lock() = Some(tm.clone());
         // 保存激活标志（如 TF_TMAE_COMLESS）
         *self.activate_flags.lock() = dwflags;
 
-        {
-            let mut state = self.cookies.lock();
-            state.tid = tid;
-            state.using_keystroke_mgr = false;
-        }
         if let Some(punk_self) = self.clone_self_unknown() {
             // ── 主路径：通过 ITfKeystrokeMgr 注册按键事件 sink ──
             // 这是 Microsoft 官方 TSF 示例推荐的方式，比 ITfSource::AdviseSink
@@ -1686,7 +1527,7 @@ impl ITfTextInputProcessorEx_Impl for TextService_Impl {
                     Ok(key_sink) => {
                         match unsafe { kmgr.AdviseKeyEventSink(tid, &key_sink, true) } {
                             Ok(()) => {
-                                self.cookies.lock().using_keystroke_mgr = true;
+                                self.lifecycle.record(Registration::KeyEvent(tid));
                                 log::info!("[TSF] ITfKeystrokeMgr::AdviseKeyEventSink 成功");
                                 true
                             }
@@ -1713,9 +1554,7 @@ impl ITfTextInputProcessorEx_Impl for TextService_Impl {
                     let iid_key = <ITfKeyEventSink as windows::core::Interface>::IID;
                     match unsafe { source.AdviseSink(&iid_key, &punk_self) } {
                         Ok(c) => {
-                            let mut state = self.cookies.lock();
-                            state.key_event = c;
-                            state.using_keystroke_mgr = false;
+                            self.lifecycle.record(Registration::SourceKey(c));
                             log::info!("[TSF] 回退: ITfSource::AdviseSink ITfKeyEventSink 成功");
                         }
                         Err(e) => {
@@ -1729,23 +1568,23 @@ impl ITfTextInputProcessorEx_Impl for TextService_Impl {
             if let Ok(source) = tm.cast::<ITfSource>() {
                 let iid_thread = <ITfThreadMgrEventSink as windows::core::Interface>::IID;
                 match unsafe { source.AdviseSink(&iid_thread, &punk_self) } {
-                    Ok(c) => self.cookies.lock().thread_event = c,
+                    Ok(c) => self.lifecycle.record(Registration::ThreadEvent(c)),
                     Err(e) => log::error!("[TSF] AdviseSink ITfThreadMgrEventSink 失败: {e}"),
                 }
             }
         } else {
             log::warn!("[TSF] Activate: self_unknown 未注入，跳过所有 AdviseSink");
         }
-        let saved_using_kmgr = self.cookies.lock().using_keystroke_mgr;
+        let saved_using_kmgr = self.lifecycle.using_keystroke_mgr();
         let saved_tid = tid;
 
         // 获取 self_unknown 引用于后续注册（clone 保持引用计数）
         let punk_self_later = self.clone_self_unknown();
 
         if let Some(ref punk) = punk_self_later {
-            if !self.lang_bar_registered.load(Ordering::Acquire) {
+            if !self.lifecycle.has_language_bar() {
                 match self.register_language_bar(punk) {
-                    Ok(()) => self.lang_bar_registered.store(true, Ordering::Release),
+                    Ok(()) => self.lifecycle.record(Registration::LanguageBar),
                     Err(error) => log::warn!("[TSF] 注册语言栏按钮失败: {error}"),
                 }
             }
@@ -1772,9 +1611,14 @@ impl ITfTextInputProcessorEx_Impl for TextService_Impl {
                 let cfg = self.config_snapshot();
                 let (preserved_key, desc) = preserved_key_for_switch_key(cfg.basic.switch_key);
                 let desc: Vec<u16> = format!("{desc}\0").encode_utf16().collect();
-                let _ = unsafe {
+                if unsafe {
                     kmgr.PreserveKey(saved_tid, &GUID_PRESERVED_SHIFT, &preserved_key, &desc)
-                };
+                }
+                .is_ok()
+                {
+                    self.lifecycle
+                        .record(Registration::PreservedKey(preserved_key));
+                }
             }
         }
 
@@ -1783,7 +1627,7 @@ impl ITfTextInputProcessorEx_Impl for TextService_Impl {
             if let Ok(source) = tm.cast::<ITfSource>() {
                 let iid_thread_focus = <ITfThreadFocusSink as Interface>::IID;
                 if let Ok(cookie) = unsafe { source.AdviseSink(&iid_thread_focus, punk) } {
-                    *self.thread_focus_cookie.lock() = cookie;
+                    self.lifecycle.record(Registration::ThreadFocus(cookie));
                     log::debug!("[TSF] ITfThreadFocusSink 注册成功");
                 }
             }
@@ -1796,8 +1640,7 @@ impl ITfTextInputProcessorEx_Impl for TextService_Impl {
                     if let Ok(source) = ctx.cast::<ITfSource>() {
                         let iid_edit = <ITfTextEditSink as Interface>::IID;
                         if let Ok(cookie) = unsafe { source.AdviseSink(&iid_edit, punk) } {
-                            *self.edit_sink_cookie.lock() = cookie;
-                            *self.edit_sink_context.lock() = Some(ctx);
+                            self.lifecycle.record(Registration::TextEdit(ctx, cookie));
                             log::debug!("[TSF] ITfTextEditSink 注册成功");
                         }
                     }
@@ -1871,7 +1714,7 @@ impl ITfThreadFocusSink_Impl for TextService_Impl {
             .store(Arc::new(CandidateData::hidden(theme)));
         if self.is_composing.load(Ordering::Acquire) {
             // 异步清除 composition（需要有效的 context，Deactivate 会兜底）
-            if let Some(tm) = self.thread_mgr.lock().as_ref() {
+            if let Some(tm) = self.lifecycle.manager().as_ref() {
                 if let Ok(doc_mgr) = unsafe { tm.GetFocus() } {
                     if let Ok(ctx) = unsafe { doc_mgr.GetBase() } {
                         self.schedule_edit_session(
@@ -2132,7 +1975,7 @@ mod tests {
     fn compartment_sink_starts_unregistered() {
         let service = com_text_service();
 
-        assert!(service.compartment_sink_cookie.lock().is_none());
+        assert!(service.lifecycle.manager().is_none());
     }
 
     #[test]

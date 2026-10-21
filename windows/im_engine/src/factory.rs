@@ -107,6 +107,7 @@ impl IClassFactory_Impl for TextServiceFactory_Impl {
             unsafe {
                 *ppvobject = std::ptr::null_mut();
             }
+            obj.release_self_unknown();
             Err(HRESULT(-1).into())
         }
     }

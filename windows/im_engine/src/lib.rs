@@ -35,6 +35,7 @@ pub mod factory;
 pub mod file_log;
 pub mod guids;
 pub mod key_filter;
+mod lifecycle;
 pub mod reload;
 pub mod screen_geometry;
 pub mod text_service;
