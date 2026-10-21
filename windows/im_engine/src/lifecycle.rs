@@ -34,6 +34,7 @@ impl<C> Registration<C> {
 #[derive(Clone, Copy, PartialEq, Eq)]
 enum Phase {
     Idle,
+    Activating,
     Active,
     Cleaning,
     Pending,
@@ -41,6 +42,7 @@ enum Phase {
 
 struct State<M, O, C> {
     phase: Phase,
+    cancel_activation: bool,
     manager: Option<M>,
     owner: Option<O>,
     tid: u32,
@@ -58,6 +60,7 @@ impl<M, O, C> Default for Lifecycle<M, O, C> {
         Self {
             state: Mutex::new(State {
                 phase: Phase::Idle,
+                cancel_activation: false,
                 manager: None,
                 owner: None,
                 tid: 0,
@@ -91,14 +94,32 @@ impl<M: Clone, O: Clone, C: Clone> Lifecycle<M, O, C> {
         }
         state.manager = Some(manager);
         state.tid = tid;
-        state.phase = Phase::Active;
+        state.phase = Phase::Activating;
+        state.cancel_activation = false;
         true
     }
 
     pub fn record(&self, registration: Registration<C>) {
         let mut state = self.state.lock();
-        debug_assert!(state.phase == Phase::Active);
+        debug_assert!(matches!(state.phase, Phase::Activating | Phase::Active));
         state.records.push(registration);
+    }
+
+    /// 注册外调重入注销时延迟清理，直到所有迟到的成功注册都已记录。
+    pub fn finish_activation<E>(
+        &self,
+        remove: impl FnMut(&M, &O, &Registration<C>) -> std::result::Result<(), E>,
+    ) -> std::result::Result<bool, E> {
+        let cancelled = {
+            let mut state = self.state.lock();
+            debug_assert!(state.phase == Phase::Activating);
+            state.phase = Phase::Active;
+            state.cancel_activation
+        };
+        if cancelled {
+            self.deactivate(remove)?;
+        }
+        Ok(!cancelled)
     }
 
     pub fn using_keystroke_mgr(&self) -> bool {
@@ -131,6 +152,10 @@ impl<M: Clone, O: Clone, C: Clone> Lifecycle<M, O, C> {
     ) -> std::result::Result<(), E> {
         let (manager, owner, mut records) = {
             let mut state = self.state.lock();
+            if state.phase == Phase::Activating {
+                state.cancel_activation = true;
+                return Ok(());
+            }
             if state.phase == Phase::Cleaning {
                 return Ok(());
             }
@@ -241,6 +266,7 @@ mod tests {
         let lifecycle = Lifecycle::default();
         lifecycle.set_owner(Arc::new(()));
         assert!(lifecycle.begin(7, 9));
+        assert!(lifecycle.finish_activation::<()>(|_, _, _| Ok(())).unwrap());
         lifecycle
     }
 
@@ -340,11 +366,58 @@ mod tests {
         assert!(lifecycle.is_released());
         lifecycle.set_owner(Arc::new(()));
         assert!(lifecycle.begin(7, 9));
+        assert!(lifecycle.finish_activation::<()>(|_, _, _| Ok(())).unwrap());
         lifecycle.record(Registration::LanguageBar);
         assert!(lifecycle.deactivate(|_, _, _| Err(())).is_err());
         lifecycle.release_unactivated_owner();
         assert!(lifecycle.owner().is_some());
         lifecycle.deactivate::<()>(|_, _, _| Ok(())).unwrap();
+        assert!(lifecycle.is_released());
+    }
+    #[test]
+    fn deactivation_during_registration_cleans_late_success_and_retains_failed_owner() {
+        let lifecycle: Lifecycle<u32, Arc<()>, ()> = Lifecycle::default();
+        lifecycle.set_owner(Arc::new(()));
+        assert!(lifecycle.begin(7, 9));
+        lifecycle.record(Registration::ThreadEvent(12));
+        lifecycle
+            .deactivate::<()>(|_, _, _| panic!("registration still in flight"))
+            .unwrap();
+        assert!(lifecycle.owner().is_some());
+        assert!(!lifecycle.begin(8, 10));
+        lifecycle.record(Registration::LanguageBar);
+        let mut calls = 0;
+        assert_eq!(
+            lifecycle.finish_activation(|_, _, record| {
+                calls += 1;
+                if matches!(record, Registration::LanguageBar) {
+                    Err("retry")
+                } else {
+                    Ok(())
+                }
+            }),
+            Err("retry")
+        );
+        assert_eq!(calls, 2);
+        assert!(lifecycle.owner().is_some());
+        lifecycle
+            .deactivate::<()>(|_, _, record| {
+                assert!(matches!(record, Registration::LanguageBar));
+                Ok(())
+            })
+            .unwrap();
+        assert!(lifecycle.is_released());
+    }
+
+    #[test]
+    fn cancelled_activation_does_not_start_runtime() {
+        let lifecycle: Lifecycle<u32, Arc<()>, ()> = Lifecycle::default();
+        lifecycle.set_owner(Arc::new(()));
+        assert!(lifecycle.begin(7, 9));
+        lifecycle
+            .deactivate::<()>(|_, _, _| unreachable!())
+            .unwrap();
+        assert!(!lifecycle.finish_activation::<()>(|_, _, _| Ok(())).unwrap());
         assert!(lifecycle.is_released());
     }
 }

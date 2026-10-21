@@ -48,29 +48,26 @@ pub fn show(ui: &mut Ui, state: &mut AppState) {
     if !state.tables.tables().is_empty() {
         ui.horizontal(|ui| {
             ui.label("使用码表:");
-            let current = state
-                .config
-                .dictionary
-                .system_table
-                .file_name()
-                .and_then(|f| f.to_str())
-                .unwrap_or("");
-            let current_idx = state
-                .tables
-                .tables()
-                .iter()
-                .position(|t| t == current)
-                .unwrap_or(0);
-            let mut idx = current_idx;
+            let current = state.tables.editor.path();
+            let current_idx = state.tables.tables().iter().position(|name| {
+                state.tables.directory().join(name) == current
+                    && state.tables.editor.load_error.is_none()
+            });
+            let mut selected = None;
             egui::ComboBox::from_id_source("table_select")
-                .selected_text(&state.tables.tables()[current_idx])
+                .selected_text(
+                    current_idx
+                        .map(|i| state.tables.tables()[i].as_str())
+                        .unwrap_or("请选择码表"),
+                )
                 .show_ui(ui, |ui| {
                     for (i, name) in state.tables.tables().iter().enumerate() {
-                        ui.selectable_value(&mut idx, i, name);
+                        if ui.selectable_label(current_idx == Some(i), name).clicked() {
+                            selected = Some(state.tables.directory().join(name));
+                        }
                     }
                 });
-            if idx != current_idx {
-                let path = state.tables.directory().join(&state.tables.tables()[idx]);
+            if let Some(path) = selected {
                 state.select_table(path);
             }
         });
@@ -570,6 +567,10 @@ fn start_dictionary_pick(state: &mut AppState, target: FilePickTarget, path: &Pa
 
 /// 从 exe 同目录 `tables/` 复制所有 .dict 文件到当前 table_dir。
 fn init_tables(state: &mut AppState) {
+    if state.tables.is_dirty() {
+        state.status_msg = Some("请先保存当前码表改动".into());
+        return;
+    }
     let src = std::env::current_exe()
         .ok()
         .and_then(|p| p.parent().map(|d| d.join("tables")))
@@ -602,7 +603,11 @@ fn init_tables(state: &mut AppState) {
         }
     }
 
-    state.rescan_tables();
+    if let Err(error) = state.tables.reload_directory(&mut state.config) {
+        state.mark_dirty();
+        state.status_msg = Some(format!("已复制 {copied} 个码表，但加载失败：{error}"));
+        return;
+    }
     if copied > 0 {
         state.mark_dirty();
         state.status_msg = Some(format!("✅ 已初始化 {} 个码表文件", copied));

@@ -280,14 +280,24 @@ impl TableSession {
         let current = self.editor.path.file_name().and_then(|name| name.to_str());
         let selected = current
             .filter(|name| tables.iter().any(|item| item == name))
-            .or_else(|| tables.first().map(String::as_str))
-            .ok_or_else(|| "目录下未找到可用码表，已保留当前选择".to_string())?;
-        self.select(directory.join(selected), config)
+            .or_else(|| tables.first().map(String::as_str));
+        if let Some(selected) = selected {
+            self.select(directory.join(selected), config)
+        } else {
+            self.directory = directory;
+            self.tables = tables;
+            Ok(())
+        }
     }
 
     /// 重扫只刷新目录列表，绝不替换草稿或当前选择。
     pub fn rescan(&mut self, excluded: &Path) {
         self.tables = scan_table_dir(&self.directory, Some(excluded));
+    }
+
+    /// 初始化完成后显式加载当前目录；普通重扫继续保留草稿。
+    pub fn reload_directory(&mut self, config: &mut Config) -> Result<(), String> {
+        self.browse(self.directory.clone(), config)
     }
 
     pub fn save_as(&mut self, name: &str, config: &mut Config) -> Result<PathBuf, String> {
@@ -348,7 +358,7 @@ fn scan_table_dir(dir: &std::path::Path, excluded: Option<&std::path::Path>) -> 
         .into_iter()
         .flatten()
         .filter_map(|e| e.ok())
-        .filter(|e| e.path().extension().map_or(false, |ext| ext == "dict"))
+        .filter(|e| e.path().extension().is_some_and(|ext| ext == "dict"))
         .filter_map(|e| e.file_name().into_string().ok())
         .filter(|name| excluded_name != Some(name.as_str()))
         .collect();
@@ -466,7 +476,7 @@ mod tests {
         assert!(!session.is_dirty());
         assert!(session.tables().iter().any(|name| name == "custom.dict"));
         assert_eq!(
-            read_table(&dir.path().join("original.dict")).unwrap().1[0].word,
+            read_table(dir.path().join("original.dict")).unwrap().1[0].word,
             "工"
         );
         session
@@ -494,9 +504,10 @@ mod tests {
         let empty = tempfile::tempdir().unwrap();
         let (mut session, mut config) = session(dir.path());
         let path = config.dictionary.system_table.clone();
-        assert!(session
+        session
             .browse(empty.path().to_path_buf(), &mut config)
-            .is_err());
+            .unwrap();
+        assert_eq!(session.directory(), empty.path());
         assert!(session
             .select(dir.path().join("absent.dict"), &mut config)
             .is_err());
@@ -613,5 +624,31 @@ mod tests {
         let _ = std::fs::remove_dir_all(dir);
 
         assert_eq!(tables, vec!["wubi86.dict"]);
+    }
+    #[test]
+    fn initialization_loads_first_template_after_missing_table_and_empty_browse() {
+        let dir = tempfile::tempdir().unwrap();
+        let mut config = Config::default();
+        config.dictionary.system_table = dir.path().join("missing.dict");
+        let mut session = TableSession::load(
+            config.dictionary.system_table.clone(),
+            &config.dictionary.user_table,
+        );
+        assert!(session.editor.load_error.is_some());
+        session
+            .browse(dir.path().to_path_buf(), &mut config)
+            .unwrap();
+        let (_, template_config) = self::session(dir.path());
+        session.reload_directory(&mut config).unwrap();
+        assert!(session.editor.load_error.is_none());
+        assert_eq!(session.editor.entries.len(), 1);
+        assert_eq!(
+            session.editor.path(),
+            template_config.dictionary.system_table
+        );
+        assert_eq!(config.dictionary.system_table, session.editor.path());
+        edit(&mut session);
+        assert!(session.reload_directory(&mut config).is_err());
+        assert_eq!(session.editor.entries[0].word, "改");
     }
 }

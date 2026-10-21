@@ -202,6 +202,31 @@ impl StateMachine {
         is_code_char(character) || self.dict.table_config().charset.contains(character)
     }
 
+    /// 预测一次事件是否会被消费，不修改缓冲或执行重复检索。
+    pub fn would_consume(&self, event: &InputEvent) -> bool {
+        match *event {
+            InputEvent::Select(index) => (1..=self.candidates.len()).contains(&index),
+            InputEvent::Char(c)
+                if c.is_ascii_digit()
+                    && !self.dict.table_config().charset.contains(c)
+                    && self.can_select_with_digit(c) =>
+            {
+                (1..=self.candidates.len()).contains(&(c.to_digit(10).unwrap() as usize))
+            }
+            InputEvent::Char(c) => {
+                self.accepts_code_char(c)
+                    || (is_buffered_punctuation(c) && !self.spelling.is_empty())
+            }
+            InputEvent::Symbol(c) => {
+                self.dict.table_config().charset.contains(c)
+                    || !c.is_ascii()
+                    || !self.spelling.is_empty()
+            }
+            InputEvent::PageNext | InputEvent::PagePrev => true,
+            _ => !self.spelling.is_empty(),
+        }
+    }
+
     /// 重置全部状态（不释放码表绑定）。
     pub fn reset(&mut self) {
         self.spelling.clear();
@@ -819,5 +844,41 @@ mod tests {
 
         let t = m.handle(InputEvent::Char('2'));
         assert!(matches!(t, Transition::Commit(ref s) if s == "王" || s == "壬"));
+    }
+    #[test]
+    fn consumption_prediction_matches_transition_without_mutating_spelling() {
+        let events = [
+            InputEvent::Select(0),
+            InputEvent::Select(1),
+            InputEvent::Select(9),
+            InputEvent::Char('2'),
+            InputEvent::Char('a'),
+            InputEvent::Char('!'),
+            InputEvent::Char('中'),
+            InputEvent::Symbol('!'),
+            InputEvent::Symbol('。'),
+            InputEvent::Space,
+            InputEvent::Enter,
+            InputEvent::Esc,
+            InputEvent::Backspace,
+            InputEvent::PageNext,
+            InputEvent::PagePrev,
+        ];
+        for spelling in ["", "a", "zz", "zz!"] {
+            for event in &events {
+                let mut machine = StateMachine::with_options(dict(), 5, false);
+                for character in spelling.chars() {
+                    machine.handle(InputEvent::Char(character));
+                }
+                let predicted = machine.would_consume(event);
+                assert_eq!(machine.spelling(), spelling);
+                let transition = machine.handle(event.clone());
+                assert_eq!(
+                    predicted,
+                    !matches!(transition, Transition::Passthrough(_)),
+                    "spelling={spelling:?}, event={event:?}"
+                );
+            }
+        }
     }
 }

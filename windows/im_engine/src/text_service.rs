@@ -22,7 +22,7 @@ use std::ptr;
 use std::sync::atomic::{AtomicBool, Ordering};
 use std::sync::Arc;
 
-use windows::core::{implement, w, Interface, Ref, Result, BOOL, GUID, HRESULT};
+use windows::core::{implement, w, IUnknown, Interface, Ref, Result, BOOL, GUID, HRESULT};
 use windows::Win32::Foundation::{
     COLORREF, E_FAIL, E_INVALIDARG, LPARAM, POINT, RECT, S_FALSE, WPARAM,
 };
@@ -615,12 +615,21 @@ impl TextService {
         self.input.reload(&snapshot, |op| self.run_edit(op, None));
     }
 
-    /// Deactivate / Drop 之前清理自身保护：
-    ///
-    /// 在 [`ITfTextInputProcessor::Deactivate`] 完成后调用一次，移除自我持有
-    /// 的 IUnknown 引用，避免循环引用。
+    /// 工厂 QueryInterface 失败时，解除尚未激活对象的自身强引用。
     pub(crate) fn release_self_unknown(&self) {
         self.lifecycle.release_unactivated_owner();
+    }
+
+    /// 按键来自新 context 时，先结束旧文档的会话，失败则阻止本次输入。
+    fn prepare_context(&self, context: Option<&ITfContext>) -> Result<bool> {
+        let composition = self.composition.lock().clone();
+        if let (Some(comp), Some(context)) = (composition, context) {
+            let previous = unsafe { comp.GetRange()?.GetContext()? };
+            if previous.cast::<IUnknown>()? != context.cast::<IUnknown>()? {
+                self.input.lose_focus(|op| self.run_edit(op, None));
+            }
+        }
+        Ok(self.input.recover(|op| self.run_edit(op, None)))
     }
 
     /// 将会话操作交给当前文档 adapter，并同时检查请求与执行 HRESULT。
@@ -1245,14 +1254,6 @@ impl ITfTextInputProcessorEx_Impl for TextService_Impl {
             }
         }
 
-        // 启动候选框窗口线程。
-        {
-            let mut cw = self.candidate_window.lock();
-            if cw.is_none() {
-                *cw = Some(CandidateWindow::spawn(Arc::clone(&self.candidate_tx)));
-            }
-        }
-
         // 注册自定义 DisplayAttribute 类别。
         self.register_display_attribute_categories();
         self.initialize_display_attribute_atoms();
@@ -1297,6 +1298,26 @@ impl ITfTextInputProcessorEx_Impl for TextService_Impl {
                         }
                     }
                 }
+            }
+        }
+
+        let activated = self.lifecycle.finish_activation(remove_registration);
+        if !matches!(activated, Ok(true)) {
+            if !self.lifecycle.has_language_bar() {
+                self.lang_bar_sink.lock().take();
+            }
+            self.input.terminated();
+            *self.ga_input.lock() = 0;
+            *self.ga_converted.lock() = 0;
+            activated?;
+            return Ok(());
+        }
+
+        // 启动候选框窗口线程。
+        {
+            let mut cw = self.candidate_window.lock();
+            if cw.is_none() {
+                *cw = Some(CandidateWindow::spawn(Arc::clone(&self.candidate_tx)));
             }
         }
 
@@ -1470,9 +1491,12 @@ impl ITfThreadMgrEventSink_Impl for TextService_Impl {
         pdimfocus: Ref<'_, ITfDocumentMgr>,
         _pdimprevfocus: Ref<'_, ITfDocumentMgr>,
     ) -> Result<()> {
-        // 跟踪当前焦点文档管理器（候选框定位参考）。
-        let new_mgr = pdimfocus.as_ref().map(|m| m.clone());
-        *self.focus_doc_mgr.lock() = new_mgr;
+        if pdimfocus.as_ref() != _pdimprevfocus.as_ref() {
+            self.input.lose_focus(|op| self.run_edit(op, None));
+        }
+        let new_mgr = pdimfocus.as_ref().cloned();
+        let old = std::mem::replace(&mut *self.focus_doc_mgr.lock(), new_mgr);
+        drop(old);
         Ok(())
     }
 
@@ -1491,6 +1515,9 @@ impl ITfKeyEventSink_Impl for TextService_Impl {
             "[TSF] KeyEventSink OnSetFocus foreground={:?}",
             fforeground.0
         );
+        if !fforeground.as_bool() {
+            self.input.lose_focus(|op| self.run_edit(op, None));
+        }
         Ok(())
     }
 
@@ -1500,6 +1527,9 @@ impl ITfKeyEventSink_Impl for TextService_Impl {
         wparam: WPARAM,
         lparam: LPARAM,
     ) -> Result<BOOL> {
+        if !self.prepare_context(_pic.as_ref())? {
+            return Ok(BOOL(0));
+        }
         Ok(BOOL(
             self.translated_key(wparam, lparam)
                 .is_some_and(|event| self.input.test_key(&event, false)) as i32,
@@ -1516,6 +1546,9 @@ impl ITfKeyEventSink_Impl for TextService_Impl {
     }
 
     fn OnKeyDown(&self, pic: Ref<'_, ITfContext>, wparam: WPARAM, lparam: LPARAM) -> Result<BOOL> {
+        if !self.prepare_context(pic.as_ref())? {
+            return Ok(BOOL(0));
+        }
         let Some(event) = self.translated_key(wparam, lparam) else {
             return Ok(BOOL(0));
         };

@@ -250,6 +250,9 @@ fn accepts(state: &State, event: &InputEvent, system_modifier: bool) -> bool {
     if !state.chinese || system_modifier || state.needs_cleanup {
         return false;
     }
+    if !state.sm.would_consume(event) {
+        return false;
+    }
     match event {
         InputEvent::Char(c) | InputEvent::Symbol(c) if state.sm.accepts_code_char(*c) => true,
         InputEvent::Symbol(c) if !c.is_ascii() => true,
@@ -657,5 +660,56 @@ mod tests {
         );
         session.handle(InputEvent::Char('a'), false, None, |_| Ok::<_, &str>(None));
         assert_eq!(candidates.load().anchor.unwrap().x, 10);
+    }
+    #[test]
+    fn preflight_matches_execution_for_idle_candidates_and_unmatched_spelling() {
+        let events = [
+            InputEvent::Select(0),
+            InputEvent::Select(1),
+            InputEvent::Select(2),
+            InputEvent::Char('2'),
+            InputEvent::Char('b'),
+            InputEvent::Char('!'),
+            InputEvent::Char('中'),
+            InputEvent::Symbol('!'),
+            InputEvent::Symbol('。'),
+            InputEvent::Space,
+            InputEvent::Enter,
+            InputEvent::Esc,
+            InputEvent::Backspace,
+            InputEvent::PageNext,
+            InputEvent::PagePrev,
+        ];
+        for spelling in ["", "b", "z", "z!"] {
+            for event in &events {
+                let (session, _, mut editor, _) = setup();
+                type_text(&session, &mut editor, spelling);
+                let predicted = session.test_key(event, false);
+                let consumed = session.handle(event.clone(), false, None, |op| editor.apply(op));
+                assert_eq!(
+                    predicted, consumed,
+                    "spelling={spelling:?}, event={event:?}"
+                );
+            }
+        }
+    }
+
+    #[test]
+    fn changing_editor_cleans_old_composition_before_starting_new_input() {
+        let (session, candidates, mut first, _) = setup();
+        let mut second = Editor::default();
+        type_text(&session, &mut first, "b");
+        first.fail = true;
+        session.lose_focus(|op| first.apply(op));
+        assert!(!candidates.load().visible);
+        assert!(!session.handle(InputEvent::Char('a'), false, None, |op| second.apply(op)));
+        assert!(second.spelling.is_empty());
+        first.fail = false;
+        assert!(session.recover(|op| first.apply(op)));
+        type_text(&session, &mut second, "a");
+        assert_eq!(first.committed, "b");
+        assert!(first.spelling.is_empty());
+        assert_eq!(second.spelling, "a");
+        assert_eq!(candidates.load().spelling, "a");
     }
 }
