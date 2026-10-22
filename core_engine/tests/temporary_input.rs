@@ -117,3 +117,64 @@ fn invalid_candidate_number_does_not_commit_or_modify_spelling() {
     assert_eq!(sm.spelling(), "brb");
     assert_eq!(sm.mode(), InputMode::English);
 }
+
+#[test]
+fn apostrophes_are_editable_constraints_and_raw_commits_keep_them() {
+    let mut sm = setup();
+    enter(&mut sm, 1);
+    assert_eq!(sm.handle(E::Char('\'')), T::None);
+    type_text(&mut sm, "zhong'");
+    assert_eq!(sm.handle(E::Char('\'')), T::None);
+    sm.handle(E::Backspace);
+    assert_eq!(sm.spelling(), "zhong");
+    assert_eq!(sm.candidates(), ["中国人"]);
+    sm.handle(E::Esc);
+    enter(&mut sm, 1);
+    type_text(&mut sm, "ni'h'ma");
+    assert!(sm.candidates().is_empty());
+    for _ in 0..3 {
+        sm.handle(E::Backspace);
+    }
+    assert_eq!(sm.spelling(), "ni'h");
+    assert_eq!(sm.candidates(), ["你好", "你好吗"]);
+    assert_eq!(sm.handle(E::Enter), T::Commit("ni'h".into()));
+    enter(&mut sm, 1);
+    type_text(&mut sm, "ni'h'ma");
+    assert_eq!(sm.handle(E::Space), T::Commit("ni'h'ma".into()));
+}
+
+#[test]
+fn english_punctuation_and_long_words_never_commit_automatically() {
+    for tables in [true, false] {
+        let mut sm = setup();
+        if !tables {
+            sm.set_temporary_tables(Arc::default());
+        }
+        enter(&mut sm, 2);
+        type_text(&mut sm, "brb;LongWord.Email@example.com!");
+        assert_eq!(sm.handle(E::Char('1')), T::None);
+        assert_eq!(
+            sm.handle(E::Enter),
+            T::Commit("brb;LongWord.Email@example.com!".into())
+        );
+        assert_eq!(sm.mode(), InputMode::Main);
+    }
+}
+
+#[test]
+fn temporary_candidates_page_without_changing_commit_rules() {
+    let main = Dictionary::from_text("---\ntemporary:\n  key: '`'\n---\na\t主\n").unwrap();
+    let english = Dictionary::from_text("aa\tfirst\t10\nab\tsecond\t1\n").unwrap();
+    let mut sm = StateMachine::with_options(main, 1, true);
+    sm.set_temporary_tables(Arc::new(TemporaryTables {
+        english: Some(english),
+        ..Default::default()
+    }));
+    enter(&mut sm, 2);
+    type_text(&mut sm, "a");
+    assert_eq!(sm.candidates(), ["first"]);
+    sm.handle(E::PageNext);
+    assert_eq!(sm.candidates(), ["second"]);
+    assert_eq!(sm.handle(E::Char('1')), T::Commit("second".into()));
+    assert_eq!(sm.mode(), InputMode::Main);
+}
