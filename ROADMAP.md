@@ -10,7 +10,7 @@
         - [ ] 实现 `Java_com_example_inputmethod_CoreEngine_onKeyEvent` 按键处理接口
 
 - [ ] **Android 原生输入法服务开发 (Kotlin)**
-    - [ ] 搭建 Android Studio 工程，配置多架构 Rust 交叉编译
+    - [ ] 搭建 Android 工程，配置多架构 Rust 交叉编译
     - [ ] 继承 `InputMethodService` 实现输入法生命周期
     - [ ] 编写 JNI 载入器，加载编译出的 `.so` 核心动态库
 
