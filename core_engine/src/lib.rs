@@ -11,6 +11,7 @@ pub mod dictionary;
 mod pinyin;
 pub mod state_machine;
 pub mod table_options;
+pub mod temporary;
 pub mod user_dictionary;
 
 pub use config::{Config, Error as ConfigError};
@@ -21,6 +22,7 @@ pub use dictionary::{
 };
 pub use state_machine::{InputEvent, StateMachine, Transition};
 pub use table_options::{validate_temporary_hotkeys, TableType, TemporaryConfig};
+pub use temporary::{InputMode, TemporaryTables};
 pub use user_dictionary::{UserDictionary, UserDictionaryError};
 
 /// 核心库版本号。

@@ -348,6 +348,17 @@ impl Dictionary {
             return self.search_wildcard(prefix, wildcard, opts);
         }
 
+        self.search_literal(prefix, opts)
+    }
+
+    /// 普通前缀检索，不启用码表中的万能键；拼音仍遵循音节边界。
+    pub fn search_literal(&self, prefix: &str, opts: SearchOptions) -> Vec<&Entry> {
+        if let Some(index) = &self.pinyin_index {
+            return index.search(&self.entries, prefix, opts);
+        }
+        if prefix.is_empty() {
+            return Vec::new();
+        }
         let mut results: Vec<&Entry> = Vec::new();
         let mut seen = HashSet::new();
 

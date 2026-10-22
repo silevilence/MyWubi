@@ -8,7 +8,9 @@
 
 use crate::config::PunctuationMode;
 use crate::dictionary::{Dictionary, Entry, SearchOptions};
+use crate::temporary::{InputMode, TemporaryTables};
 use std::sync::Arc;
+mod temporary_input;
 
 /// 当前所处的输入阶段。
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Default)]
@@ -88,7 +90,10 @@ pub enum Transition {
 const DEFAULT_PAGE_SIZE: usize = 5;
 
 /// 跨平台输入核心状态机。
+#[derive(Clone)]
 pub struct StateMachine {
+    mode: InputMode,
+    temporary: Arc<TemporaryTables>,
     /// 当前绑定的码表（不可变，多线程共享）。
     dict: Arc<Dictionary>,
     /// 单页候选数。
@@ -158,6 +163,8 @@ impl StateMachine {
     ) -> Self {
         let page_size = page_size.clamp(1, 10);
         Self {
+            mode: InputMode::Main,
+            temporary: Arc::new(TemporaryTables::default()),
             dict,
             page_size,
             auto_commit_unique,
@@ -175,6 +182,21 @@ impl StateMachine {
     /// 当前编码缓冲。
     pub fn spelling(&self) -> &str {
         &self.spelling
+    }
+
+    pub fn mode(&self) -> InputMode {
+        self.mode
+    }
+
+    pub fn set_temporary_tables(&mut self, tables: Arc<TemporaryTables>) {
+        self.reset();
+        self.temporary = tables;
+    }
+
+    pub fn is_temporary_trigger(&self, c: char) -> bool {
+        self.mode == InputMode::Main
+            && self.spelling.is_empty()
+            && self.dict.table_config().temporary.trigger() == Some(c)
     }
 
     /// 当前状态。
@@ -204,6 +226,13 @@ impl StateMachine {
 
     /// 预测一次事件是否会被消费，不修改缓冲或执行重复检索。
     pub fn would_consume(&self, event: &InputEvent) -> bool {
+        if self.mode != InputMode::Main {
+            return true;
+        }
+        if matches!(event, InputEvent::Char(c) | InputEvent::Symbol(c) if self.is_temporary_trigger(*c))
+        {
+            return true;
+        }
         match *event {
             InputEvent::Select(index) => (1..=self.candidates.len()).contains(&index),
             InputEvent::Char(c)
@@ -229,6 +258,7 @@ impl StateMachine {
 
     /// 重置全部状态（不释放码表绑定）。
     pub fn reset(&mut self) {
+        self.mode = InputMode::Main;
         self.spelling.clear();
         self.page = 0;
         self.candidates.clear();
@@ -240,6 +270,7 @@ impl StateMachine {
     /// 提交当前输入：有候选上屏首选，否则上屏原始缓冲。
     pub fn commit_current(&mut self) -> Option<(String, usize)> {
         if self.spelling.is_empty() {
+            self.reset();
             return None;
         }
         let replace_len = self.spelling.chars().count();
@@ -255,6 +286,7 @@ impl StateMachine {
     /// 提交当前原始编码，不选候选词。
     pub fn commit_raw_current(&mut self) -> Option<(String, usize)> {
         if self.spelling.is_empty() {
+            self.reset();
             return None;
         }
         let text = self.spelling.clone();
@@ -265,6 +297,14 @@ impl StateMachine {
 
     /// 处理一个输入事件并返回对外行为。
     pub fn handle(&mut self, event: InputEvent) -> Transition {
+        if self.mode != InputMode::Main {
+            return self.handle_temporary(event);
+        }
+        if matches!(event, InputEvent::Char(c) | InputEvent::Symbol(c) if self.is_temporary_trigger(c))
+        {
+            self.mode = InputMode::Menu;
+            return self.refresh_temporary();
+        }
         match event {
             InputEvent::Char(c) => self.on_char(c),
             InputEvent::Symbol(c) if self.dict.table_config().charset.contains(c) => {
