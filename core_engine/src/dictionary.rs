@@ -189,6 +189,7 @@ impl Default for LoadOptions {
 /// 不可变、可被多线程共享的码表。
 #[derive(Debug)]
 pub struct Dictionary {
+    pinyin_index: Option<crate::pinyin::PinyinIndex>,
     /// 按编码有序排列的扁平条目数组，便于二分查找前缀区间。
     entries: Vec<Entry>,
     /// 编码到首次出现下标的索引（前缀分区加速）。
@@ -215,6 +216,11 @@ struct TrieNode {
 const HEADER_PREFIX: &str = "#";
 
 impl Dictionary {
+    /// 从完整码表文本加载，使用与文件加载相同的校验。
+    pub fn from_text(text: &str) -> Result<Arc<Self>, DictError> {
+        let (config, entries) = parse_dictionary(text, 4096)?;
+        Self::from_entries_and_config(entries, None, LoadOptions::default(), config)
+    }
     /// 从文件全量加载并构建索引。
     pub fn load<P: AsRef<Path>>(path: P) -> Result<Arc<Self>, DictError> {
         Self::load_with(path, LoadOptions::default())
@@ -264,6 +270,8 @@ impl Dictionary {
         };
 
         Ok(Arc::new(Self {
+            pinyin_index: (table_config.table_type == TableType::Pinyin)
+                .then(|| crate::pinyin::PinyinIndex::new(&entries)),
             entries,
             prefix_index,
             trie,
@@ -326,6 +334,9 @@ impl Dictionary {
 
     /// 返回以 `prefix` 为前缀的全部词条（精确编码优先，其次前缀）。
     pub fn search(&self, prefix: &str, opts: SearchOptions) -> Vec<&Entry> {
+        if let Some(index) = &self.pinyin_index {
+            return index.search(&self.entries, prefix, opts);
+        }
         if prefix.is_empty() {
             return Vec::new();
         }
@@ -410,6 +421,9 @@ impl Dictionary {
 
     /// 通过前缀 Trie 进行检索（若未构建则回退 `search`）。
     pub fn search_trie(&self, prefix: &str, opts: SearchOptions) -> Vec<&Entry> {
+        if self.pinyin_index.is_some() {
+            return self.search(prefix, opts);
+        }
         if self
             .table_config
             .wildcard_key
@@ -443,6 +457,17 @@ impl Dictionary {
 
     /// 判断是否存在至少一条前缀匹配（用于"还有候选可继续输入"提示）。
     pub fn has_prefix(&self, prefix: &str) -> bool {
+        if self.pinyin_index.is_some() {
+            return !self
+                .search(
+                    prefix,
+                    SearchOptions {
+                        limit: 1,
+                        ..Default::default()
+                    },
+                )
+                .is_empty();
+        }
         if prefix.is_empty() {
             return false;
         }
@@ -649,7 +674,17 @@ pub fn validate_table(
             push_issue(Some(index), "编码或词条不能包含制表符或换行".into());
             continue;
         }
-        if let Some(character) = entry
+        if config.table_type == TableType::Pinyin {
+            if !crate::pinyin::valid_code(&entry.code) {
+                push_issue(
+                    Some(index),
+                    format!(
+                        "拼音编码 `{}` 必须为完整分隔的小写音节，不能有空音节或首尾分隔符",
+                        entry.code
+                    ),
+                );
+            }
+        } else if let Some(character) = entry
             .code
             .chars()
             .find(|character| !config.charset.contains(*character))
@@ -659,7 +694,12 @@ pub fn validate_table(
                 format!("编码 `{}` 含 charset 外字符 `{character}`", entry.code),
             );
         }
-        if entry.code.chars().count() > config.max_code_len as usize {
+        let code_len = entry
+            .code
+            .chars()
+            .filter(|c| config.table_type != TableType::Pinyin || *c != '\'')
+            .count();
+        if code_len > config.max_code_len as usize {
             push_issue(
                 Some(index),
                 format!("编码 `{}` 超过最大码长 {}", entry.code, config.max_code_len),
