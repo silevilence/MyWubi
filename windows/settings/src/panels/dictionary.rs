@@ -707,7 +707,7 @@ fn init_tables(state: &mut AppState) {
         state.mark_dirty();
         state.status_msg = Some(format!("✅ 已初始化 {} 个码表文件", copied));
     } else {
-        state.status_msg = Some("⚠️ tables/ 目录下未找到 .dict 文件".into());
+        state.status_msg = Some("⚠ tables/ 目录下未找到 .dict 文件".into());
     }
 }
 

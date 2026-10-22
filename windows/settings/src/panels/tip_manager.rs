@@ -15,7 +15,7 @@ pub fn show(ui: &mut Ui, state: &mut AppState) {
     if !is_admin {
         ui.colored_label(
             egui::Color32::from_rgb(255, 152, 0),
-            "⚠️ 当前未以管理员身份运行，无法安装或卸载输入法。",
+            "⚠ 当前未以管理员身份运行，无法安装或卸载输入法。",
         );
         ui.add_space(4.0);
         ui.label("输入法的注册需要写入系统注册表，请以管理员身份重新运行设置程序。");
@@ -56,7 +56,9 @@ pub fn show(ui: &mut Ui, state: &mut AppState) {
 
 fn status_badge(ui: &mut Ui, color: egui::Color32, text: &str) {
     ui.horizontal(|ui| {
-        ui.colored_label(color, "●");
+        // 状态圆点直接绘制，避免字体缺字时显示为问号或方框。
+        let (rect, _) = ui.allocate_exact_size(egui::vec2(10.0, 14.0), egui::Sense::hover());
+        ui.painter().circle_filled(rect.center(), 3.0, color);
         ui.label(text);
     });
 }
@@ -147,7 +149,7 @@ fn show_installed_enabled(ui: &mut Ui, state: &mut AppState, is_admin: bool) {
                 if ui.button("卸载").clicked() {
                     state.uninstall_confirm = true;
                     state.status_msg =
-                        Some("⚠️ 确定要卸载 MyWubi 输入法吗？请再次点击「确认卸载」".into());
+                        Some("⚠ 确定要卸载 MyWubi 输入法吗？请再次点击「确认卸载」".into());
                 }
             }
         });
@@ -193,7 +195,7 @@ fn show_installed_disabled(ui: &mut Ui, state: &mut AppState, is_admin: bool) {
                 if ui.button("卸载").clicked() {
                     state.uninstall_confirm = true;
                     state.status_msg =
-                        Some("⚠️ 确定要卸载 MyWubi 输入法吗？请再次点击「确认卸载」".into());
+                        Some("⚠ 确定要卸载 MyWubi 输入法吗？请再次点击「确认卸载」".into());
                 }
             }
         });

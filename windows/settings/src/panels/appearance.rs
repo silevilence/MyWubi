@@ -115,7 +115,7 @@ fn color_row(
                 Err(()) => {
                     resp.on_hover_text("格式应为 0xAARRGGBB 或 #RRGGBB")
                         .request_focus();
-                    *status_msg = Some("⚠️ 颜色格式非法，应为 0xAARRGGBB 或 #RRGGBB".into());
+                    *status_msg = Some("⚠ 颜色格式非法，应为 0xAARRGGBB 或 #RRGGBB".into());
                 }
             }
         }

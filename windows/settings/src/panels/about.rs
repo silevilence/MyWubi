@@ -91,7 +91,7 @@ fn show_update_ui(ui: &mut Ui, state: &mut AppState) {
                     ui.add_space(4.0);
                     ui.colored_label(
                         egui::Color32::from_rgb(255, 152, 0),
-                        "⚠️ 检测到输入法已安装。更新前需先卸载输入法以释放 im_engine.dll，否则更新会失败。",
+                        "⚠ 检测到输入法已安装。更新前需先卸载输入法以释放 im_engine.dll，否则更新会失败。",
                     );
                     ui.label("请前往「输入法管理」面板点击「卸载」，完成后回到此处继续更新。");
                     if ui.button("前往「输入法管理」").clicked() {
@@ -119,7 +119,7 @@ fn show_update_ui(ui: &mut Ui, state: &mut AppState) {
             if tip_installed {
                 ui.colored_label(
                     egui::Color32::from_rgb(255, 152, 0),
-                    "⚠️ 输入法仍处于安装状态，请先前往「输入法管理」卸载后再应用更新。",
+                    "⚠ 输入法仍处于安装状态，请先前往「输入法管理」卸载后再应用更新。",
                 );
                 if ui.button("前往「输入法管理」").clicked() {
                     state.active_panel = Panel::TipManager;
