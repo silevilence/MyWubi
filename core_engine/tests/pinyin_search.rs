@@ -101,3 +101,18 @@ fn exact_results_precede_heavier_prefixes_unless_disabled() {
         "你好"
     );
 }
+
+#[test]
+fn chinese_phrases_require_all_syllable_boundaries_in_the_file() {
+    for code in ["nihao", "zhong'guoren", "zhongguo'ren"] {
+        let word = if code == "nihao" {
+            "你好"
+        } else {
+            "中国人"
+        };
+        assert!(Dictionary::from_text(&format!(
+            "---\ntype: pinyin\nmax_code_len: 64\n---\n{code}\t{word}\n"
+        ))
+        .is_err());
+    }
+}

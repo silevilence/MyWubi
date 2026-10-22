@@ -46,27 +46,32 @@ fn watch_loop(runtime: Arc<ArcSwap<RuntimeSnapshot>>) -> notify::Result<()> {
         }
         match crate::load_runtime_snapshot() {
             Ok(snapshot) => {
-                let attempted = paths(&snapshot);
-                if snapshot.temporary.load_errors.is_empty() {
-                    targets = attempted;
-                    let revision = snapshot.revision;
-                    runtime.store(Arc::new(snapshot));
-                    log::info!("[reload] 已发布新的运行时快照 revision={revision}");
-                } else {
-                    // 新引用尚不可用时也监听它；文件修复后无需再保存主配置。
-                    targets = paths(&runtime.load());
-                    targets.extend(attempted);
-                    log::error!(
-                        "[reload] 辅助码表重载失败，保留旧快照: {}",
-                        snapshot.temporary.load_errors.join("; ")
-                    );
-                }
+                targets = publish_reload(&runtime, snapshot);
             }
             Err(err) => log::error!("[reload] 重载失败，继续保留旧快照: {err}"),
         }
         update_watches(&mut watcher, &mut watched, &targets);
     }
     Ok(())
+}
+
+fn publish_reload(runtime: &ArcSwap<RuntimeSnapshot>, snapshot: RuntimeSnapshot) -> Vec<PathBuf> {
+    let attempted = paths(&snapshot);
+    if snapshot.temporary.load_errors.is_empty() {
+        let revision = snapshot.revision;
+        runtime.store(Arc::new(snapshot));
+        log::info!("[reload] 已发布新的运行时快照 revision={revision}");
+        attempted
+    } else {
+        // 新引用尚不可用时也监听它；文件修复后无需再保存主配置。
+        let mut targets = paths(&runtime.load());
+        targets.extend(attempted);
+        log::error!(
+            "[reload] 辅助码表重载失败，保留旧快照: {}",
+            snapshot.temporary.load_errors.join("; ")
+        );
+        targets
+    }
 }
 
 fn update_watches(
@@ -241,5 +246,68 @@ mod tests {
             attrs: Default::default(),
         };
         assert!(event_requires_reload(&event, &runtime));
+    }
+
+    #[test]
+    fn failed_snapshot_keeps_old_revision_and_watches_new_reference_until_repaired() {
+        let runtime = ArcSwap::from_pointee(runtime_snapshot());
+        let mut failed = runtime_snapshot();
+        failed.revision = 2;
+        failed.temporary = Arc::new(core_engine::TemporaryTables {
+            paths: vec![r"D:\new\pinyin.dict".into()],
+            load_errors: vec!["missing".into()],
+            ..Default::default()
+        });
+        let targets = publish_reload(&runtime, failed);
+        assert_eq!(runtime.load().revision, 1);
+        assert!(targets.contains(&PathBuf::from(r"D:\new\pinyin.dict")));
+        let mut repaired = runtime_snapshot();
+        repaired.revision = 3;
+        repaired.temporary = Arc::new(core_engine::TemporaryTables {
+            paths: vec![r"D:\new\pinyin.dict".into()],
+            ..Default::default()
+        });
+        let targets = publish_reload(&runtime, repaired);
+        assert_eq!(runtime.load().revision, 3);
+        assert_eq!(targets, paths(&runtime.load()));
+    }
+
+    #[test]
+    fn native_watcher_observes_missing_directory_creation_and_retargeting() {
+        let root = std::env::temp_dir().join(format!(
+            "mywubi-watch-{}-{}",
+            std::process::id(),
+            std::time::SystemTime::now()
+                .duration_since(std::time::UNIX_EPOCH)
+                .unwrap()
+                .as_nanos()
+        ));
+        std::fs::create_dir_all(&root).unwrap();
+        let target = root.join("new").join("pinyin.dict");
+        let (tx, rx) = std::sync::mpsc::channel();
+        let mut watcher = notify::recommended_watcher(move |event| {
+            let _ = tx.send(event);
+        })
+        .unwrap();
+        let mut watched = BTreeSet::new();
+        update_watches(&mut watcher, &mut watched, std::slice::from_ref(&target));
+        assert!(watched.contains(&root));
+        std::fs::create_dir_all(target.parent().unwrap()).unwrap();
+        std::fs::write(&target, "ni\t你\n").unwrap();
+        let deadline = std::time::Instant::now() + std::time::Duration::from_secs(5);
+        loop {
+            let remaining = deadline.saturating_duration_since(std::time::Instant::now());
+            let event = rx
+                .recv_timeout(remaining)
+                .expect("native watcher should report creation")
+                .unwrap();
+            if event_matches(&event, std::slice::from_ref(&target)) {
+                break;
+            }
+        }
+        update_watches(&mut watcher, &mut watched, std::slice::from_ref(&target));
+        assert_eq!(watched, BTreeSet::from([root.join("new")]));
+        drop(watcher);
+        std::fs::remove_dir_all(root).unwrap();
     }
 }

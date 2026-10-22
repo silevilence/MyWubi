@@ -66,6 +66,7 @@ struct State {
     generation: u64,
     chinese: bool,
     needs_cleanup: bool,
+    cleanup_delete_text: bool,
 }
 
 struct Update {
@@ -114,6 +115,7 @@ impl InputSession {
                 generation: 0,
                 chinese: true,
                 needs_cleanup: false,
+                cleanup_delete_text: false,
             }),
             candidates,
         }
@@ -175,7 +177,12 @@ impl InputSession {
                 return true;
             }
             state.generation += 1;
-            cleared_update(&state, EditSessionOp::EndComposition { delete_text: false })
+            cleared_update(
+                &state,
+                EditSessionOp::EndComposition {
+                    delete_text: state.cleanup_delete_text,
+                },
+            )
         };
         self.execute(update, edit);
         !self.state.lock().needs_cleanup
@@ -291,6 +298,7 @@ impl InputSession {
         match result {
             Ok(anchor) => {
                 state.needs_cleanup = false;
+                state.cleanup_delete_text = false;
                 if update.view.visible {
                     update.view.anchor = anchor.or(update.view.anchor);
                 }
@@ -307,6 +315,10 @@ impl InputSession {
                 log::warn!("[TSF] 输入会话编辑失败，等待清理旧 composition: {error}");
                 state.sm.reset();
                 state.needs_cleanup = true;
+                state.cleanup_delete_text = matches!(
+                    update.op,
+                    EditSessionOp::EndComposition { delete_text: true }
+                );
                 self.candidates
                     .store(Arc::new(CandidateData::hidden(ThemeSnapshot::from_config(
                         &state.config,
@@ -614,6 +626,16 @@ mod tests {
         assert!(session.recover(|op| editor.apply(op)));
         assert_eq!(editor.committed, "你好");
         assert_eq!(session.mode(), InputMode::Main);
+    }
+
+    #[test]
+    fn failed_temporary_cancellation_recovery_still_deletes_raw_input() {
+        let (session, _, mut editor) = temporary_setup();
+        type_text(&session, &mut editor, "`1ni");
+        session.lose_focus(|_| Err::<Option<ScreenPoint>, _>("lock denied"));
+        assert!(session.recover(|op| editor.apply(op)));
+        assert!(editor.spelling.is_empty());
+        assert!(editor.committed.is_empty());
     }
 
     #[test]

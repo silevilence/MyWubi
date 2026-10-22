@@ -169,12 +169,14 @@ pub fn translate_for_mode(
 ) -> Option<InputEvent> {
     let vk = wparam as u16;
     let shift_pressed = is_shift_pressed();
-    match vk {
-        v if v == VK_SPACE.0 => return Some(InputEvent::Space),
-        v if v == VK_RETURN.0 => return Some(InputEvent::Enter),
-        v if v == VK_BACK.0 => return Some(InputEvent::Backspace),
-        v if v == VK_ESCAPE.0 => return Some(InputEvent::Esc),
-        _ => {}
+    if mode != core_engine::InputMode::Main {
+        match vk {
+            v if v == VK_SPACE.0 => return Some(InputEvent::Space),
+            v if v == VK_RETURN.0 => return Some(InputEvent::Enter),
+            v if v == VK_BACK.0 => return Some(InputEvent::Backspace),
+            v if v == VK_ESCAPE.0 => return Some(InputEvent::Esc),
+            _ => {}
+        }
     }
     let printable = to_char(vk, lparam);
     if let Some(event) = printable.and_then(|c| mode_character(c, mode, trigger)) {
@@ -265,6 +267,34 @@ mod tests {
             mode_character('2', InputMode::Menu, None),
             Some(InputEvent::Char('2'))
         );
+    }
+
+    #[test]
+    fn temporary_space_rule_does_not_override_main_mode_page_binding() {
+        let hotkey = Hotkey {
+            page_next: "space".into(),
+            ..Default::default()
+        };
+        assert_eq!(
+            translate_for_mode(
+                VK_SPACE.0 as usize,
+                0,
+                true,
+                &hotkey,
+                core_engine::InputMode::Main,
+                None
+            ),
+            Some(InputEvent::PageNext)
+        );
+        for mode in [
+            core_engine::InputMode::Pinyin,
+            core_engine::InputMode::English,
+        ] {
+            assert_eq!(
+                translate_for_mode(VK_SPACE.0 as usize, 0, true, &hotkey, mode, None),
+                Some(InputEvent::Space)
+            );
+        }
     }
     use windows::Win32::UI::Input::KeyboardAndMouse::{
         VK_OEM_1, VK_OEM_7, VK_OEM_COMMA, VK_OEM_MINUS, VK_OEM_PLUS,

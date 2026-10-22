@@ -270,7 +270,9 @@ impl Dictionary {
         }
 
         // 单独维护同编码 word 去重的稳定视图（保留 weight 最大者）。
-        let trie = if entries.len() < opts.trie_threshold {
+        let trie = if table_config.table_type != TableType::Pinyin
+            && entries.len() < opts.trie_threshold
+        {
             Some(build_trie(&entries))
         } else {
             None
@@ -701,6 +703,13 @@ pub fn validate_table(
                         entry.code
                     ),
                 );
+            }
+            // 纯汉字词组必须逐字标注音节；混合文本不猜测其读音或字音对应。
+            if entry.word.chars().count() > 1
+                && entry.word.chars().all(|c| matches!(c, '\u{3400}'..='\u{4dbf}' | '\u{4e00}'..='\u{9fff}' | '\u{20000}'..='\u{2ffff}'))
+                && entry.code.split('\'').count() != entry.word.chars().count()
+            {
+                push_issue(Some(index), format!("词组 `{}` 必须用单引号完整分隔每个字的音节", entry.word));
             }
         } else if let Some(character) = entry
             .code

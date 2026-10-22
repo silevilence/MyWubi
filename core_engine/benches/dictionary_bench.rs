@@ -6,7 +6,30 @@
 use core_engine::dictionary::{Entry, LoadOptions, SearchOptions};
 use core_engine::Dictionary;
 use criterion::{black_box, criterion_group, criterion_main, Criterion};
+use std::alloc::{GlobalAlloc, Layout, System};
+use std::sync::atomic::{AtomicUsize, Ordering};
 use std::sync::Arc;
+
+struct MeasuredAllocator;
+static LIVE_BYTES: AtomicUsize = AtomicUsize::new(0);
+#[global_allocator]
+static ALLOCATOR: MeasuredAllocator = MeasuredAllocator;
+// SAFETY: all allocation operations delegate unchanged layouts and pointers to System.
+unsafe impl GlobalAlloc for MeasuredAllocator {
+    unsafe fn alloc(&self, layout: Layout) -> *mut u8 {
+        let pointer = unsafe { System.alloc(layout) };
+        if !pointer.is_null() {
+            LIVE_BYTES.fetch_add(layout.size(), Ordering::Relaxed);
+        }
+        pointer
+    }
+    unsafe fn dealloc(&self, pointer: *mut u8, layout: Layout) {
+        LIVE_BYTES.fetch_sub(layout.size(), Ordering::Relaxed);
+        unsafe {
+            System.dealloc(pointer, layout);
+        }
+    }
+}
 
 /// 生成一份约 1 万条、形如 `aaaa`..`zzzz` 的伪五笔码表，
 /// 用于在基准中模拟真实量级的码表。
@@ -88,9 +111,50 @@ fn bench_unique_exact(c: &mut Criterion) {
     });
 }
 
+fn bench_temporary_pinyin(c: &mut Criterion) {
+    let mut text = String::from("---\ntype: pinyin\nmax_code_len: 64\n---\n");
+    let syllables = [
+        "zhong", "guo", "ren", "ni", "hao", "ma", "xi", "an", "shi", "jie",
+    ];
+    for i in 0..100_000 {
+        let a = syllables[i % 10];
+        let b = syllables[(i / 10) % 10];
+        let d = syllables[(i / 100) % 10];
+        text.push_str(&format!("{a}'{b}'{d}\tword{i}\t{}\n", i % 1000));
+    }
+    let before = LIVE_BYTES.load(Ordering::Relaxed);
+    let dict = Dictionary::from_text(&text).unwrap();
+    let dictionary_bytes = LIVE_BYTES.load(Ordering::Relaxed) - before;
+    let before = LIVE_BYTES.load(Ordering::Relaxed);
+    let reverse = core_engine::ReverseLookup::new(&dict);
+    eprintln!("temporary_100k retained requested heap: dictionary={} bytes, reverse={} bytes (excludes source text and allocator overhead)", dictionary_bytes, LIVE_BYTES.load(Ordering::Relaxed) - before);
+    let mut group = c.benchmark_group("temporary_100k");
+    group
+        .sample_size(20)
+        .warm_up_time(std::time::Duration::from_millis(300))
+        .measurement_time(std::time::Duration::from_secs(1));
+    for query in ["zhong", "zhong'guo", "zhongguo'ren", "zhon'guo"] {
+        group.bench_with_input(query, &query, |b, query| {
+            b.iter(|| {
+                black_box(dict.search(
+                    black_box(query),
+                    SearchOptions {
+                        prefer_exact: true,
+                        limit: dict.len(),
+                    },
+                ))
+            })
+        });
+    }
+    group.bench_function("reverse", |b| {
+        b.iter(|| black_box(reverse.hint(black_box("word1234"))))
+    });
+    group.finish();
+}
+
 criterion_group!(
     name = dictionary_benches;
     config = Criterion::default().sample_size(100);
-    targets = bench_exact, bench_prefix_search, bench_trie_search, bench_has_prefix, bench_unique_exact
+    targets = bench_exact, bench_prefix_search, bench_trie_search, bench_has_prefix, bench_unique_exact, bench_temporary_pinyin
 );
 criterion_main!(dictionary_benches);

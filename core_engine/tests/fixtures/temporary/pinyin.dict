@@ -1,0 +1,10 @@
+---
+type: pinyin
+max_code_len: 64
+---
+ni	你	100
+ni'hao	你好	100
+ni'hao'ma	你好吗	50
+zhong'guo'ren	中国人	100
+xi'an	西安	50
+xian	先	100
