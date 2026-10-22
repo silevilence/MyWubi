@@ -56,6 +56,23 @@ pub(crate) struct InputSession {
 }
 
 impl InputSession {
+    pub fn from_snapshot(
+        snapshot: &RuntimeSnapshot,
+        candidates: Arc<ArcSwap<CandidateData>>,
+    ) -> Self {
+        let session = Self::new(
+            Arc::clone(&snapshot.dict),
+            snapshot.config.clone(),
+            snapshot.revision,
+            candidates,
+        );
+        session
+            .state
+            .lock()
+            .sm
+            .set_temporary_tables(Arc::clone(&snapshot.temporary));
+        session
+    }
     pub fn new(
         dict: Arc<Dictionary>,
         config: Config,
@@ -189,11 +206,20 @@ impl InputSession {
             if state.revision == snapshot.revision {
                 return;
             }
+            let temporary = state.sm.mode() != core_engine::InputMode::Main;
             state.sm = state_machine(Arc::clone(&snapshot.dict), &snapshot.config);
+            state
+                .sm
+                .set_temporary_tables(Arc::clone(&snapshot.temporary));
             state.config = snapshot.config.clone();
             state.revision = snapshot.revision;
             state.generation += 1;
-            cleared_update(&state, EditSessionOp::EndComposition { delete_text: false })
+            cleared_update(
+                &state,
+                EditSessionOp::EndComposition {
+                    delete_text: temporary,
+                },
+            )
         };
         self.execute(update, edit);
     }
@@ -542,6 +568,7 @@ mod tests {
         let mut config = session.config();
         config.appearance.font_size = 25;
         let snapshot = RuntimeSnapshot {
+            temporary: Arc::default(),
             revision: 1,
             dict,
             config,
@@ -635,6 +662,7 @@ mod tests {
         let (session, candidates, mut editor, dict) = setup();
         type_text(&session, &mut editor, "b");
         let snapshot = RuntimeSnapshot {
+            temporary: Arc::default(),
             revision: 0,
             dict,
             config: session.config(),

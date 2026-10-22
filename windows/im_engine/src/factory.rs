@@ -62,6 +62,7 @@ impl IClassFactory_Impl for TextServiceFactory_Impl {
                     }
                 };
                 let runtime = Arc::new(ArcSwap::from_pointee(crate::RuntimeSnapshot {
+                    temporary: Arc::default(),
                     revision: 0,
                     dict,
                     config: core_engine::Config::default(),

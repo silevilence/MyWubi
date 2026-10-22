@@ -80,6 +80,7 @@ static NEXT_RUNTIME_REVISION: AtomicU64 = AtomicU64::new(1);
 pub(crate) struct RuntimeSnapshot {
     pub revision: u64,
     pub dict: Arc<Dictionary>,
+    pub temporary: Arc<core_engine::TemporaryTables>,
     pub config: Config,
     pub config_path: PathBuf,
     pub system_table_path: PathBuf,
@@ -96,10 +97,20 @@ impl RuntimeSnapshot {
             &config_path,
             &config.dictionary.user_table,
         );
-        let dict = load_dictionary(&system_table_path, &user_table_path, &config)?;
+        let main = Dictionary::load(&system_table_path).map_err(|e| e.to_string())?;
+        let temporary = Arc::new(core_engine::TemporaryTables::load(
+            &main,
+            &system_table_path,
+            &config.hotkey,
+        ));
+        for error in &temporary.load_errors {
+            log::warn!("[temporary] {error}");
+        }
+        let dict = merge_dictionary(main, &user_table_path, &config)?;
         Ok(Self {
             revision: NEXT_RUNTIME_REVISION.fetch_add(1, Ordering::Relaxed),
             dict,
+            temporary,
             config,
             config_path,
             system_table_path,
@@ -115,6 +126,14 @@ fn load_dictionary(
 ) -> Result<Arc<Dictionary>, String> {
     let system = Dictionary::load(system_table_path)
         .map_err(|error| format!("加载码表失败 ({}): {error}", system_table_path.display()))?;
+    merge_dictionary(system, user_table_path, config)
+}
+
+fn merge_dictionary(
+    system: Arc<Dictionary>,
+    user_table_path: &std::path::Path,
+    config: &Config,
+) -> Result<Arc<Dictionary>, String> {
     if !config.dictionary.enable_user_dict {
         return Ok(system);
     }
@@ -177,6 +196,7 @@ fn load_initial_runtime_snapshot() -> RuntimeSnapshot {
                 });
             RuntimeSnapshot {
                 revision: NEXT_RUNTIME_REVISION.fetch_add(1, Ordering::Relaxed),
+                temporary: Arc::default(),
                 dict,
                 config,
                 config_path: resolved_path,
@@ -220,11 +240,12 @@ pub extern "C" fn im_engine_init() -> i32 {
     }
 
     let runtime_snapshot = load_initial_runtime_snapshot();
-    let sm = StateMachine::with_options(
+    let mut sm = StateMachine::with_options(
         Arc::clone(&runtime_snapshot.dict),
         runtime_snapshot.config.basic.candidate_count as usize,
         runtime_snapshot.config.basic.auto_commit_unique,
     );
+    sm.set_temporary_tables(Arc::clone(&runtime_snapshot.temporary));
     let theme = ThemeSnapshot::from_config(&runtime_snapshot.config);
     let cd = Arc::new(ArcSwap::from_pointee(CandidateData::hidden(theme)));
     let runtime = Arc::new(ArcSwap::from_pointee(runtime_snapshot));

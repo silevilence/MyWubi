@@ -551,6 +551,7 @@ impl TextService {
         candidate_tx: Arc<ArcSwap<CandidateData>>,
     ) -> Self {
         let runtime = Arc::new(ArcSwap::from_pointee(RuntimeSnapshot {
+            temporary: Arc::default(),
             revision: 0,
             dict,
             config: cfg.clone(),
@@ -566,12 +567,7 @@ impl TextService {
         candidate_tx: Arc<ArcSwap<CandidateData>>,
     ) -> Self {
         let snapshot = runtime.load();
-        let input = InputSession::new(
-            Arc::clone(&snapshot.dict),
-            snapshot.config.clone(),
-            snapshot.revision,
-            Arc::clone(&candidate_tx),
-        );
+        let input = InputSession::from_snapshot(&snapshot, Arc::clone(&candidate_tx));
         drop(snapshot);
 
         Self {
