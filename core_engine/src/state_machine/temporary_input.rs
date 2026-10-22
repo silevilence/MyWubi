@@ -127,7 +127,20 @@ impl StateMachine {
                 .iter()
                 .map(|entry| entry.word.clone())
                 .collect();
-            self.code_hints = vec![String::new(); self.candidates.len()];
+            self.code_hints = self
+                .candidates
+                .iter()
+                .map(|word| {
+                    if self.dict.table_config().temporary.reverse_lookup {
+                        self.temporary
+                            .reverse
+                            .as_ref()
+                            .map_or_else(String::new, |index| index.hint(word))
+                    } else {
+                        String::new()
+                    }
+                })
+                .collect();
             self.state = if self.candidates.is_empty() {
                 InputState::Composing
             } else {

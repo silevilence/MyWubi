@@ -22,7 +22,7 @@ pub use dictionary::{
 };
 pub use state_machine::{InputEvent, StateMachine, Transition};
 pub use table_options::{validate_temporary_hotkeys, TableType, TemporaryConfig};
-pub use temporary::{InputMode, TemporaryTables};
+pub use temporary::{InputMode, ReverseLookup, TemporaryTables};
 pub use user_dictionary::{UserDictionary, UserDictionaryError};
 
 /// 核心库版本号。
