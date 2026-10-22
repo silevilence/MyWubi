@@ -138,12 +138,19 @@ impl AppState {
             &config.dictionary.system_table,
         );
         let tables = TableSession::load(resolved_system_table, &config.dictionary.user_table);
+        let access_error = load_error
+            .is_none()
+            .then(|| crate::app_container::prepare(&config_path, &config).err())
+            .flatten();
+        if let Some(error) = &access_error {
+            log::warn!("{error}");
+        }
         Self {
             config,
             dirty: false,
             active_panel: Panel::Basic,
             config_path,
-            status_msg: None,
+            status_msg: access_error,
             portable,
             load_error,
             pending_pick: None,
@@ -163,6 +170,13 @@ impl AppState {
         self.status_msg = None;
     }
 
+    pub(crate) fn prepare_app_container_access(&mut self) {
+        if let Err(error) = crate::app_container::prepare(&self.config_path, &self.config) {
+            log::warn!("{error}");
+            self.status_msg = Some(format!("[!] {error}"));
+        }
+    }
+
     /// 用户确认用默认配置覆盖损坏文件后调用。
     pub fn apply_default_overwrite(&mut self) {
         let cfg = Config::default();
@@ -174,6 +188,7 @@ impl AppState {
             self.load_error = None;
             self.status_msg = Some("[OK] 已用默认配置覆盖".into());
             log::info!("已用默认配置覆盖损坏的 {}", self.config_path.display());
+            self.prepare_app_container_access();
         }
     }
 

@@ -32,5 +32,6 @@ windows = { workspace = true, features = [
     "Win32_UI_TextServices",
     "Win32_UI_Input_KeyboardAndMouse",
     "Win32_UI_WindowsAndMessaging",
+    "Win32_UI_Shell",
 ] }
 windows-core.workspace = true

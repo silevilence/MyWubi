@@ -7,6 +7,7 @@ pub fn save(state: &mut AppState) -> bool {
             state.dirty = false;
             state.status_msg = Some("[OK] 已保存".into());
             log::info!("配置已保存到 {}", state.config_path.display());
+            state.prepare_app_container_access();
             true
         }
         Err(error) => {

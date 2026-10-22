@@ -1169,7 +1169,10 @@ impl ITfTextInputProcessorEx_Impl for TextService_Impl {
             }
         };
         if self.lifecycle.owner().is_none() {
-            return Err(E_FAIL.into());
+            // TSF 可在 Deactivate 后复用同一个 COM 对象；工厂不会再次注入 owner。
+            // 当前 COM 调用保证 self 仍存活，重新取得引用供本轮订阅使用。
+            use windows::core::IUnknownImpl;
+            self.lifecycle.set_owner(self.to_interface());
         }
         if !self.lifecycle.begin(tm.clone(), tid) {
             log::warn!("[TSF] ActivateEx: TIP 已激活，忽略重复激活");
@@ -1311,14 +1314,6 @@ impl ITfTextInputProcessorEx_Impl for TextService_Impl {
             *self.ga_converted.lock() = 0;
             activated?;
             return Ok(());
-        }
-
-        // 启动候选框窗口线程。
-        {
-            let mut cw = self.candidate_window.lock();
-            if cw.is_none() {
-                *cw = Some(CandidateWindow::spawn(Arc::clone(&self.candidate_tx)));
-            }
         }
 
         log::info!("[TSF] TIP activated (tid={tid})");
@@ -1552,6 +1547,28 @@ impl ITfKeyEventSink_Impl for TextService_Impl {
         let Some(event) = self.translated_key(wparam, lparam) else {
             return Ok(BOOL(0));
         };
+        // GetWnd 可能在 WinRT 自定义编辑控件中返回空句柄；回退到 TSF 线程焦点。
+        let owner = unsafe {
+            pic.as_ref()
+                .and_then(|context| context.GetActiveView().ok())
+                .and_then(|view| view.GetWnd().ok())
+                .filter(|hwnd| !hwnd.is_invalid())
+                .unwrap_or_else(|| windows::Win32::UI::Input::KeyboardAndMouse::GetFocus())
+        };
+        {
+            let mut window = self.candidate_window.lock();
+            if window.as_ref().is_some_and(|window| !window.is_running()) {
+                window.take();
+            }
+            if let Some(window) = window.as_ref() {
+                window.set_owner(owner);
+            } else {
+                *window = Some(CandidateWindow::spawn(
+                    Arc::clone(&self.candidate_tx),
+                    owner,
+                ));
+            }
+        }
         let theme = self.theme_snapshot();
         let anchor = self
             .candidate_tx
@@ -1605,6 +1622,36 @@ mod tests {
         let service = com_text_service();
 
         assert!(service.lifecycle.manager().is_none());
+    }
+
+    #[test]
+    fn same_com_service_can_activate_after_deactivation() {
+        // TSF (including SearchApp) may retain the COM object across profile switches.
+        std::thread::spawn(|| unsafe {
+            use windows::Win32::System::Com::{
+                CoInitializeEx, CoUninitialize, COINIT_APARTMENTTHREADED,
+            };
+            CoInitializeEx(None, COINIT_APARTMENTTHREADED).ok().unwrap();
+            {
+                let thread_mgr_clsid = GUID::from_u128(0x529a9e6b_6587_4f23_ab9e_9c7d683e3c50);
+                let manager: ITfThreadMgr =
+                    CoCreateInstance(&thread_mgr_clsid, None, CLSCTX_INPROC_SERVER).unwrap();
+                let tid = manager.Activate().unwrap();
+                let service = com_text_service();
+                service.set_self_unknown(service.to_interface());
+                let processor: ITfTextInputProcessorEx = service.to_interface();
+                for _ in 0..2 {
+                    processor.ActivateEx(&manager, tid, 0).unwrap();
+                    assert!(service.lifecycle.manager().is_some());
+                    processor.Deactivate().unwrap();
+                    assert!(service.lifecycle.owner().is_none());
+                }
+                manager.Deactivate().unwrap();
+            }
+            CoUninitialize();
+        })
+        .join()
+        .unwrap();
     }
 
     #[test]

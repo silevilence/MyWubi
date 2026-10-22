@@ -541,6 +541,7 @@ fn apply_user_dictionary_action(state: &mut AppState, action: UserDictionaryActi
         Ok(()) => {
             editor.clear_form();
             state.status_msg = Some(format!("[OK] {success}，输入法将自动热重载"));
+            state.prepare_app_container_access();
         }
         Err(error) => state.status_msg = Some(format!("[ERR] {error}")),
     }

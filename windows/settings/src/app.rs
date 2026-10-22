@@ -103,8 +103,12 @@ impl SettingsApp {
                                         .map(|count| format!("[OK] 已导入 {count} 个新词条"))
                                         .map_err(|error| error.to_string())
                                 });
+                            let imported = result.is_ok();
                             self.state.status_msg =
                                 Some(result.unwrap_or_else(|error| format!("[ERR] {error}")));
+                            if imported {
+                                self.state.prepare_app_container_access();
+                            }
                             return;
                         }
                         FilePickTarget::UserDictionaryExport => {

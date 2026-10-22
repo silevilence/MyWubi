@@ -22,6 +22,7 @@ use crate::screen_geometry::compute_window_rect;
 const CLASS_NAME: windows::core::PCWSTR = w!("MyWubiCandidateWindow");
 
 const TIMER_ID: usize = 1;
+const SET_OWNER: u32 = WM_APP + 1;
 const TIMER_INTERVAL_MS: u32 = 16;
 const SHUTDOWN_TIMEOUT_MS: u64 = 500;
 const DEFAULT_WIN_W: i32 = 200;
@@ -40,13 +41,33 @@ pub struct CandidateWindow {
 }
 
 impl CandidateWindow {
+    pub fn is_running(&self) -> bool {
+        self.join_handle
+            .as_ref()
+            .is_some_and(|thread| !thread.is_finished())
+            && unsafe { IsWindow(Some(self.hwnd)).as_bool() }
+    }
+
+    /// 在窗口线程中更新宿主，确保候选框位于 Windows 搜索等沉浸式窗口之上。
+    pub fn set_owner(&self, owner: HWND) {
+        unsafe {
+            let _ = PostMessageW(
+                Some(self.hwnd),
+                SET_OWNER,
+                WPARAM(0),
+                LPARAM(owner.0 as isize),
+            );
+        }
+    }
+
     /// 在独立线程中启动候选框窗口。
-    pub fn spawn(data_src: std::sync::Arc<ArcSwap<CandidateData>>) -> Self {
+    pub fn spawn(data_src: std::sync::Arc<ArcSwap<CandidateData>>, owner: HWND) -> Self {
         let (hwnd_tx, hwnd_rx) = mpsc::channel::<isize>();
+        let owner = owner.0 as isize;
         // 安全创建窗口线程——失败时不 panic，避免崩溃宿主进程
         let join_handle = match std::thread::Builder::new()
             .name("MyWubiCandidateThread".into())
-            .spawn(move || run_window_thread(data_src, hwnd_tx))
+            .spawn(move || run_window_thread(data_src, hwnd_tx, owner))
         {
             Ok(h) => Some(h),
             Err(e) => {
@@ -76,6 +97,16 @@ impl CandidateWindow {
 
     /// 发送退出信号（WM_CLOSE, 最多重试 3 次）并等待线程结束（超时后分离）。
     pub fn shutdown(&mut self) {
+        if self
+            .join_handle
+            .as_ref()
+            .is_some_and(|thread| thread.is_finished())
+        {
+            if let Some(thread) = self.join_handle.take() {
+                let _ = thread.join();
+            }
+            return;
+        }
         if self.hwnd.0.is_null() || self.join_handle.is_none() {
             // 窗口未成功创建，无需关闭
             return;
@@ -120,6 +151,7 @@ impl Drop for CandidateWindow {
 fn run_window_thread(
     data_src: std::sync::Arc<ArcSwap<CandidateData>>,
     hwnd_tx: mpsc::Sender<isize>,
+    owner: isize,
 ) {
     let hinstance = HINSTANCE(crate::module_handle() as *mut c_void);
     if hinstance.0.is_null() {
@@ -174,7 +206,7 @@ fn run_window_thread(
             0,
             0,
             0,
-            None,
+            Some(HWND(owner as *mut c_void)),
             None,
             Some(hinstance),
             None,
@@ -221,10 +253,6 @@ fn run_window_thread(
     // 清理
     unsafe {
         let _ = KillTimer(Some(hwnd), TIMER_ID);
-        let ptr = GetWindowLongPtrW(hwnd, GWLP_USERDATA) as *mut WindowData;
-        if !ptr.is_null() {
-            let _ = Box::from_raw(ptr);
-        }
         let _ = DestroyWindow(hwnd);
     }
 }
@@ -238,6 +266,12 @@ unsafe extern "system" fn wnd_proc(
     lparam: LPARAM,
 ) -> LRESULT {
     match msg {
+        SET_OWNER => {
+            if GetWindowLongPtrW(hwnd, GWLP_HWNDPARENT) != lparam.0 {
+                SetWindowLongPtrW(hwnd, GWLP_HWNDPARENT, lparam.0);
+            }
+            LRESULT(0)
+        }
         WM_TIMER if wparam.0 == TIMER_ID => {
             handle_timer(hwnd);
             LRESULT(0)
@@ -245,6 +279,15 @@ unsafe extern "system" fn wnd_proc(
         WM_DESTROY => {
             PostQuitMessage(0);
             LRESULT(0)
+        }
+        WM_NCDESTROY => {
+            // 宿主销毁时系统也会销毁 owned window，不能等消息泵退出后再取数据。
+            let ptr = GetWindowLongPtrW(hwnd, GWLP_USERDATA) as *mut WindowData;
+            SetWindowLongPtrW(hwnd, GWLP_USERDATA, 0);
+            if !ptr.is_null() {
+                drop(Box::from_raw(ptr));
+            }
+            DefWindowProcW(hwnd, msg, wparam, lparam)
         }
         _ => DefWindowProcW(hwnd, msg, wparam, lparam),
     }

@@ -31,6 +31,7 @@ use windows::Win32::System::SystemServices::DLL_PROCESS_ATTACH;
 
 pub mod candidate_data;
 pub mod candidate_window;
+mod config_path;
 pub mod factory;
 pub mod file_log;
 pub mod guids;
@@ -142,14 +143,10 @@ pub(crate) fn load_runtime_snapshot() -> Result<RuntimeSnapshot, String> {
     let exe_dir = dll_directory()
         .map(PathBuf::from)
         .ok_or_else(|| "无法定位 DLL 目录".to_string())?;
-    let app_dir = dirs::config_dir()
-        .ok_or_else(|| "无法获取 AppData 路径".to_string())?
-        .join("MyWubi");
-    let resolved = core_engine::config_path::resolve_config_path_from(&exe_dir, &app_dir)
-        .map_err(|e| format!("定位配置路径失败: {e}"))?;
-    let config = Config::load(&resolved.path)
-        .map_err(|e| format!("加载配置失败 ({}): {e}", resolved.path.display()))?;
-    RuntimeSnapshot::initial_from_config(resolved.path, config)
+    let path = config_path::resolve(&exe_dir)?;
+    let config =
+        Config::load(&path).map_err(|e| format!("加载配置失败 ({}): {e}", path.display()))?;
+    RuntimeSnapshot::initial_from_config(path, config)
 }
 
 fn load_initial_runtime_snapshot() -> RuntimeSnapshot {
@@ -158,15 +155,9 @@ fn load_initial_runtime_snapshot() -> RuntimeSnapshot {
         Err(err) => {
             log::error!("{err}");
             let exe_dir = dll_directory().map(PathBuf::from);
-            let app_dir = dirs::config_dir().map(|p| p.join("MyWubi"));
             let resolved_path = exe_dir
                 .as_ref()
-                .zip(app_dir.as_ref())
-                .and_then(|(exe_dir, app_dir)| {
-                    core_engine::config_path::resolve_config_path_from(exe_dir, app_dir)
-                        .ok()
-                        .map(|r| r.path)
-                })
+                .and_then(|exe_dir| config_path::resolve(exe_dir).ok())
                 .unwrap_or_else(|| PathBuf::from("config.toml"));
 
             let config = Config::load(&resolved_path).unwrap_or_default();
