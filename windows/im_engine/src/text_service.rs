@@ -457,6 +457,7 @@ struct EditSession {
     op: EditSessionOp,
     context: ITfContext,
     anchor: Arc<Mutex<Option<ScreenPoint>>>,
+    committed: Arc<AtomicBool>,
     /// 指向 `_service_owner` 持有的 TextService COM 对象。
     service_ptr: *const TextService,
     /// 保持 TextService COM 对象存活直到同步 EditSession 完成。
@@ -468,7 +469,8 @@ impl ITfEditSession_Impl for EditSession_Impl {
         // SAFETY: _service_owner keeps the COM allocation containing
         // service_ptr alive for the entire EditSession lifetime.
         let service = unsafe { &*self.service_ptr };
-        *self.anchor.lock() = service.execute_edit_session(ec, &self.op, &self.context)?;
+        *self.anchor.lock() =
+            service.execute_edit_session(ec, &self.op, &self.context, &self.committed)?;
         Ok(())
     }
 }
@@ -633,6 +635,20 @@ impl TextService {
         &self,
         op: &EditSessionOp,
         context: Option<&ITfContext>,
+    ) -> std::result::Result<Option<ScreenPoint>, crate::input_session::SessionEditError> {
+        let committed = Arc::new(AtomicBool::new(false));
+        self.run_edit_inner(op, context, Arc::clone(&committed))
+            .map_err(|error| crate::input_session::SessionEditError {
+                message: error.to_string(),
+                text_committed: committed.load(Ordering::Acquire),
+            })
+    }
+
+    fn run_edit_inner(
+        &self,
+        op: &EditSessionOp,
+        context: Option<&ITfContext>,
+        committed: Arc<AtomicBool>,
     ) -> Result<Option<ScreenPoint>> {
         if matches!(op, EditSessionOp::NoOp) {
             return Ok(None);
@@ -660,6 +676,7 @@ impl TextService {
             op: op.clone(),
             context: context.clone(),
             anchor: Arc::clone(&anchor),
+            committed,
             service_ptr: self as *const TextService,
             _service_owner: service_owner,
         };
@@ -679,6 +696,7 @@ impl TextService {
         ec: u32,
         op: &EditSessionOp,
         context: &ITfContext,
+        committed: &AtomicBool,
     ) -> Result<Option<ScreenPoint>> {
         match op {
             EditSessionOp::NoOp => Ok(None),
@@ -686,7 +704,7 @@ impl TextService {
                 self.edit_session_composition_update(ec, spelling, *attr, context)
             }
             EditSessionOp::CommitAndReplace { text, replace_len } => {
-                self.edit_session_commit_and_replace(ec, text, *replace_len, context)?;
+                self.edit_session_commit_and_replace(ec, text, *replace_len, context, committed)?;
                 Ok(None)
             }
             EditSessionOp::CommitThenUpdate {
@@ -695,7 +713,7 @@ impl TextService {
                 spelling,
                 attr,
             } => {
-                self.edit_session_commit_and_replace(ec, text, *replace_len, context)?;
+                self.edit_session_commit_and_replace(ec, text, *replace_len, context, committed)?;
                 self.edit_session_composition_update(ec, spelling, *attr, context)
             }
             EditSessionOp::EndComposition { delete_text } => {
@@ -739,6 +757,7 @@ impl TextService {
         text: &str,
         replace_len: usize,
         context: &ITfContext,
+        committed: &AtomicBool,
     ) -> Result<()> {
         let comp = self.composition.lock().clone();
         let range = if let Some(comp) = &comp {
@@ -757,6 +776,7 @@ impl TextService {
         };
         let wide: Vec<u16> = text.encode_utf16().collect();
         unsafe { range.SetText(ec, 0, &wide) }?;
+        committed.store(true, Ordering::Release);
         unsafe { range.Collapse(ec, TF_ANCHOR_END) }?;
         if let Some(comp) = comp {
             self.end_composition(ec, &comp)?;
@@ -1008,7 +1028,14 @@ impl TextService {
             return None;
         }
         let config = self.config_snapshot();
-        key_filter::translate(wparam.0, lparam.0, self.input.selecting(), &config.hotkey)
+        key_filter::translate_for_mode(
+            wparam.0,
+            lparam.0,
+            self.input.selecting(),
+            &config.hotkey,
+            self.input.mode(),
+            self.input.temporary_trigger(),
+        )
     }
 }
 

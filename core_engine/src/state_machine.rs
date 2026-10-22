@@ -199,6 +199,14 @@ impl StateMachine {
             && self.dict.table_config().temporary.trigger() == Some(c)
     }
 
+    pub fn temporary_trigger(&self) -> Option<char> {
+        self.dict
+            .table_config()
+            .temporary
+            .trigger()
+            .filter(|c| self.is_temporary_trigger(*c))
+    }
+
     /// 当前状态。
     pub fn state(&self) -> InputState {
         self.state

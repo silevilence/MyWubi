@@ -2,9 +2,34 @@
 use crate::candidate_data::{CandidateData, CandidateItem, ScreenPoint, ThemeSnapshot};
 use crate::RuntimeSnapshot;
 use arc_swap::ArcSwap;
-use core_engine::{Config, Dictionary, InputEvent, StateMachine, Transition};
+use core_engine::{Config, Dictionary, InputEvent, InputMode, StateMachine, Transition};
 use parking_lot::Mutex;
 use std::sync::Arc;
+
+/// 只有 adapter 确认尚未提交文字时，才允许恢复临时输入供用户重试。
+pub(crate) trait EditFailure: std::fmt::Display {
+    fn retry_safe(&self) -> bool {
+        false
+    }
+}
+impl EditFailure for &str {}
+impl EditFailure for String {}
+
+#[derive(Debug)]
+pub(crate) struct SessionEditError {
+    pub message: String,
+    pub text_committed: bool,
+}
+impl std::fmt::Display for SessionEditError {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        self.message.fmt(f)
+    }
+}
+impl EditFailure for SessionEditError {
+    fn retry_safe(&self) -> bool {
+        !self.text_committed
+    }
+}
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub(crate) enum DisplayAttrKind {
@@ -44,6 +69,7 @@ struct State {
 }
 
 struct Update {
+    rollback: Option<StateMachine>,
     generation: u64,
     op: EditSessionOp,
     view: CandidateData,
@@ -105,12 +131,18 @@ impl InputSession {
     pub fn selecting(&self) -> bool {
         self.state.lock().sm.state() == core_engine::state_machine::InputState::Selecting
     }
+    pub fn mode(&self) -> InputMode {
+        self.state.lock().sm.mode()
+    }
+    pub fn temporary_trigger(&self) -> Option<char> {
+        self.state.lock().sm.temporary_trigger()
+    }
 
     pub fn test_key(&self, event: &InputEvent, system_modifier: bool) -> bool {
         accepts(&self.state.lock(), event, system_modifier)
     }
 
-    pub fn handle<E: std::fmt::Display>(
+    pub fn handle<E: EditFailure>(
         &self,
         event: InputEvent,
         system_modifier: bool,
@@ -122,15 +154,18 @@ impl InputSession {
             if !accepts(&state, &event, system_modifier) {
                 return false;
             }
+            let rollback = (state.sm.mode() != InputMode::Main).then(|| state.sm.clone());
             let transition = state.sm.handle(event);
             state.generation += 1;
-            plan(&state, transition, &self.candidates.load(), anchor)
+            let mut update = plan(&state, transition, &self.candidates.load(), anchor);
+            update.rollback = rollback;
+            update
         };
         self.execute(update, edit)
     }
 
     /// 先前编辑可能部分成功，不重复提交文本；先保留宿主文本并结束旧 composition。
-    pub fn recover<E: std::fmt::Display>(
+    pub fn recover<E: EditFailure>(
         &self,
         edit: impl FnMut(&EditSessionOp) -> Result<Option<ScreenPoint>, E>,
     ) -> bool {
@@ -146,7 +181,7 @@ impl InputSession {
         !self.state.lock().needs_cleanup
     }
 
-    pub fn set_chinese<E: std::fmt::Display>(
+    pub fn set_chinese<E: EditFailure>(
         &self,
         chinese: bool,
         edit: impl FnMut(&EditSessionOp) -> Result<Option<ScreenPoint>, E>,
@@ -160,26 +195,41 @@ impl InputSession {
             if chinese {
                 return;
             }
-            let op = state
-                .sm
-                .commit_raw_current()
-                .map(|(text, replace_len)| EditSessionOp::CommitAndReplace { text, replace_len })
-                .unwrap_or(EditSessionOp::EndComposition { delete_text: false });
+            let temporary = state.sm.mode() != InputMode::Main;
+            let op = if temporary {
+                state.sm.reset();
+                EditSessionOp::EndComposition { delete_text: true }
+            } else {
+                state
+                    .sm
+                    .commit_raw_current()
+                    .map(|(text, replace_len)| EditSessionOp::CommitAndReplace {
+                        text,
+                        replace_len,
+                    })
+                    .unwrap_or(EditSessionOp::EndComposition { delete_text: false })
+            };
             state.generation += 1;
             cleared_update(&state, op)
         };
         self.execute(update, edit);
     }
 
-    pub fn lose_focus<E: std::fmt::Display>(
+    pub fn lose_focus<E: EditFailure>(
         &self,
         edit: impl FnMut(&EditSessionOp) -> Result<Option<ScreenPoint>, E>,
     ) {
         let update = {
             let mut state = self.state.lock();
+            let temporary = state.sm.mode() != InputMode::Main;
             state.sm.reset();
             state.generation += 1;
-            cleared_update(&state, EditSessionOp::EndComposition { delete_text: false })
+            cleared_update(
+                &state,
+                EditSessionOp::EndComposition {
+                    delete_text: temporary,
+                },
+            )
         };
         self.execute(update, edit);
     }
@@ -196,7 +246,7 @@ impl InputSession {
             ))));
     }
 
-    pub fn reload<E: std::fmt::Display>(
+    pub fn reload<E: EditFailure>(
         &self,
         snapshot: &RuntimeSnapshot,
         edit: impl FnMut(&EditSessionOp) -> Result<Option<ScreenPoint>, E>,
@@ -224,7 +274,7 @@ impl InputSession {
         self.execute(update, edit);
     }
 
-    fn execute<E: std::fmt::Display>(
+    fn execute<E: EditFailure>(
         &self,
         mut update: Update,
         mut edit: impl FnMut(&EditSessionOp) -> Result<Option<ScreenPoint>, E>,
@@ -247,6 +297,13 @@ impl InputSession {
                 self.candidates.store(Arc::new(update.view));
             }
             Err(error) => {
+                if error.retry_safe() {
+                    if let Some(previous) = update.rollback {
+                        state.sm = previous;
+                        log::warn!("[TSF] 临时输入编辑失败，保留输入供重试: {error}");
+                        return update.consumed;
+                    }
+                }
                 log::warn!("[TSF] 输入会话编辑失败，等待清理旧 composition: {error}");
                 state.sm.reset();
                 state.needs_cleanup = true;
@@ -279,6 +336,11 @@ fn accepts(state: &State, event: &InputEvent, system_modifier: bool) -> bool {
     if !state.sm.would_consume(event) {
         return false;
     }
+    if state.sm.mode() != InputMode::Main
+        || matches!(event, InputEvent::Char(c) | InputEvent::Symbol(c) if state.sm.is_temporary_trigger(*c))
+    {
+        return true;
+    }
     match event {
         InputEvent::Char(c) | InputEvent::Symbol(c) if state.sm.accepts_code_char(*c) => true,
         InputEvent::Symbol(c) if !c.is_ascii() => true,
@@ -288,6 +350,7 @@ fn accepts(state: &State, event: &InputEvent, system_modifier: bool) -> bool {
 
 fn cleared_update(state: &State, op: EditSessionOp) -> Update {
     Update {
+        rollback: None,
         generation: state.generation,
         op,
         view: CandidateData::hidden(ThemeSnapshot::from_config(&state.config)),
@@ -322,9 +385,7 @@ fn plan(
             page,
             total_pages,
         } => {
-            if spelling.is_empty() {
-                EditSessionOp::EndComposition { delete_text: true }
-            } else {
+            if state.sm.mode() != InputMode::Main {
                 set_candidates(
                     &mut view,
                     &spelling,
@@ -332,11 +393,33 @@ fn plan(
                     code_hints,
                     page,
                     total_pages,
-                    state.config.basic.show_code_hints,
+                    true,
                 );
-                EditSessionOp::CompositionUpdate {
-                    spelling,
-                    attr: DisplayAttrKind::Converted,
+                if spelling.is_empty() {
+                    EditSessionOp::EndComposition { delete_text: true }
+                } else {
+                    EditSessionOp::CompositionUpdate {
+                        spelling,
+                        attr: DisplayAttrKind::Input,
+                    }
+                }
+            } else {
+                if spelling.is_empty() {
+                    EditSessionOp::EndComposition { delete_text: true }
+                } else {
+                    set_candidates(
+                        &mut view,
+                        &spelling,
+                        candidates,
+                        code_hints,
+                        page,
+                        total_pages,
+                        state.config.basic.show_code_hints,
+                    );
+                    EditSessionOp::CompositionUpdate {
+                        spelling,
+                        attr: DisplayAttrKind::Converted,
+                    }
                 }
             }
         }
@@ -398,7 +481,14 @@ fn plan(
             EditSessionOp::NoOp
         }
     };
+    if state.sm.mode() != InputMode::Main {
+        view.visible = true;
+        view.spelling = format!("{}  {}", state.sm.mode().label(), state.sm.spelling())
+            .trim_end()
+            .to_string();
+    }
     Update {
+        rollback: None,
         generation: state.generation,
         op,
         view,
@@ -438,6 +528,127 @@ fn set_candidates(
 mod tests {
     use super::*;
     use core_engine::Entry;
+
+    fn temporary_setup() -> (InputSession, Arc<ArcSwap<CandidateData>>, Editor) {
+        let main = Dictionary::from_text(
+            "---\ntemporary:\n  key: '`'\n  reverse_lookup: true\n---\nwq\t你好\na\t主\n",
+        )
+        .unwrap();
+        let pinyin =
+            Dictionary::from_text("---\ntype: pinyin\nmax_code_len: 64\n---\nni'hao\t你好\n")
+                .unwrap();
+        let tables = Arc::new(core_engine::TemporaryTables {
+            pinyin: Some(pinyin),
+            reverse: Some(core_engine::ReverseLookup::new(&main)),
+            ..Default::default()
+        });
+        let candidates = Arc::new(ArcSwap::from_pointee(CandidateData::default()));
+        let mut config = Config::default();
+        config.basic.show_code_hints = false;
+        let snapshot = RuntimeSnapshot {
+            temporary: tables,
+            dict: main,
+            config,
+            revision: 0,
+            config_path: "config.toml".into(),
+            system_table_path: "main.dict".into(),
+            user_table_path: "user.dict".into(),
+        };
+        (
+            InputSession::from_snapshot(&snapshot, candidates.clone()),
+            candidates,
+            Editor::default(),
+        )
+    }
+
+    #[test]
+    fn temporary_menu_never_enters_document_and_commit_returns_to_main() {
+        let (session, candidates, mut editor) = temporary_setup();
+        type_text(&session, &mut editor, "`");
+        assert!(candidates.load().visible);
+        assert_eq!(candidates.load().items.len(), 2);
+        assert!(editor.spelling.is_empty());
+        type_text(&session, &mut editor, "1");
+        assert!(candidates.load().spelling.contains("临时拼音"));
+        assert!(editor.spelling.is_empty());
+        type_text(&session, &mut editor, "ni'hao");
+        assert_eq!(editor.spelling, "ni'hao");
+        assert_eq!(candidates.load().items[0].hint, "主码: wq");
+        session.handle(InputEvent::Space, false, None, |op| editor.apply(op));
+        assert_eq!(editor.committed, "你好");
+        assert_eq!(session.mode(), InputMode::Main);
+        type_text(&session, &mut editor, "a");
+        assert_eq!(candidates.load().items[0].text, "主");
+    }
+
+    #[test]
+    fn failed_temporary_commit_before_write_preserves_input_for_retry() {
+        let (session, candidates, mut editor) = temporary_setup();
+        type_text(&session, &mut editor, "`1nihao");
+        session.handle(InputEvent::Space, false, None, |_| {
+            Err::<Option<ScreenPoint>, _>(SessionEditError {
+                message: "lock denied".into(),
+                text_committed: false,
+            })
+        });
+        assert_eq!(session.mode(), InputMode::Pinyin);
+        assert!(candidates.load().visible);
+        assert!(editor.committed.is_empty());
+        session.handle(InputEvent::Space, false, None, |op| editor.apply(op));
+        assert_eq!(editor.committed, "你好");
+        assert_eq!(session.mode(), InputMode::Main);
+    }
+
+    #[test]
+    fn failed_cleanup_after_temporary_text_write_never_recommits() {
+        let (session, candidates, mut editor) = temporary_setup();
+        type_text(&session, &mut editor, "`1nihao");
+        session.handle(InputEvent::Space, false, None, |op| {
+            editor.apply(op).unwrap();
+            Err::<Option<ScreenPoint>, _>(SessionEditError {
+                message: "cleanup failed".into(),
+                text_committed: true,
+            })
+        });
+        assert!(!candidates.load().visible);
+        assert!(session.recover(|op| editor.apply(op)));
+        assert_eq!(editor.committed, "你好");
+        assert_eq!(session.mode(), InputMode::Main);
+    }
+
+    #[test]
+    fn temporary_focus_switch_reload_and_empty_backspace_clear_session() {
+        for action in 0..4 {
+            let (session, candidates, mut editor) = temporary_setup();
+            type_text(&session, &mut editor, "`1ni");
+            match action {
+                0 => session.lose_focus(|op| editor.apply(op)),
+                1 => session.set_chinese(false, |op| editor.apply(op)),
+                2 => {
+                    let snapshot = RuntimeSnapshot {
+                        temporary: Arc::default(),
+                        dict: Dictionary::from_text("a\t新\n").unwrap(),
+                        config: session.config(),
+                        revision: 1,
+                        config_path: "c".into(),
+                        system_table_path: "s".into(),
+                        user_table_path: "u".into(),
+                    };
+                    session.reload(&snapshot, |op| editor.apply(op));
+                }
+                _ => {
+                    for _ in 0..3 {
+                        assert!(session
+                            .handle(InputEvent::Backspace, false, None, |op| editor.apply(op)));
+                    }
+                }
+            }
+            assert_eq!(session.mode(), InputMode::Main);
+            assert!(editor.committed.is_empty());
+            assert!(editor.spelling.is_empty());
+            assert!(!candidates.load().visible);
+        }
+    }
 
     #[derive(Default)]
     struct Editor {

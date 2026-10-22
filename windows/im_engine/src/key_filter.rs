@@ -148,8 +148,38 @@ pub fn translate(
     is_selecting: bool,
     hotkey: &Hotkey,
 ) -> Option<InputEvent> {
+    translate_for_mode(
+        wparam,
+        lparam,
+        is_selecting,
+        hotkey,
+        core_engine::InputMode::Main,
+        None,
+    )
+}
+
+/// 模式语法在快捷键与中文标点转换之前解释。
+pub fn translate_for_mode(
+    wparam: usize,
+    lparam: isize,
+    is_selecting: bool,
+    hotkey: &Hotkey,
+    mode: core_engine::InputMode,
+    trigger: Option<char>,
+) -> Option<InputEvent> {
     let vk = wparam as u16;
     let shift_pressed = is_shift_pressed();
+    match vk {
+        v if v == VK_SPACE.0 => return Some(InputEvent::Space),
+        v if v == VK_RETURN.0 => return Some(InputEvent::Enter),
+        v if v == VK_BACK.0 => return Some(InputEvent::Backspace),
+        v if v == VK_ESCAPE.0 => return Some(InputEvent::Esc),
+        _ => {}
+    }
+    let printable = to_char(vk, lparam);
+    if let Some(event) = printable.and_then(|c| mode_character(c, mode, trigger)) {
+        return Some(event);
+    }
 
     // 候选态下的快速选词优先于翻页（仅 Shift 未按下时）。
     if !shift_pressed && is_selecting {
@@ -189,12 +219,53 @@ pub fn translate(
     }
 
     // 可打印字符：由系统根据键盘布局 + 修饰键状态自动映射。
-    to_char(vk, lparam).map(|c| classify_printable_char(c, shift_pressed))
+    printable.map(|c| classify_printable_char(c, shift_pressed))
+}
+
+fn mode_character(
+    c: char,
+    mode: core_engine::InputMode,
+    trigger: Option<char>,
+) -> Option<InputEvent> {
+    use core_engine::InputMode;
+    let protected = match mode {
+        InputMode::Main => trigger == Some(c),
+        InputMode::Menu => true,
+        InputMode::Pinyin => c == '\'' || c.is_ascii_alphanumeric(),
+        InputMode::English => !c.is_control(),
+    };
+    protected.then_some(InputEvent::Char(c))
 }
 
 #[cfg(test)]
 mod tests {
     use super::*;
+
+    #[test]
+    fn temporary_syntax_precedes_punctuation_and_shortcuts() {
+        use core_engine::InputMode;
+        assert_eq!(
+            mode_character('\'', InputMode::Pinyin, None),
+            Some(InputEvent::Char('\''))
+        );
+        assert_eq!(
+            mode_character(';', InputMode::English, None),
+            Some(InputEvent::Char(';'))
+        );
+        assert_eq!(
+            mode_character('.', InputMode::English, None),
+            Some(InputEvent::Char('.'))
+        );
+        assert_eq!(
+            mode_character('?', InputMode::Main, Some('?')),
+            Some(InputEvent::Char('?'))
+        );
+        assert_eq!(mode_character('\'', InputMode::Main, None), None);
+        assert_eq!(
+            mode_character('2', InputMode::Menu, None),
+            Some(InputEvent::Char('2'))
+        );
+    }
     use windows::Win32::UI::Input::KeyboardAndMouse::{
         VK_OEM_1, VK_OEM_7, VK_OEM_COMMA, VK_OEM_MINUS, VK_OEM_PLUS,
     };
