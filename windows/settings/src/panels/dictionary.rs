@@ -187,30 +187,120 @@ fn show_table_editor(ui: &mut Ui, state: &mut AppState) {
         ));
 
         ui.horizontal(|ui| {
-            ui.label("万能键:");
-            changed |= ui
-                .add(
-                    egui::TextEdit::singleline(&mut editor.wildcard_key)
-                        .desired_width(48.0)
-                        .hint_text("留空禁用"),
-                )
-                .changed();
-            ui.label("编码字符集:");
-            changed |= ui
-                .add(egui::TextEdit::singleline(&mut editor.config.charset).desired_width(260.0))
-                .changed();
+            ui.label("码表类型:");
+            let mut kind = editor.config.table_type;
+            egui::ComboBox::from_id_source("table_type")
+                .selected_text(if kind == core_engine::TableType::Pinyin {
+                    "全拼码表"
+                } else {
+                    "普通码表"
+                })
+                .show_ui(ui, |ui| {
+                    ui.selectable_value(&mut kind, core_engine::TableType::Shape, "普通码表");
+                    ui.selectable_value(&mut kind, core_engine::TableType::Pinyin, "全拼码表");
+                });
+            if kind != editor.config.table_type {
+                editor.set_table_type(kind);
+                changed = true;
+            }
+            ui.label("切换为全拼会固定字符集并关闭万能键，不修改词条");
+        });
+        let pinyin = editor.config.table_type == core_engine::TableType::Pinyin;
+        ui.horizontal_wrapped(|ui| {
+            ui.add_enabled_ui(!pinyin, |ui| {
+                ui.label("万能键:");
+                changed |= ui
+                    .add(
+                        egui::TextEdit::singleline(&mut editor.wildcard_key)
+                            .desired_width(48.0)
+                            .hint_text("留空禁用"),
+                    )
+                    .changed();
+                ui.label("编码字符集:");
+                changed |= ui
+                    .add(
+                        egui::TextEdit::singleline(&mut editor.config.charset).desired_width(260.0),
+                    )
+                    .changed();
+            });
             ui.label("最大码长:");
             changed |= ui
-                .add(egui::DragValue::new(&mut editor.config.max_code_len).clamp_range(1..=32))
+                .add(egui::DragValue::new(&mut editor.config.max_code_len).clamp_range(1..=255))
                 .changed();
             validate_now = ui.button("验证码表").clicked();
         });
+        if pinyin {
+            ui.label("全拼固定 a～z，无万能键；码长只计字母，不计单引号。");
+            ui.label("词组需完整分隔，例如 zhong'guo'ren；输入可省略任意分隔符，例如 zhong'guoren。暂不支持简拼。");
+            if editor.config.charset != "abcdefghijklmnopqrstuvwxyz"
+                || !editor.wildcard_key.is_empty()
+            {
+                ui.colored_label(egui::Color32::LIGHT_RED, "已加载的拼音头配置不合法。");
+                if ui.button("修正拼音字符集与万能键配置").clicked() {
+                    editor.set_table_type(core_engine::TableType::Pinyin);
+                    changed = true;
+                }
+            }
+        }
+        ui.collapsing("一次性临时输入（作为主码表时生效）", |ui| {
+            egui::Grid::new("temporary_table_options")
+                .num_columns(2)
+                .spacing([16.0, 8.0])
+                .show(ui, |ui| {
+                    ui.label("入口键");
+                    changed |= ui
+                        .add(
+                            egui::TextEdit::singleline(&mut editor.config.temporary.key)
+                                .desired_width(80.0)
+                                .hint_text("留空关闭"),
+                        )
+                        .changed();
+                    ui.end_row();
+                    ui.label("拼音码表（启用拼音必填）");
+                    changed |= ui
+                        .add(
+                            egui::TextEdit::singleline(&mut editor.config.temporary.pinyin_table)
+                                .desired_width(400.0)
+                                .hint_text("pinyin.dict"),
+                        )
+                        .changed();
+                    ui.end_row();
+                    ui.label("英文词组码表（可选）");
+                    changed |= ui
+                        .add(
+                            egui::TextEdit::singleline(&mut editor.config.temporary.english_table)
+                                .desired_width(400.0)
+                                .hint_text("留空只输入原文"),
+                        )
+                        .changed();
+                    ui.end_row();
+                    ui.label("候选提示");
+                    changed |= ui
+                        .checkbox(
+                            &mut editor.config.temporary.reverse_lookup,
+                            "反查主码表编码",
+                        )
+                        .changed();
+                    ui.end_row();
+                });
+            ui.label("入口键不能属于编码字符集；相对路径基于当前码表所在目录。");
+            ui.label(
+                "空格选首选（无候选则提交原文），数字选词，回车提交原文；一次上屏后返回主模式。",
+            );
+            ui.label("临时拼音的单引号用于分隔；临时英文的标点按原文输入，不触发标点选词快捷键。");
+        });
         ui.collapsing("YAML 头预览", |ui| {
-            let wildcard = editor.wildcard_key.trim();
-            ui.monospace(format!(
-                "---\nwildcard_key: {wildcard:?}\ncharset: {:?}\nmax_code_len: {}\n---",
-                editor.config.charset, editor.config.max_code_len,
-            ));
+            match editor
+                .draft_config()
+                .and_then(|config| config.yaml_header().map_err(|e| e.to_string()))
+            {
+                Ok(header) => {
+                    ui.monospace(format!("---\n{header}---"));
+                }
+                Err(error) => {
+                    ui.colored_label(egui::Color32::LIGHT_RED, error);
+                }
+            }
         });
 
         ui.horizontal(|ui| {
@@ -306,14 +396,18 @@ fn show_table_editor(ui: &mut Ui, state: &mut AppState) {
     }
     if validate_now {
         state.tables.editor.refresh_validation();
-        state.status_msg = Some(if state.tables.editor.validation.is_valid() {
-            "[OK] 码表校验通过".into()
-        } else {
-            format!(
-                "[ERR] 发现 {} 个码表违规项",
-                state.tables.editor.validation.issue_count
-            )
-        });
+        state.status_msg = Some(
+            if let Err(error) = state.tables.editor.validate_context(&state.config.hotkey) {
+                format!("[ERR] {error}")
+            } else if state.tables.editor.validation.is_valid() {
+                "[OK] 码表校验通过".into()
+            } else {
+                format!(
+                    "[ERR] 发现 {} 个码表违规项",
+                    state.tables.editor.validation.issue_count
+                )
+            },
+        );
     }
     if update_entry {
         match state.tables.editor.update_selected() {

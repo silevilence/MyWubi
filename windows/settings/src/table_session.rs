@@ -49,6 +49,22 @@ impl Default for TableEditor {
 }
 
 impl TableEditor {
+    pub fn set_table_type(&mut self, table_type: core_engine::TableType) {
+        self.config.table_type = table_type;
+        if table_type == core_engine::TableType::Pinyin {
+            self.config.charset = "abcdefghijklmnopqrstuvwxyz".into();
+            self.wildcard_key.clear();
+            self.config.wildcard_key = None;
+        }
+        self.mark_changed();
+        self.refresh_validation();
+    }
+
+    pub fn validate_context(&self, hotkey: &core_engine::config::Hotkey) -> Result<(), String> {
+        let config = self.draft_config()?;
+        core_engine::validate_temporary_hotkeys(&config, hotkey)?;
+        validate_references(&config, &self.path)
+    }
     pub fn path(&self) -> &Path {
         &self.path
     }
@@ -173,7 +189,26 @@ impl TableEditor {
     }
 
     pub fn save_to(&mut self, path: PathBuf) -> Result<(), String> {
-        let config = self.draft_config()?;
+        let mut config = self.draft_config()?;
+        // 跨目录另存保留原引用的目标；转换为绝对路径后再校验，成功才更新草稿。
+        if path.parent() != self.path.parent() {
+            for reference in [
+                &mut config.temporary.pinyin_table,
+                &mut config.temporary.english_table,
+            ] {
+                if !reference.is_empty() && Path::new(reference).is_relative() {
+                    if let Some(target) =
+                        core_engine::TemporaryConfig::resolve_path(&self.path, reference)
+                    {
+                        *reference = std::path::absolute(target)
+                            .map_err(|e| e.to_string())?
+                            .to_string_lossy()
+                            .into_owned();
+                    }
+                }
+            }
+        }
+        validate_references(&config, &path)?;
         save_table(&path, &config, &self.entries).map_err(|error| error.to_string())?;
         self.path = path;
         self.config = config;
@@ -183,6 +218,18 @@ impl TableEditor {
         self.load_error = None;
         Ok(())
     }
+}
+
+fn validate_references(config: &TableConfig, path: &Path) -> Result<(), String> {
+    for (pinyin, reference) in [
+        (true, &config.temporary.pinyin_table),
+        (false, &config.temporary.english_table),
+    ] {
+        if !reference.is_empty() {
+            core_engine::TemporaryConfig::load_table(path, reference, pinyin)?;
+        }
+    }
+    Ok(())
 }
 
 fn search_relevance(entry: &Entry, query: &str) -> Option<(u8, usize, Reverse<u32>)> {
@@ -302,6 +349,7 @@ impl TableSession {
     }
 
     pub fn save_as(&mut self, name: &str, config: &mut Config) -> Result<PathBuf, String> {
+        self.editor.validate_context(&config.hotkey)?;
         let name = name.trim();
         if name.is_empty() {
             return Err("请输入自定义码表名称".into());
@@ -337,6 +385,9 @@ impl TableSession {
         config
             .validate_for_save()
             .map_err(|error| failure(error.to_string()))?;
+        self.editor
+            .validate_context(&config.hotkey)
+            .map_err(failure)?;
         let table_saved = self.is_dirty();
         if table_saved {
             self.editor
@@ -370,6 +421,90 @@ fn scan_table_dir(dir: &std::path::Path, excluded: Option<&std::path::Path>) -> 
 #[cfg(test)]
 mod tests {
     use super::*;
+
+    #[test]
+    fn new_fields_survive_edit_save_reload_and_cross_directory_save() {
+        let root = tempfile::tempdir().unwrap();
+        let destination = tempfile::tempdir().unwrap();
+        let (mut session, mut config) = session(root.path());
+        std::fs::write(
+            root.path().join("py.dict"),
+            "---\ntype: pinyin\nmax_code_len: 64\n---\nni'hao\t你好\n",
+        )
+        .unwrap();
+        session.editor.config.temporary = core_engine::TemporaryConfig {
+            key: "`".into(),
+            pinyin_table: "py.dict".into(),
+            english_table: String::new(),
+            reverse_lookup: true,
+        };
+        session.editor.mark_changed();
+        session
+            .save(&config, &root.path().join("config.toml"))
+            .unwrap();
+        let loaded = TableEditor::load(session.editor.path().to_path_buf());
+        assert_eq!(loaded.config.temporary, session.editor.config.temporary);
+        let target = destination.path().join("moved.dict");
+        session.editor.save_to(target.clone()).unwrap();
+        let moved = TableEditor::load(target);
+        assert_eq!(
+            Path::new(&moved.config.temporary.pinyin_table),
+            root.path().join("py.dict")
+        );
+        assert!(moved.validate_context(&config.hotkey).is_ok());
+        config.hotkey.select_third = "quote".into();
+        session.editor.config.temporary.key = "'".into();
+        session.editor.mark_changed();
+        assert!(session
+            .save(&config, &root.path().join("config.toml"))
+            .unwrap_err()
+            .message
+            .contains("select_third"));
+        assert!(session.editor.is_dirty());
+    }
+
+    #[test]
+    fn type_switch_keeps_entries_and_invalid_references_keep_drafts() {
+        let root = tempfile::tempdir().unwrap();
+        let (mut session, config) = session(root.path());
+        let before = session.editor.entries.clone();
+        session.editor.wildcard_key = "z".into();
+        session
+            .editor
+            .set_table_type(core_engine::TableType::Pinyin);
+        assert_eq!(session.editor.entries, before);
+        assert!(session.editor.wildcard_key.is_empty());
+        session.editor.config.temporary.key = "`".into();
+        session.editor.config.temporary.pinyin_table = "missing.dict".into();
+        assert!(session
+            .save(&config, &root.path().join("config.toml"))
+            .is_err());
+        assert!(session.editor.is_dirty());
+        assert_eq!(session.editor.config.temporary.pinyin_table, "missing.dict");
+    }
+
+    #[test]
+    fn pinyin_editor_preserves_apostrophes_and_new_header_preview() {
+        let root = tempfile::tempdir().unwrap();
+        let path = root.path().join("py.dict");
+        std::fs::write(
+            &path,
+            "---\ntype: pinyin\nmax_code_len: 64\n---\nzhong'guo'ren\t中国人\t5\n",
+        )
+        .unwrap();
+        let mut editor = TableEditor::load(path.clone());
+        editor.entries[0].weight = 10;
+        editor.mark_changed();
+        editor.save_to(path.clone()).unwrap();
+        let loaded = TableEditor::load(path);
+        assert_eq!(loaded.entries[0].code, "zhong'guo'ren");
+        assert!(loaded
+            .config
+            .yaml_header()
+            .unwrap()
+            .contains("type: pinyin"));
+        assert_eq!(loaded.entries[0].weight, 10);
+    }
 
     fn session(dir: &Path) -> (TableSession, Config) {
         let path = dir.join("original.dict");

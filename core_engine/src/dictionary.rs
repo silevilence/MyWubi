@@ -93,6 +93,13 @@ impl Default for TableConfig {
     }
 }
 
+impl TableConfig {
+    /// 与保存一致的 YAML 预览，避免前端自行拼接导致遗漏字段。
+    pub fn yaml_header(&self) -> Result<String, DictError> {
+        serde_yaml_ng::to_string(self).map_err(|error| DictError::InvalidHeader(error.to_string()))
+    }
+}
+
 fn default_charset() -> String {
     DEFAULT_CHARSET.to_owned()
 }
