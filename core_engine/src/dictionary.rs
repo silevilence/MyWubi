@@ -15,6 +15,7 @@ use std::collections::{BTreeMap, HashSet};
 use std::path::{Path, PathBuf};
 use std::sync::Arc;
 
+use crate::table_options::{TableType, TemporaryConfig};
 use serde::{Deserialize, Deserializer, Serialize, Serializer};
 use thiserror::Error;
 
@@ -36,6 +37,10 @@ pub enum DictError {
 /// 码表 YAML 头中的配置。
 #[derive(Debug, Clone, PartialEq, Eq, Deserialize, Serialize)]
 pub struct TableConfig {
+    #[serde(default, rename = "type")]
+    pub table_type: TableType,
+    #[serde(default)]
+    pub temporary: TemporaryConfig,
     /// 万能键字符；`None` 表示禁用。
     #[serde(
         default,
@@ -79,6 +84,8 @@ impl TableValidationReport {
 impl Default for TableConfig {
     fn default() -> Self {
         Self {
+            table_type: TableType::default(),
+            temporary: TemporaryConfig::default(),
             wildcard_key: None,
             charset: default_charset(),
             max_code_len: default_max_code_len(),
@@ -596,6 +603,27 @@ pub fn validate_table(
     if config.charset.is_empty() {
         push_issue(None, "charset 不能为空".into());
     }
+    if config.table_type == TableType::Pinyin {
+        if config.charset != DEFAULT_CHARSET {
+            push_issue(
+                None,
+                "拼音码表 charset 必须为 abcdefghijklmnopqrstuvwxyz".into(),
+            );
+        }
+        if config.wildcard_key.is_some() {
+            push_issue(None, "拼音码表不能设置 wildcard_key".into());
+        }
+    }
+    if !config.temporary.key.is_empty() {
+        match config.temporary.trigger() {
+            Some(key)
+                if !key.is_whitespace() && !key.is_control() && !config.charset.contains(key) => {}
+            _ => push_issue(
+                None,
+                "temporary.key 必须为单个非空白可打印字符且不在 charset 中".into(),
+            ),
+        }
+    }
     if config.max_code_len == 0 {
         push_issue(None, "max_code_len 必须大于 0".into());
     }
@@ -869,6 +897,37 @@ mod tests {
     }
 
     #[test]
+    fn temporary_and_pinyin_header_roundtrip() {
+        let text = "---\ntype: pinyin\nmax_code_len: 64\ntemporary:\n  key: '`'\n  pinyin_table: pinyin.dict\n  english_table: ''\n  reverse_lookup: true\n---\n";
+        let (config, _) = parse_dictionary(text, 4096).unwrap();
+        assert_eq!(config.table_type, TableType::Pinyin);
+        assert_eq!(config.charset, DEFAULT_CHARSET);
+        assert_eq!(config.temporary.trigger(), Some('`'));
+        let saved = serde_yaml_ng::to_string(&config).unwrap();
+        assert_eq!(
+            serde_yaml_ng::from_str::<TableConfig>(&saved).unwrap(),
+            config
+        );
+    }
+
+    #[test]
+    fn invalid_pinyin_and_temporary_configuration_is_rejected() {
+        for header in [
+            "type: pinyin\ncharset: abc",
+            "type: pinyin\nwildcard_key: z",
+            "temporary:\n  key: ab",
+            "temporary:\n  key: a",
+            "temporary:\n  key: ' '",
+            "type: unknown",
+        ] {
+            assert!(
+                parse_dictionary(&format!("---\n{header}\n---\n"), 4096).is_err(),
+                "{header}"
+            );
+        }
+    }
+
+    #[test]
     fn parse_dictionary_reads_yaml_header() {
         let text = "---\nwildcard_key: z\ncharset: abcdefghijklmnopqrstuvwxyz\n---\na\t工\t999\n";
         let (config, entries) = parse_dictionary(text, 4096).unwrap();
@@ -932,6 +991,7 @@ mod tests {
             wildcard_key: Some('z'),
             charset: "abz".into(),
             max_code_len: 4,
+            ..Default::default()
         };
         let entries = vec![
             Entry {
@@ -965,6 +1025,7 @@ mod tests {
             wildcard_key: Some('?'),
             charset: "abc?".into(),
             max_code_len: 4,
+            ..Default::default()
         };
         let entries = vec![Entry {
             code: "abc".into(),

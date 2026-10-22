@@ -9,6 +9,7 @@ pub mod config;
 pub mod config_path;
 pub mod dictionary;
 pub mod state_machine;
+pub mod table_options;
 pub mod user_dictionary;
 
 pub use config::{Config, Error as ConfigError};
@@ -18,6 +19,7 @@ pub use dictionary::{
     TableConfig, TableValidationIssue, TableValidationReport,
 };
 pub use state_machine::{InputEvent, StateMachine, Transition};
+pub use table_options::{validate_temporary_hotkeys, TableType, TemporaryConfig};
 pub use user_dictionary::{UserDictionary, UserDictionaryError};
 
 /// 核心库版本号。
