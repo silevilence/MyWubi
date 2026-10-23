@@ -102,3 +102,5 @@ cargo bench -p core_engine --bench dictionary_bench -- temporary_100k
 真实 TSF 验收需在已注册本次构建的 MyWubi TIP 的 Windows 环境中进行：验证菜单不写入宿主、部分分隔、两种模式的提交取消、上屏后返回主模式、反查提示、切焦点、热重载和候选窗口位置。设置程序界面验收和模拟编辑 adapter 的行为测试不能替代这项检查。
 
 Android 尚未建立前端；后续 JNI / Compose 接入应复用 `InputMode`、`TemporaryTables`、核心事件及以上行为样例，不自行复制另一套匹配规则。
+
+2026-10-23 补充：上句描述的是现有复用基础，不意味着当前接口已经覆盖手机交互。已确定的 [共享核心与跨端职责方案](cross-platform-core-design.md) 将拆分基础/临时模式、入口与能力加载，并补齐语义事件、候选身份、编辑确认和资源接口；[实施与回归计划](cross-platform-implementation-plan.md) 规定旧 Windows 行为的兼容门槛。本文现有一次性英文/拼音规则继续作为 Windows 基线，尚未实现的持续英文等手机规则不在此处宣称交付。
