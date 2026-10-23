@@ -1,0 +1,5 @@
+# Keep generated dictionary checksums stable on Windows (core.autocrlf=true).
+/tables/pinyin.dict text eol=lf
+/tables/english.dict text eol=lf
+/tables/sources.json text eol=lf
+/tables/licenses/*.txt text eol=lf

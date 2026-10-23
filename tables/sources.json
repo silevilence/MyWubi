@@ -1,0 +1,60 @@
+{
+  "sources": {
+    "pinyin_simp.dict.yaml": {
+      "url": "https://raw.githubusercontent.com/rime/rime-pinyin-simp/0c6861ef7420ee780270ca6d993d18d4101049d0/pinyin_simp.dict.yaml",
+      "sha256": "e341598343a0f0f2035bb1aafc34a7f3bb7887deeecb3f60796262aaa2983e6b"
+    },
+    "pinyin-LICENSE": {
+      "url": "https://raw.githubusercontent.com/rime/rime-pinyin-simp/0c6861ef7420ee780270ca6d993d18d4101049d0/LICENSE",
+      "sha256": "cfc7749b96f63bd31c3c42b5c471bf756814053e847c10f3eb003417bc523d30"
+    },
+    "pinyin-AUTHORS": {
+      "url": "https://raw.githubusercontent.com/rime/rime-pinyin-simp/0c6861ef7420ee780270ca6d993d18d4101049d0/AUTHORS",
+      "sha256": "f4cff0fcbca4668ac449c24a53be547e162bc60cce63fdc5d5906801a452edc4"
+    },
+    "scowl-2020.12.07.tar.gz": {
+      "url": "https://deb.debian.org/debian/pool/main/s/scowl/scowl_2020.12.07.orig.tar.gz",
+      "sha256": "5587667caa20c4891390c2d42dbb4d5c4c3f41bee77af1457ece3ba23fb859cc"
+    }
+  },
+  "pinyin": {
+    "entries": 65125,
+    "source_rows": 65125,
+    "duplicates_merged": 0
+  },
+  "english": {
+    "entries": 79650,
+    "files": [
+      "final/american-words.10",
+      "final/american-words.20",
+      "final/american-words.35",
+      "final/american-words.40",
+      "final/american-words.50",
+      "final/american-words.55",
+      "final/american-words.60",
+      "final/british-words.10",
+      "final/british-words.20",
+      "final/british-words.35",
+      "final/british-words.40",
+      "final/british-words.50",
+      "final/british-words.55",
+      "final/british-words.60",
+      "final/english-upper.10",
+      "final/english-words.10",
+      "final/english-words.20",
+      "final/english-words.35",
+      "final/english-words.40",
+      "final/english-words.50",
+      "final/english-words.55",
+      "final/english-words.60"
+    ],
+    "excluded_rows": 24812
+  },
+  "outputs": {
+    "pinyin.dict": "234008541b549a2906c2879d8a9537400e82c5dd6b030f6440674c6b451d693b",
+    "english.dict": "fe4a45b9325fbb53311da1978362fe6c3f29cb4a3185729deb99b68421e7f3e7",
+    "licenses/rime-pinyin-simp-LICENSE.txt": "cfc7749b96f63bd31c3c42b5c471bf756814053e847c10f3eb003417bc523d30",
+    "licenses/rime-pinyin-simp-AUTHORS.txt": "f4cff0fcbca4668ac449c24a53be547e162bc60cce63fdc5d5906801a452edc4",
+    "licenses/SCOWL-Copyright.txt": "283326a422e29c510e2ba6805518c418ce3c35ed1fadc3eec83d2da4f6c5a055"
+  }
+}
