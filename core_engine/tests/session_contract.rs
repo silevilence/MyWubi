@@ -225,6 +225,37 @@ fn local_preedit_host_uses_current_selection_and_unknown_result_is_not_retried()
 }
 
 #[test]
+fn local_base_preedit_is_committed_raw_before_focus_loss_or_runtime_update() {
+    for update_runtime in [false, true] {
+        let mut s = Session::new(
+            &runtime(1),
+            BehaviorProfile::TouchV1,
+            HostContext {
+                supports_preedit: false,
+                ..Default::default()
+            },
+        );
+        apply(&mut s, Action::InputCode('a'));
+        let finish = if update_runtime {
+            s.apply_runtime(runtime(2)).unwrap().unwrap()
+        } else {
+            s.lose_focus().unwrap()
+        };
+        assert_eq!(
+            finish.op,
+            EditSessionOp::CommitAndReplace {
+                text: "a".into(),
+                replace_len: 0
+            }
+        );
+        assert_eq!(finish.target, EditTarget::CurrentSelection);
+        s.acknowledge(finish.token, HostOutcome::Applied);
+        assert_eq!(s.state_machine().spelling(), "");
+        assert_eq!(s.candidate_window(0, 10).total, 0);
+    }
+}
+
+#[test]
 fn deferred_runtime_is_applied_after_ack_and_only_latest_is_adopted() {
     let mut s = session(BehaviorProfile::TouchV1);
     let p = s.prepare(Action::InputCode('a')).unwrap();

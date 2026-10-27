@@ -2,7 +2,7 @@
 
 ## 📅 计划中
 
-以下共享核心与 Android 首版任务于 2026-10-23 替换旧 JNI、服务、候选/设置和自动构建四项任务，并经 [第二轮审核](docs/cross-platform-plan-review.md) 修订。依据为 [现状及工具链](docs/android-readiness.md)、[接口与职责方案](docs/cross-platform-core-design.md)、[实施顺序与回归矩阵](docs/cross-platform-implementation-plan.md)。全部待实施；先固定 Windows 行为，再提取共享规则并验证 Windows 兼容，随后完成 Android 闭环。后续共享变更持续执行 Windows 回归，最终制品重新实机验收。CP 编号用于依赖追踪，每项按约 1～3 个工作日粒度拆分，不是交付日期承诺。
+以下共享核心与 Android 首版任务于 2026-10-23 替换旧 JNI、服务、候选/设置和自动构建四项任务，并经 [第二轮审核](docs/cross-platform-plan-review.md) 修订。依据为 [现状及工具链](docs/android-readiness.md)、[接口与职责方案](docs/cross-platform-core-design.md)、[实施顺序与回归矩阵](docs/cross-platform-implementation-plan.md)。CP-01～CP-09 已于 2026-10-27 完成实现与主机自动验收，见 [验收记录](docs/shared-core-validation.md)；CP-10 真实 TSF 验收和后续 Android 任务仍待实施。后续共享变更持续执行 Windows 回归，最终制品重新实机验收。CP 编号用于依赖追踪，每项按约 1～3 个工作日粒度拆分，不是交付日期承诺。
 
 - [x] **固定 Windows 输入行为与数据兼容基线**
     - 关联：CP-01；无前置依赖。

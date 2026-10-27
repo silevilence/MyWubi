@@ -596,7 +596,8 @@ impl Session {
             return Ok(None);
         }
         let mut next = self.engine.clone();
-        let temporary = next.state_machine().mode() != InputMode::Main;
+        let temporary =
+            next.temporary_mode().is_some() || next.state_machine().mode() == InputMode::Menu;
         let op = if temporary {
             EditSessionOp::EndComposition { delete_text: true }
         } else if !next.state_machine().spelling().is_empty() {
@@ -614,16 +615,30 @@ impl Session {
     pub fn lose_focus(&mut self) -> Result<PreparedEdit, SessionError> {
         let temporary = self.engine.temporary_mode().is_some()
             || self.state_machine().mode() == InputMode::Menu;
+        let op = self.finish_operation(temporary);
         let mut next = self.engine.clone();
         next.reset_context();
         next.invalidate_query();
-        self.cleared(
-            next,
+        self.cleared(next, op, false)
+    }
+
+    fn finish_operation(&self, temporary: bool) -> EditSessionOp {
+        // Local preedit has no host range to finish: preserve a base round by
+        // inserting its raw text while the old connection is still valid.
+        if !self.legacy()
+            && !self.context.supports_preedit
+            && !temporary
+            && !self.state_machine().spelling().is_empty()
+        {
+            EditSessionOp::CommitAndReplace {
+                text: self.state_machine().spelling().to_owned(),
+                replace_len: 0,
+            }
+        } else {
             EditSessionOp::EndComposition {
                 delete_text: temporary,
-            },
-            false,
-        )
+            }
+        }
     }
     /// A dead connection/terminated composition cannot be cleaned through the new selection.
     pub fn invalidate_context(&mut self, context: HostContext, preserve_base: bool) {
@@ -688,6 +703,7 @@ impl Session {
         }
         let temporary = self.engine.temporary_mode().is_some()
             || self.state_machine().mode() == InputMode::Menu;
+        let op = self.finish_operation(temporary);
         let mut next = SemanticEngine::new(runtime.state_machine(), self.engine.profile);
         if !self.legacy() && self.engine.base_mode() == BaseMode::English {
             next.dispatch(Action::SetBaseMode(BaseMode::English));
@@ -696,14 +712,7 @@ impl Session {
         self.revision = runtime.revision;
         // Runtime adoption is a control fact: cleanup failure never restores an older resource set.
         self.engine = next.clone();
-        self.cleared(
-            next,
-            EditSessionOp::EndComposition {
-                delete_text: temporary,
-            },
-            false,
-        )
-        .map(Some)
+        self.cleared(next, op, false).map(Some)
     }
 }
 fn plan(
