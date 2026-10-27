@@ -12,14 +12,13 @@
 
 #![cfg_attr(not(windows), allow(unused))]
 
-use std::collections::HashSet;
 use std::panic::{catch_unwind, AssertUnwindSafe};
 use std::path::PathBuf;
-use std::sync::atomic::{AtomicU64, Ordering};
+
 use std::sync::{Arc, Once, OnceLock};
 
 use arc_swap::ArcSwap;
-use core_engine::{Config, Dictionary, StateMachine, UserDictionary};
+use core_engine::{Config, StateMachine};
 use parking_lot::Mutex;
 
 use crate::candidate_data::{CandidateData, ThemeSnapshot};
@@ -74,89 +73,9 @@ impl Engine {
 }
 
 static ENGINE: OnceLock<Engine> = OnceLock::new();
-static NEXT_RUNTIME_REVISION: AtomicU64 = AtomicU64::new(1);
-
-#[derive(Debug)]
-pub(crate) struct RuntimeSnapshot {
-    pub revision: u64,
-    pub dict: Arc<Dictionary>,
-    pub temporary: Arc<core_engine::TemporaryTables>,
-    pub config: Config,
-    pub config_path: PathBuf,
-    pub system_table_path: PathBuf,
-    pub user_table_path: PathBuf,
-}
-
-impl RuntimeSnapshot {
-    fn initial_from_config(config_path: PathBuf, config: Config) -> Result<Self, String> {
-        let system_table_path = core_engine::config_path::resolve_resource_path(
-            &config_path,
-            &config.dictionary.system_table,
-        );
-        let user_table_path = core_engine::config_path::resolve_resource_path(
-            &config_path,
-            &config.dictionary.user_table,
-        );
-        let main = Dictionary::load(&system_table_path).map_err(|e| e.to_string())?;
-        let temporary = Arc::new(core_engine::TemporaryTables::load(
-            &main,
-            &system_table_path,
-            &config.hotkey,
-        ));
-        for error in &temporary.load_errors {
-            log::warn!("[temporary] {error}");
-        }
-        let dict = merge_dictionary(main, &user_table_path, &config)?;
-        Ok(Self {
-            revision: NEXT_RUNTIME_REVISION.fetch_add(1, Ordering::Relaxed),
-            dict,
-            temporary,
-            config,
-            config_path,
-            system_table_path,
-            user_table_path,
-        })
-    }
-}
-
-fn load_dictionary(
-    system_table_path: &std::path::Path,
-    user_table_path: &std::path::Path,
-    config: &Config,
-) -> Result<Arc<Dictionary>, String> {
-    let system = Dictionary::load(system_table_path)
-        .map_err(|error| format!("加载码表失败 ({}): {error}", system_table_path.display()))?;
-    merge_dictionary(system, user_table_path, config)
-}
-
-fn merge_dictionary(
-    system: Arc<Dictionary>,
-    user_table_path: &std::path::Path,
-    config: &Config,
-) -> Result<Arc<Dictionary>, String> {
-    if !config.dictionary.enable_user_dict {
-        return Ok(system);
-    }
-
-    let user = UserDictionary::load(user_table_path)
-        .map_err(|error| format!("加载用户词库失败 ({}): {error}", user_table_path.display()))?;
-    let user_keys: HashSet<(&str, &str)> = user
-        .entries()
-        .iter()
-        .map(|entry| (entry.code.as_str(), entry.word.as_str()))
-        .collect();
-    let mut entries = user.entries().to_vec();
-    entries.extend(
-        system
-            .entries()
-            .iter()
-            .filter(|entry| !user_keys.contains(&(entry.code.as_str(), entry.word.as_str())))
-            .cloned(),
-    );
-    system
-        .rebuild_with_entries(entries, Default::default())
-        .map_err(|error| format!("合并用户词库失败: {error}"))
-}
+pub(crate) use core_engine::runtime::RuntimeSnapshot;
+#[cfg(test)]
+use core_engine::{runtime::load_dictionary, UserDictionary};
 
 pub(crate) fn load_runtime_snapshot() -> Result<RuntimeSnapshot, String> {
     let exe_dir = dll_directory()
@@ -179,30 +98,7 @@ fn load_initial_runtime_snapshot() -> RuntimeSnapshot {
                 .and_then(|exe_dir| config_path::resolve(exe_dir).ok())
                 .unwrap_or_else(|| PathBuf::from("config.toml"));
 
-            let config = Config::load(&resolved_path).unwrap_or_default();
-            let system_table_path = core_engine::config_path::resolve_resource_path(
-                &resolved_path,
-                &config.dictionary.system_table,
-            );
-            let user_table_path = core_engine::config_path::resolve_resource_path(
-                &resolved_path,
-                &config.dictionary.user_table,
-            );
-            let dict = load_dictionary(&system_table_path, &user_table_path, &config)
-                .unwrap_or_else(|dict_err| {
-                    log::error!("加载码表失败 ({}): {dict_err}", system_table_path.display());
-                    Dictionary::from_entries(Vec::new(), None, Default::default())
-                        .expect("empty dictionary should construct")
-                });
-            RuntimeSnapshot {
-                revision: NEXT_RUNTIME_REVISION.fetch_add(1, Ordering::Relaxed),
-                temporary: Arc::default(),
-                dict,
-                config,
-                config_path: resolved_path,
-                system_table_path,
-                user_table_path,
-            }
+            core_engine::runtime::RuntimeBuilder::legacy_startup(resolved_path)
         }
     }
 }

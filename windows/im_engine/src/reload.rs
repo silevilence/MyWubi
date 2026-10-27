@@ -16,13 +16,7 @@ pub(crate) fn spawn(runtime: Arc<ArcSwap<RuntimeSnapshot>>) {
 }
 
 fn paths(runtime: &RuntimeSnapshot) -> Vec<PathBuf> {
-    let mut paths = vec![
-        runtime.config_path.clone(),
-        runtime.system_table_path.clone(),
-        runtime.user_table_path.clone(),
-    ];
-    paths.extend(runtime.temporary.paths.iter().cloned());
-    paths
+    runtime.dependencies()
 }
 
 fn watch_loop(runtime: Arc<ArcSwap<RuntimeSnapshot>>) -> notify::Result<()> {
