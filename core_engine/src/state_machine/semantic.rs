@@ -123,7 +123,7 @@ pub struct SemanticEngine {
     temporary: Option<TemporaryMode>,
     query_revision: QueryRevision,
     view_revision: u64,
-    all_candidates: Vec<Candidate>,
+    all_candidates: Arc<Vec<Candidate>>,
 }
 
 impl SemanticEngine {
@@ -138,7 +138,7 @@ impl SemanticEngine {
                 version: 0,
             },
             view_revision: 0,
-            all_candidates: Vec::new(),
+            all_candidates: Arc::new(Vec::new()),
         }
     }
     pub fn state_machine(&self) -> &StateMachine {
@@ -173,51 +173,53 @@ impl SemanticEngine {
             InputMode::English => self.sm.temporary.english.as_ref(),
             InputMode::Menu => None,
         };
-        self.all_candidates = if let Some(dict) =
-            dict.filter(|_| !self.sm.spelling.is_empty() && !self.sm.candidates.is_empty())
-        {
-            let options = SearchOptions {
-                prefer_exact: true,
-                limit: dict.len(),
-            };
-            let all = if self.sm.mode == InputMode::Main {
-                dict.search(self.sm.lookup_key(), options)
+        self.all_candidates = Arc::new(
+            if let Some(dict) =
+                dict.filter(|_| !self.sm.spelling.is_empty() && !self.sm.candidates.is_empty())
+            {
+                let options = SearchOptions {
+                    prefer_exact: true,
+                    limit: dict.len(),
+                };
+                let all = if self.sm.mode == InputMode::Main {
+                    dict.search(self.sm.lookup_key(), options)
+                } else {
+                    dict.search_literal(&self.sm.spelling, options)
+                };
+                all.into_iter()
+                    .enumerate()
+                    .map(|(index, entry)| {
+                        let hints = if self.sm.mode == InputMode::Main {
+                            entry
+                                .code
+                                .strip_prefix(self.sm.lookup_key())
+                                .filter(|s| !s.is_empty())
+                                .map(|s| vec![CandidateHint::CodeSuffix(s.to_owned())])
+                                .unwrap_or_default()
+                        } else if self.sm.dict.table_config().temporary.reverse_lookup {
+                            self.sm
+                                .temporary
+                                .reverse
+                                .as_ref()
+                                .map(|r| r.codes(&entry.word))
+                                .filter(|codes| !codes.is_empty())
+                                .map(|codes| vec![CandidateHint::ReverseCodes(codes.to_vec())])
+                                .unwrap_or_default()
+                        } else {
+                            Vec::new()
+                        };
+                        Candidate {
+                            id: CandidateId(index),
+                            text: entry.word.clone(),
+                            exact: entry.code == self.sm.spelling,
+                            hints,
+                        }
+                    })
+                    .collect()
             } else {
-                dict.search_literal(&self.sm.spelling, options)
-            };
-            all.into_iter()
-                .enumerate()
-                .map(|(index, entry)| {
-                    let hints = if self.sm.mode == InputMode::Main {
-                        entry
-                            .code
-                            .strip_prefix(self.sm.lookup_key())
-                            .filter(|s| !s.is_empty())
-                            .map(|s| vec![CandidateHint::CodeSuffix(s.to_owned())])
-                            .unwrap_or_default()
-                    } else if self.sm.dict.table_config().temporary.reverse_lookup {
-                        self.sm
-                            .temporary
-                            .reverse
-                            .as_ref()
-                            .map(|r| r.codes(&entry.word))
-                            .filter(|codes| !codes.is_empty())
-                            .map(|codes| vec![CandidateHint::ReverseCodes(codes.to_vec())])
-                            .unwrap_or_default()
-                    } else {
-                        Vec::new()
-                    };
-                    Candidate {
-                        id: CandidateId(index),
-                        text: entry.word.clone(),
-                        exact: entry.code == self.sm.spelling,
-                        hints,
-                    }
-                })
-                .collect()
-        } else {
-            Vec::new()
-        };
+                Vec::new()
+            },
+        );
     }
 
     pub fn base_mode(&self) -> BaseMode {

@@ -72,7 +72,7 @@ fn config_failure_reports_table_saved_and_invalid_table_writes_nothing() {
             policy: WritePolicy::LegacyOverwrite,
         }),
     );
-    assert_eq!(report.saved, [table.clone()]);
+    assert_eq!(report.saved.as_slice(), std::slice::from_ref(&table));
     assert!(report.failure.is_some());
     let old = std::fs::read(&table).unwrap();
     let invalid = vec![Entry {

@@ -12,6 +12,7 @@ pub mod data;
 pub mod dictionary;
 mod pinyin;
 pub mod runtime;
+pub mod session;
 pub mod state_machine;
 pub mod table_options;
 pub mod temporary;
