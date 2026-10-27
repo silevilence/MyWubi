@@ -5,6 +5,29 @@ use std::sync::atomic::{AtomicU64, Ordering};
 static NEXT_BUNDLE: AtomicU64 = AtomicU64::new(0);
 
 struct Bundle(PathBuf);
+
+#[test]
+fn capability_loading_does_not_require_desktop_entry_or_hotkeys() {
+    let bundle = Bundle::new();
+    bundle.write(
+        "main.dict",
+        "---\ntemporary:\n  pinyin_table: py.dict\n---\na\t主\n",
+    );
+    bundle.write("py.dict", "---\ntype: pinyin\n---\nni\t你\n");
+    let path = bundle.0.join("main.dict");
+    let main = Dictionary::load(&path).unwrap();
+    assert!(TemporaryTables::load(&main, &path, &Hotkey::default())
+        .pinyin
+        .is_none());
+    assert!(TemporaryTables::load_for_profile(
+        &main,
+        &path,
+        &Hotkey::default(),
+        core_engine::BehaviorProfile::TouchV1
+    )
+    .pinyin
+    .is_some());
+}
 impl Bundle {
     fn new() -> Self {
         let root = std::env::temp_dir().join(format!(

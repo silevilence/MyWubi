@@ -72,8 +72,18 @@ pub struct TemporaryTables {
 
 impl TemporaryTables {
     pub fn load(main: &Dictionary, main_path: &Path, hotkey: &Hotkey) -> Self {
+        Self::load_for_profile(main, main_path, hotkey, crate::BehaviorProfile::LegacyV1)
+    }
+
+    /// Capability loading for touch clients does not require a desktop entry key.
+    pub fn load_for_profile(
+        main: &Dictionary,
+        main_path: &Path,
+        hotkey: &Hotkey,
+        profile: crate::BehaviorProfile,
+    ) -> Self {
         let options = &main.table_config().temporary;
-        if options.trigger().is_none() {
+        if profile == crate::BehaviorProfile::LegacyV1 && options.trigger().is_none() {
             return Self::default();
         }
         let mut tables = Self {
@@ -84,7 +94,11 @@ impl TemporaryTables {
                 .collect(),
             ..Default::default()
         };
-        if let Err(error) = validate_temporary_hotkeys(main.table_config(), hotkey) {
+        if let Err(error) = if profile == crate::BehaviorProfile::LegacyV1 {
+            validate_temporary_hotkeys(main.table_config(), hotkey)
+        } else {
+            Ok(())
+        } {
             tables.pinyin_error = Some(error.clone());
             tables.english_error = Some(error.clone());
             tables.load_errors.push(error);

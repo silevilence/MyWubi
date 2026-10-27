@@ -21,7 +21,8 @@ pub use dictionary::{
     TableConfig, TableValidationIssue, TableValidationReport,
 };
 pub use state_machine::semantic::{
-    Action, ActionResult, BehaviorProfile, Disposition, Rejection, SemanticEngine, TextIntent,
+    Action, ActionResult, BaseMode, BehaviorProfile, Capability, Disposition, Rejection,
+    SemanticEngine, TemporaryMode, TextIntent,
 };
 pub use state_machine::{InputEvent, StateMachine, Transition};
 pub use table_options::{validate_temporary_hotkeys, TableType, TemporaryConfig};

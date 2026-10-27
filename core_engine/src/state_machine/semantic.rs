@@ -1,6 +1,28 @@
 //! Platform-independent character intent. Legacy events retain their exact routing.
 use super::*;
 
+/// Persistent selection; a temporary capability never overwrites this choice.
+#[derive(Debug, Clone, Copy, Default, PartialEq, Eq)]
+pub enum BaseMode {
+    #[default]
+    Main,
+    English,
+}
+
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+pub enum TemporaryMode {
+    Pinyin,
+    English,
+}
+
+/// Availability is independent of menu bindings and text completion availability.
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub struct Capability {
+    pub available: bool,
+    pub candidate_support: bool,
+    pub reason: Option<String>,
+}
+
 /// Input policy, independent of the operating system.
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub enum BehaviorProfile {
@@ -30,6 +52,12 @@ pub enum Action {
     Backspace,
     Cancel,
     MoveCandidatePage(bool),
+    SetBaseMode(BaseMode),
+    BeginTemporary(TemporaryMode),
+    EndTemporary,
+    OpenModeChooser,
+    ChooseMode(TemporaryMode),
+    CloseModeChooser,
 }
 
 impl From<InputEvent> for Action {
@@ -87,25 +115,136 @@ impl ActionResult {
 pub struct SemanticEngine {
     pub(super) sm: StateMachine,
     pub profile: BehaviorProfile,
+    base: BaseMode,
+    temporary: Option<TemporaryMode>,
 }
 
 impl SemanticEngine {
     pub fn new(sm: StateMachine, profile: BehaviorProfile) -> Self {
-        Self { sm, profile }
+        Self {
+            sm,
+            profile,
+            base: BaseMode::Main,
+            temporary: None,
+        }
     }
     pub fn state_machine(&self) -> &StateMachine {
         &self.sm
     }
 
+    pub fn base_mode(&self) -> BaseMode {
+        self.base
+    }
+    pub fn temporary_mode(&self) -> Option<TemporaryMode> {
+        if self.profile == BehaviorProfile::LegacyV1 {
+            match self.sm.mode {
+                InputMode::Pinyin => Some(TemporaryMode::Pinyin),
+                InputMode::English => Some(TemporaryMode::English),
+                _ => None,
+            }
+        } else {
+            self.temporary
+        }
+    }
+
+    pub fn capability(&self, mode: TemporaryMode) -> Capability {
+        let tables = &self.sm.temporary;
+        match mode {
+            TemporaryMode::Pinyin => Capability {
+                available: tables.pinyin.is_some(),
+                candidate_support: tables.pinyin.is_some(),
+                reason: tables
+                    .pinyin_error
+                    .clone()
+                    .or_else(|| tables.pinyin.is_none().then(|| "未配置拼音码表".into())),
+            },
+            TemporaryMode::English => Capability {
+                available: self.profile == BehaviorProfile::TouchV1
+                    || tables.english_error.is_none(),
+                candidate_support: tables.english.is_some(),
+                reason: tables.english_error.clone(),
+            },
+        }
+    }
+
+    /// End a round without changing the persistent mode; old StateMachine::reset stays unchanged.
+    pub fn clear_composition(&mut self) {
+        self.sm.reset();
+        self.temporary = None;
+        if self.base == BaseMode::English {
+            self.sm.mode = InputMode::English;
+        }
+    }
+
+    pub fn reset_context(&mut self) {
+        self.clear_composition();
+    }
+
+    fn persistent_english(&self) -> bool {
+        self.base == BaseMode::English && self.temporary.is_none()
+    }
+
+    fn change_mode(
+        &mut self,
+        base: Option<BaseMode>,
+        temporary: Option<TemporaryMode>,
+    ) -> ActionResult {
+        if (base.is_some() && base == Some(self.base) && self.temporary.is_none())
+            || (temporary.is_some() && self.temporary_mode() == temporary)
+        {
+            return ActionResult::from_transition(Transition::None);
+        }
+        let capability = temporary
+            .or_else(|| (base == Some(BaseMode::English)).then_some(TemporaryMode::English));
+        if let Some(mode) = capability {
+            let capability = self.capability(mode);
+            if !capability.available {
+                return ActionResult::rejected(Rejection::Unavailable(
+                    capability.reason.unwrap_or_default(),
+                ));
+            }
+        }
+        let raw = if self.temporary_mode().is_none() && self.sm.mode != InputMode::Menu {
+            self.sm.spelling.clone()
+        } else {
+            String::new()
+        };
+        self.sm.reset();
+        if let Some(base) = base {
+            self.base = base;
+        }
+        self.temporary = temporary;
+        self.sm.mode = match temporary {
+            Some(TemporaryMode::Pinyin) => InputMode::Pinyin,
+            Some(TemporaryMode::English) => InputMode::English,
+            None if self.base == BaseMode::English => InputMode::English,
+            None => InputMode::Main,
+        };
+        ActionResult::from_transition(if raw.is_empty() {
+            Transition::Cleared
+        } else {
+            Transition::Commit(raw)
+        })
+    }
+
     /// Pure routing prediction: does not clone the state or execute a search.
     pub fn would_handle(&self, action: &Action) -> bool {
         match action {
+            Action::SetBaseMode(_)
+            | Action::BeginTemporary(_)
+            | Action::EndTemporary
+            | Action::OpenModeChooser
+            | Action::ChooseMode(_)
+            | Action::CloseModeChooser => true,
             Action::Legacy(e) => self.sm.would_consume(e),
             Action::InputCode(c) => self.sm.accepts_code_char(*c),
             Action::InsertLiteral(s) => !s.is_empty() && s.len() <= 65536,
             Action::InputText(..) | Action::InputSymbol(_) => true,
             Action::CommitPreferred | Action::CommitRaw => !self.sm.spelling().is_empty(),
             Action::Space => self.sm.would_consume(&InputEvent::Space),
+            Action::Enter | Action::Backspace if self.persistent_english() => {
+                !self.sm.spelling.is_empty()
+            }
             Action::Enter => self.sm.would_consume(&InputEvent::Enter),
             Action::Backspace => self.sm.would_consume(&InputEvent::Backspace),
             Action::Cancel => self.sm.would_consume(&InputEvent::Esc),
@@ -114,8 +253,27 @@ impl SemanticEngine {
     }
 
     pub fn dispatch(&mut self, action: Action) -> ActionResult {
+        let legacy = matches!(action, Action::Legacy(_));
         let transition = match action {
+            Action::SetBaseMode(base) => return self.change_mode(Some(base), None),
+            Action::BeginTemporary(mode) | Action::ChooseMode(mode) => {
+                return self.change_mode(None, Some(mode))
+            }
+            Action::EndTemporary | Action::CloseModeChooser => {
+                self.clear_composition();
+                Transition::Cleared
+            }
+            Action::OpenModeChooser => {
+                if !self.sm.spelling.is_empty() {
+                    return ActionResult::rejected(Rejection::Unavailable("输入缓冲非空".into()));
+                }
+                self.sm.mode = InputMode::Menu;
+                self.sm.refresh_temporary()
+            }
             Action::Legacy(event) => self.sm.handle(event),
+            Action::InputCode(c) if self.sm.mode != InputMode::Main => {
+                self.sm.handle(InputEvent::Char(c))
+            }
             Action::InputCode(c) => {
                 if !self.sm.accepts_code_char(c) {
                     return ActionResult::rejected(Rejection::InvalidCode);
@@ -126,6 +284,16 @@ impl SemanticEngine {
                 if self.sm.mode == InputMode::Main && self.sm.accepts_code_char(c) =>
             {
                 self.sm.on_code_char(c)
+            }
+            Action::InputText(c, TextIntent::Normal)
+                if self.persistent_english() && !c.is_alphabetic() =>
+            {
+                self.insert_literal(&c.to_string())
+            }
+            Action::InputText(c, TextIntent::Normal)
+                if self.sm.mode != InputMode::Main && c.is_ascii_digit() =>
+            {
+                self.insert_literal(&c.to_string())
             }
             Action::InputText(c, TextIntent::Normal) if self.sm.mode != InputMode::Main => {
                 self.sm.handle(InputEvent::Char(c))
@@ -145,6 +313,20 @@ impl SemanticEngine {
                 .sm
                 .commit_raw_current()
                 .map_or(Transition::None, |(text, _)| Transition::Commit(text)),
+            Action::Space if self.persistent_english() => {
+                let mut text = self
+                    .sm
+                    .commit_current()
+                    .map_or_else(String::new, |(text, _)| text);
+                text.push(' ');
+                Transition::Commit(text)
+            }
+            Action::Enter if self.persistent_english() && self.sm.spelling.is_empty() => {
+                Transition::Passthrough(InputEvent::Enter)
+            }
+            Action::Backspace if self.persistent_english() && self.sm.spelling.is_empty() => {
+                Transition::Passthrough(InputEvent::Backspace)
+            }
             Action::Space => self.sm.handle(InputEvent::Space),
             Action::Enter => self.sm.handle(InputEvent::Enter),
             Action::Backspace => self.sm.handle(InputEvent::Backspace),
@@ -155,6 +337,12 @@ impl SemanticEngine {
                 InputEvent::PagePrev
             }),
         };
+        if !legacy && self.sm.mode == InputMode::Main && self.profile == BehaviorProfile::TouchV1 {
+            self.temporary = None;
+            if self.base == BaseMode::English {
+                self.sm.mode = InputMode::English;
+            }
+        }
         ActionResult::from_transition(transition)
     }
 
