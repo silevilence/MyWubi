@@ -1,12 +1,16 @@
 use core_engine::{config::Hotkey, Dictionary, TemporaryTables};
 use std::path::PathBuf;
+use std::sync::atomic::{AtomicU64, Ordering};
+
+static NEXT_BUNDLE: AtomicU64 = AtomicU64::new(0);
 
 struct Bundle(PathBuf);
 impl Bundle {
     fn new() -> Self {
         let root = std::env::temp_dir().join(format!(
-            "mywubi-aux-{}-{}",
+            "mywubi-aux-{}-{}-{}",
             std::process::id(),
+            NEXT_BUNDLE.fetch_add(1, Ordering::Relaxed),
             std::time::SystemTime::now()
                 .duration_since(std::time::UNIX_EPOCH)
                 .unwrap()

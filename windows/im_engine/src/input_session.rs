@@ -541,6 +541,76 @@ mod tests {
     use super::*;
     use core_engine::Entry;
 
+    #[test]
+    fn nested_input_sees_advanced_state_and_old_result_cannot_publish() {
+        let (session, candidates, _, _) = setup();
+        session.handle(InputEvent::Char('a'), false, None, |op| {
+            assert!(matches!(op, EditSessionOp::CompositionUpdate { spelling, attr: DisplayAttrKind::Converted } if spelling == "a"));
+            assert_eq!(session.state.lock().sm.spelling(), "a");
+            assert!(!candidates.load().visible);
+            assert!(session.handle(InputEvent::Char('a'), false, None, |_| {
+                Ok::<_, &str>(Some(ScreenPoint { x: 12, y: 34 }))
+            }));
+            Err::<Option<ScreenPoint>, _>("outer failed after nested input")
+        });
+        assert_eq!(session.state.lock().sm.spelling(), "aa");
+        assert_eq!(candidates.load().spelling, "aa");
+        assert_eq!(candidates.load().anchor.map(|p| (p.x, p.y)), Some((12, 34)));
+        assert!(!session.state.lock().needs_cleanup);
+    }
+
+    #[test]
+    fn switch_and_reload_advance_before_edit_and_failure_does_not_rollback() {
+        let (session, _, mut editor) = temporary_setup();
+        type_text(&session, &mut editor, "`1ni");
+        session.set_chinese(false, |op| {
+            assert!(!session.chinese());
+            assert_eq!(session.mode(), InputMode::Main);
+            assert_eq!(*op, EditSessionOp::EndComposition { delete_text: true });
+            Err::<Option<ScreenPoint>, _>(SessionEditError {
+                message: "denied".into(),
+                text_committed: false,
+            })
+        });
+        assert!(!session.chinese());
+        assert_eq!(session.mode(), InputMode::Main);
+        let snapshot = RuntimeSnapshot {
+            temporary: Arc::default(),
+            dict: Dictionary::from_text("x\t新\n").unwrap(),
+            config: Config::default(),
+            revision: 42,
+            config_path: "c".into(),
+            system_table_path: "s".into(),
+            user_table_path: "u".into(),
+        };
+        session.reload(&snapshot, |_| {
+            assert_eq!(session.state.lock().revision, 42);
+            session.terminated();
+            Err::<Option<ScreenPoint>, _>("late failure")
+        });
+        assert_eq!(session.state.lock().revision, 42);
+        assert!(!session.state.lock().needs_cleanup);
+    }
+
+    #[test]
+    fn none_preserves_view_and_preflight_does_not_advance_generation() {
+        let (session, candidates, mut editor, _) = setup();
+        type_text(&session, &mut editor, "b");
+        let before = candidates.load_full();
+        let generation = session.state.lock().generation;
+        for _ in 0..3 {
+            assert!(session.test_key(&InputEvent::PageNext, false));
+        }
+        assert_eq!(session.state.lock().generation, generation);
+        session.handle(InputEvent::PageNext, false, None, |_| -> Result<_, &str> {
+            panic!("None must not execute an edit")
+        });
+        assert_eq!(
+            format!("{:?}", candidates.load_full()),
+            format!("{before:?}")
+        );
+    }
+
     fn temporary_setup() -> (InputSession, Arc<ArcSwap<CandidateData>>, Editor) {
         let main = Dictionary::from_text(
             "---\ntemporary:\n  key: '`'\n  reverse_lookup: true\n---\nwq\t你好\na\t主\n",
