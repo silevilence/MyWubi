@@ -31,6 +31,35 @@ pub struct Config {
     pub hotkey: Hotkey,
 }
 
+/// Effective engine settings. No parallel on-disk schema is introduced.
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub struct EngineOptions {
+    pub auto_commit_unique: bool,
+    pub commit_on_max_code_overflow: bool,
+    pub show_code_hints: bool,
+    pub system_table: PathBuf,
+    pub user_table: PathBuf,
+    pub enable_user_dict: bool,
+}
+
+/// Windows presentation/key options projected from the original file.
+#[derive(Debug, Clone)]
+pub struct DesktopOptions {
+    pub candidate_count: u8,
+    pub appearance: Appearance,
+    pub hotkey: Hotkey,
+    pub switch_key: SwitchKey,
+}
+
+/// Active resource validation is performed by the runtime builder separately.
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+pub enum ValidationContext {
+    Read,
+    DesktopSave,
+    TouchSave,
+    ActiveResources,
+}
+
 /// 基础行为配置。
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct Basic {
@@ -243,6 +272,48 @@ fn default_toggle_simplify() -> String {
 }
 
 impl Config {
+    /// Project effective shared behavior without activating retained legacy fields.
+    pub fn engine_options(&self) -> EngineOptions {
+        EngineOptions {
+            auto_commit_unique: self.basic.auto_commit_unique,
+            commit_on_max_code_overflow: self.basic.commit_on_max_code_overflow,
+            show_code_hints: self.basic.show_code_hints,
+            system_table: self.dictionary.system_table.clone(),
+            user_table: self.dictionary.user_table.clone(),
+            enable_user_dict: self.dictionary.enable_user_dict,
+        }
+    }
+
+    /// Desktop-only presentation and physical key bindings retain their defaults.
+    pub fn desktop_options(&self) -> DesktopOptions {
+        DesktopOptions {
+            candidate_count: self.basic.candidate_count,
+            appearance: self.appearance.clone(),
+            hotkey: self.hotkey.clone(),
+            switch_key: self.basic.switch_key,
+        }
+    }
+
+    /// Validation depends on the operation, not the calling operating system.
+    pub fn validate_for(&self, context: ValidationContext) -> Result<(), Error> {
+        self.validate()?;
+        if context == ValidationContext::DesktopSave {
+            self.validate_hotkey_conflicts()?;
+        }
+        Ok(())
+    }
+
+    /// Retained values are serialized unchanged; these names are diagnostics only.
+    pub fn inactive_fields(&self) -> &'static [&'static str] {
+        &[
+            "basic.commit_mode",
+            "basic.punctuation_mode",
+            "dictionary.enable_exact_match",
+            "dictionary.enable_fuzzy",
+            "hotkey.toggle_simplify",
+        ]
+    }
+
     /// 从 TOML 字符串解析。
     #[allow(clippy::should_implement_trait)]
     pub fn from_str(text: &str) -> Result<Self, Error> {
@@ -266,8 +337,17 @@ impl Config {
 
     /// 安全写入：先写入临时文件再原子性改名，避免写入中断损坏原配置。
     pub fn save<P: AsRef<Path>>(&self, path: P) -> Result<(), Error> {
+        self.save_for(path, ValidationContext::DesktopSave)
+    }
+
+    /// Explicit save context for clients that do not use desktop shortcuts.
+    pub fn save_for<P: AsRef<Path>>(
+        &self,
+        path: P,
+        context: ValidationContext,
+    ) -> Result<(), Error> {
         let path = path.as_ref();
-        self.validate_for_save()?;
+        self.validate_for(context)?;
         let text = self.to_string_toml()?;
         let tmp = path.with_extension("toml.tmp");
         std::fs::write(&tmp, text.as_bytes()).map_err(|e| Error::Io(tmp.clone(), e.to_string()))?;
@@ -277,8 +357,7 @@ impl Config {
 
     /// 写入前的完整校验；允许多个文件的保存协调者先完成预检。
     pub fn validate_for_save(&self) -> Result<(), Error> {
-        self.validate()?;
-        self.validate_hotkey_conflicts()
+        self.validate_for(ValidationContext::DesktopSave)
     }
 
     /// 语义校验。

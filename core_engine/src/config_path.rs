@@ -21,6 +21,35 @@ pub enum PathError {
     WriteConfig(PathBuf, String),
 }
 
+/// Frontends discover directories; the shared resolver owns all relative paths.
+pub enum StorageContext<'a> {
+    Desktop {
+        application_dir: &'a Path,
+        config_dir: &'a Path,
+    },
+    /// Android supplies filesDir. Assets are prepared by the caller, never inferred.
+    Private { files_dir: &'a Path },
+}
+
+/// Resolve the one engine config. Mobile UI preferences belong in android-ui.toml.
+pub fn resolve_storage(context: StorageContext<'_>) -> Result<ResolvedConfigPath, PathError> {
+    match context {
+        StorageContext::Desktop {
+            application_dir,
+            config_dir,
+        } => resolve_config_path_from(application_dir, config_dir),
+        StorageContext::Private { files_dir } => {
+            let path = files_dir.join("config.toml");
+            ensure_default_config(&path)?;
+            Ok(ResolvedConfigPath {
+                path,
+                portable: false,
+                fallback_message: None,
+            })
+        }
+    }
+}
+
 pub fn resolve_config_path() -> Result<ResolvedConfigPath, PathError> {
     let exe_dir = std::env::current_exe()
         .map_err(|e| PathError::ExePath(e.to_string()))?
