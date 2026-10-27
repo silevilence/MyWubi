@@ -349,9 +349,8 @@ impl Config {
         let path = path.as_ref();
         self.validate_for(context)?;
         let text = self.to_string_toml()?;
-        let tmp = path.with_extension("toml.tmp");
-        std::fs::write(&tmp, text.as_bytes()).map_err(|e| Error::Io(tmp.clone(), e.to_string()))?;
-        std::fs::rename(&tmp, path).map_err(|e| Error::Io(path.to_path_buf(), e.to_string()))?;
+        crate::data::atomic_write(path, text.as_bytes())
+            .map_err(|e| Error::Io(path.to_path_buf(), e.to_string()))?;
         Ok(())
     }
 

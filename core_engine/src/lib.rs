@@ -8,6 +8,7 @@
 pub mod candidates;
 pub mod config;
 pub mod config_path;
+pub mod data;
 pub mod dictionary;
 mod pinyin;
 pub mod runtime;

@@ -793,7 +793,8 @@ pub fn save_table<P: AsRef<Path>>(
         let _ = writeln!(text, "{}\t{}\t{}", entry.code, entry.word, entry.weight);
     }
 
-    std::fs::write(path, text).map_err(|error| DictError::Io(path.to_path_buf(), error.to_string()))
+    crate::data::atomic_write(path, text.as_bytes())
+        .map_err(|error| DictError::Io(path.to_path_buf(), error.to_string()))
 }
 
 fn parse_lines_with_config(

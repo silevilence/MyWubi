@@ -193,10 +193,7 @@ fn write_entries(path: &Path, entries: &[Entry]) -> Result<(), UserDictionaryErr
             entry.code, entry.word, entry.weight
         ));
     }
-    let temporary = path.with_extension("dict.tmp");
-    std::fs::write(&temporary, text)
-        .map_err(|error| UserDictionaryError::Io(temporary.clone(), error.to_string()))?;
-    std::fs::rename(&temporary, path)
+    crate::data::atomic_write(path, text.as_bytes())
         .map_err(|error| UserDictionaryError::Io(path.to_path_buf(), error.to_string()))
 }
 
