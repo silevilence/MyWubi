@@ -65,4 +65,6 @@ pub struct SessionView {
 pub enum ViewUpdate {
     Unchanged,
     Replace(SessionView),
+    /// Clear platform presentation metadata (for example the previous desktop anchor).
+    Reset(SessionView),
 }

@@ -71,3 +71,20 @@ fn declared_symbols_and_wildcards_are_code_but_literal_text_commits_once() {
     assert!(matches!(result.transition, Transition::Commit(s) if s.ends_with("🙂12")));
     assert!(engine.state_machine().spelling().is_empty());
 }
+
+#[test]
+fn undeclared_touch_digit_is_literal_while_explicit_code_never_selects() {
+    let sm = StateMachine::with_options(Dictionary::from_text("a\t工\n").unwrap(), 5, false);
+    let mut normal = SemanticEngine::new(sm.clone(), BehaviorProfile::TouchV1);
+    normal.dispatch(Action::InputCode('a'));
+    assert_eq!(
+        normal
+            .dispatch(Action::InputText('1', TextIntent::Normal))
+            .transition,
+        Transition::Commit("工1".into())
+    );
+    let mut explicit = SemanticEngine::new(sm, BehaviorProfile::TouchV1);
+    explicit.dispatch(Action::InputCode('a'));
+    explicit.dispatch(Action::InputCode('1'));
+    assert_eq!(explicit.state_machine().spelling(), "a1");
+}

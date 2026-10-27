@@ -1,12 +1,18 @@
-//! Windows 输入会话协调。测试与 TSF 回调使用同一行为入口；编辑 adapter 在锁外运行。
+//! Windows adapter: execute one synchronous host operation outside the core lock and
+//! publish GDI data only after the shared session accepts its acknowledgement.
 use crate::candidate_data::{CandidateData, CandidateItem, ScreenPoint, ThemeSnapshot};
 use crate::RuntimeSnapshot;
 use arc_swap::ArcSwap;
-use core_engine::{Config, Dictionary, InputEvent, InputMode, StateMachine, Transition};
+use core_engine::session::{
+    AckStatus, HostContext, HostOutcome, PreparedEdit, Session, SessionStatus,
+};
+pub(crate) use core_engine::session::{DisplayAttrKind, EditSessionOp};
+#[cfg(test)]
+use core_engine::Dictionary;
+use core_engine::{Action, BehaviorProfile, Config, InputEvent, InputMode};
 use parking_lot::Mutex;
 use std::sync::Arc;
 
-/// 只有 adapter 确认尚未提交文字时，才允许恢复临时输入供用户重试。
 pub(crate) trait EditFailure: std::fmt::Display {
     fn retry_safe(&self) -> bool {
         false
@@ -14,7 +20,6 @@ pub(crate) trait EditFailure: std::fmt::Display {
 }
 impl EditFailure for &str {}
 impl EditFailure for String {}
-
 #[derive(Debug)]
 pub(crate) struct SessionEditError {
     pub message: String,
@@ -31,117 +36,65 @@ impl EditFailure for SessionEditError {
     }
 }
 
-#[derive(Debug, Clone, Copy, PartialEq, Eq)]
-pub(crate) enum DisplayAttrKind {
-    Input,
-    Converted,
-}
-
-#[derive(Debug, Clone, PartialEq, Eq)]
-pub(crate) enum EditSessionOp {
-    CompositionUpdate {
-        spelling: String,
-        attr: DisplayAttrKind,
-    },
-    CommitAndReplace {
-        text: String,
-        replace_len: usize,
-    },
-    CommitThenUpdate {
-        text: String,
-        replace_len: usize,
-        spelling: String,
-        attr: DisplayAttrKind,
-    },
-    EndComposition {
-        delete_text: bool,
-    },
-    NoOp,
-}
-
-struct State {
-    sm: StateMachine,
-    config: Config,
-    revision: u64,
-    generation: u64,
-    chinese: bool,
-    needs_cleanup: bool,
-    cleanup_delete_text: bool,
-}
-
-struct Update {
-    rollback: Option<StateMachine>,
-    generation: u64,
-    op: EditSessionOp,
-    view: CandidateData,
-    consumed: bool,
-}
-
 pub(crate) struct InputSession {
-    state: Mutex<State>,
+    core: Mutex<Session>,
     candidates: Arc<ArcSwap<CandidateData>>,
 }
-
 impl InputSession {
     pub fn from_snapshot(
         snapshot: &RuntimeSnapshot,
         candidates: Arc<ArcSwap<CandidateData>>,
     ) -> Self {
-        let session = Self::new(
-            Arc::clone(&snapshot.dict),
-            snapshot.config.clone(),
-            snapshot.revision,
+        Self {
+            core: Mutex::new(Session::new(
+                snapshot,
+                BehaviorProfile::LegacyV1,
+                HostContext::default(),
+            )),
             candidates,
-        );
-        session
-            .state
-            .lock()
-            .sm
-            .set_temporary_tables(Arc::clone(&snapshot.temporary));
-        session
+        }
     }
+    #[cfg(test)]
     pub fn new(
         dict: Arc<Dictionary>,
         config: Config,
         revision: u64,
         candidates: Arc<ArcSwap<CandidateData>>,
     ) -> Self {
-        let sm = state_machine(dict, &config);
-        Self {
-            state: Mutex::new(State {
-                sm,
+        Self::from_snapshot(
+            &RuntimeSnapshot {
+                dict,
                 config,
                 revision,
-                generation: 0,
-                chinese: true,
-                needs_cleanup: false,
-                cleanup_delete_text: false,
-            }),
+                temporary: Arc::default(),
+                config_path: "c".into(),
+                system_table_path: "s".into(),
+                user_table_path: "u".into(),
+            },
             candidates,
-        }
+        )
     }
-
     pub fn config(&self) -> Config {
-        self.state.lock().config.clone()
+        self.core.lock().config().clone()
     }
     pub fn theme(&self) -> ThemeSnapshot {
-        ThemeSnapshot::from_config(&self.state.lock().config)
+        ThemeSnapshot::from_config(self.core.lock().config())
     }
     pub fn chinese(&self) -> bool {
-        self.state.lock().chinese
+        self.core.lock().input_gate()
     }
     pub fn selecting(&self) -> bool {
-        self.state.lock().sm.state() == core_engine::state_machine::InputState::Selecting
+        self.core.lock().state_machine().state()
+            == core_engine::state_machine::InputState::Selecting
     }
     pub fn mode(&self) -> InputMode {
-        self.state.lock().sm.mode()
+        self.core.lock().state_machine().mode()
     }
     pub fn temporary_trigger(&self) -> Option<char> {
-        self.state.lock().sm.temporary_trigger()
+        self.core.lock().state_machine().temporary_trigger()
     }
-
     pub fn test_key(&self, event: &InputEvent, system_modifier: bool) -> bool {
-        accepts(&self.state.lock(), event, system_modifier)
+        self.core.lock().would_handle_legacy(event, system_modifier)
     }
 
     pub fn handle<E: EditFailure>(
@@ -151,389 +104,157 @@ impl InputSession {
         anchor: Option<ScreenPoint>,
         edit: impl FnMut(&EditSessionOp) -> Result<Option<ScreenPoint>, E>,
     ) -> bool {
-        let update = {
-            let mut state = self.state.lock();
-            if !accepts(&state, &event, system_modifier) {
+        let plan = {
+            let mut core = self.core.lock();
+            if !core.would_handle_legacy(&event, system_modifier) {
                 return false;
             }
-            let rollback = (state.sm.mode() != InputMode::Main).then(|| state.sm.clone());
-            let transition = state.sm.handle(event);
-            state.generation += 1;
-            let mut update = plan(&state, transition, &self.candidates.load(), anchor);
-            update.rollback = rollback;
-            update
+            core.prepare(Action::Legacy(event))
         };
-        self.execute(update, edit)
+        match plan {
+            Ok(plan) => self.execute(plan, anchor, edit),
+            Err(_) => false,
+        }
     }
-
-    /// 先前编辑可能部分成功，不重复提交文本；先保留宿主文本并结束旧 composition。
     pub fn recover<E: EditFailure>(
         &self,
         edit: impl FnMut(&EditSessionOp) -> Result<Option<ScreenPoint>, E>,
     ) -> bool {
-        let update = {
-            let mut state = self.state.lock();
-            if !state.needs_cleanup {
-                return true;
-            }
-            state.generation += 1;
-            cleared_update(
-                &state,
-                EditSessionOp::EndComposition {
-                    delete_text: state.cleanup_delete_text,
-                },
-            )
-        };
-        self.execute(update, edit);
-        !self.state.lock().needs_cleanup
+        let plan = self.core.lock().recover();
+        if let Ok(Some(plan)) = plan {
+            self.execute(plan, None, edit);
+        }
+        self.core.lock().status() != SessionStatus::NeedsCleanup
     }
-
     pub fn set_chinese<E: EditFailure>(
         &self,
         chinese: bool,
         edit: impl FnMut(&EditSessionOp) -> Result<Option<ScreenPoint>, E>,
     ) {
-        let update = {
-            let mut state = self.state.lock();
-            if state.chinese == chinese {
-                return;
-            }
-            state.chinese = chinese;
-            if chinese {
-                return;
-            }
-            let temporary = state.sm.mode() != InputMode::Main;
-            let op = if temporary {
-                state.sm.reset();
-                EditSessionOp::EndComposition { delete_text: true }
-            } else {
-                state
-                    .sm
-                    .commit_raw_current()
-                    .map(|(text, replace_len)| EditSessionOp::CommitAndReplace {
-                        text,
-                        replace_len,
-                    })
-                    .unwrap_or(EditSessionOp::EndComposition { delete_text: false })
-            };
-            state.generation += 1;
-            cleared_update(&state, op)
-        };
-        self.execute(update, edit);
+        let plan = self.core.lock().set_input_gate(chinese);
+        if let Ok(Some(plan)) = plan {
+            self.execute(plan, None, edit);
+        }
     }
-
     pub fn lose_focus<E: EditFailure>(
         &self,
         edit: impl FnMut(&EditSessionOp) -> Result<Option<ScreenPoint>, E>,
     ) {
-        let update = {
-            let mut state = self.state.lock();
-            let temporary = state.sm.mode() != InputMode::Main;
-            state.sm.reset();
-            state.generation += 1;
-            cleared_update(
-                &state,
-                EditSessionOp::EndComposition {
-                    delete_text: temporary,
-                },
-            )
-        };
-        self.execute(update, edit);
+        let plan = self.core.lock().lose_focus();
+        if let Ok(plan) = plan {
+            self.execute(plan, None, edit);
+        }
     }
-
-    /// 宿主已终止 composition；作废尚在返回途中的旧结果，避免候选框再次出现。
     pub fn terminated(&self) {
-        let mut state = self.state.lock();
-        state.sm.reset();
-        state.needs_cleanup = false;
-        state.generation += 1;
+        let mut core = self.core.lock();
+        core.host_terminated();
         self.candidates
             .store(Arc::new(CandidateData::hidden(ThemeSnapshot::from_config(
-                &state.config,
+                core.config(),
             ))));
     }
-
     pub fn reload<E: EditFailure>(
         &self,
         snapshot: &RuntimeSnapshot,
         edit: impl FnMut(&EditSessionOp) -> Result<Option<ScreenPoint>, E>,
     ) {
-        let update = {
-            let mut state = self.state.lock();
-            if state.revision == snapshot.revision {
-                return;
-            }
-            let temporary = state.sm.mode() != core_engine::InputMode::Main;
-            state.sm = state_machine(Arc::clone(&snapshot.dict), &snapshot.config);
-            state
-                .sm
-                .set_temporary_tables(Arc::clone(&snapshot.temporary));
-            state.config = snapshot.config.clone();
-            state.revision = snapshot.revision;
-            state.generation += 1;
-            cleared_update(
-                &state,
-                EditSessionOp::EndComposition {
-                    delete_text: temporary,
-                },
-            )
-        };
-        self.execute(update, edit);
+        let plan = self.core.lock().apply_runtime(Arc::new(snapshot.clone()));
+        if let Ok(Some(plan)) = plan {
+            self.execute(plan, None, edit);
+        }
     }
 
     fn execute<E: EditFailure>(
         &self,
-        mut update: Update,
+        plan: PreparedEdit,
+        anchor: Option<ScreenPoint>,
         mut edit: impl FnMut(&EditSessionOp) -> Result<Option<ScreenPoint>, E>,
     ) -> bool {
-        let result = if matches!(update.op, EditSessionOp::NoOp) {
+        let consumed = plan.consumed();
+        let mut next_view = {
+            let core = self.core.lock();
+            if !core.is_current(plan.token) {
+                return consumed;
+            }
+            match &plan.preview {
+                core_engine::candidates::ViewUpdate::Reset(view) => {
+                    candidate_view(view, core.config(), None)
+                }
+                core_engine::candidates::ViewUpdate::Unchanged => {
+                    (*self.candidates.load_full()).clone()
+                }
+                core_engine::candidates::ViewUpdate::Replace(view) => {
+                    let current = self.candidates.load();
+                    candidate_view(view, core.config(), anchor.or(current.anchor))
+                }
+            }
+        };
+        // TSF is synchronous and thread-affine. No core lock is held across callbacks.
+        let result = if matches!(plan.op, EditSessionOp::NoOp) {
             Ok(None)
         } else {
-            edit(&update.op)
+            edit(&plan.op)
         };
-        let mut state = self.state.lock();
-        if state.generation != update.generation {
-            return update.consumed;
-        }
-        match result {
-            Ok(anchor) => {
-                state.needs_cleanup = false;
-                state.cleanup_delete_text = false;
-                if update.view.visible {
-                    update.view.anchor = anchor.or(update.view.anchor);
-                }
-                self.candidates.store(Arc::new(update.view));
-            }
+        let outcome = match &result {
+            Ok(_) => HostOutcome::Applied,
+            Err(error) if error.retry_safe() => HostOutcome::RejectedBeforeWrite,
             Err(error) => {
-                if error.retry_safe() {
-                    if let Some(previous) = update.rollback {
-                        state.sm = previous;
-                        log::warn!("[TSF] 临时输入编辑失败，保留输入供重试: {error}");
-                        return update.consumed;
+                log::warn!("[TSF] 输入会话编辑失败，等待清理旧 composition: {error}");
+                HostOutcome::OutcomeUnknown
+            }
+        };
+        let mut core = self.core.lock();
+        let ack = core.acknowledge(plan.token, outcome);
+        match ack.status {
+            AckStatus::Published => {
+                if next_view.visible {
+                    if let Ok(precise) = result {
+                        next_view.anchor = precise.or(next_view.anchor);
                     }
                 }
-                log::warn!("[TSF] 输入会话编辑失败，等待清理旧 composition: {error}");
-                state.sm.reset();
-                state.needs_cleanup = true;
-                state.cleanup_delete_text = matches!(
-                    update.op,
-                    EditSessionOp::EndComposition { delete_text: true }
-                );
+                self.candidates.store(Arc::new(next_view));
+            }
+            AckStatus::NeedsCleanup => {
                 self.candidates
                     .store(Arc::new(CandidateData::hidden(ThemeSnapshot::from_config(
-                        &state.config,
-                    ))));
+                        core.config(),
+                    ))))
             }
+            AckStatus::Retained | AckStatus::Stale => {}
         }
-        update.consumed
+        consumed
     }
 }
 
-fn state_machine(dict: Arc<Dictionary>, config: &Config) -> StateMachine {
-    let max_code_len = dict.table_config().max_code_len as usize;
-    StateMachine::with_full_behavior(
-        dict,
-        config.basic.candidate_count as usize,
-        config.basic.auto_commit_unique,
-        config.basic.punctuation_mode,
-        max_code_len,
-        config.basic.commit_on_max_code_overflow,
-    )
-}
-
-fn accepts(state: &State, event: &InputEvent, system_modifier: bool) -> bool {
-    if !state.chinese || system_modifier || state.needs_cleanup {
-        return false;
-    }
-    if !state.sm.would_consume(event) {
-        return false;
-    }
-    if state.sm.mode() != InputMode::Main
-        || matches!(event, InputEvent::Char(c) | InputEvent::Symbol(c) if state.sm.is_temporary_trigger(*c))
-    {
-        return true;
-    }
-    match event {
-        InputEvent::Char(c) | InputEvent::Symbol(c) if state.sm.accepts_code_char(*c) => true,
-        InputEvent::Symbol(c) if !c.is_ascii() => true,
-        _ => !state.sm.spelling().is_empty(),
-    }
-}
-
-fn cleared_update(state: &State, op: EditSessionOp) -> Update {
-    Update {
-        rollback: None,
-        generation: state.generation,
-        op,
-        view: CandidateData::hidden(ThemeSnapshot::from_config(&state.config)),
-        consumed: true,
-    }
-}
-
-/// 同一个 match 同时决定 composition 与候选显示，新增 Transition 无需同步两份映射。
-fn plan(
-    state: &State,
-    transition: Transition,
-    current: &CandidateData,
+fn candidate_view(
+    view: &core_engine::candidates::SessionView,
+    config: &Config,
     anchor: Option<ScreenPoint>,
-) -> Update {
-    let theme = ThemeSnapshot::from_config(&state.config);
-    let mut view = CandidateData::hidden(theme);
-    view.anchor = anchor.or(current.anchor);
-    let mut consumed = true;
-    let op = match transition {
-        Transition::None => {
-            view = current.clone();
-            EditSessionOp::NoOp
-        }
-        Transition::Commit(text) => EditSessionOp::CommitAndReplace {
-            text,
-            replace_len: 0,
-        },
-        Transition::Candidates {
-            spelling,
-            candidates,
-            code_hints,
-            page,
-            total_pages,
-        } => {
-            if state.sm.mode() != InputMode::Main {
-                set_candidates(
-                    &mut view,
-                    &spelling,
-                    candidates,
-                    code_hints,
-                    page,
-                    total_pages,
-                    true,
-                );
-                if spelling.is_empty() {
-                    EditSessionOp::EndComposition { delete_text: true }
-                } else {
-                    EditSessionOp::CompositionUpdate {
-                        spelling,
-                        attr: DisplayAttrKind::Input,
-                    }
-                }
-            } else {
-                if spelling.is_empty() {
-                    EditSessionOp::EndComposition { delete_text: true }
-                } else {
-                    set_candidates(
-                        &mut view,
-                        &spelling,
-                        candidates,
-                        code_hints,
-                        page,
-                        total_pages,
-                        state.config.basic.show_code_hints,
-                    );
-                    EditSessionOp::CompositionUpdate {
-                        spelling,
-                        attr: DisplayAttrKind::Converted,
-                    }
-                }
-            }
-        }
-        Transition::CommitThenCandidates {
-            text,
-            replace_len,
-            spelling,
-            candidates,
-            code_hints,
-            page,
-            total_pages,
-        } => {
-            set_candidates(
-                &mut view,
-                &spelling,
-                candidates,
-                code_hints,
-                page,
-                total_pages,
-                state.config.basic.show_code_hints,
-            );
-            EditSessionOp::CommitThenUpdate {
-                text,
-                replace_len,
-                spelling,
-                attr: DisplayAttrKind::Converted,
-            }
-        }
-        Transition::SpellingUpdated(spelling) => {
-            view.visible = !spelling.is_empty();
-            view.spelling = spelling.clone();
-            if spelling.is_empty() {
-                EditSessionOp::EndComposition { delete_text: true }
-            } else {
-                EditSessionOp::CompositionUpdate {
-                    spelling,
-                    attr: DisplayAttrKind::Input,
-                }
-            }
-        }
-        Transition::CommitThenSpelling {
-            text,
-            replace_len,
-            spelling,
-        } => {
-            view.visible = !spelling.is_empty();
-            view.spelling = spelling.clone();
-            EditSessionOp::CommitThenUpdate {
-                text,
-                replace_len,
-                spelling,
-                attr: DisplayAttrKind::Input,
-            }
-        }
-        Transition::Cleared => EditSessionOp::EndComposition { delete_text: true },
-        Transition::Passthrough(_) => {
-            view = current.clone();
-            consumed = false;
-            EditSessionOp::NoOp
-        }
-    };
-    if state.sm.mode() != InputMode::Main {
-        view.visible = true;
-        view.spelling = format!("{}  {}", state.sm.mode().label(), state.sm.spelling())
+) -> CandidateData {
+    let mut data = CandidateData::hidden(ThemeSnapshot::from_config(config));
+    data.visible = view.visible;
+    data.spelling = if view.mode == InputMode::Main {
+        view.spelling.clone()
+    } else {
+        format!("{}  {}", view.mode.label(), view.spelling)
             .trim_end()
-            .to_string();
-    }
-    Update {
-        rollback: None,
-        generation: state.generation,
-        op,
-        view,
-        consumed,
-    }
-}
-
-fn set_candidates(
-    view: &mut CandidateData,
-    spelling: &str,
-    candidates: Vec<String>,
-    hints: Vec<String>,
-    page: usize,
-    total_pages: usize,
-    show_hints: bool,
-) {
-    view.visible = true;
-    view.spelling = spelling.to_string();
-    view.page = page;
-    view.total_pages = total_pages;
-    view.items = candidates
-        .into_iter()
+            .to_owned()
+    };
+    data.page = view.page;
+    data.total_pages = view.total_pages;
+    // Cleared operations historically discard anchors; active views retain the supplied fallback.
+    data.anchor = anchor;
+    data.items = view
+        .items
+        .iter()
         .enumerate()
-        .map(|(i, text)| CandidateItem {
+        .map(|(i, item)| CandidateItem {
             label: format!("{}. ", i + 1),
-            text,
-            hint: if show_hints {
-                hints.get(i).cloned().unwrap_or_default()
-            } else {
-                String::new()
-            },
+            text: item.text.clone(),
+            hint: item.hint.clone(),
         })
         .collect();
+    data
 }
 
 #[cfg(test)]
@@ -542,21 +263,142 @@ mod tests {
     use core_engine::Entry;
 
     #[test]
+    fn frozen_legacy_driver_matches_shared_adapter_across_keys_controls_and_failures() {
+        use crate::legacy_baseline as old;
+        for seed in ["", "a", "aaaa", "z", "`", "`1", "`1ni", "`2Hello"] {
+            for failure in 0..3 {
+                let (new, new_view, _) = temporary_setup();
+                let old_view = Arc::new(ArcSwap::from_pointee(CandidateData::default()));
+                let core = new.core.lock();
+                let snapshot = RuntimeSnapshot {
+                    dict: Dictionary::from_text("---\ntemporary:\n  key: '`'\n  reverse_lookup: true\n---\nwq\t你好\na\t主\n").unwrap(),
+                    temporary: Arc::new(core_engine::TemporaryTables { pinyin: Some(Dictionary::from_text("---\ntype: pinyin\nmax_code_len: 64\n---\nni'hao\t你好\n").unwrap()), reverse: Some(core_engine::ReverseLookup::new(&Dictionary::from_text("wq\t你好\na\t主\n").unwrap())), ..Default::default() }),
+                    config: core.config().clone(), revision: core.revision(), config_path: "c".into(), system_table_path: "s".into(), user_table_path: "u".into(),
+                };
+                drop(core);
+                let old = old::InputSession::from_snapshot(&snapshot, old_view.clone());
+                let mut new_ops = Vec::new();
+                let mut old_ops = Vec::new();
+                for c in seed.chars() {
+                    new.handle(InputEvent::Char(c), false, None, |op| {
+                        new_ops.push(format!("{op:?}"));
+                        Ok::<_, SessionEditError>(Some(ScreenPoint { x: 4, y: 8 }))
+                    });
+                    old.handle(InputEvent::Char(c), false, None, |op| {
+                        old_ops.push(format!("{op:?}"));
+                        Ok::<_, old::SessionEditError>(Some(ScreenPoint { x: 4, y: 8 }))
+                    });
+                }
+                for event in [
+                    InputEvent::PagePrev,
+                    InputEvent::PageNext,
+                    InputEvent::Select(9),
+                    InputEvent::Char('1'),
+                    InputEvent::Backspace,
+                    InputEvent::Symbol('，'),
+                    InputEvent::Space,
+                    InputEvent::Enter,
+                    InputEvent::Esc,
+                ] {
+                    assert_eq!(old.test_key(&event, false), new.test_key(&event, false));
+                    let new_consumed = new.handle(event.clone(), false, None, |op| {
+                        new_ops.push(format!("{op:?}"));
+                        if failure == 0 {
+                            Ok(None)
+                        } else {
+                            Err(SessionEditError {
+                                message: "injected".into(),
+                                text_committed: failure == 2,
+                            })
+                        }
+                    });
+                    let old_consumed = old.handle(event.clone(), false, None, |op| {
+                        old_ops.push(format!("{op:?}"));
+                        if failure == 0 {
+                            Ok(None)
+                        } else {
+                            Err(old::SessionEditError {
+                                message: "injected".into(),
+                                text_committed: failure == 2,
+                            })
+                        }
+                    });
+                    assert_eq!(old_consumed, new_consumed, "{seed} {failure} {event:?}");
+                    assert_eq!(old.mode(), new.mode());
+                    assert_eq!(old_ops, new_ops);
+                    assert_eq!(
+                        format!("{:?}", old_view.load_full()),
+                        format!("{:?}", new_view.load_full()),
+                        "{seed} {failure} {event:?}"
+                    );
+                    let a = new.recover(|op| {
+                        new_ops.push(format!("{op:?}"));
+                        Ok::<_, &str>(None)
+                    });
+                    let b = old.recover(|op| {
+                        old_ops.push(format!("{op:?}"));
+                        Ok::<_, &str>(None)
+                    });
+                    assert_eq!(a, b);
+                    assert_eq!(old_ops, new_ops);
+                }
+                for control in 0..4 {
+                    match control {
+                        0 => {
+                            new.set_chinese(false, |_| Err::<Option<ScreenPoint>, _>("failed"));
+                            old.set_chinese(false, |_| Err::<Option<ScreenPoint>, _>("failed"));
+                        }
+                        1 => {
+                            new.lose_focus(|_| Ok::<_, &str>(None));
+                            old.lose_focus(|_| Ok::<_, &str>(None));
+                        }
+                        2 => {
+                            let mut updated = snapshot.clone();
+                            updated.revision += 1;
+                            new.reload(&updated, |_| Err::<Option<ScreenPoint>, _>("failed"));
+                            old.reload(&updated, |_| Err::<Option<ScreenPoint>, _>("failed"));
+                        }
+                        _ => {
+                            new.terminated();
+                            old.terminated();
+                        }
+                    }
+                    assert_eq!(old.chinese(), new.chinese());
+                    assert_eq!(old.mode(), new.mode());
+                    assert_eq!(old.selecting(), new.selecting());
+                    assert_eq!(old.temporary_trigger(), new.temporary_trigger());
+                    assert_eq!(old.theme().font_size, new.theme().font_size);
+                    assert_eq!(
+                        old.config().basic.candidate_count,
+                        new.config().basic.candidate_count
+                    );
+                    assert_eq!(
+                        format!("{:?}", old_view.load_full()),
+                        format!("{:?}", new_view.load_full())
+                    );
+                }
+            }
+        }
+    }
+
+    #[test]
     fn nested_input_sees_advanced_state_and_old_result_cannot_publish() {
         let (session, candidates, _, _) = setup();
         session.handle(InputEvent::Char('a'), false, None, |op| {
             assert!(matches!(op, EditSessionOp::CompositionUpdate { spelling, attr: DisplayAttrKind::Converted } if spelling == "a"));
-            assert_eq!(session.state.lock().sm.spelling(), "a");
+            assert_eq!(session.core.lock().state_machine().spelling(), "a");
             assert!(!candidates.load().visible);
             assert!(session.handle(InputEvent::Char('a'), false, None, |_| {
                 Ok::<_, &str>(Some(ScreenPoint { x: 12, y: 34 }))
             }));
             Err::<Option<ScreenPoint>, _>("outer failed after nested input")
         });
-        assert_eq!(session.state.lock().sm.spelling(), "aa");
+        assert_eq!(session.core.lock().state_machine().spelling(), "aa");
         assert_eq!(candidates.load().spelling, "aa");
         assert_eq!(candidates.load().anchor.map(|p| (p.x, p.y)), Some((12, 34)));
-        assert!(!session.state.lock().needs_cleanup);
+        assert!(
+            !(session.core.lock().status() == core_engine::session::SessionStatus::NeedsCleanup)
+        );
     }
 
     #[test]
@@ -584,12 +426,14 @@ mod tests {
             user_table_path: "u".into(),
         };
         session.reload(&snapshot, |_| {
-            assert_eq!(session.state.lock().revision, 42);
+            assert_eq!(session.core.lock().revision(), 42);
             session.terminated();
             Err::<Option<ScreenPoint>, _>("late failure")
         });
-        assert_eq!(session.state.lock().revision, 42);
-        assert!(!session.state.lock().needs_cleanup);
+        assert_eq!(session.core.lock().revision(), 42);
+        assert!(
+            !(session.core.lock().status() == core_engine::session::SessionStatus::NeedsCleanup)
+        );
     }
 
     #[test]
@@ -597,11 +441,11 @@ mod tests {
         let (session, candidates, mut editor, _) = setup();
         type_text(&session, &mut editor, "b");
         let before = candidates.load_full();
-        let generation = session.state.lock().generation;
+        let generation = session.core.lock().generation();
         for _ in 0..3 {
             assert!(session.test_key(&InputEvent::PageNext, false));
         }
-        assert_eq!(session.state.lock().generation, generation);
+        assert_eq!(session.core.lock().generation(), generation);
         session.handle(InputEvent::PageNext, false, None, |_| -> Result<_, &str> {
             panic!("None must not execute an edit")
         });

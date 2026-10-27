@@ -44,6 +44,16 @@ pub enum InputPurpose {
     Password,
 }
 
+/// Empty Enter is handed to the host with this already-normalized action.
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+pub enum HostAction {
+    Newline,
+    Send,
+    Search,
+    Next,
+    Done,
+}
+
 /// Platform supplies stable editor identity and explicit capabilities, not OS enums.
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub struct HostContext {
@@ -53,6 +63,9 @@ pub struct HostContext {
     pub supports_insert: bool,
     pub owns_preedit: bool,
     pub purpose: InputPurpose,
+    pub selection_available: bool,
+    pub surrounding_available: bool,
+    pub enter_action: HostAction,
 }
 impl Default for HostContext {
     fn default() -> Self {
@@ -63,6 +76,9 @@ impl Default for HostContext {
             supports_insert: true,
             owns_preedit: false,
             purpose: InputPurpose::Text,
+            selection_available: true,
+            surrounding_available: false,
+            enter_action: HostAction::Newline,
         }
     }
 }
@@ -140,6 +156,7 @@ struct PlanParts {
     view: SessionView,
     consumed: bool,
     unchanged: bool,
+    reset_view: bool,
 }
 
 /// A caller serializes access, releases its lock for host calls, then acknowledges.
@@ -187,6 +204,12 @@ impl Session {
     pub fn base_mode(&self) -> BaseMode {
         self.engine.base_mode()
     }
+    pub fn temporary_mode(&self) -> Option<TemporaryMode> {
+        self.engine.temporary_mode()
+    }
+    pub fn capability(&self, mode: TemporaryMode) -> Capability {
+        self.engine.capability(mode)
+    }
     pub fn config(&self) -> &Config {
         &self.config
     }
@@ -226,6 +249,20 @@ impl Session {
         self.engine.profile == BehaviorProfile::LegacyV1
     }
     pub fn would_handle(&self, action: &Action) -> bool {
+        if !self.legacy() && self.context.purpose != InputPurpose::Text {
+            return !self.closed
+                && self.cleanup.is_none()
+                && self.gate
+                && self.context.supports_insert
+                && match action {
+                    Action::InputText(..)
+                    | Action::InputCode(_)
+                    | Action::InputSymbol(_)
+                    | Action::Legacy(InputEvent::Char(_) | InputEvent::Symbol(_)) => true,
+                    Action::InsertLiteral(text) => !text.is_empty() && text.len() <= 65536,
+                    _ => false,
+                };
+        }
         !self.closed && self.cleanup.is_none() && self.gate && self.engine.would_handle(action)
     }
     pub fn would_handle_legacy(&self, event: &InputEvent, system_modifier: bool) -> bool {
@@ -277,10 +314,40 @@ impl Session {
             .then(|| self.engine.clone());
         let action = if !self.legacy() && self.context.purpose != InputPurpose::Text {
             match action {
-                Action::InputText(c, _) | Action::InputCode(c) | Action::InputSymbol(c) => {
+                Action::InputText(c, _)
+                | Action::InputCode(c)
+                | Action::InputSymbol(c)
+                | Action::Legacy(InputEvent::Char(c) | InputEvent::Symbol(c)) => {
                     Action::InsertLiteral(c.to_string())
                 }
-                other => other,
+                Action::InsertLiteral(text) => Action::InsertLiteral(text),
+                Action::Space
+                | Action::Enter
+                | Action::Backspace
+                | Action::Cancel
+                | Action::CommitPreferred
+                | Action::CommitRaw
+                | Action::Legacy(
+                    InputEvent::Space | InputEvent::Enter | InputEvent::Backspace | InputEvent::Esc,
+                ) => {
+                    return self.stage(
+                        next,
+                        None,
+                        PlanParts {
+                            op: EditSessionOp::NoOp,
+                            view: self.view.clone(),
+                            consumed: false,
+                            unchanged: true,
+                            reset_view: false,
+                        },
+                        false,
+                    );
+                }
+                _ => {
+                    return Err(SessionError::Rejected(Rejection::Unavailable(
+                        "当前输入框只接受字面文本".into(),
+                    )))
+                }
             }
         } else {
             action
@@ -371,7 +438,9 @@ impl Session {
             token: self.token(),
             op: parts.op,
             target,
-            preview: if parts.unchanged {
+            preview: if parts.reset_view {
+                ViewUpdate::Reset(parts.view)
+            } else if parts.unchanged {
                 ViewUpdate::Unchanged
             } else {
                 ViewUpdate::Replace(parts.view)
@@ -392,11 +461,32 @@ impl Session {
     }
 
     pub fn acknowledge(&mut self, token: EditToken, outcome: HostOutcome) -> Acknowledged {
+        let owns_preedit = self.context.owns_preedit
+            && !matches!(
+                outcome,
+                HostOutcome::OutcomeUnknown
+                    | HostOutcome::PartiallyApplied { .. }
+                    | HostOutcome::StaleContext
+            );
+        self.acknowledge_with_ownership(token, outcome, owns_preedit)
+    }
+
+    /// Touch adapters must reconfirm ownership of the same range after uncertain
+    /// host effects. The default acknowledge conservatively relinquishes it.
+    pub fn acknowledge_with_ownership(
+        &mut self,
+        token: EditToken,
+        outcome: HostOutcome,
+        owns_preedit: bool,
+    ) -> Acknowledged {
         if !self.is_current(token) {
             return Acknowledged {
                 status: AckStatus::Stale,
                 follow_up: None,
             };
+        }
+        if !self.legacy() {
+            self.context.owns_preedit = owns_preedit;
         }
         let Some(pending) = self.pending.take() else {
             return Acknowledged {
@@ -409,7 +499,7 @@ impl Session {
             HostOutcome::Applied => {
                 self.engine = pending.next;
                 self.published_engine = self.engine.clone();
-                if let ViewUpdate::Replace(view) = pending.plan.preview {
+                if let ViewUpdate::Replace(view) | ViewUpdate::Reset(view) = pending.plan.preview {
                     self.view = view;
                 }
                 self.cleanup = None;
@@ -474,6 +564,7 @@ impl Session {
                 view: SessionView::default(),
                 consumed: true,
                 unchanged: false,
+                reset_view: true,
             },
             cleanup,
         )
@@ -548,6 +639,15 @@ impl Session {
             self.engine = SemanticEngine::new(sm, self.engine.profile);
         }
         self.engine.invalidate_query();
+        if let Some(runtime) = self.deferred_runtime.take() {
+            let base = self.engine.base_mode();
+            self.engine = SemanticEngine::new(runtime.state_machine(), self.engine.profile);
+            if preserve_base && base == BaseMode::English {
+                self.engine.dispatch(Action::SetBaseMode(BaseMode::English));
+            }
+            self.config = runtime.config.clone();
+            self.revision = runtime.revision;
+        }
         self.published_engine = self.engine.clone();
         self.view = SessionView::default();
     }
@@ -571,6 +671,15 @@ impl Session {
             return Err(SessionError::Closed);
         }
         if runtime.revision == self.revision {
+            return Ok(None);
+        }
+        if !self.legacy()
+            && (runtime.revision < self.revision
+                || self
+                    .deferred_runtime
+                    .as_ref()
+                    .is_some_and(|r| r.revision > runtime.revision))
+        {
             return Ok(None);
         }
         if !self.legacy() && self.pending.is_some() {
@@ -731,6 +840,7 @@ fn plan(
         _ => view.preedit_kind,
     };
     PlanParts {
+        reset_view: false,
         unchanged,
         op,
         view,

@@ -89,3 +89,17 @@ fn invalid_user_data_rejects_reload_and_legacy_startup_falls_back_to_empty() {
         .dict
         .is_empty());
 }
+
+#[test]
+fn legacy_fallback_keeps_main_usable_without_retrying_auxiliary_loading() {
+    let f = Files::new();
+    f.write(
+        "main.dict",
+        "---\ntemporary:\n  key: '`'\n  pinyin_table: py.dict\n---\na\t甲\n",
+    );
+    f.write("py.dict", "---\ntype: pinyin\n---\nni\t你\n");
+    let s = RuntimeBuilder::legacy_fallback(f.0.join("config.toml"), f.config());
+    assert_eq!(s.dict.exact("a")[0].word, "甲");
+    assert!(s.temporary.pinyin.is_none());
+    assert!(s.temporary.paths.is_empty());
+}

@@ -123,7 +123,6 @@ pub struct SemanticEngine {
     temporary: Option<TemporaryMode>,
     query_revision: QueryRevision,
     view_revision: u64,
-    all_candidates: Arc<Vec<Candidate>>,
 }
 
 impl SemanticEngine {
@@ -138,24 +137,75 @@ impl SemanticEngine {
                 version: 0,
             },
             view_revision: 0,
-            all_candidates: Arc::new(Vec::new()),
         }
     }
     pub fn state_machine(&self) -> &StateMachine {
         &self.sm
     }
 
+    /// Read-only window query. Full lookup is performed only on explicit queries,
+    /// never duplicated on the Windows key path; only the bounded window is copied.
     pub fn candidate_window(&self, offset: usize, count: usize) -> CandidateWindow {
-        let offset = offset.min(self.all_candidates.len());
-        let end = offset
-            .saturating_add(count.min(MAX_WINDOW))
-            .min(self.all_candidates.len());
+        let dict = match self.sm.mode {
+            InputMode::Main => Some(&self.sm.dict),
+            InputMode::Pinyin => self.sm.temporary.pinyin.as_ref(),
+            InputMode::English => self.sm.temporary.english.as_ref(),
+            InputMode::Menu => None,
+        };
+        let all = if let Some(dict) =
+            dict.filter(|_| !self.sm.spelling.is_empty() && !self.sm.candidates.is_empty())
+        {
+            let options = SearchOptions {
+                prefer_exact: true,
+                limit: dict.len(),
+            };
+            if self.sm.mode == InputMode::Main {
+                dict.search(self.sm.lookup_key(), options)
+            } else {
+                dict.search_literal(&self.sm.spelling, options)
+            }
+        } else {
+            Vec::new()
+        };
+        let offset = offset.min(all.len());
+        let end = offset.saturating_add(count.min(MAX_WINDOW)).min(all.len());
+        let candidates = all[offset..end]
+            .iter()
+            .enumerate()
+            .map(|(index, entry)| {
+                let hints = if self.sm.mode == InputMode::Main {
+                    entry
+                        .code
+                        .strip_prefix(self.sm.lookup_key())
+                        .filter(|s| !s.is_empty())
+                        .map(|s| vec![CandidateHint::CodeSuffix(s.to_owned())])
+                        .unwrap_or_default()
+                } else if self.sm.dict.table_config().temporary.reverse_lookup {
+                    self.sm
+                        .temporary
+                        .reverse
+                        .as_ref()
+                        .map(|r| r.codes(&entry.word))
+                        .filter(|codes| !codes.is_empty())
+                        .map(|codes| vec![CandidateHint::ReverseCodes(codes.to_vec())])
+                        .unwrap_or_default()
+                } else {
+                    Vec::new()
+                };
+                Candidate {
+                    id: CandidateId(offset + index),
+                    text: entry.word.clone(),
+                    exact: entry.code == self.sm.spelling,
+                    hints,
+                }
+            })
+            .collect();
         CandidateWindow {
             query_revision: self.query_revision,
             view_revision: self.view_revision,
-            total: self.all_candidates.len(),
+            total: all.len(),
             offset,
-            candidates: self.all_candidates[offset..end].to_vec(),
+            candidates,
         }
     }
 
@@ -163,65 +213,7 @@ impl SemanticEngine {
     pub fn invalidate_query(&mut self) {
         self.query_revision.version += 1;
         self.view_revision += 1;
-        self.refresh_candidates();
     }
-
-    fn refresh_candidates(&mut self) {
-        let dict = match self.sm.mode {
-            InputMode::Main => Some(&self.sm.dict),
-            InputMode::Pinyin => self.sm.temporary.pinyin.as_ref(),
-            InputMode::English => self.sm.temporary.english.as_ref(),
-            InputMode::Menu => None,
-        };
-        self.all_candidates = Arc::new(
-            if let Some(dict) =
-                dict.filter(|_| !self.sm.spelling.is_empty() && !self.sm.candidates.is_empty())
-            {
-                let options = SearchOptions {
-                    prefer_exact: true,
-                    limit: dict.len(),
-                };
-                let all = if self.sm.mode == InputMode::Main {
-                    dict.search(self.sm.lookup_key(), options)
-                } else {
-                    dict.search_literal(&self.sm.spelling, options)
-                };
-                all.into_iter()
-                    .enumerate()
-                    .map(|(index, entry)| {
-                        let hints = if self.sm.mode == InputMode::Main {
-                            entry
-                                .code
-                                .strip_prefix(self.sm.lookup_key())
-                                .filter(|s| !s.is_empty())
-                                .map(|s| vec![CandidateHint::CodeSuffix(s.to_owned())])
-                                .unwrap_or_default()
-                        } else if self.sm.dict.table_config().temporary.reverse_lookup {
-                            self.sm
-                                .temporary
-                                .reverse
-                                .as_ref()
-                                .map(|r| r.codes(&entry.word))
-                                .filter(|codes| !codes.is_empty())
-                                .map(|codes| vec![CandidateHint::ReverseCodes(codes.to_vec())])
-                                .unwrap_or_default()
-                        } else {
-                            Vec::new()
-                        };
-                        Candidate {
-                            id: CandidateId(index),
-                            text: entry.word.clone(),
-                            exact: entry.code == self.sm.spelling,
-                            hints,
-                        }
-                    })
-                    .collect()
-            } else {
-                Vec::new()
-            },
-        );
-    }
-
     pub fn base_mode(&self) -> BaseMode {
         self.base
     }
@@ -259,15 +251,27 @@ impl SemanticEngine {
 
     /// End a round without changing the persistent mode; old StateMachine::reset stays unchanged.
     pub fn clear_composition(&mut self) {
+        let mode = self.sm.mode;
+        self.sm.reset();
+        self.sm.mode = mode;
+        if mode != InputMode::Main {
+            self.sm.refresh_temporary();
+        }
+        self.invalidate_query();
+    }
+
+    /// Cancel the temporary overlay and return to the persistent base mode.
+    pub fn end_temporary(&mut self) {
         self.sm.reset();
         self.temporary = None;
         if self.base == BaseMode::English {
             self.sm.mode = InputMode::English;
         }
+        self.invalidate_query();
     }
 
     pub fn reset_context(&mut self) {
-        self.clear_composition();
+        self.end_temporary();
     }
 
     fn persistent_english(&self) -> bool {
@@ -321,7 +325,9 @@ impl SemanticEngine {
     pub fn would_handle(&self, action: &Action) -> bool {
         match action {
             Action::SelectCandidate(revision, id) => {
-                *revision == self.query_revision && id.0 < self.all_candidates.len()
+                *revision == self.query_revision
+                    && self.sm.mode != InputMode::Menu
+                    && id.0 < self.sm.total_candidates
             }
             Action::SetBaseMode(_)
             | Action::BeginTemporary(_)
@@ -330,10 +336,15 @@ impl SemanticEngine {
             | Action::ChooseMode(_)
             | Action::CloseModeChooser => true,
             Action::Legacy(e) => self.sm.would_consume(e),
-            Action::InputCode(c) => self.sm.accepts_code_char(*c),
+            Action::InputCode(c) => match self.sm.mode {
+                InputMode::Main => self.sm.accepts_code_char(*c),
+                InputMode::Pinyin => c.is_ascii_lowercase() || *c == '\'',
+                InputMode::English => !c.is_control(),
+                InputMode::Menu => false,
+            },
             Action::InsertLiteral(s) => !s.is_empty() && s.len() <= 65536,
             Action::InputText(..) | Action::InputSymbol(_) => true,
-            Action::CommitPreferred | Action::CommitRaw => !self.sm.spelling().is_empty(),
+            Action::CommitPreferred | Action::CommitRaw => true,
             Action::Space => self.sm.would_consume(&InputEvent::Space),
             Action::Enter | Action::Backspace if self.persistent_english() => {
                 !self.sm.spelling.is_empty()
@@ -384,11 +395,12 @@ impl SemanticEngine {
                 if revision != self.query_revision {
                     return ActionResult::rejected(Rejection::StaleCandidate);
                 }
-                let Some(candidate) = self.all_candidates.get(id.0) else {
+                let window = self.candidate_window(id.0, 1);
+                let Some(candidate) = window.candidates.first() else {
                     return ActionResult::rejected(Rejection::StaleCandidate);
                 };
                 let text = candidate.text.clone();
-                self.clear_composition();
+                self.end_temporary();
                 Transition::Commit(text)
             }
             Action::SetBaseMode(base) => return self.change_mode(Some(base), None),
@@ -396,7 +408,10 @@ impl SemanticEngine {
                 return self.change_mode(None, Some(mode))
             }
             Action::EndTemporary | Action::CloseModeChooser => {
-                self.clear_composition();
+                if self.temporary_mode().is_none() && self.sm.mode != InputMode::Menu {
+                    return ActionResult::from_transition(Transition::None);
+                }
+                self.end_temporary();
                 Transition::Cleared
             }
             Action::OpenModeChooser => {
@@ -407,9 +422,17 @@ impl SemanticEngine {
                 self.sm.refresh_temporary()
             }
             Action::Legacy(event) => self.sm.handle(event),
-            Action::InputCode(c) if self.sm.mode != InputMode::Main => {
-                self.sm.handle(InputEvent::Char(c))
-            }
+            Action::InputCode(c) if self.sm.mode != InputMode::Main => match self.sm.mode {
+                InputMode::Pinyin if c.is_ascii_lowercase() || c == '\'' => {
+                    self.sm.handle(InputEvent::Char(c))
+                }
+                InputMode::English if !c.is_control() => {
+                    self.sm.spelling.push(c);
+                    self.sm.page = 0;
+                    self.sm.refresh_temporary()
+                }
+                _ => return ActionResult::rejected(Rejection::InvalidCode),
+            },
             Action::InputCode(c) => {
                 if !self.sm.accepts_code_char(c) {
                     return ActionResult::rejected(Rejection::InvalidCode);
@@ -417,7 +440,9 @@ impl SemanticEngine {
                 self.sm.on_code_char(c)
             }
             Action::InputText(c, TextIntent::Normal)
-                if self.sm.mode == InputMode::Main && self.sm.accepts_code_char(c) =>
+                if self.sm.mode == InputMode::Main
+                    && (c.is_ascii_alphabetic()
+                        || self.sm.dict.table_config().charset.contains(c)) =>
             {
                 self.sm.on_code_char(c)
             }
@@ -432,7 +457,11 @@ impl SemanticEngine {
                 self.insert_literal(&c.to_string())
             }
             Action::InputText(c, TextIntent::Normal) if self.sm.mode != InputMode::Main => {
-                self.sm.handle(InputEvent::Char(c))
+                if self.sm.mode == InputMode::Pinyin && !c.is_ascii_lowercase() && c != '\'' {
+                    self.insert_literal(&c.to_string())
+                } else {
+                    self.sm.handle(InputEvent::Char(c))
+                }
             }
             Action::InputText(c, _) | Action::InputSymbol(c) => self.insert_literal(&c.to_string()),
             Action::InsertLiteral(text) => {
@@ -440,6 +469,9 @@ impl SemanticEngine {
                     return ActionResult::rejected(Rejection::TextTooLong);
                 }
                 self.insert_literal(&text)
+            }
+            Action::CommitPreferred | Action::CommitRaw if self.sm.spelling.is_empty() => {
+                Transition::None
             }
             Action::CommitPreferred => self
                 .sm

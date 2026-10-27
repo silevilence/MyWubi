@@ -152,14 +152,14 @@ fn partial_and_unknown_results_never_replay_commits_and_recovery_preserves_inten
         let mut s = session(BehaviorProfile::TouchV1);
         text(&mut s, "a");
         let p = s.prepare(Action::Space).unwrap();
-        s.acknowledge(p.token, outcome);
+        s.acknowledge_with_ownership(p.token, outcome, true);
         assert_eq!(s.status(), SessionStatus::NeedsCleanup);
         let cleanup = s.recover().unwrap().unwrap();
         assert_eq!(
             cleanup.op,
             EditSessionOp::EndComposition { delete_text: false }
         );
-        s.acknowledge(cleanup.token, HostOutcome::OutcomeUnknown);
+        s.acknowledge_with_ownership(cleanup.token, HostOutcome::OutcomeUnknown, true);
         let retry = s.recover().unwrap().unwrap();
         assert_eq!(retry.op, cleanup.op);
         s.acknowledge(retry.token, HostOutcome::Applied);
@@ -170,7 +170,7 @@ fn partial_and_unknown_results_never_replay_commits_and_recovery_preserves_inten
     apply(&mut s, Action::BeginTemporary(TemporaryMode::Pinyin));
     text(&mut s, "ni");
     let cancel = s.lose_focus().unwrap();
-    s.acknowledge(cancel.token, HostOutcome::OutcomeUnknown);
+    s.acknowledge_with_ownership(cancel.token, HostOutcome::OutcomeUnknown, true);
     assert_eq!(
         s.recover().unwrap().unwrap().op,
         EditSessionOp::EndComposition { delete_text: true }
@@ -259,6 +259,59 @@ fn password_input_is_literal_without_candidate_previews() {
     );
     assert!(!s.snapshot().visible);
     assert_eq!(s.candidate_window(0, 10).total, 0);
+    assert!(matches!(
+        s.prepare(Action::BeginTemporary(TemporaryMode::Pinyin)),
+        Err(SessionError::Rejected(_))
+    ));
+    assert!(!s.would_handle(&Action::Enter));
+    assert_eq!(
+        apply(&mut s, Action::Enter).disposition,
+        Disposition::NotHandled
+    );
+    let p = apply(&mut s, Action::Legacy(InputEvent::Char('a')));
+    assert_eq!(
+        p.op,
+        EditSessionOp::CommitAndReplace {
+            text: "a".into(),
+            replace_len: 0
+        }
+    );
+    assert_eq!(s.candidate_window(0, 10).total, 0);
+}
+
+#[test]
+fn unknown_ownership_is_not_inferred_from_a_previous_successful_preedit() {
+    let mut s = session(BehaviorProfile::TouchV1);
+    text(&mut s, "a");
+    assert!(s.context().owns_preedit);
+    let p = s.prepare(Action::Space).unwrap();
+    s.acknowledge(p.token, HostOutcome::OutcomeUnknown);
+    assert!(!s.context().owns_preedit);
+    assert!(s.recover().unwrap().is_none());
+    assert_eq!(s.candidate_window(0, 10).total, 0);
+}
+
+#[test]
+fn changed_context_adopts_latest_waiting_runtime_without_waiting_for_stale_ack() {
+    let mut s = session(BehaviorProfile::TouchV1);
+    let p = s.prepare(Action::InputCode('a')).unwrap();
+    s.apply_runtime(runtime(3)).unwrap();
+    s.apply_runtime(runtime(2)).unwrap();
+    s.invalidate_context(
+        HostContext {
+            editor: 9,
+            epoch: 2,
+            ..Default::default()
+        },
+        true,
+    );
+    assert_eq!(s.revision(), 3);
+    assert_eq!(s.status(), SessionStatus::Ready);
+    assert_eq!(
+        s.acknowledge(p.token, HostOutcome::Applied).status,
+        AckStatus::Stale
+    );
+    assert!(s.apply_runtime(runtime(1)).unwrap().is_none());
 }
 
 #[test]

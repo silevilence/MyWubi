@@ -124,3 +124,24 @@ fn touch_english_retains_raw_input_when_completion_is_broken() {
     assert!(touch.capability(TemporaryMode::English).available);
     assert!(!touch.capability(TemporaryMode::English).candidate_support);
 }
+
+#[test]
+fn clear_round_preserves_temporary_mode_but_end_restores_base() {
+    let mut e = engine(BehaviorProfile::TouchV1);
+    e.dispatch(Action::SetBaseMode(BaseMode::English));
+    e.dispatch(Action::BeginTemporary(TemporaryMode::Pinyin));
+    text(&mut e, "ni");
+    let old = e.candidate_window(0, 1);
+    e.clear_composition();
+    assert_eq!(e.temporary_mode(), Some(TemporaryMode::Pinyin));
+    assert_eq!(e.state_machine().spelling(), "");
+    assert_ne!(e.candidate_window(0, 1).query_revision, old.query_revision);
+    assert_eq!(
+        e.dispatch(Action::CommitPreferred).transition,
+        Transition::None
+    );
+    assert_eq!(e.temporary_mode(), Some(TemporaryMode::Pinyin));
+    e.end_temporary();
+    assert_eq!(e.base_mode(), BaseMode::English);
+    assert_eq!(e.temporary_mode(), None);
+}

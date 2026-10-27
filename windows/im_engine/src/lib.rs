@@ -36,6 +36,9 @@ pub mod file_log;
 pub mod guids;
 mod input_session;
 pub mod key_filter;
+#[cfg(test)]
+#[path = "../tests/support/legacy_input_session.rs"]
+mod legacy_baseline;
 mod lifecycle;
 pub mod reload;
 pub mod screen_geometry;
@@ -98,7 +101,8 @@ fn load_initial_runtime_snapshot() -> RuntimeSnapshot {
                 .and_then(|exe_dir| config_path::resolve(exe_dir).ok())
                 .unwrap_or_else(|| PathBuf::from("config.toml"));
 
-            core_engine::runtime::RuntimeBuilder::legacy_startup(resolved_path)
+            let config = Config::load(&resolved_path).unwrap_or_default();
+            core_engine::runtime::RuntimeBuilder::legacy_fallback(resolved_path, config)
         }
     }
 }

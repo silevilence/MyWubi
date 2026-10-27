@@ -1,6 +1,8 @@
 //! 码表编辑会话：集中草稿、选择与持久化结果。
+#[cfg(test)]
+use core_engine::save_table;
 use core_engine::{
-    read_table, save_table, validate_table, Config, Entry, TableConfig, TableValidationIssue,
+    read_table, validate_table, Config, Entry, TableConfig, TableValidationIssue,
     TableValidationReport,
 };
 use std::cmp::Reverse;
@@ -189,27 +191,14 @@ impl TableEditor {
     }
 
     pub fn save_to(&mut self, path: PathBuf) -> Result<(), String> {
-        let mut config = self.draft_config()?;
-        // 跨目录另存保留原引用的目标；转换为绝对路径后再校验，成功才更新草稿。
-        if path.parent() != self.path.parent() {
-            for reference in [
-                &mut config.temporary.pinyin_table,
-                &mut config.temporary.english_table,
-            ] {
-                if !reference.is_empty() && Path::new(reference).is_relative() {
-                    if let Some(target) =
-                        core_engine::TemporaryConfig::resolve_path(&self.path, reference)
-                    {
-                        *reference = std::path::absolute(target)
-                            .map_err(|e| e.to_string())?
-                            .to_string_lossy()
-                            .into_owned();
-                    }
-                }
-            }
-        }
-        validate_references(&config, &path)?;
-        save_table(&path, &config, &self.entries).map_err(|error| error.to_string())?;
+        let (config, _) = core_engine::data::save_table(
+            &self.path,
+            &path,
+            &self.draft_config()?,
+            &self.entries,
+            core_engine::data::WritePolicy::LegacyOverwrite,
+        )
+        .map_err(|e| e.to_string())?;
         self.path = path;
         self.config = config;
         self.validation = TableValidationReport::default();
@@ -220,17 +209,7 @@ impl TableEditor {
     }
 }
 
-fn validate_references(config: &TableConfig, path: &Path) -> Result<(), String> {
-    for (pinyin, reference) in [
-        (true, &config.temporary.pinyin_table),
-        (false, &config.temporary.english_table),
-    ] {
-        if !reference.is_empty() {
-            core_engine::TemporaryConfig::load_table(path, reference, pinyin)?;
-        }
-    }
-    Ok(())
-}
+use core_engine::data::validate_references;
 
 fn search_relevance(entry: &Entry, query: &str) -> Option<(u8, usize, Reverse<u32>)> {
     [entry.code.as_str(), entry.word.as_str()]
@@ -388,16 +367,36 @@ impl TableSession {
         self.editor
             .validate_context(&config.hotkey)
             .map_err(failure)?;
-        let table_saved = self.is_dirty();
+        let header = self.editor.draft_config().map_err(failure)?;
+        let table = self.is_dirty().then_some(core_engine::data::TableDraft {
+            original: &self.editor.path,
+            target: &self.editor.path,
+            config: &header,
+            entries: &self.editor.entries,
+            policy: core_engine::data::WritePolicy::LegacyOverwrite,
+        });
+        let report = core_engine::data::save_bundle(
+            config,
+            config_path,
+            core_engine::config::ValidationContext::DesktopSave,
+            core_engine::data::WritePolicy::LegacyOverwrite,
+            table,
+        );
+        let table_saved = report.saved.contains(&self.editor.path);
         if table_saved {
-            self.editor
-                .save_to(self.editor.path.clone())
-                .map_err(failure)?;
+            self.editor.config = header;
+            self.editor.validation = TableValidationReport::default();
+            self.editor.validation_stale = false;
+            self.editor.dirty = false;
+            self.editor.load_error = None;
         }
-        config.save(config_path).map_err(|error| SaveFailure {
-            table_saved,
-            message: error.to_string(),
-        })
+        match report.failure {
+            Some((_, error)) => Err(SaveFailure {
+                table_saved,
+                message: error.to_string(),
+            }),
+            None => Ok(()),
+        }
     }
 }
 

@@ -14,7 +14,7 @@ use std::{
 static NEXT_REVISION: AtomicU64 = AtomicU64::new(1);
 
 /// A consistent resource set. Mutable input buffers belong to sessions.
-#[derive(Debug)]
+#[derive(Debug, Clone)]
 pub struct RuntimeSnapshot {
     pub revision: u64,
     pub dict: Arc<Dictionary>,
@@ -103,6 +103,9 @@ impl RuntimeBuilder {
             &config.hotkey,
             profile,
         ));
+        for error in &temporary.load_errors {
+            log::warn!("[temporary] {error}");
+        }
         dependencies.extend(temporary.paths.iter().cloned());
         if policy == LoadPolicy::Reload && !temporary.load_errors.is_empty() {
             return Err(BuildError {
@@ -128,7 +131,13 @@ impl RuntimeBuilder {
 
     /// Windows startup fallback preserves the old retry-main-then-empty policy.
     pub fn legacy_startup(path: PathBuf) -> RuntimeSnapshot {
-        let config = Config::load(&path).unwrap_or_default();
+        let config = match Config::load(&path) {
+            Ok(config) => config,
+            Err(error) => {
+                log::error!("{error}");
+                return Self::legacy_fallback(path, Config::default());
+            }
+        };
         match Self::build(
             path.clone(),
             config.clone(),
@@ -138,31 +147,35 @@ impl RuntimeBuilder {
             Ok(snapshot) => snapshot,
             Err(error) => {
                 log::error!("{}", error.message);
-                let system_table_path = crate::config_path::resolve_resource_path(
-                    &path,
-                    &config.dictionary.system_table,
-                );
-                let user_table_path =
-                    crate::config_path::resolve_resource_path(&path, &config.dictionary.user_table);
-                let dict = load_dictionary(&system_table_path, &user_table_path, &config)
-                    .unwrap_or_else(|error| {
-                        log::error!("{error}");
-                        Dictionary::empty()
-                    });
-                RuntimeSnapshot {
-                    revision: NEXT_REVISION.fetch_add(1, Ordering::Relaxed),
-                    dict,
-                    temporary: Arc::default(),
-                    config,
-                    config_path: path,
-                    system_table_path,
-                    user_table_path,
-                }
+                Self::legacy_fallback(path, config)
             }
         }
     }
-}
 
+    /// The legacy failure branch deliberately skips auxiliary resources, even if
+    /// retrying the main dictionary succeeds. It never retries the whole startup.
+    pub fn legacy_fallback(path: PathBuf, config: Config) -> RuntimeSnapshot {
+        let system_table_path =
+            crate::config_path::resolve_resource_path(&path, &config.dictionary.system_table);
+        let user_table_path =
+            crate::config_path::resolve_resource_path(&path, &config.dictionary.user_table);
+        let dict = load_dictionary(&system_table_path, &user_table_path, &config).unwrap_or_else(
+            |error| {
+                log::error!("{error}");
+                Dictionary::empty()
+            },
+        );
+        RuntimeSnapshot {
+            revision: NEXT_REVISION.fetch_add(1, Ordering::Relaxed),
+            dict,
+            temporary: Arc::default(),
+            config,
+            config_path: path,
+            system_table_path,
+            user_table_path,
+        }
+    }
+}
 pub fn load_dictionary(
     system: &Path,
     user: &Path,
@@ -223,11 +236,12 @@ impl RuntimeStore {
         self.current.load_full()
     }
     pub fn publish(&self, request: u64, snapshot: RuntimeSnapshot) -> bool {
-        let latest = self.request.lock();
+        let mut latest = self.request.lock();
         if request != *latest || !snapshot.temporary.load_errors.is_empty() {
             return false;
         }
         self.current.store(Arc::new(snapshot));
+        *latest += 1;
         true
     }
 }
