@@ -20,6 +20,9 @@ pub use dictionary::{
     read_table, save_table, validate_table, Dictionary, Entry, MatchKind, SearchOptions,
     TableConfig, TableValidationIssue, TableValidationReport,
 };
+pub use state_machine::semantic::{
+    Action, ActionResult, BehaviorProfile, Disposition, Rejection, SemanticEngine, TextIntent,
+};
 pub use state_machine::{InputEvent, StateMachine, Transition};
 pub use table_options::{validate_temporary_hotkeys, TableType, TemporaryConfig};
 pub use temporary::{InputMode, ReverseLookup, TemporaryTables};

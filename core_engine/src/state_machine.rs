@@ -10,6 +10,7 @@ use crate::config::PunctuationMode;
 use crate::dictionary::{Dictionary, Entry, SearchOptions};
 use crate::temporary::{InputMode, TemporaryTables};
 use std::sync::Arc;
+pub mod semantic;
 mod temporary_input;
 
 /// 当前所处的输入阶段。
@@ -337,6 +338,11 @@ impl StateMachine {
             return self.on_select(c.to_digit(10).unwrap() as usize);
         }
 
+        self.on_code_char(c)
+    }
+
+    // Explicit semantic code input bypasses legacy digit selection and menu triggers.
+    fn on_code_char(&mut self, c: char) -> Transition {
         let is_table_code_char = self.dict.table_config().charset.contains(c);
         if is_buffered_punctuation(c) && !is_table_code_char {
             if self.spelling.is_empty() {
