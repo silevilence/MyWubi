@@ -223,6 +223,17 @@ struct TrieNode {
 const HEADER_PREFIX: &str = "#";
 
 impl Dictionary {
+    /// Empty startup fallback without filesystem access or a fallible parser.
+    pub fn empty() -> Arc<Self> {
+        Arc::new(Self {
+            pinyin_index: None,
+            entries: Vec::new(),
+            prefix_index: BTreeMap::new(),
+            trie: None,
+            source: None,
+            table_config: TableConfig::default(),
+        })
+    }
     /// 从完整码表文本加载，使用与文件加载相同的校验。
     pub fn from_text(text: &str) -> Result<Arc<Self>, DictError> {
         let (config, entries) = parse_dictionary(text, 4096)?;

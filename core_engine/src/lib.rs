@@ -10,6 +10,7 @@ pub mod config;
 pub mod config_path;
 pub mod dictionary;
 mod pinyin;
+pub mod runtime;
 pub mod state_machine;
 pub mod table_options;
 pub mod temporary;
