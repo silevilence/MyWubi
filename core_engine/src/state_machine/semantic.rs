@@ -1,5 +1,8 @@
 //! Platform-independent character intent. Legacy events retain their exact routing.
 use super::*;
+use crate::candidates::*;
+use std::sync::atomic::{AtomicU64, Ordering};
+static NEXT_ENGINE: AtomicU64 = AtomicU64::new(1);
 
 /// Persistent selection; a temporary capability never overwrites this choice.
 #[derive(Debug, Clone, Copy, Default, PartialEq, Eq)]
@@ -58,6 +61,7 @@ pub enum Action {
     OpenModeChooser,
     ChooseMode(TemporaryMode),
     CloseModeChooser,
+    SelectCandidate(QueryRevision, CandidateId),
 }
 
 impl From<InputEvent> for Action {
@@ -117,6 +121,9 @@ pub struct SemanticEngine {
     pub profile: BehaviorProfile,
     base: BaseMode,
     temporary: Option<TemporaryMode>,
+    query_revision: QueryRevision,
+    view_revision: u64,
+    all_candidates: Vec<Candidate>,
 }
 
 impl SemanticEngine {
@@ -126,10 +133,91 @@ impl SemanticEngine {
             profile,
             base: BaseMode::Main,
             temporary: None,
+            query_revision: QueryRevision {
+                engine: NEXT_ENGINE.fetch_add(1, Ordering::Relaxed),
+                version: 0,
+            },
+            view_revision: 0,
+            all_candidates: Vec::new(),
         }
     }
     pub fn state_machine(&self) -> &StateMachine {
         &self.sm
+    }
+
+    pub fn candidate_window(&self, offset: usize, count: usize) -> CandidateWindow {
+        let offset = offset.min(self.all_candidates.len());
+        let end = offset
+            .saturating_add(count.min(MAX_WINDOW))
+            .min(self.all_candidates.len());
+        CandidateWindow {
+            query_revision: self.query_revision,
+            view_revision: self.view_revision,
+            total: self.all_candidates.len(),
+            offset,
+            candidates: self.all_candidates[offset..end].to_vec(),
+        }
+    }
+
+    /// A context/runtime change invalidates even identical candidate texts.
+    pub fn invalidate_query(&mut self) {
+        self.query_revision.version += 1;
+        self.view_revision += 1;
+        self.refresh_candidates();
+    }
+
+    fn refresh_candidates(&mut self) {
+        let dict = match self.sm.mode {
+            InputMode::Main => Some(&self.sm.dict),
+            InputMode::Pinyin => self.sm.temporary.pinyin.as_ref(),
+            InputMode::English => self.sm.temporary.english.as_ref(),
+            InputMode::Menu => None,
+        };
+        self.all_candidates = if let Some(dict) =
+            dict.filter(|_| !self.sm.spelling.is_empty() && !self.sm.candidates.is_empty())
+        {
+            let options = SearchOptions {
+                prefer_exact: true,
+                limit: dict.len(),
+            };
+            let all = if self.sm.mode == InputMode::Main {
+                dict.search(self.sm.lookup_key(), options)
+            } else {
+                dict.search_literal(&self.sm.spelling, options)
+            };
+            all.into_iter()
+                .enumerate()
+                .map(|(index, entry)| {
+                    let hints = if self.sm.mode == InputMode::Main {
+                        entry
+                            .code
+                            .strip_prefix(self.sm.lookup_key())
+                            .filter(|s| !s.is_empty())
+                            .map(|s| vec![CandidateHint::CodeSuffix(s.to_owned())])
+                            .unwrap_or_default()
+                    } else if self.sm.dict.table_config().temporary.reverse_lookup {
+                        self.sm
+                            .temporary
+                            .reverse
+                            .as_ref()
+                            .map(|r| r.codes(&entry.word))
+                            .filter(|codes| !codes.is_empty())
+                            .map(|codes| vec![CandidateHint::ReverseCodes(codes.to_vec())])
+                            .unwrap_or_default()
+                    } else {
+                        Vec::new()
+                    };
+                    Candidate {
+                        id: CandidateId(index),
+                        text: entry.word.clone(),
+                        exact: entry.code == self.sm.spelling,
+                        hints,
+                    }
+                })
+                .collect()
+        } else {
+            Vec::new()
+        };
     }
 
     pub fn base_mode(&self) -> BaseMode {
@@ -230,6 +318,9 @@ impl SemanticEngine {
     /// Pure routing prediction: does not clone the state or execute a search.
     pub fn would_handle(&self, action: &Action) -> bool {
         match action {
+            Action::SelectCandidate(revision, id) => {
+                *revision == self.query_revision && id.0 < self.all_candidates.len()
+            }
             Action::SetBaseMode(_)
             | Action::BeginTemporary(_)
             | Action::EndTemporary
@@ -253,8 +344,51 @@ impl SemanticEngine {
     }
 
     pub fn dispatch(&mut self, action: Action) -> ActionResult {
+        let before = (
+            self.sm.spelling.clone(),
+            self.sm.mode,
+            self.base,
+            self.temporary,
+        );
+        let page = self.sm.page;
+        let result = self.dispatch_inner(action);
+        let changed = before
+            != (
+                self.sm.spelling.clone(),
+                self.sm.mode,
+                self.base,
+                self.temporary,
+            );
+        if changed
+            || matches!(
+                result.transition,
+                Transition::Commit(_)
+                    | Transition::Cleared
+                    | Transition::CommitThenCandidates { .. }
+                    | Transition::CommitThenSpelling { .. }
+            )
+        {
+            self.invalidate_query();
+        } else if page != self.sm.page {
+            self.view_revision += 1;
+        }
+        result
+    }
+
+    fn dispatch_inner(&mut self, action: Action) -> ActionResult {
         let legacy = matches!(action, Action::Legacy(_));
         let transition = match action {
+            Action::SelectCandidate(revision, id) => {
+                if revision != self.query_revision {
+                    return ActionResult::rejected(Rejection::StaleCandidate);
+                }
+                let Some(candidate) = self.all_candidates.get(id.0) else {
+                    return ActionResult::rejected(Rejection::StaleCandidate);
+                };
+                let text = candidate.text.clone();
+                self.clear_composition();
+                Transition::Commit(text)
+            }
             Action::SetBaseMode(base) => return self.change_mode(Some(base), None),
             Action::BeginTemporary(mode) | Action::ChooseMode(mode) => {
                 return self.change_mode(None, Some(mode))

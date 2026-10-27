@@ -5,6 +5,7 @@
 //! 全部对外接口均为平台无关，不依赖任何系统 API，便于 Windows (TSF) 与
 //! Android (JNI) 两侧复用。
 
+pub mod candidates;
 pub mod config;
 pub mod config_path;
 pub mod dictionary;
