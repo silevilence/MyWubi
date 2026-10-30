@@ -2058,6 +2058,14 @@ dependencies = [
 ]
 
 [[package]]
+name = "mywubi_android"
+version = "0.4.0"
+dependencies = [
+ "core_engine",
+ "jni",
+]
+
+[[package]]
 name = "naga"
 version = "0.19.2"
 source = "registry+https://github.com/rust-lang/crates.io-index"

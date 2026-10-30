@@ -8,3 +8,7 @@
 /docs/validation/cp10/*.toml -text
 /docs/validation/cp10/*.dict -text
 /docs/validation/cp10/engine.log -text
+
+# Keep Android launchers portable.
+/android/gradlew text eol=lf
+/android/gradlew.bat text eol=crlf

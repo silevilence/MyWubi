@@ -1,0 +1,12 @@
+[package]
+name = "mywubi_android"
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+
+[lib]
+crate-type = ["cdylib", "rlib"]
+
+[dependencies]
+core_engine = { path = "../../core_engine" }
+jni = "0.21.1"

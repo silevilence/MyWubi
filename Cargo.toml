@@ -2,6 +2,7 @@
 resolver = "2"
 members = [
     "core_engine",
+    "android/native",
     "windows/im_engine",
     "windows/settings",
     "windows/tip_manager",

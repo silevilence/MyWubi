@@ -77,12 +77,14 @@
 
     - 验收记录：[v1 协议与主机验证](docs/native-protocol.md)。
 
-- [ ] **补齐 Android 工具链并建立可重复构建工程**
+- [x] **补齐 Android 工具链并建立可重复构建工程**
     - 关联：CP-12；依赖 CP-01，可提前开展。
-    - [ ] 安装并固定缺失的 NDK、Rust Android targets，验证 JDK/Gradle/AGP/Kotlin/Compose/SDK 兼容组合及最低系统版本。
-    - [ ] 提交 Gradle Wrapper，按项目约定接入 rust-android-gradle，支持 ARM64 与 x86_64 原生库打包。
-    - [ ] 验证现有模拟器启动并记录真机连接条件。
+    - [x] 安装并固定缺失的 NDK、Rust Android targets，验证 JDK/Gradle/AGP/Kotlin/Compose/SDK 兼容组合及最低系统版本。
+    - [x] 提交 Gradle Wrapper，按项目约定接入 rust-android-gradle，支持 ARM64 与 x86_64 原生库打包。
+    - [x] 验证现有模拟器启动并记录真机连接条件。
     - 验收：干净检出按文档一键生成 APK；两 ABI 可构建；新增 workspace member 不破坏 Windows 构建，未测设备不标已通过。
+
+    - 验收记录：[Android 构建与设备](docs/android-validation.md)。
 
 - [ ] **实现 Kotlin 与 Rust 的完整 JNI 会话桥接**
     - 关联：CP-13；依赖 CP-11、CP-12。

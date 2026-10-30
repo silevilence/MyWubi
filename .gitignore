@@ -29,3 +29,10 @@ Releases/
 
 # 新世纪的码表有版权，不上传
 tables/wubi06.dict
+
+# Android generated output and local SDK paths
+android/.gradle/
+android/.kotlin/
+android/**/build/
+android/local.properties
+android/*.log
