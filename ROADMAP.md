@@ -94,11 +94,13 @@
 
     - 验收记录：[JNI 设备契约](docs/android-validation.md)。
 
-- [ ] **打通 Android 输入法服务与真实上屏闭环**
+- [x] **打通 Android 输入法服务与真实上屏闭环**
     - 关联：CP-14；依赖 CP-10、CP-13。
-    - [ ] 实现系统启用入口、InputMethodService 和 InputConnection 适配。
-    - [ ] 在真实宿主完成形码预编辑、候选点击、提交、退格及服务重建。
+    - [x] 实现系统启用入口、InputMethodService 和 InputConnection 适配。
+    - [x] 在真实宿主完成形码预编辑、候选点击、提交、退格及服务重建。
     - 验收：输入法可安装启用并在外部应用输入；菜单不进入正文；设置 Activity 关闭后仍可使用，Windows 回归保持通过。
+
+    - 验收记录：[真实系统宿主与服务重建](docs/android-validation.md)。
 
 - [ ] **实现 Compose 手机键盘与候选展开交互**
     - 关联：CP-15；依赖 CP-14、CP-04。

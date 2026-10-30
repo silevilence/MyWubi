@@ -30,3 +30,16 @@ byte[] 复制到 JVM 所有内存，不缓存跨线程环境或借出临时原�
 
 资源接口通过同一个 typed facade 直接开放，Kotlin 没有第二份状态机。
 Rust/C 资源版本冲突与 Unicode 词库用例通过；Windows 工作区与 JNI 主机 Clippy 通过。
+
+## CP-14 服务闭环
+
+`ExternalHostTest.shapeInputInSystemSettings` 通过。宿主为系统 Settings 的
+`com.google.android.settings.intelligence` 搜索输入框，逐键点击 IME 的 g/g/l/l，
+确认宿主预编辑 ggll，点击候选王后正文为王，退格清空。测试先打开并关闭 MyWubi
+设置 Activity，随后仍能正常输入。通过 force-stop 后重新启动服务进程，再执行同一
+用例通过（27.482 秒），验证资源与会话重新初始化。
+
+初始服务闭环 APK SHA-256：
+`95805f88509f9e6c918ea24d5416b8a799de19676ecf90e2273f191638b4e382`。
+这是 Compose 接入前制品，后续制品单独回归。自动化以宿主文本达到预期作为断言，
+不将 InputConnection 的排队返回当作宿主已经同步完成，也不把搜索框 hint 当作正文。
