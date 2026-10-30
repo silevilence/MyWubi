@@ -8,6 +8,33 @@ import org.junit.Test
 import java.io.File
 
 class NativeContractTest {
+    @Test fun customCodesAndUnavailableModeKeepTheRound() {
+        val root=File(InstrumentationRegistry.getInstrumentation().targetContext.cacheDir,"custom-codes").apply {mkdirs()}
+        File(root,"main.dict").writeText("---\ncharset: 'a1;*'\nwildcard_key: '*'\n---\na1\t甲\na;\t乙\n")
+        val config=File(root,"config.toml").apply {writeText("[basic]\nauto_commit_unique = false\n[dictionary]\nsystem_table = \"main.dict\"\nuser_table = \"user.dict\"\n")}
+        NativeHandle(NativeBridge.objectCall("BuildRuntime","path" to config.path).getLong("handle")).use { runtime ->
+            val context=JSONObject("""{"editor":2,"epoch":2,"supports_preedit":true,"supports_insert":true,"owns_preedit":false,"purpose":"Text","selection_available":true,"surrounding_available":true,"enter_action":"Send"}""")
+            NativeHandle(NativeBridge.objectCall("CreateSession","runtime" to runtime.value,"context" to context).getLong("handle")).use { session ->
+                fun action(value:Any):JSONObject {
+                    val plan=NativeBridge.objectCall("Prepare","session" to session.value,"action" to value)
+                    NativeBridge.call("Ack","session" to session.value,"token" to plan.getJSONObject("token"),"outcome" to "Applied","owns_preedit" to (plan.optJSONObject("op")?.has("CompositionUpdate") == true))
+                    return plan
+                }
+                fun input(text:String) { for(c in text) action(JSONObject().put("InputText",JSONArray().put(c.toString()).put("Normal"))) }
+                input("a")
+                try { action(JSONObject().put("BeginTemporary","Pinyin"));fail("unavailable mode accepted") }
+                catch(e:ProtocolException) {assertEquals(7,e.code)}
+                assertEquals("a",NativeBridge.objectCall("State","session" to session.value).getJSONObject("view").getString("spelling"))
+                input("1")
+                assertEquals("甲",action("Space").getJSONObject("op").getJSONObject("CommitAndReplace").getString("text"))
+                input("a;")
+                assertEquals("乙",action("Space").getJSONObject("op").getJSONObject("CommitAndReplace").getString("text"))
+                input("a*")
+                assertEquals(2,NativeBridge.objectCall("Candidates","session" to session.value,"offset" to 0,"count" to 32).getInt("total"))
+            }
+        }
+    }
+
     @Test fun protocolBoundariesAndLifecycle() {
         assertEquals(1, NativeBridge.version())
         val fixtureText = InstrumentationRegistry.getInstrumentation().targetContext.assets.open("protocol/errors.json").bufferedReader().use { it.readText() }

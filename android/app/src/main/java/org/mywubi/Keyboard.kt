@@ -84,8 +84,14 @@ fun Keyboard(model: KeyboardModel, dispatch: (Any) -> Unit, window: (Int) -> Uni
                 LazyRow(Modifier.fillMaxWidth().height(50.dp)) { items(model.candidates,key={it.id}) { item -> CandidateButton(item) { choose(item) } } }
             }
             Row(Modifier.fillMaxWidth(), horizontalArrangement=Arrangement.spacedBy(4.dp)) {
-                TextButton(onClick={dispatch(JSONObject().put("SetBaseMode",if(model.base=="Main") "English" else "Main"))},enabled=model.enabled && model.modesAvailable && !model.privateInput) { Text(if(model.base=="Main") "中 → 英" else "英 → 中") }
-                TextButton(onClick={dispatch(JSONObject().put("BeginTemporary","Pinyin"))},enabled=model.enabled && model.modesAvailable && model.pinyinAvailable && !model.privateInput) { Text(if(model.temporary=="Pinyin") "拼音 · 本次" else "拼音") }
+                val baseLabel = if(model.base=="Main") "中 → 英" else "英 → 中"
+                val baseEnabled = model.enabled && model.modesAvailable && !model.privateInput
+                val toggleBase = { dispatch(JSONObject().put("SetBaseMode",if(model.base=="Main") "English" else "Main")) }
+                TextButton(onClick=toggleBase,enabled=baseEnabled,modifier=Modifier.imeAction(baseLabel,baseEnabled,toggleBase)) { Text(baseLabel) }
+                val pinyinLabel = if(model.temporary=="Pinyin") "拼音 · 本次" else "拼音"
+                val pinyinEnabled = baseEnabled && model.pinyinAvailable
+                val beginPinyin = { dispatch(JSONObject().put("BeginTemporary","Pinyin")) }
+                TextButton(onClick=beginPinyin,enabled=pinyinEnabled,modifier=Modifier.imeAction(pinyinLabel,pinyinEnabled,beginPinyin)) { Text(pinyinLabel) }
                 Spacer(Modifier.weight(1f))
                 TextButton(onClick=switchIme) { Text("切换输入法") }
             }

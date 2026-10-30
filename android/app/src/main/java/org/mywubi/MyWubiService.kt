@@ -111,7 +111,11 @@ class MyWubiService : InputMethodService() {
         keyboard = KeyboardModel(
             epoch = editorEpoch, enabled = active && viewVisible && session != null,
             spelling = state.optJSONObject("view")?.optString("spelling") ?: "",
-            status = error ?: if(session == null) "正在加载码表…" else "五笔 · 示例码表",
+            status = error ?: if(session == null) "正在加载码表…" else if(state.optString("temporary") == "Pinyin") "本次拼音" else if(state.optString("base") == "English") "英文" else "五笔 · 示例码表",
+            base = state.optString("base", "Main"),
+            temporary = state.optString("temporary").takeIf { it == "Pinyin" || it == "English" },
+            pinyinAvailable = state.optJSONObject("pinyin")?.optBoolean("available") == true,
+            modesAvailable = true,
             candidates = (0 until items.length()).map { i ->
                 val item = items.getJSONObject(i)
                 val hints = item.getJSONArray("hints")

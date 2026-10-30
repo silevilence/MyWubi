@@ -52,3 +52,16 @@ API 34 设备执行 ExternalHostTest 两项与 NativeContractTest，47.087 秒�
 LazyRow / LazyVerticalGrid 使用稳定候选身份；窗口查询不修改核心排序。
 ComposeView 的窗口根节点与视图均绑定 IME 自有生命周期，隐藏/销毁会取消重复按键。
 测试对动态标签主动刷新 UiAutomation 缓存，避免旧无障碍节点导致误报。
+
+## CP-16 手机模式与符号
+
+ModeHostTest + NativeContractTest 在设备上 51.483 秒、3 项通过；主机 semantic_events、
+semantic_modes、session_contract 共 22 项通过。A03～A06、A16 映射如下：
+
+- 系统 Settings：英文 hello 空格只补一个空格，点击 hello 不补；提交后保留英文。
+- 无桌面入口键直接进入拼音；空临时空格/回车无动作，重复进入保留 ni，选你后返回英文。
+- 非空英文切主模式先提交原文；数字面板不结束当前轮，未声明数字提交当前内容后字面插入。
+- JNI 自定义 charset a1;*：a1/ a; 分别选出甲/乙，a* 返回两候选；不可用拼音拒绝后保留 a。
+- 共享核心验证取消返回原模式、失败不提前切换，以及 Windows 一次性英文不加尾空格。
+
+Kotlin 仅发送 SetBaseMode / BeginTemporary / InputText，规则仍由共享核心负责。
