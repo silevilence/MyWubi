@@ -43,3 +43,12 @@ Rust/C 资源版本冲突与 Unicode 词库用例通过；Windows 工作区与 J
 `95805f88509f9e6c918ea24d5416b8a799de19676ecf90e2273f191638b4e382`。
 这是 Compose 接入前制品，后续制品单独回归。自动化以宿主文本达到预期作为断言，
 不将 InputConnection 的排队返回当作宿主已经同步完成，也不把搜索框 hint 当作正文。
+
+## CP-15 Compose 键盘
+
+API 34 设备执行 ExternalHostTest 两项与 NativeContractTest，47.087 秒，3 项通过。
+系统 Settings 搜索框验证形码上屏、展开选词、大小写布局切换，长按退格删除多个字符且
+松手后文本保持稳定。JNI 拒绝旧 query revision 的候选点击。候选正文与编码提示分离，
+LazyRow / LazyVerticalGrid 使用稳定候选身份；窗口查询不修改核心排序。
+ComposeView 的窗口根节点与视图均绑定 IME 自有生命周期，隐藏/销毁会取消重复按键。
+测试对动态标签主动刷新 UiAutomation 缓存，避免旧无障碍节点导致误报。

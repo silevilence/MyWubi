@@ -6,9 +6,13 @@ import android.os.Looper
 import android.view.View
 import android.view.inputmethod.EditorInfo
 import android.view.inputmethod.InputMethodManager
-import android.widget.Button
-import android.widget.LinearLayout
-import android.widget.TextView
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.setValue
+import androidx.compose.ui.platform.ComposeView
+import androidx.compose.ui.platform.ViewCompositionStrategy
+import androidx.lifecycle.setViewTreeLifecycleOwner
+import androidx.savedstate.setViewTreeSavedStateRegistryOwner
 import org.json.JSONArray
 import org.json.JSONObject
 import java.util.concurrent.Executors
@@ -22,7 +26,10 @@ class MyWubiService : InputMethodService() {
     private var editorEpoch = 0L
     private var active = false
     private val editor = EditorAdapter()
-    private var panel: LinearLayout? = null
+    private var viewOwner: ImeViewOwner? = null
+    private var viewVisible = false
+    private var candidateOffset = 0
+    private var keyboard by mutableStateOf(KeyboardModel())
     private var error: String? = null
     private var state = JSONObject()
     private var candidates = JSONObject()
@@ -72,41 +79,61 @@ class MyWubiService : InputMethodService() {
     }
 
     override fun onEvaluateFullscreenMode() = false
-    override fun onCreateInputView(): View = LinearLayout(this).also { it.orientation = LinearLayout.VERTICAL; panel = it; render() }
+    override fun onCreateInputView(): View {
+        viewOwner?.destroy()
+        val owner = ImeViewOwner().also { viewOwner = it; it.visible(viewVisible) }
+        window?.window?.decorView?.let {
+            it.setViewTreeLifecycleOwner(owner)
+            it.setViewTreeSavedStateRegistryOwner(owner)
+        }
+        return ComposeView(this).apply {
+            setViewTreeLifecycleOwner(owner)
+            setViewTreeSavedStateRegistryOwner(owner)
+            setViewCompositionStrategy(ViewCompositionStrategy.DisposeOnViewTreeLifecycleDestroyed)
+            setContent { Keyboard(keyboard, ::dispatch, { candidateOffset = it; refresh() }) {
+                getSystemService(InputMethodManager::class.java).showInputMethodPicker()
+            } }
+        }
+    }
+
+    override fun onStartInputView(info: EditorInfo?, restarting: Boolean) {
+        super.onStartInputView(info,restarting)
+        viewVisible = true; viewOwner?.visible(true); refresh()
+    }
+
+    override fun onFinishInputView(finishingInput: Boolean) {
+        viewVisible = false; render(); viewOwner?.visible(false)
+        super.onFinishInputView(finishingInput)
+    }
 
     private fun render() {
-        val root = panel ?: return
-        root.removeAllViews()
-        root.addView(TextView(this).apply { text = error ?: state.optJSONObject("view")?.optString("spelling") ?: "正在加载码表…" })
-        val row = LinearLayout(this)
         val items = candidates.optJSONArray("candidates") ?: JSONArray()
-        for (i in 0 until minOf(items.length(), 5)) {
-            val item = items.getJSONObject(i)
-            val revision = candidates.getJSONObject("query_revision")
-            row.addView(Button(this).apply {
-                text = item.getString("text")
-                setOnClickListener { dispatch(JSONObject().put("SelectCandidate", JSONArray().put(revision).put(item.getLong("id")))) }
-            })
-        }
-        root.addView(row)
-        for (letters in listOf("qwertyuiop", "asdfghjkl", "zxcvbnm")) {
-            root.addView(LinearLayout(this).apply {
-                for (letter in letters) addView(Button(context).apply {
-                    text = letter.toString(); setPadding(0,0,0,0)
-                    setOnClickListener { dispatch(JSONObject().put("InputText", JSONArray().put(letter.toString()).put("Normal"))) }
-                }, LinearLayout.LayoutParams(0, 120, 1f))
-            })
-        }
-        root.addView(LinearLayout(this).apply {
-            for ((label, action) in listOf("退格" to "Backspace", "空格" to "Space", "回车" to "Enter"))
-                addView(Button(context).apply { text = label; setOnClickListener { dispatch(action) } }, LinearLayout.LayoutParams(0,120,1f))
-        })
+        keyboard = KeyboardModel(
+            epoch = editorEpoch, enabled = active && viewVisible && session != null,
+            spelling = state.optJSONObject("view")?.optString("spelling") ?: "",
+            status = error ?: if(session == null) "正在加载码表…" else "五笔 · 示例码表",
+            candidates = (0 until items.length()).map { i ->
+                val item = items.getJSONObject(i)
+                val hints = item.getJSONArray("hints")
+                val hint = (0 until hints.length()).joinToString(" ") { n ->
+                    val h = hints.getJSONObject(n)
+                    if(h.has("CodeSuffix")) h.getString("CodeSuffix") else {
+                        val codes=h.getJSONArray("ReverseCodes")
+                        (0 until codes.length()).joinToString("/") { codes.getString(it) }
+                    }
+                }
+                CandidateItem(item.getLong("id"),item.getString("text"),hint)
+            },
+            query = candidates.optJSONObject("query_revision")?.toString() ?: "{}",
+            total = candidates.optInt("total"), offset = candidates.optInt("offset")
+        )
     }
 
     private fun dispatch(action: Any) {
         val s = session ?: return
         val connection = currentInputConnection ?: return
         if (!active) return
+        candidateOffset = 0
         try {
             val plan = NativeBridge.objectCall("Prepare", "session" to s.value, "action" to action)
             applyPlan(plan)
@@ -137,7 +164,7 @@ class MyWubiService : InputMethodService() {
     private fun refresh() {
         session?.let {
             state = NativeBridge.objectCall("State", "session" to it.value)
-            candidates = NativeBridge.objectCall("Candidates", "session" to it.value, "offset" to 0, "count" to 256)
+            candidates = NativeBridge.objectCall("Candidates", "session" to it.value, "offset" to candidateOffset, "count" to 256)
         }
         render()
     }
@@ -145,7 +172,7 @@ class MyWubiService : InputMethodService() {
     override fun onDestroy() {
         destroyed = true; active = false
         session?.let { NativeBridge.call("Close", "session" to it.value); it.close() }
-        runtime?.close(); loader.shutdown(); panel = null
+        runtime?.close(); loader.shutdown(); viewOwner?.destroy(); viewOwner = null
         super.onDestroy()
     }
 }

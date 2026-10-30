@@ -37,6 +37,13 @@ class NativeContractTest {
                 val p = NativeBridge.objectCall("Prepare","session" to it.value,"action" to JSONObject().put("InputText",JSONArray().put("a").put("Normal")))
                 NativeBridge.call("Ack","session" to it.value,"token" to p.getJSONObject("token"),"outcome" to "Applied","owns_preedit" to true)
                 assertEquals("一",NativeBridge.objectCall("Candidates","session" to it.value,"offset" to 0,"count" to 32).getJSONArray("candidates").getJSONObject(0).getString("text"))
+                val old = NativeBridge.objectCall("Candidates","session" to it.value,"offset" to 0,"count" to 32)
+                val next = NativeBridge.objectCall("Prepare","session" to it.value,"action" to JSONObject().put("InputCode","b"))
+                NativeBridge.call("Ack","session" to it.value,"token" to next.getJSONObject("token"),"outcome" to "Applied","owns_preedit" to true)
+                try {
+                    NativeBridge.call("Prepare","session" to it.value,"action" to JSONObject().put("SelectCandidate",JSONArray().put(old.getJSONObject("query_revision")).put(0)))
+                    fail("stale candidate accepted")
+                } catch (e: ProtocolException) { assertEquals(7,e.code) }
                 NativeBridge.call("Close","session" to it.value)
             }
             try { NativeBridge.call("Destroy","handle" to session.value); fail("stale handle accepted") }
