@@ -10,6 +10,7 @@ pub mod config;
 pub mod config_path;
 pub mod data;
 pub mod dictionary;
+pub mod ffi;
 mod pinyin;
 pub mod runtime;
 pub mod session;

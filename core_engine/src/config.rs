@@ -52,7 +52,7 @@ pub struct DesktopOptions {
 }
 
 /// Active resource validation is performed by the runtime builder separately.
-#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+#[derive(Debug, Clone, Copy, PartialEq, Eq, serde::Serialize, serde::Deserialize)]
 pub enum ValidationContext {
     Read,
     DesktopSave,

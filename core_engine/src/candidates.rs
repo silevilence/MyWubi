@@ -1,22 +1,22 @@
 //! Stable query identities and platform-neutral presentation, without UI labels or coordinates.
 
 /// Unique per engine incarnation, and per changed buffer/mode/runtime/editor.
-#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+#[derive(Debug, Clone, Copy, PartialEq, Eq, serde::Serialize, serde::Deserialize)]
 pub struct QueryRevision {
     pub engine: u64,
     pub version: u64,
 }
 
-#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+#[derive(Debug, Clone, Copy, PartialEq, Eq, serde::Serialize, serde::Deserialize)]
 pub struct CandidateId(pub usize);
 
-#[derive(Debug, Clone, PartialEq, Eq)]
+#[derive(Debug, Clone, PartialEq, Eq, serde::Serialize, serde::Deserialize)]
 pub enum CandidateHint {
     CodeSuffix(String),
     ReverseCodes(Vec<String>),
 }
 
-#[derive(Debug, Clone, PartialEq, Eq)]
+#[derive(Debug, Clone, PartialEq, Eq, serde::Serialize, serde::Deserialize)]
 pub struct Candidate {
     pub id: CandidateId,
     pub text: String,
@@ -24,7 +24,7 @@ pub struct Candidate {
     pub hints: Vec<CandidateHint>,
 }
 
-#[derive(Debug, Clone, PartialEq, Eq)]
+#[derive(Debug, Clone, PartialEq, Eq, serde::Serialize, serde::Deserialize)]
 pub struct CandidateWindow {
     pub query_revision: QueryRevision,
     pub view_revision: u64,
@@ -36,20 +36,20 @@ pub struct CandidateWindow {
 /// Query windows never mutate the desktop page size or page position.
 pub const MAX_WINDOW: usize = 256;
 
-#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+#[derive(Debug, Clone, Copy, PartialEq, Eq, serde::Serialize, serde::Deserialize)]
 pub enum PreeditKind {
     Input,
     Converted,
 }
 
 /// Presentation text is distinct from candidate identity and committed text.
-#[derive(Debug, Clone, Default, PartialEq, Eq)]
+#[derive(Debug, Clone, Default, PartialEq, Eq, serde::Serialize, serde::Deserialize)]
 pub struct PresentationItem {
     pub text: String,
     pub hint: String,
 }
 
-#[derive(Debug, Clone, Default, PartialEq, Eq)]
+#[derive(Debug, Clone, Default, PartialEq, Eq, serde::Serialize, serde::Deserialize)]
 pub struct SessionView {
     pub visible: bool,
     pub spelling: String,
@@ -61,7 +61,7 @@ pub struct SessionView {
 }
 
 /// None means keep the previously published view, including platform anchor fallback.
-#[derive(Debug, Clone, PartialEq, Eq)]
+#[derive(Debug, Clone, PartialEq, Eq, serde::Serialize, serde::Deserialize)]
 pub enum ViewUpdate {
     Unchanged,
     Replace(SessionView),

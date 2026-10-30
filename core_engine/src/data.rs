@@ -227,7 +227,7 @@ pub fn save_bundle(
 }
 
 /// Stable identity is (code, word), never an index from a previous UI snapshot.
-#[derive(Debug, Clone, PartialEq, Eq)]
+#[derive(Debug, Clone, PartialEq, Eq, serde::Serialize, serde::Deserialize)]
 pub struct UserEntryId {
     pub code: String,
     pub word: String,

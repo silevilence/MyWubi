@@ -9,7 +9,7 @@ static NEXT_SESSION: AtomicU64 = AtomicU64::new(1);
 pub use crate::candidates::PreeditKind as DisplayAttrKind;
 
 /// One operation remains one synchronous TSF edit session, including overflow.
-#[derive(Debug, Clone, PartialEq, Eq)]
+#[derive(Debug, Clone, PartialEq, Eq, serde::Serialize, serde::Deserialize)]
 pub enum EditSessionOp {
     CompositionUpdate {
         spelling: String,
@@ -31,13 +31,13 @@ pub enum EditSessionOp {
     NoOp,
 }
 
-#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+#[derive(Debug, Clone, Copy, PartialEq, Eq, serde::Serialize, serde::Deserialize)]
 pub enum EditTarget {
     OwnedComposition,
     CurrentSelection,
     LegacyRangeFallback,
 }
-#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+#[derive(Debug, Clone, Copy, PartialEq, Eq, serde::Serialize, serde::Deserialize)]
 pub enum InputPurpose {
     Text,
     Direct,
@@ -45,7 +45,7 @@ pub enum InputPurpose {
 }
 
 /// Empty Enter is handed to the host with this already-normalized action.
-#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+#[derive(Debug, Clone, Copy, PartialEq, Eq, serde::Serialize, serde::Deserialize)]
 pub enum HostAction {
     Newline,
     Send,
@@ -55,7 +55,7 @@ pub enum HostAction {
 }
 
 /// Platform supplies stable editor identity and explicit capabilities, not OS enums.
-#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+#[derive(Debug, Clone, Copy, PartialEq, Eq, serde::Serialize, serde::Deserialize)]
 pub struct HostContext {
     pub editor: u64,
     pub epoch: u64,
@@ -83,7 +83,7 @@ impl Default for HostContext {
     }
 }
 
-#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+#[derive(Debug, Clone, Copy, PartialEq, Eq, serde::Serialize, serde::Deserialize)]
 pub struct EditToken {
     pub session: u64,
     pub generation: u64,
@@ -92,7 +92,7 @@ pub struct EditToken {
     pub runtime: u64,
 }
 
-#[derive(Debug, Clone, PartialEq, Eq)]
+#[derive(Debug, Clone, PartialEq, Eq, serde::Serialize, serde::Deserialize)]
 pub struct PreparedEdit {
     pub token: EditToken,
     pub op: EditSessionOp,
@@ -107,7 +107,7 @@ impl PreparedEdit {
     }
 }
 
-#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+#[derive(Debug, Clone, Copy, PartialEq, Eq, serde::Serialize, serde::Deserialize)]
 pub enum HostOutcome {
     Applied,
     RejectedBeforeWrite,
@@ -118,21 +118,21 @@ pub enum HostOutcome {
     OutcomeUnknown,
     StaleContext,
 }
-#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+#[derive(Debug, Clone, Copy, PartialEq, Eq, serde::Serialize, serde::Deserialize)]
 pub enum SessionStatus {
     Ready,
     AwaitingAck,
     NeedsCleanup,
     Closed,
 }
-#[derive(Debug, Clone, PartialEq, Eq)]
+#[derive(Debug, Clone, PartialEq, Eq, serde::Serialize, serde::Deserialize)]
 pub enum SessionError {
     Busy,
     Closed,
     NeedsCleanup,
     Rejected(Rejection),
 }
-#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+#[derive(Debug, Clone, Copy, PartialEq, Eq, serde::Serialize, serde::Deserialize)]
 pub enum AckStatus {
     Published,
     Retained,

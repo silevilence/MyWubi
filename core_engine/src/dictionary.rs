@@ -57,7 +57,7 @@ pub struct TableConfig {
 }
 
 /// 码表配置或词条校验问题。
-#[derive(Debug, Clone, PartialEq, Eq)]
+#[derive(Debug, Clone, PartialEq, Eq, serde::Serialize, serde::Deserialize)]
 pub struct TableValidationIssue {
     /// 违规词条下标；`None` 表示 YAML 头配置问题。
     pub entry_index: Option<usize>,
@@ -66,7 +66,7 @@ pub struct TableValidationIssue {
 }
 
 /// 码表校验结果，仅保留调用方要求数量的明细。
-#[derive(Debug, Clone, Default, PartialEq, Eq)]
+#[derive(Debug, Clone, Default, PartialEq, Eq, serde::Serialize, serde::Deserialize)]
 pub struct TableValidationReport {
     /// 全部违规项数量。
     pub issue_count: usize,
@@ -138,7 +138,7 @@ where
 }
 
 /// 码表中的单个词条。
-#[derive(Debug, Clone, PartialEq, Eq)]
+#[derive(Debug, Clone, PartialEq, Eq, serde::Serialize, serde::Deserialize)]
 pub struct Entry {
     /// 形码编码 (如 "ggll")。
     pub code: String,

@@ -26,7 +26,7 @@ pub enum InputState {
 }
 
 /// 对外可见的按键事件（按键语义已由前端壳层统一抽象为跨平台动作）。
-#[derive(Debug, Clone, PartialEq, Eq)]
+#[derive(Debug, Clone, PartialEq, Eq, serde::Serialize, serde::Deserialize)]
 pub enum InputEvent {
     /// 字母/数字按键输入（编码字符）。
     Char(char),

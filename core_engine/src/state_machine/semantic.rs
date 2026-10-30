@@ -5,21 +5,21 @@ use std::sync::atomic::{AtomicU64, Ordering};
 static NEXT_ENGINE: AtomicU64 = AtomicU64::new(1);
 
 /// Persistent selection; a temporary capability never overwrites this choice.
-#[derive(Debug, Clone, Copy, Default, PartialEq, Eq)]
+#[derive(Debug, Clone, Copy, Default, PartialEq, Eq, serde::Serialize, serde::Deserialize)]
 pub enum BaseMode {
     #[default]
     Main,
     English,
 }
 
-#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+#[derive(Debug, Clone, Copy, PartialEq, Eq, serde::Serialize, serde::Deserialize)]
 pub enum TemporaryMode {
     Pinyin,
     English,
 }
 
 /// Availability is independent of menu bindings and text completion availability.
-#[derive(Debug, Clone, PartialEq, Eq)]
+#[derive(Debug, Clone, PartialEq, Eq, serde::Serialize, serde::Deserialize)]
 pub struct Capability {
     pub available: bool,
     pub candidate_support: bool,
@@ -27,21 +27,21 @@ pub struct Capability {
 }
 
 /// Input policy, independent of the operating system.
-#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+#[derive(Debug, Clone, Copy, PartialEq, Eq, serde::Serialize, serde::Deserialize)]
 pub enum BehaviorProfile {
     LegacyV1,
     TouchV1,
 }
 
 /// Normal text is classified by the engine; literal text explicitly bypasses lookup.
-#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+#[derive(Debug, Clone, Copy, PartialEq, Eq, serde::Serialize, serde::Deserialize)]
 pub enum TextIntent {
     Normal,
     Literal,
 }
 
 /// Semantic actions do not contain platform key codes or display coordinates.
-#[derive(Debug, Clone, PartialEq, Eq)]
+#[derive(Debug, Clone, PartialEq, Eq, serde::Serialize, serde::Deserialize)]
 pub enum Action {
     Legacy(InputEvent),
     InputCode(char),
@@ -71,7 +71,7 @@ impl From<InputEvent> for Action {
 }
 
 /// A rejection never doubles as a platform key passthrough.
-#[derive(Debug, Clone, PartialEq, Eq)]
+#[derive(Debug, Clone, PartialEq, Eq, serde::Serialize, serde::Deserialize)]
 pub enum Rejection {
     InvalidCode,
     TextTooLong,
@@ -80,7 +80,7 @@ pub enum Rejection {
 }
 
 /// Dispatch classification, kept separate from visible changes.
-#[derive(Debug, Clone, PartialEq, Eq)]
+#[derive(Debug, Clone, PartialEq, Eq, serde::Serialize, serde::Deserialize)]
 pub enum Disposition {
     Handled,
     NotHandled,
