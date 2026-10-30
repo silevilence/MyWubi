@@ -156,6 +156,13 @@ fn c_transport_matches_rust_and_rejects_invalid_buffers() {
                 call(&bytes)
             );
         }
+        for kind in 1..=3 {
+            assert_eq!(mywubi_v1_buffer_free(buffer.allocation | kind), 3);
+        }
+        assert_eq!(
+            invoke(json!({"op":"Destroy","handle":buffer.allocation}))["error"]["code"],
+            3
+        );
         assert_eq!(mywubi_v1_buffer_free(buffer.allocation), 0);
     }
     let cases = [

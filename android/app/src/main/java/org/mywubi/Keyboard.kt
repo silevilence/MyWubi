@@ -24,6 +24,8 @@ import androidx.compose.ui.unit.sp
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.LifecycleOwner
 import androidx.lifecycle.LifecycleRegistry
+import androidx.lifecycle.LifecycleEventObserver
+import androidx.lifecycle.compose.LocalLifecycleOwner
 import androidx.savedstate.SavedStateRegistry
 import androidx.savedstate.SavedStateRegistryController
 import androidx.savedstate.SavedStateRegistryOwner
@@ -31,6 +33,7 @@ import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.isActive
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.Job
 import org.json.JSONArray
 import org.json.JSONObject
 
@@ -141,16 +144,28 @@ private fun Key(label:String,enabled:Boolean,epoch:Long,modifier:Modifier,repeat
     val keyModifier=modifier.height(50.dp).padding(vertical=2.dp)
     if (!repeat) {
         FilledTonalButton(onClick=action,enabled=enabled,modifier=keyModifier.imeAction(label,enabled,action),shape=MaterialTheme.shapes.small,contentPadding=PaddingValues(0.dp)) { Text(label,fontSize=16.sp,maxLines=1) }
-    } else Surface(modifier=keyModifier.imeAction(label,enabled) {currentAction()}.pointerInput(enabled,epoch) {
+    } else {
+        val lifecycle = LocalLifecycleOwner.current.lifecycle
+        var repeatJob by remember { mutableStateOf<Job?>(null) }
+        DisposableEffect(lifecycle) {
+            val observer = LifecycleEventObserver { _, event ->
+                if (event == Lifecycle.Event.ON_STOP || event == Lifecycle.Event.ON_DESTROY) repeatJob?.cancel()
+            }
+            lifecycle.addObserver(observer)
+            onDispose { repeatJob?.cancel(); lifecycle.removeObserver(observer) }
+        }
+        Surface(modifier=keyModifier.imeAction(label,enabled) {currentAction()}.pointerInput(enabled,epoch) {
         if(enabled) detectTapGestures(onPress={
             coroutineScope {
                 currentAction()
                 val job=launch {delay(400);while(isActive){currentAction();delay(65)}}
+                repeatJob = job
                 try {tryAwaitRelease()} finally {job.cancel()}
             }
         })
     },shape=MaterialTheme.shapes.small,color=MaterialTheme.colorScheme.secondaryContainer) {
         Box(contentAlignment=androidx.compose.ui.Alignment.Center) {Text(label,fontSize=16.sp)}
+    }
     }
 }
 

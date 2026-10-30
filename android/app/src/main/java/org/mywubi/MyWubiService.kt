@@ -90,7 +90,9 @@ class MyWubiService : InputMethodService() {
         if (active && editor.ownsPreedit && (candidatesStart < 0 || newSelStart != newSelEnd || newSelEnd != candidatesEnd)) {
             // The host moved its selection. Preserve text and release our old range before
             // the next action; never use stale composition state to delete the new selection.
-            currentInputConnection?.finishComposingText()
+            try { currentInputConnection?.finishComposingText() } catch (_: RuntimeException) {
+                error = "输入连接暂不可用"
+            }
             editor.abandon()
             editorEpoch++
             attachEditor()
@@ -157,7 +159,7 @@ class MyWubiService : InputMethodService() {
     private fun dispatch(action: Any) {
         val s = session ?: return
         val connection = currentInputConnection ?: return
-        if (!active) return
+        if (!active || !viewVisible) return
         candidateOffset = 0
         try {
             val plan = NativeBridge.objectCall("Prepare", "session" to s.value, "action" to action)
@@ -169,6 +171,11 @@ class MyWubiService : InputMethodService() {
             }
             error = null
         } catch (_: ProtocolException) { error = "当前操作不可用" }
+        catch (_: RuntimeException) {
+            // Never retry an editor operation after an unknown connection failure.
+            editor.abandon()
+            error = "输入连接暂不可用"
+        }
         refresh()
     }
 

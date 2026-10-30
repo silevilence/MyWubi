@@ -10,7 +10,9 @@ rust-android-gradle 的链接包装器需要 PATH 中有 Python 3。
 NDK 27.2.12479018，并按 SDK Manager 要求接受许可证。安装 Rust target：
 
 ```powershell
-rustup target add aarch64-linux-android x86_64-linux-android
+rustup toolchain install 1.99.1 --profile minimal
+rustup override set 1.99.1
+rustup target add --toolchain 1.99.1 aarch64-linux-android x86_64-linux-android
 ./android/build.ps1 -Sdk '<SDK目录>' -Jdk '<JDK目录>'
 ```
 

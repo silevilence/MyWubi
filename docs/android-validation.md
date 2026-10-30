@@ -87,3 +87,35 @@ BrowserHostTest 的三条轨迹分别通过，最后 restrictedFieldsAndNextActi
 https://github.com/chromium/chromium/blob/113.0.5672.136/content/public/android/java/src/org/chromium/content/browser/input/ImeAdapterImpl.java#L833
 
 本次 Chrome 首次条款经用户授权接受，可选统计已关闭，不登录账号。
+
+## CP-11～CP-17 整体审核
+
+逐项提交后审核协议边界、JNI 所有权、Compose 生命周期和宿主文本单位，修复四项：
+
+- C 响应缓冲分配使用低两位 0，避免误传资源句柄释放其他响应；跨种类释放回归通过。
+- 长按任务监听 IME 生命周期 ON_STOP/ON_DESTROY 立即取消，隐藏键盘后拒绝派发输入。
+- InputConnection 的 beginBatchEdit/endBatchEdit 异常纳入结果未知，不崩溃、不重试提交。
+- 清空预编辑的 commitText 成功即释放所有权，后续 finish 失败也不把旧范围当作仍然拥有。
+
+最终主机验证：cargo fmt 检查、工作区构建、277 项工作区测试、core_engine 与
+mywubi_android 全 targets 严格 Clippy、独立 C 程序编译运行均通过。TSF 仍只有既有
+LNK4104 警告；本机已安装的输入法未替换，CP-10 的真实 TSF 记录仍是该平台基线。
+
+Android :app:clean 后 assembleDebug / assembleDebugAndroidTest / lintDebug 通过。
+Lint 0 错误、6 警告：备份迁移规则、应用图标、Activity 文字资源化；这些发布完善项
+不阻塞本轮输入验收。NDK 两 ABI 均重编译并确认 APK 内库：arm64-v8a 1,565,296 字节，
+x86_64 1,789,392 字节。
+
+最终 APK：android/app/build/outputs/apk/debug/app-debug.apk。
+SHA-256：ac2ae391adf69d16d11a63a6abc48073be67c3b2fa1e542d451bdf13301dd9de。
+ARM64 真机、16 KB 页、最低 API 26 设备及性能未实测；本轮运行证据限于 API 34
+x86_64 模拟器中的真实外部宿主。CP-18～CP-22 的后续功能和验收不在本次完成标记内。
+
+测试基建同时修正两类宿主差异：Settings 的动态无障碍文本/候选节点在断言和点击前
+刷新缓存；预置长串后用 MoveEnd 放置光标，避免重复点击触发系统拼写建议弹窗。
+这些调整不绕过实际输入法按键，失败时仍保留截图和节点树供核验。
+
+最终全量设备运行：`adb shell am instrument -w org.mywubi.test/androidx.test.runner.AndroidJUnitRunner`，
+244.221 秒，**OK (12 tests)**。BrowserHostTest 3、EditorContractTest 4、ExternalHostTest 2、
+ModeHostTest 1、NativeContractTest 2 全部通过；包含实际按住退格时隐藏键盘后文本不再变化。
+主 APK 校验值与上述最终制品一致。

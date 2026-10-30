@@ -515,10 +515,12 @@ pub unsafe extern "C" fn mywubi_v1_call(input: *const u8, len: u64, output: *mut
         };
         let response = call(bytes).into_boxed_slice();
         let mut buffers = BUFFERS.lock();
-        let Some(id) = buffers.next.checked_add(1) else {
+        let Some(generation) = buffers.next.checked_add(1).filter(|v| *v < (1 << 60)) else {
             return 8;
         };
-        buffers.next = id;
+        buffers.next = generation;
+        // Kind 0 is reserved for response allocations, disjoint from registry objects.
+        let id = generation << 2;
         let descriptor = Buffer {
             data: response.as_ptr(),
             len: response.len() as u64,

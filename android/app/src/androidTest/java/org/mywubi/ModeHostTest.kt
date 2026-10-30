@@ -29,7 +29,15 @@ class ModeHostTest {
             assertNotNull("key $label",node);node!!.click();device.waitForIdle()
         }
         fun text(value:String) {for(c in value)key(c.toString())}
-        fun expect(value:String) {assertTrue("host text $value",device.wait(Until.hasObject(By.clazz("android.widget.EditText").text(value)),5000))}
+        fun expect(value:String) {
+            val deadline=android.os.SystemClock.uptimeMillis()+10000
+            do {
+                InstrumentationRegistry.getInstrumentation().uiAutomation.clearCache()
+                if(device.hasObject(By.clazz("android.widget.EditText").text(value))) return
+                android.os.SystemClock.sleep(100)
+            } while(android.os.SystemClock.uptimeMillis()<deadline)
+            throw AssertionError("Expected Settings text: $value")
+        }
         if(device.hasObject(By.desc("英 → 中"))) key("英 → 中")
         key("中 → 英")
         text("hello");key("空格");expect("hello ")
