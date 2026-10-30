@@ -2,7 +2,7 @@
 
 ## 📅 计划中
 
-以下共享核心与 Android 首版任务于 2026-10-23 替换旧 JNI、服务、候选/设置和自动构建四项任务，并经 [第二轮审核](docs/cross-platform-plan-review.md) 修订。依据为 [现状及工具链](docs/android-readiness.md)、[接口与职责方案](docs/cross-platform-core-design.md)、[实施顺序与回归矩阵](docs/cross-platform-implementation-plan.md)。CP-01～CP-09 已于 2026-10-27 完成实现与主机自动验收，见 [验收记录](docs/shared-core-validation.md)；CP-10 已于 2026-10-30 完成 [Sandbox 真实 TSF 验收](docs/windows-shared-core-tsf-validation.md)，后续 Android 任务仍待实施。后续共享变更持续执行 Windows 回归，最终制品重新实机验收。CP 编号用于依赖追踪，每项按约 1～3 个工作日粒度拆分，不是交付日期承诺。
+以下共享核心与 Android 首版任务于 2026-10-23 替换旧 JNI、服务、候选/设置和自动构建四项任务，并经 [第二轮审核](docs/cross-platform-plan-review.md) 修订。依据为 [现状及工具链](docs/android-readiness.md)、[接口与职责方案](docs/cross-platform-core-design.md)、[实施顺序与回归矩阵](docs/cross-platform-implementation-plan.md)。CP-01～CP-09 已于 2026-10-27 完成实现与主机自动验收，见 [验收记录](docs/shared-core-validation.md)；CP-10 已于 2026-10-30 完成 [Sandbox 真实 TSF 验收](docs/windows-shared-core-tsf-validation.md)，CP-11～CP-17 已完成共享协议、Android 工程及首轮真实宿主验收，见 [Android 验收记录](docs/android-validation.md)，CP-18 起继续生命周期与管理功能。后续共享变更持续执行 Windows 回归，最终制品重新实机验收。CP 编号用于依赖追踪，每项按约 1～3 个工作日粒度拆分，不是交付日期承诺。
 
 - [x] **固定 Windows 输入行为与数据兼容基线**
     - 关联：CP-01；无前置依赖。
@@ -114,10 +114,10 @@
     - [x] 按契约处理持续英文空格/点击/标点/数字及非空切换，数字符号面板仅改变布局。
     - 验收：A03～A06、A16 全部通过；自定义编码可用，空临时不误发送，目标不可用/重复切换不丢输入；Windows 临时英文仍无尾空格。
 
-- [ ] **适配 Android 输入类型、回车动作与 Unicode 编辑**
+- [x] **适配 Android 输入类型、回车动作与 Unicode 编辑**
     - 关联：CP-17；依赖 CP-16。
-    - [ ] 支持普通文本、数字、电话、密码、网址/邮件场景及发送/搜索/下一项/换行。
-    - [ ] 处理预编辑选区、宿主选区删除、代理对和组合字符，正确区分 UTF-8 与平台文本单位。
+    - [x] 支持普通文本、数字、电话、密码、网址/邮件场景及发送/搜索/下一项/换行。
+    - [x] 处理预编辑选区、宿主选区删除、代理对和组合字符，正确区分 UTF-8 与平台文本单位。
     - 验收：非空回车先提交且不误发送，空临时模式不执行宿主动作；密码候选不暴露内容；A07～A08 在外部宿主通过。
 
 - [ ] **完善 Android 会话生命周期与编辑失败恢复**

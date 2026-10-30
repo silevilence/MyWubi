@@ -23,8 +23,18 @@ rust-android-gradle 自动编译两 ABI 并将 `.so` 放入 APK；不需要每�
 `adb devices -l` 应显示 device，不是 unauthorized/offline。然后：
 
 ```powershell
+# 在单独终端启动本仓库的浏览器验收页（主机仅监听回环地址）
+python -m http.server 8765 --bind 127.0.0.1 --directory android/tests
+# 测试终端，使用同一 Android SDK 的 adb
+adb reverse tcp:8765 tcp:8765
 ./android/build.ps1 -DeviceTests
 ```
+
+外部宿主测试需要系统 Settings 的搜索页和 Chrome；首次运行 Chrome 时由使用者完成条款页。
+测试仅访问设备映射的本地验收页，不登录账号。测试会启用并选择 MyWubi 输入法，并在
+Settings 搜索框及 Chrome 表单输入测试文字。Gradle connectedDebugAndroidTest 完成后会卸载
+测试安装的应用；需保留 APK 时手动 `adb install -r` 两个 APK 后执行 `adb shell am instrument -w
+org.mywubi.test/androidx.test.runner.AndroidJUnitRunner`。当前已验证的宿主版本见验收记录。
 
 本机 Pixel 5 / API 34 AVD 的默认图形后端启动失败，软件渲染可启动：
 
@@ -39,6 +49,12 @@ rust-android-gradle 自动编译两 ABI 并将 `.so` 放入 APK；不需要每�
 `../tables/README.md`、`../tables/licenses/`。完整表导入与编辑属于 CP-19/20。
 应用不申请网络权限，输入内容不写日志，不做自动学习。引擎配置位于应用私有
 files/engine/config.toml；首次启动只补缺失文件，后续启动不覆盖用户文件。
+
+持续中英模式与一次性拼音使用共享核心规则；数字符号按钮只切布局。
+EditorInfo 决定密码/数字/电话/网址/邮箱的直接输入与回车动作。非空回车先提交本轮，
+再次回车才执行发送/搜索；空临时模式不会发送。密码不显示预编辑与候选。
+无预编辑时退格按 ICU 字素边界删除，已有宿主选区优先删除；光标移出预编辑后保留
+宿主正文并放弃旧范围，不用旧长度回删。Android 使用 UTF-16 范围，JNI 传输标准 UTF-8。
 
 协议见 `../docs/native-protocol.md`。JNI 使用有界 byte[] 传输标准 UTF-8，避免
 Modified UTF-8 与 UTF-16 混淆；每次输出由 JVM 独立持有，不借出原生内存。

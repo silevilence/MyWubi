@@ -1,0 +1,30 @@
+<!doctype html>
+<html lang="zh"><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>MyWubi 浏览器输入验收</title>
+<style>body{font:18px sans-serif;margin:20px;padding-bottom:50px}label{display:block;margin:18px 0}input,textarea{display:block;width:95%;font:20px sans-serif;padding:10px}output{position:fixed;top:0;right:0;background:white;padding:8px;z-index:10}</style>
+<h1>浏览器输入验收</h1>
+<form novalidate onsubmit="event.preventDefault();document.querySelector('output').textContent='提交次数：'+(++window.submits)">
+<label>正文<textarea aria-label="正文" rows="2"></textarea></label>
+<label>发送<input aria-label="发送" enterkeyhint="send"></label>
+<label>搜索<input aria-label="搜索" type="search" enterkeyhint="search"></label>
+<label>密码<input aria-label="密码" type="password" autocomplete="off"></label>
+<label>数字<input aria-label="数字" type="number"></label>
+<label>电话<input aria-label="电话" type="tel"></label>
+<label>网址<input aria-label="网址" type="url"></label>
+<label>邮箱<input aria-label="邮箱" type="email"></label>
+<label>下一项<input aria-label="下一项"></label>
+<label>最后一项<input aria-label="最后一项"></label>
+<button type="submit">提交表单</button>
+<output>提交次数：0</output></form>
+<script>
+window.submits=0;
+const selected=new URLSearchParams(location.search).get('field');
+const marker=document.createElement('p');
+marker.textContent='场景 '+selected+' · '+new URLSearchParams(location.search).get('run');
+document.querySelector('h1').after(marker);
+if(selected!==null) document.querySelectorAll('label').forEach((label,index)=>{
+  label.hidden=index!==Number(selected) && !(Number(selected)===8 && index===9);
+  if(label.hidden) label.style.display='none';
+});
+</script>
+</html>

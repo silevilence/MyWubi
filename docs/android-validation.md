@@ -65,3 +65,25 @@ semantic_modes、session_contract 共 22 项通过。A03～A06、A16 映射如�
 - 共享核心验证取消返回原模式、失败不提前切换，以及 Windows 一次性英文不加尾空格。
 
 Kotlin 仅发送 SetBaseMode / BeginTemporary / InputText，规则仍由共享核心负责。
+
+## CP-17 输入类型与 Unicode
+
+宿主 Chrome 113.0.5672.136，Android 14 API 34，真实浏览器 InputConnection。
+BrowserHostTest 的三条轨迹分别通过，最后 restrictedFieldsAndNextActionInChrome 为
+65.073 秒；EditorContractTest 两项通过。A07～A08 证据：
+
+- 非空拼音 Enter 提交 ni，不提交表单；下一次发送才使页面提交计数从 0 到 1。
+  空临时模式空格/发送保持 0；搜索也先提交原文、第二次才触发表单；普通正文正常换行。
+- 密码输入 ggll 时键盘仅显示安全输入，无候选/原文展示；数字 12、电话 +12 直接输入。
+  网址 gg.、邮箱 a@ 使用专用符号键；默认 Next 跳到第二个表单输入框。
+- 宿主预置汉字、非 BMP、组合重音、ZWJ emoji、国旗、肤色修饰后，实际点击 IME 退格，
+  每次删除完整字素；Ctrl+A 后退格删除选区。预编辑 gg 中左移光标，退格只删光标前 g，
+  再输入/删除 a 不覆盖保留的 g。
+
+验收页为 android/tests/host.html，只由本地主机 HTTP 服务提供。Chrome 113 对数字框
+无障碍文本附加字段名（12, 数字），测试明确接受这种呈现。显式 enterkeyhint=next 在该
+版本只发 Enter；测试默认表单 Next 焦点行为，未在输入法中添加浏览器特判。
+依据：Chromium 113 ImeAdapterImpl.performEditorAction：
+https://github.com/chromium/chromium/blob/113.0.5672.136/content/public/android/java/src/org/chromium/content/browser/input/ImeAdapterImpl.java#L833
+
+本次 Chrome 首次条款经用户授权接受，可选统计已关闭，不登录账号。

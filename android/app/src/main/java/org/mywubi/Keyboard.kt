@@ -17,7 +17,6 @@ import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.onClick
 import androidx.compose.ui.semantics.role
-import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.semantics.clearAndSetSemantics
 import androidx.compose.ui.semantics.disabled
 import androidx.compose.ui.unit.dp
@@ -104,6 +103,15 @@ fun Keyboard(model: KeyboardModel, dispatch: (Any) -> Unit, window: (Int) -> Uni
                     val label=if(upper && !symbols) key.uppercaseChar().toString() else key.toString()
                     Key(label,model.enabled,model.epoch,Modifier.weight(1f)) {
                         dispatch(JSONObject().put("InputText",JSONArray().put(label).put("Normal")))
+                    }
+                }
+            }
+            if (!symbols && model.layout in listOf("url", "email")) {
+                Row(Modifier.fillMaxWidth(),horizontalArrangement=Arrangement.spacedBy(3.dp)) {
+                    for (label in listOf(if(model.layout == "email") "@" else "/", ".")) {
+                        Key(label,model.enabled,model.epoch,Modifier.weight(1f)) {
+                            dispatch(JSONObject().put("InputText",JSONArray().put(label).put("Normal")))
+                        }
                     }
                 }
             }

@@ -33,7 +33,7 @@ class ModeHostTest {
         if(device.hasObject(By.desc("英 → 中"))) key("英 → 中")
         key("中 → 英")
         text("hello");key("空格");expect("hello ")
-        key("拼音");key("空格");key("回车");expect("hello ")
+        key("拼音");key("空格");key("搜索");expect("hello ")
         text("ni");key("拼音 · 本次");expect("hello ni")
         InstrumentationRegistry.getInstrumentation().uiAutomation.clearCache()
         device.wait(Until.findObject(By.descStartsWith("候选 你，").pkg("org.mywubi")),3000)?.click()

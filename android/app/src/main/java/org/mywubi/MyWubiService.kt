@@ -25,6 +25,8 @@ class MyWubiService : InputMethodService() {
     private var session: NativeHandle? = null
     private var editorEpoch = 0L
     private var active = false
+    private var inputPolicy = InputPolicy.from(0, 0)
+    private var hasSelection = false
     private val editor = EditorAdapter()
     private var viewOwner: ImeViewOwner? = null
     private var viewVisible = false
@@ -53,9 +55,9 @@ class MyWubiService : InputMethodService() {
     }
 
     private fun hostContext() = JSONObject().put("editor", editorEpoch).put("epoch", editorEpoch)
-        .put("supports_preedit", true).put("supports_insert", true).put("owns_preedit", false)
-        .put("purpose", "Text").put("selection_available", true).put("surrounding_available", true)
-        .put("enter_action", "Newline")
+        .put("supports_preedit", inputPolicy.purpose == "Text").put("supports_insert", true).put("owns_preedit", false)
+        .put("purpose", inputPolicy.purpose).put("selection_available", true).put("surrounding_available", true)
+        .put("enter_action", inputPolicy.action)
 
     private fun attachEditor() {
         val r = runtime ?: return
@@ -68,6 +70,8 @@ class MyWubiService : InputMethodService() {
 
     override fun onStartInput(attribute: EditorInfo?, restarting: Boolean) {
         super.onStartInput(attribute, restarting)
+        inputPolicy = InputPolicy.from(attribute?.inputType ?: 0, attribute?.imeOptions ?: 0)
+        hasSelection = attribute != null && attribute.initialSelStart >= 0 && attribute.initialSelStart != attribute.initialSelEnd
         editorEpoch++; active = true
         attachEditor(); refresh()
     }
@@ -79,6 +83,20 @@ class MyWubiService : InputMethodService() {
     }
 
     override fun onEvaluateFullscreenMode() = false
+
+    override fun onUpdateSelection(oldSelStart: Int, oldSelEnd: Int, newSelStart: Int, newSelEnd: Int, candidatesStart: Int, candidatesEnd: Int) {
+        super.onUpdateSelection(oldSelStart, oldSelEnd, newSelStart, newSelEnd, candidatesStart, candidatesEnd)
+        hasSelection = newSelStart >= 0 && newSelStart != newSelEnd
+        if (active && editor.ownsPreedit && (candidatesStart < 0 || newSelStart != newSelEnd || newSelEnd != candidatesEnd)) {
+            // The host moved its selection. Preserve text and release our old range before
+            // the next action; never use stale composition state to delete the new selection.
+            currentInputConnection?.finishComposingText()
+            editor.abandon()
+            editorEpoch++
+            attachEditor()
+            refresh()
+        }
+    }
     override fun onCreateInputView(): View {
         viewOwner?.destroy()
         val owner = ImeViewOwner().also { viewOwner = it; it.visible(viewVisible) }
@@ -115,7 +133,10 @@ class MyWubiService : InputMethodService() {
             base = state.optString("base", "Main"),
             temporary = state.optString("temporary").takeIf { it == "Pinyin" || it == "English" },
             pinyinAvailable = state.optJSONObject("pinyin")?.optBoolean("available") == true,
-            modesAvailable = true,
+            modesAvailable = inputPolicy.purpose == "Text",
+            layout = inputPolicy.layout,
+            enterLabel = inputPolicy.enterLabel,
+            privateInput = inputPolicy.purpose == "Password",
             candidates = (0 until items.length()).map { i ->
                 val item = items.getJSONObject(i)
                 val hints = item.getJSONArray("hints")
@@ -143,8 +164,8 @@ class MyWubiService : InputMethodService() {
             applyPlan(plan)
             if (plan.getString("disposition") == "NotHandled") when (action) {
                 "Space" -> connection.commitText(" ",1)
-                "Enter" -> connection.commitText("\n",1)
-                "Backspace" -> connection.deleteSurroundingTextInCodePoints(1,0)
+                "Enter" -> inputPolicy.enter(connection)
+                "Backspace" -> UnicodeEditor.backspace(connection, hasSelection)
             }
             error = null
         } catch (_: ProtocolException) { error = "当前操作不可用" }
