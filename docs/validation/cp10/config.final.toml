@@ -1,0 +1,28 @@
+[basic]
+candidate_count = 2
+commit_mode = "space_first"
+switch_key = "shift"
+auto_commit_unique = true
+commit_on_max_code_overflow = true
+show_code_hints = true
+punctuation_mode = "buffered_commit"
+
+[appearance]
+font_size = 14
+primary_color = 4280191205
+background_color = 4294967295
+highlight_color = 4294956367
+
+[dictionary]
+system_table = "tables/main.dict"
+user_table = "tables/user.dict"
+enable_exact_match = true
+enable_fuzzy = false
+enable_user_dict = false
+
+[hotkey]
+page_next = "page_down"
+page_prev = "page_up"
+select_second = "semicolon"
+select_third = "quote"
+toggle_simplify = "ctrl_shift_s"

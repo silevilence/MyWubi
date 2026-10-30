@@ -1,0 +1,26 @@
+[
+    {
+        "Path":  "C:\\MyWubiQA\\im_engine.dll",
+        "Hash":  "B93653541055C730D881F92CD315DF49C7BBF01EFC5B900BB39368285A27F3C6"
+    },
+    {
+        "Path":  "C:\\MyWubiQA\\settings.exe",
+        "Hash":  "756308A284175DEDC712E0653E4F8E7833F9923476244601F147AD156DE342F5"
+    },
+    {
+        "Path":  "C:\\MyWubiQA\\config.toml",
+        "Hash":  "F2677236F340A47382290AE7B3DC058E2127234C19BB08BE29FE2C98DEE6F719"
+    },
+    {
+        "Path":  "C:\\MyWubiQA\\tables\\main.dict",
+        "Hash":  "48B7639091763DCAF3AB75BDB6CD227FE1B664FD2208443D7A8EC2521BF41428"
+    },
+    {
+        "Path":  "C:\\MyWubiQA\\tables\\english.dict",
+        "Hash":  "A1ECF62E21DDE2088D8279D20B294796500BFA71613CD335B7A83835F3ADF3DC"
+    },
+    {
+        "Path":  "C:\\MyWubiQA\\tables\\pinyin.dict",
+        "Hash":  "7848AC8335D5584ABB0CAD98CCE5A02638F6EC761E51BDEB92D6FC97229B3A55"
+    }
+]

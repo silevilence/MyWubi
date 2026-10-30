@@ -3,3 +3,8 @@
 /tables/english.dict text eol=lf
 /tables/sources.json text eol=lf
 /tables/licenses/*.txt text eol=lf
+
+# Preserve the exact bytes of Sandbox acceptance evidence and its SHA-256 hashes.
+/docs/validation/cp10/*.toml -text
+/docs/validation/cp10/*.dict -text
+/docs/validation/cp10/engine.log -text

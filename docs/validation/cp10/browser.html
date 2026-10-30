@@ -1,0 +1,4 @@
+<!doctype html><meta charset="utf-8"><title>MyWubi CP-10 TSF acceptance</title>
+<style>body{font:20px sans-serif;margin:32px}textarea{display:block;width:90%;height:150px;font:26px sans-serif;margin:18px 0}pre{font:14px monospace;white-space:pre-wrap}</style>
+<h1>MyWubi CP-10 · Browser TSF</h1><label>Text A<textarea id="a"></textarea></label><label>Text B<textarea id="b"></textarea></label><pre id="events"></pre>
+<script>const log=[];for(const el of document.querySelectorAll('textarea'))for(const name of ['compositionstart','compositionupdate','compositionend','input','focus','blur'])el.addEventListener(name,e=>{log.push(JSON.stringify({field:el.id,event:e.type,data:e.data,inputType:e.inputType,value:el.value}));document.querySelector('#events').textContent=log.slice(-12).join('\n');});</script>

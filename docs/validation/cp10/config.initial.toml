@@ -1,0 +1,47 @@
+# MyWubi 全局配置文件
+
+[basic]
+# 候选词显示个数
+candidate_count = 2
+# 上屏方式: "space_first" 空格首选上屏, "enter_commit" 回车上屏
+commit_mode = "space_first"
+# 中英文切换键: "shift" / "caps_lock" / "ctrl_space"
+switch_key = "shift"
+# 四码唯一时自动上屏
+auto_commit_unique = true
+# 超过码表最大码长时，已有候选则顶首选并开始下一码
+commit_on_max_code_overflow = true
+# 候选编码不全时显示后续编码提示
+show_code_hints = true
+# 标点输入: "buffered_commit" 加入缓冲后最后一起上屏, "direct_commit" 立即上屏
+punctuation_mode = "buffered_commit"
+
+[appearance]
+# 候选框字体大小 (pt)
+font_size = 14
+# 主色 (十六进制 ARGB)
+primary_color = 0xFF1E88E5
+# 背景色
+background_color = 0xFFFFFFFF
+# 候选项高亮色
+highlight_color = 0xFFFFD54F
+
+[dictionary]
+# 系统码表路径
+system_table = "tables/main.dict"
+# 用户词库路径（可读写）
+user_table = "tables/user.dict"
+# 启用四码唯一自动上屏
+enable_exact_match = true
+# 启用模糊音（预留，形码常用不到）
+enable_fuzzy = false
+
+[hotkey]
+# 翻页键
+page_next = "page_down"
+page_prev = "page_up"
+# 快速选择候选
+select_second = "semicolon"
+select_third = "quote"
+# 二三级简码切换
+toggle_simplify = "ctrl_shift_s"

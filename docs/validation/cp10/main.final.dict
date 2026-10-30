@@ -1,0 +1,18 @@
+---
+type: shape
+temporary:
+  key: '`'
+  pinyin_table: pinyin.dict
+  english_table: english.dict
+  reverse_lookup: true
+wildcard_key: ''
+charset: abcdefghijklmnopqrstuvwxyz
+max_code_len: 4
+---
+a	主	100
+wg	你好	50
+wq	你好	100
+wqvb	你好	50
+xl	中国人	100
+s	西安	100
+t	先	100

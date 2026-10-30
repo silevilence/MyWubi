@@ -1,0 +1,165 @@
+[1793330216.677] [INFO] [im_engine::file_log] [im_engine_log] 日志已初始化: C:\MyWubiQA\log\im_engine.log
+[1793330216.718] [INFO] [im_engine::text_service] [TSF] ITfKeystrokeMgr::AdviseKeyEventSink 成功
+[1793330216.733] [INFO] [im_engine::text_service] [TSF] TIP activated (tid=66)
+[1793330438.107] [INFO] [im_engine::file_log] [im_engine_log] 日志已初始化: C:\MyWubiQA\log\im_engine.log
+[1793330438.112] [INFO] [im_engine::text_service] [TSF] ITfKeystrokeMgr::AdviseKeyEventSink 成功
+[1793330438.122] [INFO] [im_engine::text_service] [TSF] TIP activated (tid=2)
+[1793331149.908] [INFO] [im_engine::reload] [reload] 已发布新的运行时快照 revision=[2
+1793331149.908] [INFO] [im_engine::reload] [reload] 已发布新的运行时快照 revision=2
+[1793331149.909] [INFO] [im_engine::reload] [reload] 已发布新的运行时快照 revision=3
+[1793331149.911] [INFO] [im_engine::reload] [reload] 已发布新的运行时快照 revision=4
+[1793331149.911] [INFO] [im_engine::reload] [reload] 已发布新的运行时快照 revision=3
+[1793331149.912] [INFO] [im_engine::reload] [reload] 已发布新的运行时快照 revision=5
+[1793331149.912] [INFO] [im_engine::reload] [reload] 已发布新的运行时快照 revision=4
+[1793331149.912] [INFO] [im_engine::reload] [reload] 已发布新的运行时快照 revision=6
+[1793331149.913] [INFO] [im_engine::reload] [reload] 已发布新的运行时快照 revision=5
+[1793331149.913] [INFO] [im_engine::reload] [reload] 已发布新的运行时快照 revision=7
+[1793331149.914] [INFO] [im_engine::reload] [reload] 已发布新的运行时快照 revision=8
+[1793331149.915] [INFO] [im_engine::reload] [reload] 已发布新的运行时快照 revision=6
+[1793331149.915] [INFO] [im_engine::reload] [reload] 已发布新的运行时快照 revision=9
+[1793331149.915] [INFO] [im_engine::reload] [reload] 已发布新的运行时快照 revision=7
+[1793331149.915] [INFO] [im_engine::reload] [reload] 已发布新的运行时快照 revision=8
+[1793331149.916] [INFO] [im_engine::reload] [reload] 已发布新的运行时快照 revision=9
+[1793331149.931] [INFO] [im_engine::reload] [reload] 已发布新的运行时快照 revision=10
+[1793331149.932] [INFO] [im_engine::reload] [reload] 已发布新的运行时快照 revision=10
+[1793331149.941] [INFO] [im_engine::reload] [reload] 已发布新的运行时快照 revision=11
+[1793331149.942] [INFO] [im_engine::reload] [reload] 已发布新的运行时快照 revision=11
+[1793331149.942] [INFO] [im_engine::reload] [reload] 已发布新的运行时快照 revision=12
+[1793331149.943] [INFO] [im_engine::reload] [reload] 已发布新的运行时快照 revision=12
+[1793331225.418] [INFO] [im_engine::reload] [reload] 已发布新的运行时快照 revision=13
+[1793331225.418] [INFO] [im_engine::reload] [reload] 已发布新的运行时快照 revision=13
+[1793331225.418] [INFO] [im_engine::reload] [reload] 已发布新的运行时快照 revision=14
+[1793331225.419] [INFO] [im_engine::reload] [reload] 已发布新的运行时快照 revision=14
+[[17933312251793331225.462.] [WARN] [core_engine::runtime] [temporary] 码表 YAML 头格式非法: max_code_len: invalid type: sequence, expected u8 at line 1 column 15
+462] [[WARN1793331225] [core_engine::runtime] [temporary] 码表 YAML 头格式非法: max_code_len: invalid type: sequence, expected u8 at line 1 column 15.
+462] [ERROR[] [1793331225.im_engine::reload463] [ERROR] [] im_engine::reload] [reload] 辅助码表重载失败，保留旧快照: [reload] 辅助码表重载失败，保留旧快照: 码表 YAML 头格式非法: max_code_len: invalid type: sequence, expected u8 at line 1 column 15码表 YAML 头格式非法: max_code_len: invalid type: sequence, expected u8 at line 1 column 15
+
+[1793331225.464] [WARN] [core_engine::runtime] [temporary] 码表 YAML 头格式非法: max_code_len: invalid type: sequence, expected u8 at line 1 column 15
+[1793331225.464] [ERROR] [im_engine::reload] [reload] 辅助码表重载失败，保留旧快照: 码表 YAML 头格式非法: max_code_len: invalid type: sequence, expected u8 at line 1 column 15
+[1793331225.465] [WARN] [core_engine::runtime] [temporary] 码表 YAML 头格式非法: max_code_len: invalid type: sequence, expected u8 at line 1 column 15
+[1793331225.465] [ERROR] [im_engine::reload] [reload] 辅助码表重载失败，保留旧快照: 码表 YAML 头格式非法: max_code_len: invalid type: sequence, expected u8 at line 1 column 15
+[1793331373.641] [WARN] [core_engine::runtime] [temporary] 无法读取码表文件 C:\MyWubiQA\tables\english.dict: 另一个程序正在使用此文件，进程无法访问。 (os error 32)
+[1793331373.641] [ERROR] [im_engine::reload] [reload] 辅助码表重载失败，保留旧快照: 无法读取码表文件 C:\MyWubiQA\tables\english.dict: 另一个程序正在使用此文件，进程无法访问。 (os error 32)
+[1793331373.641] [WARN] [core_engine::runtime] [temporary] 无法读取码表文件 C:\MyWubiQA\tables\english.dict: 另一个程序正在使用此文件，进程无法访问。 (os error 32)
+[1793331373.641] [ERROR] [im_engine::reload] [reload] 辅助码表重载失败，保留旧快照: 无法读取码表文件 C:\MyWubiQA\tables\english.dict: 另一个程序正在使用此文件，进程无法访问。 (os error 32)
+[1793331373.642] [WARN] [core_engine::runtime] [temporary] 无法读取码表文件 C:\MyWubiQA\tables\english.dict: 另一个程序正在使用此文件，进程无法访问。 (os error 32)
+[1793331373.642] [ERROR] [im_engine::reload] [reload] 辅助码表重载失败，保留旧快照: 无法读取码表文件 C:\MyWubiQA\tables\english.dict: 另一个程序正在使用此文件，进程无法访问。 (os error 32)
+[1793331373.642] [WARN] [core_engine::runtime] [temporary] 无法读取码表文件 C:\MyWubiQA\tables\english.dict: 另一个程序正在使用此文件，进程无法访问。 (os error 32)
+[1793331373.642] [ERROR] [im_engine::reload] [reload] 辅助码表重载失败，保留旧快照: 无法读取码表文件 C:\MyWubiQA\tables\english.dict: 另一个程序正在使用此文件，进程无法访问。 (os error 32)
+[1793331373.644] [WARN] [core_engine::runtime] [temporary] 无法读取码表文件 C:\MyWubiQA\tables\english.dict: 另一个程序正在使用此文件，进程无法访问。 (os error 32)
+[1793331373.644] [ERROR] [im_engine::reload] [reload] 辅助码表重载失败，保留旧快照: 无法读取码表文件 C:\MyWubiQA\tables\english.dict: 另一个程序正在使用此文件，进程无法访问。 (os error 32)
+[1793331373.645] [WARN] [core_engine::runtime] [temporary] 无法读取码表文件 C:\MyWubiQA\tables\english.dict: 另一个程序正在使用此文件，进程无法访问。 (os error 32)
+[1793331373.645] [ERROR] [im_engine::reload] [reload] 辅助码表重载失败，保留旧快照: 无法读取码表文件 C:\MyWubiQA\tables\english.dict: 另一个程序正在使用此文件，进程无法访问。 (os error 32)
+[1793331373.645] [WARN] [core_engine::runtime] [temporary] 无法读取码表文件 C:\MyWubiQA\tables\english.dict: 另一个程序正在使用此文件，进程无法访问。 (os error 32)
+[1793331373.645] [ERROR] [im_engine::reload] [reload] 辅助码表重载失败，保留旧快照: 无法读取码表文件 C:\MyWubiQA\tables\english.dict: 另一个程序正在使用此文件，进程无法访问。 (os error 32)
+[1793331373.647] [INFO] [im_engine::reload] [reload] 已发布新的运行时快照 revision=21
+[1793331373.647] [INFO] [im_engine::reload] [reload] 已发布新的运行时快照 revision=20
+[1793331373.648] [INFO] [im_engine::reload] [reload] 已发布新的运行时快照 revision=21
+[1793331373.649] [INFO] [im_engine::reload] [reload] 已发布新的运行时快照 revision=22
+[1793331373.650] [INFO] [im_engine::reload] [reload] 已发布新的运行时快照 revision=22
+[1793331415.859] [WARN] [core_engine::runtime] [temporary] 无法读取码表文件 C:\MyWubiQA\tables\english.dict: 系统找不到指定的文件。 (os error 2)
+[1793331415.859] [ERROR] [im_engine::reload] [reload] 辅助码表重载失败，保留旧快照: 无法读取码表文件 C:\MyWubiQA\tables\english.dict: 系统找不到指定的文件。 (os error 2)
+[1793331415.860] [WARN] [core_engine::runtime] [temporary] 无法读取码表文件 C:\MyWubiQA\tables\english.dict: 另一个程序正在使用此文件，进程无法访问。 (os error 32)
+[1793331415.860] [ERROR] [im_engine::reload] [reload] 辅助码表重载失败，保留旧快照: 无法读取码表文件 C:\MyWubiQA\tables\english.dict: 另一个程序正在使用此文件，进程无法访问。 (os error 32)
+[1793331415.861] [WARN] [core_engine::runtime] [temporary] 码表 YAML 头格式非法: max_code_len: invalid type: sequence, expected u8 at line 1 column 15
+[1793331415.861] [ERROR] [im_engine::reload] [reload] 辅助码表重载失败，保留旧快照: 码表 YAML 头格式非法: max_code_len: invalid type: sequence, expected u8 at line 1 column 15
+[1793331415.862] [WARN] [core_engine::runtime] [temporary] 码表 YAML 头格式非法: max_code_len: invalid type: sequence, expected u8 at line 1 column 15
+[1793331415.862] [ERROR] [im_engine::reload] [reload] 辅助码表重载失败，保留旧快照: 码表 YAML 头格式非法: max_code_len: invalid type: sequence, expected u8 at line 1 column 15
+[1793331415.862] [WARN] [core_engine::runtime] [temporary] 码表 YAML 头格式非法: max_code_len: invalid type: sequence, expected u8 at line 1 column 15
+[1793331415.862] [ERROR] [im_engine::reload] [reload] 辅助码表重载失败，保留旧快照: 码表 YAML 头格式非法: max_code_len: invalid type: sequence, expected u8 at line 1 column 15
+[1793331415.863] [WARN] [core_engine::runtime] [temporary] 码表 YAML 头格式非法: max_code_len: invalid type: sequence, expected u8 at line 1 column 15
+[1793331415.864] [ERROR] [im_engine::reload] [reload] 辅助码表重载失败，保留旧快照: 码表 YAML 头格式非法: max_code_len: invalid type: sequence, expected u8 at line 1 column 15
+[1793331415.864] [[WARN1793331415] [.core_engine::runtime864] ] [[temporary] WARN码表 YAML 头格式非法: max_code_len: invalid type: sequence, expected u8 at line 1 column 15] [
+core_engine::runtime[] 1793331415[temporary] .码表 YAML 头格式非法: max_code_len: invalid type: sequence, expected u8 at line 1 column 15864
+] [[ERROR1793331415] [.im_engine::reload865] ] [[reload] 辅助码表重载失败，保留旧快照: ERROR码表 YAML 头格式非法: max_code_len: invalid type: sequence, expected u8 at line 1 column 15] [
+im_engine::reload] [reload] 辅助码表重载失败，保留旧快照: 码表 YAML 头格式非法: max_code_len: invalid type: sequence, expected u8 at line 1 column 15
+[1793331415.867] [WARN] [core_engine::runtime] [temporary] 码表 YAML 头格式非法: max_code_len: invalid type: sequence, expected u8 at line 1 column 15
+[1793331415.867] [ERROR] [im_engine::reload] [reload] 辅助码表重载失败，保留旧快照: 码表 YAML 头格式非法: max_code_len: invalid type: sequence, expected u8 at line 1 column 15
+[1793331415.868] [WARN] [core_engine::runtime] [temporary] 码表 YAML 头格式非法: max_code_len: invalid type: sequence, expected u8 at line 1 column 15
+[1793331415.868] [ERROR] [im_engine::reload] [reload] 辅助码表重载失败，保留旧快照: 码表 YAML 头格式非法: max_code_len: invalid type: sequence, expected u8 at line 1 column 15
+[1793331415.868] [WARN] [core_engine::runtime] [temporary] 码表 YAML 头格式非法: max_code_len: invalid type: sequence, expected u8 at line 1 column 15
+[1793331415.868] [ERROR] [im_engine::reload] [reload] 辅助码表重载失败，保留旧快照: 码表 YAML 头格式非法: max_code_len: invalid type: sequence, expected u8 at line 1 column 15
+[1793331415.870] [WARN] [core_engine::runtime] [temporary] 码表 YAML 头格式非法: max_code_len: invalid type: sequence, expected u8 at line 1 column 15
+[1793331415.870] [ERROR] [im_engine::reload] [reload] 辅助码表重载失败，保留旧快照: 码表 YAML 头格式非法: max_code_len: invalid type: sequence, expected u8 at line 1 column 15
+[1793331415.872] [WARN] [core_engine::runtime] [temporary] 码表 YAML 头格式非法: max_code_len: invalid type: sequence, expected u8 at line 1 column 15
+[1793331415.873] [ERROR] [im_engine::reload] [reload] 辅助码表重载失败，保留旧快照: 码表 YAML 头格式非法: max_code_len: invalid type: sequence, expected u8 at line 1 column 15
+[1793331415.873] [WARN] [core_engine::runtime] [temporary] 码表 YAML 头格式非法: max_code_len: invalid type: sequence, expected u8 at line 1 column 15
+[1793331415.874] [ERROR] [im_engine::reload] [reload] 辅助码表重载失败，保留旧快照: 码表 YAML 头格式非法: max_code_len: invalid type: sequence, expected u8 at line 1 column 15
+[1793331415.875] [WARN] [core_engine::runtime] [temporary] 码表 YAML 头格式非法: max_code_len: invalid type: sequence, expected u8 at line 1 column 15
+[1793331415.875] [ERROR] [im_engine::reload] [reload] 辅助码表重载失败，保留旧快照: 码表 YAML 头格式非法: max_code_len: invalid type: sequence, expected u8 at line 1 column 15
+[1793331415.876] [WARN] [core_engine::runtime] [temporary] 码表 YAML 头格式非法: max_code_len: invalid type: sequence, expected u8 at line 1 column 15
+[1793331415.876] [ERROR] [im_engine::reload] [reload] 辅助码表重载失败，保留旧快照: 码表 YAML 头格式非法: max_code_len: invalid type: sequence, expected u8 at line 1 column 15
+[1793331415.877] [WARN] [core_engine::runtime] [temporary] 码表 YAML 头格式非法: max_code_len: invalid type: sequence, expected u8 at line 1 column 15
+[1793331415.877] [ERROR] [im_engine::reload] [reload] 辅助码表重载失败，保留旧快照: 码表 YAML 头格式非法: max_code_len: invalid type: sequence, expected u8 at line 1 column 15
+[1793331415.877] [WARN] [core_engine::runtime] [temporary] 码表 YAML 头格式非法: max_code_len: invalid type: sequence, expected u8 at line 1 column 15
+[1793331415.877] [ERROR] [im_engine::reload] [reload] 辅助码表重载失败，保留旧快照: 码表 YAML 头格式非法: max_code_len: invalid type: sequence, expected u8 at line 1 column 15
+[1793331464.855] [WARN] [core_engine::runtime] [temporary] 无法读取码表文件 C:\MyWubiQA\tables\english.dict: 另一个程序正在使用此文件，进程无法访问。 (os error 32)
+[1793331464.855] [ERROR] [im_engine::reload] [reload] 辅助码表重载失败，保留旧快照: 无法读取码表文件 C:\MyWubiQA\tables\english.dict: 另一个程序正在使用此文件，进程无法访问。 (os error 32)
+[1793331464.856] [INFO] [im_engine::reload] [reload] 已发布新的运行时快照 revision=32
+[1793331464.856] [INFO] [im_engine::reload] [reload] 已发布新的运行时快照 revision=33
+[1793331464.857] [INFO] [im_engine::reload] [reload] 已发布新的运行时快照 revision=33
+[1793331464.858] [INFO] [im_engine::reload] [reload] 已发布新的运行时快照 revision=34
+[1793331464.858] [INFO] [im_engine::reload] [reload] 已发布新的运行时快照 revision=34
+[1793331464.858] [INFO] [im_engine::reload] [reload] 已发布新的运行时快照 revision=35
+[1793331464.860] [INFO[] [1793331464.860] [INFO] [im_engine::reload] [reload] 已发布新的运行时快照 revision=35
+im_engine::reload] [reload] 已发布新的运行时快照 revision=36
+[1793331464.861] [INFO] [im_engine::reload] [reload] 已发布新的运行时快照 revision=36
+[1793331464.862] [INFO] [im_engine::reload] [reload] 已发布新的运行时快照 revision=37
+[1793331464.862] [INFO] [im_engine::reload] [reload] 已发布新的运行时快照 revision=37
+[1793331464.862] [INFO] [im_engine::reload] [reload] 已发布新的运行时快照 revision=38
+[1793331464.863] [INFO] [im_engine::reload] [reload] 已发布新的运行时快照 revision=39
+[1793331464.864] [INFO] [im_engine::reload] [reload] 已发布新的运行时快照 revision=38
+[1793331464.865] [INFO] [im_engine::reload] [reload] 已发布新的运行时快照 revision=39
+[1793331501.219] [INFO] [im_engine::reload] [reload] 已发布新的运行时快照 revision=40
+[1793331501.219] [INFO] [im_engine::reload] [reload] 已发布新的运行时快照 revision=40
+[1793331501.220] [INFO] [im_engine::reload] [reload] 已发布新的运行时快照 revision=41
+[1793331501.222] [INFO] [im_engine::reload] [reload] 已发布新的运行时快照 revision=42
+[1793331501.222] [INFO] [im_engine::reload] [reload] 已发布新的运行时快照 revision=41
+[1793331501.223] [INFO] [im_engine::reload] [reload] 已发布新的运行时快照 revision=43
+[1793331501.223] [INFO] [im_engine::reload] [reload] 已发布新的运行时快照 revision=42
+[1793331501.224] [INFO] [im_engine::reload] [reload] 已发布新的运行时快照 revision=44
+[1793331501.224] [INFO] [im_engine::reload] [reload] 已发布新的运行时快照 revision=43
+[1793331501.225] [INFO] [im_engine::reload] [reload] 已发布新的运行时快照 revision=45
+[1793331501.225] [INFO] [im_engine::reload] [reload] 已发布新的运行时快照 revision=44
+[1793331501.226] [INFO] [im_engine::reload] [reload] 已发布新的运行时快照 revision=46
+[1793331501.226] [INFO] [im_engine::reload] [reload] 已发布新的运行时快照 revision=45
+[1793331501.226] [INFO] [im_engine::reload] [reload] 已发布新的运行时快照 revision=47
+[1793331501.227] [INFO] [im_engine::reload] [reload] 已发布新的运行时快照 revision=46
+[1793331501.227] [INFO] [im_engine::reload] [reload] 已发布新的运行时快照 revision=47
+[1793331501.241] [INFO] [im_engine::reload] [reload] 已发布新的运行时快照 revision=48
+[1793331501.241] [INFO] [im_engine::reload] [reload] 已发布新的运行时快照 revision=48
+[1793331501.249] [INFO] [im_engine::reload] [reload] 已发布新的运行时快照 revision=49
+[1793331501.249] [INFO] [im_engine::reload] [reload] 已发布新的运行时快照 revision=49
+[1793331501.249] [INFO] [im_engine::reload] [reload] 已发布新的运行时快照 revision=50
+[1793331501.249] [INFO] [im_engine::reload] [reload] 已发布新的运行时快照 revision=50
+[1793331541.039] [INFO] [im_engine::file_log] [im_engine_log] 日志已初始化: C:\MyWubiQA\log\im_engine.log
+[1793331541.040] [INFO] [im_engine::text_service] [TSF] ITfKeystrokeMgr::AdviseKeyEventSink 成功
+[1793331541.042] [INFO] [im_engine::text_service] [TSF] TIP activated (tid=2)
+[1793331563.786] [INFO] [[[im_engine::reload17933315631793331563] ..[reload] 已发布新的运行时快照 revision=78651786] [] [
+INFOINFO] [] [im_engine::reloadim_engine::reload] ] [reload] 已发布新的运行时快照 revision=[reload] 已发布新的运行时快照 revision=512
+
+[1793331563.788] [INFO] [im_engine::reload] [reload] 已发布新的运行时快照 revision=52
+[1793331563.788] [INFO] [im_engine::reload] [reload] 已发布新的运行时快照 revision=3[
+1793331563.788] [INFO] [im_engine::reload] [reload] 已发布新的运行时快照 revision=52
+[1793331563.799] [INFO] [im_engine::reload] [reload] 已发布新的运行时快照 revision=4
+[1793331563.799] [INFO] [im_engine::reload] [reload] 已发布新的运行时快照 revision=53
+[1793331563.799] [INFO] [im_engine::reload] [reload] 已发布新的运行时快照 revision=53
+[1793331792.286] [INFO] [im_engine::reload] [reload] 已发布新的运行时快照 revision=5
+[1793331792.289] [INFO] [im_engine::reload] [reload] 已发布新的运行时快照 revision=6
+[1793331792.289] [INFO] [im_engine::reload] [reload] 已发布新的运行时快照 revision=54
+[1793331792.289] [INFO] [im_engine::reload] [reload] 已发布新的运行时快照 revision=54
+[1793331792.292] [INFO] [im_engine::reload] [reload] 已发布新的运行时快照 revision=55
+[1793331792.293] [INFO] [im_engine::reload] [reload] 已发布新的运行时快照 revision=55
+[1793331792.311] [INFO] [im_engine::reload] [reload] 已发布新的运行时快照 revision=7[
+1793331792.312] [INFO] [im_engine::reload] [reload] 已发布新的运行时快照 revision=56
+[1793331792.312] [INFO] [im_engine::reload] [reload] 已发布新的运行时快照 revision=56
+[1793331808.350] [INFO] [im_engine::text_service] [TSF] TIP deactivated
+[1793331808.903] [INFO] [im_engine::text_service] [TSF] TIP deactivated
+[1793331808.905] [INFO] [im_engine::text_service] [TSF] TIP deactivated
+[1793332080.921] [INFO] [im_engine::text_service] [TSF] ITfKeystrokeMgr::AdviseKeyEventSink 成功
+[1793332080.923] [INFO] [im_engine::text_service] [TSF] TIP activated (tid=2)
+[1793332202.248] [INFO] [im_engine::text_service] [TSF] ITfKeystrokeMgr::AdviseKeyEventSink 成功
+[1793332202.249] [INFO] [im_engine::text_service] [TSF] TIP activated (tid=66)
+[1793332220.355] [INFO] [im_engine::text_service] [TSF] TIP deactivated
+[1793332220.467] [INFO] [im_engine::text_service] [TSF] ITfKeystrokeMgr::AdviseKeyEventSink 成功
+[1793332220.468] [INFO] [im_engine::text_service] [TSF] TIP activated (tid=66)
