@@ -1,0 +1,7 @@
+[
+  {"request":{"version":2,"request":{"op":"Destroy","handle":0}},"code":1},
+  {"request":{"version":1,"request":{"op":"Unknown"}},"code":2},
+  {"request":{"version":1,"request":{"op":"Destroy","handle":0}},"code":3},
+  {"request":{"version":1,"request":{"op":"Prepare","session":0,"action":{"InputCode":"😀x"}}},"code":2},
+  {"request":{"version":1,"request":{"op":"Candidates","session":0,"offset":0,"count":257}},"code":2}
+]

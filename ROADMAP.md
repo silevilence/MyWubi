@@ -86,11 +86,13 @@
 
     - 验收记录：[Android 构建与设备](docs/android-validation.md)。
 
-- [ ] **实现 Kotlin 与 Rust 的完整 JNI 会话桥接**
+- [x] **实现 Kotlin 与 Rust 的完整 JNI 会话桥接**
     - 关联：CP-13；依赖 CP-11、CP-12。
-    - [ ] 在独立 Android native 模块包装同一共享接口，支持动作、确认、候选、配置资源和生命周期。
-    - [ ] 处理 Unicode、JNI 线程/引用、错误与句柄释放，不在 Kotlin 复制状态机或逐键创建引擎。
+    - [x] 在独立 Android native 模块包装同一共享接口，支持动作、确认、候选、配置资源和生命周期。
+    - [x] 处理 Unicode、JNI 线程/引用、错误与句柄释放，不在 Kotlin 复制状态机或逐键创建引擎。
     - 验收：设备可加载 `.so` 并完成契约流程；新接口重复销毁/失效句柄、异常与字符串边界测试通过，与 Rust/C 协议结果等价。
+
+    - 验收记录：[JNI 设备契约](docs/android-validation.md)。
 
 - [ ] **打通 Android 输入法服务与真实上屏闭环**
     - 关联：CP-14；依赖 CP-10、CP-13。

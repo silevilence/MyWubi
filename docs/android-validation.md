@@ -18,3 +18,15 @@
 
 SDK 位于 Program Files 下，AGP 对既有 package.xml 有只读提示；固定使用已安装的
 Build Tools 35 后构建通过，没有修改权限、文件属性或系统安全策略。
+
+## CP-13 JNI
+
+`NativeContractTest.protocolBoundariesAndLifecycle` 在 API 34 模拟器通过：实际加载
+APK 中 x86_64 `.so`，执行建快照/建会话、两阶段确认、候选查询、关闭与重复销毁拒绝。
+Rust/C/JNI 读取同一 `core_engine/tests/fixtures/protocol/errors.json` 错误样例；
+覆盖版本错误、非法操作、超长窗口、无效句柄、多标量字符拒绝，以及非法 UTF-8。
+有效路径验证非 BMP、NUL、组合字符原样传输。JNI 使用当前调用线程的 JNIEnv，
+byte[] 复制到 JVM 所有内存，不缓存跨线程环境或借出临时原生指针。
+
+资源接口通过同一个 typed facade 直接开放，Kotlin 没有第二份状态机。
+Rust/C 资源版本冲突与 Unicode 词库用例通过；Windows 工作区与 JNI 主机 Clippy 通过。

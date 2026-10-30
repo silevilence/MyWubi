@@ -134,6 +134,30 @@ fn resources_preserve_versions_and_unicode() {
 
 #[test]
 fn c_transport_matches_rust_and_rejects_invalid_buffers() {
+    let fixtures: Vec<Value> =
+        serde_json::from_str(include_str!("fixtures/protocol/errors.json")).unwrap();
+    for fixture in fixtures {
+        let bytes = serde_json::to_vec(&fixture["request"]).unwrap();
+        let response: Value = serde_json::from_slice(&call(&bytes)).unwrap();
+        assert_eq!(response["error"]["code"], fixture["code"]);
+        let mut buffer = Buffer {
+            data: std::ptr::null(),
+            len: 0,
+            allocation: 0,
+        };
+        // SAFETY: both allocations live through the call; result is released after comparison.
+        unsafe {
+            assert_eq!(
+                mywubi_v1_call(bytes.as_ptr(), bytes.len() as u64, &mut buffer),
+                0
+            );
+            assert_eq!(
+                std::slice::from_raw_parts(buffer.data, buffer.len as usize),
+                call(&bytes)
+            );
+        }
+        assert_eq!(mywubi_v1_buffer_free(buffer.allocation), 0);
+    }
     let cases = [
         b"{\"version\":2,\"request\":{\"op\":\"Destroy\",\"handle\":0}}".as_slice(),
         b"invalid",
