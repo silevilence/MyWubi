@@ -4,8 +4,8 @@
 
 本次使用 Windows Sandbox 中的真实记事本和 Microsoft Edge，注册新构建的
 `im_engine.dll`，通过逐键事件验证 TSF。没有用粘贴中文、模拟 Editor、DOM 赋值或
-历史验收记录替代输入。当前剩余浏览器语言栏的最终复核；桌面锁屏后停止了 UI 操作，
-此项完成前不勾选 CP-10。
+历史验收记录替代输入。CP-10 已完成：浏览器语言栏最终复核在桌面解锁后通过，
+本次覆盖的场景未发现新增回归，异常表现已用迁移前 DLL 对照。以下明确保留既有宿主限制，不把兼容验收等同于缺陷全部修复。
 
 ## 环境与制品
 
@@ -66,7 +66,7 @@ Sandbox 本身没有可启动的记事本，因此复制了主机 WinSxS 中 Mic
 | 取消与退格 | Edge Esc 删除本轮预编辑；记事本 `n` → 退格 → 退格退出空临时模式，之后 `a`、空格提交“主” |
 | 英文回车 | 记事本临时英文 `b`、回车提交原文 `b`，没有选择词组或输入模式标签 |
 | 撤销 | 记事本 Ctrl+Z 可撤销连续输入；Edge `a`、空格、Ctrl+Z 恢复选中的 `a`，再次 Ctrl+Z 清空；旧 DLL 同样如此 |
-| Shift 与语言栏 | 记事本 Shift 切英文后逐键 `hi` 直接输入，点击语言栏切回中文后 `a`、空格提交“主”；Edge 最终复核待解锁后完成 |
+| Shift 与语言栏 | 记事本、Edge 均验证 Shift 切英文后逐键 `hi` 直接输入，点击语言栏切回中文后 `a` 显示“主”候选，空格提交“主”；候选不残留 |
 | 切焦点 | Edge A→B、记事本→其他窗口均隐藏候选且不向新宿主串写；临时 `b` 留在旧宿主的问题在新旧 DLL 均复现，见下节 |
 | 码表保存热重载 | 设置程序关闭反查、保存主表后，同一 Edge 进程提示消失；恢复反查并保存后重新出现 |
 | 配置保存热重载 | 设置程序候选数 2→3 并保存，同一 Edge 和记事本进程的 `ni` 均显示三个候选；结束时保存回 2 |
@@ -79,7 +79,14 @@ Sandbox 本身没有可启动的记事本，因此复制了主机 WinSxS 中 Mic
 [失败重载仍有候选](validation/cp10/edge-failed-reload.png)、
 [Edge 恢复反查及三个候选](validation/cp10/edge-reload-restored.png)、
 [记事本热重载](validation/cp10/notepad-reload-restored.png)、
-[设置安装状态](validation/cp10/settings-installed.png)。
+[设置安装状态](validation/cp10/settings-installed.png)、
+[Edge 英文旁路](validation/cp10/edge-languagebar-english.png)、
+[Edge 语言栏切回中文](validation/cp10/edge-languagebar-chinese.png)。
+
+最后一次复核使用原 Edge 进程 PID 20284，重新核对其模块仍为
+`C:\MyWubiQA\im_engine.dll`，哈希仍为上表的 `B9365354…A27F3C6`。
+测试页 Text B 原有 `hi`，复核先中文提交“主”、Shift 后输入 `hi`，
+再点击语言栏切回中文提交“主”，最终为 `hi主hi主`；没有粘贴这段结果文字。
 
 ## 旧版对照与已知限制
 
@@ -117,6 +124,10 @@ W15 的纯会话测试与真实宿主外部终止路径存在覆盖边界；本�
 | 原版 `build.ps1 -SkipBuild` | 在独立暂存副本中成功生成 0.4.0 Setup / Portable / full.nupkg |
 | Sandbox 中 `MyWubi-win-Setup.exe --silent` | 返回 0；安装到 `%LOCALAPPDATA%\MyWubi\current`，DLL / EXE 哈希吻合 |
 | TIP 注册与管理面板 | 注册成功；安装路径、启用/禁用状态核对通过 |
+| 最终证据审核 | 报告本地链接、配置/主表哈希、加载路径、完成标记与截图一致；`git diff --check` 通过 |
+
+本轮交付只增加验收记录、测试页面和证据文件，并更新 CP-10 状态；生产代码、依赖及版本未变。
+因此沿用本次同源码、同实测制品的 274 项测试及构建结果，没有为文档变更重复执行无关测试。
 
 打包使用原版 `build.ps1`，仅把执行根目录隔离到
 `target/cp10-package/`，该目录初始不存在 staging，不触碰仓库原有 `Releases/`。

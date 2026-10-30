@@ -2,7 +2,7 @@
 
 ## 📅 计划中
 
-以下共享核心与 Android 首版任务于 2026-10-23 替换旧 JNI、服务、候选/设置和自动构建四项任务，并经 [第二轮审核](docs/cross-platform-plan-review.md) 修订。依据为 [现状及工具链](docs/android-readiness.md)、[接口与职责方案](docs/cross-platform-core-design.md)、[实施顺序与回归矩阵](docs/cross-platform-implementation-plan.md)。CP-01～CP-09 已于 2026-10-27 完成实现与主机自动验收，见 [验收记录](docs/shared-core-validation.md)；CP-10 真实 TSF 验收和后续 Android 任务仍待实施。后续共享变更持续执行 Windows 回归，最终制品重新实机验收。CP 编号用于依赖追踪，每项按约 1～3 个工作日粒度拆分，不是交付日期承诺。
+以下共享核心与 Android 首版任务于 2026-10-23 替换旧 JNI、服务、候选/设置和自动构建四项任务，并经 [第二轮审核](docs/cross-platform-plan-review.md) 修订。依据为 [现状及工具链](docs/android-readiness.md)、[接口与职责方案](docs/cross-platform-core-design.md)、[实施顺序与回归矩阵](docs/cross-platform-implementation-plan.md)。CP-01～CP-09 已于 2026-10-27 完成实现与主机自动验收，见 [验收记录](docs/shared-core-validation.md)；CP-10 已于 2026-10-30 完成 [Sandbox 真实 TSF 验收](docs/windows-shared-core-tsf-validation.md)，后续 Android 任务仍待实施。后续共享变更持续执行 Windows 回归，最终制品重新实机验收。CP 编号用于依赖追踪，每项按约 1～3 个工作日粒度拆分，不是交付日期承诺。
 
 - [x] **固定 Windows 输入行为与数据兼容基线**
     - 关联：CP-01；无前置依赖。
@@ -62,12 +62,12 @@
     - [x] 保持 Windows 英文旁路、旧快捷键和配置默认，不随 Android 能力改变桌面行为。
     - 验收：每步具有可回退边界；W01～W24 自动化适用项无差异；保持同步 TSF 请求、顶字单 edit session 与原候选发布时机，工作区构建/测试通过。
 
-- [ ] **完成 Windows 共享核心迁移的真实 TSF 验收**
+- [x] **完成 Windows 共享核心迁移的真实 TSF 验收**
     - 关联：CP-10；依赖 CP-09。
-    - [ ] 在隔离环境的记事本和浏览器文本框验证逐键输入、撤销、语言栏、切焦点和热重载。
+    - [x] 在隔离环境的记事本和浏览器文本框验证逐键输入、撤销、语言栏、切焦点和热重载。
     - [x] 回归配置保存、码表管理、GDI 显示与既有安装构建流程。
     - 验收：记录 DLL/配置/宿主版本与结果；发现回归先解决，不用模拟编辑器通过替代真实宿主通过。
-    - 当前状态（2026-10-30）：Sandbox 中记事本与 Edge 逐键输入、撤销、切焦点、热重载及设置/安装打包已实测；274 项自动化通过。剩余浏览器语言栏最终复核因桌面锁屏暂停，CP-10 尚未完成。旧版对照确认的失焦残留、分步撤销及空表中间态见 [验收记录](docs/windows-shared-core-tsf-validation.md)。
+    - 当前状态（2026-10-30）：Sandbox 中记事本与 Edge 逐键输入、撤销、语言栏、切焦点、热重载及设置/安装打包均已实测；274 项自动化通过，CP-10 完成。旧版对照确认的失焦残留、分步撤销及空表中间态仍作为既有兼容限制保留，见 [验收记录](docs/windows-shared-core-tsf-validation.md)。
 
 - [ ] **导出版本化的输入会话与资源管理 C-ABI**
     - 关联：CP-11；依赖 CP-07、CP-08。
