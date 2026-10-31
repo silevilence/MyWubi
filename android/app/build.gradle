@@ -13,7 +13,7 @@ android {
         applicationId 'org.mywubi'
         minSdk 26
         targetSdk 35
-        versionCode 1
+        versionCode providers.gradleProperty('versionCode').getOrElse('2').toInteger()
         versionName '0.4.0'
         testInstrumentationRunner 'androidx.test.runner.AndroidJUnitRunner'
         ndk { abiFilters 'arm64-v8a', 'x86_64' }
@@ -24,6 +24,21 @@ android {
         targetCompatibility JavaVersion.VERSION_17
     }
     kotlinOptions { jvmTarget = '17' }
+    def signingValues = ['MYWUBI_KEYSTORE', 'MYWUBI_STORE_PASSWORD', 'MYWUBI_KEY_ALIAS', 'MYWUBI_KEY_PASSWORD'].collect { System.getenv(it) }
+    if (signingValues.any { it } && !signingValues.every { it }) throw new GradleException('Release signing requires all four MYWUBI signing environment variables')
+    signingConfigs {
+        if (signingValues.every { it }) {
+            release {
+                storeFile file(signingValues[0])
+                storePassword signingValues[1]
+                keyAlias signingValues[2]
+                keyPassword signingValues[3]
+            }
+        }
+    }
+    buildTypes {
+        release { if (signingValues.every { it }) signingConfig signingConfigs.release }
+    }
     sourceSets.main.assets.srcDir layout.buildDirectory.dir('generated/assets')
 }
 cargo {
@@ -43,6 +58,11 @@ tasks.register('prepareProtocolFixtures', Copy) {
     from('../../core_engine/tests/fixtures/protocol')
     into layout.buildDirectory.dir('generated/assets/protocol')
 }
+tasks.register('prepareLicenses', Copy) {
+    from('../../tables/licenses')
+    from('../../tables') { include 'README.md', 'sources.json' }
+    into layout.buildDirectory.dir('generated/assets/licenses')
+}
 tasks.register('verifyRustVersion') {
     doLast {
         def version = providers.exec { commandLine 'rustc', '--version' }.standardOutput.asText.get()
@@ -51,7 +71,7 @@ tasks.register('verifyRustVersion') {
 }
 tasks.configureEach { task ->
     if (task.name.startsWith('cargoBuild')) task.dependsOn 'verifyRustVersion'
-    if (task.name == 'preBuild') task.dependsOn 'cargoBuild', 'prepareTables', 'prepareProtocolFixtures'
+    if (task.name == 'preBuild') task.dependsOn 'cargoBuild', 'prepareTables', 'prepareProtocolFixtures', 'prepareLicenses'
     if (task.name.startsWith('merge') && task.name.endsWith('JniLibFolders')) task.dependsOn 'cargoBuild'
     if (task.name == 'assembleDebug') task.doLast {
         def apk = layout.buildDirectory.file('outputs/apk/debug/app-debug.apk').get().asFile

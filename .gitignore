@@ -36,3 +36,6 @@ android/.kotlin/
 android/**/build/
 android/local.properties
 android/*.log
+*.jks
+*.keystore
+android/signing.properties

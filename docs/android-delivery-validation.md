@@ -59,6 +59,23 @@ ExternalHostTest 的候选展开/选取、大小写切换、连删释放停止�
 48 dp 目标，尚需触摸目标设计复核。模拟器未安装 TalkBack，未声称读屏实操通过；
 振动开关已实现，但没有真机验证触感。因此 CP-21 两条综合验收仍保留未完成。
 
+## CP-23：构建、签名与升级
+
+固定 Rust 1.99.1、JDK 21、Gradle 8.9、AGP 8.7.3、SDK/Build Tools 35、NDK
+27.2.12479018。`.github/workflows/android.yml` 定义核心/JNI 测试、严格 Clippy、
+Lint、两 ABI 构建和 API 34 模拟器契约测试，存档 APK、报告及词表许可。
+本地对应步骤通过；本次只本地提交，未在 GitHub 触发工作流。Windows release.yml
+没有改动。商店分发和正式密钥发布不在此次完成范围。
+
+- Debug、未签名 Release 构建成功；Lint 为 0 errors / 2 warnings（应用图标与
+  Android 12+ dataExtractionRules 配置提示，allowBackup=false 已设置）。
+- 签名环境变量分支使用本机开发 debug key 试构建成功；正式密钥未读取、未入库。
+  Debug APK 的 v2 签名经 apksigner 验证。未签名 Release 不能直接安装。
+- 0.4.0 / versionCode 1 → 2 以 adb install -r 升级，7 个活动配置、默认表、导入包
+  文件的 SHA-256 全部不变。另以包含非 BMP 词条的非空用户词库验证覆盖安装，
+  原字节保持不变。签名相同才支持直接升级；卸载/清数据不承诺保留。
+- APK 包含词表许可证、README 与 sources.json；开发示例主表未替换成未授权词表。
+
 ## 后续验收边界
 
 用户确认暂时没有 ARM64 真机。ARM64 真机性能和最终双端联合验收中的相关条目
