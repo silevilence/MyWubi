@@ -212,9 +212,6 @@ mod tests {
         let config_path = config_dir.join("config.toml");
         let resolved = resolve_resource_path(&config_path, Path::new("tables/wubi86.dict"));
 
-        assert_eq!(
-            resolved,
-            config_dir.join("tables").join("wubi86.dict")
-        );
+        assert_eq!(resolved, config_dir.join("tables").join("wubi86.dict"));
     }
 }
