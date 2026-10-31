@@ -79,6 +79,7 @@ private fun SettingsScreen(model: SettingsModel, enable: () -> Unit, choose: () 
             SettingToggle("按键振动", vibration) { vibration = it; model.ui.edit().putBoolean("vibration", it).apply() }
             SettingToggle("仅在候选栏显示预编辑", localPreedit) { localPreedit = it; model.ui.edit().putBoolean("local_preedit", it).apply() }
             Text("预编辑兼容模式在下次进入输入框时生效；当前输入不会重放。手机设置单独保存。")
+            OutlinedButton(onClick = { model.getApplication<android.app.Application>().startActivity(Intent(model.getApplication(), LibraryActivity::class.java).addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)) }, enabled = !model.busy) { Text("编辑码表与用户词库") }
             HorizontalDivider()
             Text("导入码表包", style = MaterialTheme.typography.titleLarge)
             Text("选择主表及直接引用的文件，再明确指定角色。同名文件不会自动匹配；原码表会保留。")
