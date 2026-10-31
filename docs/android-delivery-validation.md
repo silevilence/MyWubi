@@ -48,6 +48,8 @@ LibraryContractTest 在 JNI 上验证非 BMP 词条增删改、无效编码拒�
 没有另写 Android 校验或合并算法。切换读取失败不会把旧表单绑定到新文件。
 界面明确标注手工维护，不声称自动学习或拼音学习。导入后提示重新载入，避免把旧
 列表视为新数据。原始数据与草稿分别保存，退出、重新载入和删除均有明确提示。
+最终 APK 另通过设置入口打开 LibraryActivity，检查主表类型/字符集/码长等元数据
+和用户词库表单、导入导出入口及非空词库计数，页面正常渲染；未以截图代替上述数据契约测试。
 
 ## CP-21：交互检查（未完成）
 
@@ -102,6 +104,100 @@ Lint、两 ABI 构建和 API 34 模拟器契约测试，存档 APK、报告及�
   文件的 SHA-256 全部不变。另以包含非 BMP 词条的非空用户词库验证覆盖安装，
   原字节保持不变。签名相同才支持直接升级；卸载/清数据不承诺保留。
 - APK 包含词表许可证、README 与 sources.json；开发示例主表未替换成未授权词表。
+
+## 最终构建与联合验收边界
+
+主机 cargo test --workspace --locked --offline 共 277 项通过；核心和 Android native
+严格 Clippy（-D warnings）、cargo fmt、git diff --check 通过。重建 core_engine DLL
+后重新编译执行 abi_smoke.c，通过。workspace Release 构建通过。
+
+最终 versionCode 2 整套设备回归 26 项，413.26 秒，25 通过 / 1 失败：SAF 导入后
+下拉按钮点击未打开菜单。补充滚动后的布局稳定等待和精确菜单标签匹配后，针对该项
+重跑 34.46 秒通过（target/cp24-saf-recheck.log）。26 个功能用例均有通过记录，但
+修正后未再次重跑整套，不把最后一次整套结果写成全绿。另独立性能用例通过。
+
+| 制品 | SHA-256 |
+| --- | --- |
+| Android Debug 0.4.0 / code 2 | d48e33bb00f7a6e51438188646eafa30cb90ef48de70cd737b928429cf41a253 |
+| Android Release unsigned / code 2 | 823e977d57fa696c520114d019085f0ec4f9b46475435b8c7d6669902030b781 |
+| 最终 im_engine.dll | 2d8bc07d10d31938aa00fff42b4fbc1bedbbca7e36fc55722a6785985ecd3cd1 |
+| 最终 settings.exe | f343e2da8ae1955b147857f7bbc83bdf1a99af733ae6f38bf1ebd5e84dfc29e9 |
+
+Debug APK 13,338,387 字节，未签名 Release 10,885,681 字节；本地输出在
+android/app/build/outputs/apk/。最终 Windows 文件来自本次 release 构建，不采用旧
+CP-10 DLL。但隔离 Sandbox 的 setup.ps1 被来宾系统脚本执行策略拒绝
+（PSSecurityException / UnauthorizedAccess），没有修改策略或绕过限制。
+已停止本次创建的沙盒；未在用户主机注册输入法。最终真实 TSF 验收未执行，CP-24
+第一条继续未完成；文档和矩阵已更新，不能把自动测试替代为真实 TSF 通过。
+
+回归过程中保留了失败记录：Chrome 一次焦点窗口 ANR 连带阻塞 UI 用例；随后每个
+浏览器场景改为独立启动。Settings 测试补充 Activity 启动等待、只构造一次 selector、
+清除上一用例的 Activity 任务；SAF 用资源 ID 区分同名的工具栏与侧栏 Downloads。
+这些是测试隔离/节点定位修正，不通过忽略异常或删掉断言隐藏失败。
+本地日志在 target/cp24-*.log；真实设备仍缺 ARM64 / 16 KB / TalkBack 覆盖。
+
+## CP-24：逐项证据索引（未完成）
+
+下表区分自动化证据与真实宿主验收。W 系列全部仍缺本次最终 DLL 的真实 TSF 重验，
+不能沿用 CP-10 早期 DLL 的通过结论。测试名称对应仓库测试或 src 内单元测试。
+A/R/B 的通过范围限本次 x86_64 模拟器及主机契约，不代表所有设备或故障机制。
+
+| 编号 | 场景 | 证据与限制 | 当前边界 |
+| --- | --- | --- | --- |
+| W01 | 普通形码、大小写、自定义 charset | state_machine_flow / semantic_events | 自动化已回归；最终 TSF 待验 |
+| W02 | 精确/前缀、重码权重、去重、万能键 | candidate_contract / reverse_lookup | 自动化已回归；最终 TSF 待验 |
+| W03 | 自动上屏、最大码长、溢出顶字 | state_machine_flow / semantic_events | 自动化已回归；最终 TSF 待验 |
+| W04 | 空格、回车、退格、Esc、空缓冲 | state_machine_flow / session_contract | 自动化已回归；最终 TSF 待验 |
+| W05 | 数字与数字型编码/万能键 | key_filter / input_session | 自动化已回归；最终 TSF 待验 |
+| W06 | 二三候选、翻页键、Shift、冲突 | key_filter / input_session | 自动化已回归；最终 TSF 待验 |
+| W07 | 标点与系统键盘布局 | key_filter / input_session | 自动化已回归；最终 TSF 待验 |
+| W08 | Ctrl/Alt/Win、Shift 切换追踪 | key_filter / input_session | 自动化已回归；最终 TSF 待验 |
+| W09 | Windows 中英文/语言栏 | input_session | 自动化已回归；最终 TSF 待验 |
+| W10 | 临时入口、菜单、不可用模式 | temporary_input / temporary_loading | 自动化已回归；最终 TSF 待验 |
+| W11 | 临时英文 | temporary_input / semantic_modes | 自动化已回归；最终 TSF 待验 |
+| W12 | 临时拼音 | pinyin_search / temporary_input | 自动化已回归；最终 TSF 待验 |
+| W13 | 空临时模式与退格 | temporary_input | 自动化已回归；最终 TSF 待验 |
+| W14 | 反查和候选显示 | reverse_lookup / candidate_contract | 自动化已回归；最终 TSF 待验 |
+| W15 | 失焦、宿主终止、成功重载 | input_session / session_contract | 自动化已回归；最终 TSF 待验 |
+| W16 | 提交前失败、部分成功、清理失败 | input_session / session_contract | 自动化已回归；最终 TSF 待验 |
+| W17 | 无变化/失败/恢复热重载 | runtime_contract / reload | 自动化已回归；最终 TSF 待验 |
+| W18 | 用户词库与设置保存 | data_contract / settings save | 自动化已回归；最终 TSF 待验 |
+| W19 | 配置/码表/路径兼容 | config_projection / data_contract | 自动化已回归；最终 TSF 待验 |
+| W20 | 宿主与系统集成 | Release 编译；TIP/COM/GDI/Velopack 集成待测 | 仅编译；真实集成待验 |
+| W21 | TSF 预检准备与同步编辑 | input_session | 自动化已回归；最终 TSF 待验 |
+| W22 | 开关/运行时变更遇编辑失败或重入 | input_session / session_contract | 自动化已回归；最终 TSF 待验 |
+| W23 | 预编辑类别、None 与候选发布 | input_session / candidate_data_tests | 自动化已回归；最终 TSF 待验 |
+| W24 | 校验场景与资源关闭 | runtime_contract / data_contract | 自动化已回归；最终 TSF 待验 |
+| A01 | 安装启用与服务创建 | ExternalHostTest | 分项证据，见测试记录 |
+| A02 | 主形码与候选 | ExternalHostTest / NativeContractTest | 分项证据，见测试记录 |
+| A03 | 持续英文 | ModeHostTest | 分项证据，见测试记录 |
+| A04 | 独立临时拼音 | ModeHostTest / NativeContractTest | 分项证据，见测试记录 |
+| A05 | 模式切换与旧缓冲 | ModeHostTest / EditorContractTest | 分项证据，见测试记录 |
+| A06 | 数字/符号/字面文本 | ModeHostTest / semantic_modes | 分项证据，见测试记录 |
+| A07 | 回车与输入类型 | BrowserHostTest | 分项证据，见测试记录 |
+| A08 | Unicode 与选区 | BrowserHostTest / EditorContractTest | 分项证据，见测试记录 |
+| A09 | 连接与生命周期 | BrowserHostTest / LifecycleContractTest | 分项证据，见测试记录 |
+| A10 | 编辑失败 | EditorContractTest / LifecycleContractTest | 分项证据，见测试记录 |
+| A11 | 加载与重载 | LifecycleContractTest / ResourceContractTest | 分项证据，见测试记录 |
+| A12 | 数据管理 | SettingsUiTest / LibraryContractTest / LibraryModelTest | 分项证据，见测试记录 |
+| A13 | 交互和可访问性 | ExternalHostTest / SettingsUiTest；TalkBack/触摸目标/真机振动待验收 | 部分，保留未完成 |
+| A14 | 隐私和资源 | BrowserHostTest 密码 + 源码审核；长时间资源增长待测 | 部分，保留未完成 |
+| A15 | 升级及设备覆盖 | 覆盖安装、两 ABI 静态对齐；ARM64/16 KB 运行待测 | 部分，保留未完成 |
+| A16 | 空临时输入与无效/重复切换 | NativeContractTest / BrowserHostTest | 分项证据，见测试记录 |
+| A17 | 宿主能力与预编辑所有权 | EditorContractTest / LifecycleContractTest | 分项证据，见测试记录 |
+| A18 | Busy、控制事件、View 与连接 | LifecycleContractTest / BrowserHostTest | 分项证据，见测试记录 |
+| R01 | 主表/用户表/辅助表缺失、格式损坏、恢复 | runtime_contract / LifecycleContractTest | 分项证据，见测试记录 |
+| R02 | 码表与配置多文件保存部分失败 | data_contract / LibraryModelTest | 分项证据，见测试记录 |
+| R03 | 相对路径、跨目录另存、SAF 取消、绝对路径不可达 | data_contract / ResourceContractTest / SettingsUiTest | 分项证据，见测试记录 |
+| R04 | 设置与服务并发、旧加载迟到 | LibraryModelTest / LifecycleContractTest | 分项证据，见测试记录 |
+| R05 | 内嵌表升级、用户修改、备份恢复 | ResourceContractTest + 覆盖安装 | 分项证据，见测试记录 |
+| R06 | 资源包激活中断/重启 | ResourceContractTest 切换前后故障注入、重新 BuildRuntime；非 OS kill/断电测试 | 分项证据，见测试记录 |
+| B01 | ABI 版本、错误动作、超长数据、非法 UTF-8 | ffi_protocol / NativeContractTest | 分项证据，见测试记录 |
+| B02 | 新接口错误/失效句柄、重复销毁、跨会话误用 | ffi_protocol / NativeContractTest | 分项证据，见测试记录 |
+| B03 | 输出 buffer、JNI 字符串/局部引用 | ffi_protocol / EditorContractTest / LibraryContractTest | 分项证据，见测试记录 |
+| B04 | 同会话并发、旧 token、销毁中的回调 | ffi_protocol / LifecycleContractTest | 分项证据，见测试记录 |
+| B05 | ABI 装载与包体 | check_apk.py + zipalign；ARM64/16 KB 运行未验 | 部分，保留未完成 |
+| B06 | Rust/C/JNI 等价与数据接口 | ffi_protocol / NativeContractTest / LibraryContractTest；本次重建 C ABI 冒烟通过 | 分项证据，见测试记录 |
 
 ## 后续验收边界
 

@@ -9,6 +9,12 @@ import org.junit.Test
 class SettingsUiTest {
     private val instrumentation = InstrumentationRegistry.getInstrumentation()
     private val device = UiDevice.getInstance(instrumentation)
+    @get:org.junit.Rule val failureEvidence = object : org.junit.rules.TestWatcher() {
+        override fun failed(error: Throwable, description: org.junit.runner.Description) {
+            device.takeScreenshot(java.io.File(instrumentation.targetContext.filesDir, "settings-failure.png"))
+            device.dumpWindowHierarchy(java.io.File(instrumentation.targetContext.filesDir, "settings-failure.xml"))
+        }
+    }
     private fun text(value: String): UiObject2 {
         instrumentation.uiAutomation.clearCache()
         device.findObject(By.text(value))?.let { return it }
@@ -24,8 +30,18 @@ class SettingsUiTest {
         device.dumpWindowHierarchy(java.io.File(instrumentation.targetContext.filesDir, "settings-failure.xml"))
         error("Missing $value")
     }
+    private fun chooseRole(label: String, filename: String) {
+        text(label) // Scroll the role into view before waiting for layout to settle.
+        device.waitForIdle()
+        instrumentation.uiAutomation.clearCache()
+        device.findObject(By.text(label)).click()
+        device.waitForIdle()
+        val choice = By.text(java.util.regex.Pattern.compile("\\d+\\. " + java.util.regex.Pattern.quote(filename)))
+        device.wait(Until.findObject(choice), 10000).click()
+        device.waitForIdle()
+    }
     @Test fun draftSurvivesRotationExitAndSafCancellation() {
-        device.executeShellCommand("am start -n org.mywubi/.MainActivity")
+        device.executeShellCommand("am start -W -f 0x10008000 -n org.mywubi/.MainActivity")
         val toggle = device.wait(Until.findObject(By.desc("唯一候选自动上屏")), 10000)
         assertNotNull(toggle); toggle.click()
         text("有未保存更改 · 草稿会保留")
@@ -52,20 +68,22 @@ class SettingsUiTest {
         val original = store.readConfig()
         NativeHandle(original.getLong("version")).close()
         try {
-            device.executeShellCommand("am start -n org.mywubi/.MainActivity")
+            device.executeShellCommand("am start -W -f 0x10008000 -n org.mywubi/.MainActivity")
             text("选择码表文件").click()
+            device.waitForIdle()
             device.wait(Until.findObject(By.desc("Show roots")), 5000)?.click()
-            device.wait(Until.findObject(By.text("Downloads")), 5000)?.click()
+            device.waitForIdle()
+            // The toolbar and breadcrumb can also say Downloads. Select the
+            // drawer's root row, not whichever matching text is returned first.
+            device.wait(Until.findObject(By.res("android", "title").text("Downloads")), 5000).click()
             val main = device.wait(Until.findObject(By.text("CP19-main.dict")), 10000) ?: error("Missing SAF fixture")
             main.longClick()
             device.wait(Until.findObject(By.text("CP19-pinyin.dict")), 10000).click()
             (device.findObject(By.res("com.google.android.documentsui", "action_menu_select"))
                 ?: device.findObject(By.res("com.android.documentsui", "action_menu_select"))
                 ?: device.findObject(By.text("OPEN")) ?: error("Missing SAF confirm")).click()
-            text("主码表（必选）：未选择").click()
-            device.wait(Until.findObject(By.textContains("CP19-main.dict")), 10000).click()
-            text("拼音辅助表：未选择").click()
-            device.wait(Until.findObject(By.textContains("CP19-pinyin.dict")), 10000).click()
+            chooseRole("主码表（必选）：未选择", "CP19-main.dict")
+            chooseRole("拼音辅助表：未选择", "CP19-pinyin.dict")
             text("校验并启用码表包").click()
             text("码表包已保存；等待输入法应用")
             val activated = store.readConfig()
