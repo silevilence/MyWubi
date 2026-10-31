@@ -22,9 +22,10 @@ class ExternalHostTest {
 
     private fun freshKey(device: UiDevice, selector: androidx.test.uiautomator.BySelector): androidx.test.uiautomator.UiObject2 {
         val deadline=SystemClock.uptimeMillis()+10000
+        val keySelector = selector.pkg("org.mywubi").clickable(true)
         do {
             InstrumentationRegistry.getInstrumentation().uiAutomation.clearCache()
-            device.findObject(selector.pkg("org.mywubi").clickable(true))?.let {return it}
+            device.findObject(keySelector)?.let {return it}
             SystemClock.sleep(100)
         } while(SystemClock.uptimeMillis()<deadline)
         throw AssertionError("Missing IME key: $selector")
@@ -49,6 +50,12 @@ class ExternalHostTest {
         val field=device.wait(Until.findObject(By.clazz("android.widget.EditText")),15000)
         field.text="";field.click()
         fun button(label:String) = freshKey(device, By.desc(label))
+        val context = InstrumentationRegistry.getInstrumentation().targetContext
+        val keyBounds = button("g").visibleBounds
+        val density = context.resources.displayMetrics.density
+        java.io.File(context.filesDir,"keyboard-target.json").writeText(
+            org.json.JSONObject().put("key", "g").put("width_dp", keyBounds.width()/density)
+                .put("height_dp", keyBounds.height()/density).toString())
         button("g").click()
         awaitHostText(device,"g")
         button("展开").click()
@@ -72,12 +79,19 @@ class ExternalHostTest {
         field.text="abcdefghijklmnopqrstuvwxyzabcdefghijklmnopqrstuvwxyz"
         device.pressKeyCode(android.view.KeyEvent.KEYCODE_MOVE_END);device.waitForIdle()
         val held=button("退格").visibleCenter
-        val downTime=SystemClock.uptimeMillis()
+        var downTime=SystemClock.uptimeMillis()
         fun touch(action:Int) {
             val event=android.view.MotionEvent.obtain(downTime,SystemClock.uptimeMillis(),action,held.x.toFloat(),held.y.toFloat(),0)
             event.source=android.view.InputDevice.SOURCE_TOUCHSCREEN
             try {InstrumentationRegistry.getInstrumentation().uiAutomation.injectInputEvent(event,true)} finally {event.recycle()}
         }
+        val beforeCancel = field.text
+        touch(android.view.MotionEvent.ACTION_DOWN)
+        SystemClock.sleep(100)
+        touch(android.view.MotionEvent.ACTION_CANCEL)
+        SystemClock.sleep(450)
+        assertEquals("cancelled press does not delete", beforeCancel, field.text)
+        downTime=SystemClock.uptimeMillis()
         touch(android.view.MotionEvent.ACTION_DOWN)
         try {
             SystemClock.sleep(650)
@@ -94,7 +108,9 @@ class ExternalHostTest {
         val device=UiDevice.getInstance(InstrumentationRegistry.getInstrumentation())
         device.executeShellCommand("ime enable org.mywubi/.MyWubiService")
         device.executeShellCommand("ime set org.mywubi/.MyWubiService")
-        device.executeShellCommand("am start -n org.mywubi/.MainActivity")
+        device.executeShellCommand("am start -W -f 0x10008000 -n org.mywubi/.MainActivity")
+        assertTrue(device.wait(Until.hasObject(By.pkg("org.mywubi").scrollable(true)),15000))
+        androidx.test.uiautomator.UiScrollable(androidx.test.uiautomator.UiSelector().scrollable(true)).setAsVerticalList().scrollToBeginning(20)
         assertTrue(device.wait(Until.hasObject(By.text("1. 启用 MyWubi")),15000))
         device.pressBack()
         device.executeShellCommand("am force-stop com.android.settings")

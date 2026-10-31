@@ -39,11 +39,11 @@ class BrowserHostTest {
         val run=SystemClock.uptimeMillis()
         device.executeShellCommand("ime enable org.mywubi/.MyWubiService")
         device.executeShellCommand("ime set org.mywubi/.MyWubiService")
-        device.executeShellCommand("am start -n com.android.chrome/com.google.android.apps.chrome.Main")
-        awaitValue("Chrome address bar") {device.findObject(By.res("com.android.chrome","url_bar"))}.click()
-        awaitValue("Editable Chrome address") {device.findObject(By.res("com.android.chrome","url_bar"))}.text =
-            "http://127.0.0.1:8765/host.html?field=$index&run=$run"
-        device.pressEnter()
+        // Each fixture starts independently; an old browser task (including a
+        // failed rotation) must not contaminate later editor contract tests.
+        device.executeShellCommand("am force-stop com.android.chrome")
+        val launch = device.executeShellCommand("am start -W -a android.intent.action.VIEW -d http://127.0.0.1:8765/host.html?field=$index&run=$run -p com.android.chrome")
+        assertFalse(launch, launch.contains("Error:"))
         awaitValue("Loaded browser fixture") {device.findObject(By.text("场景 $index · $run"))}
         field().click()
         device.waitForIdle()
