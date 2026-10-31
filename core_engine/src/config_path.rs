@@ -208,12 +208,13 @@ mod tests {
 
     #[test]
     fn relative_resource_paths_are_resolved_from_config_parent() {
-        let config_path = PathBuf::from(r"C:\Users\test\AppData\Roaming\MyWubi\config.toml");
+        let config_dir = std::env::temp_dir().join("mywubi-resource-path");
+        let config_path = config_dir.join("config.toml");
         let resolved = resolve_resource_path(&config_path, Path::new("tables/wubi86.dict"));
 
         assert_eq!(
             resolved,
-            PathBuf::from(r"C:\Users\test\AppData\Roaming\MyWubi\tables\wubi86.dict")
+            config_dir.join("tables").join("wubi86.dict")
         );
     }
 }
