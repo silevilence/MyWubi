@@ -39,3 +39,7 @@ android/*.log
 *.jks
 *.keystore
 android/signing.properties
+
+__pycache__/
+/release-metadata/
+/android-release/

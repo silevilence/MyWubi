@@ -1,175 +1,188 @@
-# MyWubi 发布流水线（Velopack）
-#
-# 触发方式：推送版本标签（v*.*.* 或 V*.*.*，大小写不敏感）
-# 工作内容：校验变更日志 → 编译发布版 → vpk pack 生成安装包/便携包/增量包 → 创建 GitHub Release
-
 name: 🚀 Release
 
 on:
   push:
-    tags:
-      - "v*.*.*"
-      - "V*.*.*"
+    tags: ['v*.*.*', 'V*.*.*']
+  workflow_dispatch:
+
+concurrency:
+  group: release-${{ github.ref }}
+  cancel-in-progress: false
+
+permissions:
+  contents: read
 
 env:
   CARGO_TERM_COLOR: always
   CARGO_INCREMENTAL: 0
 
-permissions:
-  contents: write
-
 jobs:
-  release:
-    name: Build & Release
-    runs-on: windows-latest
-
+  metadata:
+    name: Validate release version and notes
+    runs-on: ubuntu-24.04
+    outputs:
+      version: ${{ steps.meta.outputs.version }}
+      tag: ${{ steps.meta.outputs.tag }}
     steps:
-      # ── 检出代码 ──────────────────────────────────────────────
-      - name: Checkout repository
-        uses: actions/checkout@v4
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
         with:
-          fetch-depth: 0
+          python-version: '3.12'
+      - id: meta
+        run: |
+          python -m unittest discover -s scripts -p 'test_*.py' -v
+          python scripts/release_metadata.py
+      - uses: actions/upload-artifact@v4
+        with:
+          name: release-metadata
+          path: release-metadata/
+          if-no-files-found: error
 
-      # ── 安装 Rust 工具链 ──────────────────────────────────────
-      - name: Install Rust toolchain
-        uses: dtolnay/rust-toolchain@stable
+  windows:
+    name: Windows packages
+    needs: metadata
+    runs-on: windows-2022
+    steps:
+      - uses: actions/checkout@v4
+      - uses: dtolnay/rust-toolchain@master
         with:
-          toolchain: stable
+          toolchain: '1.99.1'
           targets: x86_64-pc-windows-msvc
-
-      # ── 安装 .NET SDK 与 Velopack CLI ────────────────────────
-      - name: Setup .NET SDK
-        uses: actions/setup-dotnet@v4
+      - uses: Swatinem/rust-cache@v2
+      - uses: actions/setup-dotnet@v4
         with:
-          dotnet-version: "8.0.x"
-
-      - name: Install Velopack CLI (vpk)
+          dotnet-version: '8.0.x'
+      - name: Install Velopack
+        run: dotnet tool install -g vpk --version 1.2.0
+      - name: Test workspace
+        run: cargo test --workspace --locked
+      - name: Build Windows binaries
+        run: cargo build --release --locked -p settings -p im_engine
+      - name: Package Windows
         shell: pwsh
-        run: dotnet tool update -g vpk
-
-      # ── 解析版本号 ────────────────────────────────────────────
-      - name: Parse version from tag
-        id: version
-        shell: pwsh
-        run: |
-          # 从 GITHUB_REF 提取版本号，统一转为小写
-          $rawTag = "$env:GITHUB_REF" -replace '^refs/tags/', ''
-          $version = $rawTag.TrimStart('v', 'V')
-          Write-Host "Raw tag: $rawTag"
-          Write-Host "Parsed version: $version"
-
-          # 校验版本号格式（必须为 x.y.z）
-          if ($version -notmatch '^\d+\.\d+\.\d+$') {
-            Write-Error "Invalid version format: '$version'. Expected semver (x.y.z)."
-            exit 1
-          }
-
-          # 输出供后续步骤使用
-          "version=$version" | Out-File -FilePath $env:GITHUB_OUTPUT -Encoding utf8 -Append
-          "tag=$rawTag" | Out-File -FilePath $env:GITHUB_OUTPUT -Encoding utf8 -Append
-
-      # ── 解析变更日志 ──────────────────────────────────────────
-      - name: Parse CHANGELOG for release notes
-        id: changelog
-        shell: pwsh
-        run: |
-          $version = "${{ steps.version.outputs.version }}"
-          $changelogPath = "CHANGELOG.md"
-
-          if (-not (Test-Path $changelogPath)) {
-            Write-Error "CHANGELOG.md not found!"
-            exit 1
-          }
-
-          $content = Get-Content $changelogPath -Raw
-          $lines = $content -split "`n"
-
-          # 查找匹配的版本标题（大小写不敏感）
-          $targetHeader = "## V$version"
-          $startIndex = -1
-
-          for ($i = 0; $i -lt $lines.Length; $i++) {
-            if ($lines[$i].TrimStart() -match "^##\s+[Vv]$version\s*$") {
-              $startIndex = $i
-              break
-            }
-          }
-
-          if ($startIndex -eq -1) {
-            Write-Error "Version 'V$version' not found in CHANGELOG.md! " +
-                        "Make sure a '## V$version' heading exists in the changelog."
-            exit 1
-          }
-
-          # 从标题下一行开始收集，直到遇到下一个二级标题（##）或文件末尾
-          $notes = [System.Collections.ArrayList]@()
-          $started = $false
-          for ($j = $startIndex + 1; $j -lt $lines.Length; $j++) {
-            $line = $lines[$j]
-            # 遇到下一个二级标题则停止
-            if ($line.TrimStart() -match "^##\s+" -and $j -gt $startIndex) {
-              break
-            }
-            # 跳过标题行自身
-            if (-not $started -and $line.Trim() -eq "") {
-              continue
-            }
-            $started = $true
-            $null = $notes.Add($line)
-          }
-
-          if ($notes.Count -eq 0) {
-            Write-Error "No release notes found under '## V$version' in CHANGELOG.md!"
-            exit 1
-          }
-
-          $releaseBody = ($notes -join "`n").Trim()
-
-          Write-Host "=== Release Notes ==="
-          Write-Host $releaseBody
-          Write-Host "====================="
-
-          # 写入文件供后续步骤使用（避免 GITHUB_OUTPUT 的换行截断问题）
-          $notesFile = "$env:RUNNER_TEMP\release_notes.md"
-          $releaseBody | Out-File -FilePath $notesFile -Encoding utf8
-          Write-Host "Release notes saved to: $notesFile"
-
-          "notes_file=$notesFile" | Out-File -FilePath $env:GITHUB_OUTPUT -Encoding utf8 -Append
-
-      # ── 编译发布版 ────────────────────────────────────────────
-      - name: Build release binaries
-        shell: pwsh
-        run: |
-          Write-Host "Building MyWubi release binaries..." -ForegroundColor Cyan
-          cargo build --release
-          if ($LASTEXITCODE -ne 0) {
-            Write-Error "Cargo build failed with exit code $LASTEXITCODE"
-            exit 1
-          }
-          Write-Host "Build completed successfully." -ForegroundColor Green
-
-      # ── Velopack 打包（Setup.exe / Portable.zip / 增量包）─────
-      - name: Package with Velopack
-        shell: pwsh
-        run: |
-          $version = "${{ steps.version.outputs.version }}"
-          Write-Host "Running Velopack packaging for v$version..." -ForegroundColor Cyan
-          .\build.ps1 -Version $version -SkipBuild
-          if ($LASTEXITCODE -ne 0) {
-            Write-Error "Velopack packaging failed"
-            exit 1
-          }
-          Write-Host "Packaging completed." -ForegroundColor Green
-
-      # ── 创建 GitHub Release（上传全部 Velopack 资产）─────────
-      - name: Create Release
-        uses: softprops/action-gh-release@v2
+        env:
+          RELEASE_VERSION: ${{ needs.metadata.outputs.version }}
+        run: ./build.ps1 -Version $env:RELEASE_VERSION -SkipBuild
+      - uses: actions/upload-artifact@v4
         with:
-          tag_name: ${{ steps.version.outputs.tag }}
-          name: MyWubi ${{ steps.version.outputs.version }}
-          body_path: ${{ steps.changelog.outputs.notes_file }}
-          files: |
+          name: release-windows
+          path: |
             Releases/*-Setup.exe
             Releases/*-Portable.zip
             Releases/*.nupkg
             Releases/releases.*.json
+          if-no-files-found: error
+
+  android:
+    name: Signed Android APK
+    needs: metadata
+    runs-on: ubuntu-24.04
+    env:
+      MYWUBI_KEYSTORE_BASE64: ${{ secrets.MYWUBI_KEYSTORE_BASE64 }}
+      MYWUBI_STORE_PASSWORD: ${{ secrets.MYWUBI_STORE_PASSWORD }}
+      MYWUBI_KEY_ALIAS: ${{ secrets.MYWUBI_KEY_ALIAS }}
+      MYWUBI_KEY_PASSWORD: ${{ secrets.MYWUBI_KEY_PASSWORD }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '21'
+          cache: gradle
+          cache-dependency-path: |
+            android/**/*.gradle
+            android/gradle/wrapper/gradle-wrapper.properties
+      - uses: dtolnay/rust-toolchain@master
+        with:
+          toolchain: '1.99.1'
+          targets: aarch64-linux-android,x86_64-linux-android
+          components: rustfmt,clippy
+      - uses: Swatinem/rust-cache@v2
+      - uses: android-actions/setup-android@v3
+      - name: Install fixed SDK and NDK
+        run: sdkmanager 'platforms;android-35' 'build-tools;35.0.0' 'ndk;27.2.12479018'
+      - name: Restore release signing key
+        run: |
+          python - <<'PY'
+          import base64, os
+          from pathlib import Path
+          for name in ('MYWUBI_KEYSTORE_BASE64', 'MYWUBI_STORE_PASSWORD', 'MYWUBI_KEY_ALIAS', 'MYWUBI_KEY_PASSWORD'):
+              if not os.environ.get(name):
+                  raise SystemExit(f'Missing signing secret: {name}')
+          key = Path(os.environ['RUNNER_TEMP']) / 'mywubi-release.jks'
+          key.write_bytes(base64.b64decode(os.environ['MYWUBI_KEYSTORE_BASE64'], validate=True))
+          key.chmod(0o600)
+          with open(os.environ['GITHUB_ENV'], 'a') as output:
+              output.write(f'MYWUBI_KEYSTORE={key}\n')
+          PY
+      - name: Core and native checks
+        run: |
+          cargo fmt --all -- --check
+          cargo test -p core_engine -p mywubi_android --locked
+          cargo clippy -p core_engine -p mywubi_android --all-targets --locked -- -D warnings
+      - name: Build signed release APK
+        working-directory: android
+        run: bash gradlew :app:assembleRelease :app:testReleaseUnitTest :app:lintRelease --console=plain
+      - name: Verify signature, ABIs and alignment
+        env:
+          RELEASE_VERSION: ${{ needs.metadata.outputs.version }}
+        run: |
+          apk=android/app/build/outputs/apk/release/app-release.apk
+          "$ANDROID_HOME/build-tools/35.0.0/apksigner" verify --verbose --print-certs "$apk"
+          "$ANDROID_HOME/build-tools/35.0.0/zipalign" -c -P 16 -v 4 "$apk"
+          mkdir -p android-release
+          cp "$apk" "android-release/MyWubi-$RELEASE_VERSION-Android.apk"
+          python android/check_apk.py "android-release/MyWubi-$RELEASE_VERSION-Android.apk" --output "android-release/MyWubi-$RELEASE_VERSION-Android-native.json"
+      - uses: actions/upload-artifact@v4
+        with:
+          name: release-android
+          path: android-release/
+          if-no-files-found: error
+
+  publish:
+    name: Publish both platforms
+    if: startsWith(github.ref, 'refs/tags/')
+    needs: [metadata, windows, android]
+    runs-on: ubuntu-24.04
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/download-artifact@v4
+        with:
+          pattern: release-*
+          path: artifacts
+      - name: Check complete asset set and generate checksums
+        run: |
+          python - <<'PY'
+          import hashlib, shutil
+          from pathlib import Path
+          windows = Path('artifacts/release-windows')
+          android = Path('artifacts/release-android')
+          for root, pattern in ((windows, '*-Setup.exe'), (windows, '*-Portable.zip'), (windows, '*.nupkg'), (windows, 'releases.*.json'), (android, '*.apk')):
+              if not list(root.glob(pattern)):
+                  raise SystemExit(f'Missing release assets: {pattern}')
+          destination = Path('dist')
+          destination.mkdir()
+          for root in (windows, android):
+              for asset in root.iterdir():
+                  if not asset.is_file() or (destination / asset.name).exists():
+                      raise SystemExit(f'Unexpected/duplicate asset: {asset}')
+                  shutil.copy2(asset, destination / asset.name)
+          checksums = [f'{hashlib.sha256(p.read_bytes()).hexdigest()}  {p.name}' for p in sorted(destination.iterdir())]
+          (destination / 'SHA256SUMS.txt').write_text('\n'.join(checksums) + '\n')
+          PY
+      - name: Upload all assets to a draft release
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: ${{ needs.metadata.outputs.tag }}
+          name: MyWubi ${{ needs.metadata.outputs.version }}
+          body_path: artifacts/release-metadata/release-notes.md
+          draft: true
+          fail_on_unmatched_files: true
+          files: dist/*
+      - name: Publish completed release
+        env:
+          GH_TOKEN: ${{ github.token }}
+          GH_REPO: ${{ github.repository }}
+          RELEASE_TAG: ${{ needs.metadata.outputs.tag }}
+        run: gh release edit "$RELEASE_TAG" --draft=false --latest

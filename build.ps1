@@ -58,7 +58,9 @@ if (-not (Test-Path $imEngineDll)) { throw "找不到 $imEngineDll，请先执�
 
 # ── 4. 暂存产物到 packDir ──────────────────────────────────
 Write-Host "暂存打包产物到 $stagingDir …" -ForegroundColor Green
-if (Test-Path $stagingDir) { Remove-Item $stagingDir -Recurse -Force }
+$expectedStaging = [IO.Path]::GetFullPath((Join-Path $repoRoot 'target\velopack-staging'))
+if ([IO.Path]::GetFullPath($stagingDir) -ne $expectedStaging) { throw 'Unexpected staging directory' }
+if (Test-Path -LiteralPath $stagingDir) { Remove-Item -LiteralPath $stagingDir -Recurse -ErrorAction Stop }
 New-Item -ItemType Directory -Force -Path $stagingDir | Out-Null
 
 # 主二进制
@@ -69,7 +71,11 @@ Copy-Item $imEngineDll $stagingDir -Force
 $tablesSrc = Join-Path $repoRoot "tables"
 $tablesDst = Join-Path $stagingDir "tables"
 New-Item -ItemType Directory -Force -Path $tablesDst | Out-Null
-Copy-Item (Join-Path $tablesSrc "*.dict") $tablesDst -Force -ErrorAction SilentlyContinue
+# Only distribute the bundled, licensed tables; never collect local custom tables.
+foreach ($table in @('wubi86.dict', 'pinyin.dict', 'english.dict', 'README.md', 'sources.json')) {
+    Copy-Item -LiteralPath (Join-Path $tablesSrc $table) -Destination $tablesDst -ErrorAction Stop
+}
+Copy-Item -LiteralPath (Join-Path $tablesSrc 'licenses') -Destination $tablesDst -Recurse -ErrorAction Stop
 
 # 注：不打包默认 config.toml。settings.exe 首次启动时会通过
 # config_path::resolve_config_path() 自动写入内置默认配置（便携模式优先，
