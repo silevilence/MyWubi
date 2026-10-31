@@ -1,6 +1,9 @@
 package org.mywubi
 
 import androidx.compose.foundation.background
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.verticalScroll
+import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.foundation.gestures.detectTapGestures
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyRow
@@ -64,7 +67,7 @@ fun Keyboard(model: KeyboardModel, dispatch: (Any) -> Unit, window: (Int) -> Uni
     var expanded by remember(model.epoch) { mutableStateOf(false) }
     val colors = lightColorScheme(primary=Color(0xFF245D51), onPrimary=Color.White, surface=Color(0xFFF1F3F2), onSurface=Color(0xFF192C27), secondaryContainer=Color(0xFFDEE8E1), onSecondaryContainer=Color(0xFF192C27))
     MaterialTheme(colorScheme=colors) {
-        Column(Modifier.fillMaxWidth().background(colors.surface).navigationBarsPadding().padding(horizontal=4.dp,vertical=4.dp)) {
+        val controls: @Composable () -> Unit = {
             Row(Modifier.fillMaxWidth(), horizontalArrangement=Arrangement.SpaceBetween) {
                 Text(if(model.privateInput) "安全输入" else model.spelling.ifEmpty { model.status },
                     Modifier.weight(1f).padding(8.dp),color=colors.onSurface,fontSize=15.sp,maxLines=1)
@@ -75,7 +78,7 @@ fun Keyboard(model: KeyboardModel, dispatch: (Any) -> Unit, window: (Int) -> Uni
             }
             if (expanded && !model.privateInput) {
                 LazyVerticalGrid(columns=GridCells.Adaptive(88.dp),modifier=Modifier.fillMaxWidth().height(168.dp)) {
-                    items(model.candidates,key={it.id}) { item -> CandidateButton(item) { choose(item) } }
+                    items(model.candidates,key={it.id}) { item -> CandidateButton(item, model.enabled) { choose(item) } }
                 }
                 Row(Modifier.fillMaxWidth(),horizontalArrangement=Arrangement.SpaceBetween) {
                     TextButton(onClick={window((model.offset-256).coerceAtLeast(0))},enabled=model.offset>0) { Text("上一组") }
@@ -83,7 +86,7 @@ fun Keyboard(model: KeyboardModel, dispatch: (Any) -> Unit, window: (Int) -> Uni
                     TextButton(onClick={window(model.offset+256)},enabled=model.offset+model.candidates.size<model.total) { Text("下一组") }
                 }
             } else if (!model.privateInput) {
-                LazyRow(Modifier.fillMaxWidth().height(50.dp)) { items(model.candidates,key={it.id}) { item -> CandidateButton(item) { choose(item) } } }
+                LazyRow(Modifier.fillMaxWidth().height(50.dp)) { items(model.candidates,key={it.id}) { item -> CandidateButton(item, model.enabled) { choose(item) } } }
             }
             Row(Modifier.fillMaxWidth(), horizontalArrangement=Arrangement.spacedBy(4.dp)) {
                 val baseLabel = if(model.base=="Main") "中 → 英" else "英 → 中"
@@ -97,6 +100,8 @@ fun Keyboard(model: KeyboardModel, dispatch: (Any) -> Unit, window: (Int) -> Uni
                 Spacer(Modifier.weight(1f))
                 TextButton(onClick=switchIme) { Text("切换输入法") }
             }
+        }
+        val keys: @Composable () -> Unit = {
             val rows = if(symbols) {
                 if(model.layout=="phone") listOf("123", "456", "789", "+0*#")
                 else listOf("1234567890", "@#￥%&*()-+", "，。！？：；'\"/.")
@@ -126,13 +131,20 @@ fun Keyboard(model: KeyboardModel, dispatch: (Any) -> Unit, window: (Int) -> Uni
                 Key(model.enterLabel,model.enabled,model.epoch,Modifier.weight(1.5f)) {dispatch("Enter")}
             }
         }
+        val container = Modifier.fillMaxWidth().background(colors.surface).navigationBarsPadding().padding(4.dp)
+        if (LocalConfiguration.current.orientation == android.content.res.Configuration.ORIENTATION_LANDSCAPE) {
+            Row(container, horizontalArrangement=Arrangement.spacedBy(8.dp)) {
+                Column(Modifier.weight(0.3f).heightIn(max=208.dp).verticalScroll(rememberScrollState())) { controls() }
+                Column(Modifier.weight(0.7f)) { keys() }
+            }
+        } else Column(container) { controls(); keys() }
     }
 }
 
 @Composable
-private fun CandidateButton(item: CandidateItem, choose: () -> Unit) {
+private fun CandidateButton(item: CandidateItem, enabled: Boolean, choose: () -> Unit) {
     val description = "候选 ${item.text}" + if(item.hint.isEmpty()) "" else "，编码提示 ${item.hint}"
-    TextButton(onClick=choose,modifier=Modifier.heightIn(min=48.dp).imeAction(description,true,choose)) {
+    TextButton(onClick=choose,enabled=enabled,modifier=Modifier.heightIn(min=48.dp).imeAction(description,enabled,choose)) {
         Text(item.text,fontSize=19.sp)
         if(item.hint.isNotEmpty()) Text(" ${item.hint}",fontSize=11.sp,color=MaterialTheme.colorScheme.primary)
     }
@@ -157,10 +169,10 @@ private fun Key(label:String,enabled:Boolean,epoch:Long,modifier:Modifier,repeat
         Surface(modifier=keyModifier.imeAction(label,enabled) {currentAction()}.pointerInput(enabled,epoch) {
         if(enabled) detectTapGestures(onPress={
             coroutineScope {
-                currentAction()
-                val job=launch {delay(400);while(isActive){currentAction();delay(65)}}
+                var repeated = false
+                val job=launch {delay(400);repeated=true;while(isActive){currentAction();delay(65)}}
                 repeatJob = job
-                try {tryAwaitRelease()} finally {job.cancel()}
+                try { if (tryAwaitRelease() && !repeated) currentAction() } finally {job.cancel()}
             }
         })
     },shape=MaterialTheme.shapes.small,color=MaterialTheme.colorScheme.secondaryContainer) {

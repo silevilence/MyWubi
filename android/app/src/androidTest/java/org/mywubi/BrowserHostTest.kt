@@ -112,4 +112,49 @@ class BrowserHostTest {
             fields?.getOrNull(1)?.takeIf {it.isFocused}
         }
     }
+
+    @Test fun hideRotateAndSwitchEditorsDoNotReuseOldCandidates() {
+        open(0)
+        key("g"); expect("g")
+        device.pressBack()
+        field().click()
+        key("g"); expect("gg")
+        try {
+            device.setOrientationLeft()
+            device.waitForIdle()
+            SystemClock.sleep(1200)
+            field().click()
+            device.pressKeyCode(KeyEvent.KEYCODE_MOVE_END)
+            device.waitForIdle()
+            instrumentation.uiAutomation.clearCache()
+            if (device.hasObject(By.text("Add to dictionary"))) device.pressBack()
+            try { key("换行") } catch (failure: Throwable) {
+                device.takeScreenshot(java.io.File(instrumentation.targetContext.filesDir, "rotation.png"))
+                device.dumpWindowHierarchy(java.io.File(instrumentation.targetContext.filesDir, "rotation.xml"))
+                throw failure
+            }
+            device.pressBack()
+            // Rotation may replace the connection. Existing text must not duplicate.
+            assertTrue(field().text == "gg" || field().text == "gg\n")
+        } finally { device.setOrientationNatural(); device.unfreezeRotation() }
+        open(8)
+        key("g")
+        device.pressBack()
+        device.waitForIdle()
+        val fields = awaitValue("Two form fields") {
+            device.findObject(By.clazz("android.webkit.WebView"))?.findObjects(By.clazz("android.widget.EditText"))?.takeIf { it.size == 2 }
+        }
+        fields[1].click()
+        awaitValue("Second editor focused") {
+            device.findObject(By.clazz("android.webkit.WebView"))?.findObjects(By.clazz("android.widget.EditText"))?.getOrNull(1)?.takeIf { it.isFocused }
+        }
+        key("a")
+        awaitValue("New field receives only its own input") {
+            device.findObject(By.clazz("android.webkit.WebView"))?.findObjects(By.clazz("android.widget.EditText"))?.getOrNull(1)?.takeIf { it.text == "a" }
+        }
+        device.pressHome()
+        device.executeShellCommand("am start -a android.settings.SETTINGS")
+        open(0)
+        key("g"); expect("g")
+    }
 }

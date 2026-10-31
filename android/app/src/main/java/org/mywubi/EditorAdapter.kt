@@ -9,7 +9,8 @@ class EditorAdapter {
         private set
     fun abandon() { ownsPreedit = false }
 
-    fun execute(connection: InputConnection, plan: JSONObject): Any {
+    fun execute(connection: InputConnection, plan: JSONObject, current: () -> Boolean = { true }): Any {
+        if (!current()) return "StaleContext"
         val op = plan.get("op")
         if (op == "NoOp") return "Applied"
         if (plan.getString("target") == "LegacyRangeFallback") return "RejectedBeforeWrite"
@@ -21,33 +22,38 @@ class EditorAdapter {
         try {
             connection.beginBatchEdit()
             batchStarted = true
-            fun step(result: Boolean): Boolean { if (result) completed++; return result }
+            fun step(operation: () -> Boolean): Boolean {
+                if (!current()) return false
+                val result = operation()
+                if (result) completed++
+                return result && current()
+            }
             val success = when {
                 operation.has("CompositionUpdate") -> {
                     val p = operation.getJSONObject("CompositionUpdate")
-                    step(connection.setComposingText(p.getString("spelling"), 1)).also { if (it) ownsPreedit = true }
+                    step { connection.setComposingText(p.getString("spelling"), 1) }.also { if (it) ownsPreedit = true }
                 }
                 operation.has("CommitAndReplace") -> {
                     val p = operation.getJSONObject("CommitAndReplace")
-                    step(connection.commitText(p.getString("text"), 1)).also { if (it) ownsPreedit = false }
+                    step { connection.commitText(p.getString("text"), 1) }.also { if (it) ownsPreedit = false }
                 }
                 operation.has("CommitThenUpdate") -> {
                     val p = operation.getJSONObject("CommitThenUpdate")
-                    if (!step(connection.commitText(p.getString("text"), 1))) false
+                    if (!step { connection.commitText(p.getString("text"), 1) }) false
                     else {
                         ownsPreedit = false
-                        step(connection.setComposingText(p.getString("spelling"), 1)).also { if (it) ownsPreedit = true }
+                        step { connection.setComposingText(p.getString("spelling"), 1) }.also { if (it) ownsPreedit = true }
                     }
                 }
                 operation.has("EndComposition") -> {
                     val delete = operation.getJSONObject("EndComposition").getBoolean("delete_text")
                     if (!ownsPreedit) true
-                    else if (delete && !step(connection.commitText("", 1))) false
+                    else if (delete && !step { connection.commitText("", 1) }) false
                     else {
                         // Successful commitText already released the composition, even if
                         // the following finish call fails or the connection disappears.
                         if (delete) ownsPreedit = false
-                        step(connection.finishComposingText()).also { if (it) ownsPreedit = false }
+                        step { connection.finishComposingText() }.also { if (it) ownsPreedit = false }
                     }
                 }
                 else -> false
@@ -61,6 +67,9 @@ class EditorAdapter {
             if (batchStarted) try { connection.endBatchEdit() }
             catch (_: RuntimeException) { outcome = "OutcomeUnknown" }
         }
-        return outcome
+        // A Boolean/exception cannot prove that the remote editor still owns the
+        // same range. Release it before Ack so recovery cannot delete a new selection.
+        if (outcome != "Applied" || !current()) abandon()
+        return if (current()) outcome else "StaleContext"
     }
 }

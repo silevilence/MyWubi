@@ -28,6 +28,10 @@ class MyWubiService : InputMethodService() {
     private var inputPolicy = InputPolicy.from(0, 0)
     private var hasSelection = false
     private val editor = EditorAdapter()
+    private val inputQueue = InputQueue()
+    private var connection: android.view.inputmethod.InputConnection? = null
+    private var editorInfo: EditorInfo? = null
+    private var supportsPreedit = true
     private var viewOwner: ImeViewOwner? = null
     private var viewVisible = false
     private var candidateOffset = 0
@@ -35,9 +39,21 @@ class MyWubiService : InputMethodService() {
     private var error: String? = null
     private var state = JSONObject()
     private var candidates = JSONObject()
+    private val loads = LoadGeneration()
+    private val updates by lazy { EngineUpdates.preferences(this) }
+    private val updateListener = android.content.SharedPreferences.OnSharedPreferenceChangeListener { _, key ->
+        if (key == "requested") loadRuntime()
+    }
 
     override fun onCreate() {
         super.onCreate()
+        updates.registerOnSharedPreferenceChangeListener(updateListener)
+        loadRuntime()
+    }
+
+    private fun loadRuntime() {
+        val ticket = loads.next()
+        val requested = updates.getString("requested", "initial")
         loader.execute {
             var loaded: NativeHandle? = null
             try {
@@ -45,17 +61,40 @@ class MyWubiService : InputMethodService() {
                 loaded = NativeHandle(NativeBridge.objectCall("BuildRuntime", "path" to path.path).getLong("handle"))
                 val result = loaded
                 main.post {
-                    if (destroyed) result.close() else { runtime = result; attachEditor(); refresh() }
+                    if (destroyed || !loads.accepts(ticket)) result.close() else {
+                        val previous = runtime
+                        runtime = result
+                        try {
+                            val s = session
+                            if (s != null && active) {
+                                val plan = NativeBridge.call("ApplyRuntime", "session" to s.value, "runtime" to result.value) as? JSONObject
+                                if (plan != null) applyPlan(plan)
+                            } else {
+                                session?.close(); session = null; attachEditor()
+                            }
+                            updates.edit().putString("applied", requested).putString("error", null).apply()
+                            error = null
+                        } catch (_: RuntimeException) {
+                            error = "配置已保存，输入会话更新失败；请重新进入输入框"
+                            updates.edit().putString("error", error).apply()
+                            session?.close(); session = null; attachEditor()
+                        } finally { previous?.close(); refresh() }
+                    }
                 }
             } catch (_: Exception) {
                 loaded?.close()
-                main.post { error = "输入资源加载失败，请重新打开输入法"; render() }
+                main.post {
+                    if (!destroyed && loads.accepts(ticket)) {
+                        error = if (runtime == null) "输入资源加载失败，请在设置中修复" else "配置已保存但未应用，继续使用原码表"
+                        updates.edit().putString("error", error).apply(); render()
+                    }
+                }
             }
         }
     }
 
     private fun hostContext() = JSONObject().put("editor", editorEpoch).put("epoch", editorEpoch)
-        .put("supports_preedit", inputPolicy.purpose == "Text").put("supports_insert", true).put("owns_preedit", false)
+        .put("supports_preedit", supportsPreedit && inputPolicy.purpose == "Text").put("supports_insert", true).put("owns_preedit", false)
         .put("purpose", inputPolicy.purpose).put("selection_available", true).put("surrounding_available", true)
         .put("enter_action", inputPolicy.action)
 
@@ -70,6 +109,16 @@ class MyWubiService : InputMethodService() {
 
     override fun onStartInput(attribute: EditorInfo?, restarting: Boolean) {
         super.onStartInput(attribute, restarting)
+        val nextConnection = currentInputConnection
+        val sameEditor = restarting && active && connection === nextConnection &&
+            editorInfo?.packageName == attribute?.packageName && editorInfo?.fieldId == attribute?.fieldId &&
+            editorInfo?.inputType == attribute?.inputType && editorInfo?.imeOptions == attribute?.imeOptions
+        if (sameEditor) { refresh(); return }
+        inputQueue.invalidate()
+        connection = nextConnection
+        editorInfo = attribute
+        supportsPreedit = attribute?.inputType != android.text.InputType.TYPE_NULL &&
+            !getSharedPreferences("android-ui", 0).getBoolean("local_preedit", false)
         inputPolicy = InputPolicy.from(attribute?.inputType ?: 0, attribute?.imeOptions ?: 0)
         hasSelection = attribute != null && attribute.initialSelStart >= 0 && attribute.initialSelStart != attribute.initialSelEnd
         editorEpoch++; active = true
@@ -77,6 +126,7 @@ class MyWubiService : InputMethodService() {
     }
 
     override fun onFinishInput() {
+        inputQueue.invalidate(); connection = null; editorInfo = null
         active = false; editorEpoch++; editor.abandon()
         session?.let { NativeBridge.call("Context", "session" to it.value, "context" to hostContext(), "preserve_base" to true) }
         refresh(); super.onFinishInput()
@@ -93,6 +143,7 @@ class MyWubiService : InputMethodService() {
             try { currentInputConnection?.finishComposingText() } catch (_: RuntimeException) {
                 error = "输入连接暂不可用"
             }
+            inputQueue.invalidate()
             editor.abandon()
             editorEpoch++
             attachEditor()
@@ -157,43 +208,65 @@ class MyWubiService : InputMethodService() {
     }
 
     private fun dispatch(action: Any) {
+        if (!active || !viewVisible) return
+        if (getSharedPreferences("android-ui", 0).getBoolean("vibration", false)) {
+            window?.window?.decorView?.performHapticFeedback(android.view.HapticFeedbackConstants.KEYBOARD_TAP)
+        }
+        if (!inputQueue.submit { dispatchSerial(action) }) {
+            error = "输入队列已满，请稍后重试"; render()
+        }
+    }
+
+    private fun dispatchSerial(action: Any) {
         val s = session ?: return
-        val connection = currentInputConnection ?: return
+        val host = connection ?: run { error = "输入连接暂不可用"; render(); return }
+        val epoch = editorEpoch
         if (!active || !viewVisible) return
         candidateOffset = 0
         try {
+            val recovery = NativeBridge.call("Recover", "session" to s.value) as? JSONObject
+            if (recovery != null && !applyPlan(recovery)) { refresh(); return }
             val plan = NativeBridge.objectCall("Prepare", "session" to s.value, "action" to action)
-            applyPlan(plan)
-            if (plan.getString("disposition") == "NotHandled") when (action) {
-                "Space" -> connection.commitText(" ",1)
-                "Enter" -> inputPolicy.enter(connection)
-                "Backspace" -> UnicodeEditor.backspace(connection, hasSelection)
+            val applied = applyPlan(plan)
+            if (applied && active && epoch == editorEpoch && connection === host &&
+                plan.getString("disposition") == "NotHandled") when (action) {
+                "Space" -> host.commitText(" ",1)
+                "Enter" -> inputPolicy.enter(host)
+                "Backspace" -> UnicodeEditor.backspace(host, hasSelection)
             }
-            error = null
+            if (applied) error = null
         } catch (_: ProtocolException) { error = "当前操作不可用" }
         catch (_: RuntimeException) {
             // Never retry an editor operation after an unknown connection failure.
             editor.abandon()
+            editorEpoch++; inputQueue.invalidate(); attachEditor()
             error = "输入连接暂不可用"
         }
         refresh()
     }
 
-    private fun applyPlan(initial: JSONObject) {
-        val s = session ?: return
-        val connection = currentInputConnection ?: return
+    private fun applyPlan(initial: JSONObject): Boolean {
+        val s = session ?: return false
+        val host = connection ?: return false
         val epoch = editorEpoch
         var plan: JSONObject? = initial
         while (plan != null) {
             val token = plan.getJSONObject("token")
-            if (!active || epoch != editorEpoch || NativeBridge.call("IsCurrent", "session" to s.value, "token" to token) != true) return
-            val outcome = editor.execute(connection, plan)
+            fun current() = active && epoch == editorEpoch && connection === host &&
+                NativeBridge.call("IsCurrent", "session" to s.value, "token" to token) == true
+            if (!current()) return false
+            val outcome = editor.execute(host, plan, ::current)
+            if (!current()) return false
             val ack = NativeBridge.objectCall("Ack", "session" to s.value, "token" to token, "outcome" to outcome, "owns_preedit" to editor.ownsPreedit)
+            if (outcome != "Applied") error = "编辑结果未确认，已停止本次输入；请检查正文后继续"
             plan = ack.optJSONObject("follow_up")
+            if (outcome != "Applied" && plan == null) return false
         }
+        return true
     }
 
     private fun refresh() {
+        if (destroyed) return
         session?.let {
             state = NativeBridge.objectCall("State", "session" to it.value)
             candidates = NativeBridge.objectCall("Candidates", "session" to it.value, "offset" to candidateOffset, "count" to 256)
@@ -202,9 +275,11 @@ class MyWubiService : InputMethodService() {
     }
 
     override fun onDestroy() {
-        destroyed = true; active = false
+        destroyed = true; active = false; connection = null; inputQueue.invalidate()
+        loads.next(); updates.unregisterOnSharedPreferenceChangeListener(updateListener)
         session?.let { NativeBridge.call("Close", "session" to it.value); it.close() }
-        runtime?.close(); loader.shutdown(); viewOwner?.destroy(); viewOwner = null
+        session = null
+        runtime?.close(); runtime = null; loader.shutdown(); viewOwner?.destroy(); viewOwner = null
         super.onDestroy()
     }
 }
