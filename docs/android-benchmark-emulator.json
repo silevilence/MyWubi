@@ -1,0 +1,71 @@
+{
+  "model": "sdk_gphone64_x86_64",
+  "api": 34,
+  "abis": [
+    "x86_64",
+    "arm64-v8a"
+  ],
+  "page_size": 4096,
+  "main_sha256": "937d7cbc13123809537c24484f19267885dff17c48b593a071029f1e5fa8e286",
+  "main_entries": 123517,
+  "initial_runtime_build_ms": 334.0413,
+  "pss_before_kib": 390562,
+  "Main": {
+    "prepare_ack": {
+      "count": 1000,
+      "p50_us": 892.2,
+      "p95_us": 3008,
+      "p99_us": 5727.6
+    },
+    "expanded_candidates": {
+      "count": 1000,
+      "p50_us": 2884.7,
+      "p95_us": 8491.7,
+      "p99_us": 14438.1
+    },
+    "pss_kib": 406017
+  },
+  "Pinyin": {
+    "prepare_ack": {
+      "count": 1000,
+      "p50_us": 318.7,
+      "p95_us": 1227.8,
+      "p99_us": 2163.1
+    },
+    "expanded_candidates": {
+      "count": 1000,
+      "p50_us": 1501.7,
+      "p95_us": 4217.4,
+      "p99_us": 9763.2
+    },
+    "pss_kib": 407161
+  },
+  "English": {
+    "prepare_ack": {
+      "count": 1000,
+      "p50_us": 492.4,
+      "p95_us": 1773.3,
+      "p99_us": 3335.2
+    },
+    "expanded_candidates": {
+      "count": 1000,
+      "p50_us": 1571.2,
+      "p95_us": 4714.9,
+      "p99_us": 8955.6
+    },
+    "pss_kib": 398085
+  },
+  "pss_after_release_kib": 343909,
+  "apk_sha256": "d48e33bb00f7a6e51438188646eafa30cb90ef48de70cd737b928429cf41a253",
+  "version_name": "0.4.0",
+  "version_code": 2,
+  "scope": "API 34 x86_64 emulator, warm filesystem, JNI only; not physical ARM64 or UI latency",
+  "pinyin_sha256": "234008541b549a2906c2879d8a9537400e82c5dd6b030f6440674c6b451d693b",
+  "english_sha256": "fe4a45b9325fbb53311da1978362fe6c3f29cb4a3185729deb99b68421e7f3e7",
+  "prefixes": {
+    "Main": "a",
+    "Pinyin": "n",
+    "English": "a"
+  },
+  "candidate_window_size": 256
+}

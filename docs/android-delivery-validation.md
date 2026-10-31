@@ -59,6 +59,33 @@ ExternalHostTest 的候选展开/选取、大小写切换、连删释放停止�
 48 dp 目标，尚需触摸目标设计复核。模拟器未安装 TalkBack，未声称读屏实操通过；
 振动开关已实现，但没有真机验证触感。因此 CP-21 两条综合验收仍保留未完成。
 
+## CP-22：设备测量与对齐（未完成）
+
+最终代码 APK 0.4.0 / versionCode 2，在 sdk_gphone64_x86_64 / API 34 / 4096 字节页
+运行 DeviceBenchmarkTest。真实主表 123,517 条，辅表为内嵌拼音/英文；每模式 1,000
+轮，宽前缀分别 a/n/a，每轮读取前 256 个候选。完整样本哈希、APK 哈希和结果见
+[原始 JSON](android-benchmark-emulator.json)。主表仅作本地测量，没有提交或分发。
+
+| 模式 / 操作 | p50 µs | p95 µs | p99 µs |
+| --- | ---: | ---: | ---: |
+| 主表 Prepare + Ack | 892.2 | 3008.0 | 5727.6 |
+| 主表候选查询 | 2884.7 | 8491.7 | 14438.1 |
+| 拼音 Prepare + Ack | 318.7 | 1227.8 | 2163.1 |
+| 拼音候选查询 | 1501.7 | 4217.4 | 9763.2 |
+| 英文 Prepare + Ack | 492.4 | 1773.3 | 3335.2 |
+| 英文候选查询 | 1571.2 | 4714.9 | 8955.6 |
+
+本轮初次 BuildRuntime 334.04 ms；文件此前已解析，不能称为冷缓存/冷进程加载。
+测量开始、三个模式结束、释放后的 PSS 为 390562 / 406017 / 407161 / 398085 /
+343909 KiB，包含 instrumentation、Java 词条 JSON 与 Android UI 等内存，不能作为
+独立引擎稳态内存。19.55 秒测试不能替代长时间资源增长或真实宿主上屏延迟。
+
+APK 全部 4 个原生库（含 AndroidX 库）通过两 ABI ELF LOAD 及 ZIP 16 KiB 对齐；
+zipalign -c -P 16 通过。mywubi 两 ABI 均导出 version/exchange JNI 符号，NEEDED
+仅 libc.so / libdl.so。模拟器列出 arm64-v8a 翻译支持不等于 ARM64 实机运行。
+缺少 ARM64 真机、16 KB 运行环境、冷启动/端到端/长时间测试及设备目标阈值验收，
+因此 CP-22 两条综合任务均继续未完成。
+
 ## CP-23：构建、签名与升级
 
 固定 Rust 1.99.1、JDK 21、Gradle 8.9、AGP 8.7.3、SDK/Build Tools 35、NDK
