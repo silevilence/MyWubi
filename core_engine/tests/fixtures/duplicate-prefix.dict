@@ -1,0 +1,4 @@
+# Synthetic regression fixture: one word matches both an exact code and a prefix.
+eh	用	100
+eht	用	50
+ehv	月	80

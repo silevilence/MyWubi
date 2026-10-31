@@ -200,8 +200,9 @@ fn candidate_words_are_unique_across_matching_codes() {
 }
 
 #[test]
-fn real_wubi06_eh_candidates_contain_one_yong() {
-    let path = std::path::Path::new(env!("CARGO_MANIFEST_DIR")).join("../tables/wubi06.dict");
+fn loaded_dictionary_candidates_deduplicate_matching_codes() {
+    let path = std::path::Path::new(env!("CARGO_MANIFEST_DIR"))
+        .join("tests/fixtures/duplicate-prefix.dict");
     let dictionary = Dictionary::load(path).unwrap();
     let mut machine = StateMachine::with_options(dictionary, 100, false);
     machine.handle(InputEvent::Char('e'));
