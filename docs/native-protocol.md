@@ -68,8 +68,11 @@ SaveBundle.table 包含 original/target/config/entries/expected；failure 非空
 不能仅凭传输 ok 判断整体保存成功。文件版本保存了读取时的精确内容；应用内写入串行检查，
 不承诺与任意外部编辑器做文件系统原子 CAS。
 
-包激活顺序：ValidatePackage → 保存配置 → BuildRuntime → ApplyRuntime；保存与应用是
-两个独立结果。Android 的崩溃恢复式活动包切换属于 CP-19，不由任意路径写入代替。
+Android 包激活顺序：复制独立包 → 显式重绑定 → ValidatePackage → 临时配置试建
+BuildRuntime → 原子保存活动配置 → 通知服务 BuildRuntime/ApplyRuntime。保存与应用
+是两个独立结果；旧包继续保留，切换前后崩溃均能从磁盘活动配置重新加载。
+BuildRuntime 的文件读取与引擎构建在句柄注册表锁外执行，成功后仅加锁登记句柄；
+服务用加载代次拒绝迟到结果。会话调用仍串行，宿主回调期间不持有注册表锁。
 
 ## C 内存与验证
 

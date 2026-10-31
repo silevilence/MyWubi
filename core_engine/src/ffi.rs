@@ -232,17 +232,8 @@ impl Registry {
     }
     fn execute(&mut self, request: Request) -> Result<Value, ProtocolError> {
         Ok(match request {
-            Request::BuildRuntime { path } => {
-                let config = Config::load(&path).map_err(|e| err(5, e.to_string()))?;
-                let runtime = RuntimeBuilder::build(
-                    path,
-                    config,
-                    BehaviorProfile::TouchV1,
-                    LoadPolicy::Reload,
-                )
-                .map_err(|e| err(5, e.message))?;
-                json!({"handle": self.insert(Object::Runtime(Arc::new(runtime)))?})
-            }
+            // Resource construction is dispatched before taking the registry lock.
+            Request::BuildRuntime { .. } => return Err(err(8, "invalid build dispatch")),
             Request::CreateSession { runtime, context } => {
                 let runtime = self.runtime(runtime)?;
                 json!({"handle":self.insert(Object::Session(Box::new(Session::new(&runtime,BehaviorProfile::TouchV1,context))))?})
@@ -441,7 +432,8 @@ impl Registry {
 static REGISTRY: LazyLock<Mutex<Registry>> = LazyLock::new(|| Mutex::new(Registry::default()));
 
 /// Process one bounded UTF-8 JSON request. Contains unwind panics, not abort/OOM.
-/// Calls are serialized; no lock is held across a host editor callback.
+/// Session calls are serialized; runtime construction and host editor callbacks
+/// run outside the registry lock so background loading cannot stall active input.
 pub fn call(bytes: &[u8]) -> Vec<u8> {
     let result = std::panic::catch_unwind(|| {
         if bytes.len() > MAX_REQUEST {
@@ -452,7 +444,21 @@ pub fn call(bytes: &[u8]) -> Vec<u8> {
         if envelope.version != PROTOCOL_VERSION {
             return Err(err(1, "unsupported protocol version"));
         }
-        REGISTRY.lock().execute(envelope.request)
+        match envelope.request {
+            Request::BuildRuntime { path } => {
+                let config = Config::load(&path).map_err(|e| err(5, e.to_string()))?;
+                let runtime = RuntimeBuilder::build(
+                    path,
+                    config,
+                    BehaviorProfile::TouchV1,
+                    LoadPolicy::Reload,
+                )
+                .map_err(|e| err(5, e.message))?;
+                let handle = REGISTRY.lock().insert(Object::Runtime(Arc::new(runtime)))?;
+                Ok(json!({"handle": handle}))
+            }
+            request => REGISTRY.lock().execute(request),
+        }
     })
     .unwrap_or_else(|_| Err(err(8, "internal panic")));
     match result {

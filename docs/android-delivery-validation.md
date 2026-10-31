@@ -25,6 +25,18 @@ hideRotateAndSwitchEditorsDoNotReuseOldCandidates 单独重跑通过。
 真实宿主与代理 InputConnection 故障注入是两类证据，不互相替代。
 没有在用户主机注册或替换 Windows 输入法。
 
+## CP-19：设置与资源包
+
+ResourceContractTest 3 项通过：引用缺失/越界和版本冲突保持原配置；切换前后故障
+注入均能重新 BuildRuntime；首次准备只补缺失文件；TouchSave 不被未使用的桌面
+热键冲突阻止，也不写入手机 UI 字段。EngineStore 在活动配置替换前试建完整运行时，
+旧包不自动回收。通知失败单独提示，不把已落盘结果误报成保存失败。
+
+SettingsUiTest 两项在 API 34 模拟器通过：旋转、退出恢复草稿、SAF 取消、重新载入
+放弃草稿，以及通过系统 DocumentsUI 多选主/辅助表、显式指定角色、重绑定 Windows
+绝对引用后启用。测试结束恢复原配置。SAF 样本在 android/tests/saf/。
+后台 BuildRuntime 不再持有全局句柄锁，避免构建期间阻塞活动会话调用。
+
 ## 后续验收边界
 
 用户确认暂时没有 ARM64 真机。ARM64 真机性能和最终双端联合验收中的相关条目

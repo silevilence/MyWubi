@@ -5,7 +5,7 @@ import java.io.File
 
 /** Initial resources are prepared off the UI thread and never overwrite user files. */
 object Resources {
-    fun prepare(context: Context): File {
+    @Synchronized fun prepare(context: Context): File {
         val root = File(context.filesDir, "engine").apply { mkdirs() }
         val tables = File(root, "tables").apply { mkdirs() }
         for (name in listOf("wubi86.dict", "pinyin.dict", "english.dict")) {

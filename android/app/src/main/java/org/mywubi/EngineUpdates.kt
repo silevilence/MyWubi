@@ -7,7 +7,12 @@ import java.util.UUID
 object EngineUpdates {
     fun preferences(context: Context) = context.getSharedPreferences("engine-updates", Context.MODE_PRIVATE)
     fun request(context: Context) {
-        check(preferences(context).edit().putString("requested", UUID.randomUUID().toString()).commit())
+        // The configuration is already durable. Notification failure must not
+        // turn a successful save into an apparent failed transaction.
+        val preferences = preferences(context)
+        if (!preferences.edit().putString("requested", UUID.randomUUID().toString()).commit()) {
+            preferences.edit().putString("error", "配置已保存，但重载通知未持久化；请重新进入输入框或重启输入法").apply()
+        }
     }
 }
 
