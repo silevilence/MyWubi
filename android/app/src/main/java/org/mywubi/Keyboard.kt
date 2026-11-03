@@ -48,7 +48,8 @@ data class KeyboardModel(
     val status: String = "正在加载码表…", val base: String = "Main", val temporary: String? = null,
     val pinyinAvailable: Boolean = false, val modesAvailable: Boolean = false, val candidates: List<CandidateItem> = emptyList(),
     val query: String = "{}", val total: Int = 0, val offset: Int = 0,
-    val layout: String = "letters", val enterLabel: String = "回车", val privateInput: Boolean = false
+    val layout: String = "letters", val enterLabel: String = "回车", val privateInput: Boolean = false,
+    val idle: Boolean = false, val updateAvailable: Boolean = false
 )
 
 /** The IME owns this lifecycle; no Activity lifecycle is assumed by Compose. */
@@ -64,7 +65,8 @@ class ImeViewOwner : LifecycleOwner, SavedStateRegistryOwner {
 
 @Composable
 fun Keyboard(model: KeyboardModel, dispatch: (Any) -> Unit, window: (Int) -> Unit,
-             openSettings: () -> Unit = {}, switchIme: () -> Unit) {
+             openSettings: () -> Unit = {}, onTouch: (Boolean) -> Unit = {}, switchIme: () -> Unit) {
+    val currentTouch by rememberUpdatedState(onTouch)
     var upper by remember(model.epoch) { mutableStateOf(false) }
     var panel by remember(model.epoch, model.layout) {
         mutableStateOf(if (model.layout in listOf("number", "phone")) "numbers" else "letters")
@@ -98,7 +100,7 @@ fun Keyboard(model: KeyboardModel, dispatch: (Any) -> Unit, window: (Int) -> Uni
                 }
             }
             Row(Modifier.fillMaxWidth().heightIn(min=48.dp), verticalAlignment=androidx.compose.ui.Alignment.CenterVertically) {
-                IconButton(onClick={tools=!tools}, modifier=Modifier.imeAction("键盘工具", true) {tools=!tools}) {
+                if (model.candidates.isEmpty()) IconButton(onClick={tools=!tools}, modifier=Modifier.imeAction("键盘工具", true) {tools=!tools}) {
                     androidx.compose.foundation.Image(androidx.compose.ui.res.painterResource(R.drawable.mywubi_brand), null, Modifier.size(28.dp))
                 }
                 if (model.candidates.isNotEmpty() && !model.privateInput) {
@@ -111,6 +113,13 @@ fun Keyboard(model: KeyboardModel, dispatch: (Any) -> Unit, window: (Int) -> Uni
                 } else {
                     Text(if(model.privateInput) "安全输入" else model.status, Modifier.weight(1f).padding(horizontal=8.dp),
                         color=colors.onSurface, fontSize=14.sp, maxLines=1)
+                    if (model.spelling.isEmpty() && model.temporary == null) {
+                        val showUpdate = model.idle && model.updateAvailable
+                        val label = if (showUpdate) "设置，有可用更新" else "设置"
+                        TextButton(onClick=openSettings, modifier=Modifier.imeAction(label, true, openSettings)) {
+                            BadgedBox(badge = { if (showUpdate) Badge() }) { Text("设置") }
+                        }
+                    }
                     val pinyinLabel = if(model.temporary=="Pinyin") "拼音 · 本次" else "拼音"
                     val enabled = baseEnabled && model.pinyinAvailable
                     TextButton(onClick={dispatch(JSONObject().put("BeginTemporary","Pinyin"))}, enabled=enabled,
@@ -209,6 +218,16 @@ fun Keyboard(model: KeyboardModel, dispatch: (Any) -> Unit, window: (Int) -> Uni
             }
         }
         val container=Modifier.fillMaxWidth().background(colors.surface).navigationBarsPadding().padding(horizontal=3.dp,vertical=4.dp)
+            .pointerInput(Unit) {
+                try {
+                    awaitPointerEventScope {
+                        while (true) {
+                            val event = awaitPointerEvent(androidx.compose.ui.input.pointer.PointerEventPass.Initial)
+                            currentTouch(event.changes.any { it.pressed })
+                        }
+                    }
+                } finally { currentTouch(false) }
+            }
         if(LocalConfiguration.current.orientation==android.content.res.Configuration.ORIENTATION_LANDSCAPE) {
             Row(container,horizontalArrangement=Arrangement.spacedBy(8.dp)) {
                 Column(Modifier.weight(0.3f).heightIn(max=224.dp).verticalScroll(rememberScrollState())) {controls()}

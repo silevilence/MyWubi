@@ -16,6 +16,7 @@ import androidx.savedstate.setViewTreeSavedStateRegistryOwner
 import org.json.JSONArray
 import org.json.JSONObject
 import java.util.concurrent.Executors
+import kotlinx.coroutines.*
 
 class MyWubiService : InputMethodService() {
     private val loader = Executors.newSingleThreadExecutor()
@@ -34,6 +35,10 @@ class MyWubiService : InputMethodService() {
     private var supportsPreedit = true
     private var viewOwner: ImeViewOwner? = null
     private var viewVisible = false
+    private val updateScope = CoroutineScope(SupervisorJob() + Dispatchers.Main.immediate)
+    private val idle = KeyboardIdle()
+    private var updateAvailable = false
+    private val idleRefresh = Runnable { render() }
     private var candidateOffset = 0
     private var keyboard by mutableStateOf(KeyboardModel())
     private var error: String? = null
@@ -48,6 +53,12 @@ class MyWubiService : InputMethodService() {
     override fun onCreate() {
         super.onCreate()
         updates.registerOnSharedPreferenceChangeListener(updateListener)
+        updateScope.launch {
+            AppUpdates.get(this@MyWubiService).state.collect {
+                updateAvailable = it.available != null
+                render()
+            }
+        }
         loadRuntime()
     }
 
@@ -122,6 +133,7 @@ class MyWubiService : InputMethodService() {
         inputPolicy = InputPolicy.from(attribute?.inputType ?: 0, attribute?.imeOptions ?: 0)
         hasSelection = attribute != null && attribute.initialSelStart >= 0 && attribute.initialSelStart != attribute.initialSelEnd
         editorEpoch++; active = true
+        keyboardActivity()
         attachEditor(); refresh()
     }
 
@@ -161,7 +173,10 @@ class MyWubiService : InputMethodService() {
             setViewTreeLifecycleOwner(owner)
             setViewTreeSavedStateRegistryOwner(owner)
             setViewCompositionStrategy(ViewCompositionStrategy.DisposeOnViewTreeLifecycleDestroyed)
-            setContent { Keyboard(keyboard, ::dispatch, { candidateOffset = it; refresh() }, openSettings = {
+            setContent { Keyboard(keyboard, ::dispatch, { keyboardActivity(); candidateOffset = it; refresh() }, onTouch = { pressed ->
+                idle.touch(pressed, android.os.SystemClock.elapsedRealtime())
+                keyboardActivity()
+            }, openSettings = {
                 startActivity(android.content.Intent(this@MyWubiService, MainActivity::class.java)
                     .addFlags(android.content.Intent.FLAG_ACTIVITY_NEW_TASK))
             }) {
@@ -172,23 +187,30 @@ class MyWubiService : InputMethodService() {
 
     override fun onStartInputView(info: EditorInfo?, restarting: Boolean) {
         super.onStartInputView(info,restarting)
-        viewVisible = true; viewOwner?.visible(true); refresh()
+        viewVisible = true; viewOwner?.visible(true); keyboardActivity(); refresh()
         AppUpdates.get(this).check()
     }
 
     override fun onFinishInputView(finishingInput: Boolean) {
-        viewVisible = false; render(); viewOwner?.visible(false)
+        viewVisible = false; idle.touch(false, android.os.SystemClock.elapsedRealtime())
+        main.removeCallbacks(idleRefresh); render(); viewOwner?.visible(false)
         super.onFinishInputView(finishingInput)
     }
 
     private fun render() {
+        if (destroyed) return
         val items = candidates.optJSONArray("candidates") ?: JSONArray()
+        val spelling = state.optJSONObject("view")?.optString("spelling") ?: ""
+        val temporary = state.optString("temporary").takeIf { it == "Pinyin" || it == "English" }
+        val stableIdle = active && viewVisible && session != null && idle.isIdle(
+            android.os.SystemClock.elapsedRealtime(), spelling, items.length() > 0, editor.ownsPreedit, temporary != null)
         keyboard = KeyboardModel(
             epoch = editorEpoch, enabled = active && viewVisible && session != null,
-            spelling = state.optJSONObject("view")?.optString("spelling") ?: "",
+            spelling = spelling,
+            idle = stableIdle, updateAvailable = updateAvailable,
             status = error ?: if(session == null) "正在加载码表…" else if(state.optString("temporary") == "Pinyin") "本次拼音" else if(state.optString("base") == "English") "英文" else "五笔 · 示例码表",
             base = state.optString("base", "Main"),
-            temporary = state.optString("temporary").takeIf { it == "Pinyin" || it == "English" },
+            temporary = temporary,
             pinyinAvailable = state.optJSONObject("pinyin")?.optBoolean("available") == true,
             modesAvailable = inputPolicy.purpose == "Text",
             layout = inputPolicy.layout,
@@ -213,12 +235,25 @@ class MyWubiService : InputMethodService() {
 
     private fun dispatch(action: Any) {
         if (!active || !viewVisible) return
+        keyboardActivity()
         if (getSharedPreferences("android-ui", 0).getBoolean("vibration", false)) {
             window?.window?.decorView?.performHapticFeedback(android.view.HapticFeedbackConstants.KEYBOARD_TAP)
         }
         if (!inputQueue.submit { dispatchSerial(action) }) {
             error = "输入队列已满，请稍后重试"; render()
         }
+    }
+
+    private fun keyboardActivity() {
+        idle.activity(android.os.SystemClock.elapsedRealtime())
+        main.removeCallbacks(idleRefresh)
+        main.postDelayed(idleRefresh, 1800)
+        render()
+    }
+
+    override fun onKeyDown(keyCode: Int, event: android.view.KeyEvent?): Boolean {
+        keyboardActivity()
+        return super.onKeyDown(keyCode, event)
     }
 
     private fun dispatchSerial(action: Any) {
@@ -280,6 +315,7 @@ class MyWubiService : InputMethodService() {
 
     override fun onDestroy() {
         destroyed = true; active = false; connection = null; inputQueue.invalidate()
+        main.removeCallbacks(idleRefresh); updateScope.cancel()
         loads.next(); updates.unregisterOnSharedPreferenceChangeListener(updateListener)
         session?.let { NativeBridge.call("Close", "session" to it.value); it.close() }
         session = null

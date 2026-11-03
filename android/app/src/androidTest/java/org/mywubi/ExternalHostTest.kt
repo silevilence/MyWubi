@@ -62,7 +62,9 @@ class ExternalHostTest {
         val candidate = device.wait(Until.findObject(By.descStartsWith("候选 王").pkg("org.mywubi")),5000)
         assertNotNull(candidate);candidate.click()
         awaitHostText(device,"王")
-        button("收起").click();device.waitForIdle()
+        // A successful commit clears composition and collapses the candidate grid.
+        assertTrue(device.wait(Until.gone(By.descStartsWith("候选 王").pkg("org.mywubi")),5000))
+        device.waitForIdle()
         button("小写").click();device.waitForIdle()
         assertNotNull(button("Q"))
         button("大写").click();device.waitForIdle()
