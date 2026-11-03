@@ -15,6 +15,9 @@ class AndroidUpdateMetadataTests(unittest.TestCase):
             self.assertEqual(result["minSdk"], 26)
             self.assertEqual(len(result["sha256"]), 64)
             self.assertEqual(result["notes"], "修复")
-            for invalid in (badging.replace("org.mywubi", "evil.app"), badging.replace("0.5.1", "0.5.2"), "invalid"):
+            for invalid in (badging.replace("org.mywubi", "evil.app"), badging.replace("0.5.1", "0.5.2"),
+                            badging.replace("versionCode='5'", "versionCode='2100000001'"),
+                            badging.replace("sdkVersion:'26'", "sdkVersion:'25'"),
+                            badging.replace("arm64-v8a", "armeabi-v7a"), "invalid"):
                 with self.assertRaises(ValueError):
                     metadata(invalid, apk, "v0.5.1", "")

@@ -30,7 +30,7 @@ data class AppUpdate(
             val sha = json.getString("sha256")
             val array = json.getJSONArray("abis")
             val abis = (0 until array.length()).map(array::getString)
-            require(name.matches(Regex("[0-9]+\\.[0-9]+\\.[0-9]+")) && code > 0 && min >= 26)
+            require(name.matches(Regex("[0-9]+\\.[0-9]+\\.[0-9]+")) && code in 1..2_100_000_000L && min >= 26)
             require(url.matches(Regex(Regex.escape(RELEASE_ROOT) + "[vV]" + Regex.escape(name) + "/MyWubi-" + Regex.escape(name) + "-Android\\.apk")))
             require(sha.matches(Regex("[a-f0-9]{64}")) && abis.isNotEmpty())
             return AppUpdate(name, code, min, json.getString("notes"), url, sha, abis)
@@ -53,6 +53,12 @@ internal fun releaseManifestUrl(release: JSONObject): String? {
         .map { it.getString("browser_download_url") }
     require(urls.size == 1) { "此版本尚未提供应用内更新信息，请前往发布页手动升级" }
     return urls.single().also { require(it == "${RELEASE_ROOT}$tag/android-update.json") }
+}
+
+internal fun parseReleaseUpdate(manifestUrl: String, json: JSONObject): AppUpdate = AppUpdate.parse(json).also {
+    require(it.apkUrl.substringBeforeLast('/') == manifestUrl.substringBeforeLast('/')) {
+        "安装包不属于已确认的正式发布版本"
+    }
 }
 
 internal fun readUpdateJson(address: String): JSONObject {
@@ -93,7 +99,7 @@ data class UpdateCheckState(val checking: Boolean = false, val available: AppUpd
 
 class AppUpdates internal constructor(context: Context, preferencesName: String = "app-updates",
     private val fetch: () -> AppUpdate? = {
-        releaseManifestUrl(readUpdateJson(RELEASE_API))?.let { AppUpdate.parse(readUpdateJson(it)) }
+        releaseManifestUrl(readUpdateJson(RELEASE_API))?.let { parseReleaseUpdate(it, readUpdateJson(it)) }
     }) {
     private val app = context.applicationContext
     private val prefs = app.getSharedPreferences(preferencesName, Context.MODE_PRIVATE)
@@ -112,6 +118,9 @@ class AppUpdates internal constructor(context: Context, preferencesName: String 
     /** Called on the main thread at keyboard-open or from the settings button, never per key. */
     fun check(manual: Boolean = false) {
         if (mutable.value.checking || (!manual && !schedule.permits(System.currentTimeMillis()))) return
+        // Persist a short reservation before IO so process death cannot cause a request storm.
+        schedule = schedule.copy(next = System.currentTimeMillis() + 15 * 60 * 1000L)
+        prefs.edit().putLong("next", schedule.next).apply()
         mutable.value = mutable.value.copy(checking = true, message = "正在检查更新…")
         scope.launch {
             val result = runCatching { withContext(Dispatchers.IO) {
@@ -131,6 +140,8 @@ class AppUpdates internal constructor(context: Context, preferencesName: String 
     }
 
     companion object {
+        // The controller retains applicationContext only, never an Activity or IME service.
+        @android.annotation.SuppressLint("StaticFieldLeak")
         @Volatile private var instance: AppUpdates? = null
         fun get(context: Context): AppUpdates = instance ?: synchronized(this) {
             instance ?: AppUpdates(context).also { instance = it }

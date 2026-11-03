@@ -175,7 +175,7 @@ jobs:
           from pathlib import Path
           windows = Path('artifacts/release-windows')
           android = Path('artifacts/release-android')
-          for root, pattern in ((windows, '*-Setup.exe'), (windows, '*-Portable.zip'), (windows, '*.nupkg'), (windows, 'releases.*.json'), (android, '*.apk')):
+          for root, pattern in ((windows, '*-Setup.exe'), (windows, '*-Portable.zip'), (windows, '*.nupkg'), (windows, 'releases.*.json'), (android, '*.apk'), (android, 'android-update.json')):
               if not list(root.glob(pattern)):
                   raise SystemExit(f'Missing release assets: {pattern}')
           destination = Path('dist')

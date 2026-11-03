@@ -1,0 +1,22 @@
+{
+  "device": "sdk_gphone64_x86_64",
+  "api": 34,
+  "baseline": {
+    "samples": 1602,
+    "p50_us": 879,
+    "p95_us": 2212.6,
+    "p99_us": 3302.7
+  },
+  "checking_and_downloading": {
+    "samples": 1602,
+    "p50_us": 594.7,
+    "p95_us": 1314,
+    "p99_us": 2079.8
+  },
+  "offline_and_cancelled": {
+    "samples": 1602,
+    "p50_us": 446.2,
+    "p95_us": 933.3,
+    "p99_us": 1657.2
+  }
+}

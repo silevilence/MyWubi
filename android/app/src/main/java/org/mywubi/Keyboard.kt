@@ -126,7 +126,7 @@ fun Keyboard(model: KeyboardModel, dispatch: (Any) -> Unit, window: (Int) -> Uni
                         modifier=Modifier.imeAction(pinyinLabel, enabled) {dispatch(JSONObject().put("BeginTemporary","Pinyin"))}) {Text(pinyinLabel)}
                 }
             }
-            if (tools) {
+            if (tools && model.spelling.isEmpty() && model.candidates.isEmpty()) {
                 Row(Modifier.fillMaxWidth(), horizontalArrangement=Arrangement.SpaceEvenly) {
                     TextButton(onClick=openSettings) {Text("设置 / 码表")}
                     TextButton(onClick=switchIme) {Text("切换输入法")}
@@ -219,14 +219,16 @@ fun Keyboard(model: KeyboardModel, dispatch: (Any) -> Unit, window: (Int) -> Uni
         }
         val container=Modifier.fillMaxWidth().background(colors.surface).navigationBarsPadding().padding(horizontal=3.dp,vertical=4.dp)
             .pointerInput(Unit) {
+                var pressed = false
                 try {
                     awaitPointerEventScope {
                         while (true) {
                             val event = awaitPointerEvent(androidx.compose.ui.input.pointer.PointerEventPass.Initial)
-                            currentTouch(event.changes.any { it.pressed })
+                            val next = event.changes.any { it.pressed }
+                            if (next != pressed) { pressed = next; currentTouch(next) }
                         }
                     }
-                } finally { currentTouch(false) }
+                } finally { if (pressed) currentTouch(false) }
             }
         if(LocalConfiguration.current.orientation==android.content.res.Configuration.ORIENTATION_LANDSCAPE) {
             Row(container,horizontalArrangement=Arrangement.spacedBy(8.dp)) {

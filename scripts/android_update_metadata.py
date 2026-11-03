@@ -17,7 +17,7 @@ def metadata(badging, apk, tag, notes):
     if name != "org.mywubi" or not re.fullmatch(r"[vV]\d+\.\d+\.\d+", tag) or tag[1:] != version:
         raise ValueError("Release tag and APK identity must agree")
     abis = re.findall(r"'([^']+)'", native[1])
-    if set(abis) != {"arm64-v8a", "x86_64"} or int(code) < 1 or int(sdk[1]) < 26:
+    if set(abis) != {"arm64-v8a", "x86_64"} or not 1 <= int(code) <= 2_100_000_000 or int(sdk[1]) < 26:
         raise ValueError("Unsupported APK contract")
     return dict(schema=1, versionName=version, versionCode=int(code), minSdk=int(sdk[1]),
                 abis=abis, notes=notes,

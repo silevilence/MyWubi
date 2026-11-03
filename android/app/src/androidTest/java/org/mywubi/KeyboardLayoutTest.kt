@@ -33,8 +33,15 @@ class KeyboardLayoutTest {
                         { events.add(it) }, {}, switchIme={})
                 }
             }
-            fun key(label: String) = device.wait(Until.findObject(By.desc(label).pkg("org.mywubi")), 5000)
-                ?: error("Missing key $label")
+            fun key(label: String): androidx.test.uiautomator.UiObject2 {
+                val end = android.os.SystemClock.uptimeMillis()+5000
+                do {
+                    instrumentation.uiAutomation.clearCache()
+                    device.findObject(By.desc(label).pkg("org.mywubi"))?.let { return it }
+                    Thread.sleep(50)
+                } while (android.os.SystemClock.uptimeMillis()<end)
+                error("Missing key $label")
+            }
             fun press(label: String) {
                 key(label).click()
                 device.waitForIdle()

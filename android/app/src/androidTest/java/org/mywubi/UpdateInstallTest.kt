@@ -47,6 +47,7 @@ class UpdateInstallTest {
     }
 
     @Test fun permissionDenialAndInstallerCancellationRemainRecoverable() {
+        assumeTrue("Run android/test-updates.ps1 for signed fixtures", InstrumentationRegistry.getArguments().getString("update_fixtures") == "true")
         prepare()
         assertFalse("Revoke permission before starting instrumentation; revocation kills the app process", context.packageManager.canRequestPackageInstalls())
         ActivityScenario.launch(UpdateActivity::class.java).use { scenario ->

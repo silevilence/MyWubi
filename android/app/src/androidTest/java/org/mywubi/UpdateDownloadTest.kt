@@ -15,7 +15,10 @@ class UpdateDownloadTest {
     private val instrumentation = InstrumentationRegistry.getInstrumentation()
     private val context = instrumentation.targetContext
     private val fixture get() = File("/data/local/tmp/au-new.apk")
-    @Before fun requireFixtures() { assumeTrue("Run the update fixture build first", fixture.isFile) }
+    @Before fun requireFixtures() {
+        assumeTrue("Run android/test-updates.ps1 for signed fixtures",
+            InstrumentationRegistry.getArguments().getString("update_fixtures") == "true" && fixture.isFile)
+    }
     @Suppress("DEPRECATION")
     private fun fixtureInfo() = requireNotNull(context.packageManager.getPackageArchiveInfo(fixture.path, 0))
     private fun update(file: File = fixture, code: Long = packageVersion(fixtureInfo())): AppUpdate {
@@ -104,5 +107,27 @@ class UpdateDownloadTest {
         assertEquals(DownloadPhase.Idle, restored.state.value.phase)
         assertFalse(File(directory,"update.part").exists())
         directory.deleteRecursively()
+    }
+
+    @Test fun timeoutAndOutOfSpaceRemainRetryable() {
+        for (failure in listOf(java.net.SocketTimeoutException("timeout"), java.io.IOException("ENOSPC"))) {
+            val directory = File(context.cacheDir,"au-failure-${System.nanoTime()}")
+            var attempts = 0
+            val download = create(directory) { _, target, _ ->
+                target.writeText("partial")
+                if (attempts++ == 0) throw failure
+                fixture.copyTo(target,overwrite=true)
+            }
+            val info = update()
+            instrumentation.runOnMainSync { download.start(info) }
+            awaitIdle(download)
+            assertEquals(DownloadPhase.Failed,download.state.value.phase)
+            assertEquals(info,download.state.value.update)
+            assertFalse(File(directory,"update.part").exists())
+            instrumentation.runOnMainSync { download.start(info) }
+            awaitIdle(download)
+            assertEquals(DownloadPhase.Ready,download.state.value.phase)
+            directory.deleteRecursively()
+        }
     }
 }

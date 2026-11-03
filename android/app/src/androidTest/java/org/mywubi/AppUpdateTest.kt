@@ -25,6 +25,8 @@ class AppUpdateTest {
     @Test fun onlyPublishedStableReleasesWithExactAssetAreAccepted() {
         fun release() = JSONObject("""{"draft":false,"prerelease":false,"published_at":"2026-11-03T00:00:00Z","tag_name":"v0.5.2","assets":[{"name":"android-update.json","browser_download_url":"${RELEASE_ROOT}v0.5.2/android-update.json"}]}""")
         assertNotNull(releaseManifestUrl(release()))
+        assertEquals(update(), parseReleaseUpdate(releaseManifestUrl(release())!!,update().json()))
+        assertTrue(runCatching { parseReleaseUpdate("${RELEASE_ROOT}v0.5.1/android-update.json",update().json()) }.isFailure)
         assertNull(releaseManifestUrl(release().put("draft", true)))
         assertNull(releaseManifestUrl(release().put("prerelease", true)))
         assertTrue(runCatching { releaseManifestUrl(release().put("published_at", JSONObject.NULL)) }.isFailure)
@@ -51,11 +53,17 @@ class AppUpdateTest {
         instrumentation.runOnMainSync {
             updates = AppUpdates(context, name) {
                 check(android.os.Looper.myLooper() != android.os.Looper.getMainLooper())
-                if (calls.incrementAndGet() == 1) { gate.await(5, java.util.concurrent.TimeUnit.SECONDS); error("offline") }
-                update().copy(versionCode = Long.MAX_VALUE)
+                when (calls.incrementAndGet()) {
+                    1 -> { gate.await(5, java.util.concurrent.TimeUnit.SECONDS); error("offline") }
+                    2 -> update().copy(versionCode = 2_000_000_000)
+                    else -> null
+                }
             }
             updates.check()
             repeat(20) { updates.check(manual = true) }
+            val restarted = AppUpdates(context, name) { error("Process restart must respect the reserved interval") }
+            restarted.check()
+            assertFalse(restarted.state.value.checking)
         }
         instrumentation.runOnMainSync { assertTrue(updates.state.value.checking) }
         gate.countDown()
@@ -78,6 +86,20 @@ class AppUpdateTest {
             recreated.check()
             assertFalse(recreated.state.value.checking)
         }
+        instrumentation.runOnMainSync { updates.check(manual = true) }
+        awaitResult()
+        assertNull(updates.state.value.available)
+        assertFalse(context.getSharedPreferences(name,0).contains("available"))
         context.getSharedPreferences(name, 0).edit().clear().commit()
+    }
+
+    @Test fun cachedInstalledVersionCannotLeaveAnUpdateBadgeAfterUpgrade() {
+        val context = androidx.test.platform.app.InstrumentationRegistry.getInstrumentation().targetContext
+        val name = "installed-cache-${System.nanoTime()}"
+        @Suppress("DEPRECATION")
+        val installed = packageVersion(context.packageManager.getPackageInfo(context.packageName,0))
+        context.getSharedPreferences(name,0).edit().putString("available",update().copy(versionCode=installed).json().toString()).commit()
+        assertNull(AppUpdates(context,name) { error("No network needed to discard stale badge") }.state.value.available)
+        context.getSharedPreferences(name,0).edit().clear().commit()
     }
 }

@@ -34,7 +34,7 @@ jobs:
           cargo clippy -p core_engine -p mywubi_android --all-targets --locked -- -D warnings
       - name: Build APKs and lint
         working-directory: android
-        run: bash gradlew :app:assembleDebug :app:assembleDebugAndroidTest :app:assembleRelease :app:lintDebug --console=plain
+        run: bash gradlew :app:assembleDebug :app:assembleDebugAndroidTest :app:assembleRelease :app:testDebugUnitTest :app:lintDebug --console=plain
       - name: Inspect both ABI payloads and ELF/ZIP alignment
         run: |
           python android/check_apk.py android/app/build/outputs/apk/debug/app-debug.apk --output android/app/build/outputs/debug-native-report.json
@@ -52,7 +52,7 @@ jobs:
           target: google_apis
           arch: x86_64
           disable-animations: true
-          script: cd android && bash gradlew :app:connectedDebugAndroidTest -Pandroid.testInstrumentationRunnerArguments.class=org.mywubi.NativeContractTest,org.mywubi.EditorContractTest,org.mywubi.LifecycleContractTest,org.mywubi.ResourceContractTest,org.mywubi.LibraryContractTest,org.mywubi.LibraryModelTest --console=plain
+          script: cd android && bash gradlew :app:connectedDebugAndroidTest -Pandroid.testInstrumentationRunnerArguments.class=org.mywubi.NativeContractTest,org.mywubi.EditorContractTest,org.mywubi.LifecycleContractTest,org.mywubi.ResourceContractTest,org.mywubi.LibraryContractTest,org.mywubi.LibraryModelTest,org.mywubi.AppUpdateTest,org.mywubi.UpdateToolbarTest,org.mywubi.UpdateIsolationTest --console=plain
       - uses: actions/upload-artifact@v4
         if: always()
         with:
