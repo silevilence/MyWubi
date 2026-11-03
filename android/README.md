@@ -103,7 +103,7 @@ python android/check_apk.py android/app/build/outputs/apk/debug/app-debug.apk --
 adb install -r android/app/build/outputs/apk/debug/app-debug.apk
 ```
 
-当前 versionName 为 0.5.0、默认 versionCode 为 3。`install -r` 使用相同签名保留应用数据；卸载再安装不会保留。Debug APK 可直接安装，
+当前 versionName 为 0.5.1、默认 versionCode 为 4。`install -r` 使用相同签名保留应用数据；卸载再安装不会保留。Debug APK 可直接安装，
 默认 Release 输出 `app-release-unsigned.apk`，需签名后安装。发布构建通过环境变量
 MYWUBI_KEYSTORE、MYWUBI_STORE_PASSWORD、MYWUBI_KEY_ALIAS、MYWUBI_KEY_PASSWORD
 配置签名，四者必须同时提供；密钥不入仓库。`-PversionCode=<递增整数>` 设置升级序号。
@@ -124,7 +124,7 @@ MYWUBI_KEYSTORE、MYWUBI_STORE_PASSWORD、MYWUBI_KEY_ALIAS、MYWUBI_KEY_PASSWORD
 
 ## GitHub 双平台发布
 
-推送 `V0.5.0` 形式的版本标签后，Release 工作流同时构建 Windows Velopack 包和
+推送 `V0.5.1` 形式的版本标签后，Release 工作流同时构建 Windows Velopack 包和
 包含 arm64-v8a / x86_64 的通用 Android APK。两平台通过检查后才公开同一个 Release，
 APK 名为 `MyWubi-<版本>-Android.apk`，附带原生库检查报告和 SHA256SUMS.txt。
 手动运行 Release 工作流只做构建预检，不发布版本。
