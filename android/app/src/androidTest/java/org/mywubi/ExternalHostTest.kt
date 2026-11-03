@@ -67,7 +67,8 @@ class ExternalHostTest {
         device.waitForIdle()
         button("小写").click();device.waitForIdle()
         assertNotNull(button("Q"))
-        button("大写").click();device.waitForIdle()
+        button("大写 · 本次").click();device.waitForIdle()
+        button("大写 · 锁定").click();device.waitForIdle()
         field.text="abcdefghijklmnopqrstuvxyz"
         device.pressKeyCode(android.view.KeyEvent.KEYCODE_MOVE_END);device.waitForIdle()
         val backspace=button("退格")
@@ -122,6 +123,15 @@ class ExternalHostTest {
         assertNotNull("Settings search entry",search);search.click()
         val field=device.wait(Until.findObject(By.clazz("android.widget.EditText")),15000)
         assertNotNull("Settings editor",field);field.text="";field.click()
+        freshKey(device, By.desc("q"))
+        val switcher = device.wait(Until.findObject(By.res("android", "input_method_nav_ime_switcher")),5000)
+        assertNotNull("System IME switch button", switcher)
+        val bottomKey = freshKey(device, By.desc("搜索")).visibleBounds
+        val safeGap = 32 * InstrumentationRegistry.getInstrumentation().targetContext.resources.displayMetrics.density
+        assertTrue("Bottom keys must leave a safe band above the system IME controls",
+            switcher.visibleBounds.top - bottomKey.bottom >= safeGap)
+        device.takeScreenshot(java.io.File(InstrumentationRegistry.getInstrumentation().targetContext.filesDir,"keyboard-system-clearance.png"))
+        device.dumpWindowHierarchy(java.io.File(InstrumentationRegistry.getInstrumentation().targetContext.filesDir,"keyboard-system-clearance.xml"))
         val emptyText = field.text
         fun key(label:String) {
             val selector = if(label == "王") By.descStartsWith("候选 王") else By.desc(label)

@@ -7,7 +7,7 @@ import org.json.JSONObject
 import java.io.File
 import java.util.UUID
 
-/** Private immutable import generations, activated by one atomic config replacement. */
+/** Private import generations; selecting a table uses one atomic config replacement. */
 class EngineStore(private val context: Context) {
     val configFile get() = Resources.prepare(context)
 
@@ -53,9 +53,7 @@ class EngineStore(private val context: Context) {
         return ImportSet(root, files)
     }
 
-    /** Fault checkpoints are used by the device contract test to simulate process death. */
-    fun activate(pack: ImportSet, main: Int, pinyin: Int?, english: Int?, expected: Long, draft: JSONObject? = null,
-                 checkpoint: (String) -> Unit = {}): JSONObject {
+    fun importPackage(pack: ImportSet, main: Int, pinyin: Int?, english: Int?) {
         require(main in pack.files.indices) { "请显式选择主码表" }
         val mainFile = pack.files[main].file
         val table = NativeBridge.objectCall("ReadTable", "path" to mainFile.path)
@@ -76,13 +74,32 @@ class EngineStore(private val context: Context) {
             NativeHandle(saved.getLong("version")).close()
         }
         NativeBridge.call("ValidatePackage", "root" to pack.root.path, "main" to mainFile.path)
+        // Validate every file offered by the catalog, including unbound auxiliary files.
+        pack.files.forEach { file ->
+            NativeHandle(NativeBridge.objectCall("ReadTable", "path" to file.file.path).getLong("version")).close()
+        }
+        TableCatalog(context).record(pack, main)
+    }
+
+    /** Fault checkpoints are used by the device contract test to simulate process death. */
+    fun activate(pack: ImportSet, main: Int, pinyin: Int?, english: Int?, expected: Long, draft: JSONObject? = null,
+                 checkpoint: (String) -> Unit = {}): JSONObject {
+        importPackage(pack, main, pinyin, english)
         val current = readConfig()
         NativeHandle(current.getLong("version")).use {
             val config = JSONObject((draft ?: current.getJSONObject("config")).toString())
-            config.getJSONObject("dictionary").put("system_table", mainFile.path)
-            // Validate the full prospective runtime before touching the active config.
-            val trial = File(pack.root, "activation.toml")
+            config.getJSONObject("dictionary").put("system_table", pack.files[main].file.path)
+            return activateConfig(config, expected, checkpoint)
+        }
+    }
+
+    fun activateConfig(config: JSONObject, expected: Long, checkpoint: (String) -> Unit = {}): JSONObject {
+        // Validate the full prospective runtime before touching the active config.
+        val trial = File.createTempFile("activation-", ".toml", context.cacheDir)
+        try {
             val trialConfig = JSONObject(config.toString())
+            val system = trialConfig.getJSONObject("dictionary").getString("system_table")
+            trialConfig.getJSONObject("dictionary").put("system_table", TableCatalog(context).resolve(system).path)
             val user = trialConfig.getJSONObject("dictionary").getString("user_table")
             if (!File(user).isAbsolute) trialConfig.getJSONObject("dictionary").put("user_table", File(configFile.parentFile, user).path)
             NativeHandle(NativeBridge.objectCall("FileVersion", "path" to trial.path).getLong("version")).use { trialVersion ->
@@ -99,6 +116,6 @@ class EngineStore(private val context: Context) {
             // Old generations are intentionally retained: live snapshots and user
             // drafts may still reference them. No eager resource garbage collection.
             return result
-        }
+        } finally { trial.delete() }
     }
 }

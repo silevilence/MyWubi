@@ -20,6 +20,39 @@ class LibraryModelTest {
         assertFalse("operation timed out", busy)
     }
 
+    @Test fun auxiliaryChoicesSaveRelativeReferencesAndPreserveHiddenDesktopKey() {
+        val app = instrumentation.targetContext.applicationContext as Application
+        val owner = ViewModelStore()
+        lateinit var model: LibraryModel
+        main { model = ViewModelProvider(owner, ViewModelProvider.AndroidViewModelFactory(app))[LibraryModel::class.java] }
+        ready(model); main { model.open(0, true) }; ready(model)
+        val file = model.paths[0].second
+        val original = file.readBytes()
+        try {
+            val key = model.form.getJSONObject("header").getJSONObject("temporary").getString("key")
+            val choices = model.referenceChoices()
+            assertTrue(choices.any { it.first == "不引用" && it.second.isEmpty() })
+            assertTrue(choices.none { it.second.isNotEmpty() && java.io.File(file.parentFile, it.second).canonicalFile == file.canonicalFile })
+            main {
+                model.change("pinyin_table", choices.first { it.first == "内置拼音" }.second, "temporary")
+                model.change("english_table", choices.first { it.first == "内置英文" }.second, "temporary")
+                model.save()
+            }
+            ready(model)
+            main {
+                assertFalse(model.message, model.dirty)
+                val temporary = model.form.getJSONObject("header").getJSONObject("temporary")
+                assertEquals(key, temporary.getString("key"))
+                assertEquals("内置拼音", model.referenceLabel(temporary.getString("pinyin_table")))
+                assertEquals("内置英文", model.referenceLabel(temporary.getString("english_table")))
+            }
+        } finally {
+            file.writeBytes(original)
+            main { model.open(0, true) }; ready(model)
+            main { owner.clear() }; EngineUpdates.request(app)
+        }
+    }
+
     @Test fun invalidSaveRetainsDraftAndConflictCannotOverwriteDisk() {
         val app = instrumentation.targetContext.applicationContext as Application
         var owner = ViewModelStore()

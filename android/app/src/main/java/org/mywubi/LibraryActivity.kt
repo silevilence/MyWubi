@@ -8,6 +8,8 @@ import androidx.lifecycle.ViewModelProvider
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.selection.selectable
+import androidx.compose.foundation.selection.selectableGroup
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.runtime.saveable.rememberSaveable
@@ -15,6 +17,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.semantics.liveRegion
 import androidx.compose.ui.semantics.LiveRegionMode
+import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.unit.dp
 
 class LibraryActivity : ComponentActivity() {
@@ -42,8 +45,10 @@ private fun LibraryScreen(model: LibraryModel, leave: () -> Unit) {
                 Text("码表与用户词库", style = MaterialTheme.typography.headlineMedium)
                 Text("手动维护词条与权重；不包含自动学习或拼音学习。")
             }
-            items(model.paths.indices.toList()) { index ->
-                OutlinedButton(onClick = { model.open(index) }, enabled = !model.dirty && !model.busy) { Text(model.paths[index].first) }
+            item {
+                TableChoice("选择要编辑的码表或词库", model.paths.getOrNull(model.selected)?.first ?: "请选择",
+                    model.paths.mapIndexed { index, entry -> entry.first to index.toString() },
+                    !model.dirty && !model.busy) { model.open(it.toInt()) }
             }
             if (model.busy) item { LinearProgressIndicator(Modifier.fillMaxWidth()) }
             if (model.message.isNotEmpty()) item { Text(model.message, color = MaterialTheme.colorScheme.primary, modifier = Modifier.semantics { liveRegion = LiveRegionMode.Polite }) }
@@ -56,16 +61,28 @@ private fun LibraryScreen(model: LibraryModel, leave: () -> Unit) {
                 if (!model.user) item {
                     val header = model.form.getJSONObject("header")
                     Text("码表元数据", style = MaterialTheme.typography.titleMedium)
-                    Row {
-                        for ((value, label) in listOf("shape" to "形码", "pinyin" to "拼音")) TextButton(onClick = { model.change("type", value, "header") }, enabled = !model.busy) { Text(if(header.getString("type") == value) "$label · 已选" else label) }
+                    Text("码表类型", style = MaterialTheme.typography.labelLarge)
+                    Row(Modifier.selectableGroup()) {
+                        for ((value, label) in listOf("shape" to "形码", "pinyin" to "拼音")) {
+                            val selected = header.getString("type") == value
+                            Row(Modifier.weight(1f).heightIn(min = 48.dp).selectable(selected = selected,
+                                enabled = !model.busy, role = Role.RadioButton,
+                                onClick = { model.change("type", value, "header") }),
+                                verticalAlignment = androidx.compose.ui.Alignment.CenterVertically) {
+                                RadioButton(selected = selected, onClick = null, enabled = !model.busy)
+                                Text(label, Modifier.padding(start = 8.dp))
+                            }
+                        }
                     }
                     LibraryField("编码字符集", header.getString("charset"), !model.busy) { model.change("charset", it, "header") }
                     LibraryField("最大码长", header.get("max_code_len").toString(), !model.busy) { model.change("max_code_len", it, "header") }
                     LibraryField("万能键（空为关闭）", if(header.isNull("wildcard_key")) "" else header.getString("wildcard_key"), !model.busy) { model.change("wildcard_key", it, "header") }
                     val temporary = header.getJSONObject("temporary")
-                    LibraryField("桌面临时入口键", temporary.getString("key"), !model.busy) { model.change("key", it, "temporary") }
-                    LibraryField("拼音引用（相对当前码表）", temporary.getString("pinyin_table"), !model.busy) { model.change("pinyin_table", it, "temporary") }
-                    LibraryField("英文引用（相对当前码表）", temporary.getString("english_table"), !model.busy) { model.change("english_table", it, "temporary") }
+                    for ((key, label) in listOf("pinyin_table" to "拼音辅助码表", "english_table" to "英文辅助码表")) {
+                        TableChoice(label, model.referenceLabel(temporary.getString(key)), model.referenceChoices(), !model.busy) {
+                            model.change(key, it, "temporary")
+                        }
+                    }
                     SettingToggle("显示主码反查", temporary.getBoolean("reverse_lookup"), !model.busy) { model.change("reverse_lookup", it, "temporary") }
                     Text("拼音编码使用 a～z，音节以单引号分隔；最大码长不含分隔符。保存使用共享校验，类型切换不会自动改写词条。")
                 }

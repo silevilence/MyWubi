@@ -22,6 +22,7 @@ class LibraryModel(app: Application) : AndroidViewModel(app) {
     private var version: NativeHandle? = null
     private var baseline = ""
     var paths by mutableStateOf<List<Pair<String, File>>>(emptyList()); private set
+    var tables by mutableStateOf<List<TableCatalog.Table>>(emptyList()); private set
     var selected by mutableIntStateOf(-1); private set
     var data by mutableStateOf(JSONObject()); private set
     var form by mutableStateOf(JSONObject()); private set
@@ -44,15 +45,32 @@ class LibraryModel(app: Application) : AndroidViewModel(app) {
             val table = NativeBridge.objectCall("ReadTable", "path" to mainTable.path)
             NativeHandle(table.getLong("version")).close()
             val temporary = table.getJSONObject("config").getJSONObject("temporary")
-            val available = mutableListOf("主码表" to mainTable)
+            val catalog = TableCatalog(app)
+            val allTables = catalog.tables(mainTable.path)
+            val available = mutableListOf("当前码表：${catalog.label(mainTable.path, allTables)}" to mainTable)
             for ((key, label) in listOf("pinyin_table" to "拼音辅助表", "english_table" to "英文辅助表")) {
                 val reference = temporary.getString(key)
-                if (reference.isNotEmpty()) available.add(label to resolve(mainTable.parentFile!!, reference))
+                if (reference.isNotEmpty()) {
+                    val file = resolve(mainTable.parentFile!!, reference)
+                    available.add("$label：${catalog.label(file.path, allTables)}" to file)
+                }
             }
+            allTables.filter { item -> available.none { it.second.canonicalFile == item.file.canonicalFile } }
+                .forEach { available.add(it.label to it.file) }
             available.add("用户词库" to resolve(configPath.parentFile!!, dictionary.getString("user_table")))
-            val publish: () -> Unit = { paths = available }
+            val publish: () -> Unit = { paths = available; tables = allTables }
             publish
         }
+    }
+
+    fun referenceChoices(): List<Pair<String, String>> = listOf("不引用" to "") + tables
+        .filter { it.file.canonicalFile != path.canonicalFile }
+        .map { it.label to it.file.canonicalFile.relativeTo(path.parentFile!!.canonicalFile).invariantSeparatorsPath }
+
+    fun referenceLabel(value: String): String {
+        if (value.isEmpty()) return "不引用"
+        val target = File(value).let { if (it.isAbsolute) it else File(path.parentFile, value) }.canonicalFile
+        return tables.firstOrNull { it.file.canonicalFile == target }?.label ?: "未收录：${target.name}"
     }
 
     private fun work(operation: () -> (() -> Unit)) {

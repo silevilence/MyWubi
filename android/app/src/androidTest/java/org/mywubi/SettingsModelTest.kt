@@ -43,7 +43,7 @@ class SettingsModelTest {
                 model.stage(listOf(Uri.fromFile(invalid)))
             }
             ready()
-            main {model.activate(0,null,null)}; ready()
+            main {model.importPackage(0,null,null)}; ready()
             main {assertNotNull(model.pack); assertTrue(model.dirty); model.cancelImport()}
             assertArrayEquals(original,store.configFile.readBytes())
             main {owner.clear()}; owner=ViewModelStore(); create()

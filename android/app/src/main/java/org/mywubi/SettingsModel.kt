@@ -29,12 +29,12 @@ class SettingsModel(application: Application) : AndroidViewModel(application) {
     var busy by mutableStateOf(false); private set
     var message by mutableStateOf(""); private set
     var pack by mutableStateOf<EngineStore.ImportSet?>(null); private set
+    var tables by mutableStateOf<List<TableCatalog.Table>>(emptyList()); private set
     val ui = app.getSharedPreferences("android-ui", 0)
 
     val tableLabel: String get() {
         val path = config?.getJSONObject("dictionary")?.getString("system_table") ?: return "正在读取…"
-        return if (ui.getString("active_table_path", null) == path) ui.getString("active_table_name", null) ?: File(path).name
-            else File(path).name
+        return TableCatalog(app).label(path, tables)
     }
 
     init { reload() }
@@ -61,6 +61,7 @@ class SettingsModel(application: Application) : AndroidViewModel(application) {
         val disk = fingerprint()
         val saved = if (!discard && draftFile.baseFile.exists()) JSONObject(draftFile.openRead().bufferedReader().use { it.readText() }) else null
         val restored = saved?.getJSONObject("config") ?: loaded.getJSONObject("config")
+        val available = TableCatalog(app).tables(restored.getJSONObject("dictionary").getString("system_table"))
         val imported = saved?.optJSONObject("pack")?.let { p ->
             val files = p.getJSONArray("files")
             EngineStore.ImportSet(File(p.getString("root")), (0 until files.length()).map { i ->
@@ -71,6 +72,7 @@ class SettingsModel(application: Application) : AndroidViewModel(application) {
             expected?.close(); expected = version
             baseline = saved?.optString("baseline") ?: disk
             config = restored; dirty = saved != null; pack = imported
+            tables = available
             message = if (saved != null && baseline != disk) "配置已被其他操作修改。草稿保留，请重新载入后合并。" else if (saved != null) "已恢复未保存草稿" else ""
             if (discard) draftFile.delete()
         }
@@ -102,7 +104,7 @@ class SettingsModel(application: Application) : AndroidViewModel(application) {
         val version = expected ?: return
         work {
             check(baseline == fingerprint()) { "版本冲突：磁盘配置已修改，草稿仍保留" }
-            val result = store.saveConfig(draft, version.value)
+            val result = store.activateConfig(draft, version.value)
             val next = NativeHandle(result.getLong("version"))
             val disk = fingerprint()
             val publish: () -> Unit = {
@@ -120,33 +122,32 @@ class SettingsModel(application: Application) : AndroidViewModel(application) {
             val staged = store.stage(uris)
             val publish: () -> Unit = {
                 pack = staged; dirty = true; persistDraft()
-                message = if (staged.files.size == 1) "已选择 ${staged.files.single().label}，点击「校验并启用码表包」完成导入"
+                message = if (staged.files.size == 1) "已选择 ${staged.files.single().label}，点击「校验并导入」完成导入"
                     else "请选择主表及其直接引用的辅助表"
             }
             publish
         }
     }
 
-    fun activate(mainIndex: Int, pinyin: Int?, english: Int?) {
+    fun importPackage(mainIndex: Int, pinyin: Int?, english: Int?) {
         val imported = pack ?: return
-        val version = expected ?: return
-        val draft = JSONObject(config?.toString() ?: return)
         work {
-            check(baseline == fingerprint()) { "版本冲突：请保留草稿并重新载入配置" }
-            val result = store.activate(imported, mainIndex, pinyin, english, version.value, draft)
-            NativeHandle(result.getLong("version")).close()
-            val loaded = store.readConfig()
-            val next = NativeHandle(loaded.getLong("version"))
-            val disk = fingerprint()
+            store.importPackage(imported, mainIndex, pinyin, english)
+            val available = TableCatalog(app).tables(config!!.getJSONObject("dictionary").getString("system_table"))
+            val disk = store.readConfig()
+            NativeHandle(disk.getLong("version")).close()
+            val unchanged = baseline == fingerprint() && config.toString() == disk.getJSONObject("config").toString()
             val publish: () -> Unit = {
-                expected?.close(); expected = next; baseline = disk
-                config = loaded.getJSONObject("config"); dirty = false; pack = null; draftFile.delete()
-                ui.edit().putString("active_table_path", config!!.getJSONObject("dictionary").getString("system_table"))
-                    .putString("active_table_name", imported.files[mainIndex].label).apply()
-                message = "码表包已保存；等待输入法应用"
+                tables = available; pack = null; dirty = !unchanged
+                if (dirty) persistDraft() else draftFile.delete()
+                message = "已导入；当前码表未改变，请选择码表后保存设置"
             }
             publish
         }
+    }
+
+    fun selectTable(table: TableCatalog.Table) {
+        if (!busy && pack == null) change("dictionary", "system_table", table.file.path)
     }
 
     fun cancelImport() {

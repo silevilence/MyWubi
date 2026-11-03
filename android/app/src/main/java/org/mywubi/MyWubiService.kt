@@ -44,6 +44,8 @@ class MyWubiService : InputMethodService() {
     private var error: String? = null
     private var state = JSONObject()
     private var candidates = JSONObject()
+    private var tableLabel = ""
+    private var pinyinMode = KeyMode.Off
     private val loads = LoadGeneration()
     private val updates by lazy { EngineUpdates.preferences(this) }
     private val updateListener = android.content.SharedPreferences.OnSharedPreferenceChangeListener { _, key ->
@@ -70,6 +72,9 @@ class MyWubiService : InputMethodService() {
             try {
                 val path = Resources.prepare(this)
                 loaded = NativeHandle(NativeBridge.objectCall("BuildRuntime", "path" to path.path).getLong("handle"))
+                val config = NativeBridge.objectCall("ReadConfig", "path" to path.path)
+                NativeHandle(config.getLong("version")).close()
+                val label = TableCatalog(this).label(config.getJSONObject("config").getJSONObject("dictionary").getString("system_table"))
                 val result = loaded
                 main.post {
                     if (destroyed || !loads.accepts(ticket)) result.close() else {
@@ -84,6 +89,8 @@ class MyWubiService : InputMethodService() {
                                 session?.close(); session = null; attachEditor()
                             }
                             updates.edit().putString("applied", requested).putString("error", null).apply()
+                            tableLabel = label
+                            pinyinMode = KeyMode.Off
                             error = null
                         } catch (_: RuntimeException) {
                             error = "配置已保存，输入会话更新失败；请重新进入输入框"
@@ -110,6 +117,7 @@ class MyWubiService : InputMethodService() {
         .put("enter_action", inputPolicy.action)
 
     private fun attachEditor() {
+        pinyinMode = KeyMode.Off
         val r = runtime ?: return
         if (!active) return
         editor.abandon()
@@ -140,6 +148,7 @@ class MyWubiService : InputMethodService() {
     override fun onFinishInput() {
         inputQueue.invalidate(); connection = null; editorInfo = null
         active = false; editorEpoch++; editor.abandon()
+        pinyinMode = KeyMode.Off
         session?.let { NativeBridge.call("Context", "session" to it.value, "context" to hostContext(), "preserve_base" to true) }
         refresh(); super.onFinishInput()
     }
@@ -208,7 +217,8 @@ class MyWubiService : InputMethodService() {
             epoch = editorEpoch, enabled = active && viewVisible && session != null,
             spelling = spelling,
             idle = stableIdle, updateAvailable = updateAvailable,
-            status = error ?: if(session == null) "正在加载码表…" else if(state.optString("temporary") == "Pinyin") "本次拼音" else if(state.optString("base") == "English") "英文" else "五笔 · 示例码表",
+            status = error ?: if(session == null) "正在加载码表…" else tableLabel,
+            pinyinMode = pinyinMode,
             base = state.optString("base", "Main"),
             temporary = temporary,
             pinyinAvailable = state.optJSONObject("pinyin")?.optBoolean("available") == true,
@@ -256,7 +266,7 @@ class MyWubiService : InputMethodService() {
         return super.onKeyDown(keyCode, event)
     }
 
-    private fun dispatchSerial(action: Any) {
+    private fun dispatchSerial(request: Any) {
         val s = session ?: return
         val host = connection ?: run { error = "输入连接暂不可用"; render(); return }
         val epoch = editorEpoch
@@ -265,6 +275,13 @@ class MyWubiService : InputMethodService() {
         try {
             val recovery = NativeBridge.call("Recover", "session" to s.value) as? JSONObject
             if (recovery != null && !applyPlan(recovery)) { refresh(); return }
+            val cycling = request == "CyclePinyin"
+            val nextPinyin = if (cycling) pinyinMode.next() else pinyinMode
+            if (cycling && nextPinyin == KeyMode.Locked) {
+                pinyinMode = nextPinyin; refresh(); return
+            }
+            val action = if (!cycling) request else if (nextPinyin == KeyMode.Off) "EndTemporary"
+                else JSONObject().put("BeginTemporary", "Pinyin")
             val plan = NativeBridge.objectCall("Prepare", "session" to s.value, "action" to action)
             val applied = applyPlan(plan)
             if (applied && active && epoch == editorEpoch && connection === host &&
@@ -273,7 +290,19 @@ class MyWubiService : InputMethodService() {
                 "Enter" -> inputPolicy.enter(host)
                 "Backspace" -> UnicodeEditor.backspace(host, hasSelection)
             }
-            if (applied) error = null
+            if (applied && active && epoch == editorEpoch && connection === host) {
+                error = null
+                if (cycling) pinyinMode = nextPinyin
+                if (action is JSONObject && action.has("SetBaseMode")) pinyinMode = KeyMode.Off
+                val current = NativeBridge.objectCall("State", "session" to s.value)
+                if (current.optString("temporary") != "Pinyin") {
+                    if (pinyinMode == KeyMode.Locked && current.optJSONObject("pinyin")?.optBoolean("available") == true) {
+                        val resume = NativeBridge.objectCall("Prepare", "session" to s.value,
+                            "action" to JSONObject().put("BeginTemporary", "Pinyin"))
+                        if (!applyPlan(resume)) pinyinMode = KeyMode.Off
+                    } else pinyinMode = KeyMode.Off
+                }
+            } else pinyinMode = KeyMode.Off
         } catch (_: ProtocolException) { error = "当前操作不可用" }
         catch (_: RuntimeException) {
             // Never retry an editor operation after an unknown connection failure.

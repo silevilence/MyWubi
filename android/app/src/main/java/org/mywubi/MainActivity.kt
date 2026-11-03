@@ -56,26 +56,31 @@ private fun SettingsScreen(model: SettingsModel, enable: () -> Unit, choose: () 
                 Text("MyWubi", style = MaterialTheme.typography.headlineLarge)
             }
             Text("形码 · 拼音 · 英文", style = MaterialTheme.typography.titleMedium)
-            Text("内置五笔为开发示例表，可导入自己的完整码表。")
+            Text("内置五笔 86，也可导入自己的码表。")
             Button(onClick = enable) { Text("1. 启用 MyWubi") }
             OutlinedButton(onClick = choose) { Text("2. 选择输入法") }
             OutlinedButton(onClick = { model.getApplication<android.app.Application>().startActivity(Intent(model.getApplication(), UpdateActivity::class.java).addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)) }) { Text("应用更新") }
             HorizontalDivider()
             Text("码表", style = MaterialTheme.typography.titleLarge)
             Text("当前码表：${model.tableLabel}")
+            TableChoice("选择当前码表", model.tableLabel, model.tables.filter { it.main }.map { it.label to it.file.path },
+                model.config != null && !model.busy && model.pack == null) { path ->
+                model.selectTable(model.tables.first { it.file.path == path })
+            }
+            Text("选择后点击「保存设置」生效；导入只添加码表，不切换当前码表。", style = MaterialTheme.typography.bodySmall)
             Text("把码表放到手机的「下载」目录，再点下方按钮，从系统文件选择器中打开。")
             Button(onClick = { picker.launch(arrayOf("*/*")) }, enabled = model.config != null && !model.busy) { Text("从手机导入码表") }
             Text("支持 MyWubi UTF-8 文本码表（编码、词条、可选权重，以 Tab 分隔）。不支持直接读取搜狗 .scel、RIME .yaml 等其它格式。单文件自动作为主表；有拼音或英文引用时，长按多选所需文件。", style = MaterialTheme.typography.bodySmall)
             model.pack?.let { pack ->
                 val selectedMain = if (pack.files.size == 1) 0 else main
-                Text("已选择 ${pack.files.size} 个文件 · 尚未启用", style = MaterialTheme.typography.titleMedium)
+                Text("已选择 ${pack.files.size} 个文件 · 尚未导入", style = MaterialTheme.typography.titleMedium)
                 FileChoice("主码表（必选）", pack, selectedMain, false, !model.busy) { main = it }
                 if (pack.files.size > 1) {
                     FileChoice("拼音辅助表", pack, pinyin, true, !model.busy) { pinyin = it }
                     FileChoice("英文辅助表", pack, english, true, !model.busy) { english = it }
                 }
-                Text("校验成功后启用，同时保存当前设置；失败时继续使用原码表。")
-                Button(onClick = { model.activate(selectedMain, pinyin.takeIf { it >= 0 }, english.takeIf { it >= 0 }) }, enabled = selectedMain in pack.files.indices && !model.busy) { Text("校验并启用码表包") }
+                Text("校验成功后添加到码表列表，当前码表和设置保持不变。")
+                Button(onClick = { model.importPackage(selectedMain, pinyin.takeIf { it >= 0 }, english.takeIf { it >= 0 }) }, enabled = selectedMain in pack.files.indices && !model.busy) { Text("校验并导入") }
                 OutlinedButton(onClick = model::cancelImport, enabled = !model.busy) { Text("取消本次导入") }
             }
             if (model.busy) LinearProgressIndicator(Modifier.fillMaxWidth())
@@ -108,6 +113,26 @@ private fun SettingsScreen(model: SettingsModel, enable: () -> Unit, choose: () 
     }
     if (confirmLeave) AlertDialog(onDismissRequest = { confirmLeave = false }, title = { Text("保留草稿并退出？") }, text = { Text("更改尚未保存到引擎配置，下次打开可继续编辑。") }, confirmButton = { TextButton(onClick = leave, enabled = !model.busy) { Text("保留并退出") } }, dismissButton = { TextButton(onClick = { confirmLeave = false }) { Text("继续编辑") } })
     if (confirmReload) AlertDialog(onDismissRequest = { confirmReload = false }, title = { Text("重新载入磁盘设置？") }, text = { Text("这会放弃当前设置草稿和待启用的导入选择，已保存数据不受影响。") }, confirmButton = { TextButton(onClick = { confirmReload = false; model.reload(true) }) { Text("重新载入") } }, dismissButton = { TextButton(onClick = { confirmReload = false }) { Text("保留草稿") } })
+}
+
+@Composable
+internal fun TableChoice(label: String, current: String, options: List<Pair<String, String>>, enabled: Boolean, select: (String) -> Unit) {
+    var expanded by remember { mutableStateOf(false) }
+    Column {
+        Text(label, style = MaterialTheme.typography.labelLarge)
+        Box {
+            OutlinedButton(onClick = { expanded = true }, enabled = enabled,
+                modifier = Modifier.fillMaxWidth().semantics { contentDescription = label }) {
+                Text(current, Modifier.weight(1f))
+                Text("▾")
+            }
+            DropdownMenu(expanded = expanded, onDismissRequest = { expanded = false }) {
+                options.forEach { (name, value) ->
+                    DropdownMenuItem(text = { Text(name) }, onClick = { select(value); expanded = false })
+                }
+            }
+        }
+    }
 }
 
 @Composable

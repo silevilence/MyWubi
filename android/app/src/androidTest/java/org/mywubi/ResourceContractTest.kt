@@ -81,4 +81,48 @@ class ResourceContractTest {
         }
         assertFalse(store.configFile.readText().contains("vibration"))
     }
+
+    @Test fun importOnlyAddsChoicesAndBothImportedAndDefaultCanBeSelectedAfterReopen() {
+        val context = isolated()
+        val store = EngineStore(context)
+        val original = store.configFile.readText()
+        val imported = pack(store)
+        store.importPackage(imported, 0, 1, null)
+        assertEquals("导入不能改变当前配置", original, store.configFile.readText())
+        val catalog = TableCatalog(context)
+        val choices = catalog.tables().filter { it.main }
+        val default = choices.first { it.file.name == "wubi86.dict" }
+        val custom = choices.first { it.file.canonicalFile == imported.files[0].file.canonicalFile }
+        for (choice in listOf(custom, default, custom)) {
+            val reopened = EngineStore(context)
+            val read = reopened.readConfig()
+            NativeHandle(read.getLong("version")).use { version ->
+                val config = read.getJSONObject("config")
+                config.getJSONObject("dictionary").put("system_table", choice.file.path)
+                NativeHandle(reopened.activateConfig(config, version.value).getLong("version")).close()
+            }
+            val active = reopened.readConfig()
+            NativeHandle(active.getLong("version")).close()
+            assertEquals(choice.file.path, active.getJSONObject("config").getJSONObject("dictionary").getString("system_table"))
+            assertEquals(choice.label, TableCatalog(context).label(choice.file.path))
+            NativeHandle(NativeBridge.objectCall("BuildRuntime", "path" to reopened.configFile.path).getLong("handle")).close()
+        }
+    }
+
+    @Test fun legacyImportsRemainSelectableAlongsideDefaults() {
+        val context = isolated()
+        val store = EngineStore(context)
+        val imported = pack(store)
+        val read = store.readConfig()
+        NativeHandle(read.getLong("version")).use { version ->
+            NativeHandle(store.activate(imported, 0, 1, null, version.value).getLong("version")).close()
+        }
+        File(imported.root, "catalog.json").delete()
+        store.configFile.copyTo(File(imported.root, "activation.toml"))
+        context.getSharedPreferences("android-ui", 0).edit()
+            .putString("active_table_path", imported.files[0].file.path).putString("active_table_name", "旧版导入码表").commit()
+        val choices = TableCatalog(context).tables()
+        assertTrue(choices.any { it.main && it.file.name == "wubi86.dict" })
+        assertTrue(choices.any { it.main && it.label == "旧版导入码表" })
+    }
 }

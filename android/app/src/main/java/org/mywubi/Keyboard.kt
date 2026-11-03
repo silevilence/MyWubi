@@ -4,6 +4,10 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.ui.platform.LocalConfiguration
+import androidx.compose.ui.platform.LocalDensity
+import androidx.compose.ui.geometry.Offset
+import androidx.compose.ui.layout.onGloballyPositioned
+import androidx.compose.ui.layout.positionInRoot
 import androidx.compose.ui.platform.LocalViewConfiguration
 import androidx.compose.ui.platform.ViewConfiguration
 import androidx.compose.ui.unit.DpSize
@@ -49,7 +53,8 @@ data class KeyboardModel(
     val pinyinAvailable: Boolean = false, val modesAvailable: Boolean = false, val candidates: List<CandidateItem> = emptyList(),
     val query: String = "{}", val total: Int = 0, val offset: Int = 0,
     val layout: String = "letters", val enterLabel: String = "回车", val privateInput: Boolean = false,
-    val idle: Boolean = false, val updateAvailable: Boolean = false
+    val idle: Boolean = false, val updateAvailable: Boolean = false,
+    val pinyinMode: KeyMode = KeyMode.Off
 )
 
 /** The IME owns this lifecycle; no Activity lifecycle is assumed by Compose. */
@@ -64,10 +69,21 @@ class ImeViewOwner : LifecycleOwner, SavedStateRegistryOwner {
 }
 
 @Composable
+@OptIn(ExperimentalLayoutApi::class)
 fun Keyboard(model: KeyboardModel, dispatch: (Any) -> Unit, window: (Int) -> Unit,
              openSettings: () -> Unit = {}, onTouch: (Boolean) -> Unit = {}, switchIme: () -> Unit) {
     val currentTouch by rememberUpdatedState(onTouch)
-    var upper by remember(model.epoch) { mutableStateOf(false) }
+    var shift by remember(model.epoch) { mutableStateOf(KeyMode.Off) }
+    val pinyinLabel = when (model.pinyinMode) {
+        KeyMode.Locked -> "拼音 · 锁定"
+        KeyMode.Once -> "拼音 · 本次"
+        KeyMode.Off -> if (model.temporary == "Pinyin") "拼音 · 本次" else "拼音"
+    }
+    val cyclePinyin = { dispatch("CyclePinyin") }
+    val pinyinMode = if (model.pinyinMode == KeyMode.Off && model.temporary == "Pinyin") KeyMode.Once else model.pinyinMode
+    val preview = remember(model.epoch) { KeyPreviewState() }
+    var origin by remember { mutableStateOf(Offset.Zero) }
+    var keyboardWidth by remember { mutableFloatStateOf(0f) }
     var panel by remember(model.epoch, model.layout) {
         mutableStateOf(if (model.layout in listOf("number", "phone")) "numbers" else "letters")
     }
@@ -86,16 +102,16 @@ fun Keyboard(model: KeyboardModel, dispatch: (Any) -> Unit, window: (Int) -> Uni
         dispatch(JSONObject().put("SelectCandidate", JSONArray().put(JSONObject(model.query)).put(item.id)))
     }
     MaterialTheme(colorScheme=colors) {
+        val pinyinControl: @Composable () -> Unit = {
+            PinyinButton(pinyinMode, pinyinLabel, baseEnabled && model.pinyinAvailable, cyclePinyin)
+        }
         val controls: @Composable () -> Unit = {
             if (model.spelling.isNotEmpty() && !model.privateInput) {
                 Row(Modifier.fillMaxWidth(), verticalAlignment=androidx.compose.ui.Alignment.CenterVertically) {
                     Text(model.spelling, Modifier.weight(1f).padding(horizontal=12.dp, vertical=4.dp),
                         color=colors.primary, fontSize=16.sp, maxLines=1)
                     if (model.candidates.isNotEmpty()) {
-                        val label = if(model.temporary=="Pinyin") "拼音 · 本次" else "拼音"
-                        val enabled = baseEnabled && model.pinyinAvailable
-                        TextButton(onClick={dispatch(JSONObject().put("BeginTemporary","Pinyin"))}, enabled=enabled,
-                            modifier=Modifier.imeAction(label, enabled) {dispatch(JSONObject().put("BeginTemporary","Pinyin"))}) {Text(label)}
+                        pinyinControl()
                     }
                 }
             }
@@ -120,10 +136,7 @@ fun Keyboard(model: KeyboardModel, dispatch: (Any) -> Unit, window: (Int) -> Uni
                             BadgedBox(badge = { if (showUpdate) Badge() }) { Text("设置") }
                         }
                     }
-                    val pinyinLabel = if(model.temporary=="Pinyin") "拼音 · 本次" else "拼音"
-                    val enabled = baseEnabled && model.pinyinAvailable
-                    TextButton(onClick={dispatch(JSONObject().put("BeginTemporary","Pinyin"))}, enabled=enabled,
-                        modifier=Modifier.imeAction(pinyinLabel, enabled) {dispatch(JSONObject().put("BeginTemporary","Pinyin"))}) {Text(pinyinLabel)}
+                    pinyinControl()
                 }
             }
             if (tools && model.spelling.isEmpty() && model.candidates.isEmpty()) {
@@ -131,7 +144,7 @@ fun Keyboard(model: KeyboardModel, dispatch: (Any) -> Unit, window: (Int) -> Uni
                     TextButton(onClick=openSettings) {Text("设置 / 码表")}
                     TextButton(onClick=switchIme) {Text("切换输入法")}
                     val enabled = baseEnabled && model.pinyinAvailable
-                    TextButton(onClick={dispatch(JSONObject().put("BeginTemporary","Pinyin")); tools=false}, enabled=enabled) {Text("临时拼音")}
+                    PinyinButton(pinyinMode, pinyinLabel, enabled) {cyclePinyin(); tools=false}
                 }
             }
         }
@@ -152,11 +165,16 @@ fun Keyboard(model: KeyboardModel, dispatch: (Any) -> Unit, window: (Int) -> Uni
                         Column {
                             for ((index, row) in listOf("qwertyuiop", "asdfghjkl", "zxcvbnm").withIndex()) {
                                 Row(Modifier.fillMaxWidth(), horizontalArrangement=Arrangement.Center) {
-                                    if (index == 2) Key("⇧",model.enabled,model.epoch,Modifier.width(unit*1.5f),
-                                        description=if(upper) "大写" else "小写", function=true, selected=upper) {upper=!upper}
+                                    if (index == 2) Key(if(shift == KeyMode.Locked) "⇪" else "⇧",model.enabled,model.epoch,Modifier.width(unit*1.5f),
+                                        description=when(shift) { KeyMode.Off -> "小写"; KeyMode.Once -> "大写 · 本次"; KeyMode.Locked -> "大写 · 锁定" },
+                                        function=true, selected=shift != KeyMode.Off) {shift=shift.next()}
                                     for (character in row) {
-                                        val value = if(upper) character.uppercaseChar().toString() else character.toString()
-                                        Key(value,model.enabled,model.epoch,Modifier.width(unit)) {input(value)}
+                                        val value = if(shift != KeyMode.Off) character.uppercaseChar().toString() else character.toString()
+                                        val symbol = letterSymbol(character, !model.privateInput && model.layout == "letters" &&
+                                            (model.base == "Main" || model.temporary == "Pinyin"))
+                                        Key(value,model.enabled,model.epoch,Modifier.width(unit), alternate=symbol,
+                                            previewEnabled=!model.privateInput,
+                                            alternateAction={dispatch(JSONObject().put("InputSymbol", symbol))}) {input(value); shift=shift.consumed()}
                                     }
                                     if (index == 2) Key("⌫",model.enabled,model.epoch,Modifier.width(unit*1.5f),
                                         repeat=true,description="退格",function=true) {dispatch("Backspace")}
@@ -169,12 +187,12 @@ fun Keyboard(model: KeyboardModel, dispatch: (Any) -> Unit, window: (Int) -> Uni
                     Row(Modifier.fillMaxWidth()) {
                         Column(Modifier.weight(1f)) {
                             for (label in if(model.layout=="phone") listOf("+", "*", "#", ",") else listOf("+", "-", "/", "=")) {
-                                Key(label,model.enabled,model.epoch,Modifier.fillMaxWidth(),function=true) {input(label)}
+                                Key(label,model.enabled,model.epoch,Modifier.fillMaxWidth(),function=true,previewEnabled=!model.privateInput) {input(label)}
                             }
                         }
                         Column(Modifier.weight(4.5f)) {
                             for (row in listOf(listOf("1","2","3"),listOf("4","5","6"),listOf("7","8","9"),listOf(".","0",","))) {
-                                Row { for(label in row) Key(label,model.enabled,model.epoch,Modifier.weight(1f)) {input(label)} }
+                                Row { for(label in row) Key(label,model.enabled,model.epoch,Modifier.weight(1f),previewEnabled=!model.privateInput) {input(label)} }
                             }
                         }
                         Column(Modifier.weight(1.5f)) {
@@ -190,7 +208,7 @@ fun Keyboard(model: KeyboardModel, dispatch: (Any) -> Unit, window: (Int) -> Uni
                         else listOf("，。！？、：；", "（）【】《》“”", "@#￥%&*+", "-_=/'\"~")
                     for (row in rows) {
                         Row(Modifier.fillMaxWidth()) {
-                            for (character in row) Key(character.toString(),model.enabled,model.epoch,Modifier.weight(1f)) {input(character.toString())}
+                            for (character in row) Key(character.toString(),model.enabled,model.epoch,Modifier.weight(1f),previewEnabled=!model.privateInput) {input(character.toString())}
                         }
                     }
                 }
@@ -208,16 +226,25 @@ fun Keyboard(model: KeyboardModel, dispatch: (Any) -> Unit, window: (Int) -> Uni
                 if (panel == "symbols") {
                     Key(if(asciiSymbols) "英符" else "中符",model.enabled,model.epoch,Modifier.weight(1.3f),
                         description=if(asciiSymbols) "切换为中文符号" else "切换为英文符号",function=true) {asciiSymbols=!asciiSymbols}
-                } else Key(punctuation,model.enabled,model.epoch,Modifier.weight(0.9f)) {input(punctuation)}
+                } else Key(punctuation,model.enabled,model.epoch,Modifier.weight(0.9f),previewEnabled=!model.privateInput) {input(punctuation)}
                 Key("空格",model.enabled,model.epoch,Modifier.weight(3.4f)) {dispatch("Space")}
-                Key(if(model.base=="Main" && model.layout=="letters" && !model.privateInput) "。" else ".",model.enabled,model.epoch,Modifier.weight(0.9f)) {
+                Key(if(model.base=="Main" && model.layout=="letters" && !model.privateInput) "。" else ".",model.enabled,model.epoch,Modifier.weight(0.9f),previewEnabled=!model.privateInput) {
                     input(if(model.base=="Main" && model.layout=="letters" && !model.privateInput) "。" else ".")
                 }
-                Key(if(model.base=="Main") "中/英" else "英/中",baseEnabled,model.epoch,Modifier.weight(1.3f),description=baseLabel,function=true) {toggleBase()}
+                Key(if(model.base=="Main") "中" else "英",baseEnabled,model.epoch,Modifier.weight(1.3f),description=baseLabel,function=true) {toggleBase()}
                 Key(model.enterLabel,model.enabled,model.epoch,Modifier.weight(1.7f),accent=true) {dispatch("Enter")}
             }
         }
-        val container=Modifier.fillMaxWidth().background(colors.surface).navigationBarsPadding().padding(horizontal=3.dp,vertical=4.dp)
+        val density = LocalDensity.current
+        // Some IME hosts consume navigation insets before Compose receives them.
+        // Keep a dedicated bottom band even then, clear of the OEM's IME buttons.
+        val bottom = with(density) {
+            maxOf(WindowInsets.navigationBarsIgnoringVisibility.getBottom(this),
+                WindowInsets.mandatorySystemGestures.getBottom(this)).toDp().coerceAtLeast(32.dp)
+        }
+        val container=Modifier.fillMaxWidth().background(colors.surface)
+            .windowInsetsPadding(WindowInsets.navigationBars.only(WindowInsetsSides.Horizontal))
+            .padding(start=3.dp, end=3.dp, top=4.dp, bottom=bottom)
             .pointerInput(Unit) {
                 var pressed = false
                 try {
@@ -230,12 +257,34 @@ fun Keyboard(model: KeyboardModel, dispatch: (Any) -> Unit, window: (Int) -> Uni
                     }
                 } finally { if (pressed) currentTouch(false) }
             }
-        if(LocalConfiguration.current.orientation==android.content.res.Configuration.ORIENTATION_LANDSCAPE) {
-            Row(container,horizontalArrangement=Arrangement.spacedBy(8.dp)) {
-                Column(Modifier.weight(0.3f).heightIn(max=224.dp).verticalScroll(rememberScrollState())) {controls()}
-                Column(Modifier.weight(0.7f)) {keys()}
+        CompositionLocalProvider(LocalKeyPreview provides preview) {
+            Box(Modifier.fillMaxWidth().onGloballyPositioned { origin=it.positionInRoot(); keyboardWidth=it.size.width.toFloat() }) {
+                if(LocalConfiguration.current.orientation==android.content.res.Configuration.ORIENTATION_LANDSCAPE) {
+                    Row(container,horizontalArrangement=Arrangement.spacedBy(8.dp)) {
+                        Column(Modifier.weight(0.3f).heightIn(max=224.dp).verticalScroll(rememberScrollState())) {controls()}
+                        Column(Modifier.weight(0.7f)) {keys()}
+                    }
+                } else Column(container) {controls();keys()}
+                KeyPreviewBubble(preview.current, origin, keyboardWidth)
             }
-        } else Column(container) {controls();keys()}
+        }
+    }
+}
+
+@Composable
+private fun PinyinButton(mode: KeyMode, description: String, enabled: Boolean, action: () -> Unit) {
+    val selected = mode != KeyMode.Off
+    val colors = MaterialTheme.colorScheme
+    FilledTonalButton(onClick=action, enabled=enabled,
+        modifier=Modifier.imeAction(description, enabled, action), contentPadding=PaddingValues(horizontal=10.dp, vertical=6.dp),
+        colors=ButtonDefaults.filledTonalButtonColors(
+            containerColor=if(selected) colors.primary else colors.surface,
+            contentColor=if(selected) colors.onPrimary else colors.primary)) {
+        Text("拼音", maxLines=1)
+        if (mode == KeyMode.Locked) Icon(androidx.compose.ui.res.painterResource(R.drawable.ic_mode_lock), null,
+            Modifier.padding(start=4.dp).size(14.dp))
+        else if (mode == KeyMode.Once) Box(Modifier.padding(start=5.dp).size(5.dp)
+            .background(LocalContentColor.current, androidx.compose.foundation.shape.CircleShape))
     }
 }
 
@@ -250,7 +299,8 @@ private fun CandidateButton(item: CandidateItem, enabled: Boolean, choose: () ->
 
 @Composable
 private fun Key(label:String,enabled:Boolean,epoch:Long,modifier:Modifier,repeat:Boolean=false,
-                description:String=label,function:Boolean=false,accent:Boolean=false,selected:Boolean=false,action:()->Unit) {
+                description:String=label,function:Boolean=false,accent:Boolean=false,selected:Boolean=false,
+                alternate:String?=null,previewEnabled:Boolean=false,alternateAction:()->Unit={},action:()->Unit) {
     val currentAction by rememberUpdatedState(action)
     val keyModifier=modifier.height(54.dp).padding(horizontal=2.dp,vertical=3.dp)
     val colors=MaterialTheme.colorScheme
@@ -266,7 +316,8 @@ private fun Key(label:String,enabled:Boolean,epoch:Long,modifier:Modifier,repeat
     // their column instead of letting Material expand them over adjacent keys.
     CompositionLocalProvider(LocalMinimumInteractiveComponentSize provides 0.dp, LocalViewConfiguration provides keyViewConfiguration) {
     if (!repeat) {
-        FilledTonalButton(onClick=action,enabled=enabled,modifier=keyModifier.imeAction(description,enabled,action),shape=MaterialTheme.shapes.small,colors=ButtonDefaults.filledTonalButtonColors(containerColor=background,contentColor=foreground),contentPadding=PaddingValues(0.dp)) { KeyLabel(label) }
+        KeyTouchSurface(label,enabled,epoch,keyModifier,description,background,foreground,alternate,
+            previewEnabled && label.length == 1,alternateAction,action) { KeyLabel(label) }
     } else {
         val lifecycle = LocalLifecycleOwner.current.lifecycle
         var pressed by remember { mutableStateOf(false) }
@@ -297,8 +348,11 @@ private fun Key(label:String,enabled:Boolean,epoch:Long,modifier:Modifier,repeat
 
 @Composable
 private fun KeyLabel(label: String) {
-    val icon = when(label) { "⇧" -> R.drawable.ic_shift; "⌫" -> R.drawable.ic_backspace; else -> null }
-    if (icon != null) Icon(androidx.compose.ui.res.painterResource(icon), null, Modifier.size(22.dp))
+    val icon = when(label) { "⇧", "⇪" -> R.drawable.ic_shift; "⌫" -> R.drawable.ic_backspace; else -> null }
+    if (icon != null) Column(horizontalAlignment=androidx.compose.ui.Alignment.CenterHorizontally) {
+        Icon(androidx.compose.ui.res.painterResource(icon), null, Modifier.size(22.dp))
+        if (label == "⇪") Box(Modifier.padding(top=2.dp).size(width=16.dp, height=2.dp).background(LocalContentColor.current))
+    }
     else Text(label, fontSize=16.sp, maxLines=1)
 }
 
