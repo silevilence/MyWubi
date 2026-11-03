@@ -1,0 +1,108 @@
+package org.mywubi
+
+import androidx.activity.compose.setContent
+import androidx.test.core.app.ActivityScenario
+import androidx.test.platform.app.InstrumentationRegistry
+import androidx.test.uiautomator.By
+import androidx.test.uiautomator.UiDevice
+import androidx.test.uiautomator.Until
+import org.junit.Assert.*
+import org.junit.Test
+import java.io.File
+import java.util.concurrent.CopyOnWriteArrayList
+
+class KeyboardLayoutTest {
+    @Test fun staggeredLettersAndSeparatePanelsPreserveActions() {
+        val instrumentation = InstrumentationRegistry.getInstrumentation()
+        val device = UiDevice.getInstance(instrumentation)
+        val events = CopyOnWriteArrayList<Any>()
+        val landscape = InstrumentationRegistry.getArguments().getString("layout_orientation") == "landscape"
+        ActivityScenario.launch(MainActivity::class.java).use { scenario ->
+            if (landscape) {
+                scenario.onActivity { it.requestedOrientation = android.content.pm.ActivityInfo.SCREEN_ORIENTATION_LANDSCAPE }
+                val deadline = android.os.SystemClock.uptimeMillis() + 10000
+                while (device.displayWidth <= device.displayHeight && android.os.SystemClock.uptimeMillis() < deadline) {
+                    android.os.SystemClock.sleep(100)
+                }
+                device.waitForIdle()
+                assertTrue("Device must really be in landscape", device.displayWidth > device.displayHeight)
+            }
+            scenario.onActivity { activity ->
+                activity.setContent {
+                    Keyboard(KeyboardModel(enabled=true, modesAvailable=true, pinyinAvailable=true, status="MyWubi"),
+                        { events.add(it) }, {}, switchIme={})
+                }
+            }
+            fun key(label: String) = device.wait(Until.findObject(By.desc(label).pkg("org.mywubi")), 5000)
+                ?: error("Missing key $label")
+            fun press(label: String) {
+                key(label).click()
+                device.waitForIdle()
+                instrumentation.waitForIdleSync()
+            }
+            val q = key("q").visibleBounds
+            val a = key("a").visibleBounds
+            val z = key("z").visibleBounds
+            device.takeScreenshot(File(instrumentation.targetContext.filesDir,"keyboard-letters.png"))
+            assertTrue("Second row must be indented", a.left > q.left)
+            assertTrue("Third row must be indented", z.left > a.left)
+            assertTrue("Letter widths should remain equal", kotlin.math.abs(q.width()-z.width()) <= 2)
+            assertEquals("Backspace belongs on the third row", z.centerY(), key("退格").visibleBounds.centerY())
+            assertEquals("Shift belongs on the third row", z.centerY(), key("小写").visibleBounds.centerY())
+            assertTrue("Space should be wide", key("空格").visibleBounds.width() > q.width()*2)
+            device.takeScreenshot(File(instrumentation.targetContext.filesDir,"keyboard-letters.png"))
+            press("小写"); press("Q")
+            assertTrue(events.last().toString().contains("Q"))
+            press("123")
+            assertEquals(key("1").visibleBounds.centerX(),key("7").visibleBounds.centerX())
+            assertEquals(key("2").visibleBounds.centerX(),key("0").visibleBounds.centerX())
+            press("1")
+            assertTrue(events.last().toString().contains("1"))
+            device.takeScreenshot(File(instrumentation.targetContext.filesDir,"keyboard-numbers.png"))
+            press("符号"); press("！")
+            assertTrue(events.last().toString().contains("！"))
+            press("切换为英文符号"); press("(")
+            assertEquals("(", (events.last() as org.json.JSONObject).getJSONArray("InputText").getString(0))
+            press("退格")
+            assertEquals("Backspace",events.last())
+            press("ABC"); press("空格")
+            assertEquals("Space",events.last())
+            press("回车")
+            assertEquals("Enter",events.last())
+        }
+    }
+
+    @Test fun directFieldsUseAsciiSymbolsAndExpandedCandidatesKeepBackspace() {
+        val instrumentation = InstrumentationRegistry.getInstrumentation()
+        val device = UiDevice.getInstance(instrumentation)
+        val events = CopyOnWriteArrayList<Any>()
+        ActivityScenario.launch(MainActivity::class.java).use { scenario ->
+            fun render(model: KeyboardModel) {
+                scenario.onActivity { activity ->
+                    activity.setContent { Keyboard(model, {events.add(it)}, {}, switchIme={}) }
+                }
+                device.waitForIdle()
+            }
+            fun press(label: String) {
+                val node = device.wait(Until.findObject(By.desc(label).pkg("org.mywubi")),5000)
+                    ?: error("Missing key $label")
+                node.click(); device.waitForIdle(); instrumentation.waitForIdleSync()
+            }
+            val ready = KeyboardModel(enabled=true,modesAvailable=true)
+            for ((index, model) in listOf(ready.copy(base="English"), ready.copy(privateInput=true),
+                    ready.copy(layout="url"), ready.copy(layout="email")).withIndex()) {
+                render(model.copy(epoch=index.toLong()))
+                press("符号")
+                for (symbol in listOf("(", ")", "!", "\\")) {
+                    press(symbol)
+                    assertEquals(symbol,(events.last() as org.json.JSONObject).getJSONArray("InputText").getString(0))
+                }
+            }
+            render(ready.copy(epoch=10,spelling="ab",candidates=listOf(CandidateItem(1,"测试","ab")),total=1))
+            press("展开")
+            assertFalse(device.hasObject(By.desc("q").pkg("org.mywubi")))
+            press("退格")
+            assertEquals("Backspace",events.last())
+        }
+    }
+}

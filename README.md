@@ -1,5 +1,7 @@
 # MyWubi — 跨平台形码输入法
 
+<img src="assets/branding/mywubi-256.png" width="96" height="96" alt="MyWubi 图标">
+
 MyWubi 是一个跨平台的形码（五笔、郑码、自定义形码）输入法引擎，提供 **Windows 版本**（基于 TSF 框架）和 Android 公开体验 APK。Android 已实现形码、拼音、英文输入、设置及码表/用户词库维护；ARM64 真机与部分联合验收仍未完成，当前为首次公开体验版本。
 
 Android 构建、安装和 Windows 码表迁移见 [Android 开发与使用](android/README.md)，当前设备证据及未完成项见 [交付验收记录](docs/android-delivery-validation.md)。

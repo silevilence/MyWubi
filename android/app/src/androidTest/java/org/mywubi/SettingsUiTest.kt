@@ -17,7 +17,7 @@ class SettingsUiTest {
     }
     private fun text(value: String): UiObject2 {
         instrumentation.uiAutomation.clearCache()
-        device.findObject(By.text(value))?.let { return it }
+        device.wait(Until.findObject(By.text(value)), 1500)?.let { return it }
         UiScrollable(UiSelector().scrollable(true)).setAsVerticalList().scrollToBeginning(20)
         repeat(20) {
             instrumentation.uiAutomation.clearCache()
@@ -40,8 +40,23 @@ class SettingsUiTest {
         device.wait(Until.findObject(choice), 10000).click()
         device.waitForIdle()
     }
+    private fun clickDocumentRoot() {
+        val selector = By.res("android", "title").text("Downloads")
+        val deadline = SystemClock.uptimeMillis() + 10000
+        while (SystemClock.uptimeMillis() < deadline) {
+            instrumentation.uiAutomation.clearCache()
+            try {
+                device.findObject(selector)?.let { it.click(); device.waitForIdle(); return }
+            } catch (_: StaleObjectException) {
+                // DocumentsUI can replace the drawer node while providers load.
+            }
+            SystemClock.sleep(100)
+        }
+        error("Downloads root did not become available")
+    }
     @Test fun draftSurvivesRotationExitAndSafCancellation() {
         device.executeShellCommand("am start -W -f 0x10008000 -n org.mywubi/.MainActivity")
+        text("输入设置")
         val toggle = device.wait(Until.findObject(By.desc("唯一候选自动上屏")), 10000)
         assertNotNull(toggle); toggle.click()
         text("有未保存更改 · 草稿会保留")
@@ -52,7 +67,7 @@ class SettingsUiTest {
         device.pressBack(); text("保留并退出").click()
         device.executeShellCommand("am start -n org.mywubi/.MainActivity")
         text("已恢复未保存草稿")
-        text("选择码表文件").click()
+        text("从手机导入码表").click()
         assertTrue(device.wait(Until.hasObject(By.pkg("com.google.android.documentsui")), 10000) || device.hasObject(By.pkg("com.android.documentsui")))
         device.pressBack()
         text("有未保存更改 · 草稿会保留")
@@ -69,13 +84,13 @@ class SettingsUiTest {
         NativeHandle(original.getLong("version")).close()
         try {
             device.executeShellCommand("am start -W -f 0x10008000 -n org.mywubi/.MainActivity")
-            text("选择码表文件").click()
+            text("从手机导入码表").click()
             device.waitForIdle()
             device.wait(Until.findObject(By.desc("Show roots")), 5000)?.click()
             device.waitForIdle()
             // The toolbar and breadcrumb can also say Downloads. Select the
             // drawer's root row, not whichever matching text is returned first.
-            device.wait(Until.findObject(By.res("android", "title").text("Downloads")), 5000).click()
+            clickDocumentRoot()
             val main = device.wait(Until.findObject(By.text("CP19-main.dict")), 10000) ?: error("Missing SAF fixture")
             main.longClick()
             device.wait(Until.findObject(By.text("CP19-pinyin.dict")), 10000).click()
@@ -86,6 +101,35 @@ class SettingsUiTest {
             chooseRole("拼音辅助表：未选择", "CP19-pinyin.dict")
             text("校验并启用码表包").click()
             text("码表包已保存；等待输入法应用")
+            val activated = store.readConfig()
+            NativeHandle(activated.getLong("version")).close()
+            assertTrue(activated.getJSONObject("config").getJSONObject("dictionary").getString("system_table").contains("packages/"))
+            NativeHandle(NativeBridge.objectCall("BuildRuntime", "path" to store.configFile.path).getLong("handle")).close()
+        } finally {
+            val latest = store.readConfig()
+            NativeHandle(latest.getLong("version")).use { expected ->
+                val saved = store.saveConfig(original.getJSONObject("config"), expected.value)
+                NativeHandle(saved.getLong("version")).close()
+            }
+        }
+    }
+
+    @Test fun safSingleFileAutomaticallySelectsMainTable() {
+        val store = EngineStore(instrumentation.targetContext)
+        val original = store.readConfig()
+        NativeHandle(original.getLong("version")).close()
+        try {
+            device.executeShellCommand("am start -W -f 0x10008000 -n org.mywubi/.MainActivity")
+            text("从手机导入码表").click()
+            device.wait(Until.findObject(By.desc("Show roots")), 5000)?.click()
+            device.waitForIdle()
+            clickDocumentRoot()
+            device.waitForIdle()
+            device.wait(Until.findObject(By.text("Standalone-main.dict")), 10000).click()
+            text("主码表（必选）：Standalone-main.dict")
+            text("校验并启用码表包").click()
+            text("码表包已保存；等待输入法应用")
+            text("当前码表：Standalone-main.dict")
             val activated = store.readConfig()
             NativeHandle(activated.getLong("version")).close()
             assertTrue(activated.getJSONObject("config").getJSONObject("dictionary").getString("system_table").contains("packages/"))

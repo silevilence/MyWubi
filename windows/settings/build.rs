@@ -12,6 +12,7 @@ fn main() {
     // 嵌入 asInvoker 清单（默认行为，显式声明以覆盖任何系统默认）
     if std::env::var("CARGO_CFG_WINDOWS").is_ok() {
         let mut res = winres::WindowsResource::new();
+        res.set_icon("../../assets/branding/mywubi.ico");
         res.set_manifest(
             r#"<assembly xmlns="urn:schemas-microsoft-com:asm.v1" manifestVersion="1.0">
 <trustInfo xmlns="urn:schemas-microsoft-com:asm.v3">
@@ -28,6 +29,7 @@ fn main() {
     }
 
     println!("cargo:rerun-if-changed=../../tables");
+    println!("cargo:rerun-if-changed=../../assets/branding/mywubi.ico");
 
     let manifest_dir = std::env::var("CARGO_MANIFEST_DIR").unwrap();
     let profile = std::env::var("PROFILE").unwrap_or_else(|_| "debug".to_string());
@@ -51,7 +53,7 @@ fn main() {
     if let Ok(entries) = std::fs::read_dir(&src) {
         for entry in entries.flatten() {
             let path = entry.path();
-            if path.extension().map_or(false, |e| e == "dict") {
+            if path.extension().is_some_and(|e| e == "dict") {
                 if let Some(fname) = path.file_name() {
                     if std::fs::copy(&path, dst.join(fname)).is_ok() {
                         count += 1;

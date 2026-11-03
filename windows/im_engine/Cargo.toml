@@ -35,3 +35,6 @@ windows = { workspace = true, features = [
     "Win32_UI_Shell",
 ] }
 windows-core.workspace = true
+
+[build-dependencies]
+winres = "0.1"

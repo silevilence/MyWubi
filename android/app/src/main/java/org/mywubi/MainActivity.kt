@@ -11,6 +11,8 @@ import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.lifecycle.ViewModelProvider
 import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.Image
+import androidx.compose.ui.res.painterResource
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.*
@@ -27,7 +29,7 @@ class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         val model = ViewModelProvider(this)[SettingsModel::class.java]
-        setContent { MaterialTheme { SettingsScreen(model,
+        setContent { MyWubiTheme { SettingsScreen(model,
             { startActivity(Intent(Settings.ACTION_INPUT_METHOD_SETTINGS)) },
             { getSystemService(InputMethodManager::class.java).showInputMethodPicker() },
             { finish() }) } }
@@ -49,11 +51,35 @@ private fun SettingsScreen(model: SettingsModel, enable: () -> Unit, choose: () 
     BackHandler(model.dirty || model.busy) { confirmLeave = true }
     Surface {
         Column(Modifier.fillMaxSize().safeDrawingPadding().imePadding().verticalScroll(rememberScrollState()).padding(20.dp), verticalArrangement = Arrangement.spacedBy(12.dp)) {
-            Text("MyWubi", style = MaterialTheme.typography.headlineLarge)
+            Row(verticalAlignment = androidx.compose.ui.Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(12.dp)) {
+                Image(painterResource(R.drawable.mywubi_brand), null, Modifier.size(56.dp))
+                Text("MyWubi", style = MaterialTheme.typography.headlineLarge)
+            }
             Text("形码 · 拼音 · 英文", style = MaterialTheme.typography.titleMedium)
             Text("内置五笔为开发示例表，可导入自己的完整码表。")
             Button(onClick = enable) { Text("1. 启用 MyWubi") }
             OutlinedButton(onClick = choose) { Text("2. 选择输入法") }
+            HorizontalDivider()
+            Text("码表", style = MaterialTheme.typography.titleLarge)
+            Text("当前码表：${model.tableLabel}")
+            Text("把码表放到手机的「下载」目录，再点下方按钮，从系统文件选择器中打开。")
+            Button(onClick = { picker.launch(arrayOf("*/*")) }, enabled = model.config != null && !model.busy) { Text("从手机导入码表") }
+            Text("支持 MyWubi UTF-8 文本码表（编码、词条、可选权重，以 Tab 分隔）。不支持直接读取搜狗 .scel、RIME .yaml 等其它格式。单文件自动作为主表；有拼音或英文引用时，长按多选所需文件。", style = MaterialTheme.typography.bodySmall)
+            model.pack?.let { pack ->
+                val selectedMain = if (pack.files.size == 1) 0 else main
+                Text("已选择 ${pack.files.size} 个文件 · 尚未启用", style = MaterialTheme.typography.titleMedium)
+                FileChoice("主码表（必选）", pack, selectedMain, false, !model.busy) { main = it }
+                if (pack.files.size > 1) {
+                    FileChoice("拼音辅助表", pack, pinyin, true, !model.busy) { pinyin = it }
+                    FileChoice("英文辅助表", pack, english, true, !model.busy) { english = it }
+                }
+                Text("校验成功后启用，同时保存当前设置；失败时继续使用原码表。")
+                Button(onClick = { model.activate(selectedMain, pinyin.takeIf { it >= 0 }, english.takeIf { it >= 0 }) }, enabled = selectedMain in pack.files.indices && !model.busy) { Text("校验并启用码表包") }
+                OutlinedButton(onClick = model::cancelImport, enabled = !model.busy) { Text("取消本次导入") }
+            }
+            if (model.busy) LinearProgressIndicator(Modifier.fillMaxWidth())
+            if (model.message.isNotEmpty()) Text(model.message, color = MaterialTheme.colorScheme.primary, modifier = Modifier.semantics { liveRegion = LiveRegionMode.Polite })
+            ApplyStatus(model)
             HorizontalDivider()
             Text("输入设置", style = MaterialTheme.typography.titleLarge)
             val config = model.config
@@ -64,32 +90,18 @@ private fun SettingsScreen(model: SettingsModel, enable: () -> Unit, choose: () 
                     SettingToggle(label, basic.getBoolean(key), !model.busy) { model.change("basic", key, it) }
                 }
                 SettingToggle("启用用户词库", dict.getBoolean("enable_user_dict"), !model.busy) { model.change("dictionary", "enable_user_dict", it) }
-                Text("当前码表：${dict.getString("system_table").substringAfterLast('/')}")
                 Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                    Button(onClick = model::save, enabled = model.dirty && !model.busy) { Text("保存设置") }
+                    Button(onClick = model::save, enabled = model.dirty && model.pack == null && !model.busy) { Text("保存设置") }
                     OutlinedButton(onClick = { confirmReload = true }, enabled = !model.busy) { Text("重新载入") }
                 }
             }
             Text(if (model.dirty) "有未保存更改 · 草稿会保留" else "没有未保存更改")
-            if (model.busy) LinearProgressIndicator(Modifier.fillMaxWidth())
-            if (model.message.isNotEmpty()) Text(model.message, color = MaterialTheme.colorScheme.primary, modifier = Modifier.semantics { liveRegion = LiveRegionMode.Polite })
-            ApplyStatus(model)
             HorizontalDivider()
             Text("手机键盘", style = MaterialTheme.typography.titleLarge)
             SettingToggle("按键振动", vibration) { vibration = it; model.ui.edit().putBoolean("vibration", it).apply() }
             SettingToggle("仅在候选栏显示预编辑", localPreedit) { localPreedit = it; model.ui.edit().putBoolean("local_preedit", it).apply() }
             Text("预编辑兼容模式在下次进入输入框时生效；当前输入不会重放。手机设置单独保存。")
             OutlinedButton(onClick = { model.getApplication<android.app.Application>().startActivity(Intent(model.getApplication(), LibraryActivity::class.java).addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)) }, enabled = !model.busy) { Text("编辑码表与用户词库") }
-            HorizontalDivider()
-            Text("导入码表包", style = MaterialTheme.typography.titleLarge)
-            Text("选择主表及直接引用的文件，再明确指定角色。同名文件不会自动匹配；原码表会保留。")
-            OutlinedButton(onClick = { picker.launch(arrayOf("*/*")) }, enabled = !model.busy) { Text("选择码表文件") }
-            model.pack?.let { pack ->
-                FileChoice("主码表（必选）", pack, main, false, !model.busy) { main = it }
-                FileChoice("拼音辅助表", pack, pinyin, true, !model.busy) { pinyin = it }
-                FileChoice("英文辅助表", pack, english, true, !model.busy) { english = it }
-                Button(onClick = { model.activate(main, pinyin.takeIf { it >= 0 }, english.takeIf { it >= 0 }) }, enabled = main >= 0 && !model.busy) { Text("校验并启用码表包") }
-            }
             Spacer(Modifier.height(24.dp))
         }
     }

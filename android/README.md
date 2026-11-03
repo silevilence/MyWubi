@@ -74,11 +74,21 @@ config.toml。振动和本地预编辑兼容选项单独存储，后者下次进
 “已保存”与“运行时已应用”分别显示；加载失败保留旧引擎并显示错误。
 退出未保存页面会提示保留草稿，重新打开可恢复；磁盘冲突不会覆盖原文件。
 
-从 Windows 迁移码表时，选择“选择码表文件”，通过系统文件选择器同时选择主表及
-其直接引用的拼音/英文表，然后明确指定各文件角色。每次最多 32 个文件，每个
+手机上的码表加载步骤：
+
+1. 将 MyWubi UTF-8 文本码表放入手机的“下载”目录（或其它系统文件选择器可访问的位置）。
+2. 打开 MyWubi，点击首页“码表”区域的“从手机导入码表”，在系统文件选择器中选择文件。
+3. 单个文件会自动选为主码表，点击“校验并启用码表包”。看到“运行时已应用”后即可使用；输入法未启动时，下次打开键盘会加载。
+4. 如果主表引用了拼音或英文辅助表，长按多选主表和所需辅助表，再分别指定角色。同名文件不会自动匹配。
+
+文件内容须符合 MyWubi 文本码表格式：每行为 `编码<Tab>词条[<Tab>权重]`，可包含 `---` 包围的码表头；示例见 `../tables/wubi86.dict`。
+不直接支持搜狗 `.scel`、RIME `.yaml` 等格式，需先转换为 MyWubi 格式。
+文件会复制到应用私有目录，不需要授予整个存储空间的访问权限。
+从 Windows 迁移时，同样通过以上入口选择主表与直接引用的辅助表。每次最多 32 个文件，每个
 不超过 16 MiB；同名文件按选择序号区分。Windows 绝对路径必须重新绑定。
 导入文件复制到应用私有目录，完整校验和试建运行时成功后才原子切换活动配置。
 取消、校验失败或切换中断不删除旧活动包。旧包暂不自动回收。
+选择文件后可用“取消本次导入”退出导入流程，已修改的设置草稿仍可保存。
 
 “编辑码表与用户词库”可编辑主表/辅助表类型、字符集、码长、引用及词条，或维护
 用户词库词条和权重。保存调用共享 Rust 校验，失败保留草稿；用户词库导入按
@@ -102,7 +112,8 @@ MYWUBI_KEYSTORE、MYWUBI_STORE_PASSWORD、MYWUBI_KEY_ALIAS、MYWUBI_KEY_PASSWORD
 `.github/workflows/android.yml` 固定工具链，执行核心/JNI 契约、模拟器契约、Lint、
 两 ABI 构建、ELF/ZIP 对齐检查并存档制品；不发布商店，不改 Windows Velopack 流程。
 设置 UI 的 SAF 测试另需先执行 `adb push android/tests/saf/CP19-main.dict /sdcard/Download/`
-和 `adb push android/tests/saf/CP19-pinyin.dict /sdcard/Download/`。
+和 `adb push android/tests/saf/CP19-pinyin.dict /sdcard/Download/`，
+另推送 `android/tests/saf/Standalone-main.dict` 到同一目录验证单文件导入。
 真机测量可传 instrumentation 参数 `-e benchmark_main /data/local/tmp/main.dict`，
 运行 DeviceBenchmarkTest；输出应用私有 files/device-benchmark.json。
 该数据是 JNI Prepare/Ack 和候选查询耗时，不是键盘渲染或真实宿主上屏延迟。
@@ -123,3 +134,18 @@ MYWUBI_KEY_PASSWORD 四个仓库 Actions Secrets；缺少任意值即失败，�
 签名密钥需在后续版本继续使用，不能每次构建重新生成。
 V0.5.0 是首个公开体验 APK；它与此前本地开发签名 APK 不兼容覆盖安装，迁移前先导出词库。
 维护与签名备份说明见 [发布维护](../docs/releasing.md)。
+
+## 键盘布局与图标
+
+字母页采用等宽、错位的三行 QWERTY；大小写在第三行左侧，退格在右侧，长按退格连续删除。
+底栏提供数字、符号、标点、宽空格、中英切换和宿主回车动作。数字页采用独立三列数字盘；
+电话输入保留 `+ * #`，网址和邮箱输入在字母底栏提供 `/` 或 `@`。展开候选时用候选网格替换字母区。
+符号页可切换中英文符号；英文、密码、网址及邮箱场景默认半角符号。展开候选后底栏保留退格。
+左上角 MyWubi 图标打开工具栏，可进入“设置 / 码表”或切换系统输入法。支持系统深浅色。
+
+布局参考：[搜狗](https://shouji.sogou.com/)、[百度](https://srf.baidu.com/)、
+[讯飞](https://srf.xunfei.cn/)的手机键盘，以及 [Trime 社区简洁布局](https://github.com/osfans/trime/issues/304)。
+采用常见的按键位置和分区，不包含这些输入法的皮肤、语音或预测功能。
+
+图标源文件在 `../assets/branding/mywubi.png`，导出脚本生成 Android 各密度与自适应图标、
+Windows 多尺寸 ICO 及设置页 PNG。修改源图后运行 `../assets/branding/export-icons.ps1`。

@@ -40,11 +40,18 @@ fn main() {
         state.status_msg = Some(msg);
     }
 
+    let mut viewport = eframe::egui::ViewportBuilder::default()
+        .with_title("MyWubi 设置")
+        .with_inner_size([900.0, 650.0])
+        .with_min_inner_size([640.0, 480.0]);
+    match eframe::icon_data::from_png_bytes(include_bytes!(
+        "../../../assets/branding/mywubi-256.png"
+    )) {
+        Ok(icon) => viewport = viewport.with_icon(icon),
+        Err(error) => log::warn!("无法加载应用图标: {error}"),
+    }
     let opts = eframe::NativeOptions {
-        viewport: eframe::egui::ViewportBuilder::default()
-            .with_title("MyWubi 设置")
-            .with_inner_size([900.0, 650.0])
-            .with_min_inner_size([640.0, 480.0]),
+        viewport,
         renderer: eframe::Renderer::Wgpu,
         wgpu_options: eframe::egui_wgpu::WgpuConfiguration {
             supported_backends: wgpu::Backends::DX12,

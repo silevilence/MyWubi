@@ -40,7 +40,7 @@ pub fn install(dll_path: &str) -> Result<(), TipManagerError> {
     profile::register_categories()?;
 
     // 4. COM RegisterProfile + Enable
-    mgr.register_profile()?;
+    mgr.register_profile(dll_path)?;
     mgr.enable()?;
 
     log::info!("[tip_manager] TIP 安装完成");

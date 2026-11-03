@@ -128,6 +128,7 @@ $vpkArgs = @(
     "--packDir", $stagingDir,
     "--mainExe", "settings.exe",
     "--packTitle", "MyWubi",
+    "--icon", (Join-Path $PSScriptRoot 'assets/branding/mywubi.ico'),
     "--packAuthors", "silevilence",
     "--outputDir", $releasesDir,
     "--instConclusion", $conclusionFile

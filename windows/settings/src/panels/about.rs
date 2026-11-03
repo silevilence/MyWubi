@@ -6,6 +6,29 @@ use eframe::egui::{self, Ui};
 use tip_manager::TipStatus;
 
 pub fn show(ui: &mut Ui, state: &mut AppState) {
+    let texture_id = egui::Id::new("mywubi_brand_texture");
+    let texture = ui
+        .ctx()
+        .data_mut(|data| data.get_temp::<egui::TextureHandle>(texture_id))
+        .or_else(|| {
+            let icon = eframe::icon_data::from_png_bytes(include_bytes!(
+                "../../../../assets/branding/mywubi-256.png"
+            ))
+            .ok()?;
+            let image = egui::ColorImage::from_rgba_unmultiplied(
+                [icon.width as usize, icon.height as usize],
+                &icon.rgba,
+            );
+            let texture = ui
+                .ctx()
+                .load_texture("MyWubi", image, egui::TextureOptions::LINEAR);
+            ui.ctx()
+                .data_mut(|data| data.insert_temp(texture_id, texture.clone()));
+            Some(texture)
+        });
+    if let Some(texture) = texture {
+        ui.image((texture.id(), egui::vec2(64.0, 64.0)));
+    }
     ui.heading("关于 MyWubi");
     ui.separator();
 

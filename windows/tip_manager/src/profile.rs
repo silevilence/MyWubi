@@ -33,7 +33,8 @@ pub trait TipProfileManager {
     fn is_enabled(&self) -> Result<bool, TipManagerError>;
     fn enable(&self) -> Result<(), TipManagerError>;
     fn disable(&self) -> Result<(), TipManagerError>;
-    fn register_profile(&self) -> Result<(), TipManagerError>;
+    /// 注册 Profile，并使用指定 DLL 中的第一个图标资源。
+    fn register_profile(&self, icon_file: &str) -> Result<(), TipManagerError>;
     fn unregister_profile(&self) -> Result<(), TipManagerError>;
 }
 
@@ -115,7 +116,8 @@ impl TipProfileManager for ComProfileManager {
         .map_err(|e| TipManagerError::Com(format!("DisableLanguageProfile 失败: {e}")))
     }
 
-    fn register_profile(&self) -> Result<(), TipManagerError> {
+    fn register_profile(&self, icon_file: &str) -> Result<(), TipManagerError> {
+        let icon_file: Vec<u16> = icon_file.encode_utf16().collect();
         let desc: Vec<u16> = TEXT_SERVICE_NAME
             .encode_utf16()
             .chain(std::iter::once(0))
@@ -126,12 +128,12 @@ impl TipProfileManager for ComProfileManager {
                 self.lang_id,
                 &GUID_PROFILE,
                 &desc,
-                &[],      // pchIconFile — 空，注册表中已有 IconFile
-                0,        // uiconindex
-                NULL_HKL, // hklSubstitute — 零值表示无替代布局
-                0,        // dwPreferredLayout
-                true,     // bEnabledByDefault
-                0,        // dwFlags
+                &icon_file, // 同时向 TSF 注册图标路径，不依赖注册表写入顺序。
+                0,          // uiconindex
+                NULL_HKL,   // hklSubstitute — 零值表示无替代布局
+                0,          // dwPreferredLayout
+                true,       // bEnabledByDefault
+                0,          // dwFlags
             )
         }
         .map_err(|e| TipManagerError::Com(format!("RegisterProfile 失败: {e}")))
@@ -251,7 +253,7 @@ pub mod mock {
             Ok(())
         }
 
-        fn register_profile(&self) -> Result<(), TipManagerError> {
+        fn register_profile(&self, _icon_file: &str) -> Result<(), TipManagerError> {
             if self.fail_next.get() {
                 return Err(TipManagerError::Com("mock failure".into()));
             }
@@ -282,7 +284,7 @@ pub mod mock {
     #[test]
     fn test_mock_register_unregister() {
         let m = MockProfileManager::new(false, false);
-        m.register_profile().unwrap();
+        m.register_profile("im_engine.dll").unwrap();
         assert!(m.registered.get());
         assert!(m.enabled.get());
         m.unregister_profile().unwrap();

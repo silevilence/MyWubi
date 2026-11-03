@@ -63,7 +63,10 @@ class EngineStore(private val context: Context) {
             val header = table.getJSONObject("config")
             val temporary = header.getJSONObject("temporary")
             fun bind(key: String, index: Int?) {
-                require(temporary.optString(key).isEmpty() || index != null) { "$key 的引用尚未重绑定" }
+                val role = if (key == "pinyin_table") "拼音" else "英文"
+                require(temporary.optString(key).isEmpty() || index != null) {
+                    "主码表引用了${role}辅助表。请重新选择文件，长按多选主表和辅助表，再指定${role}辅助表。"
+                }
                 if (index != null) require(index in pack.files.indices && index != main) { "辅助表必须选择另一个文件" }
                 temporary.put(key, index?.let { pack.files[it].file.name } ?: "")
             }

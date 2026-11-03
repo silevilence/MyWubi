@@ -21,7 +21,7 @@ class LibraryActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         val model = ViewModelProvider(this)[LibraryModel::class.java]
-        setContent { MaterialTheme { LibraryScreen(model) { finish() } } }
+        setContent { MyWubiTheme { LibraryScreen(model) { finish() } } }
     }
 }
 

@@ -31,6 +31,12 @@ class SettingsModel(application: Application) : AndroidViewModel(application) {
     var pack by mutableStateOf<EngineStore.ImportSet?>(null); private set
     val ui = app.getSharedPreferences("android-ui", 0)
 
+    val tableLabel: String get() {
+        val path = config?.getJSONObject("dictionary")?.getString("system_table") ?: return "正在读取…"
+        return if (ui.getString("active_table_path", null) == path) ui.getString("active_table_name", null) ?: File(path).name
+            else File(path).name
+    }
+
     init { reload() }
 
     private fun fingerprint() = MessageDigest.getInstance("SHA-256").digest(store.configFile.readBytes()).joinToString("") { "%02x".format(it) }
@@ -112,7 +118,11 @@ class SettingsModel(application: Application) : AndroidViewModel(application) {
         if (uris.isEmpty()) return
         work {
             val staged = store.stage(uris)
-            val publish: () -> Unit = { pack = staged; dirty = true; persistDraft(); message = "请选择主表及其直接引用的辅助表" }
+            val publish: () -> Unit = {
+                pack = staged; dirty = true; persistDraft()
+                message = if (staged.files.size == 1) "已选择 ${staged.files.single().label}，点击「校验并启用码表包」完成导入"
+                    else "请选择主表及其直接引用的辅助表"
+            }
             publish
         }
     }
@@ -131,10 +141,19 @@ class SettingsModel(application: Application) : AndroidViewModel(application) {
             val publish: () -> Unit = {
                 expected?.close(); expected = next; baseline = disk
                 config = loaded.getJSONObject("config"); dirty = false; pack = null; draftFile.delete()
+                ui.edit().putString("active_table_path", config!!.getJSONObject("dictionary").getString("system_table"))
+                    .putString("active_table_name", imported.files[mainIndex].label).apply()
                 message = "码表包已保存；等待输入法应用"
             }
             publish
         }
+    }
+
+    fun cancelImport() {
+        if (busy || pack == null) return
+        pack = null
+        persistDraft()
+        message = "已取消待导入码表，设置草稿已保留"
     }
 
     override fun onCleared() {

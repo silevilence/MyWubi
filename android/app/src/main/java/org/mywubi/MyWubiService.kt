@@ -161,7 +161,10 @@ class MyWubiService : InputMethodService() {
             setViewTreeLifecycleOwner(owner)
             setViewTreeSavedStateRegistryOwner(owner)
             setViewCompositionStrategy(ViewCompositionStrategy.DisposeOnViewTreeLifecycleDestroyed)
-            setContent { Keyboard(keyboard, ::dispatch, { candidateOffset = it; refresh() }) {
+            setContent { Keyboard(keyboard, ::dispatch, { candidateOffset = it; refresh() }, openSettings = {
+                startActivity(android.content.Intent(this@MyWubiService, MainActivity::class.java)
+                    .addFlags(android.content.Intent.FLAG_ACTIVITY_NEW_TASK))
+            }) {
                 getSystemService(InputMethodManager::class.java).showInputMethodPicker()
             } }
         }
