@@ -136,6 +136,20 @@ jobs:
           mkdir -p android-release
           cp "$apk" "android-release/MyWubi-$RELEASE_VERSION-Android.apk"
           python android/check_apk.py "android-release/MyWubi-$RELEASE_VERSION-Android.apk" --output "android-release/MyWubi-$RELEASE_VERSION-Android-native.json"
+      - uses: actions/download-artifact@v4
+        with:
+          name: release-metadata
+          path: release-metadata/
+      - name: Generate Android update manifest from signed APK
+        env:
+          RELEASE_TAG: ${{ needs.metadata.outputs.tag }}
+        run: >-
+          python scripts/android_update_metadata.py
+          --apk android/app/build/outputs/apk/release/app-release.apk
+          --aapt "$ANDROID_HOME/build-tools/35.0.0/aapt"
+          --tag "$RELEASE_TAG"
+          --notes release-metadata/release-notes.md
+          --output android-release/android-update.json
       - uses: actions/upload-artifact@v4
         with:
           name: release-android

@@ -173,6 +173,7 @@ class MyWubiService : InputMethodService() {
     override fun onStartInputView(info: EditorInfo?, restarting: Boolean) {
         super.onStartInputView(info,restarting)
         viewVisible = true; viewOwner?.visible(true); refresh()
+        AppUpdates.get(this).check()
     }
 
     override fun onFinishInputView(finishingInput: Boolean) {

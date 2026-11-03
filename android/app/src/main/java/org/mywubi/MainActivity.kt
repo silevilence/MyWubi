@@ -59,6 +59,7 @@ private fun SettingsScreen(model: SettingsModel, enable: () -> Unit, choose: () 
             Text("内置五笔为开发示例表，可导入自己的完整码表。")
             Button(onClick = enable) { Text("1. 启用 MyWubi") }
             OutlinedButton(onClick = choose) { Text("2. 选择输入法") }
+            OutlinedButton(onClick = { model.getApplication<android.app.Application>().startActivity(Intent(model.getApplication(), UpdateActivity::class.java).addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)) }) { Text("应用更新") }
             HorizontalDivider()
             Text("码表", style = MaterialTheme.typography.titleLarge)
             Text("当前码表：${model.tableLabel}")
