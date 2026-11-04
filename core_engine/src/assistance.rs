@@ -1,5 +1,6 @@
 //! Runtime-independent model contract. Adapters own tokenization and recurrent state.
 //! Scores are only comparable within one response; they are not probabilities.
+pub mod context;
 use std::{
     collections::HashSet,
     sync::{
