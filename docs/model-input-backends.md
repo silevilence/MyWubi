@@ -1,7 +1,8 @@
 # 本地辅助输入后端与模型包（开发入口）
 
-当前功能不接入日常输入，默认基础输入行为不变。这里的工具用于 MI-03/04/05/11
-验证，不代表 Windows/Android 智能候选、设置入口或发布制品已交付。
+两后端已接入双端可选模型预测，默认基础输入行为不变。产品用法见
+[双端接入](model-input-integration.md)。这里的工具用于 MI-03/04/05/11 验证；
+运行成功不代表模型预测质量达标，智能排序的产品接入仍暂缓。
 
 ## 构建与运行
 
@@ -24,7 +25,8 @@ Rust `ort=2.0.0-rc.15` 使用 API 31。wheel 只是开发机取得原生制品�
 Android 交叉构建忽略继承的 Windows DLL，需显式传入对应 SO 才复制运行库；
 错误架构会提前拒绝。脚本不会联网安装或从模型执行脚本。
 Android 由应用在加载模型之前调用 `initialize_runtime(nativeLibraryDir/libonnxruntime.so)`；
-实际 AAR/SO 集成、16 KB 页验证及真机运行属于 MI-14/18/19，目前没有验收。
+实际 AAR/SO 集成、双 ABI 打包及 16 KB ELF 对齐已验证；API 34 x64 模拟器可运行，
+ARM64 真机运行与资源测量仍属于 MI-14/18/19 的未验收部分。
 
 llama.cpp 固定 `llama-cpp-2=0.1.161` / 同版 sys crate（MIT OR Apache-2.0），关闭
 GPU、OpenMP 以及其它硬件后端，2 推理线程、1024 token 上下文。
@@ -97,6 +99,14 @@ logits，误差上限 1e-6。坏形状、未知算子样例必须被加载探测
 - `backend: LlamaCpp | OnnxRuntime`、固定版本的 `adapter`。
 - `model`、ONNX 的 `vocabulary`，以及含相对路径/字节数/SHA-256 的 `files`。
 - `source`、`license`、`capabilities`（同 MI-02 协议的任务/语言/限制/状态/取消声明）。
+
+用于产品字词预测时，还需 `prediction_policy` 指向包内 JSON，该文件列入 `files`
+并校验 SHA-256。没有该字段的旧包仍能导入、切换和离线评分，但不能展示模型预测。
+策略含 `version: 1`、`adapter`、`model_sha256`、`vocabulary_sha256`（GGUF 为 null）、
+`minimum_score`、`minimum_margin`、`evidence`。两个门槛都是适配器原始分数，不能跨模型
+复用；最佳分低于门槛或与第二项分差不足时本轮静默隐藏。通过后，低于绝对门槛的其它候选
+也不展示。单候选只检查绝对门槛，不用虚构的分差。权重或词表更换必须重新校准。
+校准流程与已知限制见[预测准入验证](validation/mi-prediction-admission.md)。
 
 示例与请求模型由离线工具生成，当前包 API 支持校验、原子导入、列出、加载及移除
 非活动版本。生成者必须自行拥有对应权重/词表的分发权利。

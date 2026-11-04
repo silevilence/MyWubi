@@ -251,6 +251,7 @@ impl OnnxScorer {
         }
         control.check()?;
         Ok(ScoreResponse {
+            prediction_accepted: None,
             protocol: 1,
             key: r.key,
             scores,

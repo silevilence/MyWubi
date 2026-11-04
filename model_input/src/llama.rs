@@ -172,6 +172,7 @@ impl LlamaScorer {
         }
         control.check()?;
         Ok(ScoreResponse {
+            prediction_accepted: None,
             protocol: 1,
             key: request.key,
             scores,

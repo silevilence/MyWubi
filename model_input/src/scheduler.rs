@@ -231,6 +231,7 @@ mod tests {
             self.started.send(r.key.request).unwrap();
             self.release.recv().unwrap();
             Ok(ScoreResponse {
+                prediction_accepted: None,
                 protocol: 1,
                 key: r.key,
                 scores: r

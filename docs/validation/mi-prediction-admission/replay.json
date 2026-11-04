@@ -1,0 +1,440 @@
+{
+  "chains": [
+    {
+      "seed": "五",
+      "steps": [
+        "一",
+        "节"
+      ],
+      "stopped": true,
+      "text": "五一节"
+    },
+    {
+      "seed": "北",
+      "steps": [
+        "京",
+        "市",
+        "场"
+      ],
+      "stopped": true,
+      "text": "北京市场"
+    },
+    {
+      "seed": "北京",
+      "steps": [
+        "市",
+        "场"
+      ],
+      "stopped": true,
+      "text": "北京市场"
+    },
+    {
+      "seed": "今天",
+      "steps": [
+        "下午",
+        "茶"
+      ],
+      "stopped": true,
+      "text": "今天下午茶"
+    },
+    {
+      "seed": "明天",
+      "steps": [
+        "上午"
+      ],
+      "stopped": true,
+      "text": "明天上午"
+    },
+    {
+      "seed": "谢谢",
+      "steps": [
+        "你",
+        "们",
+        "好"
+      ],
+      "stopped": true,
+      "text": "谢谢你们好"
+    },
+    {
+      "seed": "输入法",
+      "steps": [
+        "设置",
+        "为"
+      ],
+      "stopped": true,
+      "text": "输入法设置为"
+    },
+    {
+      "seed": "分钟",
+      "steps": [],
+      "stopped": true,
+      "text": "分钟"
+    }
+  ],
+  "failures": 0,
+  "rows": [
+    {
+      "invalid": false,
+      "prefix": "北",
+      "profile": "LegacyV1",
+      "recalled": true,
+      "shown": [
+        "京",
+        "京市",
+        "方",
+        "大",
+        "美"
+      ],
+      "stop_expected": false,
+      "top1": true
+    },
+    {
+      "invalid": false,
+      "prefix": "北京",
+      "profile": "LegacyV1",
+      "recalled": true,
+      "shown": [
+        "市",
+        "大学",
+        "天气",
+        "时间",
+        "人"
+      ],
+      "stop_expected": false,
+      "top1": false
+    },
+    {
+      "invalid": false,
+      "prefix": "上海",
+      "profile": "LegacyV1",
+      "recalled": true,
+      "shown": [
+        "市",
+        "天气",
+        "人",
+        "大众",
+        "滩"
+      ],
+      "stop_expected": false,
+      "top1": false
+    },
+    {
+      "invalid": false,
+      "prefix": "今天",
+      "profile": "LegacyV1",
+      "recalled": true,
+      "shown": [
+        "下午",
+        "晚上"
+      ],
+      "stop_expected": false,
+      "top1": true
+    },
+    {
+      "invalid": false,
+      "prefix": "明天",
+      "profile": "LegacyV1",
+      "recalled": true,
+      "shown": [
+        "上午",
+        "见"
+      ],
+      "stop_expected": false,
+      "top1": true
+    },
+    {
+      "invalid": false,
+      "prefix": "生日",
+      "profile": "LegacyV1",
+      "recalled": true,
+      "shown": [
+        "快乐",
+        "礼物"
+      ],
+      "stop_expected": false,
+      "top1": true
+    },
+    {
+      "invalid": false,
+      "prefix": "新年",
+      "profile": "LegacyV1",
+      "recalled": true,
+      "shown": [
+        "快乐"
+      ],
+      "stop_expected": false,
+      "top1": true
+    },
+    {
+      "invalid": false,
+      "prefix": "非常",
+      "profile": "LegacyV1",
+      "recalled": true,
+      "shown": [
+        "好",
+        "重要",
+        "大",
+        "感谢",
+        "喜欢"
+      ],
+      "stop_expected": false,
+      "top1": false
+    },
+    {
+      "invalid": false,
+      "prefix": "谢谢",
+      "profile": "LegacyV1",
+      "recalled": true,
+      "shown": [
+        "你",
+        "了",
+        "大家",
+        "合作"
+      ],
+      "stop_expected": false,
+      "top1": true
+    },
+    {
+      "invalid": false,
+      "prefix": "会议",
+      "profile": "LegacyV1",
+      "recalled": true,
+      "shown": [
+        "室",
+        "时间",
+        "结束",
+        "精神",
+        "纪要"
+      ],
+      "stop_expected": false,
+      "top1": false
+    },
+    {
+      "invalid": false,
+      "prefix": "五一期间",
+      "profile": "LegacyV1",
+      "recalled": false,
+      "shown": [],
+      "stop_expected": true,
+      "top1": false
+    },
+    {
+      "invalid": false,
+      "prefix": "还有五分钟",
+      "profile": "LegacyV1",
+      "recalled": false,
+      "shown": [],
+      "stop_expected": true,
+      "top1": false
+    },
+    {
+      "invalid": false,
+      "prefix": "理发店剪头发",
+      "profile": "LegacyV1",
+      "recalled": false,
+      "shown": [],
+      "stop_expected": true,
+      "top1": false
+    },
+    {
+      "invalid": false,
+      "prefix": "今天就到这里。",
+      "profile": "LegacyV1",
+      "recalled": false,
+      "shown": [],
+      "stop_expected": true,
+      "top1": false
+    },
+    {
+      "invalid": false,
+      "prefix": "",
+      "profile": "LegacyV1",
+      "recalled": false,
+      "shown": [],
+      "stop_expected": true,
+      "top1": false
+    },
+    {
+      "invalid": false,
+      "prefix": "北",
+      "profile": "TouchV1",
+      "recalled": true,
+      "shown": [
+        "京",
+        "京市",
+        "方",
+        "大",
+        "美"
+      ],
+      "stop_expected": false,
+      "top1": true
+    },
+    {
+      "invalid": false,
+      "prefix": "北京",
+      "profile": "TouchV1",
+      "recalled": true,
+      "shown": [
+        "市",
+        "大学",
+        "天气",
+        "时间",
+        "人"
+      ],
+      "stop_expected": false,
+      "top1": false
+    },
+    {
+      "invalid": false,
+      "prefix": "上海",
+      "profile": "TouchV1",
+      "recalled": true,
+      "shown": [
+        "市",
+        "天气",
+        "人",
+        "大众",
+        "滩"
+      ],
+      "stop_expected": false,
+      "top1": false
+    },
+    {
+      "invalid": false,
+      "prefix": "今天",
+      "profile": "TouchV1",
+      "recalled": true,
+      "shown": [
+        "下午",
+        "晚上"
+      ],
+      "stop_expected": false,
+      "top1": true
+    },
+    {
+      "invalid": false,
+      "prefix": "明天",
+      "profile": "TouchV1",
+      "recalled": true,
+      "shown": [
+        "上午",
+        "见"
+      ],
+      "stop_expected": false,
+      "top1": true
+    },
+    {
+      "invalid": false,
+      "prefix": "生日",
+      "profile": "TouchV1",
+      "recalled": true,
+      "shown": [
+        "快乐",
+        "礼物"
+      ],
+      "stop_expected": false,
+      "top1": true
+    },
+    {
+      "invalid": false,
+      "prefix": "新年",
+      "profile": "TouchV1",
+      "recalled": true,
+      "shown": [
+        "快乐"
+      ],
+      "stop_expected": false,
+      "top1": true
+    },
+    {
+      "invalid": false,
+      "prefix": "非常",
+      "profile": "TouchV1",
+      "recalled": true,
+      "shown": [
+        "好",
+        "重要",
+        "大",
+        "感谢",
+        "喜欢"
+      ],
+      "stop_expected": false,
+      "top1": false
+    },
+    {
+      "invalid": false,
+      "prefix": "谢谢",
+      "profile": "TouchV1",
+      "recalled": true,
+      "shown": [
+        "你",
+        "了",
+        "大家",
+        "合作"
+      ],
+      "stop_expected": false,
+      "top1": true
+    },
+    {
+      "invalid": false,
+      "prefix": "会议",
+      "profile": "TouchV1",
+      "recalled": true,
+      "shown": [
+        "室",
+        "时间",
+        "结束",
+        "精神",
+        "纪要"
+      ],
+      "stop_expected": false,
+      "top1": false
+    },
+    {
+      "invalid": false,
+      "prefix": "五一期间",
+      "profile": "TouchV1",
+      "recalled": false,
+      "shown": [],
+      "stop_expected": true,
+      "top1": false
+    },
+    {
+      "invalid": false,
+      "prefix": "还有五分钟",
+      "profile": "TouchV1",
+      "recalled": false,
+      "shown": [],
+      "stop_expected": true,
+      "top1": false
+    },
+    {
+      "invalid": false,
+      "prefix": "理发店剪头发",
+      "profile": "TouchV1",
+      "recalled": false,
+      "shown": [],
+      "stop_expected": true,
+      "top1": false
+    },
+    {
+      "invalid": false,
+      "prefix": "今天就到这里。",
+      "profile": "TouchV1",
+      "recalled": false,
+      "shown": [],
+      "stop_expected": true,
+      "top1": false
+    },
+    {
+      "invalid": false,
+      "prefix": "",
+      "profile": "TouchV1",
+      "recalled": false,
+      "shown": [],
+      "stop_expected": true,
+      "top1": false
+    }
+  ],
+  "scope": "Authored previously inspected engineering cases; not independent quality or sentence fluency evidence"
+}

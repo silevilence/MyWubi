@@ -69,6 +69,7 @@ impl RankingRound {
         }
         // Reuse protocol/output identity checks without initializing a backend.
         ScoreResponse {
+            prediction_accepted: None,
             protocol: super::PROTOCOL_VERSION,
             key: request.key,
             scores: request
@@ -233,6 +234,7 @@ mod tests {
     }
     fn response(r: &ScoreRequest) -> ScoreResponse {
         ScoreResponse {
+            prediction_accepted: None,
             protocol: 1,
             key: r.key,
             scores: vec![

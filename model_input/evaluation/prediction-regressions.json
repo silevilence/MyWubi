@@ -1,0 +1,17 @@
+[
+  {"prefix":"北","acceptable":["京"],"forbidden":[],"stop":false},
+  {"prefix":"北京","acceptable":["天气","大学"],"forbidden":[],"stop":false},
+  {"prefix":"上海","acceptable":["天气"],"forbidden":[],"stop":false},
+  {"prefix":"今天","acceptable":["下午","晚上"],"forbidden":[],"stop":false},
+  {"prefix":"明天","acceptable":["上午","见"],"forbidden":[],"stop":false},
+  {"prefix":"生日","acceptable":["快乐"],"forbidden":[],"stop":false},
+  {"prefix":"新年","acceptable":["快乐"],"forbidden":[],"stop":false},
+  {"prefix":"非常","acceptable":["感谢"],"forbidden":[],"stop":false},
+  {"prefix":"谢谢","acceptable":["你"],"forbidden":[],"stop":false},
+  {"prefix":"会议","acceptable":["时间","结束"],"forbidden":[],"stop":false},
+  {"prefix":"五一期间","acceptable":[],"forbidden":["隔","接"],"stop":true},
+  {"prefix":"还有五分钟","acceptable":[],"forbidden":["头"],"stop":true},
+  {"prefix":"理发店剪头发","acceptable":[],"forbidden":["展"],"stop":true},
+  {"prefix":"今天就到这里。","acceptable":[],"forbidden":[],"stop":true},
+  {"prefix":"","acceptable":[],"forbidden":[],"stop":true}
+]

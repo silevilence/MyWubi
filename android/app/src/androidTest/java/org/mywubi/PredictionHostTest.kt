@@ -13,7 +13,8 @@ import java.util.regex.Pattern
 class PredictionHostTest {
     @Test fun confirmedWordsPredictAndNewCodesOrExternalEditsDiscardSuggestions() = runHost(false)
     @Test fun modelScoredPredictionsUseTheConfirmedHostCommitPath() = runHost(true)
-    private fun runHost(withModel:Boolean) {
+    @Test fun lowConfidenceModelPredictionsStayHiddenAndSpaceRemainsLiteral() = runHost(true,true)
+    private fun runHost(withModel:Boolean,rejectModel:Boolean=false) {
         val instrumentation=InstrumentationRegistry.getInstrumentation()
         val context=instrumentation.targetContext
         val device=UiDevice.getInstance(instrumentation)
@@ -22,7 +23,7 @@ class PredictionHostTest {
         val original=JSONObject(loaded.getJSONObject("config").toString())
         val fixture=File(context.filesDir,"mi-prediction-test.dict")
         // Use a normal dictionary with both a single character and its complete word.
-        fixture.writeText("---\ndisplay_name: 预测验收\n---\nb\t北\t100\nbj\t北京\t50\nt\t天气\t100\np\t预报\t100\n")
+        fixture.writeText("---\ndisplay_name: 预测验收\n---\nb\t北\t100\nbj\t北京\t50\nt\t天气\t100\np\t预报\t100\nf\t五一\t100\nm\t分钟\t100\n")
         val config=JSONObject(original.toString())
         config.getJSONObject("dictionary").put("system_table",fixture.absolutePath).put("enable_user_dict",false)
         config.getJSONObject("basic").put("auto_commit_unique",false)
@@ -30,7 +31,7 @@ class PredictionHostTest {
         if(withModel) {
             val features=JSONObject(NativeBridge.inference("{\"op\":\"Features\"}".toByteArray()).toString(Charsets.UTF_8)).getJSONObject("value")
             org.junit.Assume.assumeTrue(features.getBoolean("onnx"))
-            ModelCatalog(context).call("Import","source" to ModelBackendTest().fixture().absolutePath)
+            ModelCatalog(context).call("Import","source" to ModelBackendTest().fixture(if(rejectModel) 0.0 else -100.0).absolutePath)
             config.getJSONObject("prediction").put("wait_ms",1000).put("max_candidates",8)
                 .put("model",JSONObject().put("id","instrumented-counts").put("version","v1"))
         }
@@ -50,6 +51,19 @@ class PredictionHostTest {
         fun expect(text:String) {
             assertTrue("host text $text",device.wait(Until.hasObject(By.clazz("android.widget.EditText").text(text)),10000))
         }
+        fun expectPrediction(visible:Boolean) {
+            val end=android.os.SystemClock.uptimeMillis()+10000
+            var actual=false
+            do {
+                instrumentation.uiAutomation.clearCache()
+                actual=device.hasObject(By.desc("字词预测"))
+                if(actual==visible) return
+                android.os.SystemClock.sleep(100)
+            } while(android.os.SystemClock.uptimeMillis()<end)
+            device.takeScreenshot(File(context.filesDir,"prediction-failed-${if(withModel) "model" else "lexicon"}.png"))
+            device.dumpWindowHierarchy(File(context.filesDir,"prediction-failed-${if(withModel) "model" else "lexicon"}.xml"))
+            assertEquals("prediction visibility",visible,actual)
+        }
         try {
             save(config,loaded.getLong("version"))
             device.executeShellCommand("ime enable org.mywubi/.MyWubiService")
@@ -63,7 +77,21 @@ class PredictionHostTest {
             if(device.hasObject(By.desc("英 → 中"))) key("英 → 中")
             assertTrue(device.wait(Until.hasObject(By.desc("b").pkg("org.mywubi").enabled(true)),15000))
             key("b"); candidate("北"); expect("北")
-            assertTrue(device.wait(Until.hasObject(By.desc("字词预测")),10000))
+            if(rejectModel) {
+                android.os.SystemClock.sleep(1500)
+                expectPrediction(false)
+                val status=JSONObject(NativeBridge.inference("{\"op\":\"Status\"}".toByteArray()).toString(Charsets.UTF_8))
+                assertEquals("Ready",status.getString("value"))
+                key("空格");key("b");expect("北 b");candidate("北");expect("北 北")
+                android.os.SystemClock.sleep(1100);expectPrediction(false)
+                return
+            }
+            // Cold loading can exceed the input budget. A later fresh commit can
+            // use the loaded worker; a late result must never be displayed.
+            if(withModel && !device.wait(Until.hasObject(By.desc("字词预测")),1500)) {
+                field.text="";field.click();key("b");candidate("北");expect("北")
+            }
+            expectPrediction(true)
             assertFalse(device.hasObject(By.text("续接")))
             assertFalse(device.hasObject(By.text("联想")))
             key("空格"); expect("北京")
@@ -76,7 +104,25 @@ class PredictionHostTest {
             field.text="外部编辑";device.pressKeyCode(android.view.KeyEvent.KEYCODE_MOVE_END)
             assertTrue(device.wait(Until.gone(By.desc("字词预测")),5000))
             device.takeScreenshot(File(context.filesDir,"prediction-external-host.png"))
+            if(!withModel) {
+                field.text="";field.click()
+                key("f");candidate("五一");candidate("期间");expect("五一期间")
+                expectPrediction(false)
+                key("空格");key("b");expect("五一期间 b")
+                candidate("北");expect("五一期间 北")
+                assertTrue(device.wait(Until.hasObject(By.desc("字词预测")),5000))
+                device.setOrientationLeft()
+                assertTrue(device.wait(Until.gone(By.desc("字词预测")),10000))
+                expect("五一期间 北")
+                device.setOrientationNatural()
+                device.waitForIdle()
+                val rotatedField=device.wait(Until.findObject(By.clazz("android.widget.EditText")),10000)
+                rotatedField.text="";rotatedField.click()
+                key("m");candidate("分钟");expect("分钟")
+                assertTrue(device.wait(Until.gone(By.desc("字词预测")),5000))
+            }
         } finally {
+            device.setOrientationNatural();device.unfreezeRotation()
             val current=store.readConfig();save(original,current.getLong("version"))
             if(withModel) ModelCatalog(context).call("Remove","selection" to JSONObject().put("id","instrumented-counts").put("version","v1"))
             device.pressBack();device.pressBack()

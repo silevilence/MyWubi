@@ -20,12 +20,18 @@ class ModelBackendTest {
         assertTrue(result.toString(),result.getBoolean("ok"));return result
     }
     private fun caps()=JSONObject("""{"protocol":1,"tasks":["Rank","Predict"],"languages":["zh"],"max_context_chars":256,"max_candidates":64,"max_candidate_chars":16,"max_code_chars":64,"proposes_words":false,"incremental":true,"cooperative_cancel":true}""")
-    internal fun fixture():File {
+    internal fun fixture(minimumScore:Double=-100.0):File {
         val root=File(context.cacheDir,"onnx-backend-source").apply{mkdirs()}
         for(name in listOf("counts.onnx","vocabulary.json")) instrumentation.context.assets.open(name).use{input->File(root,name).outputStream().use{input.copyTo(it)}}
+        fun digest(name:String)=MessageDigest.getInstance("SHA-256").digest(File(root,name).readBytes()).joinToString(""){"%02x".format(it)}
+        File(root,"prediction-policy.json").writeText(JSONObject().put("version",1).put("adapter","character-step-v1")
+            .put("model_sha256",digest("counts.onnx")).put("vocabulary_sha256",digest("vocabulary.json"))
+            .put("minimum_score",minimumScore).put("minimum_margin",0)
+            .put("evidence","Authored instrumentation fixture, permissive thresholds for plumbing tests only; not calibrated for product quality.").toString())
         val manifest=JSONObject().put("protocol",1).put("id","instrumented-counts").put("version","v1").put("backend","OnnxRuntime")
             .put("adapter","character-step-v1").put("model","counts.onnx").put("vocabulary","vocabulary.json").put("source","MyWubi authored MI01 train").put("license","MIT").put("capabilities",caps())
-        manifest.put("files",JSONArray().also{a->for(name in listOf("counts.onnx","vocabulary.json")){val f=File(root,name);a.put(JSONObject().put("path",name).put("bytes",f.length()).put("sha256",MessageDigest.getInstance("SHA-256").digest(f.readBytes()).joinToString(""){"%02x".format(it)}))}})
+        manifest.put("prediction_policy","prediction-policy.json")
+        manifest.put("files",JSONArray().also{a->for(name in listOf("counts.onnx","vocabulary.json","prediction-policy.json")){val f=File(root,name);a.put(JSONObject().put("path",name).put("bytes",f.length()).put("sha256",digest(name)))}})
         File(root,"manifest.json").writeText(manifest.toString());return root
     }
     private fun score(source:File) {
@@ -56,6 +62,7 @@ class ModelBackendTest {
                     if(value!=null) {
                         assertTrue(value.toString(),value.has("Ok"))
                         val scores=value.getJSONObject("Ok").getJSONArray("scores")
+                        assertTrue(value.getJSONObject("Ok").getJSONArray("prediction_accepted").length()>0)
                         assertEquals(2,scores.length())
                         assertEquals(setOf(7,9),(0 until scores.length()).map{scores.getJSONObject(it).getInt("id")}.toSet())
                         for(i in 0 until scores.length())assertTrue(scores.getJSONObject(i).getDouble("value").isFinite())
@@ -96,12 +103,19 @@ class ModelBackendTest {
                 lateinit var controller:PredictionController
                 instrumentation.runOnMainSync {controller=PredictionController(context) {}}
                 try {
-                    action(JSONObject().put("InputText",JSONArray().put("b").put("Normal")));action("Space")
-                    assertTrue(NativeBridge.objectCall("State","session" to session.value).getBoolean("prediction_waiting"))
-                    instrumentation.runOnMainSync {controller.update(session.value,true)}
-                    val end=SystemClock.uptimeMillis()+2000
-                    while(NativeBridge.objectCall("State","session" to session.value).getBoolean("prediction_waiting") && SystemClock.uptimeMillis()<end)SystemClock.sleep(10)
-                    assertTrue("controller did not publish scored candidates",NativeBridge.objectCall("State","session" to session.value).getJSONObject("view").getBoolean("prediction"))
+                    var published=false
+                    // Configuration changes can cold-load even after the scoring
+                    // probe. Retry with a new commit, never accept an expired result.
+                    for(attempt in 0..1) {
+                        action(JSONObject().put("InputText",JSONArray().put("b").put("Normal")));action("Space")
+                        assertTrue(NativeBridge.objectCall("State","session" to session.value).getBoolean("prediction_waiting"))
+                        instrumentation.runOnMainSync {controller.update(session.value,true)}
+                        val end=SystemClock.uptimeMillis()+2000
+                        while(NativeBridge.objectCall("State","session" to session.value).getBoolean("prediction_waiting") && SystemClock.uptimeMillis()<end)SystemClock.sleep(10)
+                        published=NativeBridge.objectCall("State","session" to session.value).getJSONObject("view").getBoolean("prediction")
+                        if(published) break
+                    }
+                    assertTrue("controller did not publish scored candidates; worker=${command("Status")}",published)
                     instrumentation.runOnMainSync {controller.cancel()}
                     action(JSONObject().put("InputText",JSONArray().put("b").put("Normal")))
                     assertFalse(NativeBridge.objectCall("State","session" to session.value).getJSONObject("view").getBoolean("prediction"))
@@ -138,6 +152,7 @@ class ModelBackendTest {
         assumeTrue(command("Features").getJSONObject("value").getBoolean("llama"))
         val source=File(context.filesDir,"mi-test-package")
         assumeTrue("provision the pinned test package explicitly",File(source,"manifest.json").isFile)
+        assumeTrue("provision an explicit prediction policy for the test package",!JSONObject(File(source,"manifest.json").readText()).isNull("prediction_policy"))
         score(source)
     }
 }

@@ -1,0 +1,2 @@
+{"model":"admission-fixture","ready_ms":184,"round_ms":184,"scores":[{"id":7,"value":-2.964351177215576},{"id":9,"value":-3.8176519870758057}]}
+{"attempted":3,"model":"admission-fixture","p50_ms":22.625,"p95_ms":184.497,"p99_ms":184.497,"samples":3,"scope":"service round trip; authored fixed two-candidate fixture; not keyboard latency or quality","valid_ratio":1.0}

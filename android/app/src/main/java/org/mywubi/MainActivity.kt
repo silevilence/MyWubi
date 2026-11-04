@@ -197,11 +197,13 @@ private fun PredictionModels(model:SettingsModel, prediction:JSONObject, import:
         val active=selected?.optString("id")==p.getString("id") && selected?.optString("version")==p.getString("version")
         val caps=p.getJSONObject("capabilities")
         val backendAvailable=model.modelBackends.optBoolean(if(p.getString("backend")=="OnnxRuntime") "onnx" else "llama")
-        val supported=backendAvailable && (0 until caps.getJSONArray("tasks").length()).any {caps.getJSONArray("tasks").getString(it)=="Predict"}
+        val hasPolicy=!p.isNull("prediction_policy") && p.optString("prediction_policy").isNotEmpty()
+        val supported=backendAvailable && hasPolicy && (0 until caps.getJSONArray("tasks").length()).any {caps.getJSONArray("tasks").getString(it)=="Predict"}
         val files=p.getJSONArray("files")
         val size=(0 until files.length()).sumOf {files.getJSONObject(it).getLong("bytes")}/1048576.0
         Text("${p.getString("id")} @ ${p.getString("version")} · ${p.getString("backend")} · ${"%.1f".format(size)} MiB")
         Text("许可：${p.getString("license")}\n来源：${p.getString("source")}")
+        Text(if(hasPolicy) "已提供预测门槛；不代表效果已通过验收。" else "缺少预测门槛：可保留用于离线评测，暂不能用于字词预测。")
         Text("能力：${caps.getJSONArray("tasks")}；前文 ${caps.getInt("max_context_chars")} 字")
         Row(horizontalArrangement=Arrangement.spacedBy(8.dp)) {
             OutlinedButton(onClick={model.change("prediction","model",identity)},enabled=!model.busy && supported && !active) {Text("选择此模型")}

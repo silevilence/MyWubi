@@ -423,13 +423,24 @@ impl Session {
             return false;
         }
         let response = result.ok().filter(|response| {
-            std::time::Instant::now() < deadline && response.validate(&request, request.key).is_ok()
+            std::time::Instant::now() < deadline
+                && response.validate(&request, request.key).is_ok()
+                && response
+                    .prediction_accepted
+                    .as_ref()
+                    .is_some_and(|ids| !ids.is_empty())
         });
         let Some(response) = response else {
             self.prediction = None;
             self.view = SessionView::default();
             return true;
         };
+        prediction.items.retain(|candidate| {
+            response
+                .prediction_accepted
+                .as_ref()
+                .is_some_and(|ids| ids.contains(&candidate.id))
+        });
         prediction.items.sort_by(|a, b| {
             let score = |id| {
                 response

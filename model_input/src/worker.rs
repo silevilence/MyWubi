@@ -288,7 +288,7 @@ fn run(shared: Arc<(Mutex<State>, Condvar)>, load: Loader) {
         }
         s.phase = match &result {
             Ok(_) => Phase::Ready,
-            Err(Unavailable::Timeout) => {
+            Err(Unavailable::Timeout | Unavailable::LowConfidence) => {
                 if loaded.is_some() {
                     Phase::Ready
                 } else {
@@ -332,6 +332,7 @@ mod tests {
             std::thread::sleep(Duration::from_millis(10));
             c.check()?;
             Ok(ScoreResponse {
+                prediction_accepted: None,
                 protocol: 1,
                 key: r.key,
                 scores: r

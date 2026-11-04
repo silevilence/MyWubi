@@ -12,6 +12,8 @@ def main():
     parser.add_argument('model', type=Path)
     parser.add_argument('destination', type=Path)
     parser.add_argument('--vocabulary', type=Path)
+    parser.add_argument('--prediction-policy', type=Path,
+                        help='model-bound calibration JSON; absent means evaluation-only for prediction')
     parser.add_argument('--id', required=True)
     parser.add_argument('--version', required=True)
     parser.add_argument('--source', required=True)
@@ -25,7 +27,7 @@ def main():
     args.destination.mkdir(parents=True, exist_ok=False)
     model = 'model.gguf' if args.backend == 'llama' else 'model.onnx'
     files = []
-    for source, name in [(args.model, model), *([(args.vocabulary, 'vocabulary.json')] if args.vocabulary else [])]:
+    for source, name in [(args.model, model), *([(args.vocabulary, 'vocabulary.json')] if args.vocabulary else []), *([(args.prediction_policy, 'prediction-policy.json')] if args.prediction_policy else [])]:
         out = args.destination / name
         shutil.copyfile(source, out)
         with out.open('rb') as stream:
@@ -35,6 +37,7 @@ def main():
                     backend='LlamaCpp' if args.backend == 'llama' else 'OnnxRuntime',
                     adapter='gguf-continuation-v1' if args.backend == 'llama' else 'character-step-v1',
                     model=model, vocabulary='vocabulary.json' if args.vocabulary else None,
+                    prediction_policy='prediction-policy.json' if args.prediction_policy else None,
                     files=files, source=args.source, license=args.license,
                     capabilities=dict(protocol=1, tasks=['Rank', 'Predict'], languages=['zh'],
                                       max_context_chars=256, max_candidates=64, max_candidate_chars=16,

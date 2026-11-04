@@ -268,6 +268,7 @@ fn model_prediction_waits_once_preserves_ids_and_discards_late_or_stale_scores()
     assert!(s.candidate_window(0, 64).candidates.is_empty());
     let work = s.prediction_request().unwrap();
     let response = ScoreResponse {
+        prediction_accepted: Some(work.candidates.iter().map(|c| c.id).collect()),
         protocol: 1,
         key: work.key,
         scores: work
@@ -321,4 +322,114 @@ fn model_wait_timeout_hides_predictions_without_intercepting_input() {
     let plan = t.prepare(Action::Space).unwrap();
     assert!(!plan.consumed());
     assert!(t.prediction_request().is_none());
+}
+
+#[test]
+fn selecting_a_whole_word_does_not_start_an_overlapping_tail_chain() {
+    for profile in [BehaviorProfile::LegacyV1, BehaviorProfile::TouchV1] {
+        let mut s = session(profile);
+        apply(&mut s, Action::InsertLiteral("五一".into()));
+        let next = choose(&s, "期间");
+        apply(&mut s, next);
+        assert!(!s.has_prediction());
+        assert!(
+            !s.snapshot().prediction,
+            "stopped predictions must clear the old prediction view"
+        );
+        assert!(!s.would_handle(&Action::Space));
+        let baseline = Session::new(&runtime(false, 1), profile, HostContext::default());
+        assert_eq!(
+            s.would_handle(&Action::Legacy(InputEvent::Char('1'))),
+            baseline.would_handle(&Action::Legacy(InputEvent::Char('1')))
+        );
+        // A new coded word starts a fresh prediction opportunity.
+        north(&mut s);
+        assert!(s.has_prediction());
+    }
+}
+
+#[test]
+fn model_predictions_require_valid_admission_and_only_show_admitted_ids() {
+    use core_engine::{assistance::*, candidates::CandidateId};
+    for profile in [BehaviorProfile::LegacyV1, BehaviorProfile::TouchV1] {
+        for case in 0..5 {
+            let mut r = runtime(true, 10);
+            r.config.prediction.model = Some(core_engine::config::ModelSelection {
+                id: "fixture".into(),
+                version: "v1".into(),
+            });
+            let mut s = Session::new(&r, profile, HostContext::default());
+            north(&mut s);
+            let work = s.prediction_request().unwrap();
+            let chosen = work.candidates.last().unwrap().clone();
+            let accepted = match case {
+                0 => None,
+                1 => Some(vec![]),
+                2 => Some(vec![CandidateId(usize::MAX)]),
+                3 => Some(vec![chosen.id, chosen.id]),
+                _ => Some(vec![chosen.id]),
+            };
+            let result = ScoreResponse {
+                protocol: 1,
+                key: work.key,
+                prediction_accepted: accepted,
+                scores: work
+                    .candidates
+                    .iter()
+                    .enumerate()
+                    .map(|(i, c)| CandidateScore {
+                        id: c.id,
+                        value: 100.0 - i as f32,
+                    })
+                    .collect(),
+            };
+            assert!(s.complete_prediction(work.key, Ok(result)));
+            if case < 4 {
+                assert!(!s.has_prediction());
+                assert!(!s.would_handle(&Action::Space));
+            } else {
+                let window = s.candidate_window(0, 64);
+                assert_eq!(window.candidates.len(), 1);
+                assert_eq!(window.candidates[0].id, chosen.id);
+                assert!(
+                    matches!(apply(&mut s,Action::Space),EditSessionOp::CommitAndReplace{text,..} if text==chosen.text)
+                );
+            }
+        }
+    }
+}
+
+#[test]
+fn prediction_commit_keeps_the_entire_confirmed_prefix() {
+    use core_engine::assistance::*;
+    for profile in [BehaviorProfile::LegacyV1, BehaviorProfile::TouchV1] {
+        let mut r = runtime(true, 10);
+        r.config.prediction.model = Some(core_engine::config::ModelSelection {
+            id: "fixture".into(),
+            version: "v1".into(),
+        });
+        let mut s = Session::new(&r, profile, HostContext::default());
+        apply(&mut s, Action::InsertLiteral("北京".into()));
+        let work = s.prediction_request().unwrap();
+        assert_eq!(work.prefix, "北京");
+        let chosen = work.candidates.iter().find(|c| c.text == "市").unwrap().id;
+        let response = ScoreResponse {
+            protocol: 1,
+            key: work.key,
+            prediction_accepted: Some(vec![chosen]),
+            scores: work
+                .candidates
+                .iter()
+                .map(|c| CandidateScore {
+                    id: c.id,
+                    value: 0.,
+                })
+                .collect(),
+        };
+        s.complete_prediction(work.key, Ok(response));
+        apply(&mut s, Action::Space);
+        if let Some(next) = s.prediction_request() {
+            assert_eq!(next.prefix, "北京市");
+        }
+    }
 }

@@ -36,13 +36,44 @@ impl Lexicon {
             words: words.into_iter().collect(),
         }
     }
-    /// Lookup is bounded to eight suffixes and at most 1024 rows each. The index
+    /// Lookup is bounded to sixteen suffixes and at most 1024 rows each. The index
     /// is built off the input path and shared by all sessions using a dictionary.
     pub fn recall(&self, prefix: &str, limit: usize) -> Vec<Candidate> {
+        if limit == 0 {
+            return Vec::new();
+        }
+        // Do not reinterpret a completed word's final character as a new word.
+        // Longer matches may still extend it (北京 -> 大学), and explicit word
+        // associations remain available (北京 -> 天气). This is a conservative
+        // lexical boundary, not a sentence parser or a confidence probability.
+        let suffixes: Vec<_> = prefix
+            .char_indices()
+            .rev()
+            .take(16)
+            .map(|(offset, _)| {
+                (
+                    offset,
+                    self.words
+                        .partition_point(|(w, _)| w.as_str() < &prefix[offset..]),
+                )
+            })
+            .collect();
+        let boundary = suffixes
+            .iter()
+            .filter(|(offset, start)| {
+                self.words
+                    .get(*start)
+                    .is_some_and(|(w, _)| w == &prefix[*offset..])
+            })
+            .map(|(offset, _)| *offset)
+            .min()
+            .unwrap_or(prefix.len());
         let mut found = BTreeMap::<String, (usize, u32)>::new();
-        for (offset, _) in prefix.char_indices().rev().take(8) {
+        for (offset, start) in suffixes
+            .into_iter()
+            .filter(|(offset, _)| *offset <= boundary)
+        {
             let suffix = &prefix[offset..];
-            let start = self.words.partition_point(|(w, _)| w.as_str() < suffix);
             for (text, weight) in self.words[start..]
                 .iter()
                 .take(1024)
@@ -60,7 +91,8 @@ impl Lexicon {
         }
         for line in ASSOCIATIONS.lines().filter(|l| !l.starts_with('#')) {
             if let Some((before, next)) = line.split_once('\t') {
-                if prefix.ends_with(before) && word(next) {
+                if prefix.ends_with(before) && prefix.len() - before.len() <= boundary && word(next)
+                {
                     found
                         .entry(next.into())
                         .or_insert((before.chars().count(), 1000));
@@ -145,6 +177,42 @@ impl Prediction {
 #[cfg(test)]
 mod tests {
     use super::*;
+    #[test]
+    fn completed_words_do_not_restart_from_their_last_character() {
+        let lexicon = Lexicon::new(&[]);
+        for (prefix, forbidden) in [
+            ("还有五分钟", "头"),
+            ("理发店剪头发", "展"),
+            ("五一期间", "隔"),
+        ] {
+            assert!(
+                !lexicon
+                    .recall(prefix, 64)
+                    .iter()
+                    .any(|c| c.text == forbidden),
+                "{prefix} must not suggest {forbidden}"
+            );
+        }
+    }
+
+    #[test]
+    fn complete_user_words_protect_their_boundary_and_still_allow_extensions() {
+        let lexicon = Lexicon::new(&[
+            Entry {
+                code: "a".into(),
+                word: "青岚钟".into(),
+                weight: 100,
+            },
+            Entry {
+                code: "b".into(),
+                word: "青岚钟项目".into(),
+                weight: 100,
+            },
+        ]);
+        let next = lexicon.recall("讨论青岚钟", 64);
+        assert!(next.iter().any(|c| c.text == "项目"));
+        assert!(!next.iter().any(|c| c.text == "头"));
+    }
     #[test]
     fn recall_distinguishes_word_remainders_and_next_words_without_repeating_prefix() {
         let lexicon = Lexicon::new(&[

@@ -96,6 +96,10 @@ pub enum Unavailable {
     Inference,
     #[error("no result")]
     Empty,
+    #[error("prediction policy has not been supplied for this model")]
+    Uncalibrated,
+    #[error("prediction is below the model's confidence threshold")]
+    LowConfidence,
     #[error("deadline exceeded")]
     Timeout,
     #[error("cancelled; computation may still be running")]
@@ -160,6 +164,10 @@ pub struct ScoreResponse {
     pub protocol: u32,
     pub key: RequestKey,
     pub scores: Vec<CandidateScore>,
+    /// Package-specific admission after calibration; raw scores are not confidence.
+    /// Missing on old/raw adapters: the product must not display model predictions.
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub prediction_accepted: Option<Vec<CandidateId>>,
 }
 
 impl ScoreResponse {
@@ -186,6 +194,15 @@ impl ScoreResponse {
         }
         if seen != expected || expected.len() != request.candidates.len() {
             return Err(Unavailable::Candidates);
+        }
+        if let Some(accepted) = &self.prediction_accepted {
+            let unique: HashSet<_> = accepted.iter().map(|id| id.0).collect();
+            if request.task != Task::Predict
+                || unique.len() != accepted.len()
+                || !unique.is_subset(&expected)
+            {
+                return Err(Unavailable::Candidates);
+            }
         }
         Ok(())
     }

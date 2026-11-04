@@ -35,6 +35,9 @@ pub struct Manifest {
     pub adapter: String,
     pub model: String,
     pub vocabulary: Option<String>,
+    /// Optional hashed JSON admission policy, bound to these exact model weights.
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub prediction_policy: Option<String>,
     pub files: Vec<Artifact>,
     pub source: String,
     pub license: String,
@@ -63,6 +66,50 @@ pub enum PackageError {
 pub struct ValidatedPackage {
     pub root: PathBuf,
     pub manifest: Manifest,
+}
+
+fn prediction_policy(
+    root: &Path,
+    manifest: &Manifest,
+) -> Result<Option<crate::prediction_policy::PredictionPolicy>, PackageError> {
+    let Some(name) = &manifest.prediction_policy else {
+        return Ok(None);
+    };
+    let path = safe_path(name)?;
+    let artifact = manifest
+        .files
+        .iter()
+        .find(|f| f.path == *name)
+        .ok_or(PackageError::Manifest)?;
+    if artifact.bytes > 64 * 1024 {
+        return Err(PackageError::Limit);
+    }
+    let model = manifest
+        .files
+        .iter()
+        .find(|f| f.path == manifest.model)
+        .ok_or(PackageError::Manifest)?;
+    let policy: crate::prediction_policy::PredictionPolicy =
+        serde_json::from_slice(&fs::read(root.join(path))?).map_err(|_| PackageError::Manifest)?;
+    let vocabulary = manifest
+        .vocabulary
+        .as_ref()
+        .map(|name| {
+            manifest
+                .files
+                .iter()
+                .find(|f| &f.path == name)
+                .ok_or(PackageError::Manifest)
+        })
+        .transpose()?;
+    if !policy.validates(
+        &manifest.adapter,
+        &model.sha256,
+        vocabulary.map(|f| f.sha256.as_str()),
+    ) {
+        return Err(PackageError::Manifest);
+    }
+    Ok(Some(policy))
 }
 
 fn identifier(value: &str) -> bool {
@@ -224,6 +271,7 @@ pub fn validate(root: &Path) -> Result<ValidatedPackage, PackageError> {
         safe_path(vocab)?;
     }
     reject_unlisted(&root, &root, &names)?;
+    prediction_policy(&root, &manifest)?;
     Ok(ValidatedPackage { root, manifest })
 }
 
@@ -407,7 +455,11 @@ pub fn load_with_threads(
     if backend.capabilities() != &checked.manifest.capabilities {
         return Err(Unavailable::Capability);
     }
-    Ok(backend)
+    Ok(Box::new(crate::prediction_policy::GatedBackend {
+        policy: prediction_policy(&checked.root, &checked.manifest)
+            .map_err(|_| Unavailable::Load)?,
+        backend,
+    }))
 }
 
 /// Owns one selected model on a service/worker thread. Loading a replacement is
@@ -533,6 +585,7 @@ mod tests {
                 adapter: "gguf-continuation-v1".into(),
                 model: "model.gguf".into(),
                 vocabulary: None,
+                prediction_policy: None,
                 files: vec![Artifact {
                     path: "model.gguf".into(),
                     bytes: fs::metadata(root.join("model.gguf")).unwrap().len(),
@@ -593,6 +646,47 @@ mod tests {
         remove(&store, "fixture", "v1", None).unwrap();
         assert!(list(&store).unwrap().is_empty());
     }
+    #[test]
+    fn prediction_policy_requires_hash_integrity_and_the_exact_model() {
+        let f = Fixture::new();
+        let source = f.package();
+        let mut manifest = validate(&source).unwrap().manifest;
+        let mut policy = crate::prediction_policy::PredictionPolicy {
+            version: 1,
+            adapter: manifest.adapter.clone(),
+            model_sha256: manifest.files[0].sha256.clone(),
+            vocabulary_sha256: None,
+            minimum_score: -2.,
+            minimum_margin: 0.5,
+            evidence: "Authored regression fixture, no product quality claim".into(),
+        };
+        let path = source.join("prediction-policy.json");
+        fs::write(&path, serde_json::to_vec(&policy).unwrap()).unwrap();
+        manifest.prediction_policy = Some("prediction-policy.json".into());
+        manifest.files.push(Artifact {
+            path: "prediction-policy.json".into(),
+            bytes: fs::metadata(&path).unwrap().len(),
+            sha256: sha256(&path).unwrap(),
+        });
+        fs::write(
+            source.join("manifest.json"),
+            serde_json::to_vec(&manifest).unwrap(),
+        )
+        .unwrap();
+        assert!(validate(&source).is_ok());
+        policy.model_sha256 = "b".repeat(64);
+        fs::write(&path, serde_json::to_vec(&policy).unwrap()).unwrap();
+        assert!(matches!(validate(&source), Err(PackageError::Integrity)));
+        manifest.files[1].bytes = fs::metadata(&path).unwrap().len();
+        manifest.files[1].sha256 = sha256(&path).unwrap();
+        fs::write(
+            source.join("manifest.json"),
+            serde_json::to_vec(&manifest).unwrap(),
+        )
+        .unwrap();
+        assert!(matches!(validate(&source), Err(PackageError::Manifest)));
+    }
+
     #[test]
     fn rejects_traversal_native_code_duplicate_case_names_and_unlisted_files() {
         for path in [

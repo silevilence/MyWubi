@@ -91,6 +91,13 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
                     serde_json::from_value(serde_json::Value::Object(value.clone()))?;
                 let response = response?;
                 response.validate(&request, key)?;
+                if response
+                    .prediction_accepted
+                    .as_ref()
+                    .is_none_or(Vec::is_empty)
+                {
+                    return Err("service returned scores without prediction admission".into());
+                }
                 timings.push(round.elapsed().as_micros() as f64 / 1000.0);
                 if cold.is_none() {
                     println!(

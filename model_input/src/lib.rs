@@ -6,6 +6,7 @@ pub mod llama;
 #[cfg(feature = "ort")]
 pub mod onnx;
 pub mod package;
+pub mod prediction_policy;
 pub mod scheduler;
 pub mod service;
 pub mod worker;
