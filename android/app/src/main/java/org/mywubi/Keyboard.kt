@@ -110,15 +110,14 @@ fun Keyboard(model: KeyboardModel, dispatch: (Any) -> Unit, window: (Int) -> Uni
             PinyinButton(pinyinMode, pinyinLabel, baseEnabled && model.pinyinAvailable, cyclePinyin)
         }
         val controls: @Composable () -> Unit = {
-            if (model.spelling.isNotEmpty() && !model.privateInput) {
-                Row(Modifier.fillMaxWidth(), verticalAlignment=androidx.compose.ui.Alignment.CenterVertically) {
-                    Text(model.spelling, Modifier.weight(1f).padding(horizontal=12.dp, vertical=4.dp),
-                        color=colors.primary, fontSize=16.sp, maxLines=1)
-                    if (model.candidates.isNotEmpty()) {
-                        pinyinControl()
-                    }
-                }
-            }
+            // Reserve the same single text line while idle, composing or showing predictions.
+            // Keep actions in the toolbar so their 48 dp touch targets do not enlarge this line.
+            val showSpelling = model.spelling.isNotEmpty() && !model.privateInput
+            Text(if (showSpelling) model.spelling else "",
+                Modifier.fillMaxWidth().heightIn(min=28.dp).padding(horizontal=12.dp, vertical=4.dp)
+                    .then(if (showSpelling) Modifier else Modifier.clearAndSetSemantics {}),
+                color=colors.primary, fontSize=16.sp, lineHeight=20.sp, maxLines=1,
+                overflow=androidx.compose.ui.text.style.TextOverflow.Ellipsis)
             Row(Modifier.fillMaxWidth().heightIn(min=48.dp), verticalAlignment=androidx.compose.ui.Alignment.CenterVertically) {
                 Row(Modifier.weight(1f), verticalAlignment=androidx.compose.ui.Alignment.CenterVertically) {
                     if (model.candidates.isEmpty()) IconButton(onClick={tools=!tools}, modifier=Modifier.imeAction("键盘工具", true) {tools=!tools}) {
@@ -153,8 +152,8 @@ fun Keyboard(model: KeyboardModel, dispatch: (Any) -> Unit, window: (Int) -> Uni
                                 BadgedBox(badge = { if (showUpdate) Badge() }) { Text("设置") }
                             }
                         }
-                        pinyinControl()
                     }
+                    pinyinControl()
                 }
                 IconButton(onClick=hideKeyboard,
                     modifier=Modifier.size(48.dp).imeAction("收起键盘", true, hideKeyboard)) {
@@ -299,7 +298,8 @@ private fun PinyinButton(mode: KeyMode, description: String, enabled: Boolean, a
     val selected = mode != KeyMode.Off
     val colors = MaterialTheme.colorScheme
     FilledTonalButton(onClick=action, enabled=enabled,
-        modifier=Modifier.imeAction(description, enabled, action), contentPadding=PaddingValues(horizontal=10.dp, vertical=6.dp),
+        // Match TextButton's vertical padding so toolbar states stay equal at large font scales.
+        modifier=Modifier.imeAction(description, enabled, action), contentPadding=PaddingValues(horizontal=10.dp, vertical=8.dp),
         colors=ButtonDefaults.filledTonalButtonColors(
             containerColor=if(selected) colors.primary else colors.surface,
             contentColor=if(selected) colors.onPrimary else colors.primary)) {

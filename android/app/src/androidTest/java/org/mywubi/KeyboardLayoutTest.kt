@@ -1,6 +1,14 @@
 package org.mywubi
 
 import androidx.activity.compose.setContent
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.runtime.*
+import androidx.compose.ui.Alignment
+import androidx.compose.ui.Modifier
+import androidx.compose.ui.layout.onSizeChanged
+import androidx.compose.ui.platform.LocalDensity
+import androidx.compose.ui.unit.Density
 import androidx.test.core.app.ActivityScenario
 import androidx.test.platform.app.InstrumentationRegistry
 import androidx.test.uiautomator.By
@@ -12,6 +20,69 @@ import java.io.File
 import java.util.concurrent.CopyOnWriteArrayList
 
 class KeyboardLayoutTest {
+    @Test fun compositionKeepsKeyboardHeightAndKeyPositionsStable() = checkCompositionLayout()
+
+    @Test fun largeFontCompositionKeepsKeyboardHeightAndKeyPositionsStable() = checkCompositionLayout(2f)
+
+    private fun checkCompositionLayout(fontScale: Float? = null) {
+        val instrumentation = InstrumentationRegistry.getInstrumentation()
+        val device = UiDevice.getInstance(instrumentation)
+        val height = java.util.concurrent.atomic.AtomicInteger()
+        val ready = KeyboardModel(enabled=true, modesAvailable=true, pinyinAvailable=true)
+        var model by mutableStateOf(ready)
+        ActivityScenario.launch(MainActivity::class.java).use { scenario ->
+            if (InstrumentationRegistry.getArguments().getString("layout_orientation") == "landscape") {
+                scenario.onActivity { it.requestedOrientation = android.content.pm.ActivityInfo.SCREEN_ORIENTATION_LANDSCAPE }
+                val deadline = android.os.SystemClock.uptimeMillis() + 10000
+                while (device.displayWidth <= device.displayHeight && android.os.SystemClock.uptimeMillis() < deadline) {
+                    android.os.SystemClock.sleep(100)
+                }
+                device.waitForIdle()
+                assertTrue("Device must really be in landscape", device.displayWidth > device.displayHeight)
+            }
+            scenario.onActivity { activity -> activity.setContent {
+                val density = LocalDensity.current
+                CompositionLocalProvider(LocalDensity provides Density(density.density, fontScale ?: density.fontScale)) {
+                    Box(Modifier.fillMaxSize(), contentAlignment=Alignment.BottomCenter) {
+                        Box(Modifier.onSizeChanged { height.set(it.height) }) {
+                            Keyboard(model, {}, {}, switchIme={})
+                        }
+                    }
+                }
+            } }
+            fun keyBounds(): android.graphics.Rect {
+                device.waitForIdle()
+                instrumentation.waitForIdleSync()
+                instrumentation.uiAutomation.clearCache()
+                return device.wait(Until.findObject(By.desc("q").pkg("org.mywubi")), 5000)
+                    ?.visibleBounds ?: error("Missing q key")
+            }
+            val idleKey = keyBounds()
+            val idleHeight = height.get()
+            assertTrue(idleHeight > 0)
+            if (fontScale == null) device.takeScreenshot(File(instrumentation.targetContext.filesDir, "keyboard-height-idle.png"))
+            val candidates = listOf(CandidateItem(1, "是", "j"))
+            val states = listOf(
+                "composing" to ready.copy(spelling="j", candidates=candidates),
+                "no matches" to ready.copy(spelling="zzzz"),
+                "long spelling" to ready.copy(spelling="abcdefghijklmnopqrstuvwxyz".repeat(3)),
+                "cleared" to ready,
+                "prediction" to ready.copy(prediction=true, candidates=candidates),
+                "private input" to ready.copy(privateInput=true),
+                "idle again" to ready
+            )
+            for ((label, next) in states) {
+                scenario.onActivity { model = next }
+                val bounds = keyBounds()
+                if (label == "composing" && fontScale == null) {
+                    device.takeScreenshot(File(instrumentation.targetContext.filesDir, "keyboard-height-composing.png"))
+                }
+                assertEquals("Keyboard height changed in $label", idleHeight, height.get())
+                assertEquals("Letter keys moved in $label", idleKey, bounds)
+            }
+        }
+    }
+
     @Test fun hideKeyboardIsAvailableAcrossInputStatesAndDoesNotDispatchText() {
         val instrumentation = InstrumentationRegistry.getInstrumentation()
         val device = UiDevice.getInstance(instrumentation)
