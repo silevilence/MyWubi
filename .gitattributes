@@ -12,3 +12,6 @@
 # Keep Android launchers portable.
 /android/gradlew text eol=lf
 /android/gradlew.bat text eol=crlf
+
+# ONNX protobuf graphs must never undergo Windows line-ending conversion.
+*.onnx binary

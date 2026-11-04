@@ -6,6 +6,11 @@ param(
     [switch]$Test
 )
 $ErrorActionPreference = 'Stop'
+if ($Target -ne 'windows' -and -not $PSBoundParameters.ContainsKey('OnnxRuntime')) {
+    # The host DLL environment must not become an Android library named .so.
+    $OnnxRuntime = ''
+    $env:MYWUBI_ORT_DYLIB = $null
+}
 if ($OnnxRuntime) { $env:MYWUBI_ORT_DYLIB = (Resolve-Path -LiteralPath $OnnxRuntime).Path }
 $vswhere = Join-Path ([Environment]::GetFolderPath('ProgramFilesX86')) 'Microsoft Visual Studio\Installer\vswhere.exe'
 if (-not (Get-Command cmake -ErrorAction SilentlyContinue)) {
@@ -16,7 +21,7 @@ if (-not (Get-Command cmake -ErrorAction SilentlyContinue)) {
 }
 if (-not $env:LIBCLANG_PATH) { $env:LIBCLANG_PATH = 'C:\Program Files\LLVM\bin' }
 if (-not (Test-Path -LiteralPath (Join-Path $env:LIBCLANG_PATH 'libclang.dll'))) { throw 'Set LIBCLANG_PATH to LLVM libclang directory' }
-$cargoArgs = @('build', '-p', 'model_input', '--locked', '--features', 'llama-cpp-2')
+$cargoArgs = @('build', '-p', 'model_input', '--locked', '--features', 'llama-cpp-2,ort')
 if ($Test) { $cargoArgs[0] = 'test' }
 if ($Target -ne 'windows') {
     if ($Test) { throw 'Cross-built tests require an Android device runner; do not count build as execution' }
