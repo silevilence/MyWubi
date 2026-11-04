@@ -16,11 +16,13 @@ fn visible_constructor_sets_all_fields() {
     let theme = ThemeSnapshot::default();
     let items = vec![
         CandidateItem {
+            disabled: false,
             label: "1.".into(),
             text: "五".into(),
             hint: String::new(),
         },
         CandidateItem {
+            disabled: false,
             label: "2.".into(),
             text: "一".into(),
             hint: String::new(),

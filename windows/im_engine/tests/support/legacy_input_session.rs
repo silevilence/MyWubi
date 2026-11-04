@@ -526,6 +526,7 @@ fn set_candidates(
         .into_iter()
         .enumerate()
         .map(|(i, text)| CandidateItem {
+            disabled: false,
             label: format!("{}. ", i + 1),
             text,
             hint: if show_hints {

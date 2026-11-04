@@ -237,6 +237,7 @@ class MyWubiService : InputMethodService() {
             spelling = spelling,
             idle = stableIdle, updateAvailable = updateAvailable,
             status = error ?: if(session == null) "正在加载码表…" else tableLabel,
+            statusError = error != null,
             pinyinMode = pinyinMode,
             base = state.optString("base", "Main"),
             temporary = temporary,

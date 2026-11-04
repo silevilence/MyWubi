@@ -460,16 +460,37 @@ impl Session {
     fn legacy(&self) -> bool {
         self.engine.profile == BehaviorProfile::LegacyV1
     }
+    /// Explicit selection keys refer to the currently published prediction list.
+    /// Hidden model work must never turn an ordinary key into a selection.
+    fn prediction_key_index(&self, action: &Action) -> Option<usize> {
+        if !self.has_prediction() {
+            return None;
+        }
+        let index = match action {
+            Action::Space | Action::CommitPreferred | Action::Legacy(InputEvent::Space) => 0,
+            Action::Legacy(InputEvent::Select(index)) => index.checked_sub(1)?,
+            Action::InputCode(c)
+            | Action::InputText(c, TextIntent::Normal)
+            | Action::Legacy(InputEvent::Char(c))
+                if ('1'..='9').contains(c) =>
+            {
+                (*c as usize) - ('1' as usize)
+            }
+            _ => return None,
+        };
+        self.prediction.as_ref()?.items.get(index).map(|_| index)
+    }
     pub fn would_handle(&self, action: &Action) -> bool {
         if self.has_prediction()
             && self.gate
             && !self.closed
-            && matches!(
-                action,
-                Action::SelectCandidate(..)
-                    | Action::Cancel
-                    | Action::Legacy(InputEvent::Select(_) | InputEvent::Esc)
-            )
+            && (self.prediction_key_index(action).is_some()
+                || matches!(
+                    action,
+                    Action::SelectCandidate(..)
+                        | Action::Cancel
+                        | Action::Legacy(InputEvent::Select(_) | InputEvent::Esc)
+                ))
         {
             return true;
         }
@@ -492,7 +513,10 @@ impl Session {
     pub fn would_handle_legacy(&self, event: &InputEvent, system_modifier: bool) -> bool {
         if !system_modifier
             && self.has_prediction()
-            && matches!(event, InputEvent::Select(_) | InputEvent::Esc)
+            && (self
+                .prediction_key_index(&Action::Legacy(event.clone()))
+                .is_some()
+                || matches!(event, InputEvent::Select(_) | InputEvent::Esc))
         {
             return true;
         }
@@ -565,7 +589,7 @@ impl Session {
                         .checked_sub(1)
                         .ok_or(SessionError::Rejected(Rejection::StaleCandidate))?,
                 ),
-                _ => None,
+                _ => self.prediction_key_index(&action),
             };
             if let Some(index) = selected {
                 let candidate = prediction

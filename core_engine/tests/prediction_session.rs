@@ -39,6 +39,75 @@ fn north(s: &mut Session) {
     apply(s, Action::Legacy(InputEvent::Char('b')));
     apply(s, Action::Legacy(InputEvent::Space));
 }
+
+#[test]
+fn visible_predictions_accept_space_and_number_keys_without_literal_characters() {
+    for profile in [BehaviorProfile::LegacyV1, BehaviorProfile::TouchV1] {
+        for action in [
+            Action::Space,
+            Action::Legacy(InputEvent::Space),
+            Action::Legacy(InputEvent::Char('1')),
+            Action::Legacy(InputEvent::Select(1)),
+            Action::InputCode('1'),
+            Action::InputText('1', TextIntent::Normal),
+            Action::CommitPreferred,
+        ] {
+            let mut s = session(profile);
+            north(&mut s);
+            let expected = s.candidate_window(0, 64).candidates[0].text.clone();
+            assert!(s.would_handle(&action), "{profile:?}: {action:?}");
+            assert_eq!(
+                apply(&mut s, action),
+                EditSessionOp::CommitAndReplace {
+                    text: expected,
+                    replace_len: 0
+                }
+            );
+        }
+    }
+}
+
+#[test]
+fn prediction_numbers_follow_the_displayed_order_and_explicit_literals_stay_literal() {
+    for profile in [BehaviorProfile::LegacyV1, BehaviorProfile::TouchV1] {
+        for index in 1..=5 {
+            let mut s = session(profile);
+            north(&mut s);
+            let expected = s.candidate_window(0, 64).candidates[index - 1].text.clone();
+            let event = InputEvent::Char(char::from_digit(index as u32, 10).unwrap());
+            assert!(s.would_handle_legacy(&event, false));
+            assert!(!s.would_handle_legacy(&event, true));
+            assert_eq!(
+                apply(&mut s, Action::Legacy(event)),
+                EditSessionOp::CommitAndReplace {
+                    text: expected,
+                    replace_len: 0
+                }
+            );
+        }
+    }
+    let mut s = session(BehaviorProfile::TouchV1);
+    north(&mut s);
+    assert_eq!(
+        apply(&mut s, Action::InputText('1', TextIntent::Literal)),
+        EditSessionOp::CommitAndReplace {
+            text: "1".into(),
+            replace_len: 0
+        }
+    );
+}
+
+#[test]
+fn prediction_candidates_contain_words_without_status_labels() {
+    let mut s = session(BehaviorProfile::LegacyV1);
+    north(&mut s);
+    assert!(s.snapshot().items.iter().all(|c| c.hint.is_empty()));
+    assert!(s
+        .candidate_window(0, 64)
+        .candidates
+        .iter()
+        .all(|c| c.hints.is_empty()));
+}
 fn choose(s: &Session, text: &str) -> Action {
     let w = s.candidate_window(0, 64);
     Action::SelectCandidate(
@@ -153,14 +222,8 @@ fn sensitive_editors_disabled_config_and_external_edits_never_predict() {
     assert!(!s.has_prediction());
 }
 #[test]
-fn space_and_enter_ignore_suggestions_and_runtime_disable_preserves_pending_code() {
+fn enter_ignores_suggestions_and_runtime_disable_preserves_pending_code() {
     let mut s = session(BehaviorProfile::TouchV1);
-    north(&mut s);
-    let p = s.prepare(Action::Space).unwrap();
-    assert_eq!(p.disposition, Disposition::NotHandled);
-    assert_eq!(p.op, EditSessionOp::NoOp);
-    s.acknowledge(p.token, HostOutcome::Applied);
-    assert!(!s.has_prediction());
     north(&mut s);
     let p = s.prepare(Action::Enter).unwrap();
     assert_eq!(p.disposition, Disposition::NotHandled);

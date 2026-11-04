@@ -33,7 +33,7 @@ impl ReverseLookup {
         if codes.is_empty() {
             String::new()
         } else {
-            format!("主码: {}", codes.join(" / "))
+            codes.join(" / ")
         }
     }
 }

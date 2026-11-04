@@ -50,7 +50,8 @@ data class CandidateItem(val id: Long, val text: String, val hint: String)
 data class KeyboardModel(
     val prediction: Boolean = false,
     val epoch: Long = 0, val enabled: Boolean = false, val spelling: String = "",
-    val status: String = "正在加载码表…", val base: String = "Main", val temporary: String? = null,
+    val status: String = "正在加载码表…", val statusError: Boolean = false,
+    val base: String = "Main", val temporary: String? = null,
     val pinyinAvailable: Boolean = false, val modesAvailable: Boolean = false, val candidates: List<CandidateItem> = emptyList(),
     val query: String = "{}", val total: Int = 0, val offset: Int = 0,
     val layout: String = "letters", val enterLabel: String = "回车", val privateInput: Boolean = false,
@@ -109,12 +110,6 @@ fun Keyboard(model: KeyboardModel, dispatch: (Any) -> Unit, window: (Int) -> Uni
             PinyinButton(pinyinMode, pinyinLabel, baseEnabled && model.pinyinAvailable, cyclePinyin)
         }
         val controls: @Composable () -> Unit = {
-            if (landscape && (model.candidates.isEmpty() || model.privateInput)) {
-                Text(if(model.privateInput) "安全输入" else model.status,
-                    Modifier.fillMaxWidth().padding(horizontal=8.dp, vertical=4.dp),
-                    color=colors.onSurface, fontSize=14.sp, maxLines=1,
-                    overflow=androidx.compose.ui.text.style.TextOverflow.Ellipsis)
-            }
             if (model.spelling.isNotEmpty() && !model.privateInput) {
                 Row(Modifier.fillMaxWidth(), verticalAlignment=androidx.compose.ui.Alignment.CenterVertically) {
                     Text(model.spelling, Modifier.weight(1f).padding(horizontal=12.dp, vertical=4.dp),
@@ -130,7 +125,8 @@ fun Keyboard(model: KeyboardModel, dispatch: (Any) -> Unit, window: (Int) -> Uni
                         androidx.compose.foundation.Image(androidx.compose.ui.res.painterResource(R.drawable.mywubi_brand), null, Modifier.size(28.dp))
                     }
                     if (model.candidates.isNotEmpty() && !model.privateInput) {
-                        if (model.prediction) Text("预测", Modifier.padding(start=8.dp), color=colors.primary, fontSize=12.sp)
+                        if (model.prediction) Icon(androidx.compose.ui.res.painterResource(R.drawable.ic_prediction),
+                            "字词预测", Modifier.padding(start=8.dp).size(18.dp), tint=colors.primary)
                         LazyRow(Modifier.weight(1f).height(48.dp)) {
                             items(model.candidates, key={"${model.query}:${it.id}"}) { item -> CandidateButton(item, model.enabled) {choose(item)} }
                         }
@@ -138,10 +134,18 @@ fun Keyboard(model: KeyboardModel, dispatch: (Any) -> Unit, window: (Int) -> Uni
                             Text(if(expanded) "收起" else "展开")
                         }
                     } else {
-                        if (landscape) Spacer(Modifier.weight(1f))
-                        else Text(if(model.privateInput) "安全输入" else model.status, Modifier.weight(1f).padding(horizontal=8.dp),
-                            color=colors.onSurface, fontSize=14.sp, maxLines=1,
-                            overflow=androidx.compose.ui.text.style.TextOverflow.Ellipsis)
+                        Box(Modifier.weight(1f).padding(horizontal=8.dp)) {
+                            when {
+                                model.privateInput -> Icon(androidx.compose.ui.res.painterResource(R.drawable.ic_mode_lock),
+                                    "安全输入", Modifier.size(18.dp), tint=colors.onSurface)
+                                model.statusError -> IconButton(onClick=openSettings) {
+                                    Icon(androidx.compose.ui.res.painterResource(R.drawable.ic_input_error),
+                                        model.status, Modifier.size(20.dp), tint=MaterialTheme.colorScheme.error)
+                                }
+                                !model.enabled -> CircularProgressIndicator(Modifier.size(18.dp)
+                                    .clearAndSetSemantics { contentDescription = model.status }, strokeWidth=2.dp)
+                            }
+                        }
                         if (model.spelling.isEmpty() && model.temporary == null) {
                             val showUpdate = model.idle && model.updateAvailable
                             val label = if (showUpdate) "设置，有可用更新" else "设置"

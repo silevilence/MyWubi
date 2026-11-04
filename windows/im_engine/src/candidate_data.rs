@@ -43,6 +43,8 @@ impl ThemeSnapshot {
 /// 单个候选项。
 #[derive(Debug, Clone)]
 pub struct CandidateItem {
+    /// Non-text state for unavailable mode choices; never append errors to words.
+    pub disabled: bool,
     /// 显示用标签（如 "1.", "2."）。
     pub label: String,
     /// 候选词文本。
@@ -59,8 +61,7 @@ pub struct CandidateData {
     pub prediction_ids: Vec<usize>,
     /// 候选框是否可见。
     pub visible: bool,
-    /// 当前编码字符串。
-    // TODO(silev): spelling 字段暂未在 Slint UI 中渲染，后续在候选框标题区显示编码
+    /// 当前编码字符串；不拼接模式名、预测状态或其它说明文字。
     pub spelling: String,
     /// 当前页候选词列表（已截断为 page_size 条）。
     pub items: Vec<CandidateItem>,

@@ -99,7 +99,7 @@ class BrowserHostTest {
     @Test fun restrictedFieldsAndNextActionInChrome() {
         open(3)
         for(c in "ggll") key(c.toString())
-        assertTrue(device.hasObject(By.text("安全输入")))
+        assertTrue(device.hasObject(By.desc("安全输入")))
         assertFalse(device.hasObject(By.descStartsWith("候选 ")))
         assertFalse(device.hasObject(By.text("ggll").pkg("org.mywubi")))
         open(4)

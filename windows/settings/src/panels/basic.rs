@@ -27,7 +27,7 @@ pub fn show(ui: &mut Ui, state: &mut AppState) {
         state.mark_dirty();
     }
     ui.small(
-        "使用本地词典续接与常用搭配；数字键选择，继续编码即忽略。默认关闭，不改变编码候选排序。",
+        "使用本地词典续接与常用搭配；空格选第一项，数字键或点击选词，继续编码即忽略。默认关闭，不改变编码候选排序。",
     );
     if state.models.show(ui, &state.config_path, &mut state.config) {
         state.mark_dirty();

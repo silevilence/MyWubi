@@ -50,7 +50,7 @@ fn hints_use_only_main_file_and_never_change_commit_text() {
             panic!("expected candidates")
         };
         assert_eq!(candidates, ["你好", "你好吗"]);
-        assert_eq!(code_hints, [if enabled { "主码: wq" } else { "" }, ""]);
+        assert_eq!(code_hints, [if enabled { "wq" } else { "" }, ""]);
         assert_eq!(sm.handle(E::Space), Transition::Commit("你好".into()));
     }
 }

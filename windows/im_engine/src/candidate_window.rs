@@ -651,7 +651,7 @@ fn gdi_render_candidate_window(hwnd: HWND, window_data: &WindowData, data: &Cand
                 .get(i)
                 .copied()
                 .unwrap_or(ls.cx + ts.cx + hs.cx + 4);
-            if i == data.highlighted {
+            if i == data.highlighted && !item.disabled {
                 let hl = CreateSolidBrush(argb_to_colorref(data.theme.highlight_color));
                 let _ = FillRect(
                     hdc_mem,
@@ -676,7 +676,14 @@ fn gdi_render_candidate_window(hwnd: HWND, window_data: &WindowData, data: &Cand
             } else {
                 let _ = SetTextColor(hdc_mem, argb_to_colorref(data.theme.primary_color));
                 let _ = TextOutW(hdc_mem, cx, cand_y + (row_h - ls.cy) / 2, &lw);
-                let _ = SetTextColor(hdc_mem, COLORREF(0x00000000));
+                let _ = SetTextColor(
+                    hdc_mem,
+                    COLORREF(if item.disabled {
+                        0x00808080
+                    } else {
+                        0x00000000
+                    }),
+                );
                 let _ = TextOutW(hdc_mem, cx + ls.cx, cand_y + (row_h - ts.cy) / 2, &tw);
                 let _ = SetTextColor(hdc_mem, argb_to_colorref(data.theme.primary_color));
                 let _ = TextOutW(

@@ -39,7 +39,7 @@ impl Lexicon {
     /// Lookup is bounded to eight suffixes and at most 1024 rows each. The index
     /// is built off the input path and shared by all sessions using a dictionary.
     pub fn recall(&self, prefix: &str, limit: usize) -> Vec<Candidate> {
-        let mut found = BTreeMap::<String, (usize, u32, &'static str)>::new();
+        let mut found = BTreeMap::<String, (usize, u32)>::new();
         for (offset, _) in prefix.char_indices().rev().take(8) {
             let suffix = &prefix[offset..];
             let start = self.words.partition_point(|(w, _)| w.as_str() < suffix);
@@ -50,7 +50,7 @@ impl Lexicon {
             {
                 let remaining = &text[suffix.len()..];
                 if !remaining.is_empty() {
-                    let score = (suffix.chars().count(), *weight, "续接");
+                    let score = (suffix.chars().count(), *weight);
                     found
                         .entry(remaining.into())
                         .and_modify(|old| *old = (*old).max(score))
@@ -63,7 +63,7 @@ impl Lexicon {
                 if prefix.ends_with(before) && word(next) {
                     found
                         .entry(next.into())
-                        .or_insert((before.chars().count(), 1000, "联想"));
+                        .or_insert((before.chars().count(), 1000));
                 }
             }
         }
@@ -78,11 +78,11 @@ impl Lexicon {
             .into_iter()
             .take(limit.min(64))
             .enumerate()
-            .map(|(id, (text, (_, _, kind)))| Candidate {
+            .map(|(id, (text, _))| Candidate {
                 id: CandidateId(id),
                 text,
                 exact: true,
-                hints: vec![CandidateHint::CodeSuffix(kind.into())],
+                hints: Vec::new(),
             })
             .collect()
     }
@@ -133,10 +133,7 @@ impl Prediction {
                 .iter()
                 .map(|c| PresentationItem {
                     text: c.text.clone(),
-                    hint: match c.hints.first() {
-                        Some(CandidateHint::CodeSuffix(h)) => h.clone(),
-                        _ => String::new(),
-                    },
+                    hint: String::new(),
                 })
                 .collect(),
             total_pages: usize::from(!self.items.is_empty()),

@@ -385,15 +385,7 @@ fn candidate_view(
 ) -> CandidateData {
     let mut data = CandidateData::hidden(ThemeSnapshot::from_config(config));
     data.visible = view.visible;
-    data.spelling = if view.prediction {
-        "字词预测".into()
-    } else if view.mode == InputMode::Main {
-        view.spelling.clone()
-    } else {
-        format!("{}  {}", view.mode.label(), view.spelling)
-            .trim_end()
-            .to_owned()
-    };
+    data.spelling = view.spelling.clone();
     data.page = view.page;
     data.total_pages = view.total_pages;
     // Cleared operations historically discard anchors; active views retain the supplied fallback.
@@ -403,10 +395,11 @@ fn candidate_view(
         .iter()
         .enumerate()
         .map(|(i, item)| CandidateItem {
+            disabled: view.mode == InputMode::Menu && !item.hint.is_empty(),
             label: format!("{}. ", i + 1),
             text: item.text.clone(),
-            hint: if view.prediction {
-                format!("  {}", item.hint)
+            hint: if view.mode == InputMode::Menu {
+                String::new()
             } else {
                 item.hint.clone()
             },
@@ -419,6 +412,59 @@ fn candidate_view(
 mod tests {
     use super::*;
     use core_engine::Entry;
+
+    #[test]
+    fn prediction_keys_commit_visible_candidates_without_status_words() {
+        for event in [
+            InputEvent::Space,
+            InputEvent::Char('1'),
+            InputEvent::Char('2'),
+            InputEvent::Select(3),
+        ] {
+            let mut config = Config::default();
+            config.prediction.enabled = true;
+            config.basic.auto_commit_unique = false;
+            let view = Arc::new(ArcSwap::from_pointee(CandidateData::default()));
+            let session = InputSession::new(
+                Dictionary::from_text("b\t北\n").unwrap(),
+                config,
+                0,
+                view.clone(),
+            );
+            let mut editor = Editor::default();
+            type_text(&session, &mut editor, "b");
+            session.handle(InputEvent::Space, false, None, |op| editor.apply(op));
+            assert!(view.load().spelling.is_empty());
+            assert!(view.load().items.iter().all(|item| item.hint.is_empty()));
+            let index = match event {
+                InputEvent::Char('2') => 1,
+                InputEvent::Select(3) => 2,
+                _ => 0,
+            };
+            let expected = format!("北{}", view.load().items[index].text);
+            assert!(session.test_key(&event, false));
+            assert!(session.handle(event, false, None, |op| editor.apply(op)));
+            assert_eq!(editor.committed, expected);
+            assert!(editor.spelling.is_empty());
+        }
+    }
+
+    #[test]
+    fn unavailable_mode_choices_use_disabled_style_without_error_text() {
+        let view = core_engine::candidates::SessionView {
+            visible: true,
+            mode: InputMode::Menu,
+            items: vec![core_engine::candidates::PresentationItem {
+                text: "拼音".into(),
+                hint: "未配置拼音码表".into(),
+            }],
+            ..Default::default()
+        };
+        let data = candidate_view(&view, &Config::default(), None);
+        assert!(data.spelling.is_empty());
+        assert!(data.items[0].disabled);
+        assert!(data.items[0].hint.is_empty());
+    }
 
     #[test]
     fn model_wait_retains_the_confirmed_commit_anchor() {
@@ -452,6 +498,24 @@ mod tests {
     #[test]
     fn frozen_legacy_driver_matches_shared_adapter_across_keys_controls_and_failures() {
         use crate::legacy_baseline as old;
+        // Only the intentionally removed UI labels differ from the frozen input behavior.
+        fn without_status_labels(data: &CandidateData) -> String {
+            let mut data = data.clone();
+            let menu = data.spelling.starts_with(InputMode::Menu.label());
+            for mode in [InputMode::Menu, InputMode::Pinyin, InputMode::English] {
+                if let Some(spelling) = data.spelling.strip_prefix(mode.label()) {
+                    data.spelling = spelling.trim_start().into();
+                    break;
+                }
+            }
+            if menu {
+                for item in &mut data.items {
+                    item.disabled = !item.hint.is_empty();
+                    item.hint.clear();
+                }
+            }
+            format!("{data:?}")
+        }
         for seed in ["", "a", "aaaa", "z", "`", "`1", "`1ni", "`2Hello"] {
             for failure in 0..3 {
                 let (new, new_view, _) = temporary_setup();
@@ -514,7 +578,7 @@ mod tests {
                     assert_eq!(old.mode(), new.mode());
                     assert_eq!(old_ops, new_ops);
                     assert_eq!(
-                        format!("{:?}", old_view.load_full()),
+                        without_status_labels(&old_view.load_full()),
                         format!("{:?}", new_view.load_full()),
                         "{seed} {failure} {event:?}"
                     );
@@ -560,7 +624,7 @@ mod tests {
                         new.config().basic.candidate_count
                     );
                     assert_eq!(
-                        format!("{:?}", old_view.load_full()),
+                        without_status_labels(&old_view.load_full()),
                         format!("{:?}", new_view.load_full())
                     );
                 }
@@ -682,11 +746,11 @@ mod tests {
         assert_eq!(candidates.load().items.len(), 2);
         assert!(editor.spelling.is_empty());
         type_text(&session, &mut editor, "1");
-        assert!(candidates.load().spelling.contains("临时拼音"));
+        assert!(candidates.load().spelling.is_empty());
         assert!(editor.spelling.is_empty());
         type_text(&session, &mut editor, "ni'hao");
         assert_eq!(editor.spelling, "ni'hao");
-        assert_eq!(candidates.load().items[0].hint, "主码: wq");
+        assert_eq!(candidates.load().items[0].hint, "wq");
         session.handle(InputEvent::Space, false, None, |op| editor.apply(op));
         assert_eq!(editor.committed, "你好");
         assert_eq!(session.mode(), InputMode::Main);
