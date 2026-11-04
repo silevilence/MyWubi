@@ -247,6 +247,29 @@ pub trait ModelBackend: Send {
     }
 }
 
+impl<B: ModelBackend + ?Sized> ModelBackend for Box<B> {
+    fn capabilities(&self) -> &Capabilities {
+        (**self).capabilities()
+    }
+    fn score(
+        &mut self,
+        request: &ScoreRequest,
+        control: &ComputeControl,
+    ) -> Result<ScoreResponse, Unavailable> {
+        (**self).score(request, control)
+    }
+    fn reset(&mut self) {
+        (**self).reset();
+    }
+    fn propose(
+        &mut self,
+        request: &ProposalRequest,
+        control: &ComputeControl,
+    ) -> Result<Vec<String>, Unavailable> {
+        (**self).propose(request, control)
+    }
+}
+
 /// Central guard ensures a faulty adapter cannot bypass output checks or reuse state
 /// across editors/models. It runs off the input thread; it cannot forcibly stop a backend.
 pub struct ModelSession<B: ModelBackend> {

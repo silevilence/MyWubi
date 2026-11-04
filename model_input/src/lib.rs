@@ -4,4 +4,5 @@ pub mod evaluation;
 pub mod llama;
 #[cfg(feature = "ort")]
 pub mod onnx;
+pub mod package;
 pub mod scheduler;

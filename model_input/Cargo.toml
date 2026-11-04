@@ -12,6 +12,7 @@ ort = { version = "=2.0.0-rc.15", default-features = false, features = ["std", "
 self_cell = { version = "1", optional = true }
 serde.workspace = true
 serde_json.workspace = true
+sha2 = "0.10"
 thiserror.workspace = true
 
 [features]
@@ -21,6 +22,10 @@ ort = ["dep:ort"]
 [[bin]]
 name = "evaluate"
 path = "src/bin/evaluate.rs"
+
+[[bin]]
+name = "model_packages"
+path = "src/bin/model_packages.rs"
 
 [[bin]]
 name = "score-llama"
