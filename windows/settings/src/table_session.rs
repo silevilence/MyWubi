@@ -6,6 +6,7 @@ use core_engine::{
     TableValidationReport,
 };
 use std::cmp::Reverse;
+use std::collections::HashMap;
 use std::path::{Path, PathBuf};
 
 pub struct TableEditor {
@@ -233,6 +234,7 @@ fn search_relevance(entry: &Entry, query: &str) -> Option<(u8, usize, Reverse<u3
 pub struct TableSession {
     directory: PathBuf,
     tables: Vec<String>,
+    labels: HashMap<String, String>,
     pub editor: TableEditor,
 }
 
@@ -259,9 +261,11 @@ impl TableSession {
             .unwrap_or_else(|| Path::new("."))
             .to_path_buf();
         let tables = scan_table_dir(&directory, Some(excluded));
+        let labels = table_labels(&directory, &tables);
         Self {
             directory,
             tables,
+            labels,
             editor: TableEditor::load(path),
         }
     }
@@ -271,6 +275,13 @@ impl TableSession {
     }
     pub fn tables(&self) -> &[String] {
         &self.tables
+    }
+    pub fn label<'a>(&'a self, name: &'a str) -> &'a str {
+        if self.directory.join(name) == self.editor.path && self.editor.load_error.is_none() {
+            self.editor.config.display_label(name)
+        } else {
+            self.labels.get(name).map(String::as_str).unwrap_or(name)
+        }
     }
     pub fn is_dirty(&self) -> bool {
         self.editor.is_dirty()
@@ -296,6 +307,7 @@ impl TableSession {
             .unwrap_or_else(|| Path::new("."))
             .to_path_buf();
         self.tables = scan_table_dir(&self.directory, Some(&config.dictionary.user_table));
+        self.labels = table_labels(&self.directory, &self.tables);
         self.editor = editor;
         config.dictionary.system_table = path;
         Ok(())
@@ -313,6 +325,7 @@ impl TableSession {
         } else {
             self.directory = directory;
             self.tables = tables;
+            self.labels = table_labels(&self.directory, &self.tables);
             Ok(())
         }
     }
@@ -320,6 +333,7 @@ impl TableSession {
     /// 重扫只刷新目录列表，绝不替换草稿或当前选择。
     pub fn rescan(&mut self, excluded: &Path) {
         self.tables = scan_table_dir(&self.directory, Some(excluded));
+        self.labels = table_labels(&self.directory, &self.tables);
     }
 
     /// 初始化完成后显式加载当前目录；普通重扫继续保留草稿。
@@ -400,6 +414,18 @@ impl TableSession {
     }
 }
 
+fn table_labels(directory: &Path, tables: &[String]) -> HashMap<String, String> {
+    tables
+        .iter()
+        .map(|name| {
+            let label = core_engine::read_table_config(directory.join(name))
+                .map(|config| config.display_label(name).to_owned())
+                .unwrap_or_else(|_| name.clone());
+            (name.clone(), label)
+        })
+        .collect()
+}
+
 /// 扫描目录下所有 .dict 文件，返回排序后的文件名列表（不含路径）。
 fn scan_table_dir(dir: &std::path::Path, excluded: Option<&std::path::Path>) -> Vec<String> {
     let excluded_name = excluded
@@ -420,6 +446,24 @@ fn scan_table_dir(dir: &std::path::Path, excluded: Option<&std::path::Path>) -> 
 #[cfg(test)]
 mod tests {
     use super::*;
+
+    #[test]
+    fn display_names_survive_save_as_without_changing_table_identity() {
+        let root = tempfile::tempdir().unwrap();
+        let (mut session, mut config) = session(root.path());
+        assert_eq!(session.label("original.dict"), "original.dict");
+        session.editor.config.display_name = "我的五笔".into();
+        session.editor.mark_changed();
+        session
+            .save(&config, &root.path().join("config.toml"))
+            .unwrap();
+        let copied = session.save_as("copied", &mut config).unwrap();
+        assert_eq!(config.dictionary.system_table, copied);
+        assert_eq!(session.label("original.dict"), "我的五笔");
+        assert_eq!(session.label("copied.dict"), "我的五笔");
+        let reloaded = TableSession::load(copied, &config.dictionary.user_table);
+        assert_eq!(reloaded.label("copied.dict"), "我的五笔");
+    }
 
     #[test]
     fn new_fields_survive_edit_save_reload_and_cross_directory_save() {

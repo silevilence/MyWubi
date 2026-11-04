@@ -20,7 +20,7 @@ class EngineStore(private val context: Context) {
         return result
     }
 
-    data class ImportFile(val label: String, val file: File)
+    data class ImportFile(val label: String, val file: File, val sourceName: String = label)
     data class ImportSet(val root: File, val files: List<ImportFile>)
 
     fun stage(uris: List<Uri>): ImportSet {
@@ -48,7 +48,7 @@ class EngineStore(private val context: Context) {
                     out.fd.sync()
                 }
             } ?: error("无法读取 $label")
-            ImportFile(label, target)
+            ImportFile(TableCatalog.displayLabel(target, label), target, label)
         }
         return ImportSet(root, files)
     }

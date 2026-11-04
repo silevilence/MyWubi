@@ -91,6 +91,9 @@ enum Request {
     ReadTable {
         path: PathBuf,
     },
+    ReadTableConfig {
+        path: PathBuf,
+    },
     ValidateTable {
         config: TableConfig,
         entries: Vec<Entry>,
@@ -339,6 +342,9 @@ impl Registry {
                 )
                 .map_err(data_error)?;
                 json!({"version":self.version(path,v)?})
+            }
+            Request::ReadTableConfig { path } => {
+                json!(crate::read_table_config(&path).map_err(|e| err(5, e.to_string()))?)
             }
             Request::ReadTable { path } => {
                 let before = FileVersion::read(&path).map_err(data_error)?;

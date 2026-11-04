@@ -185,7 +185,7 @@ class MyWubiService : InputMethodService() {
             setContent { Keyboard(keyboard, ::dispatch, { keyboardActivity(); candidateOffset = it; refresh() }, onTouch = { pressed ->
                 idle.touch(pressed, android.os.SystemClock.elapsedRealtime())
                 keyboardActivity()
-            }, openSettings = {
+            }, hideKeyboard = { requestHideSelf(0) }, openSettings = {
                 startActivity(android.content.Intent(this@MyWubiService, MainActivity::class.java)
                     .addFlags(android.content.Intent.FLAG_ACTIVITY_NEW_TASK))
             }) {

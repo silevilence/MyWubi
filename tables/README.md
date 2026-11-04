@@ -1,5 +1,23 @@
 # 可分发的辅助码表
 
+## 码表显示名称
+
+可在 `.dict` 文件开头的 YAML 头中设置 `display_name`，PC 码表选择器、安卓码表列表及键盘状态栏会优先显示它：
+
+```yaml
+---
+display_name: "我的五笔"
+charset: abcdefghijklmnopqrstuvwxyz
+max_code_len: 4
+---
+```
+
+词条仍放在结束分隔符之后。已有 YAML 头时只需添加 `display_name`，保留其他字段。
+省略、空字符串或全空白名称会回退到原有名称（PC 文件名；安卓内置名称或导入文件名）。
+名称仅用于显示，文件路径、辅助表引用和选择标识保持不变；两端码表编辑器也可修改并保存名称。
+
+## 辅助码表来源
+
 | 文件 | 条数 | 来源 | 数据许可 |
 | --- | ---: | --- | --- |
 | `pinyin.dict` | 65,125 | [Rime 袖珍简化字拼音](https://github.com/rime/rime-pinyin-simp)，固定提交 `0c6861ef7420ee780270ca6d993d18d4101049d0` | Apache-2.0 |

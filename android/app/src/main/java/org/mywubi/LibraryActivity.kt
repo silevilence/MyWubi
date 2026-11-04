@@ -61,6 +61,9 @@ private fun LibraryScreen(model: LibraryModel, leave: () -> Unit) {
                 if (!model.user) item {
                     val header = model.form.getJSONObject("header")
                     Text("码表元数据", style = MaterialTheme.typography.titleMedium)
+                    LibraryField("显示名称（留空使用原名称）", header.optString("display_name"), !model.busy) {
+                        model.change("display_name", it, "header")
+                    }
                     Text("码表类型", style = MaterialTheme.typography.labelLarge)
                     Row(Modifier.selectableGroup()) {
                         for ((value, label) in listOf("shape" to "形码", "pinyin" to "拼音")) {

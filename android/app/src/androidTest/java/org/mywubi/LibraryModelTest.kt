@@ -34,6 +34,7 @@ class LibraryModelTest {
             assertTrue(choices.any { it.first == "不引用" && it.second.isEmpty() })
             assertTrue(choices.none { it.second.isNotEmpty() && java.io.File(file.parentFile, it.second).canonicalFile == file.canonicalFile })
             main {
+                model.change("display_name", "自定义五笔", "header")
                 model.change("pinyin_table", choices.first { it.first == "内置拼音" }.second, "temporary")
                 model.change("english_table", choices.first { it.first == "内置英文" }.second, "temporary")
                 model.save()
@@ -41,6 +42,8 @@ class LibraryModelTest {
             ready(model)
             main {
                 assertFalse(model.message, model.dirty)
+                assertEquals("自定义五笔", model.form.getJSONObject("header").getString("display_name"))
+                assertEquals("当前码表：自定义五笔", model.paths[model.selected].first)
                 val temporary = model.form.getJSONObject("header").getJSONObject("temporary")
                 assertEquals(key, temporary.getString("key"))
                 assertEquals("内置拼音", model.referenceLabel(temporary.getString("pinyin_table")))

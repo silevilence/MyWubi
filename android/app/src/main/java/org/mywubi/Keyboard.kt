@@ -71,8 +71,10 @@ class ImeViewOwner : LifecycleOwner, SavedStateRegistryOwner {
 @Composable
 @OptIn(ExperimentalLayoutApi::class)
 fun Keyboard(model: KeyboardModel, dispatch: (Any) -> Unit, window: (Int) -> Unit,
-             openSettings: () -> Unit = {}, onTouch: (Boolean) -> Unit = {}, switchIme: () -> Unit) {
+             openSettings: () -> Unit = {}, onTouch: (Boolean) -> Unit = {},
+             hideKeyboard: () -> Unit = {}, switchIme: () -> Unit) {
     val currentTouch by rememberUpdatedState(onTouch)
+    val landscape = LocalConfiguration.current.orientation == android.content.res.Configuration.ORIENTATION_LANDSCAPE
     var shift by remember(model.epoch) { mutableStateOf(KeyMode.Off) }
     val pinyinLabel = when (model.pinyinMode) {
         KeyMode.Locked -> "拼音 · 锁定"
@@ -106,6 +108,12 @@ fun Keyboard(model: KeyboardModel, dispatch: (Any) -> Unit, window: (Int) -> Uni
             PinyinButton(pinyinMode, pinyinLabel, baseEnabled && model.pinyinAvailable, cyclePinyin)
         }
         val controls: @Composable () -> Unit = {
+            if (landscape && (model.candidates.isEmpty() || model.privateInput)) {
+                Text(if(model.privateInput) "安全输入" else model.status,
+                    Modifier.fillMaxWidth().padding(horizontal=8.dp, vertical=4.dp),
+                    color=colors.onSurface, fontSize=14.sp, maxLines=1,
+                    overflow=androidx.compose.ui.text.style.TextOverflow.Ellipsis)
+            }
             if (model.spelling.isNotEmpty() && !model.privateInput) {
                 Row(Modifier.fillMaxWidth(), verticalAlignment=androidx.compose.ui.Alignment.CenterVertically) {
                     Text(model.spelling, Modifier.weight(1f).padding(horizontal=12.dp, vertical=4.dp),
@@ -116,27 +124,36 @@ fun Keyboard(model: KeyboardModel, dispatch: (Any) -> Unit, window: (Int) -> Uni
                 }
             }
             Row(Modifier.fillMaxWidth().heightIn(min=48.dp), verticalAlignment=androidx.compose.ui.Alignment.CenterVertically) {
-                if (model.candidates.isEmpty()) IconButton(onClick={tools=!tools}, modifier=Modifier.imeAction("键盘工具", true) {tools=!tools}) {
-                    androidx.compose.foundation.Image(androidx.compose.ui.res.painterResource(R.drawable.mywubi_brand), null, Modifier.size(28.dp))
-                }
-                if (model.candidates.isNotEmpty() && !model.privateInput) {
-                    LazyRow(Modifier.weight(1f).height(48.dp)) {
-                        items(model.candidates, key={it.id}) { item -> CandidateButton(item, model.enabled) {choose(item)} }
+                Row(Modifier.weight(1f), verticalAlignment=androidx.compose.ui.Alignment.CenterVertically) {
+                    if (model.candidates.isEmpty()) IconButton(onClick={tools=!tools}, modifier=Modifier.imeAction("键盘工具", true) {tools=!tools}) {
+                        androidx.compose.foundation.Image(androidx.compose.ui.res.painterResource(R.drawable.mywubi_brand), null, Modifier.size(28.dp))
                     }
-                    TextButton(onClick={expanded=!expanded}, modifier=Modifier.imeAction(if(expanded) "收起" else "展开", true) {expanded=!expanded}) {
-                        Text(if(expanded) "收起" else "展开")
-                    }
-                } else {
-                    Text(if(model.privateInput) "安全输入" else model.status, Modifier.weight(1f).padding(horizontal=8.dp),
-                        color=colors.onSurface, fontSize=14.sp, maxLines=1)
-                    if (model.spelling.isEmpty() && model.temporary == null) {
-                        val showUpdate = model.idle && model.updateAvailable
-                        val label = if (showUpdate) "设置，有可用更新" else "设置"
-                        TextButton(onClick=openSettings, modifier=Modifier.imeAction(label, true, openSettings)) {
-                            BadgedBox(badge = { if (showUpdate) Badge() }) { Text("设置") }
+                    if (model.candidates.isNotEmpty() && !model.privateInput) {
+                        LazyRow(Modifier.weight(1f).height(48.dp)) {
+                            items(model.candidates, key={it.id}) { item -> CandidateButton(item, model.enabled) {choose(item)} }
                         }
+                        TextButton(onClick={expanded=!expanded}, modifier=Modifier.imeAction(if(expanded) "收起" else "展开", true) {expanded=!expanded}) {
+                            Text(if(expanded) "收起" else "展开")
+                        }
+                    } else {
+                        if (landscape) Spacer(Modifier.weight(1f))
+                        else Text(if(model.privateInput) "安全输入" else model.status, Modifier.weight(1f).padding(horizontal=8.dp),
+                            color=colors.onSurface, fontSize=14.sp, maxLines=1,
+                            overflow=androidx.compose.ui.text.style.TextOverflow.Ellipsis)
+                        if (model.spelling.isEmpty() && model.temporary == null) {
+                            val showUpdate = model.idle && model.updateAvailable
+                            val label = if (showUpdate) "设置，有可用更新" else "设置"
+                            TextButton(onClick=openSettings, modifier=Modifier.imeAction(label, true, openSettings)) {
+                                BadgedBox(badge = { if (showUpdate) Badge() }) { Text("设置") }
+                            }
+                        }
+                        pinyinControl()
                     }
-                    pinyinControl()
+                }
+                IconButton(onClick=hideKeyboard,
+                    modifier=Modifier.size(48.dp).imeAction("收起键盘", true, hideKeyboard)) {
+                    Icon(androidx.compose.ui.res.painterResource(R.drawable.ic_hide_keyboard), null,
+                        Modifier.size(24.dp))
                 }
             }
             if (tools && model.spelling.isEmpty() && model.candidates.isEmpty()) {
@@ -259,7 +276,7 @@ fun Keyboard(model: KeyboardModel, dispatch: (Any) -> Unit, window: (Int) -> Uni
             }
         CompositionLocalProvider(LocalKeyPreview provides preview) {
             Box(Modifier.fillMaxWidth().onGloballyPositioned { origin=it.positionInRoot(); keyboardWidth=it.size.width.toFloat() }) {
-                if(LocalConfiguration.current.orientation==android.content.res.Configuration.ORIENTATION_LANDSCAPE) {
+                if(landscape) {
                     Row(container,horizontalArrangement=Arrangement.spacedBy(8.dp)) {
                         Column(Modifier.weight(0.3f).heightIn(max=224.dp).verticalScroll(rememberScrollState())) {controls()}
                         Column(Modifier.weight(0.7f)) {keys()}

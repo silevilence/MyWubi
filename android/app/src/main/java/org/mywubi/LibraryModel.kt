@@ -36,31 +36,35 @@ class LibraryModel(app: Application) : AndroidViewModel(app) {
 
     init {
         work {
-            val configPath = EngineStore(app).configFile
-            val config = NativeBridge.objectCall("ReadConfig", "path" to configPath.path)
-            NativeHandle(config.getLong("version")).close()
-            val dictionary = config.getJSONObject("config").getJSONObject("dictionary")
-            fun resolve(parent: File, value: String) = File(value).let { if(it.isAbsolute) it else File(parent, value) }
-            val mainTable = resolve(configPath.parentFile!!, dictionary.getString("system_table"))
-            val table = NativeBridge.objectCall("ReadTable", "path" to mainTable.path)
-            NativeHandle(table.getLong("version")).close()
-            val temporary = table.getJSONObject("config").getJSONObject("temporary")
-            val catalog = TableCatalog(app)
-            val allTables = catalog.tables(mainTable.path)
-            val available = mutableListOf("当前码表：${catalog.label(mainTable.path, allTables)}" to mainTable)
-            for ((key, label) in listOf("pinyin_table" to "拼音辅助表", "english_table" to "英文辅助表")) {
-                val reference = temporary.getString(key)
-                if (reference.isNotEmpty()) {
-                    val file = resolve(mainTable.parentFile!!, reference)
-                    available.add("$label：${catalog.label(file.path, allTables)}" to file)
-                }
-            }
-            allTables.filter { item -> available.none { it.second.canonicalFile == item.file.canonicalFile } }
-                .forEach { available.add(it.label to it.file) }
-            available.add("用户词库" to resolve(configPath.parentFile!!, dictionary.getString("user_table")))
+            val (available, allTables) = readCatalog()
             val publish: () -> Unit = { paths = available; tables = allTables }
             publish
         }
+    }
+
+    private fun readCatalog(): Pair<List<Pair<String, File>>, List<TableCatalog.Table>> {
+        val configPath = EngineStore(app).configFile
+        val config = NativeBridge.objectCall("ReadConfig", "path" to configPath.path)
+        NativeHandle(config.getLong("version")).close()
+        val dictionary = config.getJSONObject("config").getJSONObject("dictionary")
+        fun resolve(parent: File, value: String) = File(value).let { if(it.isAbsolute) it else File(parent, value) }
+        val mainTable = resolve(configPath.parentFile!!, dictionary.getString("system_table"))
+        val header = NativeBridge.objectCall("ReadTableConfig", "path" to mainTable.path)
+        val temporary = header.getJSONObject("temporary")
+        val catalog = TableCatalog(app)
+        val allTables = catalog.tables(mainTable.path)
+        val available = mutableListOf("当前码表：${catalog.label(mainTable.path, allTables)}" to mainTable)
+        for ((key, label) in listOf("pinyin_table" to "拼音辅助表", "english_table" to "英文辅助表")) {
+            val reference = temporary.getString(key)
+            if (reference.isNotEmpty()) {
+                val file = resolve(mainTable.parentFile!!, reference)
+                available.add("$label：${catalog.label(file.path, allTables)}" to file)
+            }
+        }
+        allTables.filter { item -> available.none { it.second.canonicalFile == item.file.canonicalFile } }
+            .forEach { available.add(it.label to it.file) }
+        available.add("用户词库" to resolve(configPath.parentFile!!, dictionary.getString("user_table")))
+        return available to allTables
     }
 
     fun referenceChoices(): List<Pair<String, String>> = listOf("不引用" to "") + tables
@@ -135,6 +139,7 @@ class LibraryModel(app: Application) : AndroidViewModel(app) {
     fun save(remove: Boolean = false) {
         val draft = JSONObject(form.toString())
         val expected = version ?: return
+        val savedPath = path.canonicalFile
         work {
             check(digest(path) == baseline) { "版本冲突：文件已修改，当前草稿未丢弃" }
             val index = draft.getInt("index")
@@ -160,11 +165,14 @@ class LibraryModel(app: Application) : AndroidViewModel(app) {
             }
             NativeHandle(result.getLong("version")).close()
             EngineUpdates.request(app)
+            val (available, allTables) = readCatalog()
             val loaded = NativeBridge.objectCall(if(user) "ReadUser" else "ReadTable", "path" to path.path)
             val next = NativeHandle(loaded.getLong("version"))
             val hash = digest(path)
             val publish: () -> Unit = {
                 version?.close(); version = next; baseline = hash; data = loaded
+                paths = available; tables = allTables
+                selected = available.indexOfFirst { it.second.canonicalFile == savedPath }
                 dirty = false; draftFile().delete()
                 form = JSONObject().put("index", -1).put("code", "").put("word", "").put("weight", "100").put("header", loaded.optJSONObject("config") ?: JSONObject())
                 message = "已保存，等待输入法应用"

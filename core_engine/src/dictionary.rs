@@ -12,6 +12,7 @@
 
 use std::cmp::Ordering;
 use std::collections::{BTreeMap, HashSet};
+use std::io::{BufRead, BufReader};
 use std::path::{Path, PathBuf};
 use std::sync::Arc;
 
@@ -37,6 +38,9 @@ pub enum DictError {
 /// 码表 YAML 头中的配置。
 #[derive(Debug, Clone, PartialEq, Eq, Deserialize, Serialize)]
 pub struct TableConfig {
+    /// 界面显示名称；留空时使用文件名或前端原有名称。
+    #[serde(default)]
+    pub display_name: String,
     #[serde(default, rename = "type")]
     pub table_type: TableType,
     #[serde(default)]
@@ -84,6 +88,7 @@ impl TableValidationReport {
 impl Default for TableConfig {
     fn default() -> Self {
         Self {
+            display_name: String::new(),
             table_type: TableType::default(),
             temporary: TemporaryConfig::default(),
             wildcard_key: None,
@@ -94,6 +99,16 @@ impl Default for TableConfig {
 }
 
 impl TableConfig {
+    /// 优先使用非空显示名称，保留调用方提供的旧名称作为回退。
+    pub fn display_label<'a>(&'a self, fallback: &'a str) -> &'a str {
+        let name = self.display_name.trim();
+        if name.is_empty() {
+            fallback
+        } else {
+            name
+        }
+    }
+
     /// 与保存一致的 YAML 预览，避免前端自行拼接导致遗漏字段。
     pub fn yaml_header(&self) -> Result<String, DictError> {
         serde_yaml_ng::to_string(self).map_err(|error| DictError::InvalidHeader(error.to_string()))
@@ -629,6 +644,32 @@ fn validate_table_config(config: &TableConfig) -> Result<(), DictError> {
     Ok(())
 }
 
+/// 仅读取 YAML 头，供码表列表使用，避免加载和解析全部词条。
+pub fn read_table_config(path: impl AsRef<Path>) -> Result<TableConfig, DictError> {
+    let path = path.as_ref();
+    let io_error = |error: std::io::Error| DictError::Io(path.to_path_buf(), error.to_string());
+    let mut reader = BufReader::new(std::fs::File::open(path).map_err(io_error)?);
+    let mut header = String::new();
+    reader.read_line(&mut header).map_err(io_error)?;
+    if header
+        .trim_end_matches(&['\r', '\n'][..])
+        .trim_start_matches('\u{feff}')
+        != "---"
+    {
+        return Ok(TableConfig::default());
+    }
+    loop {
+        let start = header.len();
+        if reader.read_line(&mut header).map_err(io_error)? == 0 {
+            break;
+        }
+        if header[start..].trim_end_matches(&['\r', '\n'][..]) == "---" {
+            break;
+        }
+    }
+    split_yaml_header(&header).map(|(config, _, _)| config)
+}
+
 /// 读取可编辑码表，不因语义校验问题拒绝加载。
 pub fn read_table<P: AsRef<Path>>(path: P) -> Result<(TableConfig, Vec<Entry>), DictError> {
     let path = path.as_ref();
@@ -976,6 +1017,20 @@ mod tests {
     }
 
     #[test]
+    fn display_name_uses_nonblank_header_and_falls_back_for_old_tables() {
+        for (header, expected) in [
+            ("display_name: ' 我的五笔 '", "我的五笔"),
+            ("display_name: ''", "legacy.dict"),
+            ("display_name: '   '", "legacy.dict"),
+            ("max_code_len: 4", "legacy.dict"),
+        ] {
+            let (config, _) =
+                parse_dictionary(&format!("---\n{header}\n---\na\t工\n"), 4096).unwrap();
+            assert_eq!(config.display_label("legacy.dict"), expected);
+        }
+    }
+
+    #[test]
     fn temporary_and_pinyin_header_roundtrip() {
         let text = "---\ntype: pinyin\nmax_code_len: 64\ntemporary:\n  key: '`'\n  pinyin_table: pinyin.dict\n  english_table: ''\n  reverse_lookup: true\n---\n";
         let (config, _) = parse_dictionary(text, 4096).unwrap();
@@ -1101,6 +1156,7 @@ mod tests {
                 .as_nanos()
         ));
         let config = TableConfig {
+            display_name: "五笔：自定义 #1".into(),
             wildcard_key: Some('?'),
             charset: "abc?".into(),
             max_code_len: 4,

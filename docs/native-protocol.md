@@ -53,6 +53,7 @@ replace_len 是 Rust 标量数，不能直接当 UTF-16 下标。Android 使用 
 | op | 输入字段 | 输出 |
 | --- | --- | --- |
 | ReadConfig / ReadTable / ReadUser | path | 配置/元数据词条/词库及 version |
+| ReadTableConfig | path | 仅 YAML 头配置（含 display_name），不返回词条或 version 句柄 |
 | FileVersion | path | version（目标不存在也可获取） |
 | ValidateConfig | config | null 或校验错误，TouchSave 场景 |
 | ValidateTable | config, entries | 结构化校验报告 |

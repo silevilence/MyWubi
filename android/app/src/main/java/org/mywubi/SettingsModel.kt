@@ -65,7 +65,10 @@ class SettingsModel(application: Application) : AndroidViewModel(application) {
         val imported = saved?.optJSONObject("pack")?.let { p ->
             val files = p.getJSONArray("files")
             EngineStore.ImportSet(File(p.getString("root")), (0 until files.length()).map { i ->
-                files.getJSONObject(i).let { EngineStore.ImportFile(it.getString("label"), File(it.getString("path"))) }
+                files.getJSONObject(i).let {
+                    EngineStore.ImportFile(it.getString("label"), File(it.getString("path")),
+                        it.optString("source_name", it.getString("label")))
+                }
             })
         }
         val publish: () -> Unit = {
@@ -90,7 +93,7 @@ class SettingsModel(application: Application) : AndroidViewModel(application) {
     private fun persistDraft() {
         val draft = JSONObject().put("baseline", baseline).put("config", config)
         pack?.let { p -> draft.put("pack", JSONObject().put("root", p.root.path).put("files", JSONArray().also { a ->
-            p.files.forEach { a.put(JSONObject().put("label", it.label).put("path", it.file.path)) }
+            p.files.forEach { a.put(JSONObject().put("label", it.label).put("path", it.file.path).put("source_name", it.sourceName)) }
         })) }
         val stream = try { draftFile.startWrite() } catch (e: Exception) {
             message = "草稿未能持久保存：${e.message}"; return

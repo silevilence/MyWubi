@@ -43,6 +43,23 @@ fn release(ids: &[u64]) {
 }
 
 #[test]
+fn table_metadata_reads_display_name_without_parsing_entries() {
+    let (dir, runtime, session) = fixture();
+    let path = dir.join("display.dict");
+    std::fs::write(
+        &path,
+        "\u{feff}---\r\ndisplay_name: '我的五笔 #1'\r\n---\r\ninvalid entry\n",
+    )
+    .unwrap();
+    let header = ok(json!({"op":"ReadTableConfig", "path":path}));
+    assert_eq!(header["display_name"], "我的五笔 #1");
+    assert!(header.get("entries").is_none());
+    assert!(header.get("version").is_none());
+    release(&[session, runtime]);
+    std::fs::remove_dir_all(dir).unwrap();
+}
+
+#[test]
 fn editing_is_two_phase_and_handles_are_isolated() {
     let (dir, runtime, s) = fixture();
     let p = ok(json!({"op":"Prepare","session":s,"action":{"InputCode":"a"}}));

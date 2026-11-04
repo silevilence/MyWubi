@@ -8,6 +8,12 @@ import java.io.File
 
 /** Persistent display names and selectable tables; importing never selects a table. */
 class TableCatalog(private val context: Context) {
+    companion object {
+        fun displayLabel(file: File, fallback: String): String = runCatching {
+            NativeBridge.objectCall("ReadTableConfig", "path" to file.path)
+                .optString("display_name").trim().ifEmpty { fallback }
+        }.getOrDefault(fallback)
+    }
     data class Table(val label: String, val file: File, val main: Boolean)
 
     private val root get() = Resources.prepare(context).parentFile!!
@@ -50,15 +56,17 @@ class TableCatalog(private val context: Context) {
                 result.add(Table(legacyLabel(active), active, true))
         }
         return result.distinctBy { it.file.canonicalPath }
+            .map { it.copy(label = displayLabel(it.file, it.label)) }
     }
 
     fun label(path: String, tables: List<Table> = tables(path)): String =
-        tables.firstOrNull { it.file.canonicalFile == resolve(path) }?.label ?: File(path).name
+        tables.firstOrNull { it.file.canonicalFile == resolve(path) }?.label
+            ?: displayLabel(resolve(path), File(path).name)
 
     fun record(pack: EngineStore.ImportSet, main: Int) {
         val entries = JSONArray()
         pack.files.forEachIndexed { i, file ->
-            entries.put(JSONObject().put("label", file.label).put("file", file.file.name).put("main", i == main))
+            entries.put(JSONObject().put("label", file.sourceName).put("file", file.file.name).put("main", i == main))
         }
         val target = AtomicFile(File(pack.root, "catalog.json"))
         val stream = target.startWrite()

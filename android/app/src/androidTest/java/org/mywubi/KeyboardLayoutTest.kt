@@ -12,6 +12,41 @@ import java.io.File
 import java.util.concurrent.CopyOnWriteArrayList
 
 class KeyboardLayoutTest {
+    @Test fun hideKeyboardIsAvailableAcrossInputStatesAndDoesNotDispatchText() {
+        val instrumentation = InstrumentationRegistry.getInstrumentation()
+        val device = UiDevice.getInstance(instrumentation)
+        val events = CopyOnWriteArrayList<Any>()
+        val hidden = java.util.concurrent.atomic.AtomicInteger()
+        val models = listOf(
+            KeyboardModel(),
+            KeyboardModel(enabled=true, modesAvailable=true, pinyinAvailable=true),
+            KeyboardModel(enabled=true, layout="number"),
+            KeyboardModel(enabled=true, privateInput=true),
+            KeyboardModel(enabled=true, spelling="a", candidates=listOf(CandidateItem(1, "工", "a")))
+        )
+        ActivityScenario.launch(MainActivity::class.java).use { scenario ->
+            for ((index, model) in models.withIndex()) {
+                scenario.onActivity { activity ->
+                    activity.setContent { Keyboard(model.copy(epoch=index.toLong()), {events.add(it)}, {},
+                        hideKeyboard={hidden.incrementAndGet()}, switchIme={}) }
+                }
+                device.waitForIdle()
+                if (model.candidates.isNotEmpty()) {
+                    device.wait(Until.findObject(By.desc("展开")), 5000).click()
+                }
+                val button = device.wait(Until.findObject(By.desc("收起键盘").pkg("org.mywubi")), 5000)
+                    ?: error("Missing hide keyboard button in state $index")
+                assertTrue(button.isEnabled)
+                val minimum = (48 * instrumentation.targetContext.resources.displayMetrics.density).toInt()
+                assertTrue(button.visibleBounds.width() >= minimum - 1)
+                assertTrue(button.visibleBounds.height() >= minimum - 1)
+                button.click(); device.waitForIdle(); instrumentation.waitForIdleSync()
+                assertEquals(index + 1, hidden.get())
+                assertTrue(events.isEmpty())
+            }
+        }
+    }
+
     @Test fun staggeredLettersAndSeparatePanelsPreserveActions() {
         val instrumentation = InstrumentationRegistry.getInstrumentation()
         val device = UiDevice.getInstance(instrumentation)

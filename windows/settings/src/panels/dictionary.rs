@@ -57,12 +57,16 @@ pub fn show(ui: &mut Ui, state: &mut AppState) {
             egui::ComboBox::from_id_source("table_select")
                 .selected_text(
                     current_idx
-                        .map(|i| state.tables.tables()[i].as_str())
+                        .map(|i| state.tables.label(&state.tables.tables()[i]))
                         .unwrap_or("请选择码表"),
                 )
                 .show_ui(ui, |ui| {
                     for (i, name) in state.tables.tables().iter().enumerate() {
-                        if ui.selectable_label(current_idx == Some(i), name).clicked() {
+                        if ui
+                            .selectable_label(current_idx == Some(i), state.tables.label(name))
+                            .on_hover_text(name)
+                            .clicked()
+                        {
                             selected = Some(state.tables.directory().join(name));
                         }
                     }
@@ -186,6 +190,13 @@ fn show_table_editor(ui: &mut Ui, state: &mut AppState) {
             editor.entries.len()
         ));
 
+        ui.horizontal(|ui| {
+            ui.label("显示名称:");
+            changed |= ui
+                .text_edit_singleline(&mut editor.config.display_name)
+                .changed();
+            ui.label("留空使用文件名");
+        });
         ui.horizontal(|ui| {
             ui.label("码表类型:");
             let mut kind = editor.config.table_type;
