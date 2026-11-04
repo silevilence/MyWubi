@@ -49,6 +49,9 @@ private fun SettingsScreen(model: SettingsModel, enable: () -> Unit, choose: () 
     val picker = rememberLauncherForActivityResult(ActivityResultContracts.OpenMultipleDocuments()) { uris ->
         if (uris.isNotEmpty()) { main = -1; pinyin = -1; english = -1; model.stage(uris) }
     }
+    val modelPicker = rememberLauncherForActivityResult(ActivityResultContracts.OpenDocumentTree()) { uri ->
+        uri?.let(model::importModel)
+    }
     BackHandler(model.dirty || model.busy) { confirmLeave = true }
     Surface {
         Column(Modifier.fillMaxSize().safeDrawingPadding().imePadding().verticalScroll(rememberScrollState()).padding(20.dp), verticalArrangement = Arrangement.spacedBy(12.dp)) {
@@ -96,6 +99,7 @@ private fun SettingsScreen(model: SettingsModel, enable: () -> Unit, choose: () 
                 val prediction = config.optJSONObject("prediction") ?: JSONObject().put("enabled", false)
                 SettingToggle("上屏后显示字词预测", prediction.optBoolean("enabled"), !model.busy) { model.change("prediction", "enabled", it) }
                 Text("本地词典续接与常用搭配；点击追加，继续输入编码即忽略。默认关闭，编码候选顺序不变。")
+                PredictionModels(model, prediction) { modelPicker.launch(null) }
                 for ((key, label) in listOf("auto_commit_unique" to "唯一候选自动上屏", "commit_on_max_code_overflow" to "超过最大码长时顶字", "show_code_hints" to "显示候选编码提示")) {
                     SettingToggle(label, basic.getBoolean(key), !model.busy) { model.change("basic", key, it) }
                 }
@@ -171,3 +175,49 @@ private fun ApplyStatus(model: SettingsModel) {
     val status = remember(revision) { preferences.getString("error", null) ?: if (preferences.getString("requested", "initial") == preferences.getString("applied", null)) "运行时已应用" else "已保存的配置等待输入法启动或重载" }
     Text(status, style = MaterialTheme.typography.bodySmall, modifier = Modifier.semantics { liveRegion = LiveRegionMode.Polite })
 }
+
+@Composable
+private fun PredictionModels(model:SettingsModel, prediction:JSONObject, import:()->Unit) {
+    var expanded by rememberSaveable { mutableStateOf(false) }
+    OutlinedButton(onClick={expanded=!expanded}) { Text(if(expanded) "收起预测模型与资源" else "预测模型与资源") }
+    if(!expanded) return
+    Text("模型仅在本地运行。基础词典预测无需模型；尚无通过质量验收的推荐模型。")
+    Text("本安装包运行库：GGUF ${if(model.modelBackends.optBoolean("llama")) "可用" else "未包含"}；ONNX ${if(model.modelBackends.optBoolean("onnx")) "可用" else "未包含"}")
+    OutlinedButton(onClick=model::refreshModelStatus,enabled=!model.busy) {Text("刷新运行状态")}
+    Text(model.modelStatus)
+    val selected=prediction.optJSONObject("model")
+    Text("当前选择："+(selected?.let {"${it.getString("id")} @ ${it.getString("version")}"} ?: "仅词典预测"))
+    OutlinedButton(onClick={model.change("prediction","model",JSONObject.NULL)},enabled=!model.busy) {Text("使用词典预测")}
+    Row(horizontalArrangement=Arrangement.spacedBy(8.dp)) {
+        Button(onClick=import,enabled=!model.busy) {Text("导入模型包目录")}
+        OutlinedButton(onClick=model::refreshModels,enabled=!model.busy) {Text("刷新模型")}
+    }
+    for(p in model.models) {
+        val identity=JSONObject().put("id",p.getString("id")).put("version",p.getString("version"))
+        val active=selected?.optString("id")==p.getString("id") && selected?.optString("version")==p.getString("version")
+        val caps=p.getJSONObject("capabilities")
+        val backendAvailable=model.modelBackends.optBoolean(if(p.getString("backend")=="OnnxRuntime") "onnx" else "llama")
+        val supported=backendAvailable && (0 until caps.getJSONArray("tasks").length()).any {caps.getJSONArray("tasks").getString(it)=="Predict"}
+        val files=p.getJSONArray("files")
+        val size=(0 until files.length()).sumOf {files.getJSONObject(it).getLong("bytes")}/1048576.0
+        Text("${p.getString("id")} @ ${p.getString("version")} · ${p.getString("backend")} · ${"%.1f".format(size)} MiB")
+        Text("许可：${p.getString("license")}\n来源：${p.getString("source")}")
+        Text("能力：${caps.getJSONArray("tasks")}；前文 ${caps.getInt("max_context_chars")} 字")
+        Row(horizontalArrangement=Arrangement.spacedBy(8.dp)) {
+            OutlinedButton(onClick={model.change("prediction","model",identity)},enabled=!model.busy && supported && !active) {Text("选择此模型")}
+            OutlinedButton(onClick={model.removeModel(identity)},enabled=!model.busy && !active) {Text("移除未选模型")}
+        }
+    }
+    for((key,label,range,default) in listOf(
+        Budget("wait_ms","最长等待（毫秒）",50..1000,200),
+        Budget("threads","CPU 线程",1..4,2),
+        Budget("max_candidates","评分候选上限",1..64,16),
+        Budget("idle_seconds","空闲卸载（秒）",10..600,60))) {
+        val value=prediction.optInt(key,default)
+        Text("$label：$value")
+        Slider(value=value.toFloat(),onValueChange={model.change("prediction",key,it.toInt())},
+            valueRange=range.first.toFloat()..range.last.toFloat(),enabled=!model.busy)
+    }
+    Text("选择与预算需保存后生效。已保存不代表模型已加载；不可用或超时隐藏本轮预测。支持的包规范见项目文档。")
+}
+private data class Budget(val key:String,val label:String,val range:IntRange,val default:Int)

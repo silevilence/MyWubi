@@ -21,6 +21,7 @@ import kotlinx.coroutines.*
 class MyWubiService : InputMethodService() {
     private val loader = Executors.newSingleThreadExecutor()
     private val main = Handler(Looper.getMainLooper())
+    private lateinit var predictionController: PredictionController
     private var destroyed = false
     private var runtime: NativeHandle? = null
     private var session: NativeHandle? = null
@@ -58,6 +59,7 @@ class MyWubiService : InputMethodService() {
 
     override fun onCreate() {
         super.onCreate()
+        predictionController=PredictionController(this) { refresh() }
         updates.registerOnSharedPreferenceChangeListener(updateListener)
         updateScope.launch {
             AppUpdates.get(this@MyWubiService).state.collect {
@@ -216,6 +218,7 @@ class MyWubiService : InputMethodService() {
     }
 
     override fun onFinishInputView(finishingInput: Boolean) {
+        predictionController.pause()
         invalidatePrediction()
         viewVisible = false; idle.touch(false, android.os.SystemClock.elapsedRealtime())
         main.removeCallbacks(idleRefresh); render(); viewOwner?.visible(false)
@@ -228,7 +231,7 @@ class MyWubiService : InputMethodService() {
         val spelling = state.optJSONObject("view")?.optString("spelling") ?: ""
         val temporary = state.optString("temporary").takeIf { it == "Pinyin" || it == "English" }
         val stableIdle = active && viewVisible && session != null && idle.isIdle(
-            android.os.SystemClock.elapsedRealtime(), spelling, items.length() > 0, editor.ownsPreedit, temporary != null)
+            android.os.SystemClock.elapsedRealtime(), spelling, items.length() > 0 || state.optBoolean("prediction_waiting"), editor.ownsPreedit, temporary != null)
         keyboard = KeyboardModel(
             epoch = editorEpoch, enabled = active && viewVisible && session != null,
             spelling = spelling,
@@ -284,6 +287,7 @@ class MyWubiService : InputMethodService() {
     }
 
     private fun dispatchSerial(request: Any) {
+        predictionController.cancel()
         val s = session ?: return
         val host = connection ?: run { error = "输入连接暂不可用"; render(); return }
         val epoch = editorEpoch
@@ -376,8 +380,10 @@ class MyWubiService : InputMethodService() {
             candidates = NativeBridge.objectCall("Candidates", "session" to it.value, "offset" to candidateOffset, "count" to 256)
         }
         render()
+        session?.let { predictionController.update(it.value,active && viewVisible && inputPolicy.purpose=="Text") }
     }
     private fun invalidatePrediction() {
+        if(::predictionController.isInitialized) predictionController.cancel()
         val s = session ?: return
         NativeBridge.call("PredictionContext", "session" to s.value, "editor" to editorEpoch,
             "epoch" to editorEpoch, "prefix" to null, "invalidate" to true)
@@ -394,6 +400,7 @@ class MyWubiService : InputMethodService() {
     }
 
     override fun onDestroy() {
+        if(::predictionController.isInitialized) predictionController.close()
         destroyed = true; active = false; connection = null; inputQueue.invalidate()
         main.removeCallbacks(idleRefresh); updateScope.cancel()
         loads.next(); updates.unregisterOnSharedPreferenceChangeListener(updateListener)
@@ -401,5 +408,9 @@ class MyWubiService : InputMethodService() {
         session = null
         runtime?.close(); runtime = null; loader.shutdown(); viewOwner?.destroy(); viewOwner = null
         super.onDestroy()
+    }
+    override fun onTrimMemory(level:Int) {
+        super.onTrimMemory(level)
+        if(level>=android.content.ComponentCallbacks2.TRIM_MEMORY_RUNNING_LOW && ::predictionController.isInitialized) predictionController.pause()
     }
 }

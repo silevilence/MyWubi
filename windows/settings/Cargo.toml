@@ -26,6 +26,9 @@ simplelog = "0.12"
 wgpu = "0.19"
 velopack = "1.2"
 semver = "1"
+model_input = { version = "0.6.2", path = "../../model_input" }
+model_ipc = { version = "0.6.2", path = "../model_ipc" }
+serde_json.workspace = true
 
 [build-dependencies]
 winres = "0.1"

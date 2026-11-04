@@ -17,6 +17,8 @@ parking_lot.workspace = true
 arc-swap.workspace = true
 notify = "8.2.0"
 dirs = "6"
+model_ipc = { version = "0.6.2", path = "../model_ipc" }
+serde_json.workspace = true
 
 [target.'cfg(windows)'.dependencies]
 windows = { workspace = true, features = [

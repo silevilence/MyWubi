@@ -34,10 +34,49 @@ pub struct Config {
 }
 
 /// Word predictions are independent of code-candidate sorting and disabled by default.
-#[derive(Debug, Clone, Default, Serialize, Deserialize)]
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
 #[serde(default)]
 pub struct PredictionConfig {
     pub enabled: bool,
+    /// Portable package identity, never a device-local absolute model path.
+    pub model: Option<ModelSelection>,
+    pub wait_ms: u16,
+    pub threads: u8,
+    pub max_candidates: u8,
+    pub idle_seconds: u16,
+}
+impl Default for PredictionConfig {
+    fn default() -> Self {
+        Self {
+            enabled: false,
+            model: None,
+            wait_ms: 200,
+            threads: 2,
+            max_candidates: 16,
+            idle_seconds: 60,
+        }
+    }
+}
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
+#[serde(deny_unknown_fields)]
+pub struct ModelSelection {
+    pub id: String,
+    pub version: String,
+}
+impl ModelSelection {
+    pub fn valid(&self) -> bool {
+        [&self.id, &self.version].into_iter().all(|s| {
+            !s.is_empty()
+                && s.len() <= 64
+                && !s.contains("--")
+                && s.bytes()
+                    .all(|b| b.is_ascii_alphanumeric() || b == b'-' || b == b'_')
+        })
+    }
+    pub fn directory_name(&self) -> Option<String> {
+        self.valid()
+            .then(|| format!("{}--{}", self.id, self.version))
+    }
 }
 
 /// Effective engine settings. No parallel on-disk schema is introduced.
@@ -370,6 +409,18 @@ impl Config {
 
     /// 语义校验。
     fn validate(&self) -> Result<(), Error> {
+        let p = &self.prediction;
+        if !(50..=1000).contains(&p.wait_ms)
+            || !(1..=4).contains(&p.threads)
+            || !(1..=64).contains(&p.max_candidates)
+            || !(10..=600).contains(&p.idle_seconds)
+            || p.model.as_ref().is_some_and(|m| !m.valid())
+        {
+            return Err(Error::Invalid(
+                "prediction".into(),
+                "模型标识或等待/资源预算超出范围".into(),
+            ));
+        }
         if self.basic.candidate_count == 0 || self.basic.candidate_count > 10 {
             return Err(Error::Invalid(
                 "basic.candidate_count".into(),
@@ -496,5 +547,33 @@ toggle_simplify = "ctrl_shift_s"
         let default_text = defaulted.to_string_toml().unwrap();
         assert!(default_text.contains("select_second = \"semicolon\""));
         assert!(default_text.contains("select_third = \"quote\""));
+    }
+}
+
+#[cfg(test)]
+mod prediction_config_tests {
+    use super::*;
+    #[test]
+    fn defaults_and_package_identity_are_portable_and_resource_bounded() {
+        assert_eq!(
+            Config::from_str("").unwrap().prediction,
+            PredictionConfig::default()
+        );
+        for fragment in [
+            "wait_ms=0",
+            "threads=255",
+            "max_candidates=65",
+            "idle_seconds=0",
+        ] {
+            assert!(Config::from_str(&format!("[prediction]\n{fragment}")).is_err());
+        }
+        for id in ["../weights", "C:/weights", "bad--path", ""] {
+            let mut cfg = Config::default();
+            cfg.prediction.model = Some(ModelSelection {
+                id: id.into(),
+                version: "v1".into(),
+            });
+            assert!(cfg.validate_for(ValidationContext::Read).is_err());
+        }
     }
 }

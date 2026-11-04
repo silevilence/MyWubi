@@ -11,7 +11,10 @@
 
 param(
     [string]$Version,
-    [switch]$SkipBuild
+    [switch]$SkipBuild,
+    [switch]$WithModels,
+    [string]$OutputDirectory,
+    [string]$OnnxRuntime = $env:MYWUBI_ORT_DYLIB
 )
 
 $ErrorActionPreference = "Stop"
@@ -19,7 +22,7 @@ $ErrorActionPreference = "Stop"
 $repoRoot = $PSScriptRoot
 $targetDir = Join-Path $repoRoot "target\release"
 $stagingDir = Join-Path $repoRoot "target\velopack-staging"
-$releasesDir = Join-Path $repoRoot "Releases"
+$releasesDir = if ($OutputDirectory) { [IO.Path]::GetFullPath($OutputDirectory) } else { Join-Path $repoRoot "Releases" }
 
 # ── 1. 解析版本号 ───────────────────────────────────────────
 if (-not $Version) {
@@ -48,6 +51,10 @@ if (-not $SkipBuild) {
     $buildExit = $LASTEXITCODE
     Pop-Location
     if ($buildExit -ne 0) { throw "cargo build --release 失败 ($buildExit)" }
+    if ($WithModels) {
+        if (-not $OnnxRuntime) { throw 'WithModels requires an application-bundled ONNX Runtime 1.31.1 DLL' }
+        & (Join-Path $repoRoot 'model_input/build.ps1') -Release -OnnxRuntime $OnnxRuntime
+    }
 }
 
 # 校验关键产物存在
@@ -66,6 +73,17 @@ New-Item -ItemType Directory -Force -Path $stagingDir | Out-Null
 # 主二进制
 Copy-Item $settingsExe $stagingDir -Force
 Copy-Item $imEngineDll $stagingDir -Force
+if ($WithModels) {
+    $worker = Join-Path $targetDir 'model-worker.exe'
+    $ort = Join-Path $targetDir 'onnxruntime.dll'
+    if (-not (Test-Path -LiteralPath $worker) -or -not (Test-Path -LiteralPath $ort)) { throw 'Missing model service or ONNX runtime' }
+    Copy-Item -LiteralPath $worker -Destination $stagingDir -ErrorAction Stop
+    & (Join-Path $repoRoot 'scripts/stage_model_runtime.ps1') -Destination $stagingDir -OnnxRuntime $ort
+    $probe = Start-Process -FilePath (Join-Path $stagingDir 'model-worker.exe') -ArgumentList '--check-backends' -WindowStyle Hidden -Wait -PassThru
+    if ($probe.ExitCode -ne 0) { throw 'Model service backend/runtime check failed' }
+    Copy-Item -LiteralPath (Join-Path $repoRoot 'model_input/licenses') -Destination (Join-Path $stagingDir 'model-licenses') -Recurse -ErrorAction Stop
+    # User models live beside config.toml and are never collected into this staging directory.
+}
 
 # 码表（项目根 tables/ 目录下的自带码表）
 $tablesSrc = Join-Path $repoRoot "tables"

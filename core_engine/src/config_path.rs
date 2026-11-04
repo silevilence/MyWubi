@@ -114,6 +114,14 @@ pub fn is_portable_mode(exe_dir: &Path) -> bool {
     exe_dir.join("config.toml").exists()
 }
 
+/// Optional packages stay with user configuration, outside versioned binaries.
+pub fn model_store_path(config_path: &Path) -> PathBuf {
+    config_path
+        .parent()
+        .unwrap_or_else(|| Path::new("."))
+        .join("models")
+}
+
 fn ensure_default_config(config_path: &Path) -> Result<bool, PathError> {
     if config_path.exists() {
         return Ok(false);

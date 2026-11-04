@@ -72,6 +72,7 @@ pub(crate) fn set_dirty(dirty: &mut bool, status_msg: &mut Option<String>) {
 
 /// 应用状态。所有面板通过 `&mut AppState` 读写。
 pub struct AppState {
+    pub models: crate::model_catalog::ModelCatalog,
     /// 当前配置（内存中的工作副本）。
     pub config: Config,
     /// 是否有未保存的改动。
@@ -146,6 +147,7 @@ impl AppState {
             log::warn!("{error}");
         }
         Self {
+            models: crate::model_catalog::ModelCatalog::default(),
             config,
             dirty: false,
             active_panel: Panel::Basic,

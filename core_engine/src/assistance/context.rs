@@ -64,7 +64,7 @@ impl ContextBuffer {
         }
         if let Some(text) = text {
             let prefix = tail(text, self.limit);
-            if self.prefix != prefix || self.coverage != Coverage::HostPrefix {
+            if self.prefix != prefix {
                 self.generation = self.generation.wrapping_add(1);
             }
             self.prefix = prefix;

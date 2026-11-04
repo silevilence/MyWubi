@@ -41,6 +41,7 @@ pub mod key_filter;
 #[path = "../tests/support/legacy_input_session.rs"]
 mod legacy_baseline;
 mod lifecycle;
+mod model_client;
 mod prediction_context;
 pub mod reload;
 pub mod screen_geometry;

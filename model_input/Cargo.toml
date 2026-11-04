@@ -18,10 +18,19 @@ thiserror.workspace = true
 [features]
 llama-cpp-2 = ["dep:llama-cpp-2", "dep:self_cell"]
 ort = ["dep:ort"]
+android-static-stdcxx = ["llama-cpp-2/android-static-stdcxx"]
 
 [[bin]]
 name = "evaluate"
 path = "src/bin/evaluate.rs"
+
+[[bin]]
+name = "model-worker"
+path = "src/bin/model_worker.rs"
+
+[[bin]]
+name = "probe-service"
+path = "src/bin/probe_service.rs"
 
 [[bin]]
 name = "model_packages"
@@ -36,3 +45,9 @@ required-features = ["llama-cpp-2"]
 name = "compare-models"
 path = "src/bin/compare_models.rs"
 required-features = ["llama-cpp-2", "ort"]
+
+[target."cfg(windows)".dependencies]
+model_ipc = { version = "0.6.2", path = "../windows/model_ipc" }
+
+[dev-dependencies]
+tempfile = "3.27.0"

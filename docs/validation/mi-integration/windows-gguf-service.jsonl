@@ -1,0 +1,2 @@
+{"model":"qwen25-05b","ready_ms":2858,"round_ms":650,"scores":[{"id":7,"value":-14.263827323913574},{"id":9,"value":-4.818037509918213}]}
+{"attempted":22,"model":"qwen25-05b","p50_ms":16.184,"p95_ms":20.428,"p99_ms":650.94,"samples":20,"scope":"service round trip; authored fixed two-candidate fixture; not keyboard latency or quality","valid_ratio":0.9090909090909091}

@@ -1,0 +1,27 @@
+[
+  {
+    "sha256": "eafba8d9225d44d3d5c2eb484bc7c51288140b5a38ae5b7b575f6cc79bc4d59d",
+    "bytes": 3527168,
+    "file": "target/release/im_engine.dll"
+  },
+  {
+    "sha256": "01e42b10ccb76f693a9d982ed91c2583eacfc387871d480a009a0bc0dada0f2c",
+    "bytes": 5275136,
+    "file": "target/release/model-worker.exe"
+  },
+  {
+    "sha256": "d86699a4b5890cdedee8e1027ec697a19d3df343e15c2556755504415a5725f8",
+    "bytes": 51242294,
+    "file": "target/mi-model-release-verified/MyWubi-models-debug.apk"
+  },
+  {
+    "sha256": "d6398d781e35b7c1ce0b5ce7221ca1a079c8d1b23e461d69252cd1cc854be237",
+    "bytes": 33986849,
+    "file": "target/mi-model-release-verified/MyWubi-win-Setup.exe"
+  },
+  {
+    "sha256": "0889e7ec1456160daeb56ef7f5cf33f4a729e26419504dbd3d506ae0e602cea0",
+    "bytes": 29379157,
+    "file": "target/mi-model-release-verified/MyWubi-win-Portable.zip"
+  }
+]

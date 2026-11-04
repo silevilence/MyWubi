@@ -8,6 +8,7 @@ use windows::{
 
 pub(crate) const SELECT: u32 = WM_APP + 41;
 pub(crate) const VERIFY_TIMER: usize = 2;
+pub(crate) const MODEL_TIMER: usize = 3;
 type Callback = Rc<dyn Fn(u64, usize)>;
 pub(crate) struct CandidateDispatch(HWND);
 impl CandidateDispatch {
@@ -58,6 +59,12 @@ impl Drop for CandidateDispatch {
 unsafe extern "system" fn dispatch(hwnd: HWND, msg: u32, wp: WPARAM, lp: LPARAM) -> LRESULT {
     let data = GetWindowLongPtrW(hwnd, GWLP_USERDATA) as *mut Callback;
     match msg {
+        WM_TIMER if wp.0 == MODEL_TIMER && !data.is_null() => {
+            let _ = KillTimer(Some(hwnd), MODEL_TIMER);
+            let callback = (*data).clone();
+            let _ = std::panic::catch_unwind(std::panic::AssertUnwindSafe(|| callback(0, 1)));
+            LRESULT(0)
+        }
         WM_TIMER if wp.0 == VERIFY_TIMER && !data.is_null() => {
             let _ = KillTimer(Some(hwnd), VERIFY_TIMER);
             let callback = (*data).clone();

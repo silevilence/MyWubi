@@ -30,6 +30,30 @@ class SettingsModel(application: Application) : AndroidViewModel(application) {
     var message by mutableStateOf(""); private set
     var pack by mutableStateOf<EngineStore.ImportSet?>(null); private set
     var tables by mutableStateOf<List<TableCatalog.Table>>(emptyList()); private set
+    var models by mutableStateOf<List<JSONObject>>(emptyList()); private set
+    val modelBackends = JSONObject(NativeBridge.inference("{\"op\":\"Features\"}".toByteArray()).toString(Charsets.UTF_8)).getJSONObject("value")
+    var modelStatus by mutableStateOf("尚未查询运行状态"); private set
+    fun refreshModelStatus()=work {
+        val result=JSONObject(NativeBridge.inference("{\"op\":\"Status\"}".toByteArray()).toString(Charsets.UTF_8))
+        val status=if(!result.getBoolean("ok")) "模型工作线程未启动" else when(result.optString("value")) {
+            "Loading" -> "正在加载"; "Ready" -> "已加载"; "Paused" -> "已暂停，释放资源"; "Idle" -> "空闲，尚未加载"
+            else -> "加载或推理失败：${result.opt("value")}"
+        }
+        val publish:()->Unit={modelStatus=status};publish
+    }
+    private fun modelList(array: JSONArray)= (0 until array.length()).map { array.getJSONObject(it) }
+    fun refreshModels()=work {
+        val next=modelList(ModelCatalog(app).call("List"))
+        val publish:()->Unit={models=next;message="模型包校验完成"};publish
+    }
+    fun importModel(uri:Uri)=work {
+        val next=modelList(ModelCatalog(app).importTree(uri))
+        val publish:()->Unit={models=next;message="模型已导入；选择后保存设置"};publish
+    }
+    fun removeModel(selection:JSONObject)=work {
+        val next=modelList(ModelCatalog(app).call("Remove","selection" to selection))
+        val publish:()->Unit={models=next;message="未选模型已移除"};publish
+    }
     val ui = app.getSharedPreferences("android-ui", 0)
 
     val tableLabel: String get() {
@@ -62,6 +86,7 @@ class SettingsModel(application: Application) : AndroidViewModel(application) {
         val saved = if (!discard && draftFile.baseFile.exists()) JSONObject(draftFile.openRead().bufferedReader().use { it.readText() }) else null
         val restored = saved?.getJSONObject("config") ?: loaded.getJSONObject("config")
         val available = TableCatalog(app).tables(restored.getJSONObject("dictionary").getString("system_table"))
+        val availableModels = modelList(ModelCatalog(app).call("List"))
         val imported = saved?.optJSONObject("pack")?.let { p ->
             val files = p.getJSONArray("files")
             EngineStore.ImportSet(File(p.getString("root")), (0 until files.length()).map { i ->
@@ -76,6 +101,7 @@ class SettingsModel(application: Application) : AndroidViewModel(application) {
             baseline = saved?.optString("baseline") ?: disk
             config = restored; dirty = saved != null; pack = imported
             tables = available
+            models = availableModels
             message = if (saved != null && baseline != disk) "配置已被其他操作修改。草稿保留，请重新载入后合并。" else if (saved != null) "已恢复未保存草稿" else ""
             if (discard) draftFile.delete()
         }

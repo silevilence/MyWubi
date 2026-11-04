@@ -1,0 +1,20 @@
+{
+  "versions": {
+    "onnxruntime": "1.31.1",
+    "ort": "2.0.0-rc.15",
+    "llama-cpp-2": "0.1.161",
+    "llama-cpp-rs-revision": "e7af607ebd5ec2932709ef918c17cca2f9b0fce4",
+    "android-ndk": "27.2.12479018"
+  },
+  "files": {
+    "android-ndk-NOTICE.toolchain.txt": "cbe3237be53c0a819f8df6aac5358fdee848eee3b6571b4e2ca20767ebd7465e",
+    "llama-cpp-LICENSE.txt": "94f29bbed6a22c35b992c5c6ebf0e7c92f13b836b90f36f461c9cf2f0f1d010d",
+    "llama-cpp-rs-LICENSE-APACHE.txt": "62c7a1e35f56406896d7aa7ca52d0cc0d272ac022b5d2796e7d6905db8a3636a",
+    "llama-cpp-rs-LICENSE-MIT.txt": "763912bd05f42956dbfa900bd1a2f8037c704f5c64d778c623ec5952454e24aa",
+    "onnxruntime-LICENSE.txt": "c250d6278f0b47a6439fb7592b08b58a55eb9f535aa49a1db63211c3f982b674",
+    "onnxruntime-ThirdPartyNotices.txt": "c53a76501ef60db6f865f20599f220761201ac4057683acefdab37d861b86622",
+    "ort-LICENSE-APACHE.txt": "cfc7749b96f63bd31c3c42b5c471bf756814053e847c10f3eb003417bc523d30",
+    "ort-LICENSE-MIT.txt": "6bba08de46289c40986a2e6b310e2da61fcea33b3c112c8320f6093f8f9cb71b"
+  },
+  "android_aar_sha256": "d4d50660300ed2c4f38ffdfd5ab5bfa3a22f995f282dda24f42ea3ea55467b49"
+}

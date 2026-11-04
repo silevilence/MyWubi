@@ -1,0 +1,2 @@
+{"model":"authored-counts","ready_ms":268,"round_ms":268,"scores":[{"id":7,"value":-2.964351177215576},{"id":9,"value":-3.8176519870758057}]}
+{"attempted":20,"model":"authored-counts","p50_ms":15.207,"p95_ms":15.795,"p99_ms":268.653,"samples":20,"scope":"service round trip; authored fixed two-candidate fixture; not keyboard latency or quality","valid_ratio":1.0}

@@ -190,3 +190,72 @@ fn replacing_owned_preedit_keeps_confirmed_prefix_across_separate_code_commits()
             .any(|c| c.text == "天气"));
     }
 }
+
+#[test]
+fn model_prediction_waits_once_preserves_ids_and_discards_late_or_stale_scores() {
+    use core_engine::assistance::*;
+    let mut r = runtime(true, 9);
+    r.config.prediction.model = Some(core_engine::config::ModelSelection {
+        id: "test".into(),
+        version: "v1".into(),
+    });
+    let mut s = Session::new(&r, BehaviorProfile::TouchV1, HostContext::default());
+    north(&mut s);
+    assert!(!s.snapshot().visible);
+    assert!(s.candidate_window(0, 64).candidates.is_empty());
+    let work = s.prediction_request().unwrap();
+    let response = ScoreResponse {
+        protocol: 1,
+        key: work.key,
+        scores: work
+            .candidates
+            .iter()
+            .enumerate()
+            .map(|(i, c)| CandidateScore {
+                id: c.id,
+                value: i as f32,
+            })
+            .collect(),
+    };
+    let mut old = work.key;
+    old.request += 1;
+    assert!(!s.complete_prediction(old, Ok(response.clone())));
+    assert!(s.prediction_request().is_some());
+    assert!(s.complete_prediction(work.key, Ok(response.clone())));
+    let window = s.candidate_window(0, 64);
+    assert_eq!(window.candidates[0].id, work.candidates.last().unwrap().id);
+    let chosen = window.candidates[0].clone();
+    assert!(!s.complete_prediction(work.key, Ok(response)));
+    assert!(
+        matches!(apply(&mut s,Action::SelectCandidate(window.query_revision,chosen.id)),EditSessionOp::CommitAndReplace{text,..} if text==chosen.text)
+    );
+    let old = s.prediction_request();
+    apply(&mut s, Action::Legacy(InputEvent::Char('b')));
+    if let Some(work) = old {
+        assert!(!s.complete_prediction(work.key, Err(Unavailable::Timeout)));
+    }
+    assert!(!s.snapshot().prediction);
+}
+#[test]
+fn model_wait_timeout_hides_predictions_without_intercepting_input() {
+    use core_engine::assistance::Unavailable;
+    let mut r = runtime(true, 10);
+    r.config.prediction.wait_ms = 50;
+    r.config.prediction.model = Some(core_engine::config::ModelSelection {
+        id: "test".into(),
+        version: "v1".into(),
+    });
+    let mut s = Session::new(&r, BehaviorProfile::LegacyV1, HostContext::default());
+    north(&mut s);
+    let key = s.prediction_request().unwrap().key;
+    assert!(!s.would_handle(&Action::Legacy(InputEvent::Select(1))));
+    std::thread::sleep(std::time::Duration::from_millis(55));
+    assert!(s.expire_prediction());
+    assert!(!s.snapshot().prediction);
+    assert!(!s.complete_prediction(key, Err(Unavailable::Inference)));
+    let mut t = Session::new(&r, BehaviorProfile::TouchV1, HostContext::default());
+    north(&mut t);
+    let plan = t.prepare(Action::Space).unwrap();
+    assert!(!plan.consumed());
+    assert!(t.prediction_request().is_none());
+}

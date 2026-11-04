@@ -84,6 +84,10 @@ class BrowserHostTest {
         }
         field().text = "甲😀e\u0301乙"
         device.pressKeyCode(KeyEvent.KEYCODE_A, KeyEvent.META_CTRL_ON)
+        // Chrome applies selection asynchronously. Establish the host selection
+        // before exercising the IME's delete-selection contract.
+        awaitValue("Chrome selected the complete UTF-16 range") {device.findObject(By.text("选区：0,6"))}
+        device.waitForIdle()
         key("退格"); expect("")
         key("g"); key("g"); expect("gg")
         device.pressDPadLeft()

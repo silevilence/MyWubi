@@ -351,7 +351,17 @@ pub fn remove(
 pub fn load(
     package: &ValidatedPackage,
 ) -> Result<Box<dyn core_engine::assistance::ModelBackend>, core_engine::assistance::Unavailable> {
+    load_with_threads(package, 2)
+}
+
+pub fn load_with_threads(
+    package: &ValidatedPackage,
+    threads: u8,
+) -> Result<Box<dyn core_engine::assistance::ModelBackend>, core_engine::assistance::Unavailable> {
     use core_engine::assistance::Unavailable;
+    if !(1..=4).contains(&threads) {
+        return Err(Unavailable::Limit);
+    }
     // Revalidate at the activation boundary; an old validation handle is not a trust token.
     let checked = validate(&package.root).map_err(|_| Unavailable::Load)?;
     let model = checked.root.join(&checked.manifest.model);
@@ -360,7 +370,11 @@ pub fn load(
             Backend::LlamaCpp => {
                 #[cfg(feature = "llama-cpp-2")]
                 {
-                    Ok(Box::new(crate::llama::LlamaScorer::load(&model, 1024, 2)?))
+                    Ok(Box::new(crate::llama::LlamaScorer::load(
+                        &model,
+                        1024,
+                        i32::from(threads),
+                    )?))
                 }
                 #[cfg(not(feature = "llama-cpp-2"))]
                 {
@@ -379,7 +393,7 @@ pub fn load(
                     Ok(Box::new(crate::onnx::OnnxScorer::load(
                         &model,
                         &checked.root.join(vocabulary),
-                        2,
+                        usize::from(threads),
                     )?))
                 }
                 #[cfg(not(feature = "ort"))]

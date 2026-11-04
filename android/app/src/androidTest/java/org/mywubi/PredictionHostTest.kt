@@ -11,7 +11,9 @@ import java.io.File
 import java.util.regex.Pattern
 
 class PredictionHostTest {
-    @Test fun confirmedWordsPredictAndNewCodesOrExternalEditsDiscardSuggestions() {
+    @Test fun confirmedWordsPredictAndNewCodesOrExternalEditsDiscardSuggestions() = runHost(false)
+    @Test fun modelScoredPredictionsUseTheConfirmedHostCommitPath() = runHost(true)
+    private fun runHost(withModel:Boolean) {
         val instrumentation=InstrumentationRegistry.getInstrumentation()
         val context=instrumentation.targetContext
         val device=UiDevice.getInstance(instrumentation)
@@ -25,6 +27,13 @@ class PredictionHostTest {
         config.getJSONObject("dictionary").put("system_table",fixture.absolutePath).put("enable_user_dict",false)
         config.getJSONObject("basic").put("auto_commit_unique",false)
         config.put("prediction",JSONObject().put("enabled",true))
+        if(withModel) {
+            val features=JSONObject(NativeBridge.inference("{\"op\":\"Features\"}".toByteArray()).toString(Charsets.UTF_8)).getJSONObject("value")
+            org.junit.Assume.assumeTrue(features.getBoolean("onnx"))
+            ModelCatalog(context).call("Import","source" to ModelBackendTest().fixture().absolutePath)
+            config.getJSONObject("prediction").put("wait_ms",1000).put("max_candidates",8)
+                .put("model",JSONObject().put("id","instrumented-counts").put("version","v1"))
+        }
         fun save(value:JSONObject,version:Long) {
             NativeHandle(version).use { v -> NativeHandle(store.saveConfig(value,v.value).getLong("version")).close() }
         }
@@ -56,6 +65,7 @@ class PredictionHostTest {
             key("b"); candidate("北"); expect("北")
             candidate("京"); expect("北京")
             candidate("天气"); expect("北京天气")
+            if(withModel) device.takeScreenshot(File(context.filesDir,"prediction-model-host.png"))
             assertTrue(device.wait(Until.hasObject(By.text("预测")),5000))
             key("b"); expect("北京天气b")
             assertTrue(device.wait(Until.gone(By.text("预测")),5000))
@@ -65,6 +75,7 @@ class PredictionHostTest {
             device.takeScreenshot(File(context.filesDir,"prediction-external-host.png"))
         } finally {
             val current=store.readConfig();save(original,current.getLong("version"))
+            if(withModel) ModelCatalog(context).call("Remove","selection" to JSONObject().put("id","instrumented-counts").put("version","v1"))
             device.pressBack();device.pressBack()
         }
     }

@@ -29,6 +29,9 @@ pub fn show(ui: &mut Ui, state: &mut AppState) {
     ui.small(
         "使用本地词典续接与常用搭配；数字键选择，继续编码即忽略。默认关闭，不改变编码候选排序。",
     );
+    if state.models.show(ui, &state.config_path, &mut state.config) {
+        state.mark_dirty();
+    }
 
     // 候选词个数
     ui.horizontal(|ui| {

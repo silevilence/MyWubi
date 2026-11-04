@@ -72,6 +72,14 @@ enum Request {
         prefix: Option<String>,
         invalidate: bool,
     },
+    PredictionWork {
+        session: u64,
+    },
+    PredictionResult {
+        session: u64,
+        key: crate::assistance::RequestKey,
+        response: Option<crate::assistance::ScoreResponse>,
+    },
     Context {
         session: u64,
         context: HostContext,
@@ -281,7 +289,7 @@ impl Registry {
             }
             Request::State { session } => {
                 let s = self.session(session)?;
-                json!({"status":s.status(),"view":s.snapshot(),"base":s.base_mode(),"temporary":s.temporary_mode(),"revision":s.revision(),"pinyin":s.capability(TemporaryMode::Pinyin),"prediction_enabled":s.config().prediction.enabled})
+                json!({"status":s.status(),"view":s.snapshot(),"base":s.base_mode(),"temporary":s.temporary_mode(),"revision":s.revision(),"pinyin":s.capability(TemporaryMode::Pinyin),"prediction_enabled":s.config().prediction.enabled,"prediction_waiting":s.waiting_for_prediction()})
             }
             Request::PredictionContext {
                 session,
@@ -301,6 +309,22 @@ impl Registry {
                     s.observe_prefix(editor, epoch, prefix.as_deref());
                 }
                 json!(null)
+            }
+            Request::PredictionWork { session } => {
+                let s = self.session(session)?;
+                s.expire_prediction();
+                json!({"request":s.prediction_request(),"config":s.config().prediction,"root":s.model_store_path()})
+            }
+            Request::PredictionResult {
+                session,
+                key,
+                response,
+            } => {
+                let s = self.session(session)?;
+                json!(s.complete_prediction(
+                    key,
+                    response.ok_or(crate::assistance::Unavailable::Inference)
+                ))
             }
             Request::Candidates {
                 session,

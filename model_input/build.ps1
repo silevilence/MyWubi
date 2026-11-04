@@ -3,7 +3,8 @@ param(
     [string]$Target = 'windows',
     [string]$Sdk = 'C:\Program Files (x86)\Android\android-sdk',
     [string]$OnnxRuntime = $env:MYWUBI_ORT_DYLIB,
-    [switch]$Test
+    [switch]$Test,
+    [switch]$Release
 )
 $ErrorActionPreference = 'Stop'
 if ($Target -ne 'windows' -and -not $PSBoundParameters.ContainsKey('OnnxRuntime')) {
@@ -23,6 +24,7 @@ if (-not $env:LIBCLANG_PATH) { $env:LIBCLANG_PATH = 'C:\Program Files\LLVM\bin' 
 if (-not (Test-Path -LiteralPath (Join-Path $env:LIBCLANG_PATH 'libclang.dll'))) { throw 'Set LIBCLANG_PATH to LLVM libclang directory' }
 $cargoArgs = @('build', '-p', 'model_input', '--locked', '--features', 'llama-cpp-2,ort')
 if ($Test) { $cargoArgs[0] = 'test' }
+if ($Release) { $cargoArgs += '--release' }
 if ($Target -ne 'windows') {
     if ($Test) { throw 'Cross-built tests require an Android device runner; do not count build as execution' }
     $ndk = Join-Path $Sdk 'ndk\27.2.12479018'

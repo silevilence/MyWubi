@@ -7,6 +7,9 @@ object NativeBridge {
     init { System.loadLibrary("mywubi_android"); check(version() == 1) }
     @JvmStatic external fun version(): Int
     @JvmStatic external fun exchange(request: ByteArray): ByteArray
+    @JvmStatic external fun modelPackages(request: ByteArray): ByteArray
+    @JvmStatic external fun inference(request: ByteArray): ByteArray
+    @JvmStatic external fun runtimeDirectory(path: String)
 
     fun call(op: String, vararg fields: Pair<String, Any?>): Any? {
         val request = JSONObject().put("op", op)

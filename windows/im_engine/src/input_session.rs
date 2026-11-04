@@ -37,6 +37,7 @@ impl EditFailure for SessionEditError {
 }
 
 pub(crate) struct InputSession {
+    model: Mutex<Option<crate::model_client::Client>>,
     core: Mutex<Session>,
     candidates: Arc<ArcSwap<CandidateData>>,
 }
@@ -46,6 +47,7 @@ impl InputSession {
         candidates: Arc<ArcSwap<CandidateData>>,
     ) -> Self {
         Self {
+            model: Mutex::new(None),
             core: Mutex::new(Session::new(
                 snapshot,
                 BehaviorProfile::LegacyV1,
@@ -102,6 +104,9 @@ impl InputSession {
         handled
     }
     pub fn clear_prediction_context(&self) {
+        if let Some(client) = self.model.lock().as_ref() {
+            client.invalidate();
+        }
         let mut core = self.core.lock();
         let visible = core.has_prediction();
         core.clear_prediction_context();
@@ -111,6 +116,63 @@ impl InputSession {
                     core.config(),
                 ))));
         }
+    }
+    pub fn abandon_prediction(&self) {
+        let mut core = self.core.lock();
+        if let Some(request) = core.prediction_request() {
+            core.complete_prediction(
+                request.key,
+                Err(core_engine::assistance::Unavailable::Cancelled),
+            );
+        }
+        if let Some(client) = self.model.lock().as_ref() {
+            client.invalidate();
+        }
+    }
+    pub fn pump_prediction(&self) -> bool {
+        let mut core = self.core.lock();
+        let mut changed = core.expire_prediction();
+        if let Some(request) = core.prediction_request() {
+            let mut client = self.model.lock();
+            if client.is_none() {
+                *client = crate::model_client::Client::new().ok();
+            }
+            if let Some(client) = client.as_ref() {
+                client.submit(
+                    core.model_store_path(),
+                    core.config().prediction.clone(),
+                    request.clone(),
+                );
+                if let Some(result) = client.take(request.key) {
+                    changed |= core.complete_prediction(request.key, result);
+                }
+            } else {
+                changed |= core.complete_prediction(
+                    request.key,
+                    Err(core_engine::assistance::Unavailable::Load),
+                );
+            }
+        } else if let Some(client) = self.model.lock().as_ref() {
+            if !core.config().prediction.enabled || core.config().prediction.model.is_none() {
+                client.release();
+            } else {
+                client.invalidate();
+            }
+        }
+        if changed {
+            let mut data = candidate_view(
+                core.snapshot(),
+                core.config(),
+                self.candidates.load().anchor,
+            );
+            if core.has_prediction() {
+                let window = core.candidate_window(0, 64);
+                data.prediction_query = Some(window.query_revision.version);
+                data.prediction_ids = window.candidates.iter().map(|c| c.id.0).collect();
+            }
+            self.candidates.store(Arc::new(data));
+        }
+        core.prediction_request().is_some()
     }
     pub fn sync_prediction_context(&self, editor: u64, prefix: crate::prediction_context::Prefix) {
         let mut core = self.core.lock();
@@ -187,6 +249,9 @@ impl InputSession {
         chinese: bool,
         edit: impl FnMut(&EditSessionOp) -> Result<Option<ScreenPoint>, E>,
     ) {
+        if !chinese {
+            self.clear_prediction_context();
+        }
         let plan = self.core.lock().set_input_gate(chinese);
         if let Ok(Some(plan)) = plan {
             self.execute(plan, None, edit);
@@ -196,12 +261,14 @@ impl InputSession {
         &self,
         edit: impl FnMut(&EditSessionOp) -> Result<Option<ScreenPoint>, E>,
     ) {
+        self.clear_prediction_context();
         let plan = self.core.lock().lose_focus();
         if let Ok(plan) = plan {
             self.execute(plan, None, edit);
         }
     }
     pub fn terminated(&self) {
+        self.clear_prediction_context();
         let mut core = self.core.lock();
         core.host_terminated();
         self.candidates
@@ -214,6 +281,11 @@ impl InputSession {
         snapshot: &RuntimeSnapshot,
         edit: impl FnMut(&EditSessionOp) -> Result<Option<ScreenPoint>, E>,
     ) {
+        if self.core.lock().config().prediction != snapshot.config.prediction {
+            if let Some(client) = self.model.lock().as_ref() {
+                client.release();
+            }
+        }
         let plan = {
             let mut core = self.core.lock();
             let had_prediction = core.has_prediction();
@@ -275,7 +347,7 @@ impl InputSession {
         let ack = core.acknowledge(plan.token, outcome);
         match ack.status {
             AckStatus::Published => {
-                if core.has_prediction() {
+                if core.has_prediction() || core.waiting_for_prediction() {
                     next_view = candidate_view(
                         core.snapshot(),
                         core.config(),
@@ -287,7 +359,7 @@ impl InputSession {
                     next_view.prediction_query = Some(window.query_revision.version);
                     next_view.prediction_ids = window.candidates.iter().map(|c| c.id.0).collect();
                 }
-                if next_view.visible {
+                if next_view.visible || core.waiting_for_prediction() {
                     if let Ok(precise) = result {
                         next_view.anchor = precise.or(next_view.anchor);
                     }
@@ -347,6 +419,35 @@ fn candidate_view(
 mod tests {
     use super::*;
     use core_engine::Entry;
+
+    #[test]
+    fn model_wait_retains_the_confirmed_commit_anchor() {
+        let mut config = Config::default();
+        config.basic.auto_commit_unique = false;
+        config.prediction.enabled = true;
+        config.prediction.model = Some(core_engine::config::ModelSelection {
+            id: "fixture".into(),
+            version: "v1".into(),
+        });
+        let view = Arc::new(ArcSwap::from_pointee(CandidateData::default()));
+        let session = InputSession::new(
+            Dictionary::from_text("b\t北\t100\n").unwrap(),
+            config,
+            0,
+            view.clone(),
+        );
+        for event in [InputEvent::Char('b'), InputEvent::Space] {
+            assert!(
+                session.handle(event, false, None, |_| Ok::<_, SessionEditError>(Some(
+                    ScreenPoint { x: 19, y: 37 }
+                )))
+            );
+        }
+        assert!(session.core.lock().waiting_for_prediction());
+        assert!(!view.load().visible);
+        let anchor = view.load().anchor.unwrap();
+        assert_eq!((anchor.x, anchor.y), (19, 37));
+    }
 
     #[test]
     fn frozen_legacy_driver_matches_shared_adapter_across_keys_controls_and_failures() {

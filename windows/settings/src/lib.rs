@@ -9,6 +9,7 @@ pub mod config_path;
 pub mod elevation;
 pub mod fonts;
 pub mod log;
+mod model_catalog;
 pub mod panels;
 pub mod save;
 pub mod state;

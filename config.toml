@@ -49,3 +49,7 @@ toggle_simplify = "ctrl_shift_s"
 [prediction]
 # 本地字词预测独立于编码候选排序，默认关闭。
 enabled = false
+wait_ms = 200
+threads = 2
+max_candidates = 16
+idle_seconds = 60

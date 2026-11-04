@@ -9,6 +9,14 @@ use std::{
 };
 
 static ENVIRONMENT: OnceLock<Result<Environment, Unavailable>> = OnceLock::new();
+static RUNTIME_DIRECTORY: OnceLock<std::path::PathBuf> = OnceLock::new();
+/// Application bootstrap only records its installed nativeLibraryDir. Loading
+/// remains on the inference thread; model packages never set this directory.
+pub fn set_runtime_directory(path: &Path) {
+    if path.is_absolute() {
+        let _ = RUNTIME_DIRECTORY.set(path.to_path_buf());
+    }
+}
 
 /// Initialize the application-bundled runtime, never a model-supplied native library.
 /// Android must pass its nativeLibraryDir/libonnxruntime.so before loading a model.
@@ -101,7 +109,12 @@ impl OnnxScorer {
             } else {
                 "libonnxruntime.so"
             };
-            initialize_runtime(&directory.join(name))?;
+            initialize_runtime(
+                &RUNTIME_DIRECTORY
+                    .get()
+                    .map_or(directory, |p| p.as_path())
+                    .join(name),
+            )?;
         }
         let environment = ENVIRONMENT
             .get()

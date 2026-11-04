@@ -172,6 +172,7 @@ struct PlanParts {
 /// A caller serializes access, releases its lock for host calls, then acknowledges.
 /// Legacy permits nested prepares; only the newest generation may publish.
 pub struct Session {
+    prediction_wait: Option<(crate::assistance::ScoreRequest, std::time::Instant)>,
     resources: Arc<RuntimeSnapshot>,
     prediction_dict: Arc<Dictionary>,
     prediction: Option<crate::assistance::prediction::Prediction>,
@@ -204,6 +205,7 @@ impl Session {
                 && context.allows_assistance,
         );
         Self {
+            prediction_wait: None,
             resources: Arc::new(runtime.clone()),
             prediction_dict: Arc::clone(&runtime.dict),
             prediction: None,
@@ -258,13 +260,20 @@ impl Session {
         self.last_outcome
     }
     pub fn candidate_window(&self, offset: usize, count: usize) -> CandidateWindow {
-        if let Some(prediction) = &self.prediction {
+        if let Some(prediction) = &self
+            .prediction
+            .as_ref()
+            .filter(|_| self.prediction_wait.is_none())
+        {
             return prediction.window(offset, count);
         }
         self.published_engine.candidate_window(offset, count)
     }
     pub fn has_prediction(&self) -> bool {
-        self.prediction.is_some()
+        self.prediction.is_some() && self.prediction_wait.is_none()
+    }
+    pub fn waiting_for_prediction(&self) -> bool {
+        self.prediction_wait.is_some()
     }
     pub fn set_assistance_allowed(&mut self, allowed: bool) {
         if self.context.allows_assistance != allowed {
@@ -281,6 +290,7 @@ impl Session {
     }
     /// Call for external edits, cursor movement or keys handled outside this session.
     pub fn clear_prediction_context(&mut self) {
+        self.prediction_wait = None;
         self.prefix.invalidate();
         self.prediction = None;
         if self.view.prediction {
@@ -295,7 +305,8 @@ impl Session {
         {
             let previous = self.prefix.prefix().to_owned();
             self.prefix.observe(editor, epoch, text);
-            if self.has_prediction() && previous != self.prefix.prefix() {
+            if self.prediction.is_some() && previous != self.prefix.prefix() {
+                self.prediction_wait = None;
                 self.prediction = None;
                 self.view = SessionView::default();
             }
@@ -315,13 +326,125 @@ impl Session {
         }
         let items = self.prediction_dict.prediction_lexicon().recall(
             self.prefix.prefix(),
-            usize::from(self.config.basic.candidate_count),
+            usize::from(if self.config.prediction.model.is_some() {
+                self.config.prediction.max_candidates
+            } else {
+                self.config.basic.candidate_count
+            }),
         );
         if !items.is_empty() {
             let prediction = crate::assistance::prediction::Prediction::new(items);
-            self.view = prediction.view();
+            if self.config.prediction.model.is_some() {
+                use crate::assistance::*;
+                let request = ScoreRequest {
+                    protocol: PROTOCOL_VERSION,
+                    key: RequestKey {
+                        edit: self.token(),
+                        query: prediction.query,
+                        view: prediction.query.version,
+                        context: self.prefix.generation(),
+                        model: self.revision,
+                        config: self.revision,
+                        request: prediction.query.version,
+                    },
+                    task: Task::Predict,
+                    language: "zh".into(),
+                    prefix: self.prefix.prefix().into(),
+                    code: String::new(),
+                    candidates: prediction
+                        .items
+                        .iter()
+                        .map(|c| ScoringCandidate {
+                            id: c.id,
+                            text: c.text.clone(),
+                        })
+                        .collect(),
+                };
+                self.prediction_wait = Some((
+                    request,
+                    std::time::Instant::now()
+                        + std::time::Duration::from_millis(u64::from(
+                            self.config.prediction.wait_ms,
+                        )),
+                ));
+                self.view = SessionView::default();
+            } else {
+                self.view = prediction.view();
+            }
             self.prediction = Some(prediction);
         }
+    }
+    /// A snapshot of pending model work; adapters enqueue it once off the input path.
+    pub fn prediction_request(&self) -> Option<crate::assistance::ScoreRequest> {
+        self.prediction_wait
+            .as_ref()
+            .map(|(request, _)| request.clone())
+    }
+    pub fn model_store_path(&self) -> std::path::PathBuf {
+        crate::config_path::model_store_path(&self.resources.config_path)
+    }
+    pub fn expire_prediction(&mut self) -> bool {
+        if self
+            .prediction_wait
+            .as_ref()
+            .is_some_and(|(_, deadline)| std::time::Instant::now() >= *deadline)
+        {
+            let key = self.prediction_wait.as_ref().unwrap().0.key;
+            self.complete_prediction(key, Err(crate::assistance::Unavailable::Timeout))
+        } else {
+            false
+        }
+    }
+    /// Publish exactly once before interaction starts. A late score never reorders
+    /// an already displayed prediction; selection retains immutable candidate IDs.
+    pub fn complete_prediction(
+        &mut self,
+        key: crate::assistance::RequestKey,
+        result: Result<crate::assistance::ScoreResponse, crate::assistance::Unavailable>,
+    ) -> bool {
+        if self
+            .prediction_wait
+            .as_ref()
+            .is_none_or(|(r, _)| r.key != key)
+        {
+            return false;
+        }
+        let Some((request, deadline)) = self.prediction_wait.take() else {
+            return false;
+        };
+        if self.token() != request.key.edit || self.prefix.generation() != request.key.context {
+            self.prediction = None;
+            return false;
+        }
+        let Some(prediction) = &mut self.prediction else {
+            return false;
+        };
+        if prediction.query != request.key.query {
+            return false;
+        }
+        let response = result.ok().filter(|response| {
+            std::time::Instant::now() < deadline && response.validate(&request, request.key).is_ok()
+        });
+        let Some(response) = response else {
+            self.prediction = None;
+            self.view = SessionView::default();
+            return true;
+        };
+        prediction.items.sort_by(|a, b| {
+            let score = |id| {
+                response
+                    .scores
+                    .iter()
+                    .find(|s| s.id == id)
+                    .map_or(f32::NEG_INFINITY, |s| s.value)
+            };
+            score(b.id).total_cmp(&score(a.id))
+        });
+        prediction
+            .items
+            .truncate(usize::from(self.config.basic.candidate_count));
+        self.view = prediction.view();
+        true
     }
     pub fn status(&self) -> SessionStatus {
         if self.closed {
@@ -338,7 +461,7 @@ impl Session {
         self.engine.profile == BehaviorProfile::LegacyV1
     }
     pub fn would_handle(&self, action: &Action) -> bool {
-        if self.prediction.is_some()
+        if self.has_prediction()
             && self.gate
             && !self.closed
             && matches!(
@@ -368,7 +491,7 @@ impl Session {
     }
     pub fn would_handle_legacy(&self, event: &InputEvent, system_modifier: bool) -> bool {
         if !system_modifier
-            && self.prediction.is_some()
+            && self.has_prediction()
             && matches!(event, InputEvent::Select(_) | InputEvent::Esc)
         {
             return true;
@@ -405,6 +528,10 @@ impl Session {
     }
 
     pub fn prepare(&mut self, action: Action) -> Result<PreparedEdit, SessionError> {
+        // Input always wins over unshown model suggestions, including number/space keys.
+        if self.prediction_wait.take().is_some() {
+            self.prediction = None;
+        }
         if self.closed {
             return Err(SessionError::Closed);
         }
@@ -953,7 +1080,7 @@ impl Session {
         self.cleared(next, op, false).map(Some)
     }
     fn only_prediction_changed(&self, runtime: &RuntimeSnapshot) -> bool {
-        if self.config.prediction.enabled == runtime.config.prediction.enabled {
+        if self.config.prediction == runtime.config.prediction {
             return false;
         }
         let mut previous = self.config.clone();

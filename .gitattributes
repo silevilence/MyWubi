@@ -18,3 +18,7 @@
 
 # Reproducible bundled prediction lexicon.
 /core_engine/src/assistance/*.tsv text eol=lf
+
+# Keep upstream notices byte-for-byte, including their original whitespace.
+/model_input/licenses/*.txt -text -whitespace
+/model_input/licenses/sources.json text eol=lf

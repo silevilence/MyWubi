@@ -1,16 +1,94 @@
 //! Android native module; protocol rules remain in core_engine.
 pub use core_engine::ffi::PROTOCOL_VERSION;
+static INFERENCE: std::sync::OnceLock<model_input::service::Endpoint> = std::sync::OnceLock::new();
 
 use jni::{
-    objects::{JByteArray, JClass},
+    objects::{JByteArray, JClass, JString},
     sys::{jbyteArray, jint},
     JNIEnv,
 };
+
+#[no_mangle]
+pub extern "system" fn Java_org_mywubi_NativeBridge_runtimeDirectory(
+    mut env: JNIEnv,
+    _class: JClass,
+    path: JString,
+) {
+    let _ = std::panic::catch_unwind(std::panic::AssertUnwindSafe(|| {
+        if let Ok(path) = env.get_string(&path) {
+            let path: String = path.into();
+            #[cfg(feature = "onnx")]
+            model_input::onnx::set_runtime_directory(std::path::Path::new(&path));
+            #[cfg(not(feature = "onnx"))]
+            let _ = path;
+        }
+    }));
+}
 
 /// Protocol is carried in byte arrays: standard UTF-8, never JNI Modified UTF-8.
 #[no_mangle]
 pub extern "system" fn Java_org_mywubi_NativeBridge_version(_env: JNIEnv, _class: JClass) -> jint {
     PROTOCOL_VERSION as jint
+}
+
+/// Separate short-lived registry lock; native inference never holds the core lock.
+#[no_mangle]
+pub extern "system" fn Java_org_mywubi_NativeBridge_inference(
+    mut env: JNIEnv,
+    _class: JClass,
+    request: JByteArray,
+) -> jbyteArray {
+    let result = std::panic::catch_unwind(std::panic::AssertUnwindSafe(|| {
+        if env.get_array_length(&request).ok()? > 65536 {
+            return None;
+        }
+        let bytes = env.convert_byte_array(&request).ok()?;
+        let response = INFERENCE.get_or_init(Default::default).exchange(&bytes);
+        env.byte_array_from_slice(&response)
+            .ok()
+            .map(|a| a.into_raw())
+    }));
+    match result {
+        Ok(Some(array)) => array,
+        _ => {
+            if !env.exception_check().unwrap_or(true) {
+                let _ = env.throw_new(
+                    "java/lang/IllegalArgumentException",
+                    "inference transport failed",
+                );
+            }
+            std::ptr::null_mut()
+        }
+    }
+}
+
+#[no_mangle]
+pub extern "system" fn Java_org_mywubi_NativeBridge_modelPackages(
+    mut env: JNIEnv,
+    _class: JClass,
+    request: JByteArray,
+) -> jbyteArray {
+    let result = std::panic::catch_unwind(std::panic::AssertUnwindSafe(|| {
+        if env.get_array_length(&request).ok()? > 64 * 1024 {
+            return None;
+        }
+        let bytes = env.convert_byte_array(&request).ok()?;
+        env.byte_array_from_slice(&model_input::catalog::exchange(&bytes))
+            .ok()
+            .map(|a| a.into_raw())
+    }));
+    match result {
+        Ok(Some(array)) => array,
+        _ => {
+            if !env.exception_check().unwrap_or(true) {
+                let _ = env.throw_new(
+                    "java/lang/IllegalArgumentException",
+                    "model catalog transport failed",
+                );
+            }
+            std::ptr::null_mut()
+        }
+    }
 }
 
 /// JNI owns local references; returned arrays are copied into JVM memory.

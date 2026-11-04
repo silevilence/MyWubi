@@ -607,6 +607,10 @@ impl TextService {
     }
 
     fn choose_prediction(&self, version: u64, id: usize) {
+        if version == 0 && id == 1 {
+            self.pump_prediction();
+            return;
+        }
         if version == 0 {
             self.prediction_check_queued.store(false, Ordering::Release);
             if self.composition.lock().is_some() {
@@ -640,6 +644,26 @@ impl TextService {
         if version != 0 {
             self.input
                 .choose_prediction(version, id, |op| self.run_edit(op, Some(&context)));
+            self.pump_prediction();
+        }
+    }
+    fn pump_prediction(&self) {
+        if self.input.pump_prediction() {
+            let armed = if let Some(dispatch) = self.candidate_dispatch.lock().as_ref() {
+                unsafe {
+                    windows::Win32::UI::WindowsAndMessaging::SetTimer(
+                        Some(dispatch.hwnd()),
+                        crate::candidate_dispatch::MODEL_TIMER,
+                        16,
+                        None,
+                    ) != 0
+                }
+            } else {
+                false
+            };
+            if !armed {
+                self.input.abandon_prediction();
+            }
         }
     }
 
@@ -1712,11 +1736,11 @@ impl ITfKeyEventSink_Impl for TextService_Impl {
             .anchor
             .or_else(|| crate::screen_geometry::get_caret_position_win32(theme.font_size))
             .or_else(crate::screen_geometry::get_cursor_position);
-        Ok(BOOL(
-            self.input
-                .handle(event, false, anchor, |op| self.run_edit(op, pic.as_ref()))
-                as i32,
-        ))
+        let handled = self
+            .input
+            .handle(event, false, anchor, |op| self.run_edit(op, pic.as_ref()));
+        self.pump_prediction();
+        Ok(BOOL(handled as i32))
     }
 
     fn OnKeyUp(&self, _pic: Ref<'_, ITfContext>, _wparam: WPARAM, _lparam: LPARAM) -> Result<BOOL> {

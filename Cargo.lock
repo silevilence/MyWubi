@@ -1784,8 +1784,10 @@ dependencies = [
  "core_engine",
  "dirs 6.0.0",
  "log",
+ "model_ipc",
  "notify",
  "parking_lot",
+ "serde_json",
  "tip_manager",
  "windows 0.62.2",
  "windows-core 0.62.2",
@@ -2175,12 +2177,21 @@ version = "0.6.2"
 dependencies = [
  "core_engine",
  "llama-cpp-2",
+ "model_ipc",
  "ort",
  "self_cell",
  "serde",
  "serde_json",
  "sha2 0.10.9",
+ "tempfile",
  "thiserror 1.0.69",
+]
+
+[[package]]
+name = "model_ipc"
+version = "0.6.2"
+dependencies = [
+ "windows 0.62.2",
 ]
 
 [[package]]
@@ -2189,6 +2200,7 @@ version = "0.6.2"
 dependencies = [
  "core_engine",
  "jni",
+ "model_input",
 ]
 
 [[package]]
@@ -3239,9 +3251,12 @@ dependencies = [
  "dirs 5.0.1",
  "eframe",
  "log",
+ "model_input",
+ "model_ipc",
  "rfd",
  "semver",
  "serde",
+ "serde_json",
  "simplelog",
  "tempfile",
  "thiserror 1.0.69",

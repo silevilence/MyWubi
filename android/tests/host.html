@@ -26,6 +26,15 @@ document.querySelector('h1').after(marker);
 const value = document.createElement('p');
 value.id = 'text-value';
 marker.after(value);
+const selection = document.createElement('p');
+selection.id = 'selection-value';
+value.after(selection);
+document.addEventListener('selectionchange', () => {
+  const field = document.querySelector('textarea');
+  const next = '选区：' + field.selectionStart + ',' + field.selectionEnd;
+  // Changing this node can itself trigger selectionchange in Chromium.
+  if (selection.textContent !== next) selection.textContent = next;
+});
 document.querySelector('textarea').addEventListener('input', e => {
   value.textContent = '正文值：' + JSON.stringify(e.target.value);
 });
