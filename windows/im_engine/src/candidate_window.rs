@@ -364,36 +364,8 @@ fn handle_timer(hwnd: HWND) {
     let data = window_data.data_src.load();
 
     if data.visible {
-        // 计算窗口尺寸
-        let (win_w, win_h) = measure_candidate_window_size(hwnd, &data);
-
-        // 定位窗口
-        let mon_rect = get_monitor_rect(hwnd);
-        let (pos_x, pos_y) = if let Some(anchor) = data.anchor {
-            compute_window_rect(anchor, (win_w, win_h), mon_rect)
-        } else {
-            // 无锚点时用鼠标位置回退，再不行用显示器中心
-            let fallback = crate::screen_geometry::get_cursor_position()
-                .map(|p| compute_window_rect(p, (win_w, win_h), mon_rect))
-                .unwrap_or((
-                    (mon_rect.2 - mon_rect.0 - win_w) / 2,
-                    (mon_rect.3 - mon_rect.1 - win_h) / 2,
-                ));
-            fallback
-        };
-        unsafe {
-            let _ = SetWindowPos(
-                hwnd,
-                Some(HWND_TOPMOST),
-                pos_x,
-                pos_y,
-                win_w,
-                win_h,
-                SET_WINDOW_POS_FLAGS(SWP_NOACTIVATE.0),
-            );
-        }
-
-        // 使用 GDI 渲染候选框并贴图
+        // 实际文字尺寸、位置和贴图由 UpdateLayeredWindow 一次性提交。
+        // 先用估算尺寸 SetWindowPos 会在每轮定时器中裁切右侧候选。
         gdi_render_candidate_window(hwnd, window_data, &data);
 
         unsafe {
@@ -428,38 +400,6 @@ fn get_monitor_rect(hwnd: HWND) -> (i32, i32, i32, i32) {
             )
         }
     }
-}
-
-/// 根据候选数据和编码计算窗口尺寸（双行显示：编码行 + 候选行）。
-fn measure_candidate_window_size(_hwnd: HWND, data: &CandidateData) -> (i32, i32) {
-    if data.items.is_empty() && data.spelling.is_empty() {
-        return (DEFAULT_WIN_W, DEFAULT_WIN_H);
-    }
-    let fs_px = crate::screen_geometry::pt_to_px(data.theme.font_size).max(12);
-    if data.items.is_empty() {
-        let approx_w = (data.spelling.len() as i32) * fs_px + 24;
-        return (approx_w.max(60).min(800), fs_px + 20);
-    }
-    let total_w = data
-        .items
-        .iter()
-        .map(|item| {
-            (item.label.chars().count() + item.text.chars().count() + item.hint.chars().count())
-                as i32
-                * fs_px
-                / 2
-                + 16
-        })
-        .sum::<i32>()
-        + 20;
-    let show_spelling = !data.spelling.is_empty();
-    let row_h = (fs_px as f64 * 1.4) as i32;
-    let total_h = if show_spelling {
-        row_h * 2 + 6
-    } else {
-        row_h + 6
-    };
-    (total_w.min(800), total_h.max(DEFAULT_WIN_H))
 }
 
 // ── GDI 渲染 ──────────────────────────────────────────────────────
@@ -564,6 +504,15 @@ fn gdi_render_candidate_window(hwnd: HWND, window_data: &WindowData, data: &Cand
         }
         let win_w = total_cand_w.max(spell_w).max(DEFAULT_WIN_W);
         let win_h = total_h.max(DEFAULT_WIN_H);
+        let mon_rect = get_monitor_rect(hwnd);
+        let (pos_x, pos_y) = data
+            .anchor
+            .or_else(crate::screen_geometry::get_cursor_position)
+            .map(|anchor| compute_window_rect(anchor, (win_w, win_h), mon_rect))
+            .unwrap_or((
+                mon_rect.0 + (mon_rect.2 - mon_rect.0 - win_w) / 2,
+                mon_rect.1 + (mon_rect.3 - mon_rect.1 - win_h) / 2,
+            ));
 
         // 创建 DIB
         let bmi = BITMAPINFO {
@@ -721,7 +670,7 @@ fn gdi_render_candidate_window(hwnd: HWND, window_data: &WindowData, data: &Cand
         let rendered = UpdateLayeredWindow(
             hwnd,
             Some(hdc_screen),
-            None,
+            Some(&POINT { x: pos_x, y: pos_y }),
             Some(&SIZE {
                 cx: win_w,
                 cy: win_h,
@@ -748,6 +697,94 @@ fn gdi_render_candidate_window(hwnd: HWND, window_data: &WindowData, data: &Cand
 #[cfg(test)]
 mod tests {
     use super::*;
+
+    thread_local! {
+        static RESIZES: std::cell::RefCell<Vec<(i32, i32)>> = const { std::cell::RefCell::new(Vec::new()) };
+    }
+
+    unsafe extern "system" fn observe_size(
+        hwnd: HWND,
+        msg: u32,
+        wparam: WPARAM,
+        lparam: LPARAM,
+    ) -> LRESULT {
+        if msg == WM_WINDOWPOSCHANGING {
+            let position = &*(lparam.0 as *const WINDOWPOS);
+            if !position.flags.contains(SWP_NOSIZE) {
+                RESIZES.with_borrow_mut(|sizes| sizes.push((position.cx, position.cy)));
+            }
+        }
+        DefWindowProcW(hwnd, msg, wparam, lparam)
+    }
+
+    #[test]
+    fn unchanged_candidates_never_resize_to_a_clipped_intermediate_width() {
+        use crate::candidate_data::{CandidateItem, ScreenPoint};
+        let data = CandidateData {
+            visible: true,
+            anchor: Some(ScreenPoint { x: 100, y: 100 }),
+            items: ["节", "期间", "长假", "个", "下"]
+                .into_iter()
+                .enumerate()
+                .map(|(index, text)| CandidateItem {
+                    disabled: false,
+                    label: format!("{}.", index + 1),
+                    text: text.into(),
+                    hint: String::new(),
+                })
+                .collect(),
+            ..Default::default()
+        };
+        let window_data = WindowData {
+            data_src: std::sync::Arc::new(ArcSwap::from_pointee(data)),
+            target: HWND::default(),
+            hits: Default::default(),
+            pressed: Default::default(),
+        };
+        unsafe {
+            let hwnd = CreateWindowExW(
+                WS_EX_LAYERED | WS_EX_TOOLWINDOW | WS_EX_NOACTIVATE,
+                w!("STATIC"),
+                w!("MyWubi render regression"),
+                WS_POPUP,
+                0,
+                0,
+                0,
+                0,
+                None,
+                None,
+                None,
+                None,
+            )
+            .unwrap();
+            SetWindowLongPtrW(hwnd, GWLP_USERDATA, &window_data as *const _ as isize);
+            SetWindowLongPtrW(hwnd, GWLP_WNDPROC, observe_size as *const () as isize);
+            RESIZES.with_borrow_mut(Vec::clear);
+            for _ in 0..3 {
+                handle_timer(hwnd);
+                let mut final_rect = RECT::default();
+                GetWindowRect(hwnd, &mut final_rect).unwrap();
+                RESIZES.with_borrow_mut(|sizes| {
+                    sizes.push((
+                        final_rect.right - final_rect.left,
+                        final_rect.bottom - final_rect.top,
+                    ))
+                });
+            }
+            let _ = DestroyWindow(hwnd);
+        }
+        let sizes = RESIZES.with_borrow(Clone::clone);
+        assert!(
+            sizes
+                .first()
+                .is_some_and(|(width, height)| *width > 0 && *height > 0),
+            "test must observe the real layered window update"
+        );
+        assert!(
+            sizes.iter().all(|size| *size == sizes[0]),
+            "candidate width oscillates: {sizes:?}"
+        );
+    }
 
     #[test]
     fn opaque_alpha_fix_keeps_black_text_visible() {
