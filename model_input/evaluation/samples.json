@@ -1,0 +1,920 @@
+[
+  {
+    "id": "mi-001",
+    "group": "authored-001",
+    "split": "train",
+    "category": "common",
+    "task": "predict",
+    "dictionary": "",
+    "input": {
+      "prefix": "今天北京",
+      "code": "",
+      "candidates": []
+    },
+    "target": "天气"
+  },
+  {
+    "id": "mi-002",
+    "group": "authored-002",
+    "split": "train",
+    "category": "common",
+    "task": "predict",
+    "dictionary": "",
+    "input": {
+      "prefix": "明天上海",
+      "code": "",
+      "candidates": []
+    },
+    "target": "天气"
+  },
+  {
+    "id": "mi-003",
+    "group": "authored-003",
+    "split": "train",
+    "category": "common",
+    "task": "predict",
+    "dictionary": "",
+    "input": {
+      "prefix": "我们学习",
+      "code": "",
+      "candidates": []
+    },
+    "target": "中文"
+  },
+  {
+    "id": "mi-004",
+    "group": "authored-004",
+    "split": "train",
+    "category": "common",
+    "task": "predict",
+    "dictionary": "",
+    "input": {
+      "prefix": "一起学习",
+      "code": "",
+      "candidates": []
+    },
+    "target": "五笔"
+  },
+  {
+    "id": "mi-005",
+    "group": "authored-005",
+    "split": "train",
+    "category": "continuation",
+    "task": "predict",
+    "dictionary": "",
+    "input": {
+      "prefix": "目的地在北",
+      "code": "",
+      "candidates": []
+    },
+    "target": "京"
+  },
+  {
+    "id": "mi-006",
+    "group": "authored-006",
+    "split": "train",
+    "category": "domain",
+    "task": "predict",
+    "dictionary": "",
+    "input": {
+      "prefix": "创建线程",
+      "code": "",
+      "candidates": []
+    },
+    "target": "池"
+  },
+  {
+    "id": "mi-007",
+    "group": "authored-007",
+    "split": "train",
+    "category": "common",
+    "task": "predict",
+    "dictionary": "",
+    "input": {
+      "prefix": "刚刚完成",
+      "code": "",
+      "candidates": []
+    },
+    "target": "工作"
+  },
+  {
+    "id": "mi-008",
+    "group": "authored-008",
+    "split": "train",
+    "category": "common",
+    "task": "predict",
+    "dictionary": "",
+    "input": {
+      "prefix": "请打开",
+      "code": "",
+      "candidates": []
+    },
+    "target": "设置"
+  },
+  {
+    "id": "mi-009",
+    "group": "authored-009",
+    "split": "dev",
+    "category": "ambiguity",
+    "task": "rank",
+    "dictionary": "pinyin",
+    "input": {
+      "prefix": "下周去",
+      "code": "xian",
+      "candidates": [
+        "先",
+        "线",
+        "县",
+        "现",
+        "西安",
+        "咁",
+        "闲",
+        "仙",
+        "显",
+        "嫌",
+        "贤",
+        "限",
+        "鲜",
+        "险",
+        "咸",
+        "弦",
+        "献",
+        "陷",
+        "宪",
+        "馅",
+        "掀",
+        "腺",
+        "衔",
+        "娴",
+        "见",
+        "纤",
+        "羡",
+        "西岸",
+        "冼",
+        "酰",
+        "涎",
+        "舷",
+        "祆",
+        "現",
+        "線",
+        "藓",
+        "痫",
+        "蚬",
+        "霰",
+        "籼",
+        "岘",
+        "賢",
+        "苋",
+        "癎",
+        "縣",
+        "铣",
+        "閒",
+        "暹",
+        "锨",
+        "憪",
+        "憲",
+        "険",
+        "顯",
+        "粯",
+        "県",
+        "嫻",
+        "鍌",
+        "跣",
+        "跹",
+        "氙",
+        "獻",
+        "蚿",
+        "閑",
+        "險"
+      ]
+    },
+    "target": "西安"
+  },
+  {
+    "id": "mi-010",
+    "group": "authored-010",
+    "split": "dev",
+    "category": "ambiguity",
+    "task": "rank",
+    "dictionary": "pinyin",
+    "input": {
+      "prefix": "山中住着神",
+      "code": "xian",
+      "candidates": [
+        "先",
+        "线",
+        "县",
+        "现",
+        "西安",
+        "咁",
+        "闲",
+        "仙",
+        "显",
+        "嫌",
+        "贤",
+        "限",
+        "鲜",
+        "险",
+        "咸",
+        "弦",
+        "献",
+        "陷",
+        "宪",
+        "馅",
+        "掀",
+        "腺",
+        "衔",
+        "娴",
+        "见",
+        "纤",
+        "羡",
+        "西岸",
+        "冼",
+        "酰",
+        "涎",
+        "舷",
+        "祆",
+        "現",
+        "線",
+        "藓",
+        "痫",
+        "蚬",
+        "霰",
+        "籼",
+        "岘",
+        "賢",
+        "苋",
+        "癎",
+        "縣",
+        "铣",
+        "閒",
+        "暹",
+        "锨",
+        "憪",
+        "憲",
+        "険",
+        "顯",
+        "粯",
+        "県",
+        "嫻",
+        "鍌",
+        "跣",
+        "跹",
+        "氙",
+        "獻",
+        "蚿",
+        "閑",
+        "險"
+      ]
+    },
+    "target": "仙"
+  },
+  {
+    "id": "mi-011",
+    "group": "authored-011",
+    "split": "dev",
+    "category": "shape_collision",
+    "task": "rank",
+    "dictionary": "wubi",
+    "input": {
+      "prefix": "隔壁姓",
+      "code": "ggll",
+      "candidates": [
+        "王",
+        "壬",
+        "丰"
+      ]
+    },
+    "target": "王"
+  },
+  {
+    "id": "mi-012",
+    "group": "authored-012",
+    "split": "dev",
+    "category": "short_code",
+    "task": "rank",
+    "dictionary": "wubi",
+    "input": {
+      "prefix": "开始做",
+      "code": "g",
+      "candidates": [
+        "五",
+        "王",
+        "理",
+        "五笔",
+        "壬",
+        "班",
+        "丰"
+      ]
+    },
+    "target": "工"
+  },
+  {
+    "id": "mi-013",
+    "group": "authored-013",
+    "split": "dev",
+    "category": "domain",
+    "task": "rank",
+    "dictionary": "user",
+    "input": {
+      "prefix": "新增一个",
+      "code": "bbbb",
+      "candidates": [
+        "线程",
+        "线程池",
+        "协程"
+      ]
+    },
+    "target": "线程池"
+  },
+  {
+    "id": "mi-014",
+    "group": "authored-014",
+    "split": "dev",
+    "category": "rare",
+    "task": "rank",
+    "dictionary": "user",
+    "input": {
+      "prefix": "方言生僻字",
+      "code": "aaaa",
+      "candidates": [
+        "工单",
+        "工程",
+        "工程化",
+        "鿍"
+      ]
+    },
+    "target": "鿍"
+  },
+  {
+    "id": "mi-015",
+    "group": "authored-015",
+    "split": "dev",
+    "category": "common",
+    "task": "predict",
+    "dictionary": "",
+    "input": {
+      "prefix": "出门前看看北京",
+      "code": "",
+      "candidates": []
+    },
+    "target": "天气"
+  },
+  {
+    "id": "mi-016",
+    "group": "authored-016",
+    "split": "dev",
+    "category": "continuation",
+    "task": "predict",
+    "dictionary": "",
+    "input": {
+      "prefix": "火车到达北",
+      "code": "",
+      "candidates": []
+    },
+    "target": "京"
+  },
+  {
+    "id": "mi-017",
+    "group": "authored-017",
+    "split": "dev",
+    "category": "empty_context",
+    "task": "predict",
+    "dictionary": "",
+    "input": {
+      "prefix": "",
+      "code": "",
+      "candidates": []
+    },
+    "target": "你好"
+  },
+  {
+    "id": "mi-018",
+    "group": "authored-018",
+    "split": "dev",
+    "category": "domain",
+    "task": "predict",
+    "dictionary": "",
+    "input": {
+      "prefix": "后台线程",
+      "code": "",
+      "candidates": []
+    },
+    "target": "池"
+  },
+  {
+    "id": "mi-019",
+    "group": "authored-019",
+    "split": "test",
+    "category": "ambiguity",
+    "task": "rank",
+    "dictionary": "pinyin",
+    "input": {
+      "prefix": "暑假打算到",
+      "code": "xian",
+      "candidates": [
+        "先",
+        "线",
+        "县",
+        "现",
+        "西安",
+        "咁",
+        "闲",
+        "仙",
+        "显",
+        "嫌",
+        "贤",
+        "限",
+        "鲜",
+        "险",
+        "咸",
+        "弦",
+        "献",
+        "陷",
+        "宪",
+        "馅",
+        "掀",
+        "腺",
+        "衔",
+        "娴",
+        "见",
+        "纤",
+        "羡",
+        "西岸",
+        "冼",
+        "酰",
+        "涎",
+        "舷",
+        "祆",
+        "現",
+        "線",
+        "藓",
+        "痫",
+        "蚬",
+        "霰",
+        "籼",
+        "岘",
+        "賢",
+        "苋",
+        "癎",
+        "縣",
+        "铣",
+        "閒",
+        "暹",
+        "锨",
+        "憪",
+        "憲",
+        "険",
+        "顯",
+        "粯",
+        "県",
+        "嫻",
+        "鍌",
+        "跣",
+        "跹",
+        "氙",
+        "獻",
+        "蚿",
+        "閑",
+        "險"
+      ]
+    },
+    "target": "西安"
+  },
+  {
+    "id": "mi-020",
+    "group": "authored-020",
+    "split": "test",
+    "category": "ambiguity",
+    "task": "rank",
+    "dictionary": "pinyin",
+    "input": {
+      "prefix": "这是一位神",
+      "code": "xian",
+      "candidates": [
+        "先",
+        "线",
+        "县",
+        "现",
+        "西安",
+        "咁",
+        "闲",
+        "仙",
+        "显",
+        "嫌",
+        "贤",
+        "限",
+        "鲜",
+        "险",
+        "咸",
+        "弦",
+        "献",
+        "陷",
+        "宪",
+        "馅",
+        "掀",
+        "腺",
+        "衔",
+        "娴",
+        "见",
+        "纤",
+        "羡",
+        "西岸",
+        "冼",
+        "酰",
+        "涎",
+        "舷",
+        "祆",
+        "現",
+        "線",
+        "藓",
+        "痫",
+        "蚬",
+        "霰",
+        "籼",
+        "岘",
+        "賢",
+        "苋",
+        "癎",
+        "縣",
+        "铣",
+        "閒",
+        "暹",
+        "锨",
+        "憪",
+        "憲",
+        "険",
+        "顯",
+        "粯",
+        "県",
+        "嫻",
+        "鍌",
+        "跣",
+        "跹",
+        "氙",
+        "獻",
+        "蚿",
+        "閑",
+        "險"
+      ]
+    },
+    "target": "仙"
+  },
+  {
+    "id": "mi-021",
+    "group": "authored-021",
+    "split": "test",
+    "category": "ambiguity",
+    "task": "rank",
+    "dictionary": "pinyin",
+    "input": {
+      "prefix": "我想先去",
+      "code": "xi'an",
+      "candidates": [
+        "西安",
+        "西岸",
+        "西安市"
+      ]
+    },
+    "target": "西安"
+  },
+  {
+    "id": "mi-022",
+    "group": "authored-022",
+    "split": "test",
+    "category": "empty_context",
+    "task": "rank",
+    "dictionary": "pinyin",
+    "input": {
+      "prefix": "",
+      "code": "xian",
+      "candidates": [
+        "先",
+        "线",
+        "县",
+        "现",
+        "西安",
+        "咁",
+        "闲",
+        "仙",
+        "显",
+        "嫌",
+        "贤",
+        "限",
+        "鲜",
+        "险",
+        "咸",
+        "弦",
+        "献",
+        "陷",
+        "宪",
+        "馅",
+        "掀",
+        "腺",
+        "衔",
+        "娴",
+        "见",
+        "纤",
+        "羡",
+        "西岸",
+        "冼",
+        "酰",
+        "涎",
+        "舷",
+        "祆",
+        "現",
+        "線",
+        "藓",
+        "痫",
+        "蚬",
+        "霰",
+        "籼",
+        "岘",
+        "賢",
+        "苋",
+        "癎",
+        "縣",
+        "铣",
+        "閒",
+        "暹",
+        "锨",
+        "憪",
+        "憲",
+        "険",
+        "顯",
+        "粯",
+        "県",
+        "嫻",
+        "鍌",
+        "跣",
+        "跹",
+        "氙",
+        "獻",
+        "蚿",
+        "閑",
+        "險"
+      ]
+    },
+    "target": "先"
+  },
+  {
+    "id": "mi-023",
+    "group": "authored-023",
+    "split": "test",
+    "category": "shape_collision",
+    "task": "rank",
+    "dictionary": "wubi",
+    "input": {
+      "prefix": "今天认识小",
+      "code": "ggll",
+      "candidates": [
+        "王",
+        "壬",
+        "丰"
+      ]
+    },
+    "target": "王"
+  },
+  {
+    "id": "mi-024",
+    "group": "authored-024",
+    "split": "test",
+    "category": "rare",
+    "task": "rank",
+    "dictionary": "wubi",
+    "input": {
+      "prefix": "天干中的",
+      "code": "ggll",
+      "candidates": [
+        "王",
+        "壬",
+        "丰"
+      ]
+    },
+    "target": "壬"
+  },
+  {
+    "id": "mi-025",
+    "group": "authored-025",
+    "split": "test",
+    "category": "short_code",
+    "task": "rank",
+    "dictionary": "wubi",
+    "input": {
+      "prefix": "练习打字用",
+      "code": "gg",
+      "candidates": [
+        "五",
+        "王",
+        "理",
+        "五笔",
+        "壬",
+        "班",
+        "丰"
+      ]
+    },
+    "target": "五笔"
+  },
+  {
+    "id": "mi-026",
+    "group": "authored-026",
+    "split": "test",
+    "category": "user_dictionary",
+    "task": "rank",
+    "dictionary": "user",
+    "input": {
+      "prefix": "处理客户",
+      "code": "aaaa",
+      "candidates": [
+        "工单",
+        "工程",
+        "工程化",
+        "鿍"
+      ]
+    },
+    "target": "工单"
+  },
+  {
+    "id": "mi-027",
+    "group": "authored-027",
+    "split": "test",
+    "category": "domain",
+    "task": "rank",
+    "dictionary": "user",
+    "input": {
+      "prefix": "调度器创建",
+      "code": "bbbb",
+      "candidates": [
+        "线程",
+        "线程池",
+        "协程"
+      ]
+    },
+    "target": "协程"
+  },
+  {
+    "id": "mi-028",
+    "group": "authored-028",
+    "split": "test",
+    "category": "edited_prefix",
+    "task": "rank",
+    "dictionary": "user",
+    "input": {
+      "prefix": "修改后重新提交",
+      "code": "aaaa",
+      "candidates": [
+        "工单",
+        "工程",
+        "工程化",
+        "鿍"
+      ]
+    },
+    "target": "工程"
+  },
+  {
+    "id": "mi-029",
+    "group": "authored-029",
+    "split": "test",
+    "category": "missing_candidate",
+    "task": "rank",
+    "dictionary": "user",
+    "input": {
+      "prefix": "业务领域的新词",
+      "code": "bbbb",
+      "candidates": [
+        "线程",
+        "线程池",
+        "协程"
+      ]
+    },
+    "target": "张量"
+  },
+  {
+    "id": "mi-030",
+    "group": "authored-030",
+    "split": "test",
+    "category": "empty_context",
+    "task": "rank",
+    "dictionary": "wubi",
+    "input": {
+      "prefix": "",
+      "code": "a",
+      "candidates": [
+        "工"
+      ]
+    },
+    "target": "工"
+  },
+  {
+    "id": "mi-031",
+    "group": "authored-031",
+    "split": "test",
+    "category": "common",
+    "task": "predict",
+    "dictionary": "",
+    "input": {
+      "prefix": "查询上海",
+      "code": "",
+      "candidates": []
+    },
+    "target": "天气"
+  },
+  {
+    "id": "mi-032",
+    "group": "authored-032",
+    "split": "test",
+    "category": "common",
+    "task": "predict",
+    "dictionary": "",
+    "input": {
+      "prefix": "孩子正在学习",
+      "code": "",
+      "candidates": []
+    },
+    "target": "中文"
+  },
+  {
+    "id": "mi-033",
+    "group": "authored-033",
+    "split": "test",
+    "category": "continuation",
+    "task": "predict",
+    "dictionary": "",
+    "input": {
+      "prefix": "下一站是北",
+      "code": "",
+      "candidates": []
+    },
+    "target": "京"
+  },
+  {
+    "id": "mi-034",
+    "group": "authored-034",
+    "split": "test",
+    "category": "domain",
+    "task": "predict",
+    "dictionary": "",
+    "input": {
+      "prefix": "网络线程",
+      "code": "",
+      "candidates": []
+    },
+    "target": "池"
+  },
+  {
+    "id": "mi-035",
+    "group": "authored-035",
+    "split": "test",
+    "category": "edited_prefix",
+    "task": "predict",
+    "dictionary": "",
+    "input": {
+      "prefix": "改为请打开",
+      "code": "",
+      "candidates": []
+    },
+    "target": "设置"
+  },
+  {
+    "id": "mi-036",
+    "group": "authored-036",
+    "split": "test",
+    "category": "rare",
+    "task": "predict",
+    "dictionary": "",
+    "input": {
+      "prefix": "陌生上下文",
+      "code": "",
+      "candidates": []
+    },
+    "target": "鿍"
+  },
+  {
+    "id": "mi-037",
+    "group": "authored-037",
+    "split": "test",
+    "category": "empty_context",
+    "task": "predict",
+    "dictionary": "",
+    "input": {
+      "prefix": "",
+      "code": "",
+      "candidates": []
+    },
+    "target": "世界"
+  },
+  {
+    "id": "mi-038",
+    "group": "authored-038",
+    "split": "test",
+    "category": "common",
+    "task": "predict",
+    "dictionary": "",
+    "input": {
+      "prefix": "已经完成",
+      "code": "",
+      "candidates": []
+    },
+    "target": "工作"
+  }
+]

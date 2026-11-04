@@ -2059,6 +2059,16 @@ dependencies = [
 ]
 
 [[package]]
+name = "model_input"
+version = "0.6.2"
+dependencies = [
+ "core_engine",
+ "serde",
+ "serde_json",
+ "thiserror 1.0.69",
+]
+
+[[package]]
 name = "mywubi_android"
 version = "0.6.2"
 dependencies = [

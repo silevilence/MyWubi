@@ -1,0 +1,12 @@
+---
+charset: abcdefghijklmnopqrstuvwxyz
+max_code_len: 4
+---
+# Authored fixture, MIT; never reads the user's real dictionary.
+aaaa	工单	100
+aaaa	工程	80
+aaaa	工程化	20
+aaaa	鿍	1
+bbbb	线程	100
+bbbb	线程池	80
+bbbb	协程	60
