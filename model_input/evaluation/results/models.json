@@ -1,0 +1,25 @@
+{
+  "qwen25": {
+    "source": "https://huggingface.co/Qwen/Qwen2.5-0.5B-Instruct-GGUF",
+    "revision": "9217f5db79a29953eb74d5343926648285ec7e67",
+    "license": "Apache-2.0",
+    "file": "qwen2.5-0.5b-instruct-q4_k_m.gguf",
+    "bytes": 491400032,
+    "sha256": "74a4da8c9fdbcd15bd1f6d01d621410d31c6fc00986f5eb687824e7b93d7a9db"
+  },
+  "qwen3": {
+    "source": "https://huggingface.co/ggml-org/Qwen3-0.6B-GGUF",
+    "revision": "13ac06624948e4d8589cb4b6f90100837342fcb8",
+    "license": "Apache-2.0",
+    "file": "Qwen3-0.6B-Q4_0.gguf",
+    "bytes": 428970080,
+    "sha256": "da2572f16c06133561ce56accaa822216f2391ef4d37fba427801cd6736417d4"
+  },
+  "authored_counts": {
+    "source": "model_input/tools/export_samples.py (MI-01 train split only)",
+    "license": "MIT",
+    "file": "model_input/evaluation/onnx/counts.onnx",
+    "bytes": 8489,
+    "sha256": "4e31a21f7cd0077c0e6de446167524150c933cfe599ee3526f87812ca7db50e5"
+  }
+}
