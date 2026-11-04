@@ -1,0 +1,10 @@
+{
+  "protocol": 1,
+  "key": {
+    "edit": {"session": 1, "generation": 1, "editor": 1, "epoch": 1, "runtime": 1},
+    "query": {"engine": 1, "version": 1},
+    "view": 1, "context": 1, "model": 1, "config": 1, "request": 1
+  },
+  "task": "Rank", "language": "zh", "prefix": "下周去", "code": "xian",
+  "candidates": [{"id": 8, "text": "西安"}, {"id": 2, "text": "仙"}]
+}

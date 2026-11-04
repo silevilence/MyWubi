@@ -1,6 +1,11 @@
 # 静态链接 Windows CRT，避免目标机器缺少 VCRUNTIME140.dll
 # 这会略微增大 exe/dll 体积（~100-200KB），但消除对 VC++ Redist 的依赖
 
+[env]
+# llama.cpp must use the same Windows CRT as its Rust host.
+LLAMA_STATIC_CRT = "1"
+CMAKE_MSVC_RUNTIME_LIBRARY = "MultiThreaded"
+
 [target.x86_64-pc-windows-msvc]
 rustflags = ["-C", "target-feature=+crt-static"]
 
