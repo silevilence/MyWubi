@@ -1,4 +1,5 @@
 package org.mywubi
+import org.json.JSONObject
 
 import android.content.Intent
 import android.os.Bundle
@@ -92,6 +93,9 @@ private fun SettingsScreen(model: SettingsModel, enable: () -> Unit, choose: () 
             if (config == null) Text("正在读取设置…") else {
                 val basic = config.getJSONObject("basic")
                 val dict = config.getJSONObject("dictionary")
+                val prediction = config.optJSONObject("prediction") ?: JSONObject().put("enabled", false)
+                SettingToggle("上屏后显示字词预测", prediction.optBoolean("enabled"), !model.busy) { model.change("prediction", "enabled", it) }
+                Text("本地词典续接与常用搭配；点击追加，继续输入编码即忽略。默认关闭，编码候选顺序不变。")
                 for ((key, label) in listOf("auto_commit_unique" to "唯一候选自动上屏", "commit_on_max_code_overflow" to "超过最大码长时顶字", "show_code_hints" to "显示候选编码提示")) {
                     SettingToggle(label, basic.getBoolean(key), !model.busy) { model.change("basic", key, it) }
                 }

@@ -48,6 +48,7 @@ import org.json.JSONObject
 
 data class CandidateItem(val id: Long, val text: String, val hint: String)
 data class KeyboardModel(
+    val prediction: Boolean = false,
     val epoch: Long = 0, val enabled: Boolean = false, val spelling: String = "",
     val status: String = "正在加载码表…", val base: String = "Main", val temporary: String? = null,
     val pinyinAvailable: Boolean = false, val modesAvailable: Boolean = false, val candidates: List<CandidateItem> = emptyList(),
@@ -129,8 +130,9 @@ fun Keyboard(model: KeyboardModel, dispatch: (Any) -> Unit, window: (Int) -> Uni
                         androidx.compose.foundation.Image(androidx.compose.ui.res.painterResource(R.drawable.mywubi_brand), null, Modifier.size(28.dp))
                     }
                     if (model.candidates.isNotEmpty() && !model.privateInput) {
+                        if (model.prediction) Text("预测", Modifier.padding(start=8.dp), color=colors.primary, fontSize=12.sp)
                         LazyRow(Modifier.weight(1f).height(48.dp)) {
-                            items(model.candidates, key={it.id}) { item -> CandidateButton(item, model.enabled) {choose(item)} }
+                            items(model.candidates, key={"${model.query}:${it.id}"}) { item -> CandidateButton(item, model.enabled) {choose(item)} }
                         }
                         TextButton(onClick={expanded=!expanded}, modifier=Modifier.imeAction(if(expanded) "收起" else "展开", true) {expanded=!expanded}) {
                             Text(if(expanded) "收起" else "展开")
@@ -168,7 +170,7 @@ fun Keyboard(model: KeyboardModel, dispatch: (Any) -> Unit, window: (Int) -> Uni
         val keys: @Composable () -> Unit = {
             if (expanded && model.candidates.isNotEmpty() && !model.privateInput) {
                 LazyVerticalGrid(columns=GridCells.Adaptive(88.dp), modifier=Modifier.fillMaxWidth().height(160.dp)) {
-                    items(model.candidates,key={it.id}) { item -> CandidateButton(item,model.enabled) {choose(item)} }
+                    items(model.candidates,key={"${model.query}:${it.id}"}) { item -> CandidateButton(item,model.enabled) {choose(item)} }
                 }
                 Row(Modifier.fillMaxWidth(), horizontalArrangement=Arrangement.SpaceBetween) {
                     TextButton(onClick={window((model.offset-256).coerceAtLeast(0))},enabled=model.offset>0) {Text("上一组")}

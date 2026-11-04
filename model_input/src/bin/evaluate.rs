@@ -41,6 +41,13 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
                 return Err(format!("candidate snapshot changed: {}", sample.id).into());
             }
             ranked
+        } else if std::env::args().any(|arg| arg == "--prediction-recall") {
+            dictionaries["wubi"]
+                .prediction_lexicon()
+                .recall(&sample.input.prefix, 64)
+                .into_iter()
+                .map(|candidate| candidate.text)
+                .collect()
         } else {
             stats.recall(&sample.input.prefix, 64)
         };

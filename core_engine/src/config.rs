@@ -29,6 +29,15 @@ pub struct Config {
     pub dictionary: DictionaryCfg,
     #[serde(default)]
     pub hotkey: Hotkey,
+    #[serde(default)]
+    pub prediction: PredictionConfig,
+}
+
+/// Word predictions are independent of code-candidate sorting and disabled by default.
+#[derive(Debug, Clone, Default, Serialize, Deserialize)]
+#[serde(default)]
+pub struct PredictionConfig {
+    pub enabled: bool,
 }
 
 /// Effective engine settings. No parallel on-disk schema is introduced.

@@ -54,6 +54,9 @@ pub struct CandidateItem {
 /// 候选框共享数据——TSF 线程写入，渲染线程读取。
 #[derive(Debug, Clone, Default)]
 pub struct CandidateData {
+    /// Immutable identities for prediction clicks; absent on ordinary coding views.
+    pub prediction_query: Option<u64>,
+    pub prediction_ids: Vec<usize>,
     /// 候选框是否可见。
     pub visible: bool,
     /// 当前编码字符串。
@@ -94,6 +97,8 @@ impl CandidateData {
         theme: ThemeSnapshot,
     ) -> Self {
         Self {
+            prediction_query: None,
+            prediction_ids: Vec::new(),
             visible: true,
             spelling,
             items,

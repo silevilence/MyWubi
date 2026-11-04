@@ -85,7 +85,8 @@ class SettingsModel(application: Application) : AndroidViewModel(application) {
 
     fun change(section: String, key: String, value: Any) {
         val copy = JSONObject(config?.toString() ?: return)
-        copy.getJSONObject(section).put(key, value)
+        val target = copy.optJSONObject(section) ?: JSONObject().also { copy.put(section, it) }
+        target.put(key, value)
         config = copy; dirty = true
         persistDraft()
     }

@@ -1,6 +1,7 @@
 //! Runtime-independent model contract. Adapters own tokenization and recurrent state.
 //! Scores are only comparable within one response; they are not probabilities.
 pub mod context;
+pub mod prediction;
 pub mod ranking;
 use std::{
     collections::HashSet,

@@ -84,8 +84,9 @@ impl InputSession {
         self.core.lock().input_gate()
     }
     pub fn selecting(&self) -> bool {
-        self.core.lock().state_machine().state()
-            == core_engine::state_machine::InputState::Selecting
+        let core = self.core.lock();
+        core.has_prediction()
+            || core.state_machine().state() == core_engine::state_machine::InputState::Selecting
     }
     pub fn mode(&self) -> InputMode {
         self.core.lock().state_machine().mode()
@@ -94,7 +95,42 @@ impl InputSession {
         self.core.lock().state_machine().temporary_trigger()
     }
     pub fn test_key(&self, event: &InputEvent, system_modifier: bool) -> bool {
-        self.core.lock().would_handle_legacy(event, system_modifier)
+        let handled = self.core.lock().would_handle_legacy(event, system_modifier);
+        if !handled {
+            self.clear_prediction_context();
+        }
+        handled
+    }
+    pub fn clear_prediction_context(&self) {
+        let mut core = self.core.lock();
+        let visible = core.has_prediction();
+        core.clear_prediction_context();
+        if visible {
+            self.candidates
+                .store(Arc::new(CandidateData::hidden(ThemeSnapshot::from_config(
+                    core.config(),
+                ))));
+        }
+    }
+    pub fn sync_prediction_context(&self, editor: u64, prefix: crate::prediction_context::Prefix) {
+        let mut core = self.core.lock();
+        let visible = core.has_prediction();
+
+        if core.context().editor != editor {
+            let mut context = core.context();
+            context.editor = editor;
+            context.epoch = context.epoch.wrapping_add(1);
+            core.invalidate_context(context, true);
+        }
+        core.set_assistance_allowed(prefix.allowed);
+        let context = core.context();
+        core.observe_prefix(context.editor, context.epoch, prefix.text.as_deref());
+        if visible && !core.has_prediction() {
+            self.candidates
+                .store(Arc::new(CandidateData::hidden(ThemeSnapshot::from_config(
+                    core.config(),
+                ))));
+        }
     }
 
     pub fn handle<E: EditFailure>(
@@ -114,6 +150,26 @@ impl InputSession {
         match plan {
             Ok(plan) => self.execute(plan, anchor, edit),
             Err(_) => false,
+        }
+    }
+    pub fn choose_prediction<E: EditFailure>(
+        &self,
+        version: u64,
+        id: usize,
+        edit: impl FnMut(&EditSessionOp) -> Result<Option<ScreenPoint>, E>,
+    ) {
+        let plan = {
+            let mut core = self.core.lock();
+            if !core.has_prediction() {
+                return;
+            }
+            core.prepare(Action::SelectCandidate(
+                core_engine::candidates::QueryRevision { engine: 0, version },
+                core_engine::candidates::CandidateId(id),
+            ))
+        };
+        if let Ok(plan) = plan {
+            self.execute(plan, self.candidates.load().anchor, edit);
         }
     }
     pub fn recover<E: EditFailure>(
@@ -158,7 +214,19 @@ impl InputSession {
         snapshot: &RuntimeSnapshot,
         edit: impl FnMut(&EditSessionOp) -> Result<Option<ScreenPoint>, E>,
     ) {
-        let plan = self.core.lock().apply_runtime(Arc::new(snapshot.clone()));
+        let plan = {
+            let mut core = self.core.lock();
+            let had_prediction = core.has_prediction();
+            let plan = core.apply_runtime(Arc::new(snapshot.clone()));
+            if had_prediction && !core.has_prediction() {
+                self.candidates.store(Arc::new(candidate_view(
+                    core.snapshot(),
+                    core.config(),
+                    self.candidates.load().anchor,
+                )));
+            }
+            plan
+        };
         if let Ok(Some(plan)) = plan {
             self.execute(plan, None, edit);
         }
@@ -207,6 +275,18 @@ impl InputSession {
         let ack = core.acknowledge(plan.token, outcome);
         match ack.status {
             AckStatus::Published => {
+                if core.has_prediction() {
+                    next_view = candidate_view(
+                        core.snapshot(),
+                        core.config(),
+                        anchor.or(self.candidates.load().anchor),
+                    );
+                }
+                if core.has_prediction() {
+                    let window = core.candidate_window(0, 64);
+                    next_view.prediction_query = Some(window.query_revision.version);
+                    next_view.prediction_ids = window.candidates.iter().map(|c| c.id.0).collect();
+                }
                 if next_view.visible {
                     if let Ok(precise) = result {
                         next_view.anchor = precise.or(next_view.anchor);
@@ -233,7 +313,9 @@ fn candidate_view(
 ) -> CandidateData {
     let mut data = CandidateData::hidden(ThemeSnapshot::from_config(config));
     data.visible = view.visible;
-    data.spelling = if view.mode == InputMode::Main {
+    data.spelling = if view.prediction {
+        "字词预测".into()
+    } else if view.mode == InputMode::Main {
         view.spelling.clone()
     } else {
         format!("{}  {}", view.mode.label(), view.spelling)
@@ -251,7 +333,11 @@ fn candidate_view(
         .map(|(i, item)| CandidateItem {
             label: format!("{}. ", i + 1),
             text: item.text.clone(),
-            hint: item.hint.clone(),
+            hint: if view.prediction {
+                format!("  {}", item.hint)
+            } else {
+                item.hint.clone()
+            },
         })
         .collect();
     data

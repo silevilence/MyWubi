@@ -32,6 +32,9 @@ const WINDOW_BORDER_COLOR: u32 = 0xFFD9DEE5;
 /// `GWLP_USERDATA` 中嵌入的实例数据。
 struct WindowData {
     data_src: std::sync::Arc<ArcSwap<CandidateData>>,
+    target: HWND,
+    hits: std::cell::RefCell<Vec<(RECT, u64, usize)>>,
+    pressed: std::cell::Cell<Option<(u64, usize)>>,
 }
 
 /// 透明候选框窗口句柄（拥有窗口线程生命周期）。
@@ -61,13 +64,18 @@ impl CandidateWindow {
     }
 
     /// 在独立线程中启动候选框窗口。
-    pub fn spawn(data_src: std::sync::Arc<ArcSwap<CandidateData>>, owner: HWND) -> Self {
+    pub fn spawn(
+        data_src: std::sync::Arc<ArcSwap<CandidateData>>,
+        owner: HWND,
+        target: HWND,
+    ) -> Self {
         let (hwnd_tx, hwnd_rx) = mpsc::channel::<isize>();
         let owner = owner.0 as isize;
+        let target = target.0 as isize;
         // 安全创建窗口线程——失败时不 panic，避免崩溃宿主进程
         let join_handle = match std::thread::Builder::new()
             .name("MyWubiCandidateThread".into())
-            .spawn(move || run_window_thread(data_src, hwnd_tx, owner))
+            .spawn(move || run_window_thread(data_src, hwnd_tx, owner, target))
         {
             Ok(h) => Some(h),
             Err(e) => {
@@ -152,6 +160,7 @@ fn run_window_thread(
     data_src: std::sync::Arc<ArcSwap<CandidateData>>,
     hwnd_tx: mpsc::Sender<isize>,
     owner: isize,
+    target: isize,
 ) {
     let hinstance = HINSTANCE(crate::module_handle() as *mut c_void);
     if hinstance.0.is_null() {
@@ -190,7 +199,12 @@ fn run_window_thread(
     }
 
     // 创建窗口数据
-    let window_data = Box::new(WindowData { data_src });
+    let window_data = Box::new(WindowData {
+        data_src,
+        target: HWND(target as *mut c_void),
+        hits: Default::default(),
+        pressed: Default::default(),
+    });
     let window_data_ptr = Box::into_raw(window_data);
 
     // 创建分层窗口
@@ -266,6 +280,48 @@ unsafe extern "system" fn wnd_proc(
     lparam: LPARAM,
 ) -> LRESULT {
     match msg {
+        WM_MOUSEACTIVATE => LRESULT(MA_NOACTIVATE as isize),
+        WM_LBUTTONDOWN | WM_LBUTTONUP => {
+            let ptr = GetWindowLongPtrW(hwnd, GWLP_USERDATA) as *mut WindowData;
+            if !ptr.is_null() {
+                let data = &*ptr;
+                let x = (lparam.0 as u16) as i16 as i32;
+                let y = ((lparam.0 >> 16) as u16) as i16 as i32;
+                let hit = data
+                    .hits
+                    .borrow()
+                    .iter()
+                    .find(|(r, _, _)| x >= r.left && x < r.right && y >= r.top && y < r.bottom)
+                    .map(|(_, q, id)| (*q, *id));
+                if msg == WM_LBUTTONDOWN {
+                    data.pressed.set(hit);
+                    if hit.is_some() {
+                        windows::Win32::UI::Input::KeyboardAndMouse::SetCapture(hwnd);
+                    }
+                } else {
+                    let pressed = data.pressed.take();
+                    let _ = windows::Win32::UI::Input::KeyboardAndMouse::ReleaseCapture();
+                    if let Some((query, id)) = pressed.filter(|p| Some(*p) == hit) {
+                        if !data.target.is_invalid() {
+                            let _ = PostMessageW(
+                                Some(data.target),
+                                crate::candidate_dispatch::SELECT,
+                                WPARAM(query as usize),
+                                LPARAM(id as isize),
+                            );
+                        }
+                    }
+                }
+            }
+            LRESULT(0)
+        }
+        WM_CAPTURECHANGED => {
+            let ptr = GetWindowLongPtrW(hwnd, GWLP_USERDATA) as *mut WindowData;
+            if !ptr.is_null() {
+                (*ptr).pressed.set(None);
+            }
+            LRESULT(0)
+        }
         SET_OWNER => {
             if GetWindowLongPtrW(hwnd, GWLP_HWNDPARENT) != lparam.0 {
                 SetWindowLongPtrW(hwnd, GWLP_HWNDPARENT, lparam.0);
@@ -302,6 +358,9 @@ fn handle_timer(hwnd: HWND) {
     }
     let window_data = unsafe { &*ptr };
 
+    if window_data.pressed.get().is_some() {
+        return;
+    }
     let data = window_data.data_src.load();
 
     if data.visible {
@@ -341,6 +400,7 @@ fn handle_timer(hwnd: HWND) {
             let _ = ShowWindow(hwnd, SW_SHOWNA);
         }
     } else {
+        window_data.hits.borrow_mut().clear();
         unsafe {
             let _ = ShowWindow(hwnd, SW_HIDE);
         }
@@ -426,7 +486,7 @@ fn fill_alpha_channel(pixels: &mut [u8], alpha: u8) {
 }
 
 /// 使用 GDI 渲染候选框（两行：编码行 + 候选词行）并通过 UpdateLayeredWindow 贴图。
-fn gdi_render_candidate_window(hwnd: HWND, _window_data: &WindowData, data: &CandidateData) {
+fn gdi_render_candidate_window(hwnd: HWND, window_data: &WindowData, data: &CandidateData) {
     if data.items.is_empty() && data.spelling.is_empty() {
         return;
     }
@@ -576,6 +636,7 @@ fn gdi_render_candidate_window(hwnd: HWND, _window_data: &WindowData, data: &Can
         // ── 绘制候选词行（第二行）──
         let cand_y = if show_spelling { row_h + 2 } else { 0 };
         let mut cx = padding;
+        let mut hits = Vec::new();
         for (i, item) in data.items.iter().enumerate() {
             let lw: Vec<u16> = item.label.encode_utf16().collect();
             let tw: Vec<u16> = item.text.encode_utf16().collect();
@@ -625,6 +686,18 @@ fn gdi_render_candidate_window(hwnd: HWND, _window_data: &WindowData, data: &Can
                     &hw,
                 );
             }
+            if let (Some(query), Some(id)) = (data.prediction_query, data.prediction_ids.get(i)) {
+                hits.push((
+                    RECT {
+                        left: cx - 2,
+                        right: cx + item_w + 2,
+                        top: cand_y,
+                        bottom: cand_y + row_h,
+                    },
+                    query,
+                    *id,
+                ));
+            }
             cx += item_w + item_gap;
         }
 
@@ -638,7 +711,7 @@ fn gdi_render_candidate_window(hwnd: HWND, _window_data: &WindowData, data: &Can
             SourceConstantAlpha: 255,
             AlphaFormat: AC_SRC_ALPHA as u8,
         };
-        let _ = UpdateLayeredWindow(
+        let rendered = UpdateLayeredWindow(
             hwnd,
             Some(hdc_screen),
             None,
@@ -652,6 +725,9 @@ fn gdi_render_candidate_window(hwnd: HWND, _window_data: &WindowData, data: &Can
             Some(&blend),
             ULW_ALPHA,
         );
+        if rendered.is_ok() {
+            *window_data.hits.borrow_mut() = hits;
+        }
 
         let _ = SelectObject(hdc_mem, old_font);
         let _ = DeleteObject(HGDIOBJ(font.0));

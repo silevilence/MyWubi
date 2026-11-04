@@ -51,6 +51,8 @@ pub struct PresentationItem {
 
 #[derive(Debug, Clone, Default, PartialEq, Eq, serde::Serialize, serde::Deserialize)]
 pub struct SessionView {
+    #[serde(default)]
+    pub prediction: bool,
     pub visible: bool,
     pub spelling: String,
     pub items: Vec<PresentationItem>,

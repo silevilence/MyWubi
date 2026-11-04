@@ -57,6 +57,9 @@ pub enum HostAction {
 /// Platform supplies stable editor identity and explicit capabilities, not OS enums.
 #[derive(Debug, Clone, Copy, PartialEq, Eq, serde::Serialize, serde::Deserialize)]
 pub struct HostContext {
+    /// Platform privacy policy may disable assistance without changing normal input.
+    #[serde(default = "assistance_allowed_by_default")]
+    pub allows_assistance: bool,
     pub editor: u64,
     pub epoch: u64,
     pub supports_preedit: bool,
@@ -67,9 +70,13 @@ pub struct HostContext {
     pub surrounding_available: bool,
     pub enter_action: HostAction,
 }
+fn assistance_allowed_by_default() -> bool {
+    true
+}
 impl Default for HostContext {
     fn default() -> Self {
         Self {
+            allows_assistance: true,
             editor: 0,
             epoch: 0,
             supports_preedit: true,
@@ -146,6 +153,9 @@ pub struct Acknowledged {
 }
 
 struct Pending {
+    owned_preedit_before: bool,
+    previous_prediction: Option<crate::assistance::prediction::Prediction>,
+    predict_after: bool,
     plan: PreparedEdit,
     next: SemanticEngine,
     rollback: Option<SemanticEngine>,
@@ -162,6 +172,10 @@ struct PlanParts {
 /// A caller serializes access, releases its lock for host calls, then acknowledges.
 /// Legacy permits nested prepares; only the newest generation may publish.
 pub struct Session {
+    resources: Arc<RuntimeSnapshot>,
+    prediction_dict: Arc<Dictionary>,
+    prediction: Option<crate::assistance::prediction::Prediction>,
+    prefix: crate::assistance::context::ContextBuffer,
     id: u64,
     engine: SemanticEngine,
     published_engine: SemanticEngine,
@@ -181,7 +195,19 @@ pub struct Session {
 impl Session {
     pub fn new(runtime: &RuntimeSnapshot, profile: BehaviorProfile, context: HostContext) -> Self {
         let engine = SemanticEngine::new(runtime.state_machine(), profile);
+        let mut prefix = crate::assistance::context::ContextBuffer::new(256);
+        prefix.bind(
+            context.editor,
+            context.epoch,
+            runtime.config.prediction.enabled
+                && context.purpose == InputPurpose::Text
+                && context.allows_assistance,
+        );
         Self {
+            resources: Arc::new(runtime.clone()),
+            prediction_dict: Arc::clone(&runtime.dict),
+            prediction: None,
+            prefix,
             id: NEXT_SESSION.fetch_add(1, Ordering::Relaxed),
             published_engine: engine.clone(),
             engine,
@@ -232,7 +258,70 @@ impl Session {
         self.last_outcome
     }
     pub fn candidate_window(&self, offset: usize, count: usize) -> CandidateWindow {
+        if let Some(prediction) = &self.prediction {
+            return prediction.window(offset, count);
+        }
         self.published_engine.candidate_window(offset, count)
+    }
+    pub fn has_prediction(&self) -> bool {
+        self.prediction.is_some()
+    }
+    pub fn set_assistance_allowed(&mut self, allowed: bool) {
+        if self.context.allows_assistance != allowed {
+            self.clear_prediction_context();
+            self.context.allows_assistance = allowed;
+            self.prefix.bind(
+                self.context.editor,
+                self.context.epoch,
+                self.config.prediction.enabled
+                    && allowed
+                    && self.context.purpose == InputPurpose::Text,
+            );
+        }
+    }
+    /// Call for external edits, cursor movement or keys handled outside this session.
+    pub fn clear_prediction_context(&mut self) {
+        self.prefix.invalidate();
+        self.prediction = None;
+        if self.view.prediction {
+            self.view = SessionView::default();
+        }
+    }
+    /// Only authoritative text before the caret, excluding preedit, is accepted.
+    pub fn observe_prefix(&mut self, editor: u64, epoch: u64, text: Option<&str>) {
+        if self.config.prediction.enabled
+            && self.context.purpose == InputPurpose::Text
+            && self.context.allows_assistance
+        {
+            let previous = self.prefix.prefix().to_owned();
+            self.prefix.observe(editor, epoch, text);
+            if self.has_prediction() && previous != self.prefix.prefix() {
+                self.prediction = None;
+                self.view = SessionView::default();
+            }
+        }
+    }
+    fn publish_predictions(&mut self) {
+        if !self.config.prediction.enabled
+            || !self.gate
+            || self.context.purpose != InputPurpose::Text
+            || !self.context.allows_assistance
+            || self.engine.base_mode() != BaseMode::Main
+            || self.engine.temporary_mode().is_some()
+            || self.state_machine().mode() != InputMode::Main
+            || !self.state_machine().spelling().is_empty()
+        {
+            return;
+        }
+        let items = self.prediction_dict.prediction_lexicon().recall(
+            self.prefix.prefix(),
+            usize::from(self.config.basic.candidate_count),
+        );
+        if !items.is_empty() {
+            let prediction = crate::assistance::prediction::Prediction::new(items);
+            self.view = prediction.view();
+            self.prediction = Some(prediction);
+        }
     }
     pub fn status(&self) -> SessionStatus {
         if self.closed {
@@ -249,6 +338,18 @@ impl Session {
         self.engine.profile == BehaviorProfile::LegacyV1
     }
     pub fn would_handle(&self, action: &Action) -> bool {
+        if self.prediction.is_some()
+            && self.gate
+            && !self.closed
+            && matches!(
+                action,
+                Action::SelectCandidate(..)
+                    | Action::Cancel
+                    | Action::Legacy(InputEvent::Select(_) | InputEvent::Esc)
+            )
+        {
+            return true;
+        }
         if !self.legacy() && self.context.purpose != InputPurpose::Text {
             return !self.closed
                 && self.cleanup.is_none()
@@ -266,6 +367,12 @@ impl Session {
         !self.closed && self.cleanup.is_none() && self.gate && self.engine.would_handle(action)
     }
     pub fn would_handle_legacy(&self, event: &InputEvent, system_modifier: bool) -> bool {
+        if !system_modifier
+            && self.prediction.is_some()
+            && matches!(event, InputEvent::Select(_) | InputEvent::Esc)
+        {
+            return true;
+        }
         if system_modifier || !self.would_handle(&Action::Legacy(event.clone())) {
             return false;
         }
@@ -306,6 +413,56 @@ impl Session {
         }
         if !self.legacy() && self.pending.is_some() {
             return Err(SessionError::Busy);
+        }
+        let predict_after = self.engine.base_mode() == BaseMode::Main
+            && self.engine.temporary_mode().is_none()
+            && self.state_machine().mode() == InputMode::Main;
+        let dismiss = self.prediction.is_some()
+            && matches!(action, Action::Cancel | Action::Legacy(InputEvent::Esc));
+        let action = if let Some(prediction) = &self.prediction {
+            let selected = match &action {
+                Action::SelectCandidate(query, id) => {
+                    if *query != prediction.query {
+                        return Err(SessionError::Rejected(Rejection::StaleCandidate));
+                    }
+                    Some(
+                        prediction
+                            .items
+                            .iter()
+                            .position(|item| item.id == *id)
+                            .ok_or(SessionError::Rejected(Rejection::StaleCandidate))?,
+                    )
+                }
+                Action::Legacy(InputEvent::Select(index)) => Some(
+                    index
+                        .checked_sub(1)
+                        .ok_or(SessionError::Rejected(Rejection::StaleCandidate))?,
+                ),
+                _ => None,
+            };
+            if let Some(index) = selected {
+                let candidate = prediction
+                    .items
+                    .get(index)
+                    .ok_or(SessionError::Rejected(Rejection::StaleCandidate))?;
+                Action::InsertLiteral(candidate.text.clone())
+            } else {
+                action
+            }
+        } else {
+            action
+        };
+        if matches!(
+            action,
+            Action::Backspace
+                | Action::Space
+                | Action::Enter
+                | Action::SetBaseMode(_)
+                | Action::BeginTemporary(_)
+                | Action::Legacy(InputEvent::Backspace | InputEvent::Space | InputEvent::Enter)
+        ) && self.state_machine().spelling().is_empty()
+        {
+            self.prefix.invalidate();
         }
         let mut next = self.engine.clone();
         let rollback = (self.legacy()
@@ -363,14 +520,26 @@ impl Session {
         if let Disposition::Rejected(reason) = result.disposition {
             return Err(SessionError::Rejected(reason));
         }
+        let current_view = if self.prediction.is_some() {
+            SessionView::default()
+        } else {
+            self.view.clone()
+        };
         let mut parts = plan(
             next.state_machine(),
             self.config.basic.show_code_hints,
             result.transition,
-            &self.view,
+            &current_view,
         );
-        parts.consumed = result.disposition == Disposition::Handled;
-        self.stage(next, rollback, parts, false)
+        parts.consumed = dismiss || result.disposition == Disposition::Handled;
+        if self.prediction.is_some() {
+            parts.unchanged = false;
+        }
+        let prepared = self.stage(next, rollback, parts, false)?;
+        if let Some(pending) = &mut self.pending {
+            pending.predict_after = predict_after;
+        }
+        Ok(prepared)
     }
 
     fn stage(
@@ -452,6 +621,9 @@ impl Session {
             },
         };
         self.pending = Some(Pending {
+            owned_preedit_before: self.context.owns_preedit,
+            previous_prediction: self.prediction.take(),
+            predict_after: false,
             plan: plan.clone(),
             next,
             rollback,
@@ -495,6 +667,18 @@ impl Session {
             };
         };
         self.last_outcome = Some(outcome);
+        let mut confirmed = pending.plan.op.clone();
+        if pending.owned_preedit_before {
+            // Replacing our preedit does not delete already confirmed context.
+            match &mut confirmed {
+                EditSessionOp::CommitAndReplace { replace_len, .. }
+                | EditSessionOp::CommitThenUpdate { replace_len, .. } => *replace_len = 0,
+                _ => {}
+            }
+        }
+        self.prefix.acknowledged(token, &confirmed, outcome);
+        let committed = pending.predict_after
+            && matches!(&pending.plan.op, EditSessionOp::CommitAndReplace { text, .. } | EditSessionOp::CommitThenUpdate { text, .. } if !text.is_empty());
         let status = match outcome {
             HostOutcome::Applied => {
                 self.engine = pending.next;
@@ -512,14 +696,21 @@ impl Session {
                     | EditSessionOp::CommitAndReplace { .. } => self.context.owns_preedit = false,
                     _ => {}
                 }
+                if committed {
+                    self.publish_predictions();
+                }
                 AckStatus::Published
             }
             HostOutcome::RejectedBeforeWrite
-                if !pending.cleanup && (!self.legacy() || pending.rollback.is_some()) =>
+                if !pending.cleanup
+                    && (!self.legacy()
+                        || pending.rollback.is_some()
+                        || pending.previous_prediction.is_some()) =>
             {
                 if let Some(previous) = pending.rollback {
                     self.engine = previous;
                 }
+                self.prediction = pending.previous_prediction;
                 AckStatus::Retained
             }
             HostOutcome::StaleContext => {
@@ -592,6 +783,7 @@ impl Session {
             return Ok(None);
         }
         self.gate = enabled;
+        self.clear_prediction_context();
         if enabled {
             return Ok(None);
         }
@@ -613,6 +805,7 @@ impl Session {
         self.cleared(next, op, false).map(Some)
     }
     pub fn lose_focus(&mut self) -> Result<PreparedEdit, SessionError> {
+        self.clear_prediction_context();
         let temporary = self.engine.temporary_mode().is_some()
             || self.state_machine().mode() == InputMode::Menu;
         let op = self.finish_operation(temporary);
@@ -642,6 +835,14 @@ impl Session {
     }
     /// A dead connection/terminated composition cannot be cleaned through the new selection.
     pub fn invalidate_context(&mut self, context: HostContext, preserve_base: bool) {
+        self.clear_prediction_context();
+        self.prefix.bind(
+            context.editor,
+            context.epoch,
+            self.config.prediction.enabled
+                && context.purpose == InputPurpose::Text
+                && context.allows_assistance,
+        );
         self.generation += 1;
         self.pending = None;
         self.cleanup = None;
@@ -661,10 +862,19 @@ impl Session {
                 self.engine.dispatch(Action::SetBaseMode(BaseMode::English));
             }
             self.config = runtime.config.clone();
+            self.resources = Arc::clone(&runtime);
+            self.prediction_dict = Arc::clone(&runtime.dict);
             self.revision = runtime.revision;
         }
         self.published_engine = self.engine.clone();
         self.view = SessionView::default();
+        self.prefix.bind(
+            context.editor,
+            context.epoch,
+            self.config.prediction.enabled
+                && context.purpose == InputPurpose::Text
+                && context.allows_assistance,
+        );
     }
     pub fn host_terminated(&mut self) {
         let mut context = self.context;
@@ -701,6 +911,24 @@ impl Session {
             self.deferred_runtime = Some(runtime);
             return Ok(None);
         }
+        if self.pending.is_none() && self.only_prediction_changed(&runtime) {
+            self.config = runtime.config.clone();
+            self.revision = runtime.revision;
+            self.resources = Arc::clone(&runtime);
+            self.prediction_dict = Arc::clone(&runtime.dict);
+            self.clear_prediction_context();
+            self.prefix.bind(
+                self.context.editor,
+                self.context.epoch,
+                self.config.prediction.enabled
+                    && self.context.allows_assistance
+                    && self.context.purpose == InputPurpose::Text,
+            );
+            self.generation += 1;
+            self.engine.invalidate_query();
+            self.published_engine = self.engine.clone();
+            return Ok(None);
+        }
         let temporary = self.engine.temporary_mode().is_some()
             || self.state_machine().mode() == InputMode::Menu;
         let op = self.finish_operation(temporary);
@@ -709,10 +937,40 @@ impl Session {
             next.dispatch(Action::SetBaseMode(BaseMode::English));
         }
         self.config = runtime.config.clone();
+        self.resources = Arc::clone(&runtime);
+        self.prediction_dict = Arc::clone(&runtime.dict);
+        self.clear_prediction_context();
+        self.prefix.bind(
+            self.context.editor,
+            self.context.epoch,
+            self.config.prediction.enabled
+                && self.context.purpose == InputPurpose::Text
+                && self.context.allows_assistance,
+        );
         self.revision = runtime.revision;
         // Runtime adoption is a control fact: cleanup failure never restores an older resource set.
         self.engine = next.clone();
         self.cleared(next, op, false).map(Some)
+    }
+    fn only_prediction_changed(&self, runtime: &RuntimeSnapshot) -> bool {
+        if self.config.prediction.enabled == runtime.config.prediction.enabled {
+            return false;
+        }
+        let mut previous = self.config.clone();
+        previous.prediction = runtime.config.prediction.clone();
+        let dictionaries_equal = |a: &Option<Arc<Dictionary>>, b: &Option<Arc<Dictionary>>| {
+            a.as_ref().map(|d| (d.entries(), d.table_config()))
+                == b.as_ref().map(|d| (d.entries(), d.table_config()))
+        };
+        serde_json::to_value(&previous).ok() == serde_json::to_value(&runtime.config).ok()
+            && self.resources.dict.entries() == runtime.dict.entries()
+            && self.resources.dict.table_config() == runtime.dict.table_config()
+            && dictionaries_equal(&self.resources.temporary.pinyin, &runtime.temporary.pinyin)
+            && dictionaries_equal(
+                &self.resources.temporary.english,
+                &runtime.temporary.english,
+            )
+            && self.resources.temporary.load_errors == runtime.temporary.load_errors
     }
 }
 fn plan(

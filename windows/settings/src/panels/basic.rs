@@ -21,6 +21,14 @@ const HOTKEY_OPTIONS: [(&str, &str); 11] = [
 pub fn show(ui: &mut Ui, state: &mut AppState) {
     ui.heading("常规设置");
     ui.separator();
+    let mut prediction = state.config.prediction.enabled;
+    if ui.checkbox(&mut prediction, "上屏后显示字词预测").changed() {
+        state.config.prediction.enabled = prediction;
+        state.mark_dirty();
+    }
+    ui.small(
+        "使用本地词典续接与常用搭配；数字键选择，继续编码即忽略。默认关闭，不改变编码候选排序。",
+    );
 
     // 候选词个数
     ui.horizontal(|ui| {

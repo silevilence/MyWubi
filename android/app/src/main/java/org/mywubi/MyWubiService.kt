@@ -33,6 +33,10 @@ class MyWubiService : InputMethodService() {
     private var connection: android.view.inputmethod.InputConnection? = null
     private var editorInfo: EditorInfo? = null
     private var supportsPreedit = true
+    private var projectedSelection = 0
+    private var projectedPreedit: Int? = null
+    private val ownSelections = ArrayDeque<Int>()
+    private var writingHost = false
     private var viewOwner: ImeViewOwner? = null
     private var viewVisible = false
     private val updateScope = CoroutineScope(SupervisorJob() + Dispatchers.Main.immediate)
@@ -114,6 +118,7 @@ class MyWubiService : InputMethodService() {
     private fun hostContext() = JSONObject().put("editor", editorEpoch).put("epoch", editorEpoch)
         .put("supports_preedit", supportsPreedit && inputPolicy.purpose == "Text").put("supports_insert", true).put("owns_preedit", false)
         .put("purpose", inputPolicy.purpose).put("selection_available", true).put("surrounding_available", true)
+        .put("allows_assistance", inputPolicy.purpose == "Text" && (editorInfo?.imeOptions ?: 0) and EditorInfo.IME_FLAG_NO_PERSONALIZED_LEARNING == 0)
         .put("enter_action", inputPolicy.action)
 
     private fun attachEditor() {
@@ -121,6 +126,7 @@ class MyWubiService : InputMethodService() {
         val r = runtime ?: return
         if (!active) return
         editor.abandon()
+        ownSelections.clear(); projectedPreedit = null
         val s = session
         if (s == null) session = NativeHandle(NativeBridge.objectCall("CreateSession", "runtime" to r.value, "context" to hostContext()).getLong("handle"))
         else NativeBridge.call("Context", "session" to s.value, "context" to hostContext(), "preserve_base" to true)
@@ -140,6 +146,7 @@ class MyWubiService : InputMethodService() {
             !getSharedPreferences("android-ui", 0).getBoolean("local_preedit", false)
         inputPolicy = InputPolicy.from(attribute?.inputType ?: 0, attribute?.imeOptions ?: 0)
         hasSelection = attribute != null && attribute.initialSelStart >= 0 && attribute.initialSelStart != attribute.initialSelEnd
+        projectedSelection = minOf(attribute?.initialSelStart ?: 0, attribute?.initialSelEnd ?: 0).coerceAtLeast(0)
         editorEpoch++; active = true
         keyboardActivity()
         attachEditor(); refresh()
@@ -158,6 +165,14 @@ class MyWubiService : InputMethodService() {
     override fun onUpdateSelection(oldSelStart: Int, oldSelEnd: Int, newSelStart: Int, newSelEnd: Int, candidatesStart: Int, candidatesEnd: Int) {
         super.onUpdateSelection(oldSelStart, oldSelEnd, newSelStart, newSelEnd, candidatesStart, candidatesEnd)
         hasSelection = newSelStart >= 0 && newSelStart != newSelEnd
+        val ownIndex = if (!hasSelection) ownSelections.indexOf(newSelEnd) else -1
+        val own = writingHost || ownIndex >= 0
+        if (ownIndex >= 0) repeat(ownIndex + 1) { ownSelections.removeFirst() }
+        if (active && !own && (oldSelStart != newSelStart || oldSelEnd != newSelEnd)) {
+            ownSelections.clear(); projectedSelection = minOf(newSelStart,newSelEnd).coerceAtLeast(0)
+            projectedPreedit = candidatesStart.takeIf { it >= 0 }
+            invalidatePrediction(); refresh()
+        }
         if (active && editor.ownsPreedit && (candidatesStart < 0 || newSelStart != newSelEnd || newSelEnd != candidatesEnd)) {
             // The host moved its selection. Preserve text and release our old range before
             // the next action; never use stale composition state to delete the new selection.
@@ -201,6 +216,7 @@ class MyWubiService : InputMethodService() {
     }
 
     override fun onFinishInputView(finishingInput: Boolean) {
+        invalidatePrediction()
         viewVisible = false; idle.touch(false, android.os.SystemClock.elapsedRealtime())
         main.removeCallbacks(idleRefresh); render(); viewOwner?.visible(false)
         super.onFinishInputView(finishingInput)
@@ -226,6 +242,7 @@ class MyWubiService : InputMethodService() {
             layout = inputPolicy.layout,
             enterLabel = inputPolicy.enterLabel,
             privateInput = inputPolicy.purpose == "Password",
+            prediction = state.optJSONObject("view")?.optBoolean("prediction") == true,
             candidates = (0 until items.length()).map { i ->
                 val item = items.getJSONObject(i)
                 val hints = item.getJSONArray("hints")
@@ -273,6 +290,7 @@ class MyWubiService : InputMethodService() {
         if (!active || !viewVisible) return
         candidateOffset = 0
         try {
+            syncPredictionPrefix()
             val recovery = NativeBridge.call("Recover", "session" to s.value) as? JSONObject
             if (recovery != null && !applyPlan(recovery)) { refresh(); return }
             val cycling = request == "CyclePinyin"
@@ -323,7 +341,25 @@ class MyWubiService : InputMethodService() {
             fun current() = active && epoch == editorEpoch && connection === host &&
                 NativeBridge.call("IsCurrent", "session" to s.value, "token" to token) == true
             if (!current()) return false
-            val outcome = editor.execute(host, plan, ::current)
+            val operation = plan.optJSONObject("op")
+            val start = projectedPreedit ?: projectedSelection
+            val expected = when {
+                operation?.has("CompositionUpdate") == true -> (start + operation.getJSONObject("CompositionUpdate").getString("spelling").length).also { projectedPreedit = start }
+                operation?.has("CommitAndReplace") == true -> (start + operation.getJSONObject("CommitAndReplace").getString("text").length).also { projectedPreedit = null }
+                operation?.has("CommitThenUpdate") == true -> operation.getJSONObject("CommitThenUpdate").let { p ->
+                    projectedPreedit = start + p.getString("text").length
+                    projectedPreedit!! + p.getString("spelling").length
+                }
+                operation?.has("EndComposition") == true -> (if(operation.getJSONObject("EndComposition").getBoolean("delete_text")) start else projectedSelection).also { projectedPreedit = null }
+                else -> null
+            }
+            if (expected != null) {
+                projectedSelection = expected; ownSelections.addLast(expected)
+                while (ownSelections.size > 32) ownSelections.removeFirst()
+            }
+            writingHost = true
+            val outcome = try { editor.execute(host, plan, ::current) } finally { writingHost = false }
+            if (outcome != "Applied") { ownSelections.clear(); projectedPreedit = null }
             if (!current()) return false
             val ack = NativeBridge.objectCall("Ack", "session" to s.value, "token" to token, "outcome" to outcome, "owns_preedit" to editor.ownsPreedit)
             if (outcome != "Applied") error = "编辑结果未确认，已停止本次输入；请检查正文后继续"
@@ -340,6 +376,21 @@ class MyWubiService : InputMethodService() {
             candidates = NativeBridge.objectCall("Candidates", "session" to it.value, "offset" to candidateOffset, "count" to 256)
         }
         render()
+    }
+    private fun invalidatePrediction() {
+        val s = session ?: return
+        NativeBridge.call("PredictionContext", "session" to s.value, "editor" to editorEpoch,
+            "epoch" to editorEpoch, "prefix" to null, "invalidate" to true)
+    }
+    private fun syncPredictionPrefix() {
+        val s = session ?: return
+        if (!state.optBoolean("prediction_enabled") || editor.ownsPreedit) return
+        val private = inputPolicy.purpose != "Text" ||
+            (editorInfo?.imeOptions ?: 0) and EditorInfo.IME_FLAG_NO_PERSONALIZED_LEARNING != 0
+        if (private || hasSelection) { invalidatePrediction(); return }
+        val before = try { connection?.getTextBeforeCursor(512, 0)?.toString()?.let(PredictionPrefix::bounded) } catch (_: RuntimeException) { null }
+        NativeBridge.call("PredictionContext", "session" to s.value, "editor" to editorEpoch,
+            "epoch" to editorEpoch, "prefix" to before, "invalidate" to false)
     }
 
     override fun onDestroy() {

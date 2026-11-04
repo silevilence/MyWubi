@@ -499,6 +499,9 @@ impl ITfEditSession_Impl for EditSession_Impl {
     ITfSource
 )]
 pub struct TextService {
+    writing_host: AtomicBool,
+    prediction_check_queued: AtomicBool,
+    candidate_dispatch: Mutex<Option<crate::candidate_dispatch::CandidateDispatch>>,
     /// 编码、候选显示与编辑结果的统一会话。
     input: InputSession,
     /// 可热替换的运行时快照（配置 + 码表 + 路径）。
@@ -574,6 +577,9 @@ impl TextService {
 
         Self {
             input,
+            writing_host: AtomicBool::new(false),
+            prediction_check_queued: AtomicBool::new(false),
+            candidate_dispatch: Mutex::new(None),
             runtime,
             lifecycle: TsfLifecycle::default(),
             focus_doc_mgr: Mutex::new(None),
@@ -598,6 +604,43 @@ impl TextService {
     /// 内部：取一份 IUnknown 副本（已 AddRef），用于 AdviseSink 注册。
     fn clone_self_unknown(&self) -> Option<windows::core::IUnknown> {
         self.lifecycle.owner()
+    }
+
+    fn choose_prediction(&self, version: u64, id: usize) {
+        if version == 0 {
+            self.prediction_check_queued.store(false, Ordering::Release);
+            if self.composition.lock().is_some() {
+                return;
+            }
+        }
+        self.sync_runtime_if_needed();
+        let Some(context) = self
+            .lifecycle
+            .manager()
+            .and_then(|tm| unsafe { tm.GetFocus().ok() })
+            .and_then(|dm| unsafe { dm.GetTop().ok() })
+        else {
+            return;
+        };
+        if !self.prepare_context(Some(&context)).unwrap_or(false) {
+            return;
+        }
+        let editor = context
+            .cast::<IUnknown>()
+            .map(|u| u.as_raw() as usize as u64)
+            .unwrap_or(0);
+        let prefix = crate::prediction_context::read(&context, self.lifecycle.tid(), true);
+        // After an external notification (or just before a click), an unreadable
+        // range cannot prove that a previously displayed suggestion is still current.
+        if prefix.allowed && prefix.text.is_none() {
+            self.input.clear_prediction_context();
+            return;
+        }
+        self.input.sync_prediction_context(editor, prefix);
+        if version != 0 {
+            self.input
+                .choose_prediction(version, id, |op| self.run_edit(op, Some(&context)));
+        }
     }
 
     fn theme_snapshot(&self) -> ThemeSnapshot {
@@ -637,6 +680,16 @@ impl TextService {
         context: Option<&ITfContext>,
     ) -> std::result::Result<Option<ScreenPoint>, crate::input_session::SessionEditError> {
         let committed = Arc::new(AtomicBool::new(false));
+        struct Guard<'a>(&'a AtomicBool, bool);
+        impl Drop for Guard<'_> {
+            fn drop(&mut self) {
+                self.0.store(self.1, Ordering::Release);
+            }
+        }
+        let _guard = Guard(
+            &self.writing_host,
+            self.writing_host.swap(true, Ordering::AcqRel),
+        );
         self.run_edit_inner(op, context, Arc::clone(&committed))
             .map_err(|error| crate::input_session::SessionEditError {
                 message: error.to_string(),
@@ -1166,6 +1219,9 @@ impl ITfTextInputProcessor_Impl for TextService_Impl {
             cw.shutdown();
         }
 
+        self.prediction_check_queued.store(false, Ordering::Release);
+        let dispatch = self.candidate_dispatch.lock().take();
+        drop(dispatch);
         let result = self.lifecycle.deactivate(remove_registration);
         if !self.lifecycle.has_language_bar() {
             self.lang_bar_sink.lock().take();
@@ -1200,6 +1256,16 @@ impl ITfTextInputProcessorEx_Impl for TextService_Impl {
         if !self.lifecycle.begin(tm.clone(), tid) {
             log::warn!("[TSF] ActivateEx: TIP 已激活，忽略重复激活");
             return Ok(());
+        }
+        {
+            use windows::core::IUnknownImpl;
+            let owner = self.to_object();
+            match crate::candidate_dispatch::CandidateDispatch::new(move |version, id| {
+                owner.choose_prediction(version, id)
+            }) {
+                Ok(dispatch) => *self.candidate_dispatch.lock() = Some(dispatch),
+                Err(error) => log::warn!("候选点击窗口不可用: {error}"),
+            }
         }
         let tm = tm.clone();
         // 保存激活标志（如 TF_TMAE_COMLESS）
@@ -1419,6 +1485,28 @@ impl ITfTextEditSink_Impl for TextService_Impl {
         _ecreadonly: u32,
         _peditrecord: Ref<'_, ITfEditRecord>,
     ) -> Result<()> {
+        // Some TSF bridges expose the pre-commit selection during OnEndEdit.
+        // Re-read on the apartment after the host has completed the transaction.
+        if !self.writing_host.load(Ordering::Acquire)
+            && self.config_snapshot().prediction.enabled
+            && !self.prediction_check_queued.swap(true, Ordering::AcqRel)
+        {
+            let target = self.candidate_dispatch.lock().as_ref().map(|d| d.hwnd());
+            let posted = target.is_some_and(|hwnd| unsafe {
+                // WM_TIMER runs after pending bridge/input messages, unlike a posted
+                // callback which may still observe the legacy pre-commit selection.
+                windows::Win32::UI::WindowsAndMessaging::SetTimer(
+                    Some(hwnd),
+                    crate::candidate_dispatch::VERIFY_TIMER,
+                    20,
+                    None,
+                ) != 0
+            });
+            if !posted {
+                self.prediction_check_queued.store(false, Ordering::Release);
+                self.input.clear_prediction_context();
+            }
+        }
         // 如果 composition 被外部编辑破坏，ITfCompositionSink::OnCompositionTerminated
         // 会收到通知并清理状态。此处仅做日志监控。
         if self.composition.lock().is_some() {
@@ -1548,10 +1636,13 @@ impl ITfKeyEventSink_Impl for TextService_Impl {
         if !self.prepare_context(_pic.as_ref())? {
             return Ok(BOOL(0));
         }
-        Ok(BOOL(
-            self.translated_key(wparam, lparam)
-                .is_some_and(|event| self.input.test_key(&event, false)) as i32,
-        ))
+        let handled = if let Some(event) = self.translated_key(wparam, lparam) {
+            self.input.test_key(&event, false)
+        } else {
+            self.input.clear_prediction_context();
+            false
+        };
+        Ok(BOOL(handled as i32))
     }
 
     fn OnTestKeyUp(
@@ -1568,8 +1659,25 @@ impl ITfKeyEventSink_Impl for TextService_Impl {
             return Ok(BOOL(0));
         }
         let Some(event) = self.translated_key(wparam, lparam) else {
+            self.input.clear_prediction_context();
             return Ok(BOOL(0));
         };
+        if self.config_snapshot().prediction.enabled {
+            if let Some(context) = pic.as_ref() {
+                let editor = context
+                    .cast::<IUnknown>()
+                    .map(|u| u.as_raw() as usize as u64)
+                    .unwrap_or(0);
+                let prefix = crate::prediction_context::read(
+                    context,
+                    self.lifecycle.tid(),
+                    self.composition.lock().is_none(),
+                );
+                self.input.sync_prediction_context(editor, prefix);
+            } else {
+                self.input.clear_prediction_context();
+            }
+        }
         // GetWnd 可能在 WinRT 自定义编辑控件中返回空句柄；回退到 TSF 线程焦点。
         let owner = unsafe {
             pic.as_ref()
@@ -1589,6 +1697,11 @@ impl ITfKeyEventSink_Impl for TextService_Impl {
                 *window = Some(CandidateWindow::spawn(
                     Arc::clone(&self.candidate_tx),
                     owner,
+                    self.candidate_dispatch
+                        .lock()
+                        .as_ref()
+                        .map(|d| d.hwnd())
+                        .unwrap_or_default(),
                 ));
             }
         }

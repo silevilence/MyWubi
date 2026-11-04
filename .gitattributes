@@ -15,3 +15,6 @@
 
 # ONNX protobuf graphs must never undergo Windows line-ending conversion.
 *.onnx binary
+
+# Reproducible bundled prediction lexicon.
+/core_engine/src/assistance/*.tsv text eol=lf

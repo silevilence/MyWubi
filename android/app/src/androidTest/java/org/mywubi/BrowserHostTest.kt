@@ -67,7 +67,12 @@ class BrowserHostTest {
         key("搜索"); counter(1)
         open(0)
         key("g"); key("换行"); expect("g")
-        key("换行"); expect("g\n")
+        key("换行")
+        // Chrome's accessible EditText value may trim a trailing newline; verify
+        // the page's actual DOM value instead of weakening the newline assertion.
+        awaitValue("DOM value contains exactly one newline") {
+            device.findObject(By.text("正文值：\"g\\n\""))
+        }
     }
 
     @Test fun unicodeSelectionAndCompositionCursorInChrome() {

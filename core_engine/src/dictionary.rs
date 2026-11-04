@@ -211,6 +211,7 @@ impl Default for LoadOptions {
 /// 不可变、可被多线程共享的码表。
 #[derive(Debug)]
 pub struct Dictionary {
+    prediction: std::sync::OnceLock<crate::assistance::prediction::Lexicon>,
     pinyin_index: Option<crate::pinyin::PinyinIndex>,
     /// 按编码有序排列的扁平条目数组，便于二分查找前缀区间。
     entries: Vec<Entry>,
@@ -241,6 +242,7 @@ impl Dictionary {
     /// Empty startup fallback without filesystem access or a fallible parser.
     pub fn empty() -> Arc<Self> {
         Arc::new(Self {
+            prediction: std::sync::OnceLock::new(),
             pinyin_index: None,
             entries: Vec::new(),
             prefix_index: BTreeMap::new(),
@@ -305,6 +307,7 @@ impl Dictionary {
         };
 
         Ok(Arc::new(Self {
+            prediction: std::sync::OnceLock::new(),
             pinyin_index: (table_config.table_type == TableType::Pinyin)
                 .then(|| crate::pinyin::PinyinIndex::new(&entries)),
             entries,
@@ -354,6 +357,12 @@ impl Dictionary {
     /// 返回只读词条视图，供系统码表与用户词库合并。
     pub fn entries(&self) -> &[Entry] {
         &self.entries
+    }
+
+    /// Warm once during runtime loading when predictions are enabled.
+    pub fn prediction_lexicon(&self) -> &crate::assistance::prediction::Lexicon {
+        self.prediction
+            .get_or_init(|| crate::assistance::prediction::Lexicon::new(&self.entries))
     }
 
     /// 返回码表中所有编码完全等于 `code` 的词条（按 weight 倒序）。

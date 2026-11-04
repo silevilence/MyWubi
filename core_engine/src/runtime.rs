@@ -118,6 +118,9 @@ impl RuntimeBuilder {
                 message,
                 dependencies,
             })?;
+        if config.prediction.enabled {
+            dict.prediction_lexicon();
+        }
         Ok(RuntimeSnapshot {
             revision: NEXT_REVISION.fetch_add(1, Ordering::Relaxed),
             dict,

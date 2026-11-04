@@ -45,3 +45,7 @@ select_second = "semicolon"
 select_third = "quote"
 # 二三级简码切换
 toggle_simplify = "ctrl_shift_s"
+
+[prediction]
+# 本地字词预测独立于编码候选排序，默认关闭。
+enabled = false

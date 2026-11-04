@@ -65,6 +65,13 @@ enum Request {
         session: u64,
         token: EditToken,
     },
+    PredictionContext {
+        session: u64,
+        editor: u64,
+        epoch: u64,
+        prefix: Option<String>,
+        invalidate: bool,
+    },
     Context {
         session: u64,
         context: HostContext,
@@ -274,7 +281,26 @@ impl Registry {
             }
             Request::State { session } => {
                 let s = self.session(session)?;
-                json!({"status":s.status(),"view":s.snapshot(),"base":s.base_mode(),"temporary":s.temporary_mode(),"revision":s.revision(),"pinyin":s.capability(TemporaryMode::Pinyin)})
+                json!({"status":s.status(),"view":s.snapshot(),"base":s.base_mode(),"temporary":s.temporary_mode(),"revision":s.revision(),"pinyin":s.capability(TemporaryMode::Pinyin),"prediction_enabled":s.config().prediction.enabled})
+            }
+            Request::PredictionContext {
+                session,
+                editor,
+                epoch,
+                prefix,
+                invalidate,
+            } => {
+                if prefix.as_ref().is_some_and(|p| p.chars().count() > 512) {
+                    return Err(err(2, "context exceeds limit"));
+                }
+                let s = self.session(session)?;
+                if s.context().editor == editor && s.context().epoch == epoch {
+                    if invalidate {
+                        s.clear_prediction_context();
+                    }
+                    s.observe_prefix(editor, epoch, prefix.as_deref());
+                }
+                json!(null)
             }
             Request::Candidates {
                 session,

@@ -29,6 +29,7 @@ use windows::Win32::Foundation::HMODULE;
 use windows::Win32::System::SystemServices::DLL_PROCESS_ATTACH;
 
 pub mod candidate_data;
+mod candidate_dispatch;
 pub mod candidate_window;
 mod config_path;
 pub mod factory;
@@ -40,6 +41,7 @@ pub mod key_filter;
 #[path = "../tests/support/legacy_input_session.rs"]
 mod legacy_baseline;
 mod lifecycle;
+mod prediction_context;
 pub mod reload;
 pub mod screen_geometry;
 pub mod text_service;
