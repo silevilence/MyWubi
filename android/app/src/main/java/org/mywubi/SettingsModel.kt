@@ -19,6 +19,9 @@ class SettingsModel(application: Application) : AndroidViewModel(application) {
     private val app = application
     val store = EngineStore(app)
     private val worker = Executors.newSingleThreadExecutor()
+    private val downloadControl = Executors.newSingleThreadExecutor()
+    private var downloadPollPending = false
+    private var downloadListPending = false
     private val main = Handler(Looper.getMainLooper())
     private val draftFile = AtomicFile(File(app.filesDir, "settings-draft.json"))
     private var expected: NativeHandle? = null
@@ -31,15 +34,49 @@ class SettingsModel(application: Application) : AndroidViewModel(application) {
     var pack by mutableStateOf<EngineStore.ImportSet?>(null); private set
     var tables by mutableStateOf<List<TableCatalog.Table>>(emptyList()); private set
     var models by mutableStateOf<List<JSONObject>>(emptyList()); private set
+    val downloadableModels = JSONObject(NativeBridge.modelDownloads("{\"op\":\"Available\"}".toByteArray()).toString(Charsets.UTF_8)).getJSONArray("value")
+    var downloadStatus by mutableStateOf(JSONObject().put("phase","idle")); private set
+    var downloadError by mutableStateOf(""); private set
+    private fun downloadCommand(op:String, model:JSONObject?=null, source:String?=null) {
+        if(closed || (op=="Status" && downloadPollPending)) return
+        if(op=="Status") downloadPollPending=true
+        downloadControl.execute {
+            val result=runCatching {
+                val request=JSONObject().put("op",op).put("config",store.configFile.absolutePath)
+                model?.let {request.put("model",it)}; source?.let {request.put("source",it)}
+                val reply=JSONObject(NativeBridge.modelDownloads(request.toString().toByteArray(Charsets.UTF_8)).toString(Charsets.UTF_8))
+                check(reply.getBoolean("ok")) {reply.getString("error")}
+                reply.getJSONObject("value")
+            }
+            main.post {
+                downloadPollPending=false
+                if(!closed) {
+                    result.onSuccess { next ->
+                        if(next.optString("phase")=="ready" && downloadStatus.optString("phase")!="ready") downloadListPending=true
+                        downloadStatus=next;downloadError=""
+                    }.onFailure {downloadError=it.message ?: "下载管理器不可用"}
+                    if(downloadListPending && !busy) {downloadListPending=false;refreshModels()}
+                }
+            }
+        }
+    }
+    fun refreshDownloadStatus()=downloadCommand("Status")
+    fun startDownload(model:JSONObject, source:String)=downloadCommand("Start",model,source)
+    fun cancelDownload()=downloadCommand("Cancel")
     val modelBackends = JSONObject(NativeBridge.inference("{\"op\":\"Features\"}".toByteArray()).toString(Charsets.UTF_8)).getJSONObject("value")
     var modelStatus by mutableStateOf("尚未查询运行状态"); private set
-    fun refreshModelStatus()=work {
-        val result=JSONObject(NativeBridge.inference("{\"op\":\"Status\"}".toByteArray()).toString(Charsets.UTF_8))
-        val status=if(!result.getBoolean("ok")) "模型工作线程未启动" else when(result.optString("value")) {
-            "Loading" -> "正在加载和预热"; "Ready" -> "模型已就绪"; "Paused" -> "已暂停，释放资源"; "Idle" -> "空闲，尚未加载"
-            else -> "加载或推理失败：${result.opt("value")}"
+    fun refreshModelStatus() {
+        if(closed) return
+        downloadControl.execute {
+            val status=runCatching {
+                val result=JSONObject(NativeBridge.inference("{\"op\":\"Status\"}".toByteArray()).toString(Charsets.UTF_8))
+                if(!result.getBoolean("ok")) "模型工作线程未启动" else when(result.optString("value")) {
+                    "Loading" -> "正在加载和预热"; "Ready" -> "模型已就绪"; "Paused" -> "已暂停，释放资源"; "Idle" -> "空闲，尚未加载"
+                    else -> "加载或推理失败：${result.opt("value")}"
+                }
+            }.getOrElse { "无法查询运行状态：${it.message}" }
+            main.post {if(!closed) modelStatus=status}
         }
-        val publish:()->Unit={modelStatus=status};publish
     }
     private fun modelList(array: JSONArray)= (0 until array.length()).map { array.getJSONObject(it) }
     fun refreshModels()=work {
@@ -188,8 +225,10 @@ class SettingsModel(application: Application) : AndroidViewModel(application) {
     }
 
     override fun onCleared() {
+        cancelDownload()
         closed = true
         worker.execute { main.post { expected?.close() } }
         worker.shutdown()
+        downloadControl.shutdown()
     }
 }

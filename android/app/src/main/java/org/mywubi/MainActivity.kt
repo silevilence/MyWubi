@@ -52,7 +52,7 @@ private fun SettingsScreen(model: SettingsModel, enable: () -> Unit, choose: () 
     val modelPicker = rememberLauncherForActivityResult(ActivityResultContracts.OpenDocumentTree()) { uri ->
         uri?.let(model::importModel)
     }
-    BackHandler(model.dirty || model.busy) { confirmLeave = true }
+    BackHandler(model.dirty) { confirmLeave = true }
     Surface {
         Column(Modifier.fillMaxSize().safeDrawingPadding().imePadding().verticalScroll(rememberScrollState()).padding(20.dp), verticalArrangement = Arrangement.spacedBy(12.dp)) {
             Row(verticalAlignment = androidx.compose.ui.Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(12.dp)) {
@@ -181,6 +181,7 @@ private fun PredictionModels(model:SettingsModel, prediction:JSONObject, import:
     var expanded by rememberSaveable { mutableStateOf(false) }
     OutlinedButton(onClick={expanded=!expanded}) { Text(if(expanded) "收起预测模型与资源" else "预测模型与资源") }
     if(!expanded) return
+    DownloadModels(model)
     LaunchedEffect(expanded) { while(true) { model.refreshModelStatus(); kotlinx.coroutines.delay(2000) } }
     Text(if(model.dirty) "预测设置有未保存更改" else "显示已保存设置；实际运行状态单独查询")
     Text("模型仅在本地运行。基础词典预测无需模型；尚无通过质量验收的推荐模型。")
@@ -216,7 +217,8 @@ private fun PredictionModels(model:SettingsModel, prediction:JSONObject, import:
         Text(if(hasPolicy) "已提供预测门槛；不代表效果已通过验收。" else "缺少预测门槛：可保留用于离线评测，暂不能用于字词预测。")
         Text("能力：${caps.getJSONArray("tasks")}；前文 ${caps.getInt("max_context_chars")} 字")
         Row(horizontalArrangement=Arrangement.spacedBy(8.dp)) {
-            OutlinedButton(onClick={model.change("prediction","model",identity)},enabled=!model.busy && supported && !active) {Text("选择此模型")}
+            OutlinedButton(onClick={model.change("prediction","model",identity)},enabled=!model.busy && supported && !active,
+                modifier=Modifier.semantics {contentDescription="选择模型 ${p.getString("id")} @ ${p.getString("version")}"}) {Text("选择此模型")}
             OutlinedButton(onClick={model.removeModel(identity)},enabled=!model.busy && !active) {Text("移除未选模型")}
         }
     }

@@ -170,6 +170,38 @@ fn check_space(required: u64, available: u64) -> Result<(), DownloadError> {
     }
 }
 
+/// Remove only this model's resumable data; hold its lock until catalog removal finishes.
+pub(crate) fn remove_cache(
+    store: &Path,
+    selection: &core_engine::config::ModelSelection,
+) -> Result<File, DownloadError> {
+    let name = selection.directory_name().ok_or(DownloadError::Identity)?;
+    let store = store.canonicalize()?;
+    let downloads = store.join(".downloads");
+    fs::create_dir_all(&downloads)?;
+    package::no_links(&store, Path::new(".downloads"))?;
+    let lock_name = format!("{name}.lock");
+    if downloads.join(&lock_name).exists() {
+        package::no_links(&downloads, Path::new(&lock_name))?;
+    }
+    let lock = OpenOptions::new()
+        .create(true)
+        .truncate(false)
+        .write(true)
+        .open(downloads.join(lock_name))?;
+    fs2::FileExt::try_lock_exclusive(&lock).map_err(|_| DownloadError::Busy)?;
+    if downloads.join(&name).exists() {
+        package::no_links(&downloads, Path::new(&name))?;
+        fs::remove_dir_all(downloads.join(&name))?;
+    }
+    let receipt = PathBuf::from(".receipts").join(format!("{name}.json"));
+    if store.join(&receipt).exists() {
+        package::no_links(&store, &receipt)?;
+        fs::remove_file(store.join(receipt))?;
+    }
+    Ok(lock)
+}
+
 fn agent() -> ureq::Agent {
     ureq::Agent::config_builder()
         .https_only(true)
@@ -327,11 +359,8 @@ pub fn download(
             .bytes
             .saturating_sub(fs::metadata(path).map_or(0, |m| m.len()));
     }
-    // Import uses a fresh, atomically renamed copy; reserve that copy as well.
-    check_space(
-        total + remaining + 64 * 1024 * 1024,
-        fs2::available_space(&store)?,
-    )?;
+    // Staging is on the same filesystem: publish by rename, without a second weight copy.
+    check_space(remaining + 64 * 1024 * 1024, fs2::available_space(&store)?)?;
     let agent = agent();
     let mut completed = 0;
     let mut sources = Vec::new();
@@ -404,7 +433,13 @@ pub fn download(
         receipts.join(receipt_name),
         serde_json::to_vec_pretty(&receipt).map_err(|_| DownloadError::Identity)?,
     )?;
-    let installed = package::import(&stage, &store)?;
+    let installed = store.join(&name);
+    if installed.exists() {
+        return Err(package::PackageError::Exists.into());
+    }
+    // Every byte and policy was validated above and all file handles are closed.
+    // A nonempty existing package cannot be replaced by this directory rename.
+    fs::rename(&stage, &installed)?;
     publish(Progress {
         phase: "ready".into(),
         completed,

@@ -10,6 +10,7 @@ pub mod elevation;
 pub mod fonts;
 pub mod log;
 mod model_catalog;
+mod model_downloads;
 pub mod panels;
 pub mod save;
 pub mod state;

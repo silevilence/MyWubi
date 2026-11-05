@@ -24,18 +24,15 @@ impl Catalog {
     pub fn remove(&self, selection: &ModelSelection, config: &Path) -> Result<(), PackageError> {
         // Check the saved selection at the mutation boundary, not a stale UI draft.
         let config = Config::load(config).map_err(|_| PackageError::Manifest)?;
-        let selected = config
-            .prediction
-            .model
-            .as_ref()
-            .and_then(ModelSelection::directory_name)
-            .map(|name| self.root.join(name));
-        package::remove(
-            &self.root,
-            &selection.id,
-            &selection.version,
-            selected.as_deref(),
-        )
+        if config.prediction.model.as_ref().is_some_and(|active| {
+            active.id.eq_ignore_ascii_case(&selection.id)
+                && active.version.eq_ignore_ascii_case(&selection.version)
+        }) {
+            return Err(PackageError::Active);
+        }
+        let _lock = crate::download::remove_cache(&self.root, selection)
+            .map_err(|e| PackageError::Io(std::io::Error::other(e.to_string())))?;
+        package::remove(&self.root, &selection.id, &selection.version, None)
     }
 }
 
@@ -92,6 +89,42 @@ pub fn exchange(bytes: &[u8]) -> Vec<u8> {
 #[cfg(test)]
 mod tests {
     use super::*;
+    #[test]
+    fn removal_preserves_selected_model_and_clears_only_unused_download_cache() {
+        let dir = tempfile::tempdir().unwrap();
+        let path = dir.path().join("config.toml");
+        let selection = ModelSelection {
+            id: "unused".into(),
+            version: "v1".into(),
+        };
+        let catalog = Catalog::for_config(&path);
+        let installed = catalog.root.join("unused--v1");
+        let cache = catalog.root.join(".downloads/unused--v1/package");
+        std::fs::create_dir_all(&installed).unwrap();
+        std::fs::create_dir_all(&cache).unwrap();
+        std::fs::write(cache.join("model.gguf"), b"partial").unwrap();
+        std::fs::write(catalog.root.join("keep-user-file"), b"keep").unwrap();
+        let mut config = Config::default();
+        config.prediction.model = Some(selection.clone());
+        config.save(&path).unwrap();
+        assert!(matches!(
+            catalog.remove(&selection, &path),
+            Err(PackageError::Active)
+        ));
+        assert!(cache.exists());
+        config.prediction.model = Some(ModelSelection {
+            id: "missing".into(),
+            version: "v1".into(),
+        });
+        config.save(&path).unwrap();
+        catalog.remove(&selection, &path).unwrap();
+        assert!(!installed.exists());
+        assert!(!cache.exists());
+        assert_eq!(
+            std::fs::read(catalog.root.join("keep-user-file")).unwrap(),
+            b"keep"
+        );
+    }
     #[test]
     fn configuration_and_model_location_survive_application_version_changes() {
         let root = tempfile::tempdir().unwrap();

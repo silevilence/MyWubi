@@ -55,10 +55,7 @@ impl SettingsApp {
     }
 
     fn show_main_panel(&mut self, ctx: &egui::Context) {
-        egui::CentralPanel::default().show(ctx, |ui| {
-            crate::panels::show_active(ui, &mut self.state);
-            ui.add_space(16.0);
-            ui.separator();
+        egui::TopBottomPanel::bottom("save-actions").show(ctx, |ui| {
             ui.horizontal(|ui| {
                 if ui.button("保存").clicked() {
                     if !save::save(&mut self.state) {
@@ -72,6 +69,11 @@ impl SettingsApp {
                 if let Some(msg) = &self.state.status_msg {
                     ui.label(msg);
                 }
+            });
+        });
+        egui::CentralPanel::default().show(ctx, |ui| {
+            egui::ScrollArea::vertical().show(ui, |ui| {
+                crate::panels::show_active(ui, &mut self.state);
             });
         });
     }

@@ -23,6 +23,8 @@ pub fn prepare_saved_model(path: &std::path::Path) -> Result<(), String> {
 
 #[derive(Default)]
 pub struct ModelCatalog {
+    downloads: crate::model_downloads::ModelDownloads,
+    download_refresh: bool,
     packages: Vec<Manifest>,
     worker: Option<mpsc::Receiver<Result<Vec<Manifest>, String>>>,
     message: String,
@@ -136,6 +138,11 @@ impl ModelCatalog {
         }
         let backends = self.backends.unwrap_or_default();
         ui.collapsing("预测模型与资源", |ui| {
+            if self.downloads.show(ui, path, &self.packages, backends) { self.download_refresh = true; }
+            if self.download_refresh && self.worker.is_none() {
+                self.download_refresh = false;
+                self.start(path.into(), Operation::List, ui.ctx().clone());
+            }
             ui.small("模型完全在本地运行。基础词典预测无需模型；只支持公开规范中的模型包。");
             if self.last_status.is_none_or(|t| t.elapsed() >= std::time::Duration::from_secs(2)) { self.refresh_status(ui.ctx().clone()); }
             ui.ctx().request_repaint_after(std::time::Duration::from_secs(2));

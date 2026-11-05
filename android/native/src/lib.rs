@@ -1,12 +1,42 @@
 //! Android native module; protocol rules remain in core_engine.
 pub use core_engine::ffi::PROTOCOL_VERSION;
 static INFERENCE: std::sync::OnceLock<model_input::service::Endpoint> = std::sync::OnceLock::new();
+static DOWNLOADS: std::sync::OnceLock<model_input::download_manager::DownloadManager> =
+    std::sync::OnceLock::new();
 
 use jni::{
     objects::{JByteArray, JClass, JString},
     sys::{jbyteArray, jint},
     JNIEnv,
 };
+
+#[no_mangle]
+pub extern "system" fn Java_org_mywubi_NativeBridge_modelDownloads(
+    mut env: JNIEnv,
+    _class: JClass,
+    request: JByteArray,
+) -> jbyteArray {
+    let result = std::panic::catch_unwind(std::panic::AssertUnwindSafe(|| {
+        if env.get_array_length(&request).ok()? > 65536 {
+            return None;
+        }
+        let bytes = env.convert_byte_array(&request).ok()?;
+        let reply = DOWNLOADS.get_or_init(Default::default).exchange(&bytes);
+        env.byte_array_from_slice(&reply).ok().map(|a| a.into_raw())
+    }));
+    match result {
+        Ok(Some(array)) => array,
+        _ => {
+            if !env.exception_check().unwrap_or(true) {
+                let _ = env.throw_new(
+                    "java/lang/IllegalArgumentException",
+                    "download control failed",
+                );
+            }
+            std::ptr::null_mut()
+        }
+    }
+}
 
 #[no_mangle]
 pub extern "system" fn Java_org_mywubi_NativeBridge_runtimeDirectory(

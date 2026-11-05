@@ -1,0 +1,18 @@
+[
+  {
+    "attempt": 1,
+    "candidate_visible": false,
+    "status": {
+      "ok": true,
+      "value": "Ready"
+    }
+  },
+  {
+    "attempt": 2,
+    "candidate_visible": true,
+    "status": {
+      "ok": true,
+      "value": "Ready"
+    }
+  }
+]

@@ -1,0 +1,12 @@
+{
+  "enabled": true,
+  "idle_seconds": 60,
+  "loading": "preload_keep",
+  "max_candidates": 1,
+  "model": {
+    "id": "qwen25-words",
+    "version": "q4km-v1"
+  },
+  "threads": 4,
+  "wait_ms": 1000
+}
