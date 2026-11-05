@@ -1,0 +1,170 @@
+   Compiling syn v2.0.118
+    Checking ort v2.0.0-rc.15
+   Compiling ring v0.17.14
+   Compiling prettyplease v0.2.37
+   Compiling thiserror-impl v1.0.69
+    Checking thiserror v1.0.69
+   Compiling windows-implement v0.60.2
+   Compiling serde_derive v1.0.228
+   Compiling windows-interface v0.59.3
+    Checking windows-core v0.62.2
+    Checking windows-numerics v0.3.1
+    Checking windows-collections v0.3.2
+    Checking serde v1.0.228
+    Checking windows-future v0.3.2
+   Compiling bindgen v0.72.1
+    Checking toml_datetime v0.6.11
+    Checking serde_spanned v0.6.9
+    Checking windows v0.62.2
+   Compiling llama-cpp-sys-2 v0.1.161
+   Compiling thiserror-impl v2.0.18
+    Checking thiserror v2.0.18
+    Checking toml_edit v0.22.27
+   Compiling enumflags2_derive v0.7.12
+   Compiling tracing-attributes v0.1.31
+    Checking tracing v0.1.44
+    Checking enumflags2 v0.7.12
+    Checking toml v0.8.23
+    Checking serde_yaml_ng v0.10.0
+    Checking core_engine v0.6.2 (C:\code\rust\MyWubi\core_engine)
+    Checking model_ipc v0.6.2 (C:\code\rust\MyWubi\windows\model_ipc)
+   Compiling synstructure v0.13.2
+   Compiling zerofrom-derive v0.1.7
+    Checking zerofrom v0.1.8
+   Compiling yoke-derive v0.8.2
+    Checking yoke v0.8.3
+   Compiling zerovec-derive v0.11.3
+    Checking zerovec v0.11.6
+   Compiling displaydoc v0.2.6
+    Checking tinystr v0.8.3
+    Checking icu_locale_core v2.2.0
+    Checking zerotrie v0.2.4
+    Checking potential_utf v0.1.5
+    Checking icu_collections v2.2.0
+    Checking icu_provider v2.2.0
+   Compiling bytemuck_derive v1.10.2
+    Checking bytemuck v1.25.0
+    Checking icu_normalizer v2.2.0
+    Checking icu_properties v2.2.0
+    Checking idna_adapter v1.2.2
+    Checking naga v0.19.2
+    Checking gpu-allocator v0.25.0
+    Checking hassle-rs v0.11.0
+    Checking idna v1.1.0
+    Checking emath v0.27.2
+    Checking ecolor v0.27.2
+    Checking wgpu-hal v0.19.5
+    Checking epaint v0.27.2
+    Checking url v2.5.8
+   Compiling rustls v0.23.41
+    Checking wgpu-core v0.19.4
+    Checking egui v0.27.2
+    Checking rustls-webpki v0.103.13
+    Checking wgpu v0.19.4
+    Checking webbrowser v0.8.15
+    Checking ureq v3.3.0
+    Checking image v0.24.9
+    Checking egui-winit v0.27.2
+   Compiling settings v0.6.2 (C:\code\rust\MyWubi\windows\settings)
+    Checking egui-wgpu v0.27.2
+    Checking velopack v1.2.0
+    Checking eframe v0.27.2
+warning: settings@0.6.2: 已复制 4 个码表到 C:\code\rust\MyWubi\target\debug\tables
+    Checking tip_manager v0.6.2 (C:\code\rust\MyWubi\windows\tip_manager)
+    Checking llama-cpp-2 v0.1.161
+    Checking model_input v0.6.2 (C:\code\rust\MyWubi\model_input)
+warning: this `if` statement can be collapsed
+  --> windows\settings\src\app.rs:63:17
+   |
+63 | /                 if ui.button("保存").clicked() {
+64 | |                     if !save::save(&mut self.state) {
+65 | |                         self.save_error = self.state.status_msg.clone();
+66 | |                     }
+67 | |                 }
+   | |_________________^
+   |
+   = help: for further information visit https://rust-lang.github.io/rust-clippy/rust-1.99.0/index.html#collapsible_if
+   = note: `#[warn(clippy::collapsible_if)]` on by default
+help: collapse nested if block
+   |
+63 ~                 if ui.button("保存").clicked()
+64 ~                     && !save::save(&mut self.state) {
+65 |                         self.save_error = self.state.status_msg.clone();
+66 ~                     }
+   |
+
+warning: this `if` statement can be collapsed
+   --> windows\settings\src\app.rs:211:21
+    |
+211 | /                     if ui.button("保存").clicked() {
+212 | |                         if save::save(&mut self.state) {
+213 | |                             self.close_confirm = false;
+214 | |                             ctx.send_viewport_cmd(egui::ViewportCommand::Close);
+215 | |                         }
+216 | |                     }
+    | |_____________________^
+    |
+    = help: for further information visit https://rust-lang.github.io/rust-clippy/rust-1.99.0/index.html#collapsible_if
+help: collapse nested if block
+    |
+211 ~                     if ui.button("保存").clicked()
+212 ~                         && save::save(&mut self.state) {
+213 |                             self.close_confirm = false;
+214 |                             ctx.send_viewport_cmd(egui::ViewportCommand::Close);
+215 ~                         }
+    |
+
+warning: the borrowed expression implements the required traits
+   --> windows\settings\src\panels\dictionary.rs:693:45
+    |
+693 |     if let Err(e) = std::fs::create_dir_all(&state.tables.directory()) {
+    |                                             ^^^^^^^^^^^^^^^^^^^^^^^^^ help: change this to: `state.tables.directory()`
+    |
+    = help: for further information visit https://rust-lang.github.io/rust-clippy/rust-1.99.0/index.html#needless_borrows_for_generic_args
+    = note: `#[warn(clippy::needless_borrows_for_generic_args)]` on by default
+
+warning: this `map_or` can be simplified
+   --> windows\settings\src\panels\dictionary.rs:702:16
+    |
+702 |             if path.extension().map_or(false, |e| e == "dict") {
+    |                ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    |
+    = help: for further information visit https://rust-lang.github.io/rust-clippy/rust-1.99.0/index.html#unnecessary_map_or
+    = note: `#[warn(clippy::unnecessary_map_or)]` on by default
+help: use `is_some_and` instead
+    |
+702 -             if path.extension().map_or(false, |e| e == "dict") {
+702 +             if path.extension().is_some_and(|e| e == "dict") {
+    |
+
+warning: this function has too many arguments (8/7)
+   --> windows\settings\src\panels\dictionary.rs:725:1
+    |
+725 | / fn path_row(
+726 | |     ui: &mut Ui,
+727 | |     label: &str,
+728 | |     path: &mut PathBuf,
+...   |
+733 | |     base_dir: &Path,
+734 | | ) {
+    | |_^
+    |
+    = help: for further information visit https://rust-lang.github.io/rust-clippy/rust-1.99.0/index.html#too_many_arguments
+    = note: `#[warn(clippy::too_many_arguments)]` on by default
+
+warning: `settings` (lib) generated 5 warnings (run `cargo clippy --fix --lib -p settings -- ` to apply 4 suggestions)
+warning: items after a test module
+   --> windows\settings\src\panels\appearance.rs:145:1
+    |
+145 | mod tests {
+    | ^^^^^^^^^
+...
+165 | fn preview(ui: &mut Ui, state: &AppState) {
+    | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    |
+    = help: for further information visit https://rust-lang.github.io/rust-clippy/rust-1.99.0/index.html#items_after_test_module
+    = note: `#[warn(clippy::items_after_test_module)]` on by default
+    = help: move the items to before the test module was defined
+
+warning: `settings` (lib test) generated 6 warnings (5 duplicates) (run `cargo clippy --fix --lib -p settings --tests -- ` to apply 1 suggestion)
+    Finished `dev` profile [unoptimized + debuginfo] target(s) in 5m 57s

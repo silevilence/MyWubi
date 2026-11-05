@@ -1,0 +1,198 @@
+    Checking core_engine v0.6.2 (C:\code\rust\MyWubi\core_engine)
+    Checking model_ipc v0.6.2 (C:\code\rust\MyWubi\windows\model_ipc)
+   Compiling model_input v0.6.2 (C:\code\rust\MyWubi\model_input)
+    Checking tip_manager v0.6.2 (C:\code\rust\MyWubi\windows\tip_manager)
+   Compiling settings v0.6.2 (C:\code\rust\MyWubi\windows\settings)
+warning: settings@0.6.2: 已复制 4 个码表到 C:\code\rust\MyWubi\target\debug\tables
+   Compiling im_engine v0.6.2 (C:\code\rust\MyWubi\windows\im_engine)
+warning: using `chunks_exact_mut` with a constant chunk size
+   --> windows\im_engine\src\candidate_window.rs:423:25
+    |
+423 |     for chunk in pixels.chunks_exact_mut(4) {
+    |                         ^^^^^^^^^^^^^^^^^^^ help: consider using `as_chunks_mut` instead: `as_chunks_mut::<4>().0`
+    |
+    = help: for further information visit https://rust-lang.github.io/rust-clippy/rust-1.99.0/index.html#chunks_exact_to_as_chunks
+    = note: `#[warn(clippy::chunks_exact_to_as_chunks)]` on by default
+
+error: this public function might dereference a raw pointer but is not marked `unsafe`
+  --> windows\im_engine\src\factory.rs:96:30
+   |
+96 |         let iid = unsafe { &*riid };
+   |                              ^^^^
+   |
+   = help: for further information visit https://rust-lang.github.io/rust-clippy/rust-1.99.0/index.html#not_unsafe_ptr_arg_deref
+   = note: `#[deny(clippy::not_unsafe_ptr_arg_deref)]` on by default
+
+error: this public function might dereference a raw pointer but is not marked `unsafe`
+   --> windows\im_engine\src\factory.rs:103:18
+    |
+103 |                 *ppvobject = raw;
+    |                  ^^^^^^^^^
+    |
+    = help: for further information visit https://rust-lang.github.io/rust-clippy/rust-1.99.0/index.html#not_unsafe_ptr_arg_deref
+
+error: this public function might dereference a raw pointer but is not marked `unsafe`
+   --> windows\im_engine\src\factory.rs:109:18
+    |
+109 |                 *ppvobject = std::ptr::null_mut();
+    |                  ^^^^^^^^^
+    |
+    = help: for further information visit https://rust-lang.github.io/rust-clippy/rust-1.99.0/index.html#not_unsafe_ptr_arg_deref
+
+warning: unnecessary use of `.write(true)` because there is `.append(true)`
+  --> windows\im_engine\src\file_log.rs:83:13
+   |
+83 |             .write(true)
+   |             ^^^^^^^^^^^^ help: remove `.write(true)`
+   |
+   = help: for further information visit https://rust-lang.github.io/rust-clippy/rust-1.99.0/index.html#ineffective_open_options
+   = note: `#[warn(clippy::ineffective_open_options)]` on by default
+
+warning: using `chunks_exact_mut` with a constant chunk size
+   --> windows\im_engine\src\text_service.rs:239:29
+    |
+239 |         for pixel in pixels.chunks_exact_mut(4) {
+    |                             ^^^^^^^^^^^^^^^^^^^ help: consider using `as_chunks_mut` instead: `as_chunks_mut::<4>().0`
+    |
+    = help: for further information visit https://rust-lang.github.io/rust-clippy/rust-1.99.0/index.html#chunks_exact_to_as_chunks
+
+warning: using `clone` on type `TF_DISPLAYATTRIBUTE` which implements the `Copy` trait
+   --> windows\im_engine\src\text_service.rs:289:25
+    |
+289 |         unsafe { *pda = self.attr.clone() };
+    |                         ^^^^^^^^^^^^^^^^^ help: try removing the `clone` call: `self.attr`
+    |
+    = help: for further information visit https://rust-lang.github.io/rust-clippy/rust-1.99.0/index.html#clone_on_copy
+    = note: `#[warn(clippy::clone_on_copy)]` on by default
+
+error: this public function might dereference a raw pointer but is not marked `unsafe`
+    --> windows\im_engine\src\text_service.rs:1473:36
+     |
+1473 |         let guid_safe = unsafe { &*guid };
+     |                                    ^^^^
+     |
+     = help: for further information visit https://rust-lang.github.io/rust-clippy/rust-1.99.0/index.html#not_unsafe_ptr_arg_deref
+
+error: this public function might dereference a raw pointer but is not marked `unsafe`
+    --> windows\im_engine\src\text_service.rs:1558:14
+     |
+1558 |             *ptkblayouttype = TKBLT_OPTIMIZED;
+     |              ^^^^^^^^^^^^^^
+     |
+     = help: for further information visit https://rust-lang.github.io/rust-clippy/rust-1.99.0/index.html#not_unsafe_ptr_arg_deref
+
+error: this public function might dereference a raw pointer but is not marked `unsafe`
+    --> windows\im_engine\src\text_service.rs:1579:31
+     |
+1579 |         let guid = unsafe { &*rguid };
+     |                               ^^^^^
+     |
+     = help: for further information visit https://rust-lang.github.io/rust-clippy/rust-1.99.0/index.html#not_unsafe_ptr_arg_deref
+
+error: this public function might dereference a raw pointer but is not marked `unsafe`
+    --> windows\im_engine\src\text_service.rs:1580:30
+     |
+1580 |         let iid = unsafe { &*riid };
+     |                              ^^^^
+     |
+     = help: for further information visit https://rust-lang.github.io/rust-clippy/rust-1.99.0/index.html#not_unsafe_ptr_arg_deref
+
+error: this public function might dereference a raw pointer but is not marked `unsafe`
+    --> windows\im_engine\src\text_service.rs:1599:41
+     |
+1599 |         if rguid.is_null() || unsafe { *rguid } != GUID_COMPARTMENT_KEYBOARD_OPENCLOSE {
+     |                                         ^^^^^
+     |
+     = help: for further information visit https://rust-lang.github.io/rust-clippy/rust-1.99.0/index.html#not_unsafe_ptr_arg_deref
+
+error: this public function might dereference a raw pointer but is not marked `unsafe`
+    --> windows\im_engine\src\text_service.rs:1751:31
+     |
+1751 |         let guid = unsafe { &*rguid };
+     |                               ^^^^^
+     |
+     = help: for further information visit https://rust-lang.github.io/rust-clippy/rust-1.99.0/index.html#not_unsafe_ptr_arg_deref
+
+warning: `im_engine` (lib) generated 4 warnings
+error: could not compile `im_engine` (lib) due to 9 previous errors; 4 warnings emitted
+warning: build failed, waiting for other jobs to finish...
+warning: this `if` statement can be collapsed
+  --> windows\settings\src\app.rs:63:17
+   |
+63 | /                 if ui.button("保存").clicked() {
+64 | |                     if !save::save(&mut self.state) {
+65 | |                         self.save_error = self.state.status_msg.clone();
+66 | |                     }
+67 | |                 }
+   | |_________________^
+   |
+   = help: for further information visit https://rust-lang.github.io/rust-clippy/rust-1.99.0/index.html#collapsible_if
+   = note: `#[warn(clippy::collapsible_if)]` on by default
+help: collapse nested if block
+   |
+63 ~                 if ui.button("保存").clicked()
+64 ~                     && !save::save(&mut self.state) {
+65 |                         self.save_error = self.state.status_msg.clone();
+66 ~                     }
+   |
+
+warning: this `if` statement can be collapsed
+   --> windows\settings\src\app.rs:211:21
+    |
+211 | /                     if ui.button("保存").clicked() {
+212 | |                         if save::save(&mut self.state) {
+213 | |                             self.close_confirm = false;
+214 | |                             ctx.send_viewport_cmd(egui::ViewportCommand::Close);
+215 | |                         }
+216 | |                     }
+    | |_____________________^
+    |
+    = help: for further information visit https://rust-lang.github.io/rust-clippy/rust-1.99.0/index.html#collapsible_if
+help: collapse nested if block
+    |
+211 ~                     if ui.button("保存").clicked()
+212 ~                         && save::save(&mut self.state) {
+213 |                             self.close_confirm = false;
+214 |                             ctx.send_viewport_cmd(egui::ViewportCommand::Close);
+215 ~                         }
+    |
+
+warning: the borrowed expression implements the required traits
+   --> windows\settings\src\panels\dictionary.rs:693:45
+    |
+693 |     if let Err(e) = std::fs::create_dir_all(&state.tables.directory()) {
+    |                                             ^^^^^^^^^^^^^^^^^^^^^^^^^ help: change this to: `state.tables.directory()`
+    |
+    = help: for further information visit https://rust-lang.github.io/rust-clippy/rust-1.99.0/index.html#needless_borrows_for_generic_args
+    = note: `#[warn(clippy::needless_borrows_for_generic_args)]` on by default
+
+warning: this `map_or` can be simplified
+   --> windows\settings\src\panels\dictionary.rs:702:16
+    |
+702 |             if path.extension().map_or(false, |e| e == "dict") {
+    |                ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    |
+    = help: for further information visit https://rust-lang.github.io/rust-clippy/rust-1.99.0/index.html#unnecessary_map_or
+    = note: `#[warn(clippy::unnecessary_map_or)]` on by default
+help: use `is_some_and` instead
+    |
+702 -             if path.extension().map_or(false, |e| e == "dict") {
+702 +             if path.extension().is_some_and(|e| e == "dict") {
+    |
+
+warning: this function has too many arguments (8/7)
+   --> windows\settings\src\panels\dictionary.rs:725:1
+    |
+725 | / fn path_row(
+726 | |     ui: &mut Ui,
+727 | |     label: &str,
+728 | |     path: &mut PathBuf,
+...   |
+733 | |     base_dir: &Path,
+734 | | ) {
+    | |_^
+    |
+    = help: for further information visit https://rust-lang.github.io/rust-clippy/rust-1.99.0/index.html#too_many_arguments
+    = note: `#[warn(clippy::too_many_arguments)]` on by default
+
+warning: `settings` (lib) generated 5 warnings (run `cargo clippy --fix --lib -p settings -- ` to apply 4 suggestions)
