@@ -181,6 +181,8 @@ private fun PredictionModels(model:SettingsModel, prediction:JSONObject, import:
     var expanded by rememberSaveable { mutableStateOf(false) }
     OutlinedButton(onClick={expanded=!expanded}) { Text(if(expanded) "收起预测模型与资源" else "预测模型与资源") }
     if(!expanded) return
+    LaunchedEffect(expanded) { while(true) { model.refreshModelStatus(); kotlinx.coroutines.delay(2000) } }
+    Text(if(model.dirty) "预测设置有未保存更改" else "显示已保存设置；实际运行状态单独查询")
     Text("模型仅在本地运行。基础词典预测无需模型；尚无通过质量验收的推荐模型。")
     Text("本安装包运行库：GGUF ${if(model.modelBackends.optBoolean("llama")) "可用" else "未包含"}；ONNX ${if(model.modelBackends.optBoolean("onnx")) "可用" else "未包含"}")
     OutlinedButton(onClick=model::refreshModelStatus,enabled=!model.busy) {Text("刷新运行状态")}
@@ -191,6 +193,13 @@ private fun PredictionModels(model:SettingsModel, prediction:JSONObject, import:
     Row(horizontalArrangement=Arrangement.spacedBy(8.dp)) {
         Button(onClick=import,enabled=!model.busy) {Text("导入模型包目录")}
         OutlinedButton(onClick=model::refreshModels,enabled=!model.busy) {Text("刷新模型")}
+    }
+    if(model.models.isEmpty()) Text("尚无模型：请导入受支持模型包。不会自动下载或开启预测。")
+    if(selected!=null && model.models.none { it.optString("id")==selected.optString("id") && it.optString("version")==selected.optString("version") })
+        Text("已选模型缺失或校验失败：请导入同版本或明确选择词典预测，原选择已保留。")
+    if(!model.modelBackends.optBoolean("llama") || !model.modelBackends.optBoolean("onnx")) {
+        val context=androidx.compose.ui.platform.LocalContext.current
+        OutlinedButton(onClick={context.startActivity(Intent(Intent.ACTION_VIEW, android.net.Uri.parse("https://github.com/silevilence/MyWubi/releases")))}) { Text("获取模型版发行包") }
     }
     for(p in model.models) {
         val identity=JSONObject().put("id",p.getString("id")).put("version",p.getString("version"))
@@ -217,13 +226,14 @@ private fun PredictionModels(model:SettingsModel, prediction:JSONObject, import:
     for((key,label,range,default) in listOf(
         Budget("wait_ms","最长等待（毫秒）",50..1000,200),
         Budget("threads","CPU 线程",1..4,2),
-        Budget("max_candidates","评分候选上限",1..64,16),
+        Budget("max_candidates","预测候选上限",1..64,16),
         Budget("idle_seconds","空闲卸载（秒）",10..600,60))) {
         val value=prediction.optInt(key,default)
         Text("$label：$value")
         Slider(value=value.toFloat(),onValueChange={model.change("prediction",key,it.toInt())},
-            valueRange=range.first.toFloat()..range.last.toFloat(),enabled=!model.busy)
+            valueRange=range.first.toFloat()..range.last.toFloat(),enabled=!model.busy && (key!="idle_seconds" || prediction.optString("loading")!="preload_keep"))
     }
+    Text("执行设备：CPU。提前加载仅在输入法前台允许时生效，不能常驻后台。")
     Text("选择与预算需保存后生效。已保存不代表模型已加载；不可用或超时隐藏本轮预测。支持的包规范见项目文档。")
 }
 private data class Budget(val key:String,val label:String,val range:IntRange,val default:Int)

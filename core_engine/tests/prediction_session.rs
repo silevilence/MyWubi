@@ -41,6 +41,35 @@ fn north(s: &mut Session) {
 }
 
 #[test]
+fn model_and_loading_hot_switches_preserve_pending_code_in_both_profiles() {
+    for profile in [BehaviorProfile::LegacyV1, BehaviorProfile::TouchV1] {
+        let mut s = session(profile);
+        apply(&mut s, Action::InputCode('b'));
+        for revision in 2..6 {
+            let mut r = runtime(revision != 5, revision);
+            if revision < 4 {
+                r.config.prediction.model = Some(config::ModelSelection {
+                    id: "not-installed".into(),
+                    version: "v1".into(),
+                });
+            }
+            r.config.prediction.loading = if revision == 3 {
+                config::ModelLoading::PreloadKeep
+            } else {
+                config::ModelLoading::OnDemand
+            };
+            r.config.prediction.wait_ms = 700;
+            assert!(s.apply_runtime(Arc::new(r)).unwrap().is_none());
+            assert_eq!(s.snapshot().spelling, "b");
+            assert!(s.prediction_request().is_none());
+        }
+        assert!(
+            matches!(apply(&mut s, Action::Space), EditSessionOp::CommitAndReplace { text, .. } if text == "北")
+        );
+    }
+}
+
+#[test]
 fn generated_words_use_confirmed_append_identity_and_retry_in_both_profiles() {
     use core_engine::assistance::*;
     for profile in [BehaviorProfile::LegacyV1, BehaviorProfile::TouchV1] {

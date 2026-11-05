@@ -12,6 +12,27 @@ use std::{
     },
 };
 
+/// Capabilities of the installed inference component, not of the settings binary.
+#[derive(Debug, Clone, Copy, Default, serde::Serialize, serde::Deserialize)]
+pub struct BackendAvailability {
+    pub llama: bool,
+    pub onnx: bool,
+}
+impl BackendAvailability {
+    pub fn compiled() -> Self {
+        Self {
+            llama: cfg!(feature = "llama-cpp-2"),
+            onnx: cfg!(feature = "ort"),
+        }
+    }
+    pub fn supports(self, backend: crate::package::Backend) -> bool {
+        match backend {
+            crate::package::Backend::LlamaCpp => self.llama,
+            crate::package::Backend::OnnxRuntime => self.onnx,
+        }
+    }
+}
+
 #[derive(serde::Serialize, serde::Deserialize)]
 #[serde(tag = "op", deny_unknown_fields)]
 pub enum Command {
@@ -69,9 +90,9 @@ impl Endpoint {
                 .lock()
                 .map_err(|_| "inference owner unavailable")?;
             match command {
-                Command::Features => Ok(
-                    serde_json::json!({"llama":cfg!(feature="llama-cpp-2"),"onnx":cfg!(feature="ort")}),
-                ),
+                Command::Features => {
+                    serde_json::to_value(BackendAvailability::compiled()).map_err(|e| e.to_string())
+                }
                 Command::Configure { root, config } | Command::Prepare { root, config } => {
                     if !root.is_absolute() {
                         return Err("model store must be absolute".into());

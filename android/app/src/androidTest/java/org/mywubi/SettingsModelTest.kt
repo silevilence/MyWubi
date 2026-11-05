@@ -11,6 +11,53 @@ import org.junit.Test
 import java.io.File
 
 class SettingsModelTest {
+    @Test fun predictionSettingsPersistWithoutInstallingOrEnablingAModelImplicitly() {
+        val instrumentation=InstrumentationRegistry.getInstrumentation()
+        val app=instrumentation.targetContext.applicationContext as Application
+        val store=EngineStore(app)
+        Resources.prepare(app)
+        val original=store.configFile.readBytes()
+        var owner=ViewModelStore()
+        lateinit var model:SettingsModel
+        fun main(action:()->Unit)=instrumentation.runOnMainSync(action)
+        fun ready() {
+            val end=SystemClock.uptimeMillis()+20000
+            var busy=true
+            while(busy && SystemClock.uptimeMillis()<end) { main {busy=model.busy};SystemClock.sleep(25) }
+            assertFalse("settings timed out",busy)
+        }
+        fun create() { main {model=ViewModelProvider(owner,ViewModelProvider.AndroidViewModelFactory(app))[SettingsModel::class.java]};ready() }
+        try {
+            create();main {model.reload(true)};ready()
+            main {
+                model.change("prediction","enabled",false)
+                model.change("prediction","model",org.json.JSONObject.NULL)
+                model.change("prediction","loading","preload_keep")
+                model.change("prediction","wait_ms",850)
+                model.save()
+            };ready()
+            main {assertFalse(model.message,model.dirty);owner.clear()};owner=ViewModelStore();create()
+            main {
+                val p=model.config!!.getJSONObject("prediction")
+                assertFalse(p.getBoolean("enabled"));assertTrue(p.isNull("model"))
+                assertEquals(850,p.getInt("wait_ms"));assertEquals("preload_keep",p.getString("loading"))
+                model.change("prediction","model",org.json.JSONObject().put("id","absent-mi27").put("version","v1"))
+                model.change("prediction","enabled",true);model.save()
+            };ready()
+            main {assertFalse(model.message,model.dirty);owner.clear()};owner=ViewModelStore();create()
+            main {
+                val p=model.config!!.getJSONObject("prediction")
+                assertTrue(p.getBoolean("enabled"));assertEquals("absent-mi27",p.getJSONObject("model").getString("id"))
+                model.change("prediction","enabled",false);model.save()
+            };ready()
+            main {assertFalse(model.message,model.dirty)}
+        } finally {
+            store.configFile.writeBytes(original)
+            main {model.reload(true)};ready();main {owner.clear()}
+            EngineUpdates.request(app)
+        }
+    }
+
     @Test fun cancellingInvalidImportPreservesEditableDraftAcrossReopen() {
         val instrumentation = InstrumentationRegistry.getInstrumentation()
         val app = instrumentation.targetContext.applicationContext as Application

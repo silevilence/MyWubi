@@ -1,0 +1,9 @@
+warning: settings@0.6.2: 已复制 4 个码表到 C:\code\rust\MyWubi\target\debug\tables
+   Compiling settings v0.6.2 (C:\code\rust\MyWubi\windows\settings)
+    Finished `test` profile [unoptimized + debuginfo] target(s) in 10.80s
+     Running tests\prediction_settings.rs (target\debug\deps\prediction_settings-e368bdd82ec88490.exe)
+
+running 1 test
+test saving_and_reopening_preserves_prediction_choices_without_installing_a_model ... ok
+
+test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 1.66s

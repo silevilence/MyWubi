@@ -1,6 +1,23 @@
 #![cfg_attr(windows, windows_subsystem = "windows")]
 #[cfg(windows)]
 fn main() {
+    if std::env::args().any(|arg| arg == "--features") {
+        let features = model_input::service::BackendAvailability::compiled();
+        #[cfg(feature = "ort")]
+        let features = {
+            let mut features = features;
+            features.onnx = std::env::current_exe()
+                .ok()
+                .and_then(|p| p.parent().map(|p| p.join("onnxruntime.dll")))
+                .is_some_and(|p| model_input::onnx::initialize_runtime(&p).is_ok());
+            features
+        };
+        if let Ok(bytes) = serde_json::to_vec(&features) {
+            use std::io::Write;
+            let _ = std::io::stdout().write_all(&bytes);
+        }
+        return;
+    }
     if std::env::args().any(|arg| arg == "--check-backends") {
         #[cfg(all(feature = "llama-cpp-2", feature = "ort"))]
         let ready = std::env::current_exe()

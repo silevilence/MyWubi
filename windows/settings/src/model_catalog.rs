@@ -5,23 +5,20 @@ use std::{path::PathBuf, sync::mpsc};
 
 /// Hand the saved path to an independent process before allowing settings to
 /// exit. Loading and IPC retries belong to that process, never this UI thread.
-pub fn prepare_saved_model(path: &std::path::Path) {
+pub fn prepare_saved_model(path: &std::path::Path) -> Result<(), String> {
     #[cfg(windows)]
     {
         use std::os::windows::process::CommandExt;
-        let Ok(exe) = std::env::current_exe() else {
-            return;
-        };
-        if let Err(error) = std::process::Command::new(exe.with_file_name("model-worker.exe"))
+        let exe = std::env::current_exe().map_err(|e| e.to_string())?;
+        std::process::Command::new(exe.with_file_name("model-worker.exe"))
             .args([std::ffi::OsStr::new("--config"), path.as_os_str()])
             .creation_flags(0x08000000)
             .spawn()
-        {
-            log::warn!("无法启动已保存配置的模型服务: {error}");
-        }
+            .map_err(|e| format!("模型服务无法启动：{e}；请安装模型版发行包"))?;
     }
     #[cfg(not(windows))]
     let _ = path;
+    Ok(())
 }
 
 #[derive(Default)]
@@ -30,7 +27,10 @@ pub struct ModelCatalog {
     worker: Option<mpsc::Receiver<Result<Vec<Manifest>, String>>>,
     message: String,
     initialized: bool,
-    status_worker: Option<mpsc::Receiver<String>>,
+    status_worker:
+        Option<mpsc::Receiver<(String, Option<model_input::service::BackendAvailability>)>>,
+    backends: Option<model_input::service::BackendAvailability>,
+    last_status: Option<std::time::Instant>,
     status: String,
 }
 enum Operation {
@@ -45,6 +45,8 @@ impl ModelCatalog {
         }
         let (tx, rx) = mpsc::channel();
         self.status_worker = Some(rx);
+        self.last_status = Some(std::time::Instant::now());
+        let probe = self.backends.is_none();
         std::thread::spawn(move || {
             #[cfg(windows)]
             let status =
@@ -67,7 +69,8 @@ impl ModelCatalog {
                     .unwrap_or_else(|| "模型服务未运行；输入时按需启动".into());
             #[cfg(not(windows))]
             let status = String::from("此平台不支持 Windows 模型服务");
-            let _ = tx.send(status);
+            let backends = if probe { Some(probe_backends()) } else { None };
+            let _ = tx.send((status, backends));
             ctx.request_repaint();
         });
     }
@@ -122,21 +125,26 @@ impl ModelCatalog {
             }
         }
         let before = config.prediction.clone();
-        if let Some(status) = self.status_worker.as_ref().and_then(|w| w.try_recv().ok()) {
+        if let Some((status, backends)) =
+            self.status_worker.as_ref().and_then(|w| w.try_recv().ok())
+        {
             self.status = status;
+            if backends.is_some() {
+                self.backends = backends;
+            }
             self.status_worker = None;
         }
-        let backend_available = std::env::current_exe()
-            .ok()
-            .and_then(|p| {
-                p.parent().map(|p| {
-                    p.join("model-worker.exe").is_file() && p.join("onnxruntime.dll").is_file()
-                })
-            })
-            .unwrap_or(false);
+        let backends = self.backends.unwrap_or_default();
         ui.collapsing("预测模型与资源", |ui| {
             ui.small("模型完全在本地运行。基础词典预测无需模型；只支持公开规范中的模型包。");
-            if !backend_available {ui.label("本安装目录未包含完整模型服务；请使用模型版安装包。词典预测仍可使用。");}
+            if self.last_status.is_none_or(|t| t.elapsed() >= std::time::Duration::from_secs(2)) { self.refresh_status(ui.ctx().clone()); }
+            ui.ctx().request_repaint_after(std::time::Duration::from_secs(2));
+            ui.label(format!("运行组件：GGUF {}；ONNX {}", if backends.llama {"可用"} else {"未包含"}, if backends.onnx {"可用"} else {"未包含或不兼容"}));
+            if !backends.llama || !backends.onnx { ui.hyperlink_to("获取含所需运行组件的模型版发行包", "https://github.com/silevilence/MyWubi/releases"); }
+            if self.packages.is_empty() { ui.label("尚无已安装模型：请导入本地模型包。不会自动下载或开启预测。"); }
+            if config.prediction.model.as_ref().is_some_and(|m| !self.packages.iter().any(|p| p.id == m.id && p.version == m.version)) {
+                ui.colored_label(eframe::egui::Color32::YELLOW, "已选模型缺失或校验失败：请重新导入同版本，或明确选择词典预测。原选择已保留。");
+            }
             if ui.add_enabled(self.status_worker.is_none(),eframe::egui::Button::new("刷新运行状态")).clicked() {self.refresh_status(ui.ctx().clone());}
             ui.label(&self.status);
             ui.add_enabled_ui(self.worker.is_none(), |ui| {
@@ -144,7 +152,7 @@ impl ModelCatalog {
                     .selected_text(config.prediction.model.as_ref().map(|m| format!("{} @ {}",m.id,m.version)).unwrap_or_else(|| "仅词典预测".into()))
                     .show_ui(ui, |ui| {
                         ui.selectable_value(&mut config.prediction.model, None, "仅词典预测");
-                        for package in self.packages.iter().filter(|p| backend_available && (p.prediction_policy.is_some() || p.generation_policy.is_some()) && p.capabilities.tasks.contains(&core_engine::assistance::Task::Predict)) {
+                        for package in self.packages.iter().filter(|p| backends.supports(p.backend) && (p.prediction_policy.is_some() || p.generation_policy.is_some()) && p.capabilities.tasks.contains(&core_engine::assistance::Task::Predict)) {
                             ui.selectable_value(&mut config.prediction.model,
                                 Some(ModelSelection {id:package.id.clone(),version:package.version.clone()}),
                                 format!("{} @ {}",package.id,package.version));
@@ -175,11 +183,31 @@ impl ModelCatalog {
                 ui.add(eframe::egui::Slider::new(&mut config.prediction.wait_ms,50..=1000).text("最长等待（毫秒）"));
                 ui.add(eframe::egui::Slider::new(&mut config.prediction.threads,1..=4).text("CPU 线程"));
                 ui.add(eframe::egui::Slider::new(&mut config.prediction.max_candidates,1..=64).text("预测候选上限"));
-                ui.add(eframe::egui::Slider::new(&mut config.prediction.idle_seconds,10..=600).text("空闲卸载（秒）"));
+                ui.add_enabled(config.prediction.loading == core_engine::config::ModelLoading::OnDemand, eframe::egui::Slider::new(&mut config.prediction.idle_seconds,10..=600).text("空闲卸载（秒）"));
+                ui.small("当前执行设备：CPU。保持模式仍会在关闭或资源压力下释放。");
             });
             ui.small(&self.message);
             ui.small("保存配置不代表模型已加载；模型不可用或超时隐藏本轮预测。尚无通过质量验收的推荐模型。");
         });
         before != config.prediction
     }
+}
+
+/// Query the shipped worker; settings may have been built without inference features.
+fn probe_backends() -> model_input::service::BackendAvailability {
+    #[cfg(windows)]
+    {
+        use std::os::windows::process::CommandExt;
+        let result = std::env::current_exe().ok().and_then(|exe| {
+            std::process::Command::new(exe.with_file_name("model-worker.exe"))
+                .arg("--features")
+                .creation_flags(0x08000000)
+                .output()
+                .ok()
+        });
+        if let Some(output) = result.filter(|o| o.status.success()) {
+            return serde_json::from_slice(&output.stdout).unwrap_or_default();
+        }
+    }
+    Default::default()
 }

@@ -8,7 +8,12 @@ pub fn save(state: &mut AppState) -> bool {
             state.status_msg = Some("[OK] 已保存".into());
             log::info!("配置已保存到 {}", state.config_path.display());
             state.prepare_app_container_access();
-            crate::model_catalog::prepare_saved_model(&state.config_path);
+            if let Err(error) = crate::model_catalog::prepare_saved_model(&state.config_path) {
+                log::warn!("{error}");
+                if state.config.prediction.model.is_some() {
+                    state.status_msg = Some(format!("[OK] 配置已保存；{error}"));
+                }
+            }
             true
         }
         Err(error) => {

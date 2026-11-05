@@ -1,0 +1,35 @@
+   Compiling core_engine v0.6.2 (C:\code\rust\MyWubi\core_engine)
+    Finished `test` profile [unoptimized + debuginfo] target(s) in 1.52s
+     Running tests\config_projection.rs (target\debug\deps\config_projection-846e4cb96af574f7.exe)
+
+running 4 tests
+test desktop_conflicts_are_diagnostics_for_touch_and_read_but_block_desktop_save ... ok
+test inactive_values_roundtrip_without_changing_effective_projection ... ok
+test explicit_private_storage_ignores_executable_directory_and_preserves_existing_data ... ok
+test prediction_upgrade_defaults_off_and_restart_preserves_explicit_missing_selection ... ok
+
+test result: ok. 4 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.03s
+
+     Running tests\prediction_session.rs (target\debug\deps\prediction_session-af8f825955bad42f.exe)
+
+running 18 tests
+test model_and_loading_hot_switches_preserve_pending_code_in_both_profiles ... ok
+test new_code_ignores_predictions_and_old_clicks_cannot_commit ... ok
+test enter_ignores_suggestions_and_runtime_disable_preserves_pending_code ... ok
+test prediction_candidates_contain_words_without_status_labels ... ok
+test prediction_commit_keeps_the_entire_confirmed_prefix ... ok
+test model_wait_timeout_hides_predictions_without_intercepting_input ... ok
+test rejection_can_retry_but_uncertain_writes_and_editor_changes_invalidate_prediction ... ok
+test model_prediction_waits_once_preserves_ids_and_discards_late_or_stale_scores ... ok
+test selected_model_can_receive_confirmed_context_without_dictionary_recall ... ok
+test both_profiles_predict_only_after_ack_and_chain_word_remainders_without_duplication ... ok
+test generated_responses_after_external_edit_or_new_code_never_publish ... ok
+test generated_words_use_confirmed_append_identity_and_retry_in_both_profiles ... ok
+test replacing_owned_preedit_keeps_confirmed_prefix_across_separate_code_commits ... ok
+test sensitive_editors_disabled_config_and_external_edits_never_predict ... ok
+test selecting_a_whole_word_does_not_start_an_overlapping_tail_chain ... ok
+test prediction_numbers_follow_the_displayed_order_and_explicit_literals_stay_literal ... ok
+test model_predictions_require_valid_admission_and_only_show_admitted_ids ... ok
+test visible_predictions_accept_space_and_number_keys_without_literal_characters ... ok
+
+test result: ok. 18 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 1.45s
