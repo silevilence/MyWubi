@@ -414,4 +414,8 @@ class MyWubiService : InputMethodService() {
         super.onTrimMemory(level)
         if(level>=android.content.ComponentCallbacks2.TRIM_MEMORY_RUNNING_LOW && ::predictionController.isInitialized) predictionController.pause()
     }
+    override fun onLowMemory() {
+        super.onLowMemory()
+        if(::predictionController.isInitialized) predictionController.pause()
+    }
 }

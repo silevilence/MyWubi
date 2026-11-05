@@ -36,7 +36,7 @@ class SettingsModel(application: Application) : AndroidViewModel(application) {
     fun refreshModelStatus()=work {
         val result=JSONObject(NativeBridge.inference("{\"op\":\"Status\"}".toByteArray()).toString(Charsets.UTF_8))
         val status=if(!result.getBoolean("ok")) "模型工作线程未启动" else when(result.optString("value")) {
-            "Loading" -> "正在加载"; "Ready" -> "已加载"; "Paused" -> "已暂停，释放资源"; "Idle" -> "空闲，尚未加载"
+            "Loading" -> "正在加载和预热"; "Ready" -> "模型已就绪"; "Paused" -> "已暂停，释放资源"; "Idle" -> "空闲，尚未加载"
             else -> "加载或推理失败：${result.opt("value")}"
         }
         val publish:()->Unit={modelStatus=status};publish

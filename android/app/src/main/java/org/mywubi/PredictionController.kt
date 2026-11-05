@@ -21,9 +21,9 @@ class PredictionController(private val context:Context,private val changed:()->U
     private var configuredFor=""
     private var pressureChecked=0L
     private var pressure=false
-    private var suspended=true
+    private var lifecycleAllowed=false
     private var awaiting=false
-    private val poll=Runnable { currentSession?.let { update(it,!suspended) } }
+    private val poll=Runnable { currentSession?.let { update(it,lifecycleAllowed) } }
     init { NativeBridge.runtimeDirectory(context.applicationInfo.nativeLibraryDir) }
     private fun command(op:String,vararg fields:Pair<String,Any>):JSONObject {
         val request=JSONObject().put("op",op);fields.forEach { (k,v)->request.put(k,v) }
@@ -52,10 +52,12 @@ class PredictionController(private val context:Context,private val changed:()->U
         if(configured) runCatching { command("Invalidate") }
     }
     fun pause() {
-        suspended=true;cancel()
+        lifecycleAllowed=false
+        cancel()
         if(configured) runCatching { command("Pause","paused" to true) }
     }
     fun update(session:Long,allowed:Boolean) {
+        lifecycleAllowed=allowed
         try { updateChecked(session,allowed) }
         catch (_:RuntimeException) {
             cancel()
@@ -65,26 +67,41 @@ class PredictionController(private val context:Context,private val changed:()->U
         }
     }
     private fun updateChecked(session:Long,allowed:Boolean) {
+        if(currentSession!=null && currentSession!=session) cancel()
         currentSession=session
         if(!allowed) {pause();return}
-        suspended=false
         val work=NativeBridge.objectCall("PredictionWork","session" to session)
         val config=work.getJSONObject("config")
         if(!config.optBoolean("enabled") || config.isNull("model")) {
             awaiting=false;cancel();if(configured) {command("Close");configured=false;configuredFor=""};return
         }
         val request=work.optJSONObject("request")
-        if(request==null) {val notify=awaiting;awaiting=false;cancel();if(notify)changed();return}
-        awaiting=true
+        if(resourcePressure()) {
+            pause()
+            if(request!=null) NativeBridge.call("PredictionResult","session" to session,"key" to request.getJSONObject("key"),"response" to null)
+            awaiting=false; lifecycleAllowed=true
+            main.postDelayed(poll,1000);changed();return
+        }
+        val preload=config.optString("loading","on_demand")=="preload_keep"
+        if(request==null && !preload) {val notify=awaiting;awaiting=false;cancel();if(notify)changed();return}
         val identity=work.getString("root")+config.toString()
         if(configuredFor!=identity) {
             cancel()
             val result=command("Configure","root" to work.getString("root"),"config" to config)
             if(result.getBoolean("ok")){configured=true;configuredFor=identity}
         }
+        check(configured)
+        command("Pause","paused" to false)
+        if(request==null) {
+            val notify=awaiting;awaiting=false
+            if(activeKey!=null) cancel()
+            main.removeCallbacks(poll);main.postDelayed(poll,1000)
+            if(notify)changed()
+            return
+        }
+        awaiting=true
         val key=request.getJSONObject("key")
         fun fallback() { NativeBridge.call("PredictionResult","session" to session,"key" to key,"response" to null);activeKey=null;awaiting=false }
-        if(resourcePressure()) {pause();fallback();changed();return}
         try {
             if(activeKey!=key.toString()) {
                 cancel()

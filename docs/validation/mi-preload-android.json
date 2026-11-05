@@ -1,0 +1,17 @@
+[
+  {
+    "event": "cold_before_input",
+    "ready_wait_ms": 79,
+    "process_pss_kib": 123924
+  },
+  {
+    "event": "reshow",
+    "ready_wait_ms": 50,
+    "process_pss_kib": 142028
+  },
+  {
+    "event": "recreated_after_release",
+    "ready_wait_ms": 41,
+    "process_pss_kib": 116661
+  }
+]

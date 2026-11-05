@@ -89,6 +89,7 @@ class ModelBackendTest {
             [prediction]
             enabled = true
             wait_ms = 1000
+            loading = "preload_keep"
             [prediction.model]
             id = "${manifest.getString("id")}"
             version = "${manifest.getString("version")}"
@@ -103,6 +104,32 @@ class ModelBackendTest {
                 lateinit var controller:PredictionController
                 instrumentation.runOnMainSync {controller=PredictionController(context) {}}
                 try {
+                    // No commit/request exists yet: readiness proves preparation
+                    // starts from lifecycle/configuration rather than first input.
+                    val measurements=JSONArray()
+                    fun ready(label:String,started:Long) {
+                        val end=SystemClock.uptimeMillis()+10000
+                        while(command("Status").optString("value")!="Ready" && SystemClock.uptimeMillis()<end)SystemClock.sleep(20)
+                        assertEquals("Ready",command("Status").getString("value"))
+                        measurements.put(JSONObject().put("event",label).put("ready_wait_ms",SystemClock.uptimeMillis()-started).put("process_pss_kib",android.os.Debug.getPss()))
+                    }
+                    var started=SystemClock.uptimeMillis()
+                    instrumentation.runOnMainSync {controller.update(session.value,true)}
+                    ready("cold_before_input",started)
+                    assertFalse(NativeBridge.objectCall("State","session" to session.value).getBoolean("prediction_waiting"))
+                    instrumentation.runOnMainSync {controller.update(session.value,false)}
+                    val stop=SystemClock.uptimeMillis()+3000
+                    while(command("Status").optString("value")!="Paused" && SystemClock.uptimeMillis()<stop)SystemClock.sleep(10)
+                    assertEquals("Paused",command("Status").getString("value"))
+                    started=SystemClock.uptimeMillis()
+                    instrumentation.runOnMainSync {controller.update(session.value,true)}
+                    ready("reshow",started)
+                    // Memory callback uses pause; recreate the controller to
+                    // exercise service-owner recreation without preserving KV.
+                    started=SystemClock.uptimeMillis()
+                    instrumentation.runOnMainSync {controller.pause();controller.close();controller=PredictionController(context) {};controller.update(session.value,true)}
+                    ready("recreated_after_release",started)
+                    File(context.filesDir,"preload-lifecycle.json").writeText(measurements.toString(2))
                     var published=false
                     // Configuration changes can cold-load even after the scoring
                     // probe. Retry with a new commit, never accept an expired result.

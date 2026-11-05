@@ -12,10 +12,11 @@ import java.util.regex.Pattern
 
 class PredictionHostTest {
     @Test fun generatedDictionaryExternalWordsAppendInTheRealHost() = runHost(true, generated=true)
+    @Test fun preloadedModelRecoversAfterImeHideAndMemoryTrim() = runHost(true, lifecycle=true)
     @Test fun confirmedWordsPredictAndNewCodesOrExternalEditsDiscardSuggestions() = runHost(false)
     @Test fun modelScoredPredictionsUseTheConfirmedHostCommitPath() = runHost(true)
     @Test fun lowConfidenceModelPredictionsStayHiddenAndSpaceRemainsLiteral() = runHost(true,true)
-    private fun runHost(withModel:Boolean,rejectModel:Boolean=false,generated:Boolean=false) {
+    private fun runHost(withModel:Boolean,rejectModel:Boolean=false,generated:Boolean=false,lifecycle:Boolean=false) {
         val instrumentation=InstrumentationRegistry.getInstrumentation()
         val context=instrumentation.targetContext
         val device=UiDevice.getInstance(instrumentation)
@@ -36,6 +37,7 @@ class PredictionHostTest {
             org.junit.Assume.assumeTrue("provision licensed generation package",File(source,"manifest.json").isFile)
             ModelCatalog(context).call("Import","source" to source.absolutePath)
             config.getJSONObject("prediction").put("wait_ms",1000).put("max_candidates",8)
+                .put("loading",if(lifecycle) "preload_keep" else "on_demand")
                 .put("model",JSONObject().put("id",if(generated) "qwen25-words" else "instrumented-counts").put("version","v1"))
         }
         fun save(value:JSONObject,version:Long) {
@@ -119,6 +121,14 @@ class PredictionHostTest {
             candidate("天气"); expect("北京天气")
             if(withModel) device.takeScreenshot(File(context.filesDir,"prediction-model-host.png"))
             assertTrue(device.wait(Until.hasObject(By.desc("字词预测")),5000))
+            if(lifecycle) {
+                device.pressBack()
+                assertTrue(device.wait(Until.gone(By.desc("b").pkg("org.mywubi")),5000))
+                field.click()
+                assertTrue(device.wait(Until.hasObject(By.desc("b").pkg("org.mywubi")),5000))
+                device.executeShellCommand("am send-trim-memory org.mywubi RUNNING_LOW")
+                android.os.SystemClock.sleep(200)
+            }
             key("b"); expect("北京天气b")
             assertTrue(device.wait(Until.gone(By.desc("字词预测")),5000))
             candidate("北"); expect("北京天气北")
