@@ -10,4 +10,3 @@ test real_cpu_scoring_preserves_identity_and_isolates_candidate_branches ... ok
 test real_generation_proposes_dictionary_external_words_and_stops_without_late_results ... ok
 
 test result: ok. 4 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 19.49s
-
