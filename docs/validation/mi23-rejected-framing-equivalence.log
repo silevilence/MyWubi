@@ -1,0 +1,19 @@
+
+running 3 tests
+test llama::tests::constrained_greedy_matches_full_vocabulary_grammar_sampling ... ok
+
+thread 'llama::tests::framing_speculation_preserves_generation_and_stop_results' (22832) panicked at model_input\src\llama.rs:592:17:
+assertion `left == right` failed: prefix 明天去, limit 3
+  left: Ok(["出差", "探亲"])
+ right: Ok(["出差", "探亲", "休假"])
+note: run with `RUST_BACKTRACE=1` environment variable to display a backtrace
+test llama::tests::framing_speculation_preserves_generation_and_stop_results ... FAILED
+test llama::tests::log_softmax_is_stable_and_rejects_invalid_logits ... ok
+
+failures:
+
+failures:
+    llama::tests::framing_speculation_preserves_generation_and_stop_results
+
+test result: FAILED. 2 passed; 1 failed; 0 ignored; 0 measured; 20 filtered out; finished in 13.61s
+

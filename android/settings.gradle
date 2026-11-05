@@ -7,3 +7,6 @@ dependencyResolutionManagement {
 }
 rootProject.name = 'MyWubi'
 include ':app'
+
+// Opt-in external editor for real IME acceptance; never bundled with the IME.
+if (providers.gradleProperty('acceptanceHost').getOrElse('false').toBoolean()) include ':acceptance-host'

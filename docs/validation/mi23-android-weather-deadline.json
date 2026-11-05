@@ -1,0 +1,95 @@
+[
+  {
+    "attempt": 0,
+    "threads": 4,
+    "ms": 769,
+    "result": {
+      "Ok": {
+        "key": {
+          "config": 1,
+          "context": 1,
+          "edit": {
+            "editor": 1,
+            "epoch": 1,
+            "generation": 1,
+            "runtime": 1,
+            "session": 9183
+          },
+          "model": 1,
+          "query": {
+            "engine": 1,
+            "version": 1
+          },
+          "request": 1,
+          "view": 1
+        },
+        "protocol": 1,
+        "words": [
+          "晴朗"
+        ]
+      }
+    }
+  },
+  {
+    "attempt": 1,
+    "threads": 4,
+    "ms": 705,
+    "result": {
+      "Ok": {
+        "key": {
+          "config": 1,
+          "context": 1,
+          "edit": {
+            "editor": 1,
+            "epoch": 1,
+            "generation": 1,
+            "runtime": 1,
+            "session": 9183
+          },
+          "model": 1,
+          "query": {
+            "engine": 1,
+            "version": 1
+          },
+          "request": 2,
+          "view": 1
+        },
+        "protocol": 1,
+        "words": [
+          "晴朗"
+        ]
+      }
+    }
+  },
+  {
+    "attempt": 2,
+    "threads": 4,
+    "ms": 789,
+    "result": {
+      "Ok": {
+        "key": {
+          "config": 1,
+          "context": 1,
+          "edit": {
+            "editor": 1,
+            "epoch": 1,
+            "generation": 1,
+            "runtime": 1,
+            "session": 9183
+          },
+          "model": 1,
+          "query": {
+            "engine": 1,
+            "version": 1
+          },
+          "request": 3,
+          "view": 1
+        },
+        "protocol": 1,
+        "words": [
+          "晴朗"
+        ]
+      }
+    }
+  }
+]

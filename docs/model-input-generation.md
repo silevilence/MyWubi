@@ -46,7 +46,7 @@ python model_input/tools/package_model.py llama $env:MYWUBI_TEST_GGUF C:/model-p
 包清单新增可选 `generation_policy`，缺省保持评分旧包行为；文件哈希、模型哈希、
 适配器、能力和预算均在导入/激活时验证。不在输入日志记录前文或生成内容。
 
-## MI-23 双端接入（实现完成，宿主验收未通过）
+## MI-23 初次接入与失败记录
 
 IPC/JNI 使用兼容旧评分 JSON 的响应联合类型。生成结果经版本和边界校验后，
 进入共享预测视图；编码候选不改变。新编码/失焦/外部编辑清除旧结果；只有宿主
@@ -78,3 +78,22 @@ Windows Release DLL/服务与 Android 双 ABI 模型版已构建；实际宿主�
 
 加载策略与生命周期见 [MI-24 / MI-25](model-input-preload.md)，独立质量与适用
 结论见 [MI-26](model-input-generation-evaluation.md)。当前模型仍不推荐启用。
+
+
+## MI-23 修复与补充验收（2026-11-05）
+
+先前 Ready 仍无候选的主要原因是实际生成没有在宿主的 1000 ms 期限内完成。修复缓存固定公共提示的 KV，预加载时以固定“预热完成”走完整生成路径；用户前文、生成 token 与评分分支缓存仍在请求/所有者变化时清除。语法 greedy 先检查全局最高分 token，再检查最高分的 32/256/2048 项，全部被拒绝才回退完整词表；分数、语法、提示、权重与 -3.0 门槛不变，同分保持原词表顺序。
+
+尝试过批量推测 JSON 格式前缀，但真实等价性测试发现“明天去”的三候选输出发生变化，已完全移除；[失败证据](validation/mi23-rejected-framing-equivalence.log) 保留。压缩 JSON 新适配器和 Q4_0 权重实验也仅在自编开发提示上试验后放弃，没有发布新策略或使用保留集调参。
+
+Windows Sandbox 的真实记事本已观察到“北京→市”的空格、数字 1、鼠标点击上屏；“天气→晴朗→多云”两步连续追加；新编码撤下预测后回车提交编码、切换英文后旧候选撤下、句末停止。外部编辑与配置重载后的旧选择不能追加。无候选时空格沿用普通行为；数字在中文空闲态仍按已有编码规则处理，不能把橙色预编辑数字误称为立即上屏。证据：[空格](validation/mi23-windows-generated-space.png)、[点击](validation/mi23-windows-generated-click.png)、[连续](validation/mi23-windows-generated-chain.png)、[切换英文](validation/mi23-windows-mode-withdrawal.png)、[新编码与回车](validation/mi23-windows-new-code-enter.png)。TIP 仅在隔离 Sandbox 注册，没有替换开发机输入法。
+
+Android API 34 x86_64、4096 MiB、6 vCPU（模拟器上限），模型 4 线程，1000 ms、1 候选。最终无格式推测构建的三次原生生成耗时 654/608/605 ms，均返回“市”，见[设备记录](validation/mi23-android-final-deadline.json)。独立包 `org.mywubi.acceptancehost` 是真实系统 EditText，使用普通 InputConnection，没有模型或 IME 替身；[模块与复现](../android/acceptance-host/README.md)仅按需构建，不随输入法发布。
+
+该宿主完成词典外词触摸上屏、编码优先撤下预测、外部编辑后重新预测、连续两次选择、句末停止及普通空格回退，[生成测试通过](validation/mi23-android-editor-generation.log)。[连续结果截图](validation/mi23-android-generated-chain.png)中的“天气晴朗多云”有语义矛盾，保留为质量失败，不能当成准确性证据。
+
+系统设置搜索框仍可能因宿主负载超过 1000 ms：直接生成能在约 600 ms 完成，搜索宿主实测“天气→晴朗”接近 976 ms，下一步超时。[搜索宿主失败日志](validation/mi23-android-settings-budget-limit.log)保留。到期后撤下候选是产品的预算回退，不扩大期限，也不保证每个宿主、每次请求都显示生成结果；轻量真实宿主通过仅证明其验收范围内的显示与提交闭环。早期 4 vCPU / 格式推测构建的测量保留为历史，不能与最终 6 vCPU 数据直接合并比较。
+
+Android 扩展回归最终 6 项通过、无跳过：词典预测、评分预测、低置信静默、隐藏/回收恢复、真实生成宿主和真实生成期限。旧可见性断言读到过期无障碍节点，已统一使用清缓存的既有断言助手，正文和候选要求不变。[逐项最终结果及失败/复测索引](validation/mi23-android-regression-summary.json)保留全部轮次。
+
+最终工作器重新复制到全新 Sandbox 后，真实记事本再次通过空格确认“北京→市”和空格/数字 1 连续确认“天气→晴朗→多云”。[最终上屏](validation/mi23-windows-final-space.png)、[最终连续选择](validation/mi23-windows-final-chain.png)、[实际产物 SHA-256](validation/mi23-windows-final-artifacts.json)。

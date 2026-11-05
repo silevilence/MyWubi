@@ -1,0 +1,10 @@
+[
+  {
+    "Path": "C:\\code\\rust\\MyWubi\\target\\mi-generation-sandbox\\model-worker.exe",
+    "Hash": "4EB7B07549DC53B038746CF006C3253686116B2E83D78983AB47F95071837CF6"
+  },
+  {
+    "Path": "C:\\code\\rust\\MyWubi\\target\\mi-generation-sandbox\\im_engine.dll",
+    "Hash": "C70441B28EAFE84B2BD8A9361F5DD1A3165E04D5AEB8A2422F4B7F0EA0FC4BB8"
+  }
+]

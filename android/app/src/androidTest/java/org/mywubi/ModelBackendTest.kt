@@ -12,6 +12,49 @@ import java.io.File
 import java.security.MessageDigest
 
 class ModelBackendTest {
+    @Test fun preparedGenerationResponsesMeetDeadline() {
+        assumeTrue(command("Features").getJSONObject("value").getBoolean("llama"))
+        val source=File(context.filesDir,"mi-generation-package")
+        assumeTrue(File(source,"manifest.json").isFile)
+        UiDevice.getInstance(instrumentation).pressHome()
+        instrumentation.waitForIdleSync()
+        val root=File(context.cacheDir,"generation-deadline-${System.nanoTime()}").apply {mkdirs()}
+        val rows=JSONArray()
+        try {
+            val import=JSONObject().put("op","Import").put("config",File(root,"config.toml").absolutePath).put("source",source.absolutePath)
+            val imported=JSONObject(NativeBridge.modelPackages(import.toString().toByteArray()).toString(Charsets.UTF_8))
+            assertTrue(imported.toString(),imported.getBoolean("ok"))
+            val threads=InstrumentationRegistry.getArguments().getString("model_threads","2").toInt()
+            val prefix=InstrumentationRegistry.getArguments().getString("model_prefix","北京")
+            val expected=InstrumentationRegistry.getArguments().getString("expected_word","市")
+            val config=JSONObject().put("enabled",true).put("loading","preload_keep").put("wait_ms",1000).put("threads",threads).put("max_candidates",1)
+                .put("model",JSONObject().put("id","qwen25-words").put("version","v1"))
+            command("Prepare","root" to File(root,"models").absolutePath,"config" to config)
+            val ready=SystemClock.uptimeMillis()+30000
+            while(command("Status").optString("value")!="Ready" && SystemClock.uptimeMillis()<ready)SystemClock.sleep(20)
+            assertEquals("Ready",command("Status").getString("value"))
+            repeat(3) { attempt ->
+                val key=JSONObject("""{"edit":{"session":9183,"generation":1,"editor":1,"epoch":1,"runtime":1},"query":{"engine":1,"version":1},"view":1,"context":1,"model":1,"config":1,"request":${attempt+1}}""")
+                val request=JSONObject().put("protocol",1).put("key",key).put("task","Predict").put("language","zh").put("prefix",prefix).put("code","").put("candidates",JSONArray())
+                val start=SystemClock.uptimeMillis();command("Submit","request" to request)
+                var value:JSONObject?=null
+                while(SystemClock.uptimeMillis()-start<1100) {
+                    value=command("Poll","key" to key).optJSONObject("value")
+                    if(value!=null)break
+                    SystemClock.sleep(2)
+                }
+                rows.put(JSONObject().put("attempt",attempt).put("threads",threads).put("ms",SystemClock.uptimeMillis()-start).put("result",value?:JSONObject.NULL))
+                command("Invalidate");SystemClock.sleep(300)
+            }
+            assertTrue(rows.toString(),(0 until rows.length()).all {
+                val row=rows.getJSONObject(it)
+                row.getLong("ms")<=1000 && row.optJSONObject("result")?.optJSONObject("Ok")?.optJSONArray("words")?.toString()==JSONArray().put(expected).toString()
+            })
+        } finally {
+            File(context.filesDir,"generation-deadline.json").writeText(rows.toString(2))
+            command("Close");root.deleteRecursively()
+        }
+    }
     private val instrumentation=InstrumentationRegistry.getInstrumentation()
     private val context=instrumentation.targetContext
     private fun command(op:String,vararg fields:Pair<String,Any>):JSONObject {

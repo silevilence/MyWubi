@@ -1,0 +1,9 @@
+
+running 2 tests
+LegacyV1: elapsed=240.4403ms, phase=Ready, response={"Ok":{"protocol":1,"key":{"edit":{"session":1,"generation":1,"editor":0,"epoch":0,"runtime":1},"query":{"engine":0,"version":1},"view":1,"context":2,"model":1,"config":1,"request":1},"words":["市"]}}
+TouchV1: elapsed=240.2478ms, phase=Ready, response={"Ok":{"protocol":1,"key":{"edit":{"session":2,"generation":1,"editor":0,"epoch":0,"runtime":1},"query":{"engine":0,"version":2},"view":2,"context":2,"model":1,"config":1,"request":2},"words":["市"]}}
+test prepared_generation_reaches_the_confirmed_session_before_its_deadline ... ok
+test resource_pressure_cancels_old_work_and_rebuilds_without_retaining_host_context ... ok
+
+test result: ok. 2 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 8.76s
+

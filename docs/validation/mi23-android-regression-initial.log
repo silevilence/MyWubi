@@ -1,0 +1,149 @@
+INSTRUMENTATION_STATUS: class=org.mywubi.PredictionHostTest
+INSTRUMENTATION_STATUS: current=1
+INSTRUMENTATION_STATUS: id=AndroidJUnitRunner
+INSTRUMENTATION_STATUS: numtests=6
+INSTRUMENTATION_STATUS: stream=
+org.mywubi.PredictionHostTest:
+INSTRUMENTATION_STATUS: test=modelScoredPredictionsUseTheConfirmedHostCommitPath
+INSTRUMENTATION_STATUS_CODE: 1
+s_glBindAttribLocation: bind attrib 0 name position
+s_glBindAttribLocation: bind attrib 1 name color
+s_glBindAttribLocation: bind attrib 2 name localCoord
+INSTRUMENTATION_STATUS: class=org.mywubi.PredictionHostTest
+INSTRUMENTATION_STATUS: current=1
+INSTRUMENTATION_STATUS: id=AndroidJUnitRunner
+INSTRUMENTATION_STATUS: numtests=6
+INSTRUMENTATION_STATUS: stack=java.lang.AssertionError
+	at org.junit.Assert.fail(Assert.java:87)
+	at org.junit.Assert.assertTrue(Assert.java:42)
+	at org.junit.Assert.assertTrue(Assert.java:53)
+	at org.mywubi.PredictionHostTest.runHost(PredictionHostTest.kt:161)
+	at org.mywubi.PredictionHostTest.runHost$default(PredictionHostTest.kt:19)
+	at org.mywubi.PredictionHostTest.modelScoredPredictionsUseTheConfirmedHostCommitPath(PredictionHostTest.kt:17)
+
+INSTRUMENTATION_STATUS: stream=
+Error in modelScoredPredictionsUseTheConfirmedHostCommitPath(org.mywubi.PredictionHostTest):
+java.lang.AssertionError
+	at org.junit.Assert.fail(Assert.java:87)
+	at org.junit.Assert.assertTrue(Assert.java:42)
+	at org.junit.Assert.assertTrue(Assert.java:53)
+	at org.mywubi.PredictionHostTest.runHost(PredictionHostTest.kt:161)
+	at org.mywubi.PredictionHostTest.runHost$default(PredictionHostTest.kt:19)
+	at org.mywubi.PredictionHostTest.modelScoredPredictionsUseTheConfirmedHostCommitPath(PredictionHostTest.kt:17)
+
+INSTRUMENTATION_STATUS: test=modelScoredPredictionsUseTheConfirmedHostCommitPath
+INSTRUMENTATION_STATUS_CODE: -2
+INSTRUMENTATION_STATUS: class=org.mywubi.PredictionHostTest
+INSTRUMENTATION_STATUS: current=2
+INSTRUMENTATION_STATUS: id=AndroidJUnitRunner
+INSTRUMENTATION_STATUS: numtests=6
+INSTRUMENTATION_STATUS: stream=
+INSTRUMENTATION_STATUS: test=generatedDictionaryExternalWordsAppendInTheRealHost
+INSTRUMENTATION_STATUS_CODE: 1
+INSTRUMENTATION_STATUS: class=org.mywubi.PredictionHostTest
+INSTRUMENTATION_STATUS: current=2
+INSTRUMENTATION_STATUS: id=AndroidJUnitRunner
+INSTRUMENTATION_STATUS: numtests=6
+INSTRUMENTATION_STATUS: stream=.
+INSTRUMENTATION_STATUS: test=generatedDictionaryExternalWordsAppendInTheRealHost
+INSTRUMENTATION_STATUS_CODE: 0
+INSTRUMENTATION_STATUS: class=org.mywubi.PredictionHostTest
+INSTRUMENTATION_STATUS: current=3
+INSTRUMENTATION_STATUS: id=AndroidJUnitRunner
+INSTRUMENTATION_STATUS: numtests=6
+INSTRUMENTATION_STATUS: stream=
+INSTRUMENTATION_STATUS: test=confirmedWordsPredictAndNewCodesOrExternalEditsDiscardSuggestions
+INSTRUMENTATION_STATUS_CODE: 1
+INSTRUMENTATION_STATUS: class=org.mywubi.PredictionHostTest
+INSTRUMENTATION_STATUS: current=3
+INSTRUMENTATION_STATUS: id=AndroidJUnitRunner
+INSTRUMENTATION_STATUS: numtests=6
+INSTRUMENTATION_STATUS: stack=java.lang.AssertionError
+	at org.junit.Assert.fail(Assert.java:87)
+	at org.junit.Assert.assertTrue(Assert.java:42)
+	at org.junit.Assert.assertTrue(Assert.java:53)
+	at org.mywubi.PredictionHostTest.runHost(PredictionHostTest.kt:161)
+	at org.mywubi.PredictionHostTest.runHost$default(PredictionHostTest.kt:19)
+	at org.mywubi.PredictionHostTest.confirmedWordsPredictAndNewCodesOrExternalEditsDiscardSuggestions(PredictionHostTest.kt:16)
+
+INSTRUMENTATION_STATUS: stream=
+Error in confirmedWordsPredictAndNewCodesOrExternalEditsDiscardSuggestions(org.mywubi.PredictionHostTest):
+java.lang.AssertionError
+	at org.junit.Assert.fail(Assert.java:87)
+	at org.junit.Assert.assertTrue(Assert.java:42)
+	at org.junit.Assert.assertTrue(Assert.java:53)
+	at org.mywubi.PredictionHostTest.runHost(PredictionHostTest.kt:161)
+	at org.mywubi.PredictionHostTest.runHost$default(PredictionHostTest.kt:19)
+	at org.mywubi.PredictionHostTest.confirmedWordsPredictAndNewCodesOrExternalEditsDiscardSuggestions(PredictionHostTest.kt:16)
+
+INSTRUMENTATION_STATUS: test=confirmedWordsPredictAndNewCodesOrExternalEditsDiscardSuggestions
+INSTRUMENTATION_STATUS_CODE: -2
+INSTRUMENTATION_STATUS: class=org.mywubi.PredictionHostTest
+INSTRUMENTATION_STATUS: current=4
+INSTRUMENTATION_STATUS: id=AndroidJUnitRunner
+INSTRUMENTATION_STATUS: numtests=6
+INSTRUMENTATION_STATUS: stream=
+INSTRUMENTATION_STATUS: test=lowConfidenceModelPredictionsStayHiddenAndSpaceRemainsLiteral
+INSTRUMENTATION_STATUS_CODE: 1
+INSTRUMENTATION_STATUS: class=org.mywubi.PredictionHostTest
+INSTRUMENTATION_STATUS: current=4
+INSTRUMENTATION_STATUS: id=AndroidJUnitRunner
+INSTRUMENTATION_STATUS: numtests=6
+INSTRUMENTATION_STATUS: stream=.
+INSTRUMENTATION_STATUS: test=lowConfidenceModelPredictionsStayHiddenAndSpaceRemainsLiteral
+INSTRUMENTATION_STATUS_CODE: 0
+INSTRUMENTATION_STATUS: class=org.mywubi.PredictionHostTest
+INSTRUMENTATION_STATUS: current=5
+INSTRUMENTATION_STATUS: id=AndroidJUnitRunner
+INSTRUMENTATION_STATUS: numtests=6
+INSTRUMENTATION_STATUS: stream=
+INSTRUMENTATION_STATUS: test=preloadedModelRecoversAfterImeHideAndMemoryTrim
+INSTRUMENTATION_STATUS_CODE: 1
+INSTRUMENTATION_STATUS: class=org.mywubi.PredictionHostTest
+INSTRUMENTATION_STATUS: current=5
+INSTRUMENTATION_STATUS: id=AndroidJUnitRunner
+INSTRUMENTATION_STATUS: numtests=6
+INSTRUMENTATION_STATUS: stream=.
+INSTRUMENTATION_STATUS: test=preloadedModelRecoversAfterImeHideAndMemoryTrim
+INSTRUMENTATION_STATUS_CODE: 0
+INSTRUMENTATION_STATUS: class=org.mywubi.ModelBackendTest
+INSTRUMENTATION_STATUS: current=6
+INSTRUMENTATION_STATUS: id=AndroidJUnitRunner
+INSTRUMENTATION_STATUS: numtests=6
+INSTRUMENTATION_STATUS: stream=
+org.mywubi.ModelBackendTest:
+INSTRUMENTATION_STATUS: test=preparedGenerationResponsesMeetDeadline
+INSTRUMENTATION_STATUS_CODE: 1
+INSTRUMENTATION_STATUS: class=org.mywubi.ModelBackendTest
+INSTRUMENTATION_STATUS: current=6
+INSTRUMENTATION_STATUS: id=AndroidJUnitRunner
+INSTRUMENTATION_STATUS: numtests=6
+INSTRUMENTATION_STATUS: stream=.
+INSTRUMENTATION_STATUS: test=preparedGenerationResponsesMeetDeadline
+INSTRUMENTATION_STATUS_CODE: 0
+INSTRUMENTATION_RESULT: stream=
+
+Time: 129.532
+There were 2 failures:
+1) modelScoredPredictionsUseTheConfirmedHostCommitPath(org.mywubi.PredictionHostTest)
+java.lang.AssertionError
+	at org.junit.Assert.fail(Assert.java:87)
+	at org.junit.Assert.assertTrue(Assert.java:42)
+	at org.junit.Assert.assertTrue(Assert.java:53)
+	at org.mywubi.PredictionHostTest.runHost(PredictionHostTest.kt:161)
+	at org.mywubi.PredictionHostTest.runHost$default(PredictionHostTest.kt:19)
+	at org.mywubi.PredictionHostTest.modelScoredPredictionsUseTheConfirmedHostCommitPath(PredictionHostTest.kt:17)
+2) confirmedWordsPredictAndNewCodesOrExternalEditsDiscardSuggestions(org.mywubi.PredictionHostTest)
+java.lang.AssertionError
+	at org.junit.Assert.fail(Assert.java:87)
+	at org.junit.Assert.assertTrue(Assert.java:42)
+	at org.junit.Assert.assertTrue(Assert.java:53)
+	at org.mywubi.PredictionHostTest.runHost(PredictionHostTest.kt:161)
+	at org.mywubi.PredictionHostTest.runHost$default(PredictionHostTest.kt:19)
+	at org.mywubi.PredictionHostTest.confirmedWordsPredictAndNewCodesOrExternalEditsDiscardSuggestions(PredictionHostTest.kt:16)
+
+FAILURES!!!
+Tests run: 6,  Failures: 2
+
+
+INSTRUMENTATION_CODE: -1

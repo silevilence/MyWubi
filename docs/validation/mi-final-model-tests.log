@@ -1,0 +1,27 @@
+
+running 22 tests
+test catalog::tests::configuration_and_model_location_survive_application_version_changes ... ok
+test generation::tests::complete_utf8_json_only_and_no_whitelist ... ok
+test generation::tests::policy_binds_model_tokenizer_adapter_and_budgets ... ok
+test llama::tests::constrained_greedy_matches_full_vocabulary_grammar_sampling ... ok
+test llama::tests::log_softmax_is_stable_and_rejects_invalid_logits ... ok
+test onnx::tests::candidate_branches_are_isolated_and_repeated_scores_survive_reset ... ok
+test onnx::tests::rust_runtime_matches_numpy_reference_for_stateless_and_lstm_exports ... ok
+test onnx::tests::unsupported_operators_and_output_shapes_are_rejected_before_activation ... ok
+test package::tests::corruption_failed_import_and_active_removal_preserve_installed_package ... ok
+test package::tests::failed_switch_preserves_live_model_and_success_invalidates_old_requests ... ok
+test package::tests::generation_policy_is_independent_and_bound_to_exact_gguf ... ok
+test package::tests::prediction_policy_requires_hash_integrity_and_the_exact_model ... ok
+test package::tests::rejects_traversal_native_code_duplicate_case_names_and_unlisted_files ... ok
+test prediction_policy::tests::admitted_ids_exclude_weak_candidates_without_changing_scores ... ok
+test prediction_policy::tests::low_absolute_score_and_ambiguous_top_are_silently_rejected ... ok
+test prediction_policy::tests::package_gate_rejects_uncalibrated_predict_but_keeps_raw_rank_evaluation ... ok
+test prediction_policy::tests::policy_is_bound_to_model_and_adapter_and_requires_finite_thresholds ... ok
+test scheduler::tests::continuous_input_replaces_pending_work_and_never_delivers_cancelled_results ... ok
+test scheduler::tests::duplicate_requests_coalesce_and_results_expire_before_ui_delivery ... ok
+test scheduler::tests::invalidating_an_idle_worker_clears_its_private_context_without_new_input ... ok
+test worker::tests::bounded_worker_reuses_model_preserves_foreign_poll_results_and_unloads_on_pause_and_idle ... ok
+test worker::tests::preload_is_ready_only_after_warmup_keeps_weights_and_recovers_after_pause ... ok
+
+test result: ok. 22 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 3.79s
+

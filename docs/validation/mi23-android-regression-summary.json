@@ -1,0 +1,85 @@
+{
+  "final_passed": 6,
+  "final_failed": 0,
+  "final_skipped": 0,
+  "latest": [
+    {
+      "test": "modelScoredPredictionsUseTheConfirmedHostCommitPath",
+      "status": 0,
+      "evidence": "mi23-android-cache-regression.log"
+    },
+    {
+      "test": "generatedDictionaryExternalWordsAppendInTheRealHost",
+      "status": 0,
+      "evidence": "mi23-android-regression-initial.log"
+    },
+    {
+      "test": "confirmedWordsPredictAndNewCodesOrExternalEditsDiscardSuggestions",
+      "status": 0,
+      "evidence": "mi23-android-lexicon-regression.log"
+    },
+    {
+      "test": "lowConfidenceModelPredictionsStayHiddenAndSpaceRemainsLiteral",
+      "status": 0,
+      "evidence": "mi23-android-regression-initial.log"
+    },
+    {
+      "test": "preloadedModelRecoversAfterImeHideAndMemoryTrim",
+      "status": 0,
+      "evidence": "mi23-android-regression-initial.log"
+    },
+    {
+      "test": "preparedGenerationResponsesMeetDeadline",
+      "status": 0,
+      "evidence": "mi23-android-regression-initial.log"
+    }
+  ],
+  "history": [
+    {
+      "test": "modelScoredPredictionsUseTheConfirmedHostCommitPath",
+      "status": -2,
+      "evidence": "mi23-android-regression-initial.log"
+    },
+    {
+      "test": "generatedDictionaryExternalWordsAppendInTheRealHost",
+      "status": 0,
+      "evidence": "mi23-android-regression-initial.log"
+    },
+    {
+      "test": "confirmedWordsPredictAndNewCodesOrExternalEditsDiscardSuggestions",
+      "status": -2,
+      "evidence": "mi23-android-regression-initial.log"
+    },
+    {
+      "test": "lowConfidenceModelPredictionsStayHiddenAndSpaceRemainsLiteral",
+      "status": 0,
+      "evidence": "mi23-android-regression-initial.log"
+    },
+    {
+      "test": "preloadedModelRecoversAfterImeHideAndMemoryTrim",
+      "status": 0,
+      "evidence": "mi23-android-regression-initial.log"
+    },
+    {
+      "test": "preparedGenerationResponsesMeetDeadline",
+      "status": 0,
+      "evidence": "mi23-android-regression-initial.log"
+    },
+    {
+      "test": "modelScoredPredictionsUseTheConfirmedHostCommitPath",
+      "status": 0,
+      "evidence": "mi23-android-cache-regression.log"
+    },
+    {
+      "test": "confirmedWordsPredictAndNewCodesOrExternalEditsDiscardSuggestions",
+      "status": -2,
+      "evidence": "mi23-android-cache-regression.log"
+    },
+    {
+      "test": "confirmedWordsPredictAndNewCodesOrExternalEditsDiscardSuggestions",
+      "status": 0,
+      "evidence": "mi23-android-lexicon-regression.log"
+    }
+  ],
+  "note": "Initial failures were stale UIAutomator accessibility cache reads; all prediction visibility assertions now use the existing cache-clearing helper. Production code unchanged during these retests."
+}

@@ -27,7 +27,7 @@ class PredictionHostTest {
         // Use a normal dictionary with both a single character and its complete word.
         fixture.writeText("---\ndisplay_name: 预测验收\n---\nb\t北\t100\nbj\t北京\t50\nt\t天气\t100\np\t预报\t100\nf\t五一\t100\nm\t分钟\t100\nw\t明天去\t100\n")
         val config=JSONObject(original.toString())
-        if(generated) fixture.appendText("v\t北京\t100\n")
+        if(generated) fixture.appendText("v\t北京\t100\nz\t工作结束了。\t100\n")
         config.getJSONObject("dictionary").put("system_table",fixture.absolutePath).put("enable_user_dict",false)
         config.getJSONObject("basic").put("auto_commit_unique",false)
         config.put("prediction",JSONObject().put("enabled",true))
@@ -38,6 +38,7 @@ class PredictionHostTest {
             org.junit.Assume.assumeTrue("provision licensed generation package",File(source,"manifest.json").isFile)
             ModelCatalog(context).call("Import","source" to source.absolutePath)
             config.getJSONObject("prediction").put("wait_ms",1000).put("max_candidates",if(generated) 1 else 8)
+                .put("threads",if(generated) InstrumentationRegistry.getArguments().getString("model_threads","2").toInt().also {require(it in 1..4)} else 2)
                 .put("loading",if(generated || lifecycle) "preload_keep" else "on_demand")
                 .put("model",JSONObject().put("id",if(generated) "qwen25-words" else "instrumented-counts").put("version","v1"))
         }
@@ -75,16 +76,30 @@ class PredictionHostTest {
             save(config,loaded.getLong("version"))
             device.executeShellCommand("ime enable org.mywubi/.MyWubiService")
             device.executeShellCommand("ime set org.mywubi/.MyWubiService")
-            device.executeShellCommand("am force-stop com.android.settings")
-            device.executeShellCommand("am force-stop com.google.android.settings.intelligence")
-            device.executeShellCommand("am start -a android.settings.SETTINGS")
-            device.wait(Until.findObject(By.res("com.android.settings","search_action_bar")),15000).click()
+            if(InstrumentationRegistry.getArguments().getString("prediction_host")=="editor") {
+                device.executeShellCommand("am force-stop org.mywubi.acceptancehost")
+                device.executeShellCommand("am start -n org.mywubi.acceptancehost/.EditorActivity")
+            } else {
+                device.executeShellCommand("am force-stop com.android.settings")
+                device.executeShellCommand("am force-stop com.google.android.settings.intelligence")
+                device.executeShellCommand("am start -a android.settings.SETTINGS")
+                val search=device.wait(Until.findObject(By.res("com.android.settings","search_action_bar")),15000)
+                assertNotNull("Settings search must be available before IME acceptance",search)
+                search.click()
+            }
             val field=device.wait(Until.findObject(By.clazz("android.widget.EditText")),15000)
             field.text="";field.click()
             if(device.hasObject(By.desc("英 → 中"))) key("英 → 中")
             assertTrue(device.wait(Until.hasObject(By.desc("b").pkg("org.mywubi").enabled(true)),15000))
             if(generated) {
-                android.os.SystemClock.sleep(3000)
+                val readyDeadline=android.os.SystemClock.uptimeMillis()+30000
+                var ready=false
+                while(android.os.SystemClock.uptimeMillis()<readyDeadline) {
+                    val status=JSONObject(NativeBridge.inference("{\"op\":\"Status\"}".toByteArray()).toString(Charsets.UTF_8))
+                    if(status.optString("value")=="Ready") {ready=true;break}
+                    android.os.SystemClock.sleep(50)
+                }
+                assertTrue("generation preload must finish before measuring prediction",ready)
                 // Each attempt is a fresh acknowledged commit; late responses
                 // from a cold load must not be used to pass this assertion.
                 for(attempt in 0..2) {
@@ -95,10 +110,20 @@ class PredictionHostTest {
                 expectPrediction(true)
                 candidate("市");expect("北京市")
                 key("b");expect("北京市b")
-                assertTrue(device.wait(Until.gone(By.desc("字词预测")),5000))
+                expectPrediction(false)
                 candidate("北");expect("北京市北")
                 field.text="外部编辑";device.pressKeyCode(android.view.KeyEvent.KEYCODE_MOVE_END)
-                assertTrue(device.wait(Until.gone(By.desc("字词预测")),5000))
+                expectPrediction(false)
+                field.text="";field.click();key("t");candidate("天气");expect("天气")
+                expectPrediction(true);candidate("晴朗");expect("天气晴朗")
+                expectPrediction(true);candidate("多云");expect("天气晴朗多云")
+                device.takeScreenshot(File(context.filesDir,"generation-chain-host.png"))
+                // This proves append mechanics only: the contradictory phrase
+                // is deliberately retained as a model-quality failure.
+                field.text="";field.click();key("z");candidate("工作结束了。");expect("工作结束了。")
+                android.os.SystemClock.sleep(1100);expectPrediction(false)
+                key("空格");key("b");expect("工作结束了。 b")
+                candidate("北");expect("工作结束了。 北")
                 device.takeScreenshot(File(context.filesDir,"generation-host.png"))
                 return
             }
@@ -123,7 +148,7 @@ class PredictionHostTest {
             key("空格"); expect("北京")
             candidate("天气"); expect("北京天气")
             if(withModel) device.takeScreenshot(File(context.filesDir,"prediction-model-host.png"))
-            assertTrue(device.wait(Until.hasObject(By.desc("字词预测")),5000))
+            expectPrediction(true)
             if(lifecycle) {
                 device.pressBack()
                 assertTrue(device.wait(Until.gone(By.desc("b").pkg("org.mywubi")),5000))
@@ -133,10 +158,10 @@ class PredictionHostTest {
                 android.os.SystemClock.sleep(200)
             }
             key("b"); expect("北京天气b")
-            assertTrue(device.wait(Until.gone(By.desc("字词预测")),5000))
+            expectPrediction(false)
             candidate("北"); expect("北京天气北")
             field.text="外部编辑";device.pressKeyCode(android.view.KeyEvent.KEYCODE_MOVE_END)
-            assertTrue(device.wait(Until.gone(By.desc("字词预测")),5000))
+            expectPrediction(false)
             device.takeScreenshot(File(context.filesDir,"prediction-external-host.png"))
             if(!withModel) {
                 field.text="";field.click()
@@ -144,16 +169,16 @@ class PredictionHostTest {
                 expectPrediction(false)
                 key("空格");key("b");expect("五一期间 b")
                 candidate("北");expect("五一期间 北")
-                assertTrue(device.wait(Until.hasObject(By.desc("字词预测")),5000))
+                expectPrediction(true)
                 device.setOrientationLeft()
-                assertTrue(device.wait(Until.gone(By.desc("字词预测")),10000))
+                expectPrediction(false)
                 expect("五一期间 北")
                 device.setOrientationNatural()
                 device.waitForIdle()
                 val rotatedField=device.wait(Until.findObject(By.clazz("android.widget.EditText")),10000)
                 rotatedField.text="";rotatedField.click()
                 key("m");candidate("分钟");expect("分钟")
-                assertTrue(device.wait(Until.gone(By.desc("字词预测")),5000))
+                expectPrediction(false)
             }
         } finally {
             device.setOrientationNatural();device.unfreezeRotation()
