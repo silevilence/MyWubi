@@ -325,15 +325,26 @@ mod tests {
         })
         .unwrap();
         scheduler
-            .submit(request(1), Duration::from_millis(80))
+            .submit(request(1), Duration::from_secs(1))
             .unwrap();
         started.recv_timeout(Duration::from_secs(2)).unwrap();
         scheduler
-            .submit(request(1), Duration::from_millis(80))
+            .submit(request(1), Duration::from_secs(1))
             .unwrap();
         release.send(()).unwrap();
         wait_computed(&scheduler, 1);
-        thread::sleep(Duration::from_millis(90));
+        // Exercise delivery-time expiration directly. An 80 ms startup budget
+        // can expire before a new thread runs on a loaded CI host, never reaching
+        // the backend handshake and testing the wrong condition.
+        scheduler
+            .shared
+            .0
+            .lock()
+            .unwrap()
+            .completed
+            .as_mut()
+            .unwrap()
+            .deadline = Instant::now();
         assert!(scheduler.take(request(1).key).is_none());
         assert_eq!(scheduler.statistics().submitted, 1);
         assert_eq!(scheduler.statistics().delivered, 0);

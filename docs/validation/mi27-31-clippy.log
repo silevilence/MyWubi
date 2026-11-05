@@ -1,0 +1,101 @@
+    Checking model_ipc v0.6.2 (C:\code\rust\MyWubi\windows\model_ipc)
+    Checking core_engine v0.6.2 (C:\code\rust\MyWubi\core_engine)
+    Checking tip_manager v0.6.2 (C:\code\rust\MyWubi\windows\tip_manager)
+warning: settings@0.6.2: 已复制 4 个码表到 C:\code\rust\MyWubi\target\debug\tables
+    Checking model_input v0.6.2 (C:\code\rust\MyWubi\model_input)
+    Checking settings v0.6.2 (C:\code\rust\MyWubi\windows\settings)
+warning: this `if` statement can be collapsed
+  --> windows\settings\src\app.rs:60:17
+   |
+60 | /                 if ui.button("保存").clicked() {
+61 | |                     if !save::save(&mut self.state) {
+62 | |                         self.save_error = self.state.status_msg.clone();
+63 | |                     }
+64 | |                 }
+   | |_________________^
+   |
+   = help: for further information visit https://rust-lang.github.io/rust-clippy/rust-1.99.0/index.html#collapsible_if
+   = note: `#[warn(clippy::collapsible_if)]` on by default
+help: collapse nested if block
+   |
+60 ~                 if ui.button("保存").clicked()
+61 ~                     && !save::save(&mut self.state) {
+62 |                         self.save_error = self.state.status_msg.clone();
+63 ~                     }
+   |
+
+warning: this `if` statement can be collapsed
+   --> windows\settings\src\app.rs:213:21
+    |
+213 | /                     if ui.button("保存").clicked() {
+214 | |                         if save::save(&mut self.state) {
+215 | |                             self.close_confirm = false;
+216 | |                             ctx.send_viewport_cmd(egui::ViewportCommand::Close);
+217 | |                         }
+218 | |                     }
+    | |_____________________^
+    |
+    = help: for further information visit https://rust-lang.github.io/rust-clippy/rust-1.99.0/index.html#collapsible_if
+help: collapse nested if block
+    |
+213 ~                     if ui.button("保存").clicked()
+214 ~                         && save::save(&mut self.state) {
+215 |                             self.close_confirm = false;
+216 |                             ctx.send_viewport_cmd(egui::ViewportCommand::Close);
+217 ~                         }
+    |
+
+warning: the borrowed expression implements the required traits
+   --> windows\settings\src\panels\dictionary.rs:693:45
+    |
+693 |     if let Err(e) = std::fs::create_dir_all(&state.tables.directory()) {
+    |                                             ^^^^^^^^^^^^^^^^^^^^^^^^^ help: change this to: `state.tables.directory()`
+    |
+    = help: for further information visit https://rust-lang.github.io/rust-clippy/rust-1.99.0/index.html#needless_borrows_for_generic_args
+    = note: `#[warn(clippy::needless_borrows_for_generic_args)]` on by default
+
+warning: this `map_or` can be simplified
+   --> windows\settings\src\panels\dictionary.rs:702:16
+    |
+702 |             if path.extension().map_or(false, |e| e == "dict") {
+    |                ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    |
+    = help: for further information visit https://rust-lang.github.io/rust-clippy/rust-1.99.0/index.html#unnecessary_map_or
+    = note: `#[warn(clippy::unnecessary_map_or)]` on by default
+help: use `is_some_and` instead
+    |
+702 -             if path.extension().map_or(false, |e| e == "dict") {
+702 +             if path.extension().is_some_and(|e| e == "dict") {
+    |
+
+warning: this function has too many arguments (8/7)
+   --> windows\settings\src\panels\dictionary.rs:725:1
+    |
+725 | / fn path_row(
+726 | |     ui: &mut Ui,
+727 | |     label: &str,
+728 | |     path: &mut PathBuf,
+...   |
+733 | |     base_dir: &Path,
+734 | | ) {
+    | |_^
+    |
+    = help: for further information visit https://rust-lang.github.io/rust-clippy/rust-1.99.0/index.html#too_many_arguments
+    = note: `#[warn(clippy::too_many_arguments)]` on by default
+
+warning: items after a test module
+   --> windows\settings\src\panels\appearance.rs:145:1
+    |
+145 | mod tests {
+    | ^^^^^^^^^
+...
+165 | fn preview(ui: &mut Ui, state: &AppState) {
+    | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    |
+    = help: for further information visit https://rust-lang.github.io/rust-clippy/rust-1.99.0/index.html#items_after_test_module
+    = note: `#[warn(clippy::items_after_test_module)]` on by default
+    = help: move the items to before the test module was defined
+
+warning: `settings` (lib test) generated 6 warnings (3 duplicates) (run `cargo clippy --fix --lib -p settings --tests -- ` to apply 3 suggestions)
+warning: `settings` (lib) generated 5 warnings (2 duplicates) (run `cargo clippy --fix --lib -p settings -- ` to apply 2 suggestions)
+    Finished `dev` profile [unoptimized + debuginfo] target(s) in 1m 00s
