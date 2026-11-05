@@ -9,6 +9,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
     let source = match args[2].as_str() {
         "hf" => Source::HuggingFace,
         "mirror" => Source::HfMirror,
+        "modelscope" => Source::ModelScope,
         _ => return Err("unknown source".into()),
     };
     let model = download::available_models()

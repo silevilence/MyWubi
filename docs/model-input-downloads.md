@@ -32,3 +32,13 @@ cargo run -p model_input --bin download-model -- STORE qwen25-words hf
 cargo run -p model_input --bin download-model -- STORE qwen25-words mirror 1048576
 # 省略最后的字节上限即可续传至校验完成。
 ```
+
+## MI-29 ModelScope 独立映射与三源验收
+
+ModelScope 使用独立 API 与映射字段，不通过替换 HF 域名拼接地址。此模型映射到 `Qwen/Qwen2.5-0.5B-Instruct-GGUF` 的固定提交 `4537f71740dd2c56a15ffa12e5fbb9f15095f20c`；HF 固定提交为 `9217f5db79a29953eb74d5343926648285ec7e67`。两个仓库提交标识不同，文件身份以逐个固定文件名、长度和 SHA-256 对齐。[来源元数据](validation/mi29-mapping-metadata.json)保留官方 API 公布的权重和许可信息，[官方模型页](https://modelscope.cn/models/Qwen/Qwen2.5-0.5B-Instruct-GGUF)说明来源。
+
+下载前检查映射是否存在、版本是否固定以及映射哈希/长度是否等于本地清单；缺映射或不同量化直接报告不可用，不尝试相近文件。下载使用 `api/v1/models/REPO/repo?Revision=COMMIT&FilePath=FILE`，最终仍经过同一包完整性校验。收据使用实际 ModelScope 提交，不误记成 HF 提交。
+
+[8 项回归](validation/mi29-tests.log)通过，覆盖缺映射、映射哈希不匹配、移动版本拒绝、源 404 保留旧部分并重试，以及原有取消、断网、坏文件和空间检查。实际 ModelScope 直连从 HF→镜像保留的 2110054 字节继续，[取消一次](validation/mi29-ms-cancel.log)后[重试完成并入库](validation/mi29-ms-download.log)。[收据](validation/mi29-ms-receipt.json)保留三源历次偏移；它是跨源续传完成包，并非宣称每一字节都重新从 ModelScope 下载。
+
+[最终三源文件身份](validation/mi29-three-source-identity.json)与 HF、镜像分别完整下载的权重、策略及许可证逐字节哈希相同。本地身份始终为 `qwen25-words@q4km-v1`，配置未由下载器读写，未自动激活。CLI 源参数新增 `modelscope`；界面接入见 MI-30。

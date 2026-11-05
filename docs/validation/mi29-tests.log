@@ -1,0 +1,15 @@
+   Compiling model_input v0.6.2 (C:\code\rust\MyWubi\model_input)
+    Finished `test` profile [unoptimized + debuginfo] target(s) in 4.36s
+     Running unittests src\lib.rs (target\debug\deps\model_input-51da5af39e1cecd3.exe)
+
+running 8 tests
+test download::tests::modelscope_requires_an_explicit_identical_artifact_and_fixed_revision ... ok
+test download::tests::space_gate_and_pinned_source_mapping_are_explicit ... ok
+test download_manager::tests::management_rejects_unreviewed_versions_and_never_touches_saved_configuration ... ok
+test download::tests::unavailable_source_does_not_replace_partial_data_and_can_be_retried ... ok
+test download::tests::disconnected_transfer_keeps_partial_and_retry_completes ... ok
+test download::tests::cancel_and_new_source_resume_the_same_pinned_artifact ... ok
+test download::tests::incorrect_range_is_rejected_without_appending_and_ignored_range_restarts ... ok
+test download::tests::corrupted_file_is_not_accepted_and_retry_starts_clean ... ok
+
+test result: ok. 8 passed; 0 failed; 0 ignored; 0 measured; 16 filtered out; finished in 0.10s

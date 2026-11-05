@@ -14,6 +14,16 @@ use std::{
 pub enum Source {
     HuggingFace,
     HfMirror,
+    ModelScope,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct SourceMapping {
+    pub repository: String,
+    pub revision: String,
+    pub file: String,
+    pub bytes: u64,
+    pub sha256: String,
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
@@ -22,6 +32,8 @@ pub struct RemoteFile {
     pub repository: String,
     pub revision: String,
     pub file: String,
+    #[serde(default)]
+    pub modelscope: Option<SourceMapping>,
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
@@ -52,6 +64,8 @@ pub enum DownloadError {
     Network(String),
     #[error("下载记录或制品身份不匹配；没有更改原模型")]
     Identity,
+    #[error("ModelScope 同版本映射不可用：{0}；请选择其他源，不能替换为相近模型")]
+    Mapping(String),
     #[error("文件完整性校验失败：{0}；损坏部分已清空，可重新下载")]
     Integrity(String),
     #[error("已有同模型下载任务，请先取消或等待完成")]
@@ -68,7 +82,19 @@ pub fn available_models() -> Vec<DownloadModel> {
 }
 
 impl RemoteFile {
+    fn location(&self, source: Source) -> Result<(&str, &str, &str), DownloadError> {
+        if source == Source::ModelScope {
+            let mapped = self
+                .modelscope
+                .as_ref()
+                .ok_or_else(|| DownloadError::Mapping(format!("{} 没有映射", self.local)))?;
+            Ok((&mapped.repository, &mapped.revision, &mapped.file))
+        } else {
+            Ok((&self.repository, &self.revision, &self.file))
+        }
+    }
     pub fn url(&self, source: Source) -> Result<String, DownloadError> {
+        let (repository, revision, file) = self.location(source)?;
         let safe = |s: &str| {
             !s.is_empty()
                 && s.split('/').all(|p| {
@@ -79,21 +105,49 @@ impl RemoteFile {
                             .all(|b| b.is_ascii_alphanumeric() || b"-_.".contains(&b))
                 })
         };
-        if !safe(&self.repository)
-            || !safe(&self.file)
-            || self.revision.len() != 40
-            || !self.revision.bytes().all(|b| b.is_ascii_hexdigit())
+        if !safe(repository)
+            || !safe(file)
+            || revision.len() != 40
+            || !revision.bytes().all(|b| b.is_ascii_hexdigit())
         {
             return Err(DownloadError::Identity);
         }
         let host = match source {
             Source::HuggingFace => "huggingface.co",
             Source::HfMirror => "hf-mirror.com",
+            Source::ModelScope => return Ok(format!("https://modelscope.cn/api/v1/models/{repository}/repo?Revision={revision}&FilePath={file}")),
         };
         Ok(format!(
             "https://{host}/{}/resolve/{}/{}?download=true",
-            self.repository, self.revision, self.file
+            repository, revision, file
         ))
+    }
+}
+
+impl DownloadModel {
+    pub fn validate_source(&self, source: Source) -> Result<(), DownloadError> {
+        for remote in &self.remote {
+            remote.url(source)?;
+            let artifact = self
+                .manifest
+                .files
+                .iter()
+                .find(|f| f.path == remote.local)
+                .ok_or(DownloadError::Identity)?;
+            if source == Source::ModelScope {
+                let mapping = remote
+                    .modelscope
+                    .as_ref()
+                    .ok_or_else(|| DownloadError::Mapping(remote.local.clone()))?;
+                if mapping.sha256 != artifact.sha256 || mapping.bytes != artifact.bytes {
+                    return Err(DownloadError::Mapping(format!(
+                        "{} 的哈希或长度不匹配",
+                        remote.local
+                    )));
+                }
+            }
+        }
+        Ok(())
     }
 }
 
@@ -217,6 +271,7 @@ pub fn download(
     cancel: &AtomicBool,
     mut publish: impl FnMut(Progress),
 ) -> Result<PathBuf, DownloadError> {
+    model.validate_source(source)?;
     let selection = core_engine::config::ModelSelection {
         id: model.manifest.id.clone(),
         version: model.manifest.version.clone(),
@@ -296,7 +351,8 @@ pub fn download(
                 .ok_or(DownloadError::Identity)?;
             let url = remote.url(source)?;
             // Persist source attempts before I/O so cancellation and cross-source resume are traceable.
-            let attempt = serde_json::json!({"source":source,"url":url,"revision":remote.revision,"sha256":file.sha256,"offset":fs::metadata(&path).map_or(0,|m|m.len())});
+            let (repository, revision, _) = remote.location(source)?;
+            let attempt = serde_json::json!({"source":source,"url":url,"repository":repository,"revision":revision,"sha256":file.sha256,"offset":fs::metadata(&path).map_or(0,|m|m.len())});
             let attempts_path = workspace.join("attempts.jsonl");
             if attempts_path.exists() {
                 package::no_links(&workspace, Path::new("attempts.jsonl"))?;
@@ -405,7 +461,9 @@ mod tests {
             if fault == "disconnect" {
                 body.truncate(size / 2);
             }
-            let response = if fault == "ignore" {
+            let response = if fault == "missing" {
+                "HTTP/1.1 404 Not Found\r\nContent-Length: 0\r\nConnection: close\r\n\r\n".into()
+            } else if fault == "ignore" {
                 format!("HTTP/1.1 200 OK\r\nContent-Length: {size}\r\nConnection: close\r\n\r\n")
             } else {
                 let declared = if fault == "range" { start + 1 } else { start };
@@ -526,5 +584,43 @@ mod tests {
                 Sha256::digest(include_bytes!("../evaluation/generation-policy.json"))
             )
         );
+    }
+
+    #[test]
+    fn modelscope_requires_an_explicit_identical_artifact_and_fixed_revision() {
+        let mut model = available_models().remove(0);
+        model.validate_source(Source::ModelScope).unwrap();
+        let url = model.remote[0].url(Source::ModelScope).unwrap();
+        assert!(url.contains("/api/v1/models/Qwen/Qwen2.5-0.5B-Instruct-GGUF/repo?Revision=4537f71740dd2c56a15ffa12e5fbb9f15095f20c&FilePath="));
+        model.remote[0].modelscope.as_mut().unwrap().sha256 = "0".repeat(64);
+        assert!(matches!(
+            model.validate_source(Source::ModelScope),
+            Err(DownloadError::Mapping(_))
+        ));
+        model.validate_source(Source::HuggingFace).unwrap();
+        model.remote[0].modelscope = None;
+        assert!(matches!(
+            model.validate_source(Source::ModelScope),
+            Err(DownloadError::Mapping(_))
+        ));
+        model.remote[0].modelscope = available_models().remove(0).remote.remove(0).modelscope;
+        model.remote[0].modelscope.as_mut().unwrap().revision = "master".into();
+        assert!(matches!(
+            model.validate_source(Source::ModelScope),
+            Err(DownloadError::Identity)
+        ));
+    }
+
+    #[test]
+    fn unavailable_source_does_not_replace_partial_data_and_can_be_retried() {
+        let dir = tempfile::tempdir().unwrap();
+        let path = dir.path().join("partial.gguf");
+        fs::write(&path, &data()[..1234]).unwrap();
+        assert!(matches!(
+            fetch(&path, "missing", None).0,
+            Err(DownloadError::Network(_))
+        ));
+        assert_eq!(fs::metadata(&path).unwrap().len(), 1234);
+        fetch(&path, "", None).0.unwrap();
     }
 }

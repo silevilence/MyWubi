@@ -1,0 +1,35 @@
+{
+  "endpoint": "https://modelscope.cn/api/v1/models/Qwen/Qwen2.5-0.5B-Instruct-GGUF/repo/files",
+  "observed_branch": "master",
+  "pinned_revision": "4537f71740dd2c56a15ffa12e5fbb9f15095f20c",
+  "files": [
+    {
+      "CommitMessage": "Update README.md",
+      "CommittedDate": 1726673820,
+      "CommitterName": "ai-modelscope",
+      "InCheck": false,
+      "IsLFS": false,
+      "Mode": "33188",
+      "Name": "LICENSE",
+      "Path": "LICENSE",
+      "Revision": "ace2cc6fa91e5d19531ed4a497529d4db9c7213d",
+      "Sha256": "832dd9e00a68dd83b3c3fb9f5588dad7dcf337a0db50f7d9483f310cd292e92e",
+      "Size": 11343,
+      "Type": "blob"
+    },
+    {
+      "CommitMessage": "upload weights",
+      "CommittedDate": 1726665606,
+      "CommitterName": "ai-modelscope",
+      "InCheck": false,
+      "IsLFS": true,
+      "Mode": "33188",
+      "Name": "qwen2.5-0.5b-instruct-q4_k_m.gguf",
+      "Path": "qwen2.5-0.5b-instruct-q4_k_m.gguf",
+      "Revision": "2e50b77b0eee3083842019e257b74854323d880a",
+      "Sha256": "74a4da8c9fdbcd15bd1f6d01d621410d31c6fc00986f5eb687824e7b93d7a9db",
+      "Size": 491400032,
+      "Type": "blob"
+    }
+  ]
+}
