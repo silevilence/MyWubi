@@ -1,0 +1,68 @@
+[
+  {
+    "manifest": {
+      "protocol": 1,
+      "id": "qwen25-words",
+      "version": "q4km-v1",
+      "backend": "LlamaCpp",
+      "adapter": "qwen25-short-words-v1",
+      "model": "model.gguf",
+      "vocabulary": null,
+      "prediction_policy": null,
+      "generation_policy": "generation-policy.json",
+      "files": [
+        {
+          "path": "model.gguf",
+          "bytes": 491400032,
+          "sha256": "74a4da8c9fdbcd15bd1f6d01d621410d31c6fc00986f5eb687824e7b93d7a9db"
+        },
+        {
+          "path": "generation-policy.json",
+          "bytes": 483,
+          "sha256": "32e1d45cdf10083ac2464066599f8b84be652295f5b307c9b8301c0a9e4812b7"
+        },
+        {
+          "path": "LICENSE.txt",
+          "bytes": 11343,
+          "sha256": "832dd9e00a68dd83b3c3fb9f5588dad7dcf337a0db50f7d9483f310cd292e92e"
+        }
+      ],
+      "source": "https://huggingface.co/Qwen/Qwen2.5-0.5B-Instruct-GGUF",
+      "license": "Apache-2.0",
+      "capabilities": {
+        "protocol": 1,
+        "tasks": [
+          "Rank",
+          "Predict"
+        ],
+        "languages": [
+          "zh"
+        ],
+        "max_context_chars": 256,
+        "max_candidates": 64,
+        "max_candidate_chars": 16,
+        "max_code_chars": 64,
+        "proposes_words": true,
+        "incremental": true,
+        "cooperative_cancel": true
+      }
+    },
+    "title": "Qwen2.5 0.5B Instruct · Q4_K_M",
+    "memory_bytes": 805306368,
+    "test_status": "实验：双端兼容性通过；独立质量评测不推荐，非推荐模型",
+    "remote": [
+      {
+        "local": "model.gguf",
+        "repository": "Qwen/Qwen2.5-0.5B-Instruct-GGUF",
+        "revision": "9217f5db79a29953eb74d5343926648285ec7e67",
+        "file": "qwen2.5-0.5b-instruct-q4_k_m.gguf"
+      },
+      {
+        "local": "LICENSE.txt",
+        "repository": "Qwen/Qwen2.5-0.5B-Instruct-GGUF",
+        "revision": "9217f5db79a29953eb74d5343926648285ec7e67",
+        "file": "LICENSE"
+      }
+    ]
+  }
+]

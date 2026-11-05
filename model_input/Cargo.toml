@@ -7,6 +7,7 @@ autobins = false
 
 [dependencies]
 core_engine = { path = "../core_engine" }
+fs2 = "0.4"
 llama-cpp-2 = { version = "=0.1.161", default-features = false, optional = true }
 ort = { version = "=2.0.0-rc.15", default-features = false, features = ["std", "load-dynamic", "api-31"], optional = true }
 self_cell = { version = "1", optional = true }
@@ -14,11 +15,16 @@ serde.workspace = true
 serde_json.workspace = true
 sha2 = "0.10"
 thiserror.workspace = true
+ureq = { version = "3.3.0", default-features = false, features = ["rustls"] }
 
 [features]
 llama-cpp-2 = ["dep:llama-cpp-2", "dep:self_cell"]
 ort = ["dep:ort"]
 android-static-stdcxx = ["llama-cpp-2/android-static-stdcxx"]
+
+[[bin]]
+name = "download-model"
+path = "src/bin/download_model.rs"
 
 [[bin]]
 name = "evaluate"

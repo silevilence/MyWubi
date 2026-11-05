@@ -155,7 +155,7 @@ fn identifier(value: &str) -> bool {
             .bytes()
             .all(|b| b.is_ascii_alphanumeric() || b == b'-' || b == b'_')
 }
-fn safe_path(value: &str) -> Result<&Path, PackageError> {
+pub(crate) fn safe_path(value: &str) -> Result<&Path, PackageError> {
     if value.is_empty() || value.len() > 240 || value.contains(['\\', ':']) {
         return Err(PackageError::Path);
     }
@@ -200,7 +200,7 @@ fn safe_path(value: &str) -> Result<&Path, PackageError> {
 }
 
 /// Reject all symlinks/reparse points, including directories, before opening data files.
-fn no_links(root: &Path, relative: &Path) -> Result<(), PackageError> {
+pub(crate) fn no_links(root: &Path, relative: &Path) -> Result<(), PackageError> {
     let mut current = root.to_path_buf();
     for component in relative.components() {
         current.push(component.as_os_str());

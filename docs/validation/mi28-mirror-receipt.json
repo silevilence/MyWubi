@@ -1,0 +1,41 @@
+{
+  "attempts": "{\"offset\":0,\"revision\":\"9217f5db79a29953eb74d5343926648285ec7e67\",\"sha256\":\"74a4da8c9fdbcd15bd1f6d01d621410d31c6fc00986f5eb687824e7b93d7a9db\",\"source\":\"hf_mirror\",\"url\":\"https://hf-mirror.com/Qwen/Qwen2.5-0.5B-Instruct-GGUF/resolve/9217f5db79a29953eb74d5343926648285ec7e67/qwen2.5-0.5b-instruct-q4_k_m.gguf?download=true\"}\n{\"offset\":4325234,\"revision\":\"9217f5db79a29953eb74d5343926648285ec7e67\",\"sha256\":\"74a4da8c9fdbcd15bd1f6d01d621410d31c6fc00986f5eb687824e7b93d7a9db\",\"source\":\"hf_mirror\",\"url\":\"https://hf-mirror.com/Qwen/Qwen2.5-0.5B-Instruct-GGUF/resolve/9217f5db79a29953eb74d5343926648285ec7e67/qwen2.5-0.5b-instruct-q4_k_m.gguf?download=true\"}\n{\"offset\":0,\"revision\":\"9217f5db79a29953eb74d5343926648285ec7e67\",\"sha256\":\"832dd9e00a68dd83b3c3fb9f5588dad7dcf337a0db50f7d9483f310cd292e92e\",\"source\":\"hf_mirror\",\"url\":\"https://hf-mirror.com/Qwen/Qwen2.5-0.5B-Instruct-GGUF/resolve/9217f5db79a29953eb74d5343926648285ec7e67/LICENSE?download=true\"}\n",
+  "files": [
+    {
+      "bytes": 491400032,
+      "path": "model.gguf",
+      "sha256": "74a4da8c9fdbcd15bd1f6d01d621410d31c6fc00986f5eb687824e7b93d7a9db"
+    },
+    {
+      "bytes": 483,
+      "path": "generation-policy.json",
+      "sha256": "32e1d45cdf10083ac2464066599f8b84be652295f5b307c9b8301c0a9e4812b7"
+    },
+    {
+      "bytes": 11343,
+      "path": "LICENSE.txt",
+      "sha256": "832dd9e00a68dd83b3c3fb9f5588dad7dcf337a0db50f7d9483f310cd292e92e"
+    }
+  ],
+  "identity": {
+    "id": "qwen25-words",
+    "version": "q4km-v1"
+  },
+  "source": "hf_mirror",
+  "sources": [
+    {
+      "offset": 4325234,
+      "revision": "9217f5db79a29953eb74d5343926648285ec7e67",
+      "sha256": "74a4da8c9fdbcd15bd1f6d01d621410d31c6fc00986f5eb687824e7b93d7a9db",
+      "source": "hf_mirror",
+      "url": "https://hf-mirror.com/Qwen/Qwen2.5-0.5B-Instruct-GGUF/resolve/9217f5db79a29953eb74d5343926648285ec7e67/qwen2.5-0.5b-instruct-q4_k_m.gguf?download=true"
+    },
+    {
+      "offset": 0,
+      "revision": "9217f5db79a29953eb74d5343926648285ec7e67",
+      "sha256": "832dd9e00a68dd83b3c3fb9f5588dad7dcf337a0db50f7d9483f310cd292e92e",
+      "source": "hf_mirror",
+      "url": "https://hf-mirror.com/Qwen/Qwen2.5-0.5B-Instruct-GGUF/resolve/9217f5db79a29953eb74d5343926648285ec7e67/LICENSE?download=true"
+    }
+  ]
+}

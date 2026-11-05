@@ -1,0 +1,2 @@
+{"phase":"downloading","completed":0,"total":491411858,"file":"model.gguf","source":"hf_mirror"}
+Error: Network("timeout: receive response")
