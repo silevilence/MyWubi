@@ -46,7 +46,7 @@ python model_input/tools/package_model.py llama $env:MYWUBI_TEST_GGUF C:/model-p
 包清单新增可选 `generation_policy`，缺省保持评分旧包行为；文件哈希、模型哈希、
 适配器、能力和预算均在导入/激活时验证。不在输入日志记录前文或生成内容。
 
-## MI-23 双端接入（实现完成，宿主验收中）
+## MI-23 双端接入（实现完成，宿主验收未通过）
 
 IPC/JNI 使用兼容旧评分 JSON 的响应联合类型。生成结果经版本和边界校验后，
 进入共享预测视图；编码候选不改变。新编码/失焦/外部编辑清除旧结果；只有宿主
@@ -57,3 +57,24 @@ IPC/JNI 使用兼容旧评分 JSON 的响应联合类型。生成结果经版本
 提交、拒绝重试、过期点击、等待期间空格放行、新编码优先及前文确认。
 Windows Release DLL/服务与 Android 双 ABI 模型版已构建；实际宿主结果另记，
 不能仅以构建和模拟会话测试勾选 MI-23。
+
+预加载后的 Android 设置搜索框尝试仍未显示生成候选，见
+[多候选失败](validation/mi-generation-android-host-preloaded.log) 与
+[单候选失败](validation/mi-generation-android-single-host.log)。Windows Sandbox
+也实际加载新版 DLL，编码 `v` 显示“北京”并经空格确认后，没有观察到“市”的
+生成候选；未完成生成选词及连续选择验收。保持 1000 ms 产品预算，不接受迟到
+结果，也不以工作器 Ready 冒充宿主候选已显示。
+
+关闭 Sandbox、结束全部构建后再次执行 Android 单候选测试，仍失败，工作器
+状态为 Ready，见 [无并发构建重测](validation/mi-generation-android-quiet-host.log)。
+这不能只归因于冷加载；现有状态也不足以区分推理超时、静默拒绝与显示链路原因，
+需要后续针对失败请求做进一步诊断，不能把 Ready 当成结果成功。
+
+整体审核补强：真实测试先检查无词典召回，再检查“北京 → 市”不在测试形码表、
+全部内置预测词条及关联表中（用户词典为空）；这两种“词典外”不能混称。
+解码语法按请求数量与策略上限的较小值生成，单候选请求不再多算三个候选。
+[4 项真实后端测试](validation/mi-generation-real-tests.log) 全通过，包括该
+完整词典外检查和取消/超时；离线功能验证不替代以上宿主失败。
+
+加载策略与生命周期见 [MI-24 / MI-25](model-input-preload.md)，独立质量与适用
+结论见 [MI-26](model-input-generation-evaluation.md)。当前模型仍不推荐启用。

@@ -41,6 +41,25 @@ fn real_generation_proposes_dictionary_external_words_and_stops_without_late_res
         .words
         .iter()
         .any(|word| !recalled.iter().any(|c| &c.text == word)));
+    // Recall absence is weaker than dictionary absence. Check the latter too,
+    // against every dictionary in this fixture (there is no user dictionary).
+    request.prefix = "北京".into();
+    request.limit = 1;
+    let external = session.propose(&request, &control).unwrap();
+    assert_eq!(external.words, ["市"]);
+    assert!(
+        !include_str!("../../core_engine/src/assistance/prediction_words.tsv")
+            .lines()
+            .any(|line| line.split('\t').next() == Some("市"))
+    );
+    assert!(
+        !include_str!("../../core_engine/src/assistance/prediction_pairs.tsv")
+            .lines()
+            .any(|line| line.split('\t').nth(1) == Some("市"))
+    );
+    assert!(!include_str!("../../tables/wubi86.dict")
+        .lines()
+        .any(|line| line.split('\t').nth(1) == Some("市")));
     request.prefix = "今天的工作结束了。".into();
     assert!(matches!(
         session.propose(&request, &control),

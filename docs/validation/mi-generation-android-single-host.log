@@ -1,0 +1,53 @@
+INSTRUMENTATION_STATUS: class=org.mywubi.PredictionHostTest
+INSTRUMENTATION_STATUS: current=1
+INSTRUMENTATION_STATUS: id=AndroidJUnitRunner
+INSTRUMENTATION_STATUS: numtests=1
+INSTRUMENTATION_STATUS: stream=
+org.mywubi.PredictionHostTest:
+INSTRUMENTATION_STATUS: test=generatedDictionaryExternalWordsAppendInTheRealHost
+INSTRUMENTATION_STATUS_CODE: 1
+INSTRUMENTATION_STATUS: class=org.mywubi.PredictionHostTest
+INSTRUMENTATION_STATUS: current=1
+INSTRUMENTATION_STATUS: id=AndroidJUnitRunner
+INSTRUMENTATION_STATUS: numtests=1
+INSTRUMENTATION_STATUS: stack=java.lang.AssertionError: prediction visibility expected:<true> but was:<false>
+	at org.junit.Assert.fail(Assert.java:89)
+	at org.junit.Assert.failNotEquals(Assert.java:835)
+	at org.junit.Assert.assertEquals(Assert.java:120)
+	at org.mywubi.PredictionHostTest.runHost$expectPrediction(PredictionHostTest.kt:71)
+	at org.mywubi.PredictionHostTest.runHost(PredictionHostTest.kt:94)
+	at org.mywubi.PredictionHostTest.runHost$default(PredictionHostTest.kt:19)
+	at org.mywubi.PredictionHostTest.generatedDictionaryExternalWordsAppendInTheRealHost(PredictionHostTest.kt:14)
+
+INSTRUMENTATION_STATUS: stream=
+Error in generatedDictionaryExternalWordsAppendInTheRealHost(org.mywubi.PredictionHostTest):
+java.lang.AssertionError: prediction visibility expected:<true> but was:<false>
+	at org.junit.Assert.fail(Assert.java:89)
+	at org.junit.Assert.failNotEquals(Assert.java:835)
+	at org.junit.Assert.assertEquals(Assert.java:120)
+	at org.mywubi.PredictionHostTest.runHost$expectPrediction(PredictionHostTest.kt:71)
+	at org.mywubi.PredictionHostTest.runHost(PredictionHostTest.kt:94)
+	at org.mywubi.PredictionHostTest.runHost$default(PredictionHostTest.kt:19)
+	at org.mywubi.PredictionHostTest.generatedDictionaryExternalWordsAppendInTheRealHost(PredictionHostTest.kt:14)
+
+INSTRUMENTATION_STATUS: test=generatedDictionaryExternalWordsAppendInTheRealHost
+INSTRUMENTATION_STATUS_CODE: -2
+INSTRUMENTATION_RESULT: stream=
+
+Time: 75.035
+There was 1 failure:
+1) generatedDictionaryExternalWordsAppendInTheRealHost(org.mywubi.PredictionHostTest)
+java.lang.AssertionError: prediction visibility expected:<true> but was:<false>
+	at org.junit.Assert.fail(Assert.java:89)
+	at org.junit.Assert.failNotEquals(Assert.java:835)
+	at org.junit.Assert.assertEquals(Assert.java:120)
+	at org.mywubi.PredictionHostTest.runHost$expectPrediction(PredictionHostTest.kt:71)
+	at org.mywubi.PredictionHostTest.runHost(PredictionHostTest.kt:94)
+	at org.mywubi.PredictionHostTest.runHost$default(PredictionHostTest.kt:19)
+	at org.mywubi.PredictionHostTest.generatedDictionaryExternalWordsAppendInTheRealHost(PredictionHostTest.kt:14)
+
+FAILURES!!!
+Tests run: 1,  Failures: 1
+
+
+INSTRUMENTATION_CODE: -1

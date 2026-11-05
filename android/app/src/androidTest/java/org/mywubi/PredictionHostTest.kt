@@ -27,6 +27,7 @@ class PredictionHostTest {
         // Use a normal dictionary with both a single character and its complete word.
         fixture.writeText("---\ndisplay_name: 预测验收\n---\nb\t北\t100\nbj\t北京\t50\nt\t天气\t100\np\t预报\t100\nf\t五一\t100\nm\t分钟\t100\nw\t明天去\t100\n")
         val config=JSONObject(original.toString())
+        if(generated) fixture.appendText("v\t北京\t100\n")
         config.getJSONObject("dictionary").put("system_table",fixture.absolutePath).put("enable_user_dict",false)
         config.getJSONObject("basic").put("auto_commit_unique",false)
         config.put("prediction",JSONObject().put("enabled",true))
@@ -36,8 +37,8 @@ class PredictionHostTest {
             val source=if(generated) File(context.filesDir,"mi-generation-package") else ModelBackendTest().fixture(if(rejectModel) 0.0 else -100.0)
             org.junit.Assume.assumeTrue("provision licensed generation package",File(source,"manifest.json").isFile)
             ModelCatalog(context).call("Import","source" to source.absolutePath)
-            config.getJSONObject("prediction").put("wait_ms",1000).put("max_candidates",8)
-                .put("loading",if(lifecycle) "preload_keep" else "on_demand")
+            config.getJSONObject("prediction").put("wait_ms",1000).put("max_candidates",if(generated) 1 else 8)
+                .put("loading",if(generated || lifecycle) "preload_keep" else "on_demand")
                 .put("model",JSONObject().put("id",if(generated) "qwen25-words" else "instrumented-counts").put("version","v1"))
         }
         fun save(value:JSONObject,version:Long) {
@@ -67,7 +68,8 @@ class PredictionHostTest {
             } while(android.os.SystemClock.uptimeMillis()<end)
             device.takeScreenshot(File(context.filesDir,"prediction-failed-${if(withModel) "model" else "lexicon"}.png"))
             device.dumpWindowHierarchy(File(context.filesDir,"prediction-failed-${if(withModel) "model" else "lexicon"}.xml"))
-            assertEquals("prediction visibility",visible,actual)
+            val status=if(withModel) NativeBridge.inference("{\"op\":\"Status\"}".toByteArray()).toString(Charsets.UTF_8) else "lexicon"
+            assertEquals("prediction visibility; worker=$status",visible,actual)
         }
         try {
             save(config,loaded.getLong("version"))
@@ -82,18 +84,19 @@ class PredictionHostTest {
             if(device.hasObject(By.desc("英 → 中"))) key("英 → 中")
             assertTrue(device.wait(Until.hasObject(By.desc("b").pkg("org.mywubi").enabled(true)),15000))
             if(generated) {
+                android.os.SystemClock.sleep(3000)
                 // Each attempt is a fresh acknowledged commit; late responses
                 // from a cold load must not be used to pass this assertion.
-                repeat(3) {
-                    field.text="";field.click();key("w");candidate("明天去");expect("明天去")
+                for(attempt in 0..2) {
+                    field.text="";field.click();key("v");candidate("北京");expect("北京")
                     if(!device.wait(Until.hasObject(By.desc("字词预测")),1500)) android.os.SystemClock.sleep(1000)
-                    else return@repeat
+                    else break
                 }
                 expectPrediction(true)
-                candidate("出差");expect("明天去出差")
-                key("b");expect("明天去出差b")
+                candidate("市");expect("北京市")
+                key("b");expect("北京市b")
                 assertTrue(device.wait(Until.gone(By.desc("字词预测")),5000))
-                candidate("北");expect("明天去出差北")
+                candidate("北");expect("北京市北")
                 field.text="外部编辑";device.pressKeyCode(android.view.KeyEvent.KEYCODE_MOVE_END)
                 assertTrue(device.wait(Until.gone(By.desc("字词预测")),5000))
                 device.takeScreenshot(File(context.filesDir,"generation-host.png"))

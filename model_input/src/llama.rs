@@ -121,7 +121,8 @@ impl LlamaScorer {
         if tokens.is_empty() || tokens.len() + policy.max_tokens > self.context_tokens {
             return Err(Unavailable::Limit);
         }
-        let grammar = format!("root ::= \"[\" ws (word (ws \",\" ws word){{0,{}}})? ws \"]\"\nword ::= \"\\\"\" [一-鿿]{{1,{}}} \"\\\"\"\nws ::= [ \\t\\n]{{0,4}}", policy.max_words - 1, policy.max_chars);
+        let words = policy.max_words.min(request.limit);
+        let grammar = format!("root ::= \"[\" ws (word (ws \",\" ws word){{0,{}}})? ws \"]\"\nword ::= \"\\\"\" [一-鿿]{{1,{}}} \"\\\"\"\nws ::= [ \\t\\n]{{0,4}}", words - 1, policy.max_chars);
         let mut sampler = LlamaSampler::chain(
             [
                 LlamaSampler::grammar(model, &grammar, "root")
