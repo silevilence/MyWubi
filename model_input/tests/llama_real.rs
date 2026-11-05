@@ -11,6 +11,61 @@ use std::{
 };
 
 #[test]
+#[ignore = "requires the pinned Qwen2.5 GGUF; functional evidence, not quality"]
+fn real_generation_proposes_dictionary_external_words_and_stops_without_late_results() {
+    let path = std::env::var("MYWUBI_TEST_GGUF").unwrap();
+    let policy: model_input::generation::GenerationPolicy =
+        serde_json::from_str(include_str!("../evaluation/generation-policy.json")).unwrap();
+    assert!(policy.validates(&model_input::package::sha256(Path::new(&path)).unwrap()));
+    let backend = LlamaScorer::load(Path::new(&path), 1024, 2)
+        .unwrap()
+        .with_generation(policy);
+    let mut session = ModelSession::new(backend);
+    let template: ScoreRequest =
+        serde_json::from_str(include_str!("../evaluation/request.json")).unwrap();
+    let mut request = ProposalRequest {
+        key: template.key,
+        language: "zh".into(),
+        prefix: "明天去".into(),
+        limit: 3,
+    };
+    let mut control = ComputeControl {
+        cancellation: Cancellation::default(),
+        deadline: Instant::now() + Duration::from_secs(30),
+    };
+    let response = session.propose(&request, &control).unwrap();
+    assert!(response.words.len() >= 2);
+    let recalled =
+        core_engine::assistance::prediction::Lexicon::new(&[]).recall(&request.prefix, 64);
+    assert!(response
+        .words
+        .iter()
+        .any(|word| !recalled.iter().any(|c| &c.text == word)));
+    request.prefix = "今天的工作结束了。".into();
+    assert!(matches!(
+        session.propose(&request, &control),
+        Err(Unavailable::Empty)
+    ));
+    request.prefix = "明天去".into();
+    control.deadline = Instant::now() + Duration::from_millis(1);
+    assert!(matches!(
+        session.propose(&request, &control),
+        Err(Unavailable::Timeout)
+    ));
+    control.deadline = Instant::now() + Duration::from_secs(30);
+    let cancel = control.cancellation.clone();
+    let thread = std::thread::spawn(move || {
+        std::thread::sleep(Duration::from_millis(1));
+        cancel.cancel();
+    });
+    assert!(matches!(
+        session.propose(&request, &control),
+        Err(Unavailable::Cancelled)
+    ));
+    thread.join().unwrap();
+}
+
+#[test]
 #[ignore = "requires MYWUBI_TEST_GGUF, run explicitly with the recorded model"]
 fn real_cpu_scoring_preserves_identity_and_isolates_candidate_branches() {
     let path = std::env::var("MYWUBI_TEST_GGUF").expect("set MYWUBI_TEST_GGUF");

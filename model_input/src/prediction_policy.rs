@@ -72,6 +72,13 @@ impl ModelBackend for GatedBackend {
     fn reset(&mut self) {
         self.backend.reset();
     }
+    fn propose(
+        &mut self,
+        request: &ProposalRequest,
+        control: &ComputeControl,
+    ) -> Result<Vec<String>, Unavailable> {
+        self.backend.propose(request, control)
+    }
     fn score(
         &mut self,
         request: &ScoreRequest,

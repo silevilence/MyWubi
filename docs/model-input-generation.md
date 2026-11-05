@@ -16,3 +16,32 @@
 验证：`cargo test -p core_engine --test proposal_contract --test assistance_contract
 --test prediction_session --locked`。覆盖词典外多字结果、空召回、重复、非法片段、
 期限、取消、过期版本和评分后端兼容；生成后端与双端宿主验收记录见后续段落。
+
+## MI-22 真实 GGUF 生成（2026-11-05）
+
+使用原有固定 revision 的 [Qwen2.5-0.5B-Instruct-GGUF](https://huggingface.co/Qwen/Qwen2.5-0.5B-Instruct-GGUF)，
+Q4_K_M、Apache-2.0，权重 SHA-256 及生成参数在
+`model_input/evaluation/generation-policy.json`。GGUF 哈希也绑定内嵌分词器。
+新增适配器 `qwen25-short-words-v1` 使用固定 ChatML 提示、greedy 解码和有界 JSON
+语法；最多 64 token、3 候选、每项 6 字。解码拼接字节，完整 JSON/UTF-8 才发布。
+空前文和句末停止，重复词/前文重叠撤下，解释、未完成字符和超长生成不会成为词条。
+准入阈值只属于此生成策略，不复用评分阈值，不是准确率。
+
+本轮开发提示经过调整（允许 JSON 空白并增加独立示例），参数未接触 MI-26 保留集。
+真实测试验证“明天去”产生多个词典召回以外候选，空前文/句末停止，以及 decode
+期间取消、超时返回错误；旧评分真实测试继续通过。15 项模型模块测试和 3 项
+生成契约测试通过。Release 自编探针的全部结果见
+[原始记录](validation/mi-generation-probe.json)。其中“研究量子”的“化学/生物学”
+并不合理，不能将功能验收误读为质量达标。
+
+复现：
+
+```powershell
+$env:MYWUBI_TEST_GGUF = 'C:/models/qwen2.5-0.5b-instruct-q4_k_m.gguf'
+cargo test -p model_input --features llama-cpp-2 --test llama_real -- --include-ignored
+cargo run --release -p model_input --features llama-cpp-2 --bin generate-words -- $env:MYWUBI_TEST_GGUF model_input/evaluation/generation-policy.json model_input/evaluation/generation-prefixes.json
+python model_input/tools/package_model.py llama $env:MYWUBI_TEST_GGUF C:/model-package --generation-policy model_input/evaluation/generation-policy.json --id qwen25-words --version v1 --source https://huggingface.co/Qwen/Qwen2.5-0.5B-Instruct-GGUF --license Apache-2.0
+```
+
+包清单新增可选 `generation_policy`，缺省保持评分旧包行为；文件哈希、模型哈希、
+适配器、能力和预算均在导入/激活时验证。不在输入日志记录前文或生成内容。

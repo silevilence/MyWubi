@@ -41,6 +41,11 @@ name = "model_packages"
 path = "src/bin/model_packages.rs"
 
 [[bin]]
+name = "generate-words"
+path = "src/bin/generate_words.rs"
+required-features = ["llama-cpp-2"]
+
+[[bin]]
 name = "score-llama"
 path = "src/bin/score_llama.rs"
 required-features = ["llama-cpp-2"]

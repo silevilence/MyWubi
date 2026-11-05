@@ -129,7 +129,15 @@ fn word(value: &str) -> bool {
 /// Structural guard only. Linguistic word boundaries and stopping belong to the
 /// model-bound generation policy, not a dictionary membership test or token count.
 pub fn valid_proposal(prefix: &str, value: &str) -> bool {
-    word(value) && !prefix.ends_with(value) && !value.starts_with(prefix)
+    word(value)
+        && !prefix.is_empty()
+        && !value.starts_with(prefix)
+        && !value
+            .char_indices()
+            .skip(1)
+            .map(|(end, _)| &value[..end])
+            .chain(std::iter::once(value))
+            .any(|start| prefix.ends_with(start))
 }
 
 #[derive(Clone)]

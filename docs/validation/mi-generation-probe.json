@@ -1,0 +1,69 @@
+{
+  "load_ms": 391.64300000000003,
+  "model_sha256": "74a4da8c9fdbcd15bd1f6d01d621410d31c6fc00986f5eb687824e7b93d7a9db",
+  "policy": {
+    "adapter": "qwen25-short-words-v1",
+    "evidence": "MI-22 authored development probes, generation-specific raw mean log probability. Functional experiment only; no independent quality endorsement. Prompt/grammar/greedy decoding fixed by qwen25-short-words-v1; GGUF hash binds tokenizer.",
+    "max_chars": 6,
+    "max_tokens": 64,
+    "max_words": 3,
+    "minimum_mean_logprob": -3.0,
+    "model_sha256": "74a4da8c9fdbcd15bd1f6d01d621410d31c6fc00986f5eb687824e7b93d7a9db",
+    "version": 1
+  },
+  "rows": [
+    {
+      "error": null,
+      "ms": 1243.7556,
+      "prefix": "研究量子",
+      "words": [
+        "物理",
+        "化学",
+        "生物学"
+      ]
+    },
+    {
+      "error": null,
+      "ms": 856.6551,
+      "prefix": "明天去",
+      "words": [
+        "出差",
+        "探亲"
+      ]
+    },
+    {
+      "error": "LowConfidence",
+      "ms": 615.144,
+      "prefix": "量子纠",
+      "words": []
+    },
+    {
+      "error": "Empty",
+      "ms": 2.9379,
+      "prefix": "今天的工作结束了。",
+      "words": []
+    },
+    {
+      "error": "Empty",
+      "ms": 0.8116,
+      "prefix": "",
+      "words": []
+    },
+    {
+      "error": "LowConfidence",
+      "ms": 603.3602,
+      "prefix": "讨论光子晶",
+      "words": []
+    },
+    {
+      "error": null,
+      "ms": 924.4309000000001,
+      "prefix": "北京",
+      "words": [
+        "市",
+        "区",
+        "县"
+      ]
+    }
+  ]
+}

@@ -38,6 +38,8 @@ pub struct Manifest {
     /// Optional hashed JSON admission policy, bound to these exact model weights.
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub prediction_policy: Option<String>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub generation_policy: Option<String>,
     pub files: Vec<Artifact>,
     pub source: String,
     pub license: String,
@@ -66,6 +68,39 @@ pub enum PackageError {
 pub struct ValidatedPackage {
     pub root: PathBuf,
     pub manifest: Manifest,
+}
+
+fn generation_policy(
+    root: &Path,
+    manifest: &Manifest,
+) -> Result<Option<crate::generation::GenerationPolicy>, PackageError> {
+    let Some(name) = &manifest.generation_policy else {
+        return Ok(None);
+    };
+    let artifact = manifest
+        .files
+        .iter()
+        .find(|f| &f.path == name)
+        .ok_or(PackageError::Manifest)?;
+    if artifact.bytes > 64 * 1024 {
+        return Err(PackageError::Limit);
+    }
+    let model = manifest
+        .files
+        .iter()
+        .find(|f| f.path == manifest.model)
+        .ok_or(PackageError::Manifest)?;
+    let policy: crate::generation::GenerationPolicy =
+        serde_json::from_slice(&fs::read(root.join(safe_path(name)?))?)
+            .map_err(|_| PackageError::Manifest)?;
+    if manifest.backend != Backend::LlamaCpp
+        || manifest.adapter != crate::generation::ADAPTER
+        || !manifest.capabilities.proposes_words
+        || !policy.validates(&model.sha256)
+    {
+        return Err(PackageError::Manifest);
+    }
+    Ok(Some(policy))
 }
 
 fn prediction_policy(
@@ -219,7 +254,8 @@ pub fn validate(root: &Path) -> Result<ValidatedPackage, PackageError> {
     }
     let supported = match manifest.backend {
         Backend::LlamaCpp => {
-            manifest.adapter == "gguf-continuation-v1"
+            (manifest.adapter == "gguf-continuation-v1"
+                || manifest.adapter == crate::generation::ADAPTER)
                 && manifest.vocabulary.is_none()
                 && manifest.model.ends_with(".gguf")
         }
@@ -230,6 +266,11 @@ pub fn validate(root: &Path) -> Result<ValidatedPackage, PackageError> {
         }
     };
     if !supported {
+        return Err(PackageError::Manifest);
+    }
+    if manifest.capabilities.proposes_words != manifest.generation_policy.is_some()
+        || (manifest.adapter == crate::generation::ADAPTER) != manifest.generation_policy.is_some()
+    {
         return Err(PackageError::Manifest);
     }
     let mut names = BTreeSet::new();
@@ -272,6 +313,7 @@ pub fn validate(root: &Path) -> Result<ValidatedPackage, PackageError> {
     }
     reject_unlisted(&root, &root, &names)?;
     prediction_policy(&root, &manifest)?;
+    generation_policy(&root, &manifest)?;
     Ok(ValidatedPackage { root, manifest })
 }
 
@@ -418,11 +460,14 @@ pub fn load_with_threads(
             Backend::LlamaCpp => {
                 #[cfg(feature = "llama-cpp-2")]
                 {
-                    Ok(Box::new(crate::llama::LlamaScorer::load(
-                        &model,
-                        1024,
-                        i32::from(threads),
-                    )?))
+                    let scorer = crate::llama::LlamaScorer::load(&model, 1024, i32::from(threads))?;
+                    let scorer = match generation_policy(&checked.root, &checked.manifest)
+                        .map_err(|_| Unavailable::Load)?
+                    {
+                        Some(policy) => scorer.with_generation(policy),
+                        None => scorer,
+                    };
+                    Ok(Box::new(scorer))
                 }
                 #[cfg(not(feature = "llama-cpp-2"))]
                 {
@@ -586,6 +631,7 @@ mod tests {
                 model: "model.gguf".into(),
                 vocabulary: None,
                 prediction_policy: None,
+                generation_policy: None,
                 files: vec![Artifact {
                     path: "model.gguf".into(),
                     bytes: fs::metadata(root.join("model.gguf")).unwrap().len(),
@@ -646,6 +692,42 @@ mod tests {
         remove(&store, "fixture", "v1", None).unwrap();
         assert!(list(&store).unwrap().is_empty());
     }
+    #[test]
+    fn generation_policy_is_independent_and_bound_to_exact_gguf() {
+        let f = Fixture::new();
+        let source = f.package();
+        let mut manifest = validate(&source).unwrap().manifest;
+        manifest.adapter = crate::generation::ADAPTER.into();
+        manifest.capabilities.proposes_words = true;
+        manifest.generation_policy = Some("generation.json".into());
+        let mut policy: crate::generation::GenerationPolicy =
+            serde_json::from_str(include_str!("../evaluation/generation-policy.json")).unwrap();
+        policy.model_sha256 = manifest.files[0].sha256.clone();
+        let path = source.join("generation.json");
+        fs::write(&path, serde_json::to_vec(&policy).unwrap()).unwrap();
+        manifest.files.push(Artifact {
+            path: "generation.json".into(),
+            bytes: fs::metadata(&path).unwrap().len(),
+            sha256: sha256(&path).unwrap(),
+        });
+        fs::write(
+            source.join("manifest.json"),
+            serde_json::to_vec(&manifest).unwrap(),
+        )
+        .unwrap();
+        assert!(validate(&source).is_ok());
+        policy.model_sha256 = "b".repeat(64);
+        fs::write(&path, serde_json::to_vec(&policy).unwrap()).unwrap();
+        manifest.files[1].bytes = fs::metadata(&path).unwrap().len();
+        manifest.files[1].sha256 = sha256(&path).unwrap();
+        fs::write(
+            source.join("manifest.json"),
+            serde_json::to_vec(&manifest).unwrap(),
+        )
+        .unwrap();
+        assert!(matches!(validate(&source), Err(PackageError::Manifest)));
+    }
+
     #[test]
     fn prediction_policy_requires_hash_integrity_and_the_exact_model() {
         let f = Fixture::new();

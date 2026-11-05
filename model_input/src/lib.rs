@@ -1,6 +1,7 @@
 //! Optional model adapters and offline evaluation. Never linked into the TSF DLL.
 pub mod catalog;
 pub mod evaluation;
+pub mod generation;
 #[cfg(feature = "llama-cpp-2")]
 pub mod llama;
 #[cfg(feature = "ort")]

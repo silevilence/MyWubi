@@ -5,6 +5,7 @@ use llama_cpp_2::{
     llama_backend::LlamaBackend,
     llama_batch::LlamaBatch,
     model::{params::LlamaModelParams, LlamaModel},
+    sampling::LlamaSampler,
     token::LlamaToken,
 };
 use std::{num::NonZeroU32, path::Path, sync::OnceLock};
@@ -34,6 +35,7 @@ pub struct LlamaScorer {
     prefix_logits: Vec<f32>,
     prefix_log_normalizer: f64,
     context_tokens: usize,
+    generation: Option<crate::generation::GenerationPolicy>,
 }
 
 impl LlamaScorer {
@@ -85,6 +87,91 @@ impl LlamaScorer {
             prefix_logits: vec![],
             prefix_log_normalizer: 0.,
             context_tokens: context_tokens as usize,
+            generation: None,
+        })
+    }
+
+    /// Enable only a separately validated, model-bound generation package.
+    pub fn with_generation(mut self, policy: crate::generation::GenerationPolicy) -> Self {
+        self.capabilities.proposes_words = true;
+        self.generation = Some(policy);
+        self
+    }
+
+    fn generate(
+        &mut self,
+        request: &ProposalRequest,
+        control: &ComputeControl,
+    ) -> Result<Vec<String>, Unavailable> {
+        request.validate(&self.capabilities)?;
+        let policy = self.generation.as_ref().ok_or(Unavailable::Uncalibrated)?;
+        control.check()?;
+        if request.prefix.ends_with(['。', '！', '？', '\n']) {
+            return Err(Unavailable::Empty);
+        }
+        // Encode user text separately with special-token parsing disabled. A
+        // literal ChatML marker in the host must not become a role delimiter.
+        let model = &self.cell.borrow_owner().model;
+        let vocab = model.vocab();
+        let mut tokens = vocab.tokenize(b"<|im_start|>system\n", true, true);
+        tokens.extend(vocab.tokenize("补全前文的下一个词。仅输出新增部分，最多三个候选，JSON数组。例如前文“我想喝”，输出[“水”,“茶”,“咖啡”]。不要重复前文或生成句子。无法续接输出[]。".as_bytes(), false, false));
+        tokens.extend(vocab.tokenize(b"<|im_end|>\n<|im_start|>user\n", false, true));
+        tokens.extend(vocab.tokenize(format!("前文：{}", request.prefix).as_bytes(), false, false));
+        tokens.extend(vocab.tokenize(b"<|im_end|>\n<|im_start|>assistant\n", false, true));
+        if tokens.is_empty() || tokens.len() + policy.max_tokens > self.context_tokens {
+            return Err(Unavailable::Limit);
+        }
+        let grammar = format!("root ::= \"[\" ws (word (ws \",\" ws word){{0,{}}})? ws \"]\"\nword ::= \"\\\"\" [一-鿿]{{1,{}}} \"\\\"\"\nws ::= [ \\t\\n]{{0,4}}", policy.max_words - 1, policy.max_chars);
+        let mut sampler = LlamaSampler::chain(
+            [
+                LlamaSampler::grammar(model, &grammar, "root")
+                    .map_err(|_| Unavailable::UnsupportedModel)?,
+                LlamaSampler::greedy(),
+            ],
+            true,
+        );
+        self.cell.with_dependent_mut(|owner, context| {
+            context.clear_kv_cache();
+            let mut batch = LlamaBatch::new(tokens.len(), 1);
+            batch
+                .add_sequence(&tokens, 0, false)
+                .map_err(|_| Unavailable::Inference)?;
+            context
+                .decode(&mut batch)
+                .map_err(|_| Unavailable::Inference)?;
+            let mut bytes = Vec::new();
+            let mut sum = 0.;
+            let mut index = (tokens.len() - 1) as i32;
+            for step in 0..policy.max_tokens {
+                control.check()?;
+                let token = sampler.sample(context, index);
+                if owner.model.vocab().is_eog(token) {
+                    return Err(Unavailable::Empty);
+                }
+                sum += log_probability(context.get_logits_ith(index), token)?;
+                bytes.extend(owner.model.vocab().token_to_piece(token, false, None));
+                if bytes.len() > 1024 {
+                    return Err(Unavailable::Limit);
+                }
+                if bytes.last() == Some(&b']') {
+                    control.check()?;
+                    return policy.finish(
+                        &request.prefix,
+                        &bytes,
+                        sum / (step + 1) as f32,
+                        request.limit,
+                    );
+                }
+                let mut batch = LlamaBatch::new(1, 1);
+                batch
+                    .add(token, (tokens.len() + step) as i32, &[0], true)
+                    .map_err(|_| Unavailable::Inference)?;
+                context
+                    .decode(&mut batch)
+                    .map_err(|_| Unavailable::Inference)?;
+                index = 0;
+            }
+            Err(Unavailable::Limit)
         })
     }
 
@@ -189,6 +276,15 @@ impl ModelBackend for LlamaScorer {
         self.prefix_logits.clear();
         self.cell
             .with_dependent_mut(|_, context| context.clear_kv_cache());
+    }
+    fn propose(
+        &mut self,
+        request: &ProposalRequest,
+        control: &ComputeControl,
+    ) -> Result<Vec<String>, Unavailable> {
+        let result = self.generate(request, control);
+        self.reset();
+        result
     }
     fn score(
         &mut self,
