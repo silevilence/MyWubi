@@ -71,6 +71,7 @@ pub fn exchange(bytes: &[u8]) -> Vec<u8> {
         match &request {
             Request::List { .. } => {}
             Request::Import { source, .. } => {
+                crate::compatibility::check(source).map_err(|e| e.to_string())?;
                 catalog.import(source).map_err(|e| e.to_string())?;
             }
             Request::Remove { selection, .. } => catalog

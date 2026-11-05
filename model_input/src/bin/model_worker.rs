@@ -1,6 +1,23 @@
 #![cfg_attr(windows, windows_subsystem = "windows")]
 #[cfg(windows)]
 fn main() {
+    if std::env::args().any(|arg| arg == "--trial") {
+        use std::io::{Read, Write};
+        let mut input = Vec::new();
+        if std::io::stdin()
+            .take(65537)
+            .read_to_end(&mut input)
+            .is_err()
+        {
+            return;
+        }
+        #[cfg(feature = "ort")]
+        if let Ok(exe) = std::env::current_exe() {
+            let _ = model_input::onnx::initialize_runtime(&exe.with_file_name("onnxruntime.dll"));
+        }
+        let _ = std::io::stdout().write_all(&model_input::trial::exchange(&input));
+        return;
+    }
     if std::env::args().any(|arg| arg == "--features") {
         let features = model_input::service::BackendAvailability::compiled();
         #[cfg(feature = "ort")]

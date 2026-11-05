@@ -1,0 +1,8 @@
+    Finished `release` profile [optimized] target(s) in 0.40s
+     Running tests\trial.rs (target\release\deps\trial-d707701e1ca281d2.exe)
+
+running 1 test
+{"words":["市"],"load_ms":4312,"predict_ms":380,"notice":"仅证明此样例兼容运行；空候选表示无召回或未过准入。不是质量认证，未选择模型或更改预测开关。"}
+test real_local_package_import_and_trial_preserve_config ... ok
+
+test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 2 filtered out; finished in 8.13s

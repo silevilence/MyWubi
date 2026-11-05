@@ -1,0 +1,12 @@
+    Blocking waiting for file lock on build directory
+   Compiling core_engine v0.6.2 (C:\code\rust\MyWubi\core_engine)
+   Compiling model_input v0.6.2 (C:\code\rust\MyWubi\model_input)
+    Finished `test` profile [unoptimized + debuginfo] target(s) in 2m 33s
+     Running tests\trial.rs (target\debug\deps\trial-664593a84174e904.exe)
+
+running 3 tests
+test real_local_package_import_and_trial_preserve_config ... ignored, requires explicitly prepared real local GGUF and llama backend
+test malformed_requests_and_oversized_metadata_are_bounded ... ok
+test import_and_trial_diagnose_four_failures_without_changing_saved_model ... ok
+
+test result: ok. 2 passed; 0 failed; 1 ignored; 0 measured; 0 filtered out; finished in 0.67s

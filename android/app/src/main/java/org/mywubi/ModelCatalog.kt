@@ -54,7 +54,14 @@ class ModelCatalog(private val context: Context) {
         try {
             for(i in 0 until files.length()) {
                 val entry=files.getJSONObject(i); val path=entry.getString("path")
-                val uri=document(path)
+                val uri=try {document(path)} catch(e:IllegalStateException) {
+                    val reason=when(path) {
+                        manifest.optString("vocabulary") -> "缺少分词器：character-step-v1 必须包含已校验的 vocabulary.json"
+                        manifest.optString("prediction_policy"),manifest.optString("generation_policy") -> "缺少预测策略：请提供与权重绑定的评分准入策略或生成策略；不能用于字词预测"
+                        else -> "模型包损坏或不完整：${e.message}；请重新准备并校验模型包"
+                    }
+                    error(reason)
+                }
                 val output=File(stage,path)
                 check(output.canonicalPath.startsWith(stage.canonicalPath+File.separator))
                 output.parentFile!!.mkdirs()

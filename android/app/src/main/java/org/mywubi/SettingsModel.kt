@@ -91,6 +91,24 @@ class SettingsModel(application: Application) : AndroidViewModel(application) {
         val next=modelList(ModelCatalog(app).call("Remove","selection" to selection))
         val publish:()->Unit={models=next;message="未选模型已移除"};publish
     }
+    var trialResult by mutableStateOf(""); private set
+    var trialRunning by mutableStateOf(false); private set
+    fun clearTrialResult() { trialResult="" }
+    fun trialModel(name:String,prefix:String) {
+      if(busy) return
+      trialResult=""
+      trialRunning=true
+      work {
+        check(models.any {"${it.getString("id")}--${it.getString("version")}"==name}) {"请选择已校验模型"}
+        val request=JSONObject().put("package",File(store.configFile.parentFile,"models/$name").absolutePath)
+            .put("prefix",prefix).put("wait_ms",1000).put("threads",4)
+        val reply=JSONObject(NativeBridge.modelTrial(request.toString().toByteArray()).toString(Charsets.UTF_8))
+        val text=if(reply.optBoolean("ok")) reply.getJSONObject("value").let {
+            "候选：${it.getJSONArray("words")}\n加载与预热 ${it.getLong("load_ms")} ms；推理 ${it.getLong("predict_ms")} ms\n${it.getString("notice")}" }
+        else "${reply.optString("error")}（总耗时 ${reply.optLong("elapsed_ms")} ms）"
+        val publish:()->Unit={trialResult=text};publish
+      }
+    }
     val ui = app.getSharedPreferences("android-ui", 0)
 
     val tableLabel: String get() {
@@ -108,9 +126,9 @@ class SettingsModel(application: Application) : AndroidViewModel(application) {
         worker.execute {
             try {
                 val publish = operation()
-                main.post { publish(); busy = false; if (closed) expected?.close() }
+                main.post { publish(); busy = false; trialRunning = false; if (closed) expected?.close() }
             } catch (e: Exception) {
-                main.post { if (!closed) { message = e.message ?: "操作失败，草稿已保留"; busy = false } }
+                main.post { if (!closed) { message = e.message ?: "操作失败，草稿已保留"; busy = false; trialRunning = false } }
             }
         }
     }

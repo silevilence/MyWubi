@@ -17,3 +17,5 @@ pub mod state;
 pub mod vpk;
 
 pub mod table_session;
+
+pub mod model_trial;

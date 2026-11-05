@@ -1,0 +1,14 @@
+[
+  {
+    "Path": "C:\\code\\rust\\MyWubi\\target\\mi30-sandbox\\settings.exe",
+    "Hash": "0FDE2715C75AE664ACD02B10EB429DDFD7AA90EA695ACCBF50CA163AECFBCDF2"
+  },
+  {
+    "Path": "C:\\code\\rust\\MyWubi\\target\\mi30-sandbox\\model-worker.exe",
+    "Hash": "BFE3EF8AB6660404EF7DB0D176CF8AF17AC1F72B08B925739DC68EE8C9F10DE5"
+  },
+  {
+    "Path": "C:\\code\\rust\\MyWubi\\target\\mi30-sandbox\\im_engine.dll",
+    "Hash": "C70441B28EAFE84B2BD8A9361F5DD1A3165E04D5AEB8A2422F4B7F0EA0FC4BB8"
+  }
+]

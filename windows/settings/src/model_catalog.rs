@@ -25,6 +25,7 @@ pub fn prepare_saved_model(path: &std::path::Path) -> Result<(), String> {
 pub struct ModelCatalog {
     downloads: crate::model_downloads::ModelDownloads,
     download_refresh: bool,
+    trial: crate::model_trial::ModelTrial,
     packages: Vec<Manifest>,
     worker: Option<mpsc::Receiver<Result<Vec<Manifest>, String>>>,
     message: String,
@@ -93,6 +94,8 @@ impl ModelCatalog {
                             .set_title("选择包含 manifest.json 的模型包目录")
                             .pick_folder()
                         {
+                            model_input::compatibility::check(&source)
+                                .map_err(|e| e.to_string())?;
                             catalog.import(&source).map_err(|e| e.to_string())?;
                         }
                     }
@@ -143,6 +146,7 @@ impl ModelCatalog {
                 self.download_refresh = false;
                 self.start(path.into(), Operation::List, ui.ctx().clone());
             }
+            self.trial.show(ui,path,&self.packages);
             ui.small("模型完全在本地运行。基础词典预测无需模型；只支持公开规范中的模型包。");
             if self.last_status.is_none_or(|t| t.elapsed() >= std::time::Duration::from_secs(2)) { self.refresh_status(ui.ctx().clone()); }
             ui.ctx().request_repaint_after(std::time::Duration::from_secs(2));

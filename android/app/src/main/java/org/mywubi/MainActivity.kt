@@ -87,7 +87,9 @@ private fun SettingsScreen(model: SettingsModel, enable: () -> Unit, choose: () 
                 Button(onClick = { model.importPackage(selectedMain, pinyin.takeIf { it >= 0 }, english.takeIf { it >= 0 }) }, enabled = selectedMain in pack.files.indices && !model.busy) { Text("校验并导入") }
                 OutlinedButton(onClick = model::cancelImport, enabled = !model.busy) { Text("取消本次导入") }
             }
-            if (model.busy) LinearProgressIndicator(Modifier.fillMaxWidth())
+            // Trial inference shares the device CPU; avoid a continuously
+            // animated progress bar competing with its bounded request.
+            if (model.busy && !model.trialRunning) LinearProgressIndicator(Modifier.fillMaxWidth())
             if (model.message.isNotEmpty()) Text(model.message, color = MaterialTheme.colorScheme.primary, modifier = Modifier.semantics { liveRegion = LiveRegionMode.Polite })
             ApplyStatus(model)
             HorizontalDivider()
@@ -182,6 +184,7 @@ private fun PredictionModels(model:SettingsModel, prediction:JSONObject, import:
     OutlinedButton(onClick={expanded=!expanded}) { Text(if(expanded) "收起预测模型与资源" else "预测模型与资源") }
     if(!expanded) return
     DownloadModels(model)
+    ModelTrial(model)
     LaunchedEffect(expanded) { while(true) { model.refreshModelStatus(); kotlinx.coroutines.delay(2000) } }
     Text(if(model.dirty) "预测设置有未保存更改" else "显示已保存设置；实际运行状态单独查询")
     Text("模型仅在本地运行。基础词典预测无需模型；尚无通过质量验收的推荐模型。")
