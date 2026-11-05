@@ -126,6 +126,12 @@ fn word(value: &str) -> bool {
             .all(|c| matches!(c, '\u{3400}'..='\u{9fff}' | '\u{20000}'..='\u{323af}'))
 }
 
+/// Structural guard only. Linguistic word boundaries and stopping belong to the
+/// model-bound generation policy, not a dictionary membership test or token count.
+pub fn valid_proposal(prefix: &str, value: &str) -> bool {
+    word(value) && !prefix.ends_with(value) && !value.starts_with(prefix)
+}
+
 #[derive(Clone)]
 pub struct Prediction {
     pub query: QueryRevision,

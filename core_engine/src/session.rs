@@ -332,7 +332,9 @@ impl Session {
                 self.config.basic.candidate_count
             }),
         );
-        if !items.is_empty() {
+        if !items.is_empty()
+            || (self.config.prediction.model.is_some() && !self.prefix.prefix().trim().is_empty())
+        {
             let prediction = crate::assistance::prediction::Prediction::new(items);
             if self.config.prediction.model.is_some() {
                 use crate::assistance::*;

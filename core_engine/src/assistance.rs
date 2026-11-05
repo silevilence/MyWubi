@@ -238,11 +238,76 @@ impl ComputeControl {
 }
 
 /// Optional single-word continuation proposal input (never full-sentence completion).
+#[derive(Clone, Serialize, Deserialize)]
+#[serde(deny_unknown_fields)]
 pub struct ProposalRequest {
     pub key: RequestKey,
     pub language: String,
     pub prefix: String,
     pub limit: usize,
+}
+
+impl ProposalRequest {
+    pub fn validate(&self, caps: &Capabilities) -> Result<(), Unavailable> {
+        if caps.protocol != PROTOCOL_VERSION {
+            return Err(Unavailable::Protocol);
+        }
+        if !caps.proposes_words
+            || !caps.tasks.contains(&Task::Predict)
+            || !caps.languages.contains(&self.language)
+        {
+            return Err(Unavailable::Capability);
+        }
+        if self.limit == 0
+            || self.limit > caps.max_candidates.min(64)
+            || self.prefix.chars().count() > caps.max_context_chars.min(256)
+        {
+            return Err(Unavailable::Limit);
+        }
+        if self.prefix.trim().is_empty() {
+            return Err(Unavailable::Empty);
+        }
+        Ok(())
+    }
+}
+
+/// Complete short continuations, independent of all dictionaries. Array order
+/// determines identity within `key.query`; no score is presented as accuracy.
+#[derive(Clone, Serialize, Deserialize)]
+#[serde(deny_unknown_fields)]
+pub struct ProposalResponse {
+    pub protocol: u32,
+    pub key: RequestKey,
+    pub words: Vec<String>,
+}
+impl ProposalResponse {
+    pub fn validate(
+        &self,
+        request: &ProposalRequest,
+        current: RequestKey,
+    ) -> Result<(), Unavailable> {
+        if self.protocol != PROTOCOL_VERSION {
+            return Err(Unavailable::Protocol);
+        }
+        if self.key != request.key || self.key != current {
+            return Err(Unavailable::Stale);
+        }
+        if self.words.is_empty() {
+            return Err(Unavailable::Empty);
+        }
+        if self.words.len() > request.limit.min(64) {
+            return Err(Unavailable::Limit);
+        }
+        let mut seen = HashSet::new();
+        if self
+            .words
+            .iter()
+            .any(|word| !prediction::valid_proposal(&request.prefix, word) || !seen.insert(word))
+        {
+            return Err(Unavailable::Proposals);
+        }
+        Ok(())
+    }
 }
 
 /// Implementations must isolate state to this owner. Switching owner/reset must discard
@@ -314,6 +379,33 @@ impl<B: ModelBackend> ModelSession<B> {
     pub fn reset(&mut self) {
         self.backend.reset();
         self.owner = None;
+    }
+    pub fn proposes_words(&self) -> bool {
+        self.backend.capabilities().proposes_words
+    }
+
+    pub fn propose(
+        &mut self,
+        request: &ProposalRequest,
+        control: &ComputeControl,
+    ) -> Result<ProposalResponse, Unavailable> {
+        let result = (|| {
+            control.check()?;
+            request.validate(self.backend.capabilities())?;
+            // Generation starts from confirmed text only, never a previous branch.
+            self.reset();
+            let words = self.backend.propose(request, control)?;
+            control.check()?;
+            let response = ProposalResponse {
+                protocol: PROTOCOL_VERSION,
+                key: request.key,
+                words,
+            };
+            response.validate(request, request.key)?;
+            Ok(response)
+        })();
+        self.reset();
+        result
     }
     pub fn score(
         &mut self,

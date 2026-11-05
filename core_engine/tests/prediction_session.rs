@@ -41,6 +41,22 @@ fn north(s: &mut Session) {
 }
 
 #[test]
+fn selected_model_can_receive_confirmed_context_without_dictionary_recall() {
+    let mut r = runtime(true, 1);
+    r.config.prediction.model = Some(config::ModelSelection {
+        id: "generator".into(),
+        version: "v1".into(),
+    });
+    let mut s = Session::new(&r, BehaviorProfile::TouchV1, HostContext::default());
+    apply(&mut s, Action::InputText('龘', TextIntent::Literal));
+    let request = s.prediction_request().unwrap();
+    assert_eq!(request.prefix, "龘");
+    assert!(request.candidates.is_empty());
+    assert!(!s.has_prediction());
+    assert!(!s.would_handle(&Action::Space));
+}
+
+#[test]
 fn visible_predictions_accept_space_and_number_keys_without_literal_characters() {
     for profile in [BehaviorProfile::LegacyV1, BehaviorProfile::TouchV1] {
         for action in [
