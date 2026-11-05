@@ -4,13 +4,23 @@ use core_engine::{
     assistance::{RequestKey, ScoreRequest},
     config::PredictionConfig,
 };
-use std::{path::PathBuf, sync::Mutex};
+use std::{
+    path::PathBuf,
+    sync::{
+        atomic::{AtomicBool, Ordering},
+        Mutex,
+    },
+};
 
 #[derive(serde::Serialize, serde::Deserialize)]
 #[serde(tag = "op", deny_unknown_fields)]
 pub enum Command {
     Features,
     Configure {
+        root: PathBuf,
+        config: PredictionConfig,
+    },
+    Prepare {
         root: PathBuf,
         config: PredictionConfig,
     },
@@ -30,8 +40,23 @@ pub enum Command {
 #[derive(Default)]
 pub struct Endpoint {
     worker: Mutex<Option<(PathBuf, Worker)>>,
+    pressure: AtomicBool,
+    user_paused: AtomicBool,
 }
 impl Endpoint {
+    pub fn resource_pressure(&self, low: bool) {
+        if let Ok(slot) = self.worker.lock() {
+            self.pressure.store(low, Ordering::Relaxed);
+            if let Some((_, worker)) = slot.as_ref() {
+                worker.pause(low || self.user_paused.load(Ordering::Relaxed));
+            }
+        }
+    }
+    pub fn keep_alive(&self) -> bool {
+        self.worker
+            .lock()
+            .is_ok_and(|slot| slot.as_ref().is_some_and(|(_, worker)| worker.keep_alive()))
+    }
     pub fn exchange(&self, bytes: &[u8]) -> Vec<u8> {
         let result = (|| -> Result<serde_json::Value, String> {
             if bytes.len() > 64 * 1024 {
@@ -47,7 +72,7 @@ impl Endpoint {
                 Command::Features => Ok(
                     serde_json::json!({"llama":cfg!(feature="llama-cpp-2"),"onnx":cfg!(feature="ort")}),
                 ),
-                Command::Configure { root, config } => {
+                Command::Configure { root, config } | Command::Prepare { root, config } => {
                     if !root.is_absolute() {
                         return Err("model store must be absolute".into());
                     }
@@ -68,12 +93,17 @@ impl Endpoint {
                         *path = root.clone();
                         worker.configure_root(root, config);
                     }
+                    self.user_paused.store(false, Ordering::Relaxed);
+                    if let Some((_, worker)) = slot.as_ref() {
+                        worker.pause(self.pressure.load(Ordering::Relaxed));
+                    }
                     Ok(serde_json::Value::Null)
                 }
                 Command::Close => {
                     // Retain one sleeping thread. Rapid close/reopen or root
                     // switches must not create concurrent uncancellable loaders.
                     if let Some((_, worker)) = slot.as_ref() {
+                        self.user_paused.store(true, Ordering::Relaxed);
                         worker.pause(true);
                         worker.configure(PredictionConfig::default());
                     }
@@ -94,7 +124,8 @@ impl Endpoint {
                             Ok(serde_json::Value::Null)
                         }
                         Command::Pause { paused } => {
-                            worker.pause(paused);
+                            self.user_paused.store(paused, Ordering::Relaxed);
+                            worker.pause(paused || self.pressure.load(Ordering::Relaxed));
                             Ok(serde_json::Value::Null)
                         }
                         Command::Status => Ok(serde_json::json!(worker.phase())),

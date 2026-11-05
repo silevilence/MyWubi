@@ -53,3 +53,5 @@ wait_ms = 200
 threads = 2
 max_candidates = 16
 idle_seconds = 60
+# on_demand：首次请求时加载；preload_keep：后台预热并保持，资源压力时可释放。
+loading = "on_demand"

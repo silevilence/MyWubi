@@ -33,6 +33,10 @@ name = "model-worker"
 path = "src/bin/model_worker.rs"
 
 [[bin]]
+name = "probe-preload"
+path = "src/bin/probe_preload.rs"
+
+[[bin]]
 name = "probe-service"
 path = "src/bin/probe_service.rs"
 

@@ -1,0 +1,6 @@
+{"event":"prepared","loading":"on_demand","ms":3.0263999999999998,"phase":"Idle"}
+{"event":"first","ms":1103.2732,"phase":"Loading","result":null}
+{"event":"warm","ms":1106.4145,"phase":"Ready","result":null}
+{"event":"after_idle","ms":1101.0420000000001,"phase":"Loading","result":null}
+{"event":"released","phase":"Paused"}
+{"event":"resumed","ms":0.0009,"phase":"Paused"}

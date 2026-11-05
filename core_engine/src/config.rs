@@ -44,6 +44,14 @@ pub struct PredictionConfig {
     pub threads: u8,
     pub max_candidates: u8,
     pub idle_seconds: u16,
+    pub loading: ModelLoading,
+}
+#[derive(Debug, Clone, Copy, Default, PartialEq, Eq, Serialize, Deserialize)]
+#[serde(rename_all = "snake_case")]
+pub enum ModelLoading {
+    #[default]
+    OnDemand,
+    PreloadKeep,
 }
 impl Default for PredictionConfig {
     fn default() -> Self {
@@ -54,6 +62,7 @@ impl Default for PredictionConfig {
             threads: 2,
             max_candidates: 16,
             idle_seconds: 60,
+            loading: ModelLoading::OnDemand,
         }
     }
 }
@@ -558,6 +567,14 @@ mod prediction_config_tests {
         assert_eq!(
             Config::from_str("").unwrap().prediction,
             PredictionConfig::default()
+        );
+        let preload = Config::from_str("[prediction]\nloading='preload_keep'\n").unwrap();
+        assert_eq!(preload.prediction.loading, ModelLoading::PreloadKeep);
+        assert_eq!(
+            Config::from_str(&preload.to_string_toml().unwrap())
+                .unwrap()
+                .prediction,
+            preload.prediction
         );
         for fragment in [
             "wait_ms=0",

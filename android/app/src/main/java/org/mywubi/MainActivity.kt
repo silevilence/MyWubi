@@ -211,6 +211,9 @@ private fun PredictionModels(model:SettingsModel, prediction:JSONObject, import:
             OutlinedButton(onClick={model.removeModel(identity)},enabled=!model.busy && !active) {Text("移除未选模型")}
         }
     }
+    SettingToggle("提前加载模型（隐藏或资源紧张时释放）", prediction.optString("loading","on_demand")=="preload_keep", !model.busy) {
+        model.change("prediction", "loading", if(it) "preload_keep" else "on_demand")
+    }
     for((key,label,range,default) in listOf(
         Budget("wait_ms","最长等待（毫秒）",50..1000,200),
         Budget("threads","CPU 线程",1..4,2),

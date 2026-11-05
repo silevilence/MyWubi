@@ -330,6 +330,51 @@ pub trait ModelBackend: Send {
         control: &ComputeControl,
     ) -> Result<ScoreResponse, Unavailable>;
     fn reset(&mut self);
+    /// A short decode of fixed, non-user text. Always discard its private state.
+    fn warmup(&mut self, control: &ComputeControl) -> Result<(), Unavailable> {
+        control.check()?;
+        let task = if self.capabilities().tasks.contains(&Task::Rank) {
+            Task::Rank
+        } else {
+            Task::Predict
+        };
+        let request = ScoreRequest {
+            protocol: PROTOCOL_VERSION,
+            key: RequestKey {
+                edit: EditToken {
+                    session: 0,
+                    generation: 0,
+                    editor: 0,
+                    epoch: 0,
+                    runtime: 0,
+                },
+                query: QueryRevision {
+                    engine: 0,
+                    version: 0,
+                },
+                view: 0,
+                context: 0,
+                model: 0,
+                config: 0,
+                request: 0,
+            },
+            task,
+            language: "zh".into(),
+            prefix: "预热".into(),
+            code: if task == Task::Rank {
+                "a".into()
+            } else {
+                String::new()
+            },
+            candidates: vec![ScoringCandidate {
+                id: CandidateId(0),
+                text: "完成".into(),
+            }],
+        };
+        let result = self.score(&request, control).map(|_| ());
+        self.reset();
+        result.and_then(|()| control.check())
+    }
     fn propose(
         &mut self,
         _request: &ProposalRequest,
@@ -352,6 +397,9 @@ impl<B: ModelBackend + ?Sized> ModelBackend for Box<B> {
     }
     fn reset(&mut self) {
         (**self).reset();
+    }
+    fn warmup(&mut self, control: &ComputeControl) -> Result<(), Unavailable> {
+        (**self).warmup(control)
     }
     fn propose(
         &mut self,

@@ -8,11 +8,13 @@ use std::{
 struct Job {
     root: PathBuf,
     config: PredictionConfig,
-    request: ScoreRequest,
+    request: Option<ScoreRequest>,
 }
 #[derive(Default)]
 struct State {
     pending: Option<Job>,
+    configuration: Option<(PathBuf, PredictionConfig)>,
+    prepare: bool,
     current: Option<RequestKey>,
     result: Option<(RequestKey, Result<PredictionResponse, Unavailable>)>,
     clear: bool,
@@ -50,6 +52,19 @@ impl Client {
             thread: Some(thread),
         })
     }
+    pub fn prepare(&self, root: PathBuf, config: PredictionConfig) {
+        if let Ok(mut s) = self.shared.0.lock() {
+            if s.configuration
+                .as_ref()
+                .is_none_or(|(p, c)| p != &root || c != &config)
+            {
+                s.configuration = Some((root, config));
+                s.prepare = true;
+                s.released = false;
+                self.shared.1.notify_one();
+            }
+        }
+    }
     pub fn submit(&self, root: PathBuf, config: PredictionConfig, request: ScoreRequest) {
         if let Ok(mut s) = self.shared.0.lock() {
             if s.current == Some(request.key) {
@@ -61,7 +76,7 @@ impl Client {
             s.pending = Some(Job {
                 root,
                 config,
-                request,
+                request: Some(request),
             });
             self.shared.1.notify_one();
         }
@@ -79,6 +94,8 @@ impl Client {
     pub fn release(&self) {
         self.invalidate();
         if let Ok(mut s) = self.shared.0.lock() {
+            s.configuration = None;
+            s.prepare = false;
             if !s.released {
                 s.release = true;
                 s.released = true;
@@ -126,7 +143,7 @@ fn run(shared: Arc<(Mutex<State>, Condvar)>, program: PathBuf) {
     loop {
         let job = {
             let Ok(mut s) = shared.0.lock() else { return };
-            while s.pending.is_none() && !s.clear && !s.release && !s.closed {
+            while s.pending.is_none() && !s.prepare && !s.clear && !s.release && !s.closed {
                 s = match shared.1.wait(s) {
                     Ok(s) => s,
                     Err(_) => return,
@@ -147,13 +164,29 @@ fn run(shared: Arc<(Mutex<State>, Condvar)>, program: PathBuf) {
                 let _ = exchange(serde_json::json!({"op":"Invalidate"}));
                 continue;
             }
-            s.pending.take().unwrap()
+            if let Some(job) = s.pending.take() {
+                job
+            } else {
+                s.prepare = false;
+                let Some((root, config)) = &s.configuration else {
+                    continue;
+                };
+                Job {
+                    root: root.clone(),
+                    config: config.clone(),
+                    request: None,
+                }
+            }
         };
-        let key = job.request.key;
-        let deadline = Instant::now() + Duration::from_millis(u64::from(job.config.wait_ms));
+        let key = job.request.as_ref().map(|r| r.key);
+        let deadline = Instant::now()
+            + if key.is_some() {
+                Duration::from_millis(u64::from(job.config.wait_ms))
+            } else {
+                Duration::from_secs(5)
+            };
         let result = (|| {
-            let configure =
-                serde_json::json!({"op":"Configure","root":job.root,"config":job.config});
+            let configure = serde_json::json!({"op":if key.is_some() {"Configure"} else {"Prepare"},"root":job.root,"config":job.config});
             if exchange(configure.clone()).is_err() {
                 if last_launch.elapsed() < Duration::from_secs(1) {
                     return Err(Unavailable::Load);
@@ -164,11 +197,16 @@ fn run(shared: Arc<(Mutex<State>, Condvar)>, program: PathBuf) {
                     .spawn()
                     .map_err(|_| Unavailable::Load)?;
                 loop {
-                    if !shared
-                        .0
-                        .lock()
-                        .is_ok_and(|s| !s.closed && s.current == Some(key))
-                    {
+                    if !shared.0.lock().is_ok_and(|s| {
+                        !s.closed
+                            && (if key.is_some() {
+                                s.current == key
+                            } else {
+                                s.configuration
+                                    .as_ref()
+                                    .is_some_and(|(p, c)| p == &job.root && c == &job.config)
+                            })
+                    }) {
                         return Err(Unavailable::Cancelled);
                     }
                     if Instant::now() >= deadline {
@@ -180,17 +218,25 @@ fn run(shared: Arc<(Mutex<State>, Condvar)>, program: PathBuf) {
                     }
                 }
             }
+            let Some(request) = job.request else {
+                return Err(Unavailable::Empty);
+            };
             exchange(serde_json::json!({"op":"Pause","paused":false}))?;
-            exchange(serde_json::json!({"op":"Submit","request":job.request}))?;
+            exchange(serde_json::json!({"op":"Submit","request":request}))?;
             loop {
                 if Instant::now() >= deadline {
                     return Err(Unavailable::Timeout);
                 }
-                if !shared
-                    .0
-                    .lock()
-                    .is_ok_and(|s| !s.closed && s.current == Some(key))
-                {
+                if !shared.0.lock().is_ok_and(|s| {
+                    !s.closed
+                        && (if key.is_some() {
+                            s.current == key
+                        } else {
+                            s.configuration
+                                .as_ref()
+                                .is_some_and(|(p, c)| p == &job.root && c == &job.config)
+                        })
+                }) {
                     return Err(Unavailable::Cancelled);
                 }
                 let result = exchange(serde_json::json!({"op":"Poll","key":key}))?;
@@ -201,7 +247,7 @@ fn run(shared: Arc<(Mutex<State>, Condvar)>, program: PathBuf) {
             }
         })();
         if let Ok(mut s) = shared.0.lock() {
-            if !s.closed && s.current == Some(key) {
+            if let Some(key) = key.filter(|key| !s.closed && s.current == Some(*key)) {
                 s.result = Some((key, result));
             }
         }

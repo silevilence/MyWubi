@@ -18,7 +18,15 @@ fn main() {
     let endpoint = model_input::service::Endpoint::default();
     let mut last = Instant::now();
     let mut owner = 0u32;
+    let memory = model_ipc::MemoryPressure::new().ok();
+    let mut pressure_check = Instant::now() - Duration::from_secs(2);
     loop {
+        if pressure_check.elapsed() >= Duration::from_secs(1) {
+            if let Some(low) = memory.as_ref().and_then(|m| m.is_low().ok()) {
+                endpoint.resource_pressure(low);
+            }
+            pressure_check = Instant::now();
+        }
         let served = server
             .poll(|pid, bytes| {
                 let Ok(mut request) = serde_json::from_slice::<serde_json::Value>(bytes) else {
@@ -60,7 +68,7 @@ fn main() {
         if served {
             last = Instant::now();
         }
-        if last.elapsed() > Duration::from_secs(60) {
+        if last.elapsed() > Duration::from_secs(60) && !endpoint.keep_alive() {
             break;
         }
         std::thread::sleep(Duration::from_millis(2));

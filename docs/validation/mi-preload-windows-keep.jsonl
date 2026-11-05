@@ -1,0 +1,6 @@
+{"event":"prepared","loading":"preload_keep","ms":1372.3855,"phase":"Ready"}
+{"event":"first","ms":1105.1572,"phase":"Ready","result":null}
+{"event":"warm","ms":1103.2401,"phase":"Ready","result":null}
+{"event":"after_idle","ms":951.585,"phase":"Ready","result":{"Ok":{"key":{"config":1,"context":1,"edit":{"editor":1,"epoch":1,"generation":1,"runtime":1,"session":1},"model":1,"query":{"engine":1,"version":1},"request":2,"view":1},"protocol":1,"words":["出差","探亲"]}}}
+{"event":"released","phase":"Paused"}
+{"event":"resumed","ms":1318.896,"phase":"Ready"}

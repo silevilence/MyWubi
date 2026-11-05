@@ -3,6 +3,50 @@ use core_engine::config::ModelSelection;
 use model_input::{catalog::Catalog, package::Manifest};
 use std::{path::PathBuf, sync::mpsc};
 
+/// Saving is complete before any service work; closing settings cannot cancel
+/// an already accepted preparation in the independent model process.
+pub fn prepare_saved_model(path: &std::path::Path, config: &core_engine::config::PredictionConfig) {
+    #[cfg(windows)]
+    {
+        use std::{os::windows::process::CommandExt, time::Duration};
+        let root = core_engine::config_path::model_store_path(path);
+        let config = config.clone();
+        std::thread::spawn(move || {
+            let request = serde_json::json!({"op":"Prepare", "root":root, "config":config});
+            let Ok(bytes) = serde_json::to_vec(&request) else {
+                return;
+            };
+            if model_ipc::exchange(&bytes, Duration::from_millis(300)).is_ok() {
+                return;
+            }
+            if !config.enabled
+                || config.model.is_none()
+                || config.loading != core_engine::config::ModelLoading::PreloadKeep
+            {
+                return;
+            }
+            let Ok(exe) = std::env::current_exe() else {
+                return;
+            };
+            if std::process::Command::new(exe.with_file_name("model-worker.exe"))
+                .creation_flags(0x08000000)
+                .spawn()
+                .is_err()
+            {
+                return;
+            }
+            for _ in 0..20 {
+                if model_ipc::exchange(&bytes, Duration::from_millis(300)).is_ok() {
+                    break;
+                }
+                std::thread::sleep(Duration::from_millis(50));
+            }
+        });
+    }
+    #[cfg(not(windows))]
+    let _ = (path, config);
+}
+
 #[derive(Default)]
 pub struct ModelCatalog {
     packages: Vec<Manifest>,
@@ -35,8 +79,8 @@ impl ModelCatalog {
                             "尚未配置模型工作线程".into()
                         } else {
                             match v["value"].as_str() {
-                                Some("Loading") => "正在加载".into(),
-                                Some("Ready") => "已加载".into(),
+                                Some("Loading") => "正在加载和预热".into(),
+                                Some("Ready") => "模型已就绪".into(),
                                 Some("Paused") => "已暂停，释放资源".into(),
                                 Some("Idle") => "空闲，尚未加载".into(),
                                 _ => format!("运行失败：{}", v["value"]),
@@ -145,6 +189,12 @@ impl ModelCatalog {
                     });
                 }
                 if let Some(selection)=remove { self.start(path.into(),Operation::Remove(selection),ui.ctx().clone()); }
+                eframe::egui::ComboBox::from_id_source("model-loading")
+                    .selected_text(if config.prediction.loading == core_engine::config::ModelLoading::PreloadKeep { "提前加载并保持" } else { "按需加载" })
+                    .show_ui(ui, |ui| {
+                        ui.selectable_value(&mut config.prediction.loading, core_engine::config::ModelLoading::OnDemand, "按需加载");
+                        ui.selectable_value(&mut config.prediction.loading, core_engine::config::ModelLoading::PreloadKeep, "提前加载并保持");
+                    });
                 ui.add(eframe::egui::Slider::new(&mut config.prediction.wait_ms,50..=1000).text("最长等待（毫秒）"));
                 ui.add(eframe::egui::Slider::new(&mut config.prediction.threads,1..=4).text("CPU 线程"));
                 ui.add(eframe::egui::Slider::new(&mut config.prediction.max_candidates,1..=64).text("预测候选上限"));

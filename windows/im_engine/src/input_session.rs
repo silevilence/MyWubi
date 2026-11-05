@@ -46,7 +46,7 @@ impl InputSession {
         snapshot: &RuntimeSnapshot,
         candidates: Arc<ArcSwap<CandidateData>>,
     ) -> Self {
-        Self {
+        let session = Self {
             model: Mutex::new(None),
             core: Mutex::new(Session::new(
                 snapshot,
@@ -54,6 +54,23 @@ impl InputSession {
                 HostContext::default(),
             )),
             candidates,
+        };
+        session.prepare_model();
+        session
+    }
+    fn prepare_model(&self) {
+        let core = self.core.lock();
+        if core.config().prediction.enabled
+            && core.config().prediction.model.is_some()
+            && core.config().prediction.loading == core_engine::config::ModelLoading::PreloadKeep
+        {
+            let mut client = self.model.lock();
+            if client.is_none() {
+                *client = crate::model_client::Client::new().ok();
+            }
+            if let Some(client) = client.as_ref() {
+                client.prepare(core.model_store_path(), core.config().prediction.clone());
+            }
         }
     }
     #[cfg(test)]
@@ -130,6 +147,7 @@ impl InputSession {
         }
     }
     pub fn pump_prediction(&self) -> bool {
+        self.prepare_model();
         let mut core = self.core.lock();
         let mut changed = core.expire_prediction();
         if let Some(request) = core.prediction_request() {

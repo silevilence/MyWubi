@@ -19,6 +19,31 @@ use windows::{
     },
 };
 const MAX: usize = 65536;
+
+/// OS low-memory signal; it does not inspect any client input or application data.
+pub struct MemoryPressure(HANDLE);
+impl MemoryPressure {
+    pub fn new() -> io::Result<Self> {
+        use windows::Win32::System::Memory::*;
+        Ok(Self(unsafe {
+            CreateMemoryResourceNotification(LowMemoryResourceNotification)?
+        }))
+    }
+    pub fn is_low(&self) -> io::Result<bool> {
+        let mut low = windows::core::BOOL::default();
+        unsafe {
+            windows::Win32::System::Memory::QueryMemoryResourceNotification(self.0, &mut low)?;
+        }
+        Ok(low.as_bool())
+    }
+}
+impl Drop for MemoryPressure {
+    fn drop(&mut self) {
+        unsafe {
+            let _ = CloseHandle(self.0);
+        }
+    }
+}
 fn wide(s: &str) -> Vec<u16> {
     s.encode_utf16().chain(Some(0)).collect()
 }

@@ -72,6 +72,9 @@ impl ModelBackend for GatedBackend {
     fn reset(&mut self) {
         self.backend.reset();
     }
+    fn warmup(&mut self, control: &ComputeControl) -> Result<(), Unavailable> {
+        self.backend.warmup(control)
+    }
     fn propose(
         &mut self,
         request: &ProposalRequest,

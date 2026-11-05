@@ -1,6 +1,9 @@
 //! Lazy model owner shared by the desktop service and Android JNI. UI methods
 //! only replace bounded state; validation, load, reset and inference run here.
-use core_engine::{assistance::*, config::PredictionConfig};
+use core_engine::{
+    assistance::*,
+    config::{ModelLoading, PredictionConfig},
+};
 use std::{
     path::PathBuf,
     sync::{Arc, Condvar, Mutex},
@@ -122,6 +125,15 @@ impl Worker {
             .map(|s| s.phase)
             .unwrap_or(Phase::Failed(Unavailable::Inference))
     }
+    pub fn keep_alive(&self) -> bool {
+        self.shared.0.lock().is_ok_and(|s| {
+            !s.closed
+                && !s.paused
+                && s.config.enabled
+                && s.config.model.is_some()
+                && s.config.loading == ModelLoading::PreloadKeep
+        })
+    }
     pub fn submit(&self, request: ScoreRequest) -> Result<(), Unavailable> {
         let mut s = self.shared.0.lock().map_err(|_| Unavailable::Inference)?;
         if s.closed || s.paused || !s.config.enabled {
@@ -188,6 +200,7 @@ fn invalidate(s: &mut State) {
 }
 fn run(shared: Arc<(Mutex<State>, Condvar)>, load: Loader) {
     let mut loaded: Option<(PathBuf, PredictionConfig, ModelSession<Backend>)> = None;
+    let mut prepared_epoch = None;
     loop {
         let (job, root, config, epoch, control) = {
             let Ok(mut s) = shared.0.lock() else { return };
@@ -226,12 +239,33 @@ fn run(shared: Arc<(Mutex<State>, Condvar)>, load: Loader) {
                             deadline: job.deadline,
                         };
                         s.cancel = Some(control.cancellation.clone());
-                        break (job, s.root.clone(), s.config.clone(), s.epoch, control);
+                        break (
+                            Some(job),
+                            s.root.clone(),
+                            s.config.clone(),
+                            s.epoch,
+                            control,
+                        );
                     }
+                }
+                let keep = s.config.loading == ModelLoading::PreloadKeep;
+                if !s.paused
+                    && s.config.enabled
+                    && s.config.model.is_some()
+                    && keep
+                    && prepared_epoch != Some(s.epoch)
+                {
+                    prepared_epoch = Some(s.epoch);
+                    let control = ComputeControl {
+                        cancellation: Cancellation::default(),
+                        deadline: Instant::now() + Duration::from_secs(30),
+                    };
+                    s.cancel = Some(control.cancellation.clone());
+                    break (None, s.root.clone(), s.config.clone(), s.epoch, control);
                 }
                 let idle = Duration::from_secs(u64::from(s.config.idle_seconds));
                 let remaining = idle.saturating_sub(s.last_activity.elapsed());
-                if remaining.is_zero() {
+                if !keep && remaining.is_zero() {
                     s.phase = if s.paused { Phase::Paused } else { Phase::Idle };
                     if loaded.is_some() {
                         drop(s);
@@ -243,7 +277,7 @@ fn run(shared: Arc<(Mutex<State>, Condvar)>, load: Loader) {
                         continue;
                     }
                 }
-                let wait = if loaded.is_some() {
+                let wait = if loaded.is_some() && !keep {
                     remaining.max(Duration::from_millis(1))
                 } else {
                     Duration::from_secs(600)
@@ -264,10 +298,20 @@ fn run(shared: Arc<(Mutex<State>, Condvar)>, load: Loader) {
                 }
                 // A failed replacement leaves the last working instance intact.
                 // At most one replacement loads beside it, on this same thread.
-                let backend = load(&root, &config)?;
+                let mut backend = load(&root, &config)?;
+                // Preparation has its own bounded budget and never reads user text.
+                // An expired first request can still leave a warmed instance for
+                // the next request. Epoch checks suppress superseded publication.
+                backend.warmup(&ComputeControl {
+                    cancellation: Cancellation::default(),
+                    deadline: Instant::now() + Duration::from_secs(30),
+                })?;
                 loaded = Some((root, config.clone(), ModelSession::new(backend)));
             }
             control.check()?;
+            let Some(job) = &job else {
+                return Ok(None);
+            };
             let session = &mut loaded.as_mut().ok_or(Unavailable::Load)?.2;
             if session.proposes_words() {
                 if job.request.protocol != PROTOCOL_VERSION || !job.request.code.is_empty() {
@@ -284,10 +328,12 @@ fn run(shared: Arc<(Mutex<State>, Condvar)>, load: Loader) {
                         &control,
                     )
                     .map(PredictionResponse::Proposed)
+                    .map(Some)
             } else {
                 session
                     .score(&job.request, &control)
                     .map(PredictionResponse::Scored)
+                    .map(Some)
             }
         })();
         let Ok(mut s) = shared.0.lock() else { return };
@@ -313,10 +359,10 @@ fn run(shared: Arc<(Mutex<State>, Condvar)>, load: Loader) {
             }
             Err(e) => Phase::Failed(*e),
         };
-        if control.check().is_ok() {
+        if let Some(job) = job.filter(|_| control.check().is_ok()) {
             s.result = Some(Done {
                 key: job.request.key,
-                result,
+                result: result.and_then(|response| response.ok_or(Unavailable::Empty)),
                 deadline: job.deadline,
             });
         }
@@ -329,6 +375,8 @@ mod tests {
     use std::sync::atomic::{AtomicUsize, Ordering};
     static LOADS: AtomicUsize = AtomicUsize::new(0);
     static DROPS: AtomicUsize = AtomicUsize::new(0);
+    static WARMUPS: AtomicUsize = AtomicUsize::new(0);
+    static TEST_LOCK: Mutex<()> = Mutex::new(());
     struct Fixture(Capabilities);
     impl Drop for Fixture {
         fn drop(&mut self) {
@@ -340,6 +388,12 @@ mod tests {
             &self.0
         }
         fn reset(&mut self) {}
+        fn warmup(&mut self, control: &ComputeControl) -> Result<(), Unavailable> {
+            std::thread::sleep(Duration::from_millis(10));
+            control.check()?;
+            WARMUPS.fetch_add(1, Ordering::SeqCst);
+            Ok(())
+        }
         fn score(
             &mut self,
             r: &ScoreRequest,
@@ -420,6 +474,9 @@ mod tests {
     }
     #[test]
     fn bounded_worker_reuses_model_preserves_foreign_poll_results_and_unloads_on_pause_and_idle() {
+        let _serial = TEST_LOCK.lock().unwrap();
+        LOADS.store(0, Ordering::SeqCst);
+        DROPS.store(0, Ordering::SeqCst);
         let config = PredictionConfig {
             enabled: true,
             model: Some(core_engine::config::ModelSelection {
@@ -507,5 +564,50 @@ mod tests {
         disabled.enabled = false;
         worker.configure(disabled);
         assert_eq!(worker.submit(request(103)), Err(Unavailable::Cancelled));
+        wait(|| LOADS.load(Ordering::SeqCst) == DROPS.load(Ordering::SeqCst));
+    }
+
+    #[test]
+    fn preload_is_ready_only_after_warmup_keeps_weights_and_recovers_after_pause() {
+        let _serial = TEST_LOCK.lock().unwrap();
+        LOADS.store(0, Ordering::SeqCst);
+        DROPS.store(0, Ordering::SeqCst);
+        WARMUPS.store(0, Ordering::SeqCst);
+        let mut config = PredictionConfig {
+            enabled: true,
+            loading: ModelLoading::PreloadKeep,
+            model: Some(core_engine::config::ModelSelection {
+                id: "fixture".into(),
+                version: "v1".into(),
+            }),
+            ..Default::default()
+        };
+        let worker = Worker::with_loader(PathBuf::from("preload"), config.clone(), load).unwrap();
+        wait(|| worker.phase() == Phase::Ready);
+        assert_eq!(WARMUPS.load(Ordering::SeqCst), 1);
+        assert!(worker.keep_alive());
+        assert!(worker.shared.0.lock().unwrap().result.is_none());
+        worker.shared.0.lock().unwrap().last_activity = Instant::now() - Duration::from_secs(601);
+        worker.invalidate();
+        worker.submit(request(1)).unwrap();
+        wait(|| worker.shared.0.lock().unwrap().result.is_some());
+        assert_eq!(LOADS.load(Ordering::SeqCst), 1);
+        assert_eq!(DROPS.load(Ordering::SeqCst), 0);
+        worker.pause(true);
+        wait(|| DROPS.load(Ordering::SeqCst) == 1);
+        assert!(!worker.keep_alive());
+        worker.pause(false);
+        wait(|| worker.phase() == Phase::Ready);
+        assert_eq!(WARMUPS.load(Ordering::SeqCst), 2);
+        worker.configure_root(PathBuf::from("broken"), config.clone());
+        wait(|| worker.phase() == Phase::Failed(Unavailable::Load));
+        assert!(worker.shared.0.lock().unwrap().result.is_none());
+        worker.configure_root(PathBuf::from("preload"), config.clone());
+        wait(|| worker.phase() == Phase::Ready);
+        assert_eq!(LOADS.load(Ordering::SeqCst), 2);
+        config.enabled = false;
+        worker.configure(config);
+        wait(|| LOADS.load(Ordering::SeqCst) == DROPS.load(Ordering::SeqCst));
+        assert_eq!(worker.phase(), Phase::Idle);
     }
 }
