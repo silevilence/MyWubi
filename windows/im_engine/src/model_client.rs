@@ -253,3 +253,107 @@ fn run(shared: Arc<(Mutex<State>, Condvar)>, program: PathBuf) {
         }
     }
 }
+
+#[cfg(test)]
+mod lifecycle_tests {
+    use super::*;
+    use core_engine::config::{ModelLoading, ModelSelection};
+    fn status() -> Option<serde_json::Value> {
+        model_ipc::exchange(br#"{"op":"Status"}"#, Duration::from_millis(100))
+            .ok()
+            .and_then(|bytes| serde_json::from_slice(&bytes).ok())
+    }
+    fn ready() -> u32 {
+        let start = Instant::now();
+        loop {
+            if let Some(reply) = status() {
+                if reply["value"] == "Ready" {
+                    return reply["process_id"].as_u64().unwrap() as u32;
+                }
+            }
+            assert!(
+                start.elapsed() < Duration::from_secs(30),
+                "model service failed to prepare"
+            );
+            std::thread::sleep(Duration::from_millis(20));
+        }
+    }
+    fn stop_owned(pid: u32) {
+        use std::os::windows::process::CommandExt;
+        assert!(std::process::Command::new("taskkill.exe")
+            .args(["/PID", &pid.to_string(), "/F"])
+            .creation_flags(0x08000000)
+            .status()
+            .unwrap()
+            .success());
+    }
+    #[test]
+    #[ignore = "real isolated service; set MYWUBI_TEST_MODEL_STORE and MYWUBI_TEST_WORKER"]
+    fn active_client_recovers_from_service_crash_and_reactivation_shares_weights() {
+        assert!(status().is_none(), "run with no existing service");
+        let root = PathBuf::from(std::env::var("MYWUBI_TEST_MODEL_STORE").unwrap());
+        let program = PathBuf::from(std::env::var("MYWUBI_TEST_WORKER").unwrap());
+        std::fs::copy(
+            program,
+            std::env::current_exe()
+                .unwrap()
+                .with_file_name("model-worker.exe"),
+        )
+        .unwrap();
+        let config = PredictionConfig {
+            enabled: true,
+            loading: ModelLoading::PreloadKeep,
+            wait_ms: 1000,
+            max_candidates: 1,
+            model: Some(ModelSelection {
+                id: "qwen25-words".into(),
+                version: "v1".into(),
+            }),
+            ..Default::default()
+        };
+        let client = Client::new().unwrap();
+        client.prepare(root.clone(), config.clone());
+        let original = ready();
+        stop_owned(original);
+        let mut request: ScoreRequest =
+            serde_json::from_str(include_str!("../../../model_input/evaluation/request.json"))
+                .unwrap();
+        request.task = Task::Predict;
+        request.prefix = "北京".into();
+        request.code.clear();
+        request.candidates.clear();
+        let start = Instant::now();
+        client.submit(root.clone(), config.clone(), request.clone());
+        assert!(
+            start.elapsed() < Duration::from_millis(100),
+            "input was blocked by restart"
+        );
+        let replacement = ready();
+        assert_ne!(original, replacement);
+        client.invalidate();
+        request.key.request += 1;
+        client.submit(root.clone(), config.clone(), request.clone());
+        let start = Instant::now();
+        let response = loop {
+            if let Some(response) = client.take(request.key) {
+                break response.unwrap();
+            }
+            assert!(
+                start.elapsed() < Duration::from_millis(1000),
+                "recovered model response missed budget"
+            );
+            std::thread::sleep(Duration::from_millis(2));
+        };
+        assert!(matches!(response,PredictionResponse::Proposed(r) if r.words==["市"]));
+        drop(client);
+        let reactivated = Client::new().unwrap();
+        reactivated.prepare(root, config);
+        assert_eq!(
+            ready(),
+            replacement,
+            "reactivation created a duplicate service"
+        );
+        drop(reactivated);
+        stop_owned(replacement);
+    }
+}

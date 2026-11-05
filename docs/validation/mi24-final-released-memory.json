@@ -1,0 +1,7 @@
+{
+  "scenario": "final Close after probe awaited Paused and native load release",
+  "pid": 38692,
+  "working_set_bytes": 11927552,
+  "private_bytes": 6119424,
+  "measured_at": "2026-11-05T11:36:01.7457825+08:00"
+}

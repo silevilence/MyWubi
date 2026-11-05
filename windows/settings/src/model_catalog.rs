@@ -3,48 +3,25 @@ use core_engine::config::ModelSelection;
 use model_input::{catalog::Catalog, package::Manifest};
 use std::{path::PathBuf, sync::mpsc};
 
-/// Saving is complete before any service work; closing settings cannot cancel
-/// an already accepted preparation in the independent model process.
-pub fn prepare_saved_model(path: &std::path::Path, config: &core_engine::config::PredictionConfig) {
+/// Hand the saved path to an independent process before allowing settings to
+/// exit. Loading and IPC retries belong to that process, never this UI thread.
+pub fn prepare_saved_model(path: &std::path::Path) {
     #[cfg(windows)]
     {
-        use std::{os::windows::process::CommandExt, time::Duration};
-        let root = core_engine::config_path::model_store_path(path);
-        let config = config.clone();
-        std::thread::spawn(move || {
-            let request = serde_json::json!({"op":"Prepare", "root":root, "config":config});
-            let Ok(bytes) = serde_json::to_vec(&request) else {
-                return;
-            };
-            if model_ipc::exchange(&bytes, Duration::from_millis(300)).is_ok() {
-                return;
-            }
-            if !config.enabled
-                || config.model.is_none()
-                || config.loading != core_engine::config::ModelLoading::PreloadKeep
-            {
-                return;
-            }
-            let Ok(exe) = std::env::current_exe() else {
-                return;
-            };
-            if std::process::Command::new(exe.with_file_name("model-worker.exe"))
-                .creation_flags(0x08000000)
-                .spawn()
-                .is_err()
-            {
-                return;
-            }
-            for _ in 0..20 {
-                if model_ipc::exchange(&bytes, Duration::from_millis(300)).is_ok() {
-                    break;
-                }
-                std::thread::sleep(Duration::from_millis(50));
-            }
-        });
+        use std::os::windows::process::CommandExt;
+        let Ok(exe) = std::env::current_exe() else {
+            return;
+        };
+        if let Err(error) = std::process::Command::new(exe.with_file_name("model-worker.exe"))
+            .args([std::ffi::OsStr::new("--config"), path.as_os_str()])
+            .creation_flags(0x08000000)
+            .spawn()
+        {
+            log::warn!("无法启动已保存配置的模型服务: {error}");
+        }
     }
     #[cfg(not(windows))]
-    let _ = (path, config);
+    let _ = path;
 }
 
 #[derive(Default)]

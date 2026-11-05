@@ -1,0 +1,7 @@
+{
+  "scenario": "final Close after lifecycle probes",
+  "pid": 10688,
+  "working_set_bytes": 302006272,
+  "private_bytes": 472317952,
+  "measured_at": "2026-11-05T11:33:11.9355205+08:00"
+}

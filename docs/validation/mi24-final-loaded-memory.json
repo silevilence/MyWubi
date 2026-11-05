@@ -1,0 +1,7 @@
+{
+  "scenario": "final settings-exit preload_keep Ready",
+  "pid": 42112,
+  "working_set_bytes": 504733696,
+  "private_bytes": 472608768,
+  "measured_at": "2026-11-05T11:31:24.7251566+08:00"
+}

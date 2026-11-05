@@ -97,3 +97,5 @@ Android API 34 x86_64、4096 MiB、6 vCPU（模拟器上限），模型 4 线程
 Android 扩展回归最终 6 项通过、无跳过：词典预测、评分预测、低置信静默、隐藏/回收恢复、真实生成宿主和真实生成期限。旧可见性断言读到过期无障碍节点，已统一使用清缓存的既有断言助手，正文和候选要求不变。[逐项最终结果及失败/复测索引](validation/mi23-android-regression-summary.json)保留全部轮次。
 
 最终工作器重新复制到全新 Sandbox 后，真实记事本再次通过空格确认“北京→市”和空格/数字 1 连续确认“天气→晴朗→多云”。[最终上屏](validation/mi23-windows-final-space.png)、[最终连续选择](validation/mi23-windows-final-chain.png)、[实际产物 SHA-256](validation/mi23-windows-final-artifacts.json)。
+
+Sandbox 哈希记录对应截图时实际运行的产物。此后 MI-24 仅修正 `--config` 启动路径的写法，最终启动分支另由[首宿主复用测试](validation/mi24-host-path-after-fix.log)和[工作器哈希](validation/mi24-final-tested-worker.json)覆盖，生成解码路径未再改变。

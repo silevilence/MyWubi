@@ -12,10 +12,75 @@ fn main() {
         std::process::exit(if ready { 0 } else { 1 });
     }
     use std::time::{Duration, Instant};
-    let Ok(mut server) = model_ipc::Server::new() else {
+    // Settings may exit immediately after spawning us. Read the atomically
+    // saved config here, so neither cold startup nor forwarding depends on it.
+    let args: Vec<_> = std::env::args_os().skip(1).collect();
+    let saved = if args.len() == 2 && args[0] == "--config" {
+        // Keep the same absolute spelling used by the settings/TIP path
+        // resolver. canonicalize adds a Win32 verbatim prefix, which would
+        // make the first ordinary host look like a different model store.
+        let path = std::path::PathBuf::from(&args[1]);
+        let path = if path.is_absolute() {
+            path
+        } else {
+            let Ok(base) = std::env::current_dir() else {
+                return;
+            };
+            base.join(path)
+        };
+        let Ok(config) = core_engine::Config::load(&path) else {
+            return;
+        };
+        Some((
+            core_engine::config_path::model_store_path(&path),
+            config.prediction,
+        ))
+    } else if args.is_empty() {
+        None
+    } else {
         return;
     };
+    let saved_request = saved.as_ref().and_then(|(root, config)| {
+        serde_json::to_vec(&model_input::service::Command::Prepare {
+            root: root.clone(),
+            config: config.clone(),
+        })
+        .ok()
+    });
+    let deadline = Instant::now() + Duration::from_secs(5);
+    let mut server = loop {
+        if let Ok(server) = model_ipc::Server::new() {
+            break server;
+        }
+        let Some(bytes) = &saved_request else {
+            return;
+        };
+        if let Ok(reply) = model_ipc::exchange(bytes, Duration::from_millis(300)) {
+            if serde_json::from_slice::<serde_json::Value>(&reply).is_ok_and(|v| v["ok"] == true) {
+                return;
+            }
+        }
+        if Instant::now() >= deadline {
+            return;
+        }
+        std::thread::sleep(Duration::from_millis(50));
+    };
     let endpoint = model_input::service::Endpoint::default();
+    if let Some((root, config)) = saved {
+        // With no running service, an on-demand/disabled save needs no process.
+        if !config.enabled
+            || config.model.is_none()
+            || config.loading != core_engine::config::ModelLoading::PreloadKeep
+        {
+            return;
+        }
+        let Ok(bytes) =
+            serde_json::to_vec(&model_input::service::Command::Prepare { root, config })
+        else {
+            return;
+        };
+        endpoint.exchange(&bytes);
+    }
     let mut last = Instant::now();
     let mut owner = 0u32;
     let memory = model_ipc::MemoryPressure::new().ok();
@@ -61,6 +126,9 @@ fn main() {
                     if let Some(session) = value.as_u64() {
                         *value = serde_json::json!(session ^ (u64::from(pid) << 32));
                     }
+                }
+                if op == "Status" {
+                    response["process_id"] = serde_json::json!(std::process::id());
                 }
                 serde_json::to_vec(&response).unwrap_or_default()
             })

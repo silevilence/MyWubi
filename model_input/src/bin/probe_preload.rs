@@ -54,6 +54,21 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
     request.prefix = "明天去".into();
     request.candidates.clear();
     for n in 0..3 {
+        if n == 1 && loading == ModelLoading::OnDemand {
+            // The first request may expire during native loading. A "warm"
+            // measurement must wait for Ready, not queue into the same load.
+            let ready = Instant::now();
+            while call(serde_json::json!({"op":"Status"}))? != "Ready" {
+                if ready.elapsed() > Duration::from_secs(30) {
+                    return Err("on-demand load did not become ready".into());
+                }
+                std::thread::sleep(Duration::from_millis(20));
+            }
+            println!(
+                "{}",
+                serde_json::json!({"event":"ready_before_warm","wait_ms":ready.elapsed().as_secs_f64()*1000.})
+            );
+        }
         if n == 2 {
             std::thread::sleep(Duration::from_secs(11));
         }
@@ -74,7 +89,13 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
         );
     }
     call(serde_json::json!({"op":"Pause","paused":true}))?;
-    std::thread::sleep(Duration::from_millis(100));
+    let release = Instant::now();
+    while call(serde_json::json!({"op":"Status"}))? != "Paused" {
+        if release.elapsed() > Duration::from_secs(30) {
+            return Err("native work did not finish releasing".into());
+        }
+        std::thread::sleep(Duration::from_millis(20));
+    }
     println!(
         "{}",
         serde_json::json!({"event":"released","phase":call(serde_json::json!({"op":"Status"}))?})

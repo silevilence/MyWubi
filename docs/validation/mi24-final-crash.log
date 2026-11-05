@@ -1,0 +1,8 @@
+
+running 1 test
+�ɹ�: ����ֹ PID Ϊ 15628 �Ľ��̡�
+�ɹ�: ����ֹ PID Ϊ 32692 �Ľ��̡�
+test model_client::lifecycle_tests::active_client_recovers_from_service_crash_and_reactivation_shares_weights ... ok
+
+test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 73 filtered out; finished in 5.40s
+

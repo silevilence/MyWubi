@@ -1,0 +1,25 @@
+warning: settings@0.6.2: 已复制 4 个码表到 C:\code\rust\MyWubi\target\debug\tables
+    Finished `test` profile [unoptimized + debuginfo] target(s) in 0.72s
+     Running tests\model_handoff.rs (target\debug\deps\model_handoff-abdf60dfa63bb1a0.exe)
+
+running 1 test
+
+running 1 test
+settings exit -> model Ready: 3.501319s; pid=33376
+first ordinary host after settings preload: 1.0052659s; response=null
+
+thread 'saved_preload_outlives_immediate_settings_exit' (40920) panicked at windows\settings\tests\model_handoff.rs:73:5:
+assertion `left == right` failed
+  left: Null
+ right: Array [String("市")]
+note: run with `RUST_BACKTRACE=1` environment variable to display a backtrace
+test saved_preload_outlives_immediate_settings_exit ... FAILED
+
+failures:
+
+failures:
+    saved_preload_outlives_immediate_settings_exit
+
+test result: FAILED. 0 passed; 1 failed; 0 ignored; 0 measured; 0 filtered out; finished in 4.52s
+
+error: test failed, to rerun pass `-p settings --test model_handoff`
