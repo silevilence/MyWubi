@@ -197,7 +197,8 @@ private fun PredictionModels(model:SettingsModel, prediction:JSONObject, import:
         val active=selected?.optString("id")==p.getString("id") && selected?.optString("version")==p.getString("version")
         val caps=p.getJSONObject("capabilities")
         val backendAvailable=model.modelBackends.optBoolean(if(p.getString("backend")=="OnnxRuntime") "onnx" else "llama")
-        val hasPolicy=!p.isNull("prediction_policy") && p.optString("prediction_policy").isNotEmpty()
+        val hasPolicy=(!p.isNull("prediction_policy") && p.optString("prediction_policy").isNotEmpty()) ||
+            (!p.isNull("generation_policy") && p.optString("generation_policy").isNotEmpty())
         val supported=backendAvailable && hasPolicy && (0 until caps.getJSONArray("tasks").length()).any {caps.getJSONArray("tasks").getString(it)=="Predict"}
         val files=p.getJSONArray("files")
         val size=(0 until files.length()).sumOf {files.getJSONObject(it).getLong("bytes")}/1048576.0

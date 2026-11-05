@@ -11,10 +11,11 @@ import java.io.File
 import java.util.regex.Pattern
 
 class PredictionHostTest {
+    @Test fun generatedDictionaryExternalWordsAppendInTheRealHost() = runHost(true, generated=true)
     @Test fun confirmedWordsPredictAndNewCodesOrExternalEditsDiscardSuggestions() = runHost(false)
     @Test fun modelScoredPredictionsUseTheConfirmedHostCommitPath() = runHost(true)
     @Test fun lowConfidenceModelPredictionsStayHiddenAndSpaceRemainsLiteral() = runHost(true,true)
-    private fun runHost(withModel:Boolean,rejectModel:Boolean=false) {
+    private fun runHost(withModel:Boolean,rejectModel:Boolean=false,generated:Boolean=false) {
         val instrumentation=InstrumentationRegistry.getInstrumentation()
         val context=instrumentation.targetContext
         val device=UiDevice.getInstance(instrumentation)
@@ -23,17 +24,19 @@ class PredictionHostTest {
         val original=JSONObject(loaded.getJSONObject("config").toString())
         val fixture=File(context.filesDir,"mi-prediction-test.dict")
         // Use a normal dictionary with both a single character and its complete word.
-        fixture.writeText("---\ndisplay_name: 预测验收\n---\nb\t北\t100\nbj\t北京\t50\nt\t天气\t100\np\t预报\t100\nf\t五一\t100\nm\t分钟\t100\n")
+        fixture.writeText("---\ndisplay_name: 预测验收\n---\nb\t北\t100\nbj\t北京\t50\nt\t天气\t100\np\t预报\t100\nf\t五一\t100\nm\t分钟\t100\nw\t明天去\t100\n")
         val config=JSONObject(original.toString())
         config.getJSONObject("dictionary").put("system_table",fixture.absolutePath).put("enable_user_dict",false)
         config.getJSONObject("basic").put("auto_commit_unique",false)
         config.put("prediction",JSONObject().put("enabled",true))
         if(withModel) {
             val features=JSONObject(NativeBridge.inference("{\"op\":\"Features\"}".toByteArray()).toString(Charsets.UTF_8)).getJSONObject("value")
-            org.junit.Assume.assumeTrue(features.getBoolean("onnx"))
-            ModelCatalog(context).call("Import","source" to ModelBackendTest().fixture(if(rejectModel) 0.0 else -100.0).absolutePath)
+            org.junit.Assume.assumeTrue(features.getBoolean(if(generated) "llama" else "onnx"))
+            val source=if(generated) File(context.filesDir,"mi-generation-package") else ModelBackendTest().fixture(if(rejectModel) 0.0 else -100.0)
+            org.junit.Assume.assumeTrue("provision licensed generation package",File(source,"manifest.json").isFile)
+            ModelCatalog(context).call("Import","source" to source.absolutePath)
             config.getJSONObject("prediction").put("wait_ms",1000).put("max_candidates",8)
-                .put("model",JSONObject().put("id","instrumented-counts").put("version","v1"))
+                .put("model",JSONObject().put("id",if(generated) "qwen25-words" else "instrumented-counts").put("version","v1"))
         }
         fun save(value:JSONObject,version:Long) {
             NativeHandle(version).use { v -> NativeHandle(store.saveConfig(value,v.value).getLong("version")).close() }
@@ -76,6 +79,24 @@ class PredictionHostTest {
             field.text="";field.click()
             if(device.hasObject(By.desc("英 → 中"))) key("英 → 中")
             assertTrue(device.wait(Until.hasObject(By.desc("b").pkg("org.mywubi").enabled(true)),15000))
+            if(generated) {
+                // Each attempt is a fresh acknowledged commit; late responses
+                // from a cold load must not be used to pass this assertion.
+                repeat(3) {
+                    field.text="";field.click();key("w");candidate("明天去");expect("明天去")
+                    if(!device.wait(Until.hasObject(By.desc("字词预测")),1500)) android.os.SystemClock.sleep(1000)
+                    else return@repeat
+                }
+                expectPrediction(true)
+                candidate("出差");expect("明天去出差")
+                key("b");expect("明天去出差b")
+                assertTrue(device.wait(Until.gone(By.desc("字词预测")),5000))
+                candidate("北");expect("明天去出差北")
+                field.text="外部编辑";device.pressKeyCode(android.view.KeyEvent.KEYCODE_MOVE_END)
+                assertTrue(device.wait(Until.gone(By.desc("字词预测")),5000))
+                device.takeScreenshot(File(context.filesDir,"generation-host.png"))
+                return
+            }
             key("b"); candidate("北"); expect("北")
             if(rejectModel) {
                 android.os.SystemClock.sleep(1500)
@@ -124,7 +145,7 @@ class PredictionHostTest {
         } finally {
             device.setOrientationNatural();device.unfreezeRotation()
             val current=store.readConfig();save(original,current.getLong("version"))
-            if(withModel) ModelCatalog(context).call("Remove","selection" to JSONObject().put("id","instrumented-counts").put("version","v1"))
+            if(withModel) ModelCatalog(context).call("Remove","selection" to JSONObject().put("id",if(generated) "qwen25-words" else "instrumented-counts").put("version","v1"))
             device.pressBack();device.pressBack()
         }
     }

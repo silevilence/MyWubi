@@ -21,7 +21,7 @@ struct Job {
 }
 struct Done {
     key: RequestKey,
-    result: Result<ScoreResponse, Unavailable>,
+    result: Result<PredictionResponse, Unavailable>,
     deadline: Instant,
 }
 struct State {
@@ -160,7 +160,7 @@ impl Worker {
         self.shared.1.notify_one();
         Ok(())
     }
-    pub fn take(&self, key: RequestKey) -> Option<Result<ScoreResponse, Unavailable>> {
+    pub fn take(&self, key: RequestKey) -> Option<Result<PredictionResponse, Unavailable>> {
         let mut s = self.shared.0.lock().ok()?;
         if s.result.as_ref().is_none_or(|done| done.key != key) {
             return None;
@@ -268,11 +268,27 @@ fn run(shared: Arc<(Mutex<State>, Condvar)>, load: Loader) {
                 loaded = Some((root, config.clone(), ModelSession::new(backend)));
             }
             control.check()?;
-            loaded
-                .as_mut()
-                .ok_or(Unavailable::Load)?
-                .2
-                .score(&job.request, &control)
+            let session = &mut loaded.as_mut().ok_or(Unavailable::Load)?.2;
+            if session.proposes_words() {
+                if job.request.protocol != PROTOCOL_VERSION || !job.request.code.is_empty() {
+                    return Err(Unavailable::Protocol);
+                }
+                session
+                    .propose(
+                        &ProposalRequest {
+                            key: job.request.key,
+                            language: job.request.language.clone(),
+                            prefix: job.request.prefix.clone(),
+                            limit: usize::from(config.max_candidates),
+                        },
+                        &control,
+                    )
+                    .map(PredictionResponse::Proposed)
+            } else {
+                session
+                    .score(&job.request, &control)
+                    .map(PredictionResponse::Scored)
+            }
         })();
         let Ok(mut s) = shared.0.lock() else { return };
         s.cancel = None;
@@ -288,7 +304,7 @@ fn run(shared: Arc<(Mutex<State>, Condvar)>, load: Loader) {
         }
         s.phase = match &result {
             Ok(_) => Phase::Ready,
-            Err(Unavailable::Timeout | Unavailable::LowConfidence) => {
+            Err(Unavailable::Timeout | Unavailable::LowConfidence | Unavailable::Empty) => {
                 if loaded.is_some() {
                     Phase::Ready
                 } else {

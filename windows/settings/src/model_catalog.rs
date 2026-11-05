@@ -123,7 +123,7 @@ impl ModelCatalog {
                     .selected_text(config.prediction.model.as_ref().map(|m| format!("{} @ {}",m.id,m.version)).unwrap_or_else(|| "仅词典预测".into()))
                     .show_ui(ui, |ui| {
                         ui.selectable_value(&mut config.prediction.model, None, "仅词典预测");
-                        for package in self.packages.iter().filter(|p| backend_available && p.prediction_policy.is_some() && p.capabilities.tasks.contains(&core_engine::assistance::Task::Predict)) {
+                        for package in self.packages.iter().filter(|p| backend_available && (p.prediction_policy.is_some() || p.generation_policy.is_some()) && p.capabilities.tasks.contains(&core_engine::assistance::Task::Predict)) {
                             ui.selectable_value(&mut config.prediction.model,
                                 Some(ModelSelection {id:package.id.clone(),version:package.version.clone()}),
                                 format!("{} @ {}",package.id,package.version));
@@ -138,7 +138,7 @@ impl ModelCatalog {
                     ui.group(|ui| {
                         ui.label(format!("{} @ {} · {:?} · {:.1} MiB",p.id,p.version,p.backend,p.files.iter().map(|f|f.bytes).sum::<u64>() as f64 / 1048576.0));
                         ui.label(format!("许可：{}",p.license)); ui.label(format!("来源：{}",p.source));
-                        ui.label(if p.prediction_policy.is_some() { "已提供预测门槛；不代表效果已通过验收。" } else { "缺少预测门槛：可保留用于离线评测，暂不能用于字词预测。" });
+                        ui.label(if p.prediction_policy.is_some() || p.generation_policy.is_some() { "已提供预测门槛；不代表效果已通过验收。" } else { "缺少预测门槛：可保留用于离线评测，暂不能用于字词预测。" });
                         ui.label(format!("能力：{:?}；前文 {} 字；最多 {} 候选",p.capabilities.tasks,p.capabilities.max_context_chars,p.capabilities.max_candidates));
                         let selection=ModelSelection{id:p.id.clone(),version:p.version.clone()};
                         if ui.add_enabled(config.prediction.model.as_ref()!=Some(&selection),eframe::egui::Button::new("移除未选模型")).clicked() { remove=Some(selection); }
@@ -147,7 +147,7 @@ impl ModelCatalog {
                 if let Some(selection)=remove { self.start(path.into(),Operation::Remove(selection),ui.ctx().clone()); }
                 ui.add(eframe::egui::Slider::new(&mut config.prediction.wait_ms,50..=1000).text("最长等待（毫秒）"));
                 ui.add(eframe::egui::Slider::new(&mut config.prediction.threads,1..=4).text("CPU 线程"));
-                ui.add(eframe::egui::Slider::new(&mut config.prediction.max_candidates,1..=64).text("评分候选上限"));
+                ui.add(eframe::egui::Slider::new(&mut config.prediction.max_candidates,1..=64).text("预测候选上限"));
                 ui.add(eframe::egui::Slider::new(&mut config.prediction.idle_seconds,10..=600).text("空闲卸载（秒）"));
             });
             ui.small(&self.message);

@@ -144,7 +144,7 @@ impl InputSession {
                     request.clone(),
                 );
                 if let Some(result) = client.take(request.key) {
-                    changed |= core.complete_prediction(request.key, result);
+                    changed |= core.complete_model_prediction(request.key, result);
                 }
             } else {
                 changed |= core.complete_prediction(

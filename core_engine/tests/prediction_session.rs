@@ -41,6 +41,73 @@ fn north(s: &mut Session) {
 }
 
 #[test]
+fn generated_words_use_confirmed_append_identity_and_retry_in_both_profiles() {
+    use core_engine::assistance::*;
+    for profile in [BehaviorProfile::LegacyV1, BehaviorProfile::TouchV1] {
+        let mut r = runtime(true, 1);
+        r.config.prediction.model = Some(config::ModelSelection {
+            id: "generator".into(),
+            version: "v1".into(),
+        });
+        let mut s = Session::new(&r, profile, HostContext::default());
+        apply(&mut s, Action::InsertLiteral("研究量子".into()));
+        let work = s.prediction_request().unwrap();
+        assert!(!s.would_handle(&Action::Space));
+        let response = PredictionResponse::Proposed(ProposalResponse {
+            protocol: 1,
+            key: work.key,
+            words: vec!["纠缠态".into(), "计算".into()],
+        });
+        assert!(s.complete_model_prediction(work.key, Ok(response.clone())));
+        assert!(!s.complete_model_prediction(work.key, Ok(response)));
+        let action = choose(&s, "纠缠态");
+        let old = action.clone();
+        let plan = s.prepare(action).unwrap();
+        assert_eq!(
+            plan.op,
+            EditSessionOp::CommitAndReplace {
+                text: "纠缠态".into(),
+                replace_len: 0
+            }
+        );
+        s.acknowledge(plan.token, HostOutcome::RejectedBeforeWrite);
+        assert!(s.prediction_request().is_none());
+        apply(&mut s, old.clone());
+        assert_eq!(s.prediction_request().unwrap().prefix, "研究量子纠缠态");
+        assert!(matches!(
+            s.prepare(old),
+            Err(SessionError::Rejected(Rejection::StaleCandidate))
+        ));
+    }
+}
+
+#[test]
+fn generated_responses_after_external_edit_or_new_code_never_publish() {
+    use core_engine::assistance::*;
+    for profile in [BehaviorProfile::LegacyV1, BehaviorProfile::TouchV1] {
+        let mut r = runtime(true, 1);
+        r.config.prediction.model = Some(config::ModelSelection {
+            id: "generator".into(),
+            version: "v1".into(),
+        });
+        let mut s = Session::new(&r, profile, HostContext::default());
+        apply(&mut s, Action::InsertLiteral("明天去".into()));
+        let work = s.prediction_request().unwrap();
+        apply(&mut s, Action::InputCode('b'));
+        assert!(!s.complete_model_prediction(
+            work.key,
+            Ok(PredictionResponse::Proposed(ProposalResponse {
+                protocol: 1,
+                key: work.key,
+                words: vec!["探亲".into()]
+            }))
+        ));
+        assert!(!s.has_prediction());
+        assert_eq!(s.candidate_window(0, 10).candidates[0].text, "北");
+    }
+}
+
+#[test]
 fn selected_model_can_receive_confirmed_context_without_dictionary_recall() {
     let mut r = runtime(true, 1);
     r.config.prediction.model = Some(config::ModelSelection {

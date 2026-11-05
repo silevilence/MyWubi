@@ -280,6 +280,15 @@ pub struct ProposalResponse {
     pub key: RequestKey,
     pub words: Vec<String>,
 }
+
+/// Untagged wire union preserves old scoring responses while keeping proposal
+/// identities and validation separate. Neither variant may contain host edits.
+#[derive(Clone, Serialize, Deserialize)]
+#[serde(untagged)]
+pub enum PredictionResponse {
+    Proposed(ProposalResponse),
+    Scored(ScoreResponse),
+}
 impl ProposalResponse {
     pub fn validate(
         &self,

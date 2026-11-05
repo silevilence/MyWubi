@@ -78,7 +78,7 @@ enum Request {
     PredictionResult {
         session: u64,
         key: crate::assistance::RequestKey,
-        response: Option<crate::assistance::ScoreResponse>,
+        response: Option<crate::assistance::PredictionResponse>,
     },
     Context {
         session: u64,
@@ -321,7 +321,7 @@ impl Registry {
                 response,
             } => {
                 let s = self.session(session)?;
-                json!(s.complete_prediction(
+                json!(s.complete_model_prediction(
                     key,
                     response.ok_or(crate::assistance::Unavailable::Inference)
                 ))

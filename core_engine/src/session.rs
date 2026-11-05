@@ -404,6 +404,16 @@ impl Session {
         key: crate::assistance::RequestKey,
         result: Result<crate::assistance::ScoreResponse, crate::assistance::Unavailable>,
     ) -> bool {
+        self.complete_model_prediction(
+            key,
+            result.map(crate::assistance::PredictionResponse::Scored),
+        )
+    }
+    pub fn complete_model_prediction(
+        &mut self,
+        key: crate::assistance::RequestKey,
+        result: Result<crate::assistance::PredictionResponse, crate::assistance::Unavailable>,
+    ) -> bool {
         if self
             .prediction_wait
             .as_ref()
@@ -411,7 +421,7 @@ impl Session {
         {
             return false;
         }
-        let Some((request, deadline)) = self.prediction_wait.take() else {
+        let Some((mut request, deadline)) = self.prediction_wait.take() else {
             return false;
         };
         if self.token() != request.key.edit || self.prefix.generation() != request.key.context {
@@ -424,7 +434,61 @@ impl Session {
         if prediction.query != request.key.query {
             return false;
         }
-        let response = result.ok().filter(|response| {
+        // Generated words enter only this post-commit view, never the code
+        // dictionary. The entire result is checked before replacing any items.
+        let response = result.and_then(|response| {
+            use crate::assistance::*;
+            match response {
+                PredictionResponse::Scored(response) => Ok(response),
+                PredictionResponse::Proposed(response) => {
+                    response.validate(
+                        &ProposalRequest {
+                            key: request.key,
+                            prefix: request.prefix.clone(),
+                            language: request.language.clone(),
+                            limit: usize::from(self.config.prediction.max_candidates),
+                        },
+                        request.key,
+                    )?;
+                    prediction.items = response
+                        .words
+                        .into_iter()
+                        .enumerate()
+                        .map(|(i, text)| crate::candidates::Candidate {
+                            id: crate::candidates::CandidateId(i),
+                            text,
+                            exact: true,
+                            hints: vec![],
+                        })
+                        .collect();
+                    request.candidates = prediction
+                        .items
+                        .iter()
+                        .map(|c| ScoringCandidate {
+                            id: c.id,
+                            text: c.text.clone(),
+                        })
+                        .collect();
+                    Ok(ScoreResponse {
+                        protocol: PROTOCOL_VERSION,
+                        key: request.key,
+                        scores: request
+                            .candidates
+                            .iter()
+                            .enumerate()
+                            .map(|(i, c)| CandidateScore {
+                                id: c.id,
+                                value: -(i as f32),
+                            })
+                            .collect(),
+                        prediction_accepted: Some(
+                            request.candidates.iter().map(|c| c.id).collect(),
+                        ),
+                    })
+                }
+            }
+        });
+        let response = response.ok().filter(|response| {
             std::time::Instant::now() < deadline
                 && response.validate(&request, request.key).is_ok()
                 && response

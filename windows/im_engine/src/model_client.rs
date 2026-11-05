@@ -14,7 +14,7 @@ struct Job {
 struct State {
     pending: Option<Job>,
     current: Option<RequestKey>,
-    result: Option<(RequestKey, Result<ScoreResponse, Unavailable>)>,
+    result: Option<(RequestKey, Result<PredictionResponse, Unavailable>)>,
     clear: bool,
     release: bool,
     released: bool,
@@ -86,7 +86,7 @@ impl Client {
             }
         }
     }
-    pub fn take(&self, key: RequestKey) -> Option<Result<ScoreResponse, Unavailable>> {
+    pub fn take(&self, key: RequestKey) -> Option<Result<PredictionResponse, Unavailable>> {
         let mut s = self.shared.0.lock().ok()?;
         if s.result.as_ref().is_some_and(|(k, _)| *k == key) {
             s.result.take().map(|(_, r)| r)
