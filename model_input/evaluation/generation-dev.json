@@ -1,0 +1,12 @@
+{
+  "source": "MyWubi authored development probes, MIT; used during MI-22 development, not independent quality evidence",
+  "samples": [
+    {"id":"dev-quantum","split":"dev","prefix":"研究量子","references":["物理","计算","理论"],"should_stop":false},
+    {"id":"dev-travel","split":"dev","prefix":"明天去","references":["出差","探亲","北京"],"should_stop":false},
+    {"id":"dev-remainder","split":"dev","prefix":"量子纠","references":["缠","缠态"],"should_stop":false},
+    {"id":"dev-stop","split":"dev","prefix":"今天的工作结束了。","references":[],"should_stop":true},
+    {"id":"dev-empty","split":"dev","prefix":"","references":[],"should_stop":true},
+    {"id":"dev-domain","split":"dev","prefix":"讨论光子晶","references":["体","体结构"],"should_stop":false},
+    {"id":"dev-beijing","split":"dev","prefix":"北京","references":["天气","大学","市"],"should_stop":false}
+  ]
+}

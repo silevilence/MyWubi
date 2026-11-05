@@ -1,0 +1,591 @@
+{
+  "source_url": "https://raw.githubusercontent.com/UniversalDependencies/UD_Chinese-GSDSimp/4231dfd59866fa5999ad4a6bc1fdecd7985b3b59/",
+  "source_hashes": {
+    "README.md": "02287bdf80282151d8ca7ef3c3f7a3c3b98609f7266f145e3e3dd0a05693abd3",
+    "LICENSE.txt": "899b1804a12ebc090b96339614eede1b64b686721b650a71430b55b5235f7f79",
+    "zh_gsdsimp-ud-test.conllu": "3af8046a6f32477b4d5cf3dd06bbf38682a380fe77aade3f68de97e51ab94900"
+  },
+  "attribution": "UD Chinese GSDSimp: Peng Qi, Koichi Yasuoka; converted from UD Chinese GSD, wiki genre. CC BY-SA 4.0. Original underlying wiki rights remain with their authors.",
+  "split_rule": "Entire external corpus source is holdout, none used for prompt or threshold tuning. Deduplicated full sentences; deterministic SHA-256 order. Authored development examples are a separate source.",
+  "exclusions": {
+    "too_short_or_long": 0,
+    "no_bounded_content_word": 1,
+    "duplicate_sentence": 0
+  },
+  "eligible_sentences": 499,
+  "selected_sentences": 24,
+  "samples": [
+    {
+      "id": "holdout-00",
+      "split": "holdout",
+      "source": {
+        "repository": "UniversalDependencies/UD_Chinese-GSDSimp",
+        "revision": "4231dfd59866fa5999ad4a6bc1fdecd7985b3b59",
+        "file": "zh_gsdsimp-ud-test.conllu",
+        "sent_id": "test-s152",
+        "sentence_sha256": "006b340f56b39f2d12fcca00af315213ecd061d7559435b990a6e084349fd9a4",
+        "license": "CC-BY-SA-4.0"
+      },
+      "kind": "word_remainder",
+      "prefix": "影片也从田纳西·威",
+      "references": [
+        "廉斯"
+      ],
+      "should_stop": false
+    },
+    {
+      "id": "stop-00",
+      "split": "holdout",
+      "source": {
+        "repository": "UniversalDependencies/UD_Chinese-GSDSimp",
+        "revision": "4231dfd59866fa5999ad4a6bc1fdecd7985b3b59",
+        "file": "zh_gsdsimp-ud-test.conllu",
+        "sent_id": "test-s152",
+        "sentence_sha256": "006b340f56b39f2d12fcca00af315213ecd061d7559435b990a6e084349fd9a4",
+        "license": "CC-BY-SA-4.0"
+      },
+      "kind": "sentence_stop",
+      "prefix": "影片也从田纳西·威廉斯的《热铁皮屋顶上的猫》中汲取了灵感。",
+      "references": [],
+      "should_stop": true
+    },
+    {
+      "id": "holdout-01",
+      "split": "holdout",
+      "source": {
+        "repository": "UniversalDependencies/UD_Chinese-GSDSimp",
+        "revision": "4231dfd59866fa5999ad4a6bc1fdecd7985b3b59",
+        "file": "zh_gsdsimp-ud-test.conllu",
+        "sent_id": "test-s401",
+        "sentence_sha256": "00899304f30e1ea52a13762d32cce08b1719f7c53f35c1b5281fbc273d30bcd6",
+        "license": "CC-BY-SA-4.0"
+      },
+      "kind": "next_word",
+      "prefix": "孟加拉狐是较为",
+      "references": [
+        "细小"
+      ],
+      "should_stop": false
+    },
+    {
+      "id": "stop-01",
+      "split": "holdout",
+      "source": {
+        "repository": "UniversalDependencies/UD_Chinese-GSDSimp",
+        "revision": "4231dfd59866fa5999ad4a6bc1fdecd7985b3b59",
+        "file": "zh_gsdsimp-ud-test.conllu",
+        "sent_id": "test-s401",
+        "sentence_sha256": "00899304f30e1ea52a13762d32cce08b1719f7c53f35c1b5281fbc273d30bcd6",
+        "license": "CC-BY-SA-4.0"
+      },
+      "kind": "sentence_stop",
+      "prefix": "孟加拉狐是较为细小的狐狸，吻较长，耳朵尖长，尾巴约是体长的50-60%。",
+      "references": [],
+      "should_stop": true
+    },
+    {
+      "id": "holdout-02",
+      "split": "holdout",
+      "source": {
+        "repository": "UniversalDependencies/UD_Chinese-GSDSimp",
+        "revision": "4231dfd59866fa5999ad4a6bc1fdecd7985b3b59",
+        "file": "zh_gsdsimp-ud-test.conllu",
+        "sent_id": "test-s106",
+        "sentence_sha256": "012ffcec52718fb8ea900a16930a3a480057cbf6d0d46526c209725df123f875",
+        "license": "CC-BY-SA-4.0"
+      },
+      "kind": "next_word",
+      "prefix": "程序性给付是在",
+      "references": [
+        "要求"
+      ],
+      "should_stop": false
+    },
+    {
+      "id": "stop-02",
+      "split": "holdout",
+      "source": {
+        "repository": "UniversalDependencies/UD_Chinese-GSDSimp",
+        "revision": "4231dfd59866fa5999ad4a6bc1fdecd7985b3b59",
+        "file": "zh_gsdsimp-ud-test.conllu",
+        "sent_id": "test-s106",
+        "sentence_sha256": "012ffcec52718fb8ea900a16930a3a480057cbf6d0d46526c209725df123f875",
+        "license": "CC-BY-SA-4.0"
+      },
+      "kind": "sentence_stop",
+      "prefix": "程序性给付是在要求国家必须提供一套制度，例如考试制度和选举制度等，其也与正当法律程序条款的要求有关。",
+      "references": [],
+      "should_stop": true
+    },
+    {
+      "id": "holdout-03",
+      "split": "holdout",
+      "source": {
+        "repository": "UniversalDependencies/UD_Chinese-GSDSimp",
+        "revision": "4231dfd59866fa5999ad4a6bc1fdecd7985b3b59",
+        "file": "zh_gsdsimp-ud-test.conllu",
+        "sent_id": "test-s218",
+        "sentence_sha256": "01eca6b84b2bef5ab611506814ea91d62eccee3800800cd3f3878da82abab727",
+        "license": "CC-BY-SA-4.0"
+      },
+      "kind": "word_remainder",
+      "prefix": "Rize在当年的圣",
+      "references": [
+        "丹斯"
+      ],
+      "should_stop": false
+    },
+    {
+      "id": "stop-03",
+      "split": "holdout",
+      "source": {
+        "repository": "UniversalDependencies/UD_Chinese-GSDSimp",
+        "revision": "4231dfd59866fa5999ad4a6bc1fdecd7985b3b59",
+        "file": "zh_gsdsimp-ud-test.conllu",
+        "sent_id": "test-s218",
+        "sentence_sha256": "01eca6b84b2bef5ab611506814ea91d62eccee3800800cd3f3878da82abab727",
+        "license": "CC-BY-SA-4.0"
+      },
+      "kind": "sentence_stop",
+      "prefix": "Rize在当年的圣丹斯电影节首映。",
+      "references": [],
+      "should_stop": true
+    },
+    {
+      "id": "holdout-04",
+      "split": "holdout",
+      "source": {
+        "repository": "UniversalDependencies/UD_Chinese-GSDSimp",
+        "revision": "4231dfd59866fa5999ad4a6bc1fdecd7985b3b59",
+        "file": "zh_gsdsimp-ud-test.conllu",
+        "sent_id": "test-s245",
+        "sentence_sha256": "0283b150877e83e7f36b097797a1ea75f386721e709e31a5c884e7f8db7c448a",
+        "license": "CC-BY-SA-4.0"
+      },
+      "kind": "next_word",
+      "prefix": "中国有35属约206",
+      "references": [
+        "种"
+      ],
+      "should_stop": false
+    },
+    {
+      "id": "stop-04",
+      "split": "holdout",
+      "source": {
+        "repository": "UniversalDependencies/UD_Chinese-GSDSimp",
+        "revision": "4231dfd59866fa5999ad4a6bc1fdecd7985b3b59",
+        "file": "zh_gsdsimp-ud-test.conllu",
+        "sent_id": "test-s245",
+        "sentence_sha256": "0283b150877e83e7f36b097797a1ea75f386721e709e31a5c884e7f8db7c448a",
+        "license": "CC-BY-SA-4.0"
+      },
+      "kind": "sentence_stop",
+      "prefix": "中国有35属约206种，主要分布在南方各地。",
+      "references": [],
+      "should_stop": true
+    },
+    {
+      "id": "holdout-05",
+      "split": "holdout",
+      "source": {
+        "repository": "UniversalDependencies/UD_Chinese-GSDSimp",
+        "revision": "4231dfd59866fa5999ad4a6bc1fdecd7985b3b59",
+        "file": "zh_gsdsimp-ud-test.conllu",
+        "sent_id": "test-s188",
+        "sentence_sha256": "0307f3fce53d6accfc93b198191046ba83c362ee0ee1219b0d9b3a035b9b2030",
+        "license": "CC-BY-SA-4.0"
+      },
+      "kind": "next_word",
+      "prefix": "龙头由藤条屈曲",
+      "references": [
+        "为"
+      ],
+      "should_stop": false
+    },
+    {
+      "id": "stop-05",
+      "split": "holdout",
+      "source": {
+        "repository": "UniversalDependencies/UD_Chinese-GSDSimp",
+        "revision": "4231dfd59866fa5999ad4a6bc1fdecd7985b3b59",
+        "file": "zh_gsdsimp-ud-test.conllu",
+        "sent_id": "test-s188",
+        "sentence_sha256": "0307f3fce53d6accfc93b198191046ba83c362ee0ee1219b0d9b3a035b9b2030",
+        "license": "CC-BY-SA-4.0"
+      },
+      "kind": "sentence_stop",
+      "prefix": "龙头由藤条屈曲为骨架；龙牙以锯齿的铁片造成；双眼是手电筒；舌头是漆红的木片。",
+      "references": [],
+      "should_stop": true
+    },
+    {
+      "id": "holdout-06",
+      "split": "holdout",
+      "source": {
+        "repository": "UniversalDependencies/UD_Chinese-GSDSimp",
+        "revision": "4231dfd59866fa5999ad4a6bc1fdecd7985b3b59",
+        "file": "zh_gsdsimp-ud-test.conllu",
+        "sent_id": "test-s289",
+        "sentence_sha256": "030c1bfd04c8e12845f06200dc9d35f3e6935d28630138e80ab25cf548373f46",
+        "license": "CC-BY-SA-4.0"
+      },
+      "kind": "word_remainder",
+      "prefix": "而宫内的每个房",
+      "references": [
+        "间"
+      ],
+      "should_stop": false
+    },
+    {
+      "id": "stop-06",
+      "split": "holdout",
+      "source": {
+        "repository": "UniversalDependencies/UD_Chinese-GSDSimp",
+        "revision": "4231dfd59866fa5999ad4a6bc1fdecd7985b3b59",
+        "file": "zh_gsdsimp-ud-test.conllu",
+        "sent_id": "test-s289",
+        "sentence_sha256": "030c1bfd04c8e12845f06200dc9d35f3e6935d28630138e80ab25cf548373f46",
+        "license": "CC-BY-SA-4.0"
+      },
+      "kind": "sentence_stop",
+      "prefix": "而宫内的每个房间门口，又各有几名看门妇把守。",
+      "references": [],
+      "should_stop": true
+    },
+    {
+      "id": "holdout-07",
+      "split": "holdout",
+      "source": {
+        "repository": "UniversalDependencies/UD_Chinese-GSDSimp",
+        "revision": "4231dfd59866fa5999ad4a6bc1fdecd7985b3b59",
+        "file": "zh_gsdsimp-ud-test.conllu",
+        "sent_id": "test-s365",
+        "sentence_sha256": "03a2ecce44fb92233b714635d9cd27d2695c48c249e717b4ec72852b51518917",
+        "license": "CC-BY-SA-4.0"
+      },
+      "kind": "next_word",
+      "prefix": "他宣布自己为",
+      "references": [
+        "共和"
+      ],
+      "should_stop": false
+    },
+    {
+      "id": "stop-07",
+      "split": "holdout",
+      "source": {
+        "repository": "UniversalDependencies/UD_Chinese-GSDSimp",
+        "revision": "4231dfd59866fa5999ad4a6bc1fdecd7985b3b59",
+        "file": "zh_gsdsimp-ud-test.conllu",
+        "sent_id": "test-s365",
+        "sentence_sha256": "03a2ecce44fb92233b714635d9cd27d2695c48c249e717b4ec72852b51518917",
+        "license": "CC-BY-SA-4.0"
+      },
+      "kind": "sentence_stop",
+      "prefix": "他宣布自己为共和国总统，同伴瓦特金斯为副总统。",
+      "references": [],
+      "should_stop": true
+    },
+    {
+      "id": "holdout-08",
+      "split": "holdout",
+      "source": {
+        "repository": "UniversalDependencies/UD_Chinese-GSDSimp",
+        "revision": "4231dfd59866fa5999ad4a6bc1fdecd7985b3b59",
+        "file": "zh_gsdsimp-ud-test.conllu",
+        "sent_id": "test-s93",
+        "sentence_sha256": "043af20beb84586e4c3af1bd18b0cfea93d894adcceac5331a3b25ab6251dcc2",
+        "license": "CC-BY-SA-4.0"
+      },
+      "kind": "next_word",
+      "prefix": "随着年代的变迁，",
+      "references": [
+        "城堡"
+      ],
+      "should_stop": false
+    },
+    {
+      "id": "holdout-09",
+      "split": "holdout",
+      "source": {
+        "repository": "UniversalDependencies/UD_Chinese-GSDSimp",
+        "revision": "4231dfd59866fa5999ad4a6bc1fdecd7985b3b59",
+        "file": "zh_gsdsimp-ud-test.conllu",
+        "sent_id": "test-s299",
+        "sentence_sha256": "046f8433d71b9855ca6f3b92f90120de4a091d1448dcffef5c36035ea90fcbcb",
+        "license": "CC-BY-SA-4.0"
+      },
+      "kind": "word_remainder",
+      "prefix": "近代意义上的“契",
+      "references": [
+        "约"
+      ],
+      "should_stop": false
+    },
+    {
+      "id": "holdout-10",
+      "split": "holdout",
+      "source": {
+        "repository": "UniversalDependencies/UD_Chinese-GSDSimp",
+        "revision": "4231dfd59866fa5999ad4a6bc1fdecd7985b3b59",
+        "file": "zh_gsdsimp-ud-test.conllu",
+        "sent_id": "test-s234",
+        "sentence_sha256": "0477bd0822d275b5dabb6353bcb93c158c341311d383564ac58fa03d80a1fb60",
+        "license": "CC-BY-SA-4.0"
+      },
+      "kind": "next_word",
+      "prefix": "大额蛇鳗，为",
+      "references": [
+        "辐鳍鱼"
+      ],
+      "should_stop": false
+    },
+    {
+      "id": "holdout-11",
+      "split": "holdout",
+      "source": {
+        "repository": "UniversalDependencies/UD_Chinese-GSDSimp",
+        "revision": "4231dfd59866fa5999ad4a6bc1fdecd7985b3b59",
+        "file": "zh_gsdsimp-ud-test.conllu",
+        "sent_id": "test-s377",
+        "sentence_sha256": "04aa1e933d9b9fa5b7103d99184c318a44477e0ff0214a6c094ffd61adf3ca8e",
+        "license": "CC-BY-SA-4.0"
+      },
+      "kind": "next_word",
+      "prefix": "学院于1776",
+      "references": [
+        "年"
+      ],
+      "should_stop": false
+    },
+    {
+      "id": "holdout-12",
+      "split": "holdout",
+      "source": {
+        "repository": "UniversalDependencies/UD_Chinese-GSDSimp",
+        "revision": "4231dfd59866fa5999ad4a6bc1fdecd7985b3b59",
+        "file": "zh_gsdsimp-ud-test.conllu",
+        "sent_id": "test-s308",
+        "sentence_sha256": "05099f3f4cbf3a6f9491442f87b900144a3d05956aaafb3a706bfd7527770f4b",
+        "license": "CC-BY-SA-4.0"
+      },
+      "kind": "word_remainder",
+      "prefix": "绝大多数最佳影",
+      "references": [
+        "片"
+      ],
+      "should_stop": false
+    },
+    {
+      "id": "holdout-13",
+      "split": "holdout",
+      "source": {
+        "repository": "UniversalDependencies/UD_Chinese-GSDSimp",
+        "revision": "4231dfd59866fa5999ad4a6bc1fdecd7985b3b59",
+        "file": "zh_gsdsimp-ud-test.conllu",
+        "sent_id": "test-s416",
+        "sentence_sha256": "0558dbd9e8febddfc71a6a52ec306ed23a6b312f5590da3c930e525d00ec1ff0",
+        "license": "CC-BY-SA-4.0"
+      },
+      "kind": "next_word",
+      "prefix": "宁波最早的广播",
+      "references": [
+        "电台"
+      ],
+      "should_stop": false
+    },
+    {
+      "id": "holdout-14",
+      "split": "holdout",
+      "source": {
+        "repository": "UniversalDependencies/UD_Chinese-GSDSimp",
+        "revision": "4231dfd59866fa5999ad4a6bc1fdecd7985b3b59",
+        "file": "zh_gsdsimp-ud-test.conllu",
+        "sent_id": "test-s432",
+        "sentence_sha256": "057a67d22daa14b6f8bf875450701b479d004527990b1ec79f8f2e64d6697f11",
+        "license": "CC-BY-SA-4.0"
+      },
+      "kind": "next_word",
+      "prefix": "此外，他还创办了",
+      "references": [
+        "北京"
+      ],
+      "should_stop": false
+    },
+    {
+      "id": "holdout-15",
+      "split": "holdout",
+      "source": {
+        "repository": "UniversalDependencies/UD_Chinese-GSDSimp",
+        "revision": "4231dfd59866fa5999ad4a6bc1fdecd7985b3b59",
+        "file": "zh_gsdsimp-ud-test.conllu",
+        "sent_id": "test-s446",
+        "sentence_sha256": "0613ac86623de3bb1726d891d0ed222fa7e135e44255fcd8f701ae16946592ab",
+        "license": "CC-BY-SA-4.0"
+      },
+      "kind": "word_remainder",
+      "prefix": "然而再回到伦敦的暗",
+      "references": [
+        "房"
+      ],
+      "should_stop": false
+    },
+    {
+      "id": "holdout-16",
+      "split": "holdout",
+      "source": {
+        "repository": "UniversalDependencies/UD_Chinese-GSDSimp",
+        "revision": "4231dfd59866fa5999ad4a6bc1fdecd7985b3b59",
+        "file": "zh_gsdsimp-ud-test.conllu",
+        "sent_id": "test-s147",
+        "sentence_sha256": "06323445445a8b06c38425ed7e6d1d35ffc9c5e6a9b746c7aef21f3a73657197",
+        "license": "CC-BY-SA-4.0"
+      },
+      "kind": "next_word",
+      "prefix": "这个原理有时",
+      "references": [
+        "叫做"
+      ],
+      "should_stop": false
+    },
+    {
+      "id": "holdout-17",
+      "split": "holdout",
+      "source": {
+        "repository": "UniversalDependencies/UD_Chinese-GSDSimp",
+        "revision": "4231dfd59866fa5999ad4a6bc1fdecd7985b3b59",
+        "file": "zh_gsdsimp-ud-test.conllu",
+        "sent_id": "test-s189",
+        "sentence_sha256": "067c0dcf209e716280e25f66f03f209916f42ec040b37f0f44da4d3c5757528b",
+        "license": "CC-BY-SA-4.0"
+      },
+      "kind": "next_word",
+      "prefix": "在活动期间，",
+      "references": [
+        "该县"
+      ],
+      "should_stop": false
+    },
+    {
+      "id": "holdout-18",
+      "split": "holdout",
+      "source": {
+        "repository": "UniversalDependencies/UD_Chinese-GSDSimp",
+        "revision": "4231dfd59866fa5999ad4a6bc1fdecd7985b3b59",
+        "file": "zh_gsdsimp-ud-test.conllu",
+        "sent_id": "test-s373",
+        "sentence_sha256": "07602113251cbef905a3f33393b17cd0057f5c69a6e8bf7e8366f6baad70cd9c",
+        "license": "CC-BY-SA-4.0"
+      },
+      "kind": "word_remainder",
+      "prefix": "虽然俾斯麦说他和威",
+      "references": [
+        "廉"
+      ],
+      "should_stop": false
+    },
+    {
+      "id": "holdout-19",
+      "split": "holdout",
+      "source": {
+        "repository": "UniversalDependencies/UD_Chinese-GSDSimp",
+        "revision": "4231dfd59866fa5999ad4a6bc1fdecd7985b3b59",
+        "file": "zh_gsdsimp-ud-test.conllu",
+        "sent_id": "test-s191",
+        "sentence_sha256": "076ffb760319a12b6a613ab52f4176123ead888e5d09289ab0b226aa7c1a7abc",
+        "license": "CC-BY-SA-4.0"
+      },
+      "kind": "next_word",
+      "prefix": "大孔多孔菌，",
+      "references": [
+        "属"
+      ],
+      "should_stop": false
+    },
+    {
+      "id": "holdout-20",
+      "split": "holdout",
+      "source": {
+        "repository": "UniversalDependencies/UD_Chinese-GSDSimp",
+        "revision": "4231dfd59866fa5999ad4a6bc1fdecd7985b3b59",
+        "file": "zh_gsdsimp-ud-test.conllu",
+        "sent_id": "test-s86",
+        "sentence_sha256": "07d593e1311595eb8b0309570effb5cfeb6f7c6c3b81bc60047a286cfcfe9516",
+        "license": "CC-BY-SA-4.0"
+      },
+      "kind": "next_word",
+      "prefix": "1916年至1917",
+      "references": [
+        "年"
+      ],
+      "should_stop": false
+    },
+    {
+      "id": "holdout-21",
+      "split": "holdout",
+      "source": {
+        "repository": "UniversalDependencies/UD_Chinese-GSDSimp",
+        "revision": "4231dfd59866fa5999ad4a6bc1fdecd7985b3b59",
+        "file": "zh_gsdsimp-ud-test.conllu",
+        "sent_id": "test-s295",
+        "sentence_sha256": "086798491e7b1ba238ba0dbb3a5a6b8968dcd68e93677d88bb4c481fbf0b16c2",
+        "license": "CC-BY-SA-4.0"
+      },
+      "kind": "word_remainder",
+      "prefix": "1961年3月3日，奇",
+      "references": [
+        "尔沙治"
+      ],
+      "should_stop": false
+    },
+    {
+      "id": "holdout-22",
+      "split": "holdout",
+      "source": {
+        "repository": "UniversalDependencies/UD_Chinese-GSDSimp",
+        "revision": "4231dfd59866fa5999ad4a6bc1fdecd7985b3b59",
+        "file": "zh_gsdsimp-ud-test.conllu",
+        "sent_id": "test-s447",
+        "sentence_sha256": "0884e8d46c4ab412013f4a6feca15b365942950e0dc1386c37164e31e26aad34",
+        "license": "CC-BY-SA-4.0"
+      },
+      "kind": "next_word",
+      "prefix": "就我所知，他是最不",
+      "references": [
+        "适合"
+      ],
+      "should_stop": false
+    },
+    {
+      "id": "holdout-23",
+      "split": "holdout",
+      "source": {
+        "repository": "UniversalDependencies/UD_Chinese-GSDSimp",
+        "revision": "4231dfd59866fa5999ad4a6bc1fdecd7985b3b59",
+        "file": "zh_gsdsimp-ud-test.conllu",
+        "sent_id": "test-s280",
+        "sentence_sha256": "08e493b40099e8e361d68dac768c4165f36edadecdffdfaadecddfe059791966",
+        "license": "CC-BY-SA-4.0"
+      },
+      "kind": "next_word",
+      "prefix": "根据1984",
+      "references": [
+        "年"
+      ],
+      "should_stop": false
+    },
+    {
+      "id": "empty",
+      "split": "holdout",
+      "source": {
+        "repository": "empty-input-contract",
+        "license": "MIT"
+      },
+      "kind": "no_context",
+      "prefix": "",
+      "references": [],
+      "should_stop": true
+    }
+  ]
+}

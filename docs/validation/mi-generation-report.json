@@ -1,0 +1,1599 @@
+{
+  "source_hashes": {
+    "model_input\\evaluation\\generation-dev.json": "9d0059032ee1149947e7ca0edd67e2ec505ec62e0f5ac9b0115c645d14fc3fae",
+    "docs\\validation\\mi-generation-dev-runs.json": "424567c1ecfaa684736a2c98535d946069e0c802017c9783b42115db577bc675",
+    "model_input\\evaluation\\generation-holdout.json": "54f36bc806bd8ea455f95ebf93ffbf5d17ed41951fd9266491f31e5b87c9f5aa",
+    "docs\\validation\\mi-generation-holdout-runs.json": "6b18d9219eac723cf5a2b4cafad70e1c3c84607fce42e36c7ccdd0420cd470ca"
+  },
+  "scoring_gate": {
+    "minimum_score": -6.0,
+    "minimum_margin": 1.0,
+    "selection": "maximize dev reference hits minus non-reference displays; tie: hits, stricter gate",
+    "grid": {
+      "minimum_score": [
+        -8,
+        -6,
+        -4,
+        -3,
+        -2,
+        -1
+      ],
+      "minimum_margin": [
+        0,
+        0.5,
+        1
+      ]
+    }
+  },
+  "generation_policy": {
+    "adapter": "qwen25-short-words-v1",
+    "evidence": "MI-22 authored development probes, generation-specific raw mean log probability. Functional experiment only; no independent quality endorsement. Prompt/grammar/greedy decoding fixed by qwen25-short-words-v1; GGUF hash binds tokenizer.",
+    "max_chars": 6,
+    "max_tokens": 64,
+    "max_words": 3,
+    "minimum_mean_logprob": -3.0,
+    "model_sha256": "74a4da8c9fdbcd15bd1f6d01d621410d31c6fc00986f5eb687824e7b93d7a9db",
+    "version": 1
+  },
+  "dictionary_inventory": {
+    "hashes": {
+      "core_engine/src/assistance/prediction_words.tsv": "9a4943e000c5a81ac3c6bcf5bae75d1b44203f15d7d3f19295f7277e1aabaa54",
+      "core_engine/src/assistance/prediction_pairs.tsv": "dee0fe1c7a0f059fa0f4df5e4c97ce87ad26cf9f398bdada6dd67424363196cf",
+      "tables/wubi86.dict": "71ad2aa4995117f5b0716572470487b9c799354cc49d8bebe017a539a814d37a"
+    },
+    "user_dictionary": "empty",
+    "definition": "Exact candidate string absent from all listed dictionaries; word remainders counted as strings."
+  },
+  "quality": {
+    "metrics": {
+      "dictionary": {
+        "cases": 33,
+        "positive_cases": 24,
+        "stop_cases": 9,
+        "recall": 0.20833333333333334,
+        "top1": 0.0,
+        "top3": 0.16666666666666666,
+        "display_coverage": 0.42424242424242425,
+        "stop_false_display": 0.0,
+        "exact_display_precision": 0.10256410256410256,
+        "recall_external_cases": 19,
+        "recall_external_hits": 0,
+        "dictionary_external_cases": 15,
+        "dictionary_external_hits": 3,
+        "timeouts": 0
+      },
+      "scoring": {
+        "cases": 33,
+        "positive_cases": 24,
+        "stop_cases": 9,
+        "recall": 0.20833333333333334,
+        "top1": 0.041666666666666664,
+        "top3": 0.041666666666666664,
+        "display_coverage": 0.15151515151515152,
+        "stop_false_display": 0.0,
+        "exact_display_precision": 0.09090909090909091,
+        "recall_external_cases": 19,
+        "recall_external_hits": 0,
+        "dictionary_external_cases": 15,
+        "dictionary_external_hits": 0,
+        "timeouts": 0
+      },
+      "generation": {
+        "cases": 33,
+        "positive_cases": 24,
+        "stop_cases": 9,
+        "recall": 0.0,
+        "top1": 0.0,
+        "top3": 0.0,
+        "display_coverage": 0.12121212121212122,
+        "stop_false_display": 0.0,
+        "exact_display_precision": 0.0,
+        "recall_external_cases": 19,
+        "recall_external_hits": 0,
+        "dictionary_external_cases": 15,
+        "dictionary_external_hits": 0,
+        "timeouts": 0
+      }
+    },
+    "failures": [
+      {
+        "method": "dictionary",
+        "id": "holdout-00",
+        "words": [
+          "胁",
+          "力",
+          "海"
+        ],
+        "references": [
+          "廉斯"
+        ],
+        "reason": "reference-miss"
+      },
+      {
+        "method": "dictionary",
+        "id": "holdout-01",
+        "words": [],
+        "references": [
+          "细小"
+        ],
+        "reason": "reference-miss"
+      },
+      {
+        "method": "dictionary",
+        "id": "holdout-02",
+        "words": [],
+        "references": [
+          "要求"
+        ],
+        "reason": "reference-miss"
+      },
+      {
+        "method": "dictionary",
+        "id": "holdout-03",
+        "words": [
+          "诞",
+          "诞节",
+          "经"
+        ],
+        "references": [
+          "丹斯"
+        ],
+        "reason": "reference-miss"
+      },
+      {
+        "method": "dictionary",
+        "id": "holdout-04",
+        "words": [],
+        "references": [
+          "种"
+        ],
+        "reason": "reference-miss"
+      },
+      {
+        "method": "dictionary",
+        "id": "holdout-05",
+        "words": [
+          "线",
+          "子",
+          "折"
+        ],
+        "references": [
+          "为"
+        ],
+        "reason": "reference-miss"
+      },
+      {
+        "method": "dictionary",
+        "id": "holdout-07",
+        "words": [
+          "什么",
+          "了",
+          "主"
+        ],
+        "references": [
+          "共和"
+        ],
+        "reason": "reference-miss"
+      },
+      {
+        "method": "dictionary",
+        "id": "holdout-08",
+        "words": [],
+        "references": [
+          "城堡"
+        ],
+        "reason": "reference-miss"
+      },
+      {
+        "method": "dictionary",
+        "id": "holdout-10",
+        "words": [
+          "什么",
+          "了",
+          "主"
+        ],
+        "references": [
+          "辐鳍鱼"
+        ],
+        "reason": "reference-miss"
+      },
+      {
+        "method": "dictionary",
+        "id": "holdout-11",
+        "words": [],
+        "references": [
+          "年"
+        ],
+        "reason": "reference-miss"
+      },
+      {
+        "method": "dictionary",
+        "id": "holdout-14",
+        "words": [
+          "解",
+          "吗",
+          "一"
+        ],
+        "references": [
+          "北京"
+        ],
+        "reason": "reference-miss"
+      },
+      {
+        "method": "dictionary",
+        "id": "holdout-15",
+        "words": [
+          "示",
+          "恋",
+          "暗"
+        ],
+        "references": [
+          "房"
+        ],
+        "reason": "reference-miss"
+      },
+      {
+        "method": "dictionary",
+        "id": "holdout-16",
+        "words": [
+          "候"
+        ],
+        "references": [
+          "叫做"
+        ],
+        "reason": "reference-miss"
+      },
+      {
+        "method": "dictionary",
+        "id": "holdout-17",
+        "words": [],
+        "references": [
+          "该县"
+        ],
+        "reason": "reference-miss"
+      },
+      {
+        "method": "dictionary",
+        "id": "holdout-18",
+        "words": [
+          "胁",
+          "力",
+          "海"
+        ],
+        "references": [
+          "廉"
+        ],
+        "reason": "reference-miss"
+      },
+      {
+        "method": "dictionary",
+        "id": "holdout-19",
+        "words": [],
+        "references": [
+          "属"
+        ],
+        "reason": "reference-miss"
+      },
+      {
+        "method": "dictionary",
+        "id": "holdout-20",
+        "words": [],
+        "references": [
+          "年"
+        ],
+        "reason": "reference-miss"
+      },
+      {
+        "method": "dictionary",
+        "id": "holdout-21",
+        "words": [
+          "怪",
+          "迹",
+          "瑞"
+        ],
+        "references": [
+          "尔沙治"
+        ],
+        "reason": "reference-miss"
+      },
+      {
+        "method": "dictionary",
+        "id": "holdout-22",
+        "words": [],
+        "references": [
+          "适合"
+        ],
+        "reason": "reference-miss"
+      },
+      {
+        "method": "dictionary",
+        "id": "holdout-23",
+        "words": [],
+        "references": [
+          "年"
+        ],
+        "reason": "reference-miss"
+      },
+      {
+        "method": "scoring",
+        "id": "holdout-00",
+        "words": [
+          "廉姆斯",
+          "尔士",
+          "士忌"
+        ],
+        "references": [
+          "廉斯"
+        ],
+        "reason": "reference-miss"
+      },
+      {
+        "method": "scoring",
+        "id": "holdout-01",
+        "words": [],
+        "references": [
+          "细小"
+        ],
+        "reason": "reference-miss"
+      },
+      {
+        "method": "scoring",
+        "id": "holdout-02",
+        "words": [],
+        "references": [
+          "要求"
+        ],
+        "reason": "reference-miss"
+      },
+      {
+        "method": "scoring",
+        "id": "holdout-03",
+        "words": [],
+        "references": [
+          "丹斯"
+        ],
+        "reason": "reference-miss"
+      },
+      {
+        "method": "scoring",
+        "id": "holdout-04",
+        "words": [],
+        "references": [
+          "种"
+        ],
+        "reason": "reference-miss"
+      },
+      {
+        "method": "scoring",
+        "id": "holdout-05",
+        "words": [],
+        "references": [
+          "为"
+        ],
+        "reason": "reference-miss"
+      },
+      {
+        "method": "scoring",
+        "id": "holdout-06",
+        "words": [],
+        "references": [
+          "间"
+        ],
+        "reason": "reference-miss"
+      },
+      {
+        "method": "scoring",
+        "id": "holdout-07",
+        "words": [],
+        "references": [
+          "共和"
+        ],
+        "reason": "reference-miss"
+      },
+      {
+        "method": "scoring",
+        "id": "holdout-08",
+        "words": [],
+        "references": [
+          "城堡"
+        ],
+        "reason": "reference-miss"
+      },
+      {
+        "method": "scoring",
+        "id": "holdout-09",
+        "words": [
+          "丹"
+        ],
+        "references": [
+          "约"
+        ],
+        "reason": "reference-miss"
+      },
+      {
+        "method": "scoring",
+        "id": "holdout-10",
+        "words": [
+          "数不多",
+          "一"
+        ],
+        "references": [
+          "辐鳍鱼"
+        ],
+        "reason": "reference-miss"
+      },
+      {
+        "method": "scoring",
+        "id": "holdout-11",
+        "words": [],
+        "references": [
+          "年"
+        ],
+        "reason": "reference-miss"
+      },
+      {
+        "method": "scoring",
+        "id": "holdout-12",
+        "words": [],
+        "references": [
+          "片"
+        ],
+        "reason": "reference-miss"
+      },
+      {
+        "method": "scoring",
+        "id": "holdout-14",
+        "words": [],
+        "references": [
+          "北京"
+        ],
+        "reason": "reference-miss"
+      },
+      {
+        "method": "scoring",
+        "id": "holdout-15",
+        "words": [],
+        "references": [
+          "房"
+        ],
+        "reason": "reference-miss"
+      },
+      {
+        "method": "scoring",
+        "id": "holdout-16",
+        "words": [],
+        "references": [
+          "叫做"
+        ],
+        "reason": "reference-miss"
+      },
+      {
+        "method": "scoring",
+        "id": "holdout-17",
+        "words": [],
+        "references": [
+          "该县"
+        ],
+        "reason": "reference-miss"
+      },
+      {
+        "method": "scoring",
+        "id": "holdout-18",
+        "words": [],
+        "references": [
+          "廉"
+        ],
+        "reason": "reference-miss"
+      },
+      {
+        "method": "scoring",
+        "id": "holdout-19",
+        "words": [],
+        "references": [
+          "属"
+        ],
+        "reason": "reference-miss"
+      },
+      {
+        "method": "scoring",
+        "id": "holdout-20",
+        "words": [],
+        "references": [
+          "年"
+        ],
+        "reason": "reference-miss"
+      },
+      {
+        "method": "scoring",
+        "id": "holdout-21",
+        "words": [
+          "石",
+          "虎",
+          "才"
+        ],
+        "references": [
+          "尔沙治"
+        ],
+        "reason": "reference-miss"
+      },
+      {
+        "method": "scoring",
+        "id": "holdout-22",
+        "words": [],
+        "references": [
+          "适合"
+        ],
+        "reason": "reference-miss"
+      },
+      {
+        "method": "scoring",
+        "id": "holdout-23",
+        "words": [],
+        "references": [
+          "年"
+        ],
+        "reason": "reference-miss"
+      },
+      {
+        "method": "generation",
+        "id": "holdout-00",
+        "words": [
+          "田纳西"
+        ],
+        "references": [
+          "廉斯"
+        ],
+        "reason": "reference-miss"
+      },
+      {
+        "method": "generation",
+        "id": "holdout-01",
+        "words": [],
+        "references": [
+          "细小"
+        ],
+        "reason": "reference-miss"
+      },
+      {
+        "method": "generation",
+        "id": "holdout-02",
+        "words": [],
+        "references": [
+          "要求"
+        ],
+        "reason": "reference-miss"
+      },
+      {
+        "method": "generation",
+        "id": "holdout-03",
+        "words": [],
+        "references": [
+          "丹斯"
+        ],
+        "reason": "reference-miss"
+      },
+      {
+        "method": "generation",
+        "id": "holdout-04",
+        "words": [],
+        "references": [
+          "种"
+        ],
+        "reason": "reference-miss"
+      },
+      {
+        "method": "generation",
+        "id": "holdout-05",
+        "words": [],
+        "references": [
+          "为"
+        ],
+        "reason": "reference-miss"
+      },
+      {
+        "method": "generation",
+        "id": "holdout-06",
+        "words": [],
+        "references": [
+          "间"
+        ],
+        "reason": "reference-miss"
+      },
+      {
+        "method": "generation",
+        "id": "holdout-07",
+        "words": [
+          "记者"
+        ],
+        "references": [
+          "共和"
+        ],
+        "reason": "reference-miss"
+      },
+      {
+        "method": "generation",
+        "id": "holdout-08",
+        "words": [],
+        "references": [
+          "城堡"
+        ],
+        "reason": "reference-miss"
+      },
+      {
+        "method": "generation",
+        "id": "holdout-09",
+        "words": [],
+        "references": [
+          "约"
+        ],
+        "reason": "reference-miss"
+      },
+      {
+        "method": "generation",
+        "id": "holdout-10",
+        "words": [],
+        "references": [
+          "辐鳍鱼"
+        ],
+        "reason": "reference-miss"
+      },
+      {
+        "method": "generation",
+        "id": "holdout-11",
+        "words": [],
+        "references": [
+          "年"
+        ],
+        "reason": "reference-miss"
+      },
+      {
+        "method": "generation",
+        "id": "holdout-12",
+        "words": [],
+        "references": [
+          "片"
+        ],
+        "reason": "reference-miss"
+      },
+      {
+        "method": "generation",
+        "id": "holdout-13",
+        "words": [],
+        "references": [
+          "电台"
+        ],
+        "reason": "reference-miss"
+      },
+      {
+        "method": "generation",
+        "id": "holdout-14",
+        "words": [],
+        "references": [
+          "北京"
+        ],
+        "reason": "reference-miss"
+      },
+      {
+        "method": "generation",
+        "id": "holdout-15",
+        "words": [
+          "伦敦"
+        ],
+        "references": [
+          "房"
+        ],
+        "reason": "reference-miss"
+      },
+      {
+        "method": "generation",
+        "id": "holdout-16",
+        "words": [],
+        "references": [
+          "叫做"
+        ],
+        "reason": "reference-miss"
+      },
+      {
+        "method": "generation",
+        "id": "holdout-17",
+        "words": [
+          "参加"
+        ],
+        "references": [
+          "该县"
+        ],
+        "reason": "reference-miss"
+      },
+      {
+        "method": "generation",
+        "id": "holdout-18",
+        "words": [],
+        "references": [
+          "廉"
+        ],
+        "reason": "reference-miss"
+      },
+      {
+        "method": "generation",
+        "id": "holdout-19",
+        "words": [],
+        "references": [
+          "属"
+        ],
+        "reason": "reference-miss"
+      },
+      {
+        "method": "generation",
+        "id": "holdout-20",
+        "words": [],
+        "references": [
+          "年"
+        ],
+        "reason": "reference-miss"
+      },
+      {
+        "method": "generation",
+        "id": "holdout-21",
+        "words": [],
+        "references": [
+          "尔沙治"
+        ],
+        "reason": "reference-miss"
+      },
+      {
+        "method": "generation",
+        "id": "holdout-22",
+        "words": [],
+        "references": [
+          "适合"
+        ],
+        "reason": "reference-miss"
+      },
+      {
+        "method": "generation",
+        "id": "holdout-23",
+        "words": [],
+        "references": [
+          "年"
+        ],
+        "reason": "reference-miss"
+      }
+    ]
+  },
+  "budget_1000ms": {
+    "metrics": {
+      "dictionary": {
+        "cases": 33,
+        "positive_cases": 24,
+        "stop_cases": 9,
+        "recall": 0.20833333333333334,
+        "top1": 0.0,
+        "top3": 0.16666666666666666,
+        "display_coverage": 0.42424242424242425,
+        "stop_false_display": 0.0,
+        "exact_display_precision": 0.10256410256410256,
+        "recall_external_cases": 19,
+        "recall_external_hits": 0,
+        "dictionary_external_cases": 15,
+        "dictionary_external_hits": 3,
+        "timeouts": 0
+      },
+      "scoring": {
+        "cases": 33,
+        "positive_cases": 24,
+        "stop_cases": 9,
+        "recall": 0.20833333333333334,
+        "top1": 0.041666666666666664,
+        "top3": 0.041666666666666664,
+        "display_coverage": 0.15151515151515152,
+        "stop_false_display": 0.0,
+        "exact_display_precision": 0.09090909090909091,
+        "recall_external_cases": 19,
+        "recall_external_hits": 0,
+        "dictionary_external_cases": 15,
+        "dictionary_external_hits": 0,
+        "timeouts": 0
+      },
+      "generation": {
+        "cases": 33,
+        "positive_cases": 24,
+        "stop_cases": 9,
+        "recall": 0.0,
+        "top1": 0.0,
+        "top3": 0.0,
+        "display_coverage": 0.030303030303030304,
+        "stop_false_display": 0.0,
+        "exact_display_precision": 0.0,
+        "recall_external_cases": 19,
+        "recall_external_hits": 0,
+        "dictionary_external_cases": 15,
+        "dictionary_external_hits": 0,
+        "timeouts": 7
+      }
+    },
+    "failures": [
+      {
+        "method": "dictionary",
+        "id": "holdout-00",
+        "words": [
+          "胁",
+          "力",
+          "海"
+        ],
+        "references": [
+          "廉斯"
+        ],
+        "reason": "reference-miss"
+      },
+      {
+        "method": "dictionary",
+        "id": "holdout-01",
+        "words": [],
+        "references": [
+          "细小"
+        ],
+        "reason": "reference-miss"
+      },
+      {
+        "method": "dictionary",
+        "id": "holdout-02",
+        "words": [],
+        "references": [
+          "要求"
+        ],
+        "reason": "reference-miss"
+      },
+      {
+        "method": "dictionary",
+        "id": "holdout-03",
+        "words": [
+          "诞",
+          "诞节",
+          "经"
+        ],
+        "references": [
+          "丹斯"
+        ],
+        "reason": "reference-miss"
+      },
+      {
+        "method": "dictionary",
+        "id": "holdout-04",
+        "words": [],
+        "references": [
+          "种"
+        ],
+        "reason": "reference-miss"
+      },
+      {
+        "method": "dictionary",
+        "id": "holdout-05",
+        "words": [
+          "线",
+          "子",
+          "折"
+        ],
+        "references": [
+          "为"
+        ],
+        "reason": "reference-miss"
+      },
+      {
+        "method": "dictionary",
+        "id": "holdout-07",
+        "words": [
+          "什么",
+          "了",
+          "主"
+        ],
+        "references": [
+          "共和"
+        ],
+        "reason": "reference-miss"
+      },
+      {
+        "method": "dictionary",
+        "id": "holdout-08",
+        "words": [],
+        "references": [
+          "城堡"
+        ],
+        "reason": "reference-miss"
+      },
+      {
+        "method": "dictionary",
+        "id": "holdout-10",
+        "words": [
+          "什么",
+          "了",
+          "主"
+        ],
+        "references": [
+          "辐鳍鱼"
+        ],
+        "reason": "reference-miss"
+      },
+      {
+        "method": "dictionary",
+        "id": "holdout-11",
+        "words": [],
+        "references": [
+          "年"
+        ],
+        "reason": "reference-miss"
+      },
+      {
+        "method": "dictionary",
+        "id": "holdout-14",
+        "words": [
+          "解",
+          "吗",
+          "一"
+        ],
+        "references": [
+          "北京"
+        ],
+        "reason": "reference-miss"
+      },
+      {
+        "method": "dictionary",
+        "id": "holdout-15",
+        "words": [
+          "示",
+          "恋",
+          "暗"
+        ],
+        "references": [
+          "房"
+        ],
+        "reason": "reference-miss"
+      },
+      {
+        "method": "dictionary",
+        "id": "holdout-16",
+        "words": [
+          "候"
+        ],
+        "references": [
+          "叫做"
+        ],
+        "reason": "reference-miss"
+      },
+      {
+        "method": "dictionary",
+        "id": "holdout-17",
+        "words": [],
+        "references": [
+          "该县"
+        ],
+        "reason": "reference-miss"
+      },
+      {
+        "method": "dictionary",
+        "id": "holdout-18",
+        "words": [
+          "胁",
+          "力",
+          "海"
+        ],
+        "references": [
+          "廉"
+        ],
+        "reason": "reference-miss"
+      },
+      {
+        "method": "dictionary",
+        "id": "holdout-19",
+        "words": [],
+        "references": [
+          "属"
+        ],
+        "reason": "reference-miss"
+      },
+      {
+        "method": "dictionary",
+        "id": "holdout-20",
+        "words": [],
+        "references": [
+          "年"
+        ],
+        "reason": "reference-miss"
+      },
+      {
+        "method": "dictionary",
+        "id": "holdout-21",
+        "words": [
+          "怪",
+          "迹",
+          "瑞"
+        ],
+        "references": [
+          "尔沙治"
+        ],
+        "reason": "reference-miss"
+      },
+      {
+        "method": "dictionary",
+        "id": "holdout-22",
+        "words": [],
+        "references": [
+          "适合"
+        ],
+        "reason": "reference-miss"
+      },
+      {
+        "method": "dictionary",
+        "id": "holdout-23",
+        "words": [],
+        "references": [
+          "年"
+        ],
+        "reason": "reference-miss"
+      },
+      {
+        "method": "scoring",
+        "id": "holdout-00",
+        "words": [
+          "廉姆斯",
+          "尔士",
+          "士忌"
+        ],
+        "references": [
+          "廉斯"
+        ],
+        "reason": "reference-miss"
+      },
+      {
+        "method": "scoring",
+        "id": "holdout-01",
+        "words": [],
+        "references": [
+          "细小"
+        ],
+        "reason": "reference-miss"
+      },
+      {
+        "method": "scoring",
+        "id": "holdout-02",
+        "words": [],
+        "references": [
+          "要求"
+        ],
+        "reason": "reference-miss"
+      },
+      {
+        "method": "scoring",
+        "id": "holdout-03",
+        "words": [],
+        "references": [
+          "丹斯"
+        ],
+        "reason": "reference-miss"
+      },
+      {
+        "method": "scoring",
+        "id": "holdout-04",
+        "words": [],
+        "references": [
+          "种"
+        ],
+        "reason": "reference-miss"
+      },
+      {
+        "method": "scoring",
+        "id": "holdout-05",
+        "words": [],
+        "references": [
+          "为"
+        ],
+        "reason": "reference-miss"
+      },
+      {
+        "method": "scoring",
+        "id": "holdout-06",
+        "words": [],
+        "references": [
+          "间"
+        ],
+        "reason": "reference-miss"
+      },
+      {
+        "method": "scoring",
+        "id": "holdout-07",
+        "words": [],
+        "references": [
+          "共和"
+        ],
+        "reason": "reference-miss"
+      },
+      {
+        "method": "scoring",
+        "id": "holdout-08",
+        "words": [],
+        "references": [
+          "城堡"
+        ],
+        "reason": "reference-miss"
+      },
+      {
+        "method": "scoring",
+        "id": "holdout-09",
+        "words": [
+          "丹"
+        ],
+        "references": [
+          "约"
+        ],
+        "reason": "reference-miss"
+      },
+      {
+        "method": "scoring",
+        "id": "holdout-10",
+        "words": [
+          "数不多",
+          "一"
+        ],
+        "references": [
+          "辐鳍鱼"
+        ],
+        "reason": "reference-miss"
+      },
+      {
+        "method": "scoring",
+        "id": "holdout-11",
+        "words": [],
+        "references": [
+          "年"
+        ],
+        "reason": "reference-miss"
+      },
+      {
+        "method": "scoring",
+        "id": "holdout-12",
+        "words": [],
+        "references": [
+          "片"
+        ],
+        "reason": "reference-miss"
+      },
+      {
+        "method": "scoring",
+        "id": "holdout-14",
+        "words": [],
+        "references": [
+          "北京"
+        ],
+        "reason": "reference-miss"
+      },
+      {
+        "method": "scoring",
+        "id": "holdout-15",
+        "words": [],
+        "references": [
+          "房"
+        ],
+        "reason": "reference-miss"
+      },
+      {
+        "method": "scoring",
+        "id": "holdout-16",
+        "words": [],
+        "references": [
+          "叫做"
+        ],
+        "reason": "reference-miss"
+      },
+      {
+        "method": "scoring",
+        "id": "holdout-17",
+        "words": [],
+        "references": [
+          "该县"
+        ],
+        "reason": "reference-miss"
+      },
+      {
+        "method": "scoring",
+        "id": "holdout-18",
+        "words": [],
+        "references": [
+          "廉"
+        ],
+        "reason": "reference-miss"
+      },
+      {
+        "method": "scoring",
+        "id": "holdout-19",
+        "words": [],
+        "references": [
+          "属"
+        ],
+        "reason": "reference-miss"
+      },
+      {
+        "method": "scoring",
+        "id": "holdout-20",
+        "words": [],
+        "references": [
+          "年"
+        ],
+        "reason": "reference-miss"
+      },
+      {
+        "method": "scoring",
+        "id": "holdout-21",
+        "words": [
+          "石",
+          "虎",
+          "才"
+        ],
+        "references": [
+          "尔沙治"
+        ],
+        "reason": "reference-miss"
+      },
+      {
+        "method": "scoring",
+        "id": "holdout-22",
+        "words": [],
+        "references": [
+          "适合"
+        ],
+        "reason": "reference-miss"
+      },
+      {
+        "method": "scoring",
+        "id": "holdout-23",
+        "words": [],
+        "references": [
+          "年"
+        ],
+        "reason": "reference-miss"
+      },
+      {
+        "method": "generation",
+        "id": "holdout-00",
+        "words": [],
+        "references": [
+          "廉斯"
+        ],
+        "reason": "timeout"
+      },
+      {
+        "method": "generation",
+        "id": "holdout-01",
+        "words": [],
+        "references": [
+          "细小"
+        ],
+        "reason": "reference-miss"
+      },
+      {
+        "method": "generation",
+        "id": "holdout-02",
+        "words": [],
+        "references": [
+          "要求"
+        ],
+        "reason": "reference-miss"
+      },
+      {
+        "method": "generation",
+        "id": "holdout-03",
+        "words": [],
+        "references": [
+          "丹斯"
+        ],
+        "reason": "reference-miss"
+      },
+      {
+        "method": "generation",
+        "id": "holdout-04",
+        "words": [],
+        "references": [
+          "种"
+        ],
+        "reason": "reference-miss"
+      },
+      {
+        "method": "generation",
+        "id": "holdout-05",
+        "words": [],
+        "references": [
+          "为"
+        ],
+        "reason": "reference-miss"
+      },
+      {
+        "method": "generation",
+        "id": "holdout-06",
+        "words": [],
+        "references": [
+          "间"
+        ],
+        "reason": "reference-miss"
+      },
+      {
+        "method": "generation",
+        "id": "holdout-07",
+        "words": [
+          "记者"
+        ],
+        "references": [
+          "共和"
+        ],
+        "reason": "reference-miss"
+      },
+      {
+        "method": "generation",
+        "id": "holdout-08",
+        "words": [],
+        "references": [
+          "城堡"
+        ],
+        "reason": "reference-miss"
+      },
+      {
+        "method": "generation",
+        "id": "holdout-09",
+        "words": [],
+        "references": [
+          "约"
+        ],
+        "reason": "reference-miss"
+      },
+      {
+        "method": "generation",
+        "id": "holdout-10",
+        "words": [],
+        "references": [
+          "辐鳍鱼"
+        ],
+        "reason": "reference-miss"
+      },
+      {
+        "method": "generation",
+        "id": "holdout-11",
+        "words": [],
+        "references": [
+          "年"
+        ],
+        "reason": "reference-miss"
+      },
+      {
+        "method": "generation",
+        "id": "holdout-12",
+        "words": [],
+        "references": [
+          "片"
+        ],
+        "reason": "reference-miss"
+      },
+      {
+        "method": "generation",
+        "id": "holdout-13",
+        "words": [],
+        "references": [
+          "电台"
+        ],
+        "reason": "reference-miss"
+      },
+      {
+        "method": "generation",
+        "id": "holdout-14",
+        "words": [],
+        "references": [
+          "北京"
+        ],
+        "reason": "reference-miss"
+      },
+      {
+        "method": "generation",
+        "id": "holdout-15",
+        "words": [],
+        "references": [
+          "房"
+        ],
+        "reason": "timeout"
+      },
+      {
+        "method": "generation",
+        "id": "holdout-16",
+        "words": [],
+        "references": [
+          "叫做"
+        ],
+        "reason": "timeout"
+      },
+      {
+        "method": "generation",
+        "id": "holdout-17",
+        "words": [],
+        "references": [
+          "该县"
+        ],
+        "reason": "timeout"
+      },
+      {
+        "method": "generation",
+        "id": "holdout-18",
+        "words": [],
+        "references": [
+          "廉"
+        ],
+        "reason": "reference-miss"
+      },
+      {
+        "method": "generation",
+        "id": "holdout-19",
+        "words": [],
+        "references": [
+          "属"
+        ],
+        "reason": "timeout"
+      },
+      {
+        "method": "generation",
+        "id": "holdout-20",
+        "words": [],
+        "references": [
+          "年"
+        ],
+        "reason": "reference-miss"
+      },
+      {
+        "method": "generation",
+        "id": "holdout-21",
+        "words": [],
+        "references": [
+          "尔沙治"
+        ],
+        "reason": "timeout"
+      },
+      {
+        "method": "generation",
+        "id": "holdout-22",
+        "words": [],
+        "references": [
+          "适合"
+        ],
+        "reason": "timeout"
+      },
+      {
+        "method": "generation",
+        "id": "holdout-23",
+        "words": [],
+        "references": [
+          "年"
+        ],
+        "reason": "reference-miss"
+      }
+    ]
+  },
+  "chains": [
+    {
+      "chain": [
+        "田纳西"
+      ],
+      "dictionary": [
+        "胁",
+        "力",
+        "海",
+        "尼斯",
+        "望",
+        "廉",
+        "严",
+        "风",
+        "尔",
+        "信",
+        "廉姆斯",
+        "慑",
+        "武",
+        "士忌",
+        "猛",
+        "刚",
+        "尔士",
+        "盛",
+        "尔斯",
+        "海市"
+      ],
+      "generated": [
+        "田纳西"
+      ],
+      "generation_error": null,
+      "generation_ms": 1371.4032,
+      "id": "holdout-00",
+      "prefix": "影片也从田纳西·威",
+      "score_error": null,
+      "score_ms": 309.4486,
+      "scores": [
+        {
+          "score": -12.45110034942627,
+          "text": "胁"
+        },
+        {
+          "score": -8.44310474395752,
+          "text": "力"
+        },
+        {
+          "score": -11.719571113586426,
+          "text": "海"
+        },
+        {
+          "score": -8.94200325012207,
+          "text": "尼斯"
+        },
+        {
+          "score": -10.126452445983887,
+          "text": "望"
+        },
+        {
+          "score": -6.212133884429932,
+          "text": "廉"
+        },
+        {
+          "score": -9.93668270111084,
+          "text": "严"
+        },
+        {
+          "score": -9.456768035888672,
+          "text": "风"
+        },
+        {
+          "score": -4.638548374176025,
+          "text": "尔"
+        },
+        {
+          "score": -9.485997200012207,
+          "text": "信"
+        },
+        {
+          "score": -2.2762627601623535,
+          "text": "廉姆斯"
+        },
+        {
+          "score": -15.474020957946777,
+          "text": "慑"
+        },
+        {
+          "score": -8.835209846496582,
+          "text": "武"
+        },
+        {
+          "score": -4.1964592933654785,
+          "text": "士忌"
+        },
+        {
+          "score": -11.198183059692383,
+          "text": "猛"
+        },
+        {
+          "score": -11.833468437194824,
+          "text": "刚"
+        },
+        {
+          "score": -4.1798095703125,
+          "text": "尔士"
+        },
+        {
+          "score": -10.675284385681152,
+          "text": "盛"
+        },
+        {
+          "score": -6.591301441192627,
+          "text": "尔斯"
+        },
+        {
+          "score": -9.841935157775879,
+          "text": "海市"
+        }
+      ]
+    }
+  ],
+  "limitations": [
+    "Single-reference matches are not semantic correctness; reasonable alternatives remain unjudged.",
+    "Recall-external means absent from this prefix recall, not proven absent from every dictionary.",
+    "Wiki source is independent of authored development prompts, not guaranteed absent from model pretraining.",
+    "No independent human annotation of alternatives or chains; no recommendation or accuracy improvement claim."
+  ]
+}
