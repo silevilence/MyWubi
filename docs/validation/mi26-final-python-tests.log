@@ -1,0 +1,8 @@
+test_blind_review_keeps_empty_chains_without_revealing_method (test_generation_evaluation.EvaluationTest.test_blind_review_keeps_empty_chains_without_revealing_method) ... ok
+test_chain_cannot_count_late_or_unacknowledged_selection (test_generation_evaluation.EvaluationTest.test_chain_cannot_count_late_or_unacknowledged_selection) ... ok
+test_holdout_labels_do_not_choose_parameters_and_timeouts_are_not_visible (test_generation_evaluation.EvaluationTest.test_holdout_labels_do_not_choose_parameters_and_timeouts_are_not_visible) ... ok
+
+----------------------------------------------------------------------
+Ran 3 tests in 0.001s
+
+OK

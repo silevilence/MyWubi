@@ -4,6 +4,7 @@ All UD GSDSimp wiki material belongs to holdout; the development source is the
 separate MyWubi authored probe set. Text/annotations remain CC BY-SA 4.0.
 """
 import hashlib
+import argparse
 import json
 from pathlib import Path
 import urllib.request
@@ -18,6 +19,14 @@ def chinese(text):
 
 
 def main():
+    parser = argparse.ArgumentParser(description=__doc__)
+    parser.add_argument('--offset', type=int, default=0)
+    parser.add_argument('--count', type=int, default=24)
+    parser.add_argument('--output', type=Path, default=ROOT / 'evaluation/generation-holdout.json')
+    parser.add_argument('--edited-contexts', action='store_true')
+    args = parser.parse_args()
+    if args.offset < 0 or args.count < 1:
+        parser.error('offset/count outside range')
     cache = ROOT.parent / 'target/generation-corpus'
     cache.mkdir(parents=True, exist_ok=True)
     hashes = {}
@@ -55,7 +64,8 @@ def main():
             continue
         sentences[digest] = (sid, text, choices)
     rows = []
-    for index, (digest, (sid, text, choices)) in enumerate(sorted(sentences.items())[:24]):
+    selected = sorted(sentences.items())[args.offset:args.offset + args.count]
+    for index, (digest, (sid, text, choices)) in enumerate(selected):
         prefix, word = choices[0]
         kind = 'next_word'
         if index % 3 == 0 and len(word) > 1:
@@ -65,19 +75,29 @@ def main():
         source = {'repository': 'UniversalDependencies/UD_Chinese-GSDSimp', 'revision': REVISION,
                   'file': 'zh_gsdsimp-ud-test.conllu', 'sent_id': sid, 'sentence_sha256': digest,
                   'license': 'CC-BY-SA-4.0'}
-        rows.append(dict(id=f'holdout-{index:02}', split='holdout', source=source, kind=kind,
+        rows.append(dict(id=f'holdout-{args.offset + index:02}', split='holdout', source=source, kind=kind,
                          prefix=prefix, references=[word], should_stop=False))
         if index < 8 and text.endswith(('。', '！', '？')):
-            rows.append(dict(id=f'stop-{index:02}', split='holdout', source=source, kind='sentence_stop',
+            rows.append(dict(id=f'stop-{args.offset + index:02}', split='holdout', source=source, kind='sentence_stop',
                              prefix=text, references=[], should_stop=True))
     rows.append(dict(id='empty', split='holdout', source={'repository': 'empty-input-contract', 'license': 'MIT'},
                      kind='no_context', prefix='', references=[], should_stop=True))
-    output = ROOT / 'evaluation/generation-holdout.json'
+    if args.edited_contexts:
+        positives = [row for row in rows if not row['should_stop']]
+        for index, row in enumerate(positives):
+            if index % 4 == 0:
+                # A real external replacement: both before and after are licensed
+                # source prefixes. The new reference belongs only to the after text.
+                row['edited_from'] = positives[(index + 1) % len(positives)]['prefix']
+                row['kind'] = 'edited_' + row['kind']
+    output = args.output
+    # Preserve the frozen Windows-authored corpus bytes on every platform.
     output.write_text(json.dumps({'source_url': BASE, 'source_hashes': hashes,
         'attribution': 'UD Chinese GSDSimp: Peng Qi, Koichi Yasuoka; converted from UD Chinese GSD, wiki genre. CC BY-SA 4.0. Original underlying wiki rights remain with their authors.',
         'split_rule': 'Entire external corpus source is holdout, none used for prompt or threshold tuning. Deduplicated full sentences; deterministic SHA-256 order. Authored development examples are a separate source.',
-        'exclusions': excluded, 'eligible_sentences': len(sentences), 'selected_sentences': min(24, len(sentences)),
-        'samples': rows}, ensure_ascii=False, indent=2) + '\n', encoding='utf-8')
+        'exclusions': excluded, 'eligible_sentences': len(sentences), 'selected_sentences': len(selected),
+        'selection_offset': args.offset, 'not_selected': len(sentences) - len(selected),
+        'samples': rows}, ensure_ascii=False, indent=2) + '\n', encoding='utf-8', newline='\r\n')
     print(f'{len(rows)} holdout cases; {len(sentences)} eligible source sentences')
 
 

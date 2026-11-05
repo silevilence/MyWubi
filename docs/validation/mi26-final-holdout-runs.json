@@ -1,0 +1,6387 @@
+{
+  "dataset_sha256": "691fa008487cd7947240d48ab6230516c06397d9d38f06bf8743de94c98bf2d9",
+  "dictionary": "built-in prediction lexicon, no user/main table",
+  "generation_prepare_ms": 881.7528,
+  "model_sha256": "74a4da8c9fdbcd15bd1f6d01d621410d31c6fc00986f5eb687824e7b93d7a9db",
+  "policy": {
+    "adapter": "qwen25-short-words-v1",
+    "evidence": "MI-22 authored development probes, generation-specific raw mean log probability. Functional experiment only; no independent quality endorsement. Prompt/grammar/greedy decoding fixed by qwen25-short-words-v1; GGUF hash binds tokenizer.",
+    "max_chars": 6,
+    "max_tokens": 64,
+    "max_words": 3,
+    "minimum_mean_logprob": -3.0,
+    "model_sha256": "74a4da8c9fdbcd15bd1f6d01d621410d31c6fc00986f5eb687824e7b93d7a9db",
+    "version": 1
+  },
+  "policy_sha256": "32e1d45cdf10083ac2464066599f8b84be652295f5b307c9b8301c0a9e4812b7",
+  "runs": [
+    {
+      "chain": [],
+      "dictionary": [],
+      "edit_isolated": true,
+      "edited_from": "统治期内，梅葛",
+      "generated": [],
+      "generation_error": "LowConfidence",
+      "generation_ms": 119.84549999999999,
+      "id": "holdout-24",
+      "paired_chains": [
+        {
+          "final_prefix": "1939年4",
+          "method": "dictionary",
+          "steps": [
+            {
+              "choices": [],
+              "error": null,
+              "ms": 0.0168,
+              "prefix": "1939年4",
+              "selected": null
+            }
+          ]
+        },
+        {
+          "final_prefix": "1939年4",
+          "method": "scoring",
+          "steps": [
+            {
+              "choices": [],
+              "error": "Empty",
+              "ms": 1.4848999999999999,
+              "prefix": "1939年4",
+              "selected": null
+            }
+          ]
+        },
+        {
+          "final_prefix": "1939年4",
+          "method": "generation",
+          "steps": [
+            {
+              "choices": [],
+              "error": "LowConfidence",
+              "ms": 144.3978,
+              "prefix": "1939年4",
+              "selected": null
+            }
+          ]
+        }
+      ],
+      "prefix": "1939年4",
+      "score_error": "Empty",
+      "score_ms": 0.9441,
+      "scores": []
+    },
+    {
+      "chain": [],
+      "dictionary": [],
+      "edit_isolated": null,
+      "edited_from": null,
+      "generated": [],
+      "generation_error": "Empty",
+      "generation_ms": 0.0046,
+      "id": "stop-24",
+      "paired_chains": [
+        {
+          "final_prefix": "1939年4月，日军攻占太平岛，并将其更名为长岛，纳入高雄州管理。",
+          "method": "dictionary",
+          "steps": [
+            {
+              "choices": [],
+              "error": null,
+              "ms": 0.0011,
+              "prefix": "1939年4月，日军攻占太平岛，并将其更名为长岛，纳入高雄州管理。",
+              "selected": null
+            }
+          ]
+        },
+        {
+          "final_prefix": "1939年4月，日军攻占太平岛，并将其更名为长岛，纳入高雄州管理。",
+          "method": "scoring",
+          "steps": [
+            {
+              "choices": [],
+              "error": "Empty",
+              "ms": 0.8962,
+              "prefix": "1939年4月，日军攻占太平岛，并将其更名为长岛，纳入高雄州管理。",
+              "selected": null
+            }
+          ]
+        },
+        {
+          "final_prefix": "1939年4月，日军攻占太平岛，并将其更名为长岛，纳入高雄州管理。",
+          "method": "generation",
+          "steps": [
+            {
+              "choices": [],
+              "error": "Empty",
+              "ms": 0.0036,
+              "prefix": "1939年4月，日军攻占太平岛，并将其更名为长岛，纳入高雄州管理。",
+              "selected": null
+            }
+          ]
+        }
+      ],
+      "prefix": "1939年4月，日军攻占太平岛，并将其更名为长岛，纳入高雄州管理。",
+      "score_error": "Empty",
+      "score_ms": 0.9444,
+      "scores": []
+    },
+    {
+      "chain": [],
+      "dictionary": [
+        "优",
+        "洲坝"
+      ],
+      "edit_isolated": null,
+      "edited_from": null,
+      "generated": [],
+      "generation_error": "LowConfidence",
+      "generation_ms": 146.834,
+      "id": "holdout-25",
+      "paired_chains": [
+        {
+          "final_prefix": "统治期内，梅葛优",
+          "method": "dictionary",
+          "steps": [
+            {
+              "choices": [
+                "优",
+                "洲坝"
+              ],
+              "error": null,
+              "ms": 0.0021,
+              "prefix": "统治期内，梅葛",
+              "selected": "优"
+            },
+            {
+              "choices": [],
+              "error": null,
+              "ms": 0.0005,
+              "prefix": "统治期内，梅葛优",
+              "selected": null
+            }
+          ]
+        },
+        {
+          "final_prefix": "统治期内，梅葛",
+          "method": "scoring",
+          "steps": [
+            {
+              "choices": [],
+              "error": null,
+              "ms": 102.2328,
+              "prefix": "统治期内，梅葛",
+              "selected": null
+            }
+          ]
+        },
+        {
+          "final_prefix": "统治期内，梅葛",
+          "method": "generation",
+          "steps": [
+            {
+              "choices": [],
+              "error": "LowConfidence",
+              "ms": 98.9433,
+              "prefix": "统治期内，梅葛",
+              "selected": null
+            }
+          ]
+        }
+      ],
+      "prefix": "统治期内，梅葛",
+      "score_error": null,
+      "score_ms": 164.5287,
+      "scores": [
+        {
+          "score": -7.966846942901611,
+          "text": "优"
+        },
+        {
+          "score": -6.621194362640381,
+          "text": "洲坝"
+        }
+      ]
+    },
+    {
+      "chain": [],
+      "dictionary": [],
+      "edit_isolated": null,
+      "edited_from": null,
+      "generated": [],
+      "generation_error": "Empty",
+      "generation_ms": 0.0051,
+      "id": "stop-25",
+      "paired_chains": [
+        {
+          "final_prefix": "统治期内，梅葛处死了三位大学士；他还拥有为数众多的妻子，每个时期通常都不止一个，因此臭名远扬。",
+          "method": "dictionary",
+          "steps": [
+            {
+              "choices": [],
+              "error": null,
+              "ms": 0.0017000000000000001,
+              "prefix": "统治期内，梅葛处死了三位大学士；他还拥有为数众多的妻子，每个时期通常都不止一个，因此臭名远扬。",
+              "selected": null
+            }
+          ]
+        },
+        {
+          "final_prefix": "统治期内，梅葛处死了三位大学士；他还拥有为数众多的妻子，每个时期通常都不止一个，因此臭名远扬。",
+          "method": "scoring",
+          "steps": [
+            {
+              "choices": [],
+              "error": "Empty",
+              "ms": 0.6627,
+              "prefix": "统治期内，梅葛处死了三位大学士；他还拥有为数众多的妻子，每个时期通常都不止一个，因此臭名远扬。",
+              "selected": null
+            }
+          ]
+        },
+        {
+          "final_prefix": "统治期内，梅葛处死了三位大学士；他还拥有为数众多的妻子，每个时期通常都不止一个，因此臭名远扬。",
+          "method": "generation",
+          "steps": [
+            {
+              "choices": [],
+              "error": "Empty",
+              "ms": 0.0042,
+              "prefix": "统治期内，梅葛处死了三位大学士；他还拥有为数众多的妻子，每个时期通常都不止一个，因此臭名远扬。",
+              "selected": null
+            }
+          ]
+        }
+      ],
+      "prefix": "统治期内，梅葛处死了三位大学士；他还拥有为数众多的妻子，每个时期通常都不止一个，因此臭名远扬。",
+      "score_error": "Empty",
+      "score_ms": 0.9046,
+      "scores": []
+    },
+    {
+      "chain": [
+        "田中"
+      ],
+      "dictionary": [],
+      "edit_isolated": null,
+      "edited_from": null,
+      "generated": [
+        "田中"
+      ],
+      "generation_error": null,
+      "generation_ms": 394.4724,
+      "id": "holdout-26",
+      "paired_chains": [
+        {
+          "final_prefix": "但是由于丰臣",
+          "method": "dictionary",
+          "steps": [
+            {
+              "choices": [],
+              "error": null,
+              "ms": 0.0024,
+              "prefix": "但是由于丰臣",
+              "selected": null
+            }
+          ]
+        },
+        {
+          "final_prefix": "但是由于丰臣",
+          "method": "scoring",
+          "steps": [
+            {
+              "choices": [],
+              "error": "Empty",
+              "ms": 0.9219999999999999,
+              "prefix": "但是由于丰臣",
+              "selected": null
+            }
+          ]
+        },
+        {
+          "final_prefix": "但是由于丰臣田中",
+          "method": "generation",
+          "steps": [
+            {
+              "choices": [
+                "田中"
+              ],
+              "error": null,
+              "ms": 379.32480000000004,
+              "prefix": "但是由于丰臣",
+              "selected": "田中"
+            },
+            {
+              "choices": [],
+              "error": "Empty",
+              "ms": 418.9006,
+              "prefix": "但是由于丰臣田中",
+              "selected": null
+            }
+          ]
+        }
+      ],
+      "prefix": "但是由于丰臣",
+      "score_error": "Empty",
+      "score_ms": 0.5039,
+      "scores": []
+    },
+    {
+      "chain": [],
+      "dictionary": [],
+      "edit_isolated": null,
+      "edited_from": null,
+      "generated": [],
+      "generation_error": "Empty",
+      "generation_ms": 0.0046,
+      "id": "stop-26",
+      "paired_chains": [
+        {
+          "final_prefix": "但是由于丰臣秀吉在日本人心中的影响，人们把平民出身的政要与丰太合相比，称为“今太合”。",
+          "method": "dictionary",
+          "steps": [
+            {
+              "choices": [],
+              "error": null,
+              "ms": 0.0011,
+              "prefix": "但是由于丰臣秀吉在日本人心中的影响，人们把平民出身的政要与丰太合相比，称为“今太合”。",
+              "selected": null
+            }
+          ]
+        },
+        {
+          "final_prefix": "但是由于丰臣秀吉在日本人心中的影响，人们把平民出身的政要与丰太合相比，称为“今太合”。",
+          "method": "scoring",
+          "steps": [
+            {
+              "choices": [],
+              "error": "Empty",
+              "ms": 0.717,
+              "prefix": "但是由于丰臣秀吉在日本人心中的影响，人们把平民出身的政要与丰太合相比，称为“今太合”。",
+              "selected": null
+            }
+          ]
+        },
+        {
+          "final_prefix": "但是由于丰臣秀吉在日本人心中的影响，人们把平民出身的政要与丰太合相比，称为“今太合”。",
+          "method": "generation",
+          "steps": [
+            {
+              "choices": [],
+              "error": "Empty",
+              "ms": 0.0043,
+              "prefix": "但是由于丰臣秀吉在日本人心中的影响，人们把平民出身的政要与丰太合相比，称为“今太合”。",
+              "selected": null
+            }
+          ]
+        }
+      ],
+      "prefix": "但是由于丰臣秀吉在日本人心中的影响，人们把平民出身的政要与丰太合相比，称为“今太合”。",
+      "score_error": "Empty",
+      "score_ms": 0.9280999999999999,
+      "scores": []
+    },
+    {
+      "chain": [],
+      "dictionary": [
+        "以",
+        "能",
+        "是",
+        "惜",
+        "爱",
+        "怜",
+        "怕",
+        "能性",
+        "以用",
+        "以通过",
+        "见",
+        "靠",
+        "用",
+        "以看到",
+        "谓",
+        "以说是",
+        "以看出",
+        "笑",
+        "乐",
+        "以选择",
+        "以使用",
+        "在",
+        "行",
+        "以直接",
+        "我",
+        "不可以",
+        "使",
+        "否",
+        "靠性",
+        "不",
+        "恶",
+        "供",
+        "达",
+        "以根据",
+        "以考虑",
+        "以理解",
+        "疑",
+        "能出现",
+        "行性",
+        "悲",
+        "以吗",
+        "以得到",
+        "选",
+        "观",
+        "说",
+        "信",
+        "以实现",
+        "根据",
+        "言",
+        "知",
+        "真",
+        "可",
+        "以帮助",
+        "分为",
+        "以获得",
+        "耻",
+        "以利用",
+        "将",
+        "以找到",
+        "口可乐",
+        "以达到",
+        "想而知",
+        "能成为",
+        "要"
+      ],
+      "edit_isolated": null,
+      "edited_from": null,
+      "generated": [],
+      "generation_error": "LowConfidence",
+      "generation_ms": 128.3018,
+      "id": "holdout-27",
+      "paired_chains": [
+        {
+          "final_prefix": "香会的历史最早可以用来",
+          "method": "dictionary",
+          "steps": [
+            {
+              "choices": [
+                "以",
+                "能",
+                "是"
+              ],
+              "error": null,
+              "ms": 0.0028,
+              "prefix": "香会的历史最早可",
+              "selected": "以"
+            },
+            {
+              "choices": [
+                "用",
+                "通过",
+                "看到"
+              ],
+              "error": null,
+              "ms": 0.001,
+              "prefix": "香会的历史最早可以",
+              "selected": "用"
+            },
+            {
+              "choices": [
+                "来",
+                "于"
+              ],
+              "error": null,
+              "ms": 0.0007,
+              "prefix": "香会的历史最早可以用",
+              "selected": "来"
+            }
+          ]
+        },
+        {
+          "final_prefix": "香会的历史最早可",
+          "method": "scoring",
+          "steps": [
+            {
+              "choices": [],
+              "error": null,
+              "ms": 819.4473,
+              "prefix": "香会的历史最早可",
+              "selected": null
+            }
+          ]
+        },
+        {
+          "final_prefix": "香会的历史最早可",
+          "method": "generation",
+          "steps": [
+            {
+              "choices": [],
+              "error": "LowConfidence",
+              "ms": 134.02810000000002,
+              "prefix": "香会的历史最早可",
+              "selected": null
+            }
+          ]
+        }
+      ],
+      "prefix": "香会的历史最早可",
+      "score_error": null,
+      "score_ms": 736.2026000000001,
+      "scores": [
+        {
+          "score": -14.354354858398438,
+          "text": "以"
+        },
+        {
+          "score": -13.234986305236816,
+          "text": "能"
+        },
+        {
+          "score": -13.13118839263916,
+          "text": "是"
+        },
+        {
+          "score": -18.315162658691406,
+          "text": "惜"
+        },
+        {
+          "score": -16.171281814575195,
+          "text": "爱"
+        },
+        {
+          "score": -16.446380615234375,
+          "text": "怜"
+        },
+        {
+          "score": -21.115827560424805,
+          "text": "怕"
+        },
+        {
+          "score": -13.427578926086426,
+          "text": "能性"
+        },
+        {
+          "score": -12.968751907348633,
+          "text": "以用"
+        },
+        {
+          "score": -13.169310569763184,
+          "text": "以通过"
+        },
+        {
+          "score": -11.917780876159668,
+          "text": "见"
+        },
+        {
+          "score": -15.205855369567871,
+          "text": "靠"
+        },
+        {
+          "score": -17.331724166870117,
+          "text": "用"
+        },
+        {
+          "score": -11.99591064453125,
+          "text": "以看到"
+        },
+        {
+          "score": -13.008889198303223,
+          "text": "谓"
+        },
+        {
+          "score": -12.74107551574707,
+          "text": "以说是"
+        },
+        {
+          "score": -12.987325668334961,
+          "text": "以看出"
+        },
+        {
+          "score": -16.273422241210938,
+          "text": "笑"
+        },
+        {
+          "score": -12.651143074035645,
+          "text": "乐"
+        },
+        {
+          "score": -13.113323211669922,
+          "text": "以选择"
+        },
+        {
+          "score": -13.194212913513184,
+          "text": "以使用"
+        },
+        {
+          "score": -13.325186729431152,
+          "text": "在"
+        },
+        {
+          "score": -17.0259952545166,
+          "text": "行"
+        },
+        {
+          "score": -12.151934623718262,
+          "text": "以直接"
+        },
+        {
+          "score": -13.097512245178223,
+          "text": "我"
+        },
+        {
+          "score": -14.43614673614502,
+          "text": "不可以"
+        },
+        {
+          "score": -13.103407859802246,
+          "text": "使"
+        },
+        {
+          "score": -15.332659721374512,
+          "text": "否"
+        },
+        {
+          "score": -10.274019241333008,
+          "text": "靠性"
+        },
+        {
+          "score": -11.21367359161377,
+          "text": "不"
+        },
+        {
+          "score": -14.550201416015625,
+          "text": "恶"
+        },
+        {
+          "score": -16.79339027404785,
+          "text": "供"
+        },
+        {
+          "score": -10.374102592468262,
+          "text": "达"
+        },
+        {
+          "score": -12.856569290161133,
+          "text": "以根据"
+        },
+        {
+          "score": -13.981021881103516,
+          "text": "以考虑"
+        },
+        {
+          "score": -13.555756568908691,
+          "text": "以理解"
+        },
+        {
+          "score": -13.725156784057617,
+          "text": "疑"
+        },
+        {
+          "score": -10.266865730285645,
+          "text": "能出现"
+        },
+        {
+          "score": -10.836601257324219,
+          "text": "行性"
+        },
+        {
+          "score": -17.264585494995117,
+          "text": "悲"
+        },
+        {
+          "score": -14.007096290588379,
+          "text": "以吗"
+        },
+        {
+          "score": -13.180648803710938,
+          "text": "以得到"
+        },
+        {
+          "score": -12.842310905456543,
+          "text": "选"
+        },
+        {
+          "score": -16.452266693115234,
+          "text": "观"
+        },
+        {
+          "score": -10.056870460510254,
+          "text": "说"
+        },
+        {
+          "score": -13.500367164611816,
+          "text": "信"
+        },
+        {
+          "score": -12.763898849487305,
+          "text": "以实现"
+        },
+        {
+          "score": -13.443578720092773,
+          "text": "根据"
+        },
+        {
+          "score": -9.126080513000488,
+          "text": "言"
+        },
+        {
+          "score": -12.6480131149292,
+          "text": "知"
+        },
+        {
+          "score": -13.043527603149414,
+          "text": "真"
+        },
+        {
+          "score": -11.641373634338379,
+          "text": "可"
+        },
+        {
+          "score": -15.068662643432617,
+          "text": "以帮助"
+        },
+        {
+          "score": -14.60461139678955,
+          "text": "分为"
+        },
+        {
+          "score": -13.430007934570312,
+          "text": "以获得"
+        },
+        {
+          "score": -15.489065170288086,
+          "text": "耻"
+        },
+        {
+          "score": -13.804876327514648,
+          "text": "以利用"
+        },
+        {
+          "score": -11.382113456726074,
+          "text": "将"
+        },
+        {
+          "score": -10.873395919799805,
+          "text": "以找到"
+        },
+        {
+          "score": -5.488473892211914,
+          "text": "口可乐"
+        },
+        {
+          "score": -11.29300594329834,
+          "text": "以达到"
+        },
+        {
+          "score": -5.885671138763428,
+          "text": "想而知"
+        },
+        {
+          "score": -11.985393524169922,
+          "text": "能成为"
+        },
+        {
+          "score": -9.595553398132324,
+          "text": "要"
+        }
+      ]
+    },
+    {
+      "chain": [],
+      "dictionary": [],
+      "edit_isolated": null,
+      "edited_from": null,
+      "generated": [],
+      "generation_error": "Empty",
+      "generation_ms": 0.0066,
+      "id": "stop-27",
+      "paired_chains": [
+        {
+          "final_prefix": "香会的历史最早可溯至明朝。",
+          "method": "dictionary",
+          "steps": [
+            {
+              "choices": [],
+              "error": null,
+              "ms": 0.0026,
+              "prefix": "香会的历史最早可溯至明朝。",
+              "selected": null
+            }
+          ]
+        },
+        {
+          "final_prefix": "香会的历史最早可溯至明朝。",
+          "method": "scoring",
+          "steps": [
+            {
+              "choices": [],
+              "error": "Empty",
+              "ms": 0.8032,
+              "prefix": "香会的历史最早可溯至明朝。",
+              "selected": null
+            }
+          ]
+        },
+        {
+          "final_prefix": "香会的历史最早可溯至明朝。",
+          "method": "generation",
+          "steps": [
+            {
+              "choices": [],
+              "error": "Empty",
+              "ms": 0.0043,
+              "prefix": "香会的历史最早可溯至明朝。",
+              "selected": null
+            }
+          ]
+        }
+      ],
+      "prefix": "香会的历史最早可溯至明朝。",
+      "score_error": "Empty",
+      "score_ms": 1.0215,
+      "scores": []
+    },
+    {
+      "chain": [],
+      "dictionary": [
+        "且",
+        "已",
+        "是",
+        "言",
+        "不是",
+        "不",
+        "在",
+        "又",
+        "来",
+        "成",
+        "去",
+        "我",
+        "非",
+        "这",
+        "后",
+        "被",
+        "出",
+        "定",
+        "他",
+        "过",
+        "死",
+        "对",
+        "当",
+        "下",
+        "生",
+        "行",
+        "起",
+        "使",
+        "至",
+        "今",
+        "她",
+        "你",
+        "其",
+        "无",
+        "有",
+        "归",
+        "从",
+        "上",
+        "未",
+        "立",
+        "入",
+        "战",
+        "外",
+        "以",
+        "论",
+        "为",
+        "动",
+        "退",
+        "异",
+        "建",
+        "亡",
+        "应",
+        "要",
+        "致",
+        "坐",
+        "作",
+        "把"
+      ],
+      "edit_isolated": true,
+      "edited_from": "他父亲的农用",
+      "generated": [
+        "湖"
+      ],
+      "generation_error": null,
+      "generation_ms": 459.8804,
+      "id": "holdout-28",
+      "paired_chains": [
+        {
+          "final_prefix": "城市地标为伊欧拉湖（LakeEola），而且",
+          "method": "dictionary",
+          "steps": [
+            {
+              "choices": [
+                "且",
+                "已",
+                "是"
+              ],
+              "error": null,
+              "ms": 0.0028,
+              "prefix": "城市地标为伊欧拉湖（LakeEola），而",
+              "selected": "且"
+            },
+            {
+              "choices": [],
+              "error": null,
+              "ms": 0.0007999999999999999,
+              "prefix": "城市地标为伊欧拉湖（LakeEola），而且",
+              "selected": null
+            }
+          ]
+        },
+        {
+          "final_prefix": "城市地标为伊欧拉湖（LakeEola），而其",
+          "method": "scoring",
+          "steps": [
+            {
+              "choices": [
+                "其"
+              ],
+              "error": null,
+              "ms": 139.5569,
+              "prefix": "城市地标为伊欧拉湖（LakeEola），而",
+              "selected": "其"
+            },
+            {
+              "choices": [],
+              "error": "Empty",
+              "ms": 0.9917999999999999,
+              "prefix": "城市地标为伊欧拉湖（LakeEola），而其",
+              "selected": null
+            }
+          ]
+        },
+        {
+          "final_prefix": "城市地标为伊欧拉湖（LakeEola），而湖",
+          "method": "generation",
+          "steps": [
+            {
+              "choices": [
+                "湖"
+              ],
+              "error": null,
+              "ms": 471.6788,
+              "prefix": "城市地标为伊欧拉湖（LakeEola），而",
+              "selected": "湖"
+            },
+            {
+              "choices": [],
+              "error": "LowConfidence",
+              "ms": 235.9806,
+              "prefix": "城市地标为伊欧拉湖（LakeEola），而湖",
+              "selected": null
+            }
+          ]
+        }
+      ],
+      "prefix": "城市地标为伊欧拉湖（LakeEola），而",
+      "score_error": null,
+      "score_ms": 218.5475,
+      "scores": [
+        {
+          "score": -12.036758422851562,
+          "text": "且"
+        },
+        {
+          "score": -8.790265083312988,
+          "text": "已"
+        },
+        {
+          "score": -7.769721984863281,
+          "text": "是"
+        },
+        {
+          "score": -15.012555122375488,
+          "text": "言"
+        },
+        {
+          "score": -10.785127639770508,
+          "text": "不是"
+        },
+        {
+          "score": -10.589947700500488,
+          "text": "不"
+        },
+        {
+          "score": -7.2676920890808105,
+          "text": "在"
+        },
+        {
+          "score": -9.616467475891113,
+          "text": "又"
+        },
+        {
+          "score": -9.249015808105469,
+          "text": "来"
+        },
+        {
+          "score": -8.651504516601562,
+          "text": "成"
+        },
+        {
+          "score": -10.199007987976074,
+          "text": "去"
+        },
+        {
+          "score": -7.427170276641846,
+          "text": "我"
+        },
+        {
+          "score": -11.236724853515625,
+          "text": "非"
+        },
+        {
+          "score": -6.4850335121154785,
+          "text": "这"
+        },
+        {
+          "score": -8.424840927124023,
+          "text": "后"
+        },
+        {
+          "score": -7.868899822235107,
+          "text": "被"
+        },
+        {
+          "score": -11.212676048278809,
+          "text": "出"
+        },
+        {
+          "score": -9.926492691040039,
+          "text": "定"
+        },
+        {
+          "score": -6.2893452644348145,
+          "text": "他"
+        },
+        {
+          "score": -10.89523983001709,
+          "text": "过"
+        },
+        {
+          "score": -11.540948867797852,
+          "text": "死"
+        },
+        {
+          "score": -7.48510217666626,
+          "text": "对"
+        },
+        {
+          "score": -7.491400241851807,
+          "text": "当"
+        },
+        {
+          "score": -8.586993217468262,
+          "text": "下"
+        },
+        {
+          "score": -10.940993309020996,
+          "text": "生"
+        },
+        {
+          "score": -11.290388107299805,
+          "text": "行"
+        },
+        {
+          "score": -9.334498405456543,
+          "text": "起"
+        },
+        {
+          "score": -10.30783462524414,
+          "text": "使"
+        },
+        {
+          "score": -10.082773208618164,
+          "text": "至"
+        },
+        {
+          "score": -7.9380621910095215,
+          "text": "今"
+        },
+        {
+          "score": -6.065542697906494,
+          "text": "她"
+        },
+        {
+          "score": -7.7922868728637695,
+          "text": "你"
+        },
+        {
+          "score": -4.405245304107666,
+          "text": "其"
+        },
+        {
+          "score": -9.800997734069824,
+          "text": "无"
+        },
+        {
+          "score": -8.010372161865234,
+          "text": "有"
+        },
+        {
+          "score": -11.069413185119629,
+          "text": "归"
+        },
+        {
+          "score": -6.442986965179443,
+          "text": "从"
+        },
+        {
+          "score": -7.687697887420654,
+          "text": "上"
+        },
+        {
+          "score": -10.067745208740234,
+          "text": "未"
+        },
+        {
+          "score": -9.216324806213379,
+          "text": "立"
+        },
+        {
+          "score": -11.701502799987793,
+          "text": "入"
+        },
+        {
+          "score": -11.950164794921875,
+          "text": "战"
+        },
+        {
+          "score": -9.244243621826172,
+          "text": "外"
+        },
+        {
+          "score": -6.259768962860107,
+          "text": "以"
+        },
+        {
+          "score": -12.053986549377441,
+          "text": "论"
+        },
+        {
+          "score": -7.112639904022217,
+          "text": "为"
+        },
+        {
+          "score": -11.106029510498047,
+          "text": "动"
+        },
+        {
+          "score": -12.126849174499512,
+          "text": "退"
+        },
+        {
+          "score": -11.030974388122559,
+          "text": "异"
+        },
+        {
+          "score": -9.07490348815918,
+          "text": "建"
+        },
+        {
+          "score": -13.806740760803223,
+          "text": "亡"
+        },
+        {
+          "score": -11.027660369873047,
+          "text": "应"
+        },
+        {
+          "score": -9.686629295349121,
+          "text": "要"
+        },
+        {
+          "score": -12.239092826843262,
+          "text": "致"
+        },
+        {
+          "score": -9.470603942871094,
+          "text": "坐"
+        },
+        {
+          "score": -8.688075065612793,
+          "text": "作"
+        },
+        {
+          "score": -9.629097938537598,
+          "text": "把"
+        }
+      ]
+    },
+    {
+      "chain": [],
+      "dictionary": [],
+      "edit_isolated": null,
+      "edited_from": null,
+      "generated": [],
+      "generation_error": "Empty",
+      "generation_ms": 0.0063999999999999994,
+      "id": "stop-28",
+      "paired_chains": [
+        {
+          "final_prefix": "城市地标为伊欧拉湖（LakeEola），而奥兰多市长为巴迪·戴尔（BuddyDyer）。",
+          "method": "dictionary",
+          "steps": [
+            {
+              "choices": [],
+              "error": null,
+              "ms": 0.0021,
+              "prefix": "城市地标为伊欧拉湖（LakeEola），而奥兰多市长为巴迪·戴尔（BuddyDyer）。",
+              "selected": null
+            }
+          ]
+        },
+        {
+          "final_prefix": "城市地标为伊欧拉湖（LakeEola），而奥兰多市长为巴迪·戴尔（BuddyDyer）。",
+          "method": "scoring",
+          "steps": [
+            {
+              "choices": [],
+              "error": "Empty",
+              "ms": 0.8327,
+              "prefix": "城市地标为伊欧拉湖（LakeEola），而奥兰多市长为巴迪·戴尔（BuddyDyer）。",
+              "selected": null
+            }
+          ]
+        },
+        {
+          "final_prefix": "城市地标为伊欧拉湖（LakeEola），而奥兰多市长为巴迪·戴尔（BuddyDyer）。",
+          "method": "generation",
+          "steps": [
+            {
+              "choices": [],
+              "error": "Empty",
+              "ms": 0.0072,
+              "prefix": "城市地标为伊欧拉湖（LakeEola），而奥兰多市长为巴迪·戴尔（BuddyDyer）。",
+              "selected": null
+            }
+          ]
+        }
+      ],
+      "prefix": "城市地标为伊欧拉湖（LakeEola），而奥兰多市长为巴迪·戴尔（BuddyDyer）。",
+      "score_error": "Empty",
+      "score_ms": 1.006,
+      "scores": []
+    },
+    {
+      "chain": [],
+      "dictionary": [],
+      "edit_isolated": null,
+      "edited_from": null,
+      "generated": [],
+      "generation_error": "LowConfidence",
+      "generation_ms": 197.4872,
+      "id": "holdout-29",
+      "paired_chains": [
+        {
+          "final_prefix": "他父亲的农用",
+          "method": "dictionary",
+          "steps": [
+            {
+              "choices": [],
+              "error": null,
+              "ms": 0.0028,
+              "prefix": "他父亲的农用",
+              "selected": null
+            }
+          ]
+        },
+        {
+          "final_prefix": "他父亲的农用",
+          "method": "scoring",
+          "steps": [
+            {
+              "choices": [],
+              "error": "Empty",
+              "ms": 1.1208,
+              "prefix": "他父亲的农用",
+              "selected": null
+            }
+          ]
+        },
+        {
+          "final_prefix": "他父亲的农用",
+          "method": "generation",
+          "steps": [
+            {
+              "choices": [],
+              "error": "LowConfidence",
+              "ms": 199.0422,
+              "prefix": "他父亲的农用",
+              "selected": null
+            }
+          ]
+        }
+      ],
+      "prefix": "他父亲的农用",
+      "score_error": "Empty",
+      "score_ms": 0.7283,
+      "scores": []
+    },
+    {
+      "chain": [],
+      "dictionary": [],
+      "edit_isolated": null,
+      "edited_from": null,
+      "generated": [],
+      "generation_error": "Empty",
+      "generation_ms": 0.006,
+      "id": "stop-29",
+      "paired_chains": [
+        {
+          "final_prefix": "他父亲的农用机械厂也在这一时期倒闭，辛德勒为此失业了一年。",
+          "method": "dictionary",
+          "steps": [
+            {
+              "choices": [],
+              "error": null,
+              "ms": 0.0018,
+              "prefix": "他父亲的农用机械厂也在这一时期倒闭，辛德勒为此失业了一年。",
+              "selected": null
+            }
+          ]
+        },
+        {
+          "final_prefix": "他父亲的农用机械厂也在这一时期倒闭，辛德勒为此失业了一年。",
+          "method": "scoring",
+          "steps": [
+            {
+              "choices": [],
+              "error": "Empty",
+              "ms": 0.8333,
+              "prefix": "他父亲的农用机械厂也在这一时期倒闭，辛德勒为此失业了一年。",
+              "selected": null
+            }
+          ]
+        },
+        {
+          "final_prefix": "他父亲的农用机械厂也在这一时期倒闭，辛德勒为此失业了一年。",
+          "method": "generation",
+          "steps": [
+            {
+              "choices": [],
+              "error": "Empty",
+              "ms": 0.0058000000000000005,
+              "prefix": "他父亲的农用机械厂也在这一时期倒闭，辛德勒为此失业了一年。",
+              "selected": null
+            }
+          ]
+        }
+      ],
+      "prefix": "他父亲的农用机械厂也在这一时期倒闭，辛德勒为此失业了一年。",
+      "score_error": "Empty",
+      "score_ms": 0.9890000000000001,
+      "scores": []
+    },
+    {
+      "chain": [],
+      "dictionary": [
+        "肤",
+        "鞋",
+        "带",
+        "革",
+        "球",
+        "皮",
+        "毛",
+        "肤病",
+        "包",
+        "特",
+        "肤过敏",
+        "质",
+        "下",
+        "下组织",
+        "蛋",
+        "卡",
+        "肤科",
+        "肤干燥",
+        "疹",
+        "脂",
+        "耶罗",
+        "尔洛",
+        "套",
+        "肉",
+        "具",
+        "草",
+        "炎",
+        "脂腺",
+        "衣",
+        "夹",
+        "尔斯"
+      ],
+      "edit_isolated": null,
+      "edited_from": null,
+      "generated": [
+        "安德里亚"
+      ],
+      "generation_error": null,
+      "generation_ms": 456.19539999999995,
+      "id": "holdout-30",
+      "paired_chains": [
+        {
+          "final_prefix": "最古老的是安德里亚·皮肤病",
+          "method": "dictionary",
+          "steps": [
+            {
+              "choices": [
+                "肤",
+                "鞋",
+                "带"
+              ],
+              "error": null,
+              "ms": 0.0026,
+              "prefix": "最古老的是安德里亚·皮",
+              "selected": "肤"
+            },
+            {
+              "choices": [
+                "病",
+                "过敏",
+                "科"
+              ],
+              "error": null,
+              "ms": 0.0012,
+              "prefix": "最古老的是安德里亚·皮肤",
+              "selected": "病"
+            },
+            {
+              "choices": [],
+              "error": null,
+              "ms": 0.0005,
+              "prefix": "最古老的是安德里亚·皮肤病",
+              "selected": null
+            }
+          ]
+        },
+        {
+          "final_prefix": "最古老的是安德里亚·皮",
+          "method": "scoring",
+          "steps": [
+            {
+              "choices": [],
+              "error": null,
+              "ms": 321.2462,
+              "prefix": "最古老的是安德里亚·皮",
+              "selected": null
+            }
+          ]
+        },
+        {
+          "final_prefix": "最古老的是安德里亚·皮安德里亚",
+          "method": "generation",
+          "steps": [
+            {
+              "choices": [
+                "安德里亚"
+              ],
+              "error": null,
+              "ms": 456.43699999999995,
+              "prefix": "最古老的是安德里亚·皮",
+              "selected": "安德里亚"
+            },
+            {
+              "choices": [],
+              "error": "Empty",
+              "ms": 196.3186,
+              "prefix": "最古老的是安德里亚·皮安德里亚",
+              "selected": null
+            }
+          ]
+        }
+      ],
+      "prefix": "最古老的是安德里亚·皮",
+      "score_error": null,
+      "score_ms": 313.3102,
+      "scores": [
+        {
+          "score": -12.549468040466309,
+          "text": "肤"
+        },
+        {
+          "score": -9.098554611206055,
+          "text": "鞋"
+        },
+        {
+          "score": -7.776436805725098,
+          "text": "带"
+        },
+        {
+          "score": -13.725958824157715,
+          "text": "革"
+        },
+        {
+          "score": -8.63586139678955,
+          "text": "球"
+        },
+        {
+          "score": -5.253089904785156,
+          "text": "皮"
+        },
+        {
+          "score": -9.462507247924805,
+          "text": "毛"
+        },
+        {
+          "score": -11.127147674560547,
+          "text": "肤病"
+        },
+        {
+          "score": -10.41621208190918,
+          "text": "包"
+        },
+        {
+          "score": -2.4652912616729736,
+          "text": "特"
+        },
+        {
+          "score": -12.4361572265625,
+          "text": "肤过敏"
+        },
+        {
+          "score": -6.707553863525391,
+          "text": "质"
+        },
+        {
+          "score": -10.580997467041016,
+          "text": "下"
+        },
+        {
+          "score": -7.950605869293213,
+          "text": "下组织"
+        },
+        {
+          "score": -10.516257286071777,
+          "text": "蛋"
+        },
+        {
+          "score": -3.1066296100616455,
+          "text": "卡"
+        },
+        {
+          "score": -8.701700210571289,
+          "text": "肤科"
+        },
+        {
+          "score": -12.319215774536133,
+          "text": "肤干燥"
+        },
+        {
+          "score": -12.74233627319336,
+          "text": "疹"
+        },
+        {
+          "score": -10.87572193145752,
+          "text": "脂"
+        },
+        {
+          "score": -1.882609248161316,
+          "text": "耶罗"
+        },
+        {
+          "score": -3.268326759338379,
+          "text": "尔洛"
+        },
+        {
+          "score": -10.490148544311523,
+          "text": "套"
+        },
+        {
+          "score": -10.98717212677002,
+          "text": "肉"
+        },
+        {
+          "score": -11.782936096191406,
+          "text": "具"
+        },
+        {
+          "score": -8.446892738342285,
+          "text": "草"
+        },
+        {
+          "score": -11.853020668029785,
+          "text": "炎"
+        },
+        {
+          "score": -8.3682861328125,
+          "text": "脂腺"
+        },
+        {
+          "score": -10.397704124450684,
+          "text": "衣"
+        },
+        {
+          "score": -10.889031410217285,
+          "text": "夹"
+        },
+        {
+          "score": -4.480330467224121,
+          "text": "尔斯"
+        }
+      ]
+    },
+    {
+      "chain": [],
+      "dictionary": [],
+      "edit_isolated": null,
+      "edited_from": null,
+      "generated": [],
+      "generation_error": "Empty",
+      "generation_ms": 0.005699999999999999,
+      "id": "stop-30",
+      "paired_chains": [
+        {
+          "final_prefix": "最古老的是安德里亚·皮萨诺的作品，作于1330年到1336年。",
+          "method": "dictionary",
+          "steps": [
+            {
+              "choices": [],
+              "error": null,
+              "ms": 0.0018,
+              "prefix": "最古老的是安德里亚·皮萨诺的作品，作于1330年到1336年。",
+              "selected": null
+            }
+          ]
+        },
+        {
+          "final_prefix": "最古老的是安德里亚·皮萨诺的作品，作于1330年到1336年。",
+          "method": "scoring",
+          "steps": [
+            {
+              "choices": [],
+              "error": "Empty",
+              "ms": 1.2088999999999999,
+              "prefix": "最古老的是安德里亚·皮萨诺的作品，作于1330年到1336年。",
+              "selected": null
+            }
+          ]
+        },
+        {
+          "final_prefix": "最古老的是安德里亚·皮萨诺的作品，作于1330年到1336年。",
+          "method": "generation",
+          "steps": [
+            {
+              "choices": [],
+              "error": "Empty",
+              "ms": 0.0058000000000000005,
+              "prefix": "最古老的是安德里亚·皮萨诺的作品，作于1330年到1336年。",
+              "selected": null
+            }
+          ]
+        }
+      ],
+      "prefix": "最古老的是安德里亚·皮萨诺的作品，作于1330年到1336年。",
+      "score_error": "Empty",
+      "score_ms": 1.2911000000000001,
+      "scores": []
+    },
+    {
+      "chain": [],
+      "dictionary": [
+        "工",
+        "山",
+        "业",
+        "泉水",
+        "物",
+        "石",
+        "产资源",
+        "井",
+        "物质",
+        "区",
+        "产",
+        "难",
+        "主",
+        "床"
+      ],
+      "edit_isolated": null,
+      "edited_from": null,
+      "generated": [
+        "山",
+        "石"
+      ],
+      "generation_error": null,
+      "generation_ms": 423.3209,
+      "id": "holdout-31",
+      "paired_chains": [
+        {
+          "final_prefix": "而岩壁及石矿工",
+          "method": "dictionary",
+          "steps": [
+            {
+              "choices": [
+                "工",
+                "山",
+                "业"
+              ],
+              "error": null,
+              "ms": 0.0026,
+              "prefix": "而岩壁及石矿",
+              "selected": "工"
+            },
+            {
+              "choices": [],
+              "error": null,
+              "ms": 0.0006,
+              "prefix": "而岩壁及石矿工",
+              "selected": null
+            }
+          ]
+        },
+        {
+          "final_prefix": "而岩壁及石矿",
+          "method": "scoring",
+          "steps": [
+            {
+              "choices": [],
+              "error": null,
+              "ms": 98.0124,
+              "prefix": "而岩壁及石矿",
+              "selected": null
+            }
+          ]
+        },
+        {
+          "final_prefix": "而岩壁及石矿山",
+          "method": "generation",
+          "steps": [
+            {
+              "choices": [
+                "山",
+                "石"
+              ],
+              "error": null,
+              "ms": 422.5093,
+              "prefix": "而岩壁及石矿",
+              "selected": "山"
+            },
+            {
+              "choices": [],
+              "error": "LowConfidence",
+              "ms": 230.9977,
+              "prefix": "而岩壁及石矿山",
+              "selected": null
+            }
+          ]
+        }
+      ],
+      "prefix": "而岩壁及石矿",
+      "score_error": null,
+      "score_ms": 102.4614,
+      "scores": [
+        {
+          "score": -5.942408084869385,
+          "text": "工"
+        },
+        {
+          "score": -6.298014163970947,
+          "text": "山"
+        },
+        {
+          "score": -6.383481502532959,
+          "text": "业"
+        },
+        {
+          "score": -9.419227600097656,
+          "text": "泉水"
+        },
+        {
+          "score": -5.636544704437256,
+          "text": "物"
+        },
+        {
+          "score": -3.4469048976898193,
+          "text": "石"
+        },
+        {
+          "score": -3.161257743835449,
+          "text": "产资源"
+        },
+        {
+          "score": -5.192943096160889,
+          "text": "井"
+        },
+        {
+          "score": -8.108735084533691,
+          "text": "物质"
+        },
+        {
+          "score": -4.75176477432251,
+          "text": "区"
+        },
+        {
+          "score": -5.0392937660217285,
+          "text": "产"
+        },
+        {
+          "score": -9.596435546875,
+          "text": "难"
+        },
+        {
+          "score": -6.898547649383545,
+          "text": "主"
+        },
+        {
+          "score": -5.110347270965576,
+          "text": "床"
+        }
+      ]
+    },
+    {
+      "chain": [],
+      "dictionary": [],
+      "edit_isolated": null,
+      "edited_from": null,
+      "generated": [],
+      "generation_error": "Empty",
+      "generation_ms": 0.0063,
+      "id": "stop-31",
+      "paired_chains": [
+        {
+          "final_prefix": "而岩壁及石矿公园的设计及工程将会考虑采纳早前在公众参与活动中举行概念设计比赛的参赛作品，由康乐及文化事务署所获得的拨款进行。",
+          "method": "dictionary",
+          "steps": [
+            {
+              "choices": [],
+              "error": null,
+              "ms": 0.0021,
+              "prefix": "而岩壁及石矿公园的设计及工程将会考虑采纳早前在公众参与活动中举行概念设计比赛的参赛作品，由康乐及文化事务署所获得的拨款进行。",
+              "selected": null
+            }
+          ]
+        },
+        {
+          "final_prefix": "而岩壁及石矿公园的设计及工程将会考虑采纳早前在公众参与活动中举行概念设计比赛的参赛作品，由康乐及文化事务署所获得的拨款进行。",
+          "method": "scoring",
+          "steps": [
+            {
+              "choices": [],
+              "error": "Empty",
+              "ms": 0.7309,
+              "prefix": "而岩壁及石矿公园的设计及工程将会考虑采纳早前在公众参与活动中举行概念设计比赛的参赛作品，由康乐及文化事务署所获得的拨款进行。",
+              "selected": null
+            }
+          ]
+        },
+        {
+          "final_prefix": "而岩壁及石矿公园的设计及工程将会考虑采纳早前在公众参与活动中举行概念设计比赛的参赛作品，由康乐及文化事务署所获得的拨款进行。",
+          "method": "generation",
+          "steps": [
+            {
+              "choices": [],
+              "error": "Empty",
+              "ms": 0.0047,
+              "prefix": "而岩壁及石矿公园的设计及工程将会考虑采纳早前在公众参与活动中举行概念设计比赛的参赛作品，由康乐及文化事务署所获得的拨款进行。",
+              "selected": null
+            }
+          ]
+        }
+      ],
+      "prefix": "而岩壁及石矿公园的设计及工程将会考虑采纳早前在公众参与活动中举行概念设计比赛的参赛作品，由康乐及文化事务署所获得的拨款进行。",
+      "score_error": "Empty",
+      "score_ms": 1.0483,
+      "scores": []
+    },
+    {
+      "chain": [],
+      "dictionary": [
+        "解",
+        "吗",
+        "一",
+        "新的",
+        "不起",
+        "一场",
+        "解一下",
+        "解自己",
+        "结",
+        "如指掌",
+        "然",
+        "得",
+        "断"
+      ],
+      "edit_isolated": true,
+      "edited_from": "车站建于1928",
+      "generated": [],
+      "generation_error": "Empty",
+      "generation_ms": 115.5385,
+      "id": "holdout-32",
+      "paired_chains": [
+        {
+          "final_prefix": "我们已经提及了解一下",
+          "method": "dictionary",
+          "steps": [
+            {
+              "choices": [
+                "解",
+                "吗",
+                "一"
+              ],
+              "error": null,
+              "ms": 0.0024,
+              "prefix": "我们已经提及了",
+              "selected": "解"
+            },
+            {
+              "choices": [
+                "一下",
+                "自己"
+              ],
+              "error": null,
+              "ms": 0.0009,
+              "prefix": "我们已经提及了解",
+              "selected": "一下"
+            },
+            {
+              "choices": [],
+              "error": null,
+              "ms": 0.0005,
+              "prefix": "我们已经提及了解一下",
+              "selected": null
+            }
+          ]
+        },
+        {
+          "final_prefix": "我们已经提及了",
+          "method": "scoring",
+          "steps": [
+            {
+              "choices": [],
+              "error": null,
+              "ms": 181.9192,
+              "prefix": "我们已经提及了",
+              "selected": null
+            }
+          ]
+        },
+        {
+          "final_prefix": "我们已经提及了",
+          "method": "generation",
+          "steps": [
+            {
+              "choices": [],
+              "error": "Empty",
+              "ms": 111.064,
+              "prefix": "我们已经提及了",
+              "selected": null
+            }
+          ]
+        }
+      ],
+      "prefix": "我们已经提及了",
+      "score_error": null,
+      "score_ms": 177.8138,
+      "scores": [
+        {
+          "score": -10.436857223510742,
+          "text": "解"
+        },
+        {
+          "score": -9.709410667419434,
+          "text": "吗"
+        },
+        {
+          "score": -11.117600440979004,
+          "text": "一"
+        },
+        {
+          "score": -7.627090930938721,
+          "text": "新的"
+        },
+        {
+          "score": -12.340788841247559,
+          "text": "不起"
+        },
+        {
+          "score": -13.412445068359375,
+          "text": "一场"
+        },
+        {
+          "score": -10.566864013671875,
+          "text": "解一下"
+        },
+        {
+          "score": -10.826343536376953,
+          "text": "解自己"
+        },
+        {
+          "score": -9.43946361541748,
+          "text": "结"
+        },
+        {
+          "score": -7.00691556930542,
+          "text": "如指掌"
+        },
+        {
+          "score": -14.481050491333008,
+          "text": "然"
+        },
+        {
+          "score": -10.618141174316406,
+          "text": "得"
+        },
+        {
+          "score": -9.920472145080566,
+          "text": "断"
+        }
+      ]
+    },
+    {
+      "chain": [],
+      "dictionary": [],
+      "edit_isolated": null,
+      "edited_from": null,
+      "generated": [],
+      "generation_error": "Empty",
+      "generation_ms": 142.1628,
+      "id": "holdout-33",
+      "paired_chains": [
+        {
+          "final_prefix": "车站建于1928",
+          "method": "dictionary",
+          "steps": [
+            {
+              "choices": [],
+              "error": null,
+              "ms": 0.0024,
+              "prefix": "车站建于1928",
+              "selected": null
+            }
+          ]
+        },
+        {
+          "final_prefix": "车站建于1928",
+          "method": "scoring",
+          "steps": [
+            {
+              "choices": [],
+              "error": "Empty",
+              "ms": 1.0244,
+              "prefix": "车站建于1928",
+              "selected": null
+            }
+          ]
+        },
+        {
+          "final_prefix": "车站建于1928",
+          "method": "generation",
+          "steps": [
+            {
+              "choices": [],
+              "error": "Empty",
+              "ms": 133.3177,
+              "prefix": "车站建于1928",
+              "selected": null
+            }
+          ]
+        }
+      ],
+      "prefix": "车站建于1928",
+      "score_error": "Empty",
+      "score_ms": 1.0139,
+      "scores": []
+    },
+    {
+      "chain": [],
+      "dictionary": [
+        "人",
+        "队"
+      ],
+      "edit_isolated": null,
+      "edited_from": null,
+      "generated": [],
+      "generation_error": "Empty",
+      "generation_ms": 107.7174,
+      "id": "holdout-34",
+      "paired_chains": [
+        {
+          "final_prefix": "面对南下的德国人",
+          "method": "dictionary",
+          "steps": [
+            {
+              "choices": [
+                "人",
+                "队"
+              ],
+              "error": null,
+              "ms": 0.0029000000000000002,
+              "prefix": "面对南下的德国",
+              "selected": "人"
+            },
+            {
+              "choices": [],
+              "error": null,
+              "ms": 0.0007,
+              "prefix": "面对南下的德国人",
+              "selected": null
+            }
+          ]
+        },
+        {
+          "final_prefix": "面对南下的德国",
+          "method": "scoring",
+          "steps": [
+            {
+              "choices": [],
+              "error": null,
+              "ms": 56.741600000000005,
+              "prefix": "面对南下的德国",
+              "selected": null
+            }
+          ]
+        },
+        {
+          "final_prefix": "面对南下的德国",
+          "method": "generation",
+          "steps": [
+            {
+              "choices": [],
+              "error": "Empty",
+              "ms": 128.1729,
+              "prefix": "面对南下的德国",
+              "selected": null
+            }
+          ]
+        }
+      ],
+      "prefix": "面对南下的德国",
+      "score_error": null,
+      "score_ms": 56.4569,
+      "scores": [
+        {
+          "score": -2.195796251296997,
+          "text": "人"
+        },
+        {
+          "score": -2.3613083362579346,
+          "text": "队"
+        }
+      ]
+    },
+    {
+      "chain": [],
+      "dictionary": [
+        "先",
+        "领",
+        "达",
+        "为",
+        "高",
+        "低",
+        "真",
+        "性",
+        "队"
+      ],
+      "edit_isolated": null,
+      "edited_from": null,
+      "generated": [],
+      "generation_error": "Empty",
+      "generation_ms": 133.47029999999998,
+      "id": "holdout-35",
+      "paired_chains": [
+        {
+          "final_prefix": "希拉蕊的得票率先",
+          "method": "dictionary",
+          "steps": [
+            {
+              "choices": [
+                "先",
+                "领",
+                "达"
+              ],
+              "error": null,
+              "ms": 0.0024,
+              "prefix": "希拉蕊的得票率",
+              "selected": "先"
+            },
+            {
+              "choices": [],
+              "error": null,
+              "ms": 0.0014,
+              "prefix": "希拉蕊的得票率先",
+              "selected": null
+            }
+          ]
+        },
+        {
+          "final_prefix": "希拉蕊的得票率高",
+          "method": "scoring",
+          "steps": [
+            {
+              "choices": [
+                "高",
+                "低"
+              ],
+              "error": null,
+              "ms": 86.5929,
+              "prefix": "希拉蕊的得票率",
+              "selected": "高"
+            },
+            {
+              "choices": [],
+              "error": "Empty",
+              "ms": 1.03,
+              "prefix": "希拉蕊的得票率高",
+              "selected": null
+            }
+          ]
+        },
+        {
+          "final_prefix": "希拉蕊的得票率",
+          "method": "generation",
+          "steps": [
+            {
+              "choices": [],
+              "error": "Empty",
+              "ms": 124.49780000000001,
+              "prefix": "希拉蕊的得票率",
+              "selected": null
+            }
+          ]
+        }
+      ],
+      "prefix": "希拉蕊的得票率",
+      "score_error": null,
+      "score_ms": 90.0786,
+      "scores": [
+        {
+          "score": -10.15105152130127,
+          "text": "先"
+        },
+        {
+          "score": -11.664478302001953,
+          "text": "领"
+        },
+        {
+          "score": -6.594534873962402,
+          "text": "达"
+        },
+        {
+          "score": -6.278426170349121,
+          "text": "为"
+        },
+        {
+          "score": -4.368699073791504,
+          "text": "高"
+        },
+        {
+          "score": -5.456122398376465,
+          "text": "低"
+        },
+        {
+          "score": -9.273688316345215,
+          "text": "真"
+        },
+        {
+          "score": -11.964874267578125,
+          "text": "性"
+        },
+        {
+          "score": -12.704184532165527,
+          "text": "队"
+        }
+      ]
+    },
+    {
+      "chain": [],
+      "dictionary": [
+        "次",
+        "说",
+        "见",
+        "也",
+        "来",
+        "发",
+        "去",
+        "度",
+        "加",
+        "看",
+        "一次",
+        "用",
+        "现",
+        "有",
+        "到",
+        "不",
+        "多",
+        "生",
+        "把",
+        "也没有",
+        "做",
+        "过",
+        "好",
+        "买",
+        "找",
+        "三",
+        "就业",
+        "给",
+        "打",
+        "将",
+        "问",
+        "建",
+        "造",
+        "等",
+        "创",
+        "走",
+        "回",
+        "吃",
+        "想",
+        "接再厉",
+        "大",
+        "从",
+        "由",
+        "上",
+        "写",
+        "谈",
+        "往",
+        "让",
+        "融资",
+        "开",
+        "提",
+        "试",
+        "向",
+        "无",
+        "忙",
+        "审",
+        "者",
+        "按",
+        "以",
+        "婚",
+        "放",
+        "出",
+        "起",
+        "添"
+      ],
+      "edit_isolated": true,
+      "edited_from": "夏绿蒂从1839",
+      "generated": [],
+      "generation_error": "LowConfidence",
+      "generation_ms": 221.27759999999998,
+      "id": "holdout-36",
+      "paired_chains": [
+        {
+          "final_prefix": "虽然她从来没有再次",
+          "method": "dictionary",
+          "steps": [
+            {
+              "choices": [
+                "次",
+                "说",
+                "见"
+              ],
+              "error": null,
+              "ms": 0.0024,
+              "prefix": "虽然她从来没有再",
+              "selected": "次"
+            },
+            {
+              "choices": [],
+              "error": null,
+              "ms": 0.0007999999999999999,
+              "prefix": "虽然她从来没有再次",
+              "selected": null
+            }
+          ]
+        },
+        {
+          "final_prefix": "虽然她从来没有再接再厉",
+          "method": "scoring",
+          "steps": [
+            {
+              "choices": [
+                "接再厉",
+                "做",
+                "向"
+              ],
+              "error": null,
+              "ms": 111.8937,
+              "prefix": "虽然她从来没有再",
+              "selected": "接再厉"
+            },
+            {
+              "choices": [],
+              "error": "Empty",
+              "ms": 1.0218,
+              "prefix": "虽然她从来没有再接再厉",
+              "selected": null
+            }
+          ]
+        },
+        {
+          "final_prefix": "虽然她从来没有再",
+          "method": "generation",
+          "steps": [
+            {
+              "choices": [],
+              "error": "LowConfidence",
+              "ms": 226.3984,
+              "prefix": "虽然她从来没有再",
+              "selected": null
+            }
+          ]
+        }
+      ],
+      "prefix": "虽然她从来没有再",
+      "score_error": null,
+      "score_ms": 112.14699999999999,
+      "scores": [
+        {
+          "score": -8.615114212036133,
+          "text": "次"
+        },
+        {
+          "score": -8.087915420532227,
+          "text": "说"
+        },
+        {
+          "score": -6.854125499725342,
+          "text": "见"
+        },
+        {
+          "score": -11.67210578918457,
+          "text": "也"
+        },
+        {
+          "score": -6.896609783172607,
+          "text": "来"
+        },
+        {
+          "score": -7.7226996421813965,
+          "text": "发"
+        },
+        {
+          "score": -7.239813327789307,
+          "text": "去"
+        },
+        {
+          "score": -9.775245666503906,
+          "text": "度"
+        },
+        {
+          "score": -6.705394268035889,
+          "text": "加"
+        },
+        {
+          "score": -5.327939510345459,
+          "text": "看"
+        },
+        {
+          "score": -8.507312774658203,
+          "text": "一次"
+        },
+        {
+          "score": -5.752967357635498,
+          "text": "用"
+        },
+        {
+          "score": -11.120887756347656,
+          "text": "现"
+        },
+        {
+          "score": -5.974593639373779,
+          "text": "有"
+        },
+        {
+          "score": -6.930591106414795,
+          "text": "到"
+        },
+        {
+          "score": -8.560195922851562,
+          "text": "不"
+        },
+        {
+          "score": -10.606389045715332,
+          "text": "多"
+        },
+        {
+          "score": -6.207907199859619,
+          "text": "生"
+        },
+        {
+          "score": -5.262309551239014,
+          "text": "把"
+        },
+        {
+          "score": -11.943639755249023,
+          "text": "也没有"
+        },
+        {
+          "score": -4.50641393661499,
+          "text": "做"
+        },
+        {
+          "score": -6.6559739112854,
+          "text": "过"
+        },
+        {
+          "score": -9.648157119750977,
+          "text": "好"
+        },
+        {
+          "score": -5.848556041717529,
+          "text": "买"
+        },
+        {
+          "score": -6.4195380210876465,
+          "text": "找"
+        },
+        {
+          "score": -6.55360746383667,
+          "text": "三"
+        },
+        {
+          "score": -9.867562294006348,
+          "text": "就业"
+        },
+        {
+          "score": -5.5970587730407715,
+          "text": "给"
+        },
+        {
+          "score": -5.44366979598999,
+          "text": "打"
+        },
+        {
+          "score": -5.969827175140381,
+          "text": "将"
+        },
+        {
+          "score": -6.263037204742432,
+          "text": "问"
+        },
+        {
+          "score": -8.093219757080078,
+          "text": "建"
+        },
+        {
+          "score": -8.385839462280273,
+          "text": "造"
+        },
+        {
+          "score": -9.705833435058594,
+          "text": "等"
+        },
+        {
+          "score": -8.97416877746582,
+          "text": "创"
+        },
+        {
+          "score": -6.594598293304443,
+          "text": "走"
+        },
+        {
+          "score": -4.795530796051025,
+          "text": "回"
+        },
+        {
+          "score": -6.191596508026123,
+          "text": "吃"
+        },
+        {
+          "score": -5.263216495513916,
+          "text": "想"
+        },
+        {
+          "score": -2.801295280456543,
+          "text": "接再厉"
+        },
+        {
+          "score": -7.342376232147217,
+          "text": "大"
+        },
+        {
+          "score": -6.169557094573975,
+          "text": "从"
+        },
+        {
+          "score": -10.005044937133789,
+          "text": "由"
+        },
+        {
+          "score": -5.1953301429748535,
+          "text": "上"
+        },
+        {
+          "score": -5.0494065284729,
+          "text": "写"
+        },
+        {
+          "score": -7.865722179412842,
+          "text": "谈"
+        },
+        {
+          "score": -6.320713520050049,
+          "text": "往"
+        },
+        {
+          "score": -6.0871968269348145,
+          "text": "让"
+        },
+        {
+          "score": -12.164350509643555,
+          "text": "融资"
+        },
+        {
+          "score": -6.687551021575928,
+          "text": "开"
+        },
+        {
+          "score": -5.908688068389893,
+          "text": "提"
+        },
+        {
+          "score": -7.384378910064697,
+          "text": "试"
+        },
+        {
+          "score": -4.544969081878662,
+          "text": "向"
+        },
+        {
+          "score": -11.039227485656738,
+          "text": "无"
+        },
+        {
+          "score": -10.144015312194824,
+          "text": "忙"
+        },
+        {
+          "score": -11.08806037902832,
+          "text": "审"
+        },
+        {
+          "score": -14.303114891052246,
+          "text": "者"
+        },
+        {
+          "score": -9.65433120727539,
+          "text": "按"
+        },
+        {
+          "score": -6.442124843597412,
+          "text": "以"
+        },
+        {
+          "score": -4.9776434898376465,
+          "text": "婚"
+        },
+        {
+          "score": -7.927774906158447,
+          "text": "放"
+        },
+        {
+          "score": -6.237260341644287,
+          "text": "出"
+        },
+        {
+          "score": -7.831241130828857,
+          "text": "起"
+        },
+        {
+          "score": -8.325628280639648,
+          "text": "添"
+        }
+      ]
+    },
+    {
+      "chain": [],
+      "dictionary": [],
+      "edit_isolated": null,
+      "edited_from": null,
+      "generated": [],
+      "generation_error": "LowConfidence",
+      "generation_ms": 153.4153,
+      "id": "holdout-37",
+      "paired_chains": [
+        {
+          "final_prefix": "夏绿蒂从1839",
+          "method": "dictionary",
+          "steps": [
+            {
+              "choices": [],
+              "error": null,
+              "ms": 0.0023,
+              "prefix": "夏绿蒂从1839",
+              "selected": null
+            }
+          ]
+        },
+        {
+          "final_prefix": "夏绿蒂从1839",
+          "method": "scoring",
+          "steps": [
+            {
+              "choices": [],
+              "error": "Empty",
+              "ms": 1.045,
+              "prefix": "夏绿蒂从1839",
+              "selected": null
+            }
+          ]
+        },
+        {
+          "final_prefix": "夏绿蒂从1839",
+          "method": "generation",
+          "steps": [
+            {
+              "choices": [],
+              "error": "LowConfidence",
+              "ms": 149.0796,
+              "prefix": "夏绿蒂从1839",
+              "selected": null
+            }
+          ]
+        }
+      ],
+      "prefix": "夏绿蒂从1839",
+      "score_error": "Empty",
+      "score_ms": 1.0418,
+      "scores": []
+    },
+    {
+      "chain": [],
+      "dictionary": [],
+      "edit_isolated": null,
+      "edited_from": null,
+      "generated": [
+        "年",
+        "月",
+        "日"
+      ],
+      "generation_error": null,
+      "generation_ms": 408.75089999999994,
+      "id": "holdout-38",
+      "paired_chains": [
+        {
+          "final_prefix": "两国在1897",
+          "method": "dictionary",
+          "steps": [
+            {
+              "choices": [],
+              "error": null,
+              "ms": 0.0025,
+              "prefix": "两国在1897",
+              "selected": null
+            }
+          ]
+        },
+        {
+          "final_prefix": "两国在1897",
+          "method": "scoring",
+          "steps": [
+            {
+              "choices": [],
+              "error": "Empty",
+              "ms": 1.0104,
+              "prefix": "两国在1897",
+              "selected": null
+            }
+          ]
+        },
+        {
+          "final_prefix": "两国在1897年",
+          "method": "generation",
+          "steps": [
+            {
+              "choices": [
+                "年",
+                "月",
+                "日"
+              ],
+              "error": null,
+              "ms": 429.7661,
+              "prefix": "两国在1897",
+              "selected": "年"
+            },
+            {
+              "choices": [],
+              "error": "Empty",
+              "ms": 149.1226,
+              "prefix": "两国在1897年",
+              "selected": null
+            }
+          ]
+        }
+      ],
+      "prefix": "两国在1897",
+      "score_error": "Empty",
+      "score_ms": 1.0514000000000001,
+      "scores": []
+    },
+    {
+      "chain": [],
+      "dictionary": [
+        "膀"
+      ],
+      "edit_isolated": null,
+      "edited_from": null,
+      "generated": [],
+      "generation_error": "LowConfidence",
+      "generation_ms": 268.92519999999996,
+      "id": "holdout-39",
+      "paired_chains": [
+        {
+          "final_prefix": "翅膀底色是锈红色，翅膀",
+          "method": "dictionary",
+          "steps": [
+            {
+              "choices": [
+                "膀"
+              ],
+              "error": null,
+              "ms": 0.0024,
+              "prefix": "翅膀底色是锈红色，翅",
+              "selected": "膀"
+            },
+            {
+              "choices": [],
+              "error": null,
+              "ms": 0.0007,
+              "prefix": "翅膀底色是锈红色，翅膀",
+              "selected": null
+            }
+          ]
+        },
+        {
+          "final_prefix": "翅膀底色是锈红色，翅",
+          "method": "scoring",
+          "steps": [
+            {
+              "choices": [],
+              "error": null,
+              "ms": 109.0058,
+              "prefix": "翅膀底色是锈红色，翅",
+              "selected": null
+            }
+          ]
+        },
+        {
+          "final_prefix": "翅膀底色是锈红色，翅",
+          "method": "generation",
+          "steps": [
+            {
+              "choices": [],
+              "error": "LowConfidence",
+              "ms": 252.83489999999998,
+              "prefix": "翅膀底色是锈红色，翅",
+              "selected": null
+            }
+          ]
+        }
+      ],
+      "prefix": "翅膀底色是锈红色，翅",
+      "score_error": null,
+      "score_ms": 101.2667,
+      "scores": [
+        {
+          "score": -7.838201999664307,
+          "text": "膀"
+        }
+      ]
+    },
+    {
+      "chain": [],
+      "dictionary": [],
+      "edit_isolated": true,
+      "edited_from": "宁波效实中学是一",
+      "generated": [
+        "查尔斯",
+        "克拉克"
+      ],
+      "generation_error": null,
+      "generation_ms": 513.3682,
+      "id": "holdout-40",
+      "paired_chains": [
+        {
+          "final_prefix": "查尔斯·克拉克在其同年",
+          "method": "dictionary",
+          "steps": [
+            {
+              "choices": [],
+              "error": null,
+              "ms": 0.0024,
+              "prefix": "查尔斯·克拉克在其同年",
+              "selected": null
+            }
+          ]
+        },
+        {
+          "final_prefix": "查尔斯·克拉克在其同年",
+          "method": "scoring",
+          "steps": [
+            {
+              "choices": [],
+              "error": "Empty",
+              "ms": 1.0267,
+              "prefix": "查尔斯·克拉克在其同年",
+              "selected": null
+            }
+          ]
+        },
+        {
+          "final_prefix": "查尔斯·克拉克在其同年查尔斯",
+          "method": "generation",
+          "steps": [
+            {
+              "choices": [
+                "查尔斯",
+                "克拉克"
+              ],
+              "error": null,
+              "ms": 511.23130000000003,
+              "prefix": "查尔斯·克拉克在其同年",
+              "selected": "查尔斯"
+            },
+            {
+              "choices": [],
+              "error": "LowConfidence",
+              "ms": 212.7387,
+              "prefix": "查尔斯·克拉克在其同年查尔斯",
+              "selected": null
+            }
+          ]
+        }
+      ],
+      "prefix": "查尔斯·克拉克在其同年",
+      "score_error": "Empty",
+      "score_ms": 1.617,
+      "scores": []
+    },
+    {
+      "chain": [],
+      "dictionary": [
+        "种",
+        "件",
+        "样的",
+        "位",
+        "款",
+        "部",
+        "名",
+        "项",
+        "只",
+        "座",
+        "门",
+        "本"
+      ],
+      "edit_isolated": null,
+      "edited_from": null,
+      "generated": [],
+      "generation_error": "LowConfidence",
+      "generation_ms": 144.95659999999998,
+      "id": "holdout-41",
+      "paired_chains": [
+        {
+          "final_prefix": "宁波效实中学是一种",
+          "method": "dictionary",
+          "steps": [
+            {
+              "choices": [
+                "种",
+                "件",
+                "样的"
+              ],
+              "error": null,
+              "ms": 0.0025,
+              "prefix": "宁波效实中学是一",
+              "selected": "种"
+            },
+            {
+              "choices": [],
+              "error": null,
+              "ms": 0.0006,
+              "prefix": "宁波效实中学是一种",
+              "selected": null
+            }
+          ]
+        },
+        {
+          "final_prefix": "宁波效实中学是一本",
+          "method": "scoring",
+          "steps": [
+            {
+              "choices": [
+                "本"
+              ],
+              "error": null,
+              "ms": 70.6918,
+              "prefix": "宁波效实中学是一",
+              "selected": "本"
+            },
+            {
+              "choices": [],
+              "error": "Empty",
+              "ms": 1.0573,
+              "prefix": "宁波效实中学是一本",
+              "selected": null
+            }
+          ]
+        },
+        {
+          "final_prefix": "宁波效实中学是一",
+          "method": "generation",
+          "steps": [
+            {
+              "choices": [],
+              "error": "LowConfidence",
+              "ms": 148.68970000000002,
+              "prefix": "宁波效实中学是一",
+              "selected": null
+            }
+          ]
+        }
+      ],
+      "prefix": "宁波效实中学是一",
+      "score_error": null,
+      "score_ms": 71.1044,
+      "scores": [
+        {
+          "score": -16.005508422851562,
+          "text": "种"
+        },
+        {
+          "score": -12.7116060256958,
+          "text": "件"
+        },
+        {
+          "score": -12.352668762207031,
+          "text": "样的"
+        },
+        {
+          "score": -9.48264217376709,
+          "text": "位"
+        },
+        {
+          "score": -12.299598693847656,
+          "text": "款"
+        },
+        {
+          "score": -13.608071327209473,
+          "text": "部"
+        },
+        {
+          "score": -8.706558227539062,
+          "text": "名"
+        },
+        {
+          "score": -12.940729141235352,
+          "text": "项"
+        },
+        {
+          "score": -8.975141525268555,
+          "text": "只"
+        },
+        {
+          "score": -8.779333114624023,
+          "text": "座"
+        },
+        {
+          "score": -9.892670631408691,
+          "text": "门"
+        },
+        {
+          "score": -4.815934181213379,
+          "text": "本"
+        }
+      ]
+    },
+    {
+      "chain": [],
+      "dictionary": [
+        "同",
+        "是",
+        "过",
+        "能",
+        "会",
+        "要",
+        "错",
+        "好",
+        "用",
+        "行",
+        "断",
+        "少",
+        "到",
+        "想",
+        "仅",
+        "管",
+        "够",
+        "知",
+        "乖",
+        "再",
+        "然",
+        "敢",
+        "如",
+        "得",
+        "好意思",
+        "太",
+        "懂",
+        "去",
+        "足",
+        "可",
+        "了",
+        "在",
+        "大",
+        "多",
+        "说",
+        "对",
+        "得不",
+        "算",
+        "见",
+        "怕",
+        "但",
+        "久",
+        "必",
+        "出",
+        "停",
+        "像",
+        "让",
+        "幸",
+        "住",
+        "愿",
+        "高",
+        "上",
+        "信",
+        "做",
+        "仅仅",
+        "满",
+        "爽",
+        "来",
+        "起",
+        "准",
+        "止",
+        "给",
+        "肯",
+        "看"
+      ],
+      "edit_isolated": null,
+      "edited_from": null,
+      "generated": [],
+      "generation_error": "LowConfidence",
+      "generation_ms": 251.28260000000003,
+      "id": "holdout-42",
+      "paired_chains": [
+        {
+          "final_prefix": "夸克有着多种不同",
+          "method": "dictionary",
+          "steps": [
+            {
+              "choices": [
+                "同",
+                "是",
+                "过"
+              ],
+              "error": null,
+              "ms": 0.0026,
+              "prefix": "夸克有着多种不",
+              "selected": "同"
+            },
+            {
+              "choices": [],
+              "error": null,
+              "ms": 0.0005,
+              "prefix": "夸克有着多种不同",
+              "selected": null
+            }
+          ]
+        },
+        {
+          "final_prefix": "夸克有着多种不",
+          "method": "scoring",
+          "steps": [
+            {
+              "choices": [],
+              "error": null,
+              "ms": 130.5702,
+              "prefix": "夸克有着多种不",
+              "selected": null
+            }
+          ]
+        },
+        {
+          "final_prefix": "夸克有着多种不",
+          "method": "generation",
+          "steps": [
+            {
+              "choices": [],
+              "error": "LowConfidence",
+              "ms": 225.6613,
+              "prefix": "夸克有着多种不",
+              "selected": null
+            }
+          ]
+        }
+      ],
+      "prefix": "夸克有着多种不",
+      "score_error": null,
+      "score_ms": 126.4677,
+      "scores": [
+        {
+          "score": -7.719016075134277,
+          "text": "同"
+        },
+        {
+          "score": -13.225740432739258,
+          "text": "是"
+        },
+        {
+          "score": -15.312525749206543,
+          "text": "过"
+        },
+        {
+          "score": -16.513500213623047,
+          "text": "能"
+        },
+        {
+          "score": -17.172340393066406,
+          "text": "会"
+        },
+        {
+          "score": -15.429203987121582,
+          "text": "要"
+        },
+        {
+          "score": -12.7905855178833,
+          "text": "错"
+        },
+        {
+          "score": -14.082025527954102,
+          "text": "好"
+        },
+        {
+          "score": -18.246849060058594,
+          "text": "用"
+        },
+        {
+          "score": -15.934804916381836,
+          "text": "行"
+        },
+        {
+          "score": -14.528070449829102,
+          "text": "断"
+        },
+        {
+          "score": -15.710162162780762,
+          "text": "少"
+        },
+        {
+          "score": -13.68525218963623,
+          "text": "到"
+        },
+        {
+          "score": -13.37131404876709,
+          "text": "想"
+        },
+        {
+          "score": -11.829974174499512,
+          "text": "仅"
+        },
+        {
+          "score": -15.294637680053711,
+          "text": "管"
+        },
+        {
+          "score": -17.179292678833008,
+          "text": "够"
+        },
+        {
+          "score": -16.011552810668945,
+          "text": "知"
+        },
+        {
+          "score": -12.832314491271973,
+          "text": "乖"
+        },
+        {
+          "score": -15.349882125854492,
+          "text": "再"
+        },
+        {
+          "score": -10.459683418273926,
+          "text": "然"
+        },
+        {
+          "score": -19.527240753173828,
+          "text": "敢"
+        },
+        {
+          "score": -13.061829566955566,
+          "text": "如"
+        },
+        {
+          "score": -13.587132453918457,
+          "text": "得"
+        },
+        {
+          "score": -10.003668785095215,
+          "text": "好意思"
+        },
+        {
+          "score": -13.755873680114746,
+          "text": "太"
+        },
+        {
+          "score": -18.242753982543945,
+          "text": "懂"
+        },
+        {
+          "score": -14.133752822875977,
+          "text": "去"
+        },
+        {
+          "score": -13.901973724365234,
+          "text": "足"
+        },
+        {
+          "score": -10.700535774230957,
+          "text": "可"
+        },
+        {
+          "score": -13.7471284866333,
+          "text": "了"
+        },
+        {
+          "score": -14.073868751525879,
+          "text": "在"
+        },
+        {
+          "score": -17.659717559814453,
+          "text": "大"
+        },
+        {
+          "score": -17.682170867919922,
+          "text": "多"
+        },
+        {
+          "score": -16.358964920043945,
+          "text": "说"
+        },
+        {
+          "score": -10.40889835357666,
+          "text": "对"
+        },
+        {
+          "score": -7.44370174407959,
+          "text": "得不"
+        },
+        {
+          "score": -15.14329719543457,
+          "text": "算"
+        },
+        {
+          "score": -14.431290626525879,
+          "text": "见"
+        },
+        {
+          "score": -15.832221984863281,
+          "text": "怕"
+        },
+        {
+          "score": -11.135618209838867,
+          "text": "但"
+        },
+        {
+          "score": -12.891958236694336,
+          "text": "久"
+        },
+        {
+          "score": -14.034831047058105,
+          "text": "必"
+        },
+        {
+          "score": -11.52365493774414,
+          "text": "出"
+        },
+        {
+          "score": -19.065439224243164,
+          "text": "停"
+        },
+        {
+          "score": -12.8651123046875,
+          "text": "像"
+        },
+        {
+          "score": -13.474542617797852,
+          "text": "让"
+        },
+        {
+          "score": -13.894720077514648,
+          "text": "幸"
+        },
+        {
+          "score": -14.16356086730957,
+          "text": "住"
+        },
+        {
+          "score": -16.83501625061035,
+          "text": "愿"
+        },
+        {
+          "score": -14.411364555358887,
+          "text": "高"
+        },
+        {
+          "score": -17.38604164123535,
+          "text": "上"
+        },
+        {
+          "score": -15.650185585021973,
+          "text": "信"
+        },
+        {
+          "score": -15.285158157348633,
+          "text": "做"
+        },
+        {
+          "score": -13.689953804016113,
+          "text": "仅仅"
+        },
+        {
+          "score": -13.3043851852417,
+          "text": "满"
+        },
+        {
+          "score": -10.553655624389648,
+          "text": "爽"
+        },
+        {
+          "score": -16.015180587768555,
+          "text": "来"
+        },
+        {
+          "score": -12.596354484558105,
+          "text": "起"
+        },
+        {
+          "score": -16.61054229736328,
+          "text": "准"
+        },
+        {
+          "score": -14.78527545928955,
+          "text": "止"
+        },
+        {
+          "score": -10.14236068725586,
+          "text": "给"
+        },
+        {
+          "score": -15.6437349319458,
+          "text": "肯"
+        },
+        {
+          "score": -9.040908813476562,
+          "text": "看"
+        }
+      ]
+    },
+    {
+      "chain": [],
+      "dictionary": [
+        "细",
+        "细看",
+        "细阅读",
+        "仔",
+        "猪"
+      ],
+      "edit_isolated": null,
+      "edited_from": null,
+      "generated": [
+        "大佛"
+      ],
+      "generation_error": null,
+      "generation_ms": 383.2246,
+      "id": "holdout-43",
+      "paired_chains": [
+        {
+          "final_prefix": "大佛口亦为湾仔细看",
+          "method": "dictionary",
+          "steps": [
+            {
+              "choices": [
+                "细",
+                "细看",
+                "细阅读"
+              ],
+              "error": null,
+              "ms": 0.0023,
+              "prefix": "大佛口亦为湾仔",
+              "selected": "细"
+            },
+            {
+              "choices": [
+                "看",
+                "阅读"
+              ],
+              "error": null,
+              "ms": 0.001,
+              "prefix": "大佛口亦为湾仔细",
+              "selected": "看"
+            },
+            {
+              "choices": [],
+              "error": null,
+              "ms": 0.0006,
+              "prefix": "大佛口亦为湾仔细看",
+              "selected": null
+            }
+          ]
+        },
+        {
+          "final_prefix": "大佛口亦为湾仔",
+          "method": "scoring",
+          "steps": [
+            {
+              "choices": [],
+              "error": null,
+              "ms": 142.4692,
+              "prefix": "大佛口亦为湾仔",
+              "selected": null
+            }
+          ]
+        },
+        {
+          "final_prefix": "大佛口亦为湾仔大佛",
+          "method": "generation",
+          "steps": [
+            {
+              "choices": [
+                "大佛"
+              ],
+              "error": null,
+              "ms": 385.0534,
+              "prefix": "大佛口亦为湾仔",
+              "selected": "大佛"
+            },
+            {
+              "choices": [],
+              "error": "Empty",
+              "ms": 561.1555999999999,
+              "prefix": "大佛口亦为湾仔大佛",
+              "selected": null
+            }
+          ]
+        }
+      ],
+      "prefix": "大佛口亦为湾仔",
+      "score_error": null,
+      "score_ms": 143.3475,
+      "scores": [
+        {
+          "score": -7.823574066162109,
+          "text": "细"
+        },
+        {
+          "score": -8.313506126403809,
+          "text": "细看"
+        },
+        {
+          "score": -10.463666915893555,
+          "text": "细阅读"
+        },
+        {
+          "score": -7.135199546813965,
+          "text": "仔"
+        },
+        {
+          "score": -8.576891899108887,
+          "text": "猪"
+        }
+      ]
+    },
+    {
+      "chain": [],
+      "dictionary": [
+        "种",
+        "员",
+        "个",
+        "下",
+        "些",
+        "样",
+        "定",
+        "起",
+        "直",
+        "般",
+        "点",
+        "次",
+        "切",
+        "天",
+        "年",
+        "家",
+        "位",
+        "会",
+        "张",
+        "条",
+        "边",
+        "份",
+        "段",
+        "句",
+        "旦",
+        "场",
+        "块",
+        "片",
+        "只",
+        "半",
+        "套",
+        "名",
+        "致",
+        "声",
+        "生",
+        "是",
+        "把",
+        "件",
+        "部",
+        "会儿",
+        "项",
+        "路",
+        "批",
+        "句话",
+        "看",
+        "人",
+        "周",
+        "遍",
+        "段时间",
+        "款",
+        "台",
+        "阵",
+        "面",
+        "辈子",
+        "共",
+        "点点",
+        "下子",
+        "篇",
+        "代",
+        "本",
+        "群",
+        "系列",
+        "道",
+        "时"
+      ],
+      "edit_isolated": true,
+      "edited_from": "通过将原型的不",
+      "generated": [],
+      "generation_error": "LowConfidence",
+      "generation_ms": 136.427,
+      "id": "holdout-44",
+      "paired_chains": [
+        {
+          "final_prefix": "身为颓废的一种",
+          "method": "dictionary",
+          "steps": [
+            {
+              "choices": [
+                "种",
+                "员",
+                "个"
+              ],
+              "error": null,
+              "ms": 0.003,
+              "prefix": "身为颓废的一",
+              "selected": "种"
+            },
+            {
+              "choices": [],
+              "error": null,
+              "ms": 0.0007999999999999999,
+              "prefix": "身为颓废的一种",
+              "selected": null
+            }
+          ]
+        },
+        {
+          "final_prefix": "身为颓废的一代人",
+          "method": "scoring",
+          "steps": [
+            {
+              "choices": [
+                "代",
+                "生",
+                "群"
+              ],
+              "error": null,
+              "ms": 147.8153,
+              "prefix": "身为颓废的一",
+              "selected": "代"
+            },
+            {
+              "choices": [
+                "人"
+              ],
+              "error": null,
+              "ms": 76.7352,
+              "prefix": "身为颓废的一代",
+              "selected": "人"
+            },
+            {
+              "choices": [],
+              "error": "Empty",
+              "ms": 0.9958,
+              "prefix": "身为颓废的一代人",
+              "selected": null
+            }
+          ]
+        },
+        {
+          "final_prefix": "身为颓废的一",
+          "method": "generation",
+          "steps": [
+            {
+              "choices": [],
+              "error": "LowConfidence",
+              "ms": 141.46329999999998,
+              "prefix": "身为颓废的一",
+              "selected": null
+            }
+          ]
+        }
+      ],
+      "prefix": "身为颓废的一",
+      "score_error": null,
+      "score_ms": 137.9928,
+      "scores": [
+        {
+          "score": -10.608487129211426,
+          "text": "种"
+        },
+        {
+          "score": -7.939576625823975,
+          "text": "员"
+        },
+        {
+          "score": -14.107869148254395,
+          "text": "个"
+        },
+        {
+          "score": -9.42057991027832,
+          "text": "下"
+        },
+        {
+          "score": -9.692075729370117,
+          "text": "些"
+        },
+        {
+          "score": -6.228825092315674,
+          "text": "样"
+        },
+        {
+          "score": -10.87100601196289,
+          "text": "定"
+        },
+        {
+          "score": -5.434886455535889,
+          "text": "起"
+        },
+        {
+          "score": -8.232454299926758,
+          "text": "直"
+        },
+        {
+          "score": -4.745071887969971,
+          "text": "般"
+        },
+        {
+          "score": -6.438418865203857,
+          "text": "点"
+        },
+        {
+          "score": -4.636759281158447,
+          "text": "次"
+        },
+        {
+          "score": -9.419723510742188,
+          "text": "切"
+        },
+        {
+          "score": -4.596837520599365,
+          "text": "天"
+        },
+        {
+          "score": -3.631844997406006,
+          "text": "年"
+        },
+        {
+          "score": -5.275303363800049,
+          "text": "家"
+        },
+        {
+          "score": -4.921299457550049,
+          "text": "位"
+        },
+        {
+          "score": -9.95560359954834,
+          "text": "会"
+        },
+        {
+          "score": -7.186486721038818,
+          "text": "张"
+        },
+        {
+          "score": -6.108879566192627,
+          "text": "条"
+        },
+        {
+          "score": -7.090211391448975,
+          "text": "边"
+        },
+        {
+          "score": -4.397584438323975,
+          "text": "份"
+        },
+        {
+          "score": -4.765758991241455,
+          "text": "段"
+        },
+        {
+          "score": -6.981063365936279,
+          "text": "句"
+        },
+        {
+          "score": -6.308722019195557,
+          "text": "旦"
+        },
+        {
+          "score": -7.018426418304443,
+          "text": "场"
+        },
+        {
+          "score": -5.34080171585083,
+          "text": "块"
+        },
+        {
+          "score": -6.0075154304504395,
+          "text": "片"
+        },
+        {
+          "score": -5.560112476348877,
+          "text": "只"
+        },
+        {
+          "score": -4.8983283042907715,
+          "text": "半"
+        },
+        {
+          "score": -7.201085567474365,
+          "text": "套"
+        },
+        {
+          "score": -3.7730860710144043,
+          "text": "名"
+        },
+        {
+          "score": -7.576501369476318,
+          "text": "致"
+        },
+        {
+          "score": -8.257343292236328,
+          "text": "声"
+        },
+        {
+          "score": -3.2500529289245605,
+          "text": "生"
+        },
+        {
+          "score": -10.324600219726562,
+          "text": "是"
+        },
+        {
+          "score": -6.800609111785889,
+          "text": "把"
+        },
+        {
+          "score": -7.370446681976318,
+          "text": "件"
+        },
+        {
+          "score": -6.9792351722717285,
+          "text": "部"
+        },
+        {
+          "score": -5.140073776245117,
+          "text": "会儿"
+        },
+        {
+          "score": -12.471076011657715,
+          "text": "项"
+        },
+        {
+          "score": -7.785006999969482,
+          "text": "路"
+        },
+        {
+          "score": -6.065852642059326,
+          "text": "批"
+        },
+        {
+          "score": -6.975257396697998,
+          "text": "句话"
+        },
+        {
+          "score": -8.510931015014648,
+          "text": "看"
+        },
+        {
+          "score": -5.1609416007995605,
+          "text": "人"
+        },
+        {
+          "score": -6.107839107513428,
+          "text": "周"
+        },
+        {
+          "score": -10.291277885437012,
+          "text": "遍"
+        },
+        {
+          "score": -3.562386989593506,
+          "text": "段时间"
+        },
+        {
+          "score": -8.95386791229248,
+          "text": "款"
+        },
+        {
+          "score": -8.434396743774414,
+          "text": "台"
+        },
+        {
+          "score": -6.4860758781433105,
+          "text": "阵"
+        },
+        {
+          "score": -10.032299041748047,
+          "text": "面"
+        },
+        {
+          "score": -6.088593006134033,
+          "text": "辈子"
+        },
+        {
+          "score": -7.918349742889404,
+          "text": "共"
+        },
+        {
+          "score": -4.725752353668213,
+          "text": "点点"
+        },
+        {
+          "score": -5.854325771331787,
+          "text": "下子"
+        },
+        {
+          "score": -8.199368476867676,
+          "text": "篇"
+        },
+        {
+          "score": -1.048322319984436,
+          "text": "代"
+        },
+        {
+          "score": -6.834386348724365,
+          "text": "本"
+        },
+        {
+          "score": -3.48121976852417,
+          "text": "群"
+        },
+        {
+          "score": -6.218631267547607,
+          "text": "系列"
+        },
+        {
+          "score": -5.471277713775635,
+          "text": "道"
+        },
+        {
+          "score": -5.26886510848999,
+          "text": "时"
+        }
+      ]
+    },
+    {
+      "chain": [],
+      "dictionary": [
+        "是",
+        "过",
+        "能",
+        "会",
+        "要",
+        "错",
+        "同",
+        "好",
+        "用",
+        "行",
+        "断",
+        "少",
+        "到",
+        "想",
+        "仅",
+        "管",
+        "够",
+        "知",
+        "乖",
+        "再",
+        "然",
+        "敢",
+        "如",
+        "得",
+        "好意思",
+        "太",
+        "懂",
+        "去",
+        "足",
+        "可",
+        "了",
+        "在",
+        "大",
+        "多",
+        "说",
+        "对",
+        "得不",
+        "算",
+        "见",
+        "怕",
+        "但",
+        "久",
+        "必",
+        "出",
+        "停",
+        "像",
+        "让",
+        "幸",
+        "住",
+        "愿",
+        "高",
+        "上",
+        "信",
+        "做",
+        "仅仅",
+        "满",
+        "爽",
+        "来",
+        "起",
+        "准",
+        "止",
+        "给",
+        "肯",
+        "看"
+      ],
+      "edit_isolated": null,
+      "edited_from": null,
+      "generated": [],
+      "generation_error": "LowConfidence",
+      "generation_ms": 150.1912,
+      "id": "holdout-45",
+      "paired_chains": [
+        {
+          "final_prefix": "通过将原型的不是很好",
+          "method": "dictionary",
+          "steps": [
+            {
+              "choices": [
+                "是",
+                "过",
+                "能"
+              ],
+              "error": null,
+              "ms": 0.0036,
+              "prefix": "通过将原型的不",
+              "selected": "是"
+            },
+            {
+              "choices": [
+                "很",
+                "说",
+                "我"
+              ],
+              "error": null,
+              "ms": 0.0009,
+              "prefix": "通过将原型的不是",
+              "selected": "很"
+            },
+            {
+              "choices": [
+                "好"
+              ],
+              "error": null,
+              "ms": 0.0007,
+              "prefix": "通过将原型的不是很",
+              "selected": "好"
+            }
+          ]
+        },
+        {
+          "final_prefix": "通过将原型的不",
+          "method": "scoring",
+          "steps": [
+            {
+              "choices": [],
+              "error": null,
+              "ms": 134.70319999999998,
+              "prefix": "通过将原型的不",
+              "selected": null
+            }
+          ]
+        },
+        {
+          "final_prefix": "通过将原型的不",
+          "method": "generation",
+          "steps": [
+            {
+              "choices": [],
+              "error": "LowConfidence",
+              "ms": 157.9975,
+              "prefix": "通过将原型的不",
+              "selected": null
+            }
+          ]
+        }
+      ],
+      "prefix": "通过将原型的不",
+      "score_error": null,
+      "score_ms": 152.4511,
+      "scores": [
+        {
+          "score": -13.312454223632812,
+          "text": "是"
+        },
+        {
+          "score": -14.28184700012207,
+          "text": "过"
+        },
+        {
+          "score": -14.751792907714844,
+          "text": "能"
+        },
+        {
+          "score": -16.834043502807617,
+          "text": "会"
+        },
+        {
+          "score": -15.52969741821289,
+          "text": "要"
+        },
+        {
+          "score": -11.955283164978027,
+          "text": "错"
+        },
+        {
+          "score": -11.272929191589355,
+          "text": "同"
+        },
+        {
+          "score": -12.015268325805664,
+          "text": "好"
+        },
+        {
+          "score": -15.20811653137207,
+          "text": "用"
+        },
+        {
+          "score": -13.357034683227539,
+          "text": "行"
+        },
+        {
+          "score": -12.800372123718262,
+          "text": "断"
+        },
+        {
+          "score": -14.927002906799316,
+          "text": "少"
+        },
+        {
+          "score": -13.586469650268555,
+          "text": "到"
+        },
+        {
+          "score": -12.588711738586426,
+          "text": "想"
+        },
+        {
+          "score": -13.058965682983398,
+          "text": "仅"
+        },
+        {
+          "score": -13.60724925994873,
+          "text": "管"
+        },
+        {
+          "score": -14.017667770385742,
+          "text": "够"
+        },
+        {
+          "score": -16.187158584594727,
+          "text": "知"
+        },
+        {
+          "score": -14.526040077209473,
+          "text": "乖"
+        },
+        {
+          "score": -13.70982837677002,
+          "text": "再"
+        },
+        {
+          "score": -9.280359268188477,
+          "text": "然"
+        },
+        {
+          "score": -17.45425033569336,
+          "text": "敢"
+        },
+        {
+          "score": -13.730198860168457,
+          "text": "如"
+        },
+        {
+          "score": -13.31161117553711,
+          "text": "得"
+        },
+        {
+          "score": -10.222318649291992,
+          "text": "好意思"
+        },
+        {
+          "score": -12.293313980102539,
+          "text": "太"
+        },
+        {
+          "score": -16.90683937072754,
+          "text": "懂"
+        },
+        {
+          "score": -12.448801040649414,
+          "text": "去"
+        },
+        {
+          "score": -11.971071243286133,
+          "text": "足"
+        },
+        {
+          "score": -9.166412353515625,
+          "text": "可"
+        },
+        {
+          "score": -14.835214614868164,
+          "text": "了"
+        },
+        {
+          "score": -13.435205459594727,
+          "text": "在"
+        },
+        {
+          "score": -15.1447172164917,
+          "text": "大"
+        },
+        {
+          "score": -15.50185489654541,
+          "text": "多"
+        },
+        {
+          "score": -15.112879753112793,
+          "text": "说"
+        },
+        {
+          "score": -10.191995620727539,
+          "text": "对"
+        },
+        {
+          "score": -7.064190864562988,
+          "text": "得不"
+        },
+        {
+          "score": -15.435152053833008,
+          "text": "算"
+        },
+        {
+          "score": -14.762940406799316,
+          "text": "见"
+        },
+        {
+          "score": -15.74465560913086,
+          "text": "怕"
+        },
+        {
+          "score": -13.006950378417969,
+          "text": "但"
+        },
+        {
+          "score": -13.680459022521973,
+          "text": "久"
+        },
+        {
+          "score": -13.519847869873047,
+          "text": "必"
+        },
+        {
+          "score": -12.431563377380371,
+          "text": "出"
+        },
+        {
+          "score": -15.735447883605957,
+          "text": "停"
+        },
+        {
+          "score": -14.176825523376465,
+          "text": "像"
+        },
+        {
+          "score": -14.291577339172363,
+          "text": "让"
+        },
+        {
+          "score": -15.012386322021484,
+          "text": "幸"
+        },
+        {
+          "score": -14.409408569335938,
+          "text": "住"
+        },
+        {
+          "score": -15.805508613586426,
+          "text": "愿"
+        },
+        {
+          "score": -13.295777320861816,
+          "text": "高"
+        },
+        {
+          "score": -15.435189247131348,
+          "text": "上"
+        },
+        {
+          "score": -14.937275886535645,
+          "text": "信"
+        },
+        {
+          "score": -11.800602912902832,
+          "text": "做"
+        },
+        {
+          "score": -15.259976387023926,
+          "text": "仅仅"
+        },
+        {
+          "score": -11.328840255737305,
+          "text": "满"
+        },
+        {
+          "score": -8.173924446105957,
+          "text": "爽"
+        },
+        {
+          "score": -14.288633346557617,
+          "text": "来"
+        },
+        {
+          "score": -11.322225570678711,
+          "text": "起"
+        },
+        {
+          "score": -14.52851676940918,
+          "text": "准"
+        },
+        {
+          "score": -14.301480293273926,
+          "text": "止"
+        },
+        {
+          "score": -11.548089027404785,
+          "text": "给"
+        },
+        {
+          "score": -15.952383995056152,
+          "text": "肯"
+        },
+        {
+          "score": -10.266189575195312,
+          "text": "看"
+        }
+      ]
+    },
+    {
+      "chain": [],
+      "dictionary": [
+        "节"
+      ],
+      "edit_isolated": null,
+      "edited_from": null,
+      "generated": [],
+      "generation_error": "Empty",
+      "generation_ms": 115.78779999999999,
+      "id": "holdout-46",
+      "paired_chains": [
+        {
+          "final_prefix": "雷妮拉的母亲节",
+          "method": "dictionary",
+          "steps": [
+            {
+              "choices": [
+                "节"
+              ],
+              "error": null,
+              "ms": 0.0027,
+              "prefix": "雷妮拉的母亲",
+              "selected": "节"
+            },
+            {
+              "choices": [],
+              "error": null,
+              "ms": 0.0006,
+              "prefix": "雷妮拉的母亲节",
+              "selected": null
+            }
+          ]
+        },
+        {
+          "final_prefix": "雷妮拉的母亲节",
+          "method": "scoring",
+          "steps": [
+            {
+              "choices": [
+                "节"
+              ],
+              "error": null,
+              "ms": 53.636900000000004,
+              "prefix": "雷妮拉的母亲",
+              "selected": "节"
+            },
+            {
+              "choices": [],
+              "error": "Empty",
+              "ms": 0.9963000000000001,
+              "prefix": "雷妮拉的母亲节",
+              "selected": null
+            }
+          ]
+        },
+        {
+          "final_prefix": "雷妮拉的母亲",
+          "method": "generation",
+          "steps": [
+            {
+              "choices": [],
+              "error": "Empty",
+              "ms": 109.7381,
+              "prefix": "雷妮拉的母亲",
+              "selected": null
+            }
+          ]
+        }
+      ],
+      "prefix": "雷妮拉的母亲",
+      "score_error": null,
+      "score_ms": 59.515899999999995,
+      "scores": [
+        {
+          "score": -4.189060211181641,
+          "text": "节"
+        }
+      ]
+    },
+    {
+      "chain": [],
+      "dictionary": [
+        "者",
+        "作品",
+        "权",
+        "方法",
+        "前",
+        "寿命",
+        "情况",
+        "率",
+        "电脑",
+        "费",
+        "量",
+        "说明",
+        "价值",
+        "时间"
+      ],
+      "edit_isolated": null,
+      "edited_from": null,
+      "generated": [],
+      "generation_error": "Empty",
+      "generation_ms": 115.717,
+      "id": "holdout-47",
+      "paired_chains": [
+        {
+          "final_prefix": "女真语最初使用者",
+          "method": "dictionary",
+          "steps": [
+            {
+              "choices": [
+                "者",
+                "作品",
+                "权"
+              ],
+              "error": null,
+              "ms": 0.0025,
+              "prefix": "女真语最初使用",
+              "selected": "者"
+            },
+            {
+              "choices": [],
+              "error": null,
+              "ms": 0.0007,
+              "prefix": "女真语最初使用者",
+              "selected": null
+            }
+          ]
+        },
+        {
+          "final_prefix": "女真语最初使用时间",
+          "method": "scoring",
+          "steps": [
+            {
+              "choices": [
+                "时间"
+              ],
+              "error": null,
+              "ms": 68.6808,
+              "prefix": "女真语最初使用",
+              "selected": "时间"
+            },
+            {
+              "choices": [],
+              "error": "Empty",
+              "ms": 0.9983,
+              "prefix": "女真语最初使用时间",
+              "selected": null
+            }
+          ]
+        },
+        {
+          "final_prefix": "女真语最初使用",
+          "method": "generation",
+          "steps": [
+            {
+              "choices": [],
+              "error": "Empty",
+              "ms": 112.2118,
+              "prefix": "女真语最初使用",
+              "selected": null
+            }
+          ]
+        }
+      ],
+      "prefix": "女真语最初使用",
+      "score_error": null,
+      "score_ms": 73.57,
+      "scores": [
+        {
+          "score": -6.596487522125244,
+          "text": "者"
+        },
+        {
+          "score": -13.00223159790039,
+          "text": "作品"
+        },
+        {
+          "score": -10.800114631652832,
+          "text": "权"
+        },
+        {
+          "score": -8.761075973510742,
+          "text": "方法"
+        },
+        {
+          "score": -9.494991302490234,
+          "text": "前"
+        },
+        {
+          "score": -11.798362731933594,
+          "text": "寿命"
+        },
+        {
+          "score": -8.785039901733398,
+          "text": "情况"
+        },
+        {
+          "score": -9.331600189208984,
+          "text": "率"
+        },
+        {
+          "score": -12.705727577209473,
+          "text": "电脑"
+        },
+        {
+          "score": -12.016129493713379,
+          "text": "费"
+        },
+        {
+          "score": -10.740318298339844,
+          "text": "量"
+        },
+        {
+          "score": -9.634765625,
+          "text": "说明"
+        },
+        {
+          "score": -10.242145538330078,
+          "text": "价值"
+        },
+        {
+          "score": -5.090830326080322,
+          "text": "时间"
+        }
+      ]
+    },
+    {
+      "chain": [],
+      "dictionary": [
+        "分"
+      ],
+      "edit_isolated": true,
+      "edited_from": "它在位于亨茨维尔的",
+      "generated": [],
+      "generation_error": "LowConfidence",
+      "generation_ms": 226.8184,
+      "id": "holdout-48",
+      "paired_chains": [
+        {
+          "final_prefix": "孔恩瀑布由两部分",
+          "method": "dictionary",
+          "steps": [
+            {
+              "choices": [
+                "分"
+              ],
+              "error": null,
+              "ms": 0.0024,
+              "prefix": "孔恩瀑布由两部",
+              "selected": "分"
+            },
+            {
+              "choices": [],
+              "error": null,
+              "ms": 0.0007,
+              "prefix": "孔恩瀑布由两部分",
+              "selected": null
+            }
+          ]
+        },
+        {
+          "final_prefix": "孔恩瀑布由两部分",
+          "method": "scoring",
+          "steps": [
+            {
+              "choices": [
+                "分"
+              ],
+              "error": null,
+              "ms": 84.1275,
+              "prefix": "孔恩瀑布由两部",
+              "selected": "分"
+            },
+            {
+              "choices": [],
+              "error": "Empty",
+              "ms": 1.4706000000000001,
+              "prefix": "孔恩瀑布由两部分",
+              "selected": null
+            }
+          ]
+        },
+        {
+          "final_prefix": "孔恩瀑布由两部",
+          "method": "generation",
+          "steps": [
+            {
+              "choices": [],
+              "error": "LowConfidence",
+              "ms": 222.1996,
+              "prefix": "孔恩瀑布由两部",
+              "selected": null
+            }
+          ]
+        }
+      ],
+      "prefix": "孔恩瀑布由两部",
+      "score_error": null,
+      "score_ms": 77.1326,
+      "scores": [
+        {
+          "score": -4.834902286529541,
+          "text": "分"
+        }
+      ]
+    },
+    {
+      "chain": [],
+      "dictionary": [
+        "人",
+        "话",
+        "事",
+        "确",
+        "新",
+        "是",
+        "心",
+        "一种",
+        "基础上",
+        "钱",
+        "博客",
+        "脸",
+        "手",
+        "第",
+        "歌",
+        "书",
+        "爱",
+        "路",
+        "好",
+        "大",
+        "老",
+        "吗",
+        "一员",
+        "帮助下",
+        "风",
+        "家",
+        "士",
+        "信",
+        "说",
+        "用法"
+      ],
+      "edit_isolated": null,
+      "edited_from": null,
+      "generated": [
+        "亨茨维尔"
+      ],
+      "generation_error": null,
+      "generation_ms": 328.1637,
+      "id": "holdout-49",
+      "paired_chains": [
+        {
+          "final_prefix": "它在位于亨茨维尔的人",
+          "method": "dictionary",
+          "steps": [
+            {
+              "choices": [
+                "人",
+                "话",
+                "事"
+              ],
+              "error": null,
+              "ms": 0.0028,
+              "prefix": "它在位于亨茨维尔的",
+              "selected": "人"
+            },
+            {
+              "choices": [],
+              "error": null,
+              "ms": 0.0007,
+              "prefix": "它在位于亨茨维尔的人",
+              "selected": null
+            }
+          ]
+        },
+        {
+          "final_prefix": "它在位于亨茨维尔的",
+          "method": "scoring",
+          "steps": [
+            {
+              "choices": [],
+              "error": null,
+              "ms": 174.9677,
+              "prefix": "它在位于亨茨维尔的",
+              "selected": null
+            }
+          ]
+        },
+        {
+          "final_prefix": "它在位于亨茨维尔的亨茨维尔工厂亨茨维尔",
+          "method": "generation",
+          "steps": [
+            {
+              "choices": [
+                "亨茨维尔"
+              ],
+              "error": null,
+              "ms": 310.5581,
+              "prefix": "它在位于亨茨维尔的",
+              "selected": "亨茨维尔"
+            },
+            {
+              "choices": [
+                "工厂"
+              ],
+              "error": null,
+              "ms": 451.4246,
+              "prefix": "它在位于亨茨维尔的亨茨维尔",
+              "selected": "工厂"
+            },
+            {
+              "choices": [
+                "亨茨维尔"
+              ],
+              "error": null,
+              "ms": 416.3619,
+              "prefix": "它在位于亨茨维尔的亨茨维尔工厂",
+              "selected": "亨茨维尔"
+            }
+          ]
+        }
+      ],
+      "prefix": "它在位于亨茨维尔的",
+      "score_error": null,
+      "score_ms": 172.6508,
+      "scores": [
+        {
+          "score": -12.433475494384766,
+          "text": "人"
+        },
+        {
+          "score": -15.772090911865234,
+          "text": "话"
+        },
+        {
+          "score": -15.316455841064453,
+          "text": "事"
+        },
+        {
+          "score": -14.28581428527832,
+          "text": "确"
+        },
+        {
+          "score": -9.231582641601562,
+          "text": "新"
+        },
+        {
+          "score": -13.11633586883545,
+          "text": "是"
+        },
+        {
+          "score": -13.895959854125977,
+          "text": "心"
+        },
+        {
+          "score": -14.516523361206055,
+          "text": "一种"
+        },
+        {
+          "score": -15.170492172241211,
+          "text": "基础上"
+        },
+        {
+          "score": -13.267061233520508,
+          "text": "钱"
+        },
+        {
+          "score": -11.405805587768555,
+          "text": "博客"
+        },
+        {
+          "score": -14.796178817749023,
+          "text": "脸"
+        },
+        {
+          "score": -13.311704635620117,
+          "text": "手"
+        },
+        {
+          "score": -6.751012325286865,
+          "text": "第"
+        },
+        {
+          "score": -9.410298347473145,
+          "text": "歌"
+        },
+        {
+          "score": -11.163724899291992,
+          "text": "书"
+        },
+        {
+          "score": -6.124654769897461,
+          "text": "爱"
+        },
+        {
+          "score": -7.227766036987305,
+          "text": "路"
+        },
+        {
+          "score": -14.146655082702637,
+          "text": "好"
+        },
+        {
+          "score": -10.253131866455078,
+          "text": "大"
+        },
+        {
+          "score": -10.457261085510254,
+          "text": "老"
+        },
+        {
+          "score": -11.58284854888916,
+          "text": "吗"
+        },
+        {
+          "score": -9.83228874206543,
+          "text": "一员"
+        },
+        {
+          "score": -6.492724418640137,
+          "text": "帮助下"
+        },
+        {
+          "score": -8.495100021362305,
+          "text": "风"
+        },
+        {
+          "score": -6.867297172546387,
+          "text": "家"
+        },
+        {
+          "score": -10.99039077758789,
+          "text": "士"
+        },
+        {
+          "score": -8.455153465270996,
+          "text": "信"
+        },
+        {
+          "score": -11.070996284484863,
+          "text": "说"
+        },
+        {
+          "score": -7.608512878417969,
+          "text": "用法"
+        }
+      ]
+    },
+    {
+      "chain": [],
+      "dictionary": [],
+      "edit_isolated": null,
+      "edited_from": null,
+      "generated": [],
+      "generation_error": "LowConfidence",
+      "generation_ms": 123.6951,
+      "id": "holdout-50",
+      "paired_chains": [
+        {
+          "final_prefix": "1932年（",
+          "method": "dictionary",
+          "steps": [
+            {
+              "choices": [],
+              "error": null,
+              "ms": 0.0027,
+              "prefix": "1932年（",
+              "selected": null
+            }
+          ]
+        },
+        {
+          "final_prefix": "1932年（",
+          "method": "scoring",
+          "steps": [
+            {
+              "choices": [],
+              "error": "Empty",
+              "ms": 1.02,
+              "prefix": "1932年（",
+              "selected": null
+            }
+          ]
+        },
+        {
+          "final_prefix": "1932年（",
+          "method": "generation",
+          "steps": [
+            {
+              "choices": [],
+              "error": "LowConfidence",
+              "ms": 137.94310000000002,
+              "prefix": "1932年（",
+              "selected": null
+            }
+          ]
+        }
+      ],
+      "prefix": "1932年（",
+      "score_error": "Empty",
+      "score_ms": 1.0506,
+      "scores": []
+    },
+    {
+      "chain": [],
+      "dictionary": [
+        "自"
+      ],
+      "edit_isolated": null,
+      "edited_from": null,
+      "generated": [],
+      "generation_error": "Empty",
+      "generation_ms": 491.026,
+      "id": "holdout-51",
+      "paired_chains": [
+        {
+          "final_prefix": "此作也被改编自",
+          "method": "dictionary",
+          "steps": [
+            {
+              "choices": [
+                "自"
+              ],
+              "error": null,
+              "ms": 0.003,
+              "prefix": "此作也被改编",
+              "selected": "自"
+            },
+            {
+              "choices": [],
+              "error": null,
+              "ms": 0.0007,
+              "prefix": "此作也被改编自",
+              "selected": null
+            }
+          ]
+        },
+        {
+          "final_prefix": "此作也被改编",
+          "method": "scoring",
+          "steps": [
+            {
+              "choices": [],
+              "error": null,
+              "ms": 55.7426,
+              "prefix": "此作也被改编",
+              "selected": null
+            }
+          ]
+        },
+        {
+          "final_prefix": "此作也被改编",
+          "method": "generation",
+          "steps": [
+            {
+              "choices": [],
+              "error": "Empty",
+              "ms": 462.4625,
+              "prefix": "此作也被改编",
+              "selected": null
+            }
+          ]
+        }
+      ],
+      "prefix": "此作也被改编",
+      "score_error": null,
+      "score_ms": 56.5687,
+      "scores": [
+        {
+          "score": -9.2655029296875,
+          "text": "自"
+        }
+      ]
+    },
+    {
+      "chain": [],
+      "dictionary": [],
+      "edit_isolated": true,
+      "edited_from": "它主要分布在",
+      "generated": [],
+      "generation_error": "LowConfidence",
+      "generation_ms": 117.7513,
+      "id": "holdout-52",
+      "paired_chains": [
+        {
+          "final_prefix": "抗战胜利后，",
+          "method": "dictionary",
+          "steps": [
+            {
+              "choices": [],
+              "error": null,
+              "ms": 0.0021,
+              "prefix": "抗战胜利后，",
+              "selected": null
+            }
+          ]
+        },
+        {
+          "final_prefix": "抗战胜利后，",
+          "method": "scoring",
+          "steps": [
+            {
+              "choices": [],
+              "error": "Empty",
+              "ms": 1.0135999999999998,
+              "prefix": "抗战胜利后，",
+              "selected": null
+            }
+          ]
+        },
+        {
+          "final_prefix": "抗战胜利后，",
+          "method": "generation",
+          "steps": [
+            {
+              "choices": [],
+              "error": "LowConfidence",
+              "ms": 121.27159999999999,
+              "prefix": "抗战胜利后，",
+              "selected": null
+            }
+          ]
+        }
+      ],
+      "prefix": "抗战胜利后，",
+      "score_error": "Empty",
+      "score_ms": 1.0301,
+      "scores": []
+    },
+    {
+      "chain": [],
+      "dictionary": [
+        "线",
+        "于",
+        "家",
+        "此",
+        "这",
+        "我",
+        "哪",
+        "内",
+        "乎",
+        "意",
+        "他",
+        "那",
+        "外",
+        "其",
+        "场",
+        "做",
+        "马",
+        "她",
+        "想",
+        "床上",
+        "这样的",
+        "这方面",
+        "校",
+        "京",
+        "看",
+        "这一",
+        "网络上",
+        "职",
+        "华",
+        "某",
+        "一家",
+        "网站",
+        "生活中",
+        "一次",
+        "工作中",
+        "读",
+        "干吗",
+        "座",
+        "社会上",
+        "新的",
+        "世界上",
+        "下",
+        "国际上",
+        "实践中",
+        "即",
+        "此之前",
+        "各",
+        "新",
+        "建",
+        "两周内",
+        "线观看",
+        "前",
+        "你身边",
+        "阳光下",
+        "网吧",
+        "风中",
+        "百度",
+        "梦中",
+        "你面前",
+        "水里",
+        "黑暗中",
+        "梦里",
+        "历史上",
+        "所难免"
+      ],
+      "edit_isolated": null,
+      "edited_from": null,
+      "generated": [],
+      "generation_error": "LowConfidence",
+      "generation_ms": 96.7794,
+      "id": "holdout-53",
+      "paired_chains": [
+        {
+          "final_prefix": "它主要分布在线观看",
+          "method": "dictionary",
+          "steps": [
+            {
+              "choices": [
+                "线",
+                "于",
+                "家"
+              ],
+              "error": null,
+              "ms": 0.0024,
+              "prefix": "它主要分布在",
+              "selected": "线"
+            },
+            {
+              "choices": [
+                "观看",
+                "人数",
+                "服务"
+              ],
+              "error": null,
+              "ms": 0.0007,
+              "prefix": "它主要分布在线",
+              "selected": "观看"
+            },
+            {
+              "choices": [],
+              "error": null,
+              "ms": 0.0006,
+              "prefix": "它主要分布在线观看",
+              "selected": null
+            }
+          ]
+        },
+        {
+          "final_prefix": "它主要分布在",
+          "method": "scoring",
+          "steps": [
+            {
+              "choices": [],
+              "error": null,
+              "ms": 504.02959999999996,
+              "prefix": "它主要分布在",
+              "selected": null
+            }
+          ]
+        },
+        {
+          "final_prefix": "它主要分布在",
+          "method": "generation",
+          "steps": [
+            {
+              "choices": [],
+              "error": "LowConfidence",
+              "ms": 100.6676,
+              "prefix": "它主要分布在",
+              "selected": null
+            }
+          ]
+        }
+      ],
+      "prefix": "它主要分布在",
+      "score_error": null,
+      "score_ms": 485.71750000000003,
+      "scores": [
+        {
+          "score": -13.218688011169434,
+          "text": "线"
+        },
+        {
+          "score": -8.590088844299316,
+          "text": "于"
+        },
+        {
+          "score": -11.311911582946777,
+          "text": "家"
+        },
+        {
+          "score": -14.182571411132812,
+          "text": "此"
+        },
+        {
+          "score": -13.988494873046875,
+          "text": "这"
+        },
+        {
+          "score": -9.688912391662598,
+          "text": "我"
+        },
+        {
+          "score": -6.996569633483887,
+          "text": "哪"
+        },
+        {
+          "score": -5.805234909057617,
+          "text": "内"
+        },
+        {
+          "score": -12.351048469543457,
+          "text": "乎"
+        },
+        {
+          "score": -12.94996452331543,
+          "text": "意"
+        },
+        {
+          "score": -13.336812973022461,
+          "text": "他"
+        },
+        {
+          "score": -8.32465934753418,
+          "text": "那"
+        },
+        {
+          "score": -10.087929725646973,
+          "text": "外"
+        },
+        {
+          "score": -10.767373085021973,
+          "text": "其"
+        },
+        {
+          "score": -14.231973648071289,
+          "text": "场"
+        },
+        {
+          "score": -12.167434692382812,
+          "text": "做"
+        },
+        {
+          "score": -6.614374160766602,
+          "text": "马"
+        },
+        {
+          "score": -12.251947402954102,
+          "text": "她"
+        },
+        {
+          "score": -13.44917106628418,
+          "text": "想"
+        },
+        {
+          "score": -14.677372932434082,
+          "text": "床上"
+        },
+        {
+          "score": -11.248269081115723,
+          "text": "这样的"
+        },
+        {
+          "score": -16.060773849487305,
+          "text": "这方面"
+        },
+        {
+          "score": -14.585918426513672,
+          "text": "校"
+        },
+        {
+          "score": -9.11680793762207,
+          "text": "京"
+        },
+        {
+          "score": -13.775978088378906,
+          "text": "看"
+        },
+        {
+          "score": -10.298439979553223,
+          "text": "这一"
+        },
+        {
+          "score": -8.268048286437988,
+          "text": "网络上"
+        },
+        {
+          "score": -14.415170669555664,
+          "text": "职"
+        },
+        {
+          "score": -7.453580856323242,
+          "text": "华"
+        },
+        {
+          "score": -9.106943130493164,
+          "text": "某"
+        },
+        {
+          "score": -14.986980438232422,
+          "text": "一家"
+        },
+        {
+          "score": -12.807092666625977,
+          "text": "网站"
+        },
+        {
+          "score": -12.621926307678223,
+          "text": "生活中"
+        },
+        {
+          "score": -11.56036376953125,
+          "text": "一次"
+        },
+        {
+          "score": -15.49190902709961,
+          "text": "工作中"
+        },
+        {
+          "score": -11.933178901672363,
+          "text": "读"
+        },
+        {
+          "score": -7.48523473739624,
+          "text": "干吗"
+        },
+        {
+          "score": -10.511812210083008,
+          "text": "座"
+        },
+        {
+          "score": -7.195243835449219,
+          "text": "社会上"
+        },
+        {
+          "score": -10.543994903564453,
+          "text": "新的"
+        },
+        {
+          "score": -6.915797233581543,
+          "text": "世界上"
+        },
+        {
+          "score": -8.285684585571289,
+          "text": "下"
+        },
+        {
+          "score": -5.802914619445801,
+          "text": "国际上"
+        },
+        {
+          "score": -15.146240234375,
+          "text": "实践中"
+        },
+        {
+          "score": -10.5802583694458,
+          "text": "即"
+        },
+        {
+          "score": -12.42824935913086,
+          "text": "此之前"
+        },
+        {
+          "score": -7.799736976623535,
+          "text": "各"
+        },
+        {
+          "score": -6.626104354858398,
+          "text": "新"
+        },
+        {
+          "score": -11.229659080505371,
+          "text": "建"
+        },
+        {
+          "score": -7.53843879699707,
+          "text": "两周内"
+        },
+        {
+          "score": -15.361865997314453,
+          "text": "线观看"
+        },
+        {
+          "score": -8.917440414428711,
+          "text": "前"
+        },
+        {
+          "score": -6.898872375488281,
+          "text": "你身边"
+        },
+        {
+          "score": -6.590064525604248,
+          "text": "阳光下"
+        },
+        {
+          "score": -15.309590339660645,
+          "text": "网吧"
+        },
+        {
+          "score": -8.156000137329102,
+          "text": "风中"
+        },
+        {
+          "score": -12.002115249633789,
+          "text": "百度"
+        },
+        {
+          "score": -7.5175700187683105,
+          "text": "梦中"
+        },
+        {
+          "score": -8.710418701171875,
+          "text": "你面前"
+        },
+        {
+          "score": -6.068610191345215,
+          "text": "水里"
+        },
+        {
+          "score": -7.745237827301025,
+          "text": "黑暗中"
+        },
+        {
+          "score": -7.910285472869873,
+          "text": "梦里"
+        },
+        {
+          "score": -11.574377059936523,
+          "text": "历史上"
+        },
+        {
+          "score": -9.999039649963379,
+          "text": "所难免"
+        }
+      ]
+    },
+    {
+      "chain": [],
+      "dictionary": [
+        "法",
+        "论",
+        "聊",
+        "所谓",
+        "奈",
+        "线",
+        "限",
+        "数",
+        "疑",
+        "关",
+        "比",
+        "敌",
+        "语",
+        "人",
+        "锡",
+        "效",
+        "力",
+        "意",
+        "需",
+        "耻",
+        "知",
+        "情",
+        "非",
+        "视",
+        "辜",
+        "论如何",
+        "须",
+        "声",
+        "形",
+        "心",
+        "助",
+        "不",
+        "尽",
+        "穷",
+        "一",
+        "名",
+        "缘",
+        "数次",
+        "言",
+        "罪",
+        "能",
+        "法使用",
+        "处",
+        "偿",
+        "私",
+        "忧",
+        "所",
+        "从",
+        "用",
+        "赖",
+        "双",
+        "边",
+        "误",
+        "能为力",
+        "权",
+        "条件",
+        "可奈何",
+        "事",
+        "线电",
+        "线网络",
+        "公害",
+        "趣",
+        "话",
+        "异"
+      ],
+      "edit_isolated": null,
+      "edited_from": null,
+      "generated": [
+        "内容",
+        "链接"
+      ],
+      "generation_error": null,
+      "generation_ms": 401.1126,
+      "id": "holdout-54",
+      "paired_chains": [
+        {
+          "final_prefix": "每段介绍两个无法使用",
+          "method": "dictionary",
+          "steps": [
+            {
+              "choices": [
+                "法",
+                "论",
+                "聊"
+              ],
+              "error": null,
+              "ms": 0.0027,
+              "prefix": "每段介绍两个无",
+              "selected": "法"
+            },
+            {
+              "choices": [
+                "使用",
+                "正常",
+                "控制"
+              ],
+              "error": null,
+              "ms": 0.0013,
+              "prefix": "每段介绍两个无法",
+              "selected": "使用"
+            },
+            {
+              "choices": [],
+              "error": null,
+              "ms": 0.0006,
+              "prefix": "每段介绍两个无法使用",
+              "selected": null
+            }
+          ]
+        },
+        {
+          "final_prefix": "每段介绍两个无",
+          "method": "scoring",
+          "steps": [
+            {
+              "choices": [],
+              "error": null,
+              "ms": 342.32230000000004,
+              "prefix": "每段介绍两个无",
+              "selected": null
+            }
+          ]
+        },
+        {
+          "final_prefix": "每段介绍两个无内容",
+          "method": "generation",
+          "steps": [
+            {
+              "choices": [
+                "内容",
+                "链接"
+              ],
+              "error": null,
+              "ms": 394.87850000000003,
+              "prefix": "每段介绍两个无",
+              "selected": "内容"
+            },
+            {
+              "choices": [],
+              "error": "Empty",
+              "ms": 378.81379999999996,
+              "prefix": "每段介绍两个无内容",
+              "selected": null
+            }
+          ]
+        }
+      ],
+      "prefix": "每段介绍两个无",
+      "score_error": null,
+      "score_ms": 347.186,
+      "scores": [
+        {
+          "score": -9.775951385498047,
+          "text": "法"
+        },
+        {
+          "score": -10.49809741973877,
+          "text": "论"
+        },
+        {
+          "score": -10.67428207397461,
+          "text": "聊"
+        },
+        {
+          "score": -12.403170585632324,
+          "text": "所谓"
+        },
+        {
+          "score": -13.282913208007812,
+          "text": "奈"
+        },
+        {
+          "score": -9.684232711791992,
+          "text": "线"
+        },
+        {
+          "score": -8.832938194274902,
+          "text": "限"
+        },
+        {
+          "score": -9.031913757324219,
+          "text": "数"
+        },
+        {
+          "score": -10.641883850097656,
+          "text": "疑"
+        },
+        {
+          "score": -10.971991539001465,
+          "text": "关"
+        },
+        {
+          "score": -10.673518180847168,
+          "text": "比"
+        },
+        {
+          "score": -14.04112434387207,
+          "text": "敌"
+        },
+        {
+          "score": -5.706634521484375,
+          "text": "语"
+        },
+        {
+          "score": -11.193927764892578,
+          "text": "人"
+        },
+        {
+          "score": -9.707141876220703,
+          "text": "锡"
+        },
+        {
+          "score": -9.899569511413574,
+          "text": "效"
+        },
+        {
+          "score": -9.382342338562012,
+          "text": "力"
+        },
+        {
+          "score": -9.053762435913086,
+          "text": "意"
+        },
+        {
+          "score": -11.486686706542969,
+          "text": "需"
+        },
+        {
+          "score": -7.838984489440918,
+          "text": "耻"
+        },
+        {
+          "score": -12.425065994262695,
+          "text": "知"
+        },
+        {
+          "score": -10.353206634521484,
+          "text": "情"
+        },
+        {
+          "score": -7.492298126220703,
+          "text": "非"
+        },
+        {
+          "score": -10.865477561950684,
+          "text": "视"
+        },
+        {
+          "score": -13.090009689331055,
+          "text": "辜"
+        },
+        {
+          "score": -9.309991836547852,
+          "text": "论如何"
+        },
+        {
+          "score": -7.631341934204102,
+          "text": "须"
+        },
+        {
+          "score": -9.579339027404785,
+          "text": "声"
+        },
+        {
+          "score": -9.135160446166992,
+          "text": "形"
+        },
+        {
+          "score": -5.59532356262207,
+          "text": "心"
+        },
+        {
+          "score": -9.027233123779297,
+          "text": "助"
+        },
+        {
+          "score": -11.842666625976562,
+          "text": "不"
+        },
+        {
+          "score": -4.943574905395508,
+          "text": "尽"
+        },
+        {
+          "score": -8.651020050048828,
+          "text": "穷"
+        },
+        {
+          "score": -8.28049087524414,
+          "text": "一"
+        },
+        {
+          "score": -2.01202392578125,
+          "text": "名"
+        },
+        {
+          "score": -11.675057411193848,
+          "text": "缘"
+        },
+        {
+          "score": -6.782814025878906,
+          "text": "数次"
+        },
+        {
+          "score": -6.1693572998046875,
+          "text": "言"
+        },
+        {
+          "score": -4.849181175231934,
+          "text": "罪"
+        },
+        {
+          "score": -7.398288726806641,
+          "text": "能"
+        },
+        {
+          "score": -8.899269104003906,
+          "text": "法使用"
+        },
+        {
+          "score": -4.289473533630371,
+          "text": "处"
+        },
+        {
+          "score": -8.11343765258789,
+          "text": "偿"
+        },
+        {
+          "score": -10.491302490234375,
+          "text": "私"
+        },
+        {
+          "score": -12.229937553405762,
+          "text": "忧"
+        },
+        {
+          "score": -12.85385799407959,
+          "text": "所"
+        },
+        {
+          "score": -7.097623825073242,
+          "text": "从"
+        },
+        {
+          "score": -5.107080459594727,
+          "text": "用"
+        },
+        {
+          "score": -7.222951889038086,
+          "text": "赖"
+        },
+        {
+          "score": -6.15962028503418,
+          "text": "双"
+        },
+        {
+          "score": -5.315116882324219,
+          "text": "边"
+        },
+        {
+          "score": -9.258487701416016,
+          "text": "误"
+        },
+        {
+          "score": -4.1450276374816895,
+          "text": "能为力"
+        },
+        {
+          "score": -6.8346757888793945,
+          "text": "权"
+        },
+        {
+          "score": -5.370746612548828,
+          "text": "条件"
+        },
+        {
+          "score": -6.053665637969971,
+          "text": "可奈何"
+        },
+        {
+          "score": -8.887683868408203,
+          "text": "事"
+        },
+        {
+          "score": -7.11530065536499,
+          "text": "线电"
+        },
+        {
+          "score": -5.9988017082214355,
+          "text": "线网络"
+        },
+        {
+          "score": -2.700629949569702,
+          "text": "公害"
+        },
+        {
+          "score": -7.536174774169922,
+          "text": "趣"
+        },
+        {
+          "score": -9.457060813903809,
+          "text": "话"
+        },
+        {
+          "score": -8.166414260864258,
+          "text": "异"
+        }
+      ]
+    },
+    {
+      "chain": [],
+      "dictionary": [
+        "人",
+        "队",
+        "特色",
+        "政府",
+        "经济",
+        "市场",
+        "人民",
+        "移动",
+        "企业",
+        "大陆",
+        "股市",
+        "足球",
+        "银行",
+        "电信",
+        "文化",
+        "联通",
+        "古代",
+        "石油",
+        "第一",
+        "社会",
+        "国际",
+        "电影",
+        "传统",
+        "内地",
+        "区",
+        "驻",
+        "足协",
+        "石化",
+        "人寿",
+        "学生",
+        "最大",
+        "教育",
+        "公民",
+        "网通",
+        "女足",
+        "军队",
+        "式",
+        "汽车",
+        "公司",
+        "制造",
+        "平安",
+        "历史",
+        "女排",
+        "画",
+        "男篮",
+        "革命",
+        "国情",
+        "话",
+        "铝业",
+        "十大",
+        "男人",
+        "青年",
+        "海军",
+        "发展",
+        "出口",
+        "证券",
+        "农村",
+        "网民",
+        "当代",
+        "城市",
+        "金融",
+        "人口",
+        "台湾",
+        "体育"
+      ],
+      "edit_isolated": null,
+      "edited_from": null,
+      "generated": [],
+      "generation_error": "Empty",
+      "generation_ms": 106.5757,
+      "id": "holdout-55",
+      "paired_chains": [
+        {
+          "final_prefix": "宁武县在中国人民",
+          "method": "dictionary",
+          "steps": [
+            {
+              "choices": [
+                "人",
+                "队",
+                "特色"
+              ],
+              "error": null,
+              "ms": 0.0026,
+              "prefix": "宁武县在中国",
+              "selected": "人"
+            },
+            {
+              "choices": [
+                "民",
+                "寿",
+                "口"
+              ],
+              "error": null,
+              "ms": 0.0007,
+              "prefix": "宁武县在中国人",
+              "selected": "民"
+            },
+            {
+              "choices": [],
+              "error": null,
+              "ms": 0.0006,
+              "prefix": "宁武县在中国人民",
+              "selected": null
+            }
+          ]
+        },
+        {
+          "final_prefix": "宁武县在中国",
+          "method": "scoring",
+          "steps": [
+            {
+              "choices": [],
+              "error": null,
+              "ms": 81.18079999999999,
+              "prefix": "宁武县在中国",
+              "selected": null
+            }
+          ]
+        },
+        {
+          "final_prefix": "宁武县在中国",
+          "method": "generation",
+          "steps": [
+            {
+              "choices": [],
+              "error": "Empty",
+              "ms": 110.9708,
+              "prefix": "宁武县在中国",
+              "selected": null
+            }
+          ]
+        }
+      ],
+      "prefix": "宁武县在中国",
+      "score_error": null,
+      "score_ms": 85.0474,
+      "scores": [
+        {
+          "score": -8.089712142944336,
+          "text": "人"
+        },
+        {
+          "score": -11.859662055969238,
+          "text": "队"
+        },
+        {
+          "score": -7.6208953857421875,
+          "text": "特色"
+        },
+        {
+          "score": -7.403963088989258,
+          "text": "政府"
+        },
+        {
+          "score": -7.474961280822754,
+          "text": "经济"
+        },
+        {
+          "score": -10.613883972167969,
+          "text": "市场"
+        },
+        {
+          "score": -6.0900678634643555,
+          "text": "人民"
+        },
+        {
+          "score": -9.46604061126709,
+          "text": "移动"
+        },
+        {
+          "score": -10.67919635772705,
+          "text": "企业"
+        },
+        {
+          "score": -7.063146591186523,
+          "text": "大陆"
+        },
+        {
+          "score": -10.83987808227539,
+          "text": "股市"
+        },
+        {
+          "score": -10.856605529785156,
+          "text": "足球"
+        },
+        {
+          "score": -9.958965301513672,
+          "text": "银行"
+        },
+        {
+          "score": -8.786192893981934,
+          "text": "电信"
+        },
+        {
+          "score": -7.2836809158325195,
+          "text": "文化"
+        },
+        {
+          "score": -9.145662307739258,
+          "text": "联通"
+        },
+        {
+          "score": -4.449195861816406,
+          "text": "古代"
+        },
+        {
+          "score": -8.371719360351562,
+          "text": "石油"
+        },
+        {
+          "score": -8.482186317443848,
+          "text": "第一"
+        },
+        {
+          "score": -8.105974197387695,
+          "text": "社会"
+        },
+        {
+          "score": -11.144584655761719,
+          "text": "国际"
+        },
+        {
+          "score": -9.018696784973145,
+          "text": "电影"
+        },
+        {
+          "score": -6.33454704284668,
+          "text": "传统"
+        },
+        {
+          "score": -7.828603744506836,
+          "text": "内地"
+        },
+        {
+          "score": -9.044548988342285,
+          "text": "区"
+        },
+        {
+          "score": -10.221845626831055,
+          "text": "驻"
+        },
+        {
+          "score": -13.781148910522461,
+          "text": "足协"
+        },
+        {
+          "score": -8.787527084350586,
+          "text": "石化"
+        },
+        {
+          "score": -13.543700218200684,
+          "text": "人寿"
+        },
+        {
+          "score": -12.912131309509277,
+          "text": "学生"
+        },
+        {
+          "score": -9.941688537597656,
+          "text": "最大"
+        },
+        {
+          "score": -8.048983573913574,
+          "text": "教育"
+        },
+        {
+          "score": -9.320466995239258,
+          "text": "公民"
+        },
+        {
+          "score": -12.332287788391113,
+          "text": "网通"
+        },
+        {
+          "score": -14.580060005187988,
+          "text": "女足"
+        },
+        {
+          "score": -10.312445640563965,
+          "text": "军队"
+        },
+        {
+          "score": -10.192350387573242,
+          "text": "式"
+        },
+        {
+          "score": -11.339608192443848,
+          "text": "汽车"
+        },
+        {
+          "score": -13.681483268737793,
+          "text": "公司"
+        },
+        {
+          "score": -10.981882095336914,
+          "text": "制造"
+        },
+        {
+          "score": -10.319334030151367,
+          "text": "平安"
+        },
+        {
+          "score": -4.012009620666504,
+          "text": "历史"
+        },
+        {
+          "score": -12.120986938476562,
+          "text": "女排"
+        },
+        {
+          "score": -8.212841033935547,
+          "text": "画"
+        },
+        {
+          "score": -12.209848403930664,
+          "text": "男篮"
+        },
+        {
+          "score": -3.972477912902832,
+          "text": "革命"
+        },
+        {
+          "score": -10.61679458618164,
+          "text": "国情"
+        },
+        {
+          "score": -8.717096328735352,
+          "text": "话"
+        },
+        {
+          "score": -6.710427761077881,
+          "text": "铝业"
+        },
+        {
+          "score": -5.396391868591309,
+          "text": "十大"
+        },
+        {
+          "score": -12.081083297729492,
+          "text": "男人"
+        },
+        {
+          "score": -10.616325378417969,
+          "text": "青年"
+        },
+        {
+          "score": -10.459095001220703,
+          "text": "海军"
+        },
+        {
+          "score": -8.562908172607422,
+          "text": "发展"
+        },
+        {
+          "score": -12.969303131103516,
+          "text": "出口"
+        },
+        {
+          "score": -11.019335746765137,
+          "text": "证券"
+        },
+        {
+          "score": -6.223672866821289,
+          "text": "农村"
+        },
+        {
+          "score": -10.263487815856934,
+          "text": "网民"
+        },
+        {
+          "score": -8.878730773925781,
+          "text": "当代"
+        },
+        {
+          "score": -8.037203788757324,
+          "text": "城市"
+        },
+        {
+          "score": -8.90077018737793,
+          "text": "金融"
+        },
+        {
+          "score": -7.088155746459961,
+          "text": "人口"
+        },
+        {
+          "score": -5.768857955932617,
+          "text": "台湾"
+        },
+        {
+          "score": -9.473665237426758,
+          "text": "体育"
+        }
+      ]
+    },
+    {
+      "chain": [],
+      "dictionary": [],
+      "edit_isolated": null,
+      "edited_from": null,
+      "generated": [],
+      "generation_error": "Empty",
+      "generation_ms": 0.0039,
+      "id": "empty",
+      "paired_chains": [
+        {
+          "final_prefix": "",
+          "method": "dictionary",
+          "steps": [
+            {
+              "choices": [],
+              "error": null,
+              "ms": 0.002,
+              "prefix": "",
+              "selected": null
+            }
+          ]
+        },
+        {
+          "final_prefix": "",
+          "method": "scoring",
+          "steps": [
+            {
+              "choices": [],
+              "error": "Empty",
+              "ms": 0.6853,
+              "prefix": "",
+              "selected": null
+            }
+          ]
+        },
+        {
+          "final_prefix": "",
+          "method": "generation",
+          "steps": [
+            {
+              "choices": [],
+              "error": "Empty",
+              "ms": 0.0034000000000000002,
+              "prefix": "",
+              "selected": null
+            }
+          ]
+        }
+      ],
+      "prefix": "",
+      "score_error": "Empty",
+      "score_ms": 1.0108000000000001,
+      "scores": []
+    }
+  ]
+}

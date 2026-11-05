@@ -1,0 +1,4595 @@
+{
+  "source_hashes": {
+    "model_input\\evaluation\\generation-dev.json": "9d0059032ee1149947e7ca0edd67e2ec505ec62e0f5ac9b0115c645d14fc3fae",
+    "docs\\validation\\mi26-final-dev-runs.json": "97bae6dd31cb1806dd88277eaa5261df921e9a9099dca7afa7fdd73478514c7d",
+    "model_input\\evaluation\\generation-acceptance.json": "691fa008487cd7947240d48ab6230516c06397d9d38f06bf8743de94c98bf2d9",
+    "docs\\validation\\mi26-final-holdout-runs.json": "034a0b0820ebbbb22bab6db8614b5602a94c1d50b260f4b8d68014f6891763bb"
+  },
+  "scoring_gate": {
+    "minimum_score": -6.0,
+    "minimum_margin": 1.0,
+    "selection": "maximize dev reference hits minus non-reference displays; tie: hits, stricter gate",
+    "grid": {
+      "minimum_score": [
+        -8,
+        -6,
+        -4,
+        -3,
+        -2,
+        -1
+      ],
+      "minimum_margin": [
+        0,
+        0.5,
+        1
+      ]
+    }
+  },
+  "generation_policy": {
+    "adapter": "qwen25-short-words-v1",
+    "evidence": "MI-22 authored development probes, generation-specific raw mean log probability. Functional experiment only; no independent quality endorsement. Prompt/grammar/greedy decoding fixed by qwen25-short-words-v1; GGUF hash binds tokenizer.",
+    "max_chars": 6,
+    "max_tokens": 64,
+    "max_words": 3,
+    "minimum_mean_logprob": -3.0,
+    "model_sha256": "74a4da8c9fdbcd15bd1f6d01d621410d31c6fc00986f5eb687824e7b93d7a9db",
+    "version": 1
+  },
+  "dictionary_inventory": {
+    "hashes": {
+      "core_engine/src/assistance/prediction_words.tsv": "9a4943e000c5a81ac3c6bcf5bae75d1b44203f15d7d3f19295f7277e1aabaa54",
+      "core_engine/src/assistance/prediction_pairs.tsv": "dee0fe1c7a0f059fa0f4df5e4c97ce87ad26cf9f398bdada6dd67424363196cf",
+      "tables/wubi86.dict": "71ad2aa4995117f5b0716572470487b9c799354cc49d8bebe017a539a814d37a"
+    },
+    "user_dictionary": "empty",
+    "definition": "Exact candidate string absent from all listed dictionaries; word remainders counted as strings."
+  },
+  "quality": {
+    "metrics": {
+      "dictionary": {
+        "cases": 41,
+        "positive_cases": 32,
+        "stop_cases": 9,
+        "recall": 0.15625,
+        "top1": 0.0625,
+        "top3": 0.0625,
+        "display_coverage": 0.5609756097560976,
+        "stop_false_display": 0.0,
+        "exact_display_precision": 0.03389830508474576,
+        "recall_external_cases": 27,
+        "recall_external_hits": 0,
+        "dictionary_external_cases": 21,
+        "dictionary_external_hits": 2,
+        "timeouts": 0
+      },
+      "scoring": {
+        "cases": 41,
+        "positive_cases": 32,
+        "stop_cases": 9,
+        "recall": 0.15625,
+        "top1": 0.0625,
+        "top3": 0.0625,
+        "display_coverage": 0.1951219512195122,
+        "stop_false_display": 0.0,
+        "exact_display_precision": 0.15384615384615385,
+        "recall_external_cases": 27,
+        "recall_external_hits": 0,
+        "dictionary_external_cases": 21,
+        "dictionary_external_hits": 2,
+        "timeouts": 0
+      },
+      "generation": {
+        "cases": 41,
+        "positive_cases": 32,
+        "stop_cases": 9,
+        "recall": 0.03125,
+        "top1": 0.03125,
+        "top3": 0.03125,
+        "display_coverage": 0.21951219512195122,
+        "stop_false_display": 0.0,
+        "exact_display_precision": 0.07142857142857142,
+        "recall_external_cases": 27,
+        "recall_external_hits": 1,
+        "dictionary_external_cases": 21,
+        "dictionary_external_hits": 1,
+        "timeouts": 0
+      }
+    },
+    "failures": [
+      {
+        "method": "dictionary",
+        "id": "holdout-24",
+        "words": [],
+        "references": [
+          "月"
+        ],
+        "reason": "reference-miss"
+      },
+      {
+        "method": "dictionary",
+        "id": "holdout-25",
+        "words": [
+          "优",
+          "洲坝"
+        ],
+        "references": [
+          "处死"
+        ],
+        "reason": "reference-miss"
+      },
+      {
+        "method": "dictionary",
+        "id": "holdout-26",
+        "words": [],
+        "references": [
+          "秀吉"
+        ],
+        "reason": "reference-miss"
+      },
+      {
+        "method": "dictionary",
+        "id": "holdout-27",
+        "words": [
+          "以",
+          "能",
+          "是"
+        ],
+        "references": [
+          "溯"
+        ],
+        "reason": "reference-miss"
+      },
+      {
+        "method": "dictionary",
+        "id": "holdout-28",
+        "words": [
+          "且",
+          "已",
+          "是"
+        ],
+        "references": [
+          "奥兰多"
+        ],
+        "reason": "reference-miss"
+      },
+      {
+        "method": "dictionary",
+        "id": "holdout-29",
+        "words": [],
+        "references": [
+          "机械"
+        ],
+        "reason": "reference-miss"
+      },
+      {
+        "method": "dictionary",
+        "id": "holdout-30",
+        "words": [
+          "肤",
+          "鞋",
+          "带"
+        ],
+        "references": [
+          "萨诺"
+        ],
+        "reason": "reference-miss"
+      },
+      {
+        "method": "dictionary",
+        "id": "holdout-31",
+        "words": [
+          "工",
+          "山",
+          "业"
+        ],
+        "references": [
+          "公园"
+        ],
+        "reason": "reference-miss"
+      },
+      {
+        "method": "dictionary",
+        "id": "holdout-32",
+        "words": [
+          "解",
+          "吗",
+          "一"
+        ],
+        "references": [
+          "连续"
+        ],
+        "reason": "reference-miss"
+      },
+      {
+        "method": "dictionary",
+        "id": "holdout-33",
+        "words": [],
+        "references": [
+          "年"
+        ],
+        "reason": "reference-miss"
+      },
+      {
+        "method": "dictionary",
+        "id": "holdout-34",
+        "words": [
+          "人",
+          "队"
+        ],
+        "references": [
+          "大军"
+        ],
+        "reason": "reference-miss"
+      },
+      {
+        "method": "dictionary",
+        "id": "holdout-35",
+        "words": [
+          "先",
+          "领",
+          "达"
+        ],
+        "references": [
+          "只有"
+        ],
+        "reason": "reference-miss"
+      },
+      {
+        "method": "dictionary",
+        "id": "holdout-36",
+        "words": [
+          "次",
+          "说",
+          "见"
+        ],
+        "references": [
+          "婚"
+        ],
+        "reason": "reference-miss"
+      },
+      {
+        "method": "dictionary",
+        "id": "holdout-37",
+        "words": [],
+        "references": [
+          "年"
+        ],
+        "reason": "reference-miss"
+      },
+      {
+        "method": "dictionary",
+        "id": "holdout-38",
+        "words": [],
+        "references": [
+          "年"
+        ],
+        "reason": "reference-miss"
+      },
+      {
+        "method": "dictionary",
+        "id": "holdout-39",
+        "words": [
+          "膀"
+        ],
+        "references": [
+          "端"
+        ],
+        "reason": "reference-miss"
+      },
+      {
+        "method": "dictionary",
+        "id": "holdout-40",
+        "words": [],
+        "references": [
+          "出版"
+        ],
+        "reason": "reference-miss"
+      },
+      {
+        "method": "dictionary",
+        "id": "holdout-41",
+        "words": [
+          "种",
+          "件",
+          "样的"
+        ],
+        "references": [
+          "所"
+        ],
+        "reason": "reference-miss"
+      },
+      {
+        "method": "dictionary",
+        "id": "holdout-43",
+        "words": [
+          "细",
+          "细看",
+          "细阅读"
+        ],
+        "references": [
+          "区"
+        ],
+        "reason": "reference-miss"
+      },
+      {
+        "method": "dictionary",
+        "id": "holdout-44",
+        "words": [
+          "种",
+          "员",
+          "个"
+        ],
+        "references": [
+          "代"
+        ],
+        "reason": "reference-miss"
+      },
+      {
+        "method": "dictionary",
+        "id": "holdout-45",
+        "words": [
+          "是",
+          "过",
+          "能"
+        ],
+        "references": [
+          "断"
+        ],
+        "reason": "reference-miss"
+      },
+      {
+        "method": "dictionary",
+        "id": "holdout-46",
+        "words": [
+          "节"
+        ],
+        "references": [
+          "没有"
+        ],
+        "reason": "reference-miss"
+      },
+      {
+        "method": "dictionary",
+        "id": "holdout-47",
+        "words": [
+          "者",
+          "作品",
+          "权"
+        ],
+        "references": [
+          "女真"
+        ],
+        "reason": "reference-miss"
+      },
+      {
+        "method": "dictionary",
+        "id": "holdout-49",
+        "words": [
+          "人",
+          "话",
+          "事"
+        ],
+        "references": [
+          "空间"
+        ],
+        "reason": "reference-miss"
+      },
+      {
+        "method": "dictionary",
+        "id": "holdout-50",
+        "words": [],
+        "references": [
+          "昭和"
+        ],
+        "reason": "reference-miss"
+      },
+      {
+        "method": "dictionary",
+        "id": "holdout-51",
+        "words": [
+          "自"
+        ],
+        "references": [
+          "成"
+        ],
+        "reason": "reference-miss"
+      },
+      {
+        "method": "dictionary",
+        "id": "holdout-52",
+        "words": [],
+        "references": [
+          "兼办"
+        ],
+        "reason": "reference-miss"
+      },
+      {
+        "method": "dictionary",
+        "id": "holdout-53",
+        "words": [
+          "线",
+          "于",
+          "家"
+        ],
+        "references": [
+          "表土"
+        ],
+        "reason": "reference-miss"
+      },
+      {
+        "method": "dictionary",
+        "id": "holdout-54",
+        "words": [
+          "法",
+          "论",
+          "聊"
+        ],
+        "references": [
+          "厘头"
+        ],
+        "reason": "reference-miss"
+      },
+      {
+        "method": "dictionary",
+        "id": "holdout-55",
+        "words": [
+          "人",
+          "队",
+          "特色"
+        ],
+        "references": [
+          "山西"
+        ],
+        "reason": "reference-miss"
+      },
+      {
+        "method": "scoring",
+        "id": "holdout-24",
+        "words": [],
+        "references": [
+          "月"
+        ],
+        "reason": "reference-miss"
+      },
+      {
+        "method": "scoring",
+        "id": "holdout-25",
+        "words": [],
+        "references": [
+          "处死"
+        ],
+        "reason": "reference-miss"
+      },
+      {
+        "method": "scoring",
+        "id": "holdout-26",
+        "words": [],
+        "references": [
+          "秀吉"
+        ],
+        "reason": "reference-miss"
+      },
+      {
+        "method": "scoring",
+        "id": "holdout-27",
+        "words": [],
+        "references": [
+          "溯"
+        ],
+        "reason": "reference-miss"
+      },
+      {
+        "method": "scoring",
+        "id": "holdout-28",
+        "words": [
+          "其"
+        ],
+        "references": [
+          "奥兰多"
+        ],
+        "reason": "reference-miss"
+      },
+      {
+        "method": "scoring",
+        "id": "holdout-29",
+        "words": [],
+        "references": [
+          "机械"
+        ],
+        "reason": "reference-miss"
+      },
+      {
+        "method": "scoring",
+        "id": "holdout-30",
+        "words": [],
+        "references": [
+          "萨诺"
+        ],
+        "reason": "reference-miss"
+      },
+      {
+        "method": "scoring",
+        "id": "holdout-31",
+        "words": [],
+        "references": [
+          "公园"
+        ],
+        "reason": "reference-miss"
+      },
+      {
+        "method": "scoring",
+        "id": "holdout-32",
+        "words": [],
+        "references": [
+          "连续"
+        ],
+        "reason": "reference-miss"
+      },
+      {
+        "method": "scoring",
+        "id": "holdout-33",
+        "words": [],
+        "references": [
+          "年"
+        ],
+        "reason": "reference-miss"
+      },
+      {
+        "method": "scoring",
+        "id": "holdout-34",
+        "words": [],
+        "references": [
+          "大军"
+        ],
+        "reason": "reference-miss"
+      },
+      {
+        "method": "scoring",
+        "id": "holdout-35",
+        "words": [
+          "高",
+          "低"
+        ],
+        "references": [
+          "只有"
+        ],
+        "reason": "reference-miss"
+      },
+      {
+        "method": "scoring",
+        "id": "holdout-36",
+        "words": [
+          "接再厉",
+          "做",
+          "向"
+        ],
+        "references": [
+          "婚"
+        ],
+        "reason": "reference-miss"
+      },
+      {
+        "method": "scoring",
+        "id": "holdout-37",
+        "words": [],
+        "references": [
+          "年"
+        ],
+        "reason": "reference-miss"
+      },
+      {
+        "method": "scoring",
+        "id": "holdout-38",
+        "words": [],
+        "references": [
+          "年"
+        ],
+        "reason": "reference-miss"
+      },
+      {
+        "method": "scoring",
+        "id": "holdout-39",
+        "words": [],
+        "references": [
+          "端"
+        ],
+        "reason": "reference-miss"
+      },
+      {
+        "method": "scoring",
+        "id": "holdout-40",
+        "words": [],
+        "references": [
+          "出版"
+        ],
+        "reason": "reference-miss"
+      },
+      {
+        "method": "scoring",
+        "id": "holdout-41",
+        "words": [
+          "本"
+        ],
+        "references": [
+          "所"
+        ],
+        "reason": "reference-miss"
+      },
+      {
+        "method": "scoring",
+        "id": "holdout-42",
+        "words": [],
+        "references": [
+          "同"
+        ],
+        "reason": "reference-miss"
+      },
+      {
+        "method": "scoring",
+        "id": "holdout-43",
+        "words": [],
+        "references": [
+          "区"
+        ],
+        "reason": "reference-miss"
+      },
+      {
+        "method": "scoring",
+        "id": "holdout-45",
+        "words": [],
+        "references": [
+          "断"
+        ],
+        "reason": "reference-miss"
+      },
+      {
+        "method": "scoring",
+        "id": "holdout-46",
+        "words": [
+          "节"
+        ],
+        "references": [
+          "没有"
+        ],
+        "reason": "reference-miss"
+      },
+      {
+        "method": "scoring",
+        "id": "holdout-47",
+        "words": [
+          "时间"
+        ],
+        "references": [
+          "女真"
+        ],
+        "reason": "reference-miss"
+      },
+      {
+        "method": "scoring",
+        "id": "holdout-49",
+        "words": [],
+        "references": [
+          "空间"
+        ],
+        "reason": "reference-miss"
+      },
+      {
+        "method": "scoring",
+        "id": "holdout-50",
+        "words": [],
+        "references": [
+          "昭和"
+        ],
+        "reason": "reference-miss"
+      },
+      {
+        "method": "scoring",
+        "id": "holdout-51",
+        "words": [],
+        "references": [
+          "成"
+        ],
+        "reason": "reference-miss"
+      },
+      {
+        "method": "scoring",
+        "id": "holdout-52",
+        "words": [],
+        "references": [
+          "兼办"
+        ],
+        "reason": "reference-miss"
+      },
+      {
+        "method": "scoring",
+        "id": "holdout-53",
+        "words": [],
+        "references": [
+          "表土"
+        ],
+        "reason": "reference-miss"
+      },
+      {
+        "method": "scoring",
+        "id": "holdout-54",
+        "words": [],
+        "references": [
+          "厘头"
+        ],
+        "reason": "reference-miss"
+      },
+      {
+        "method": "scoring",
+        "id": "holdout-55",
+        "words": [],
+        "references": [
+          "山西"
+        ],
+        "reason": "reference-miss"
+      },
+      {
+        "method": "generation",
+        "id": "holdout-24",
+        "words": [],
+        "references": [
+          "月"
+        ],
+        "reason": "reference-miss"
+      },
+      {
+        "method": "generation",
+        "id": "holdout-25",
+        "words": [],
+        "references": [
+          "处死"
+        ],
+        "reason": "reference-miss"
+      },
+      {
+        "method": "generation",
+        "id": "holdout-26",
+        "words": [
+          "田中"
+        ],
+        "references": [
+          "秀吉"
+        ],
+        "reason": "reference-miss"
+      },
+      {
+        "method": "generation",
+        "id": "holdout-27",
+        "words": [],
+        "references": [
+          "溯"
+        ],
+        "reason": "reference-miss"
+      },
+      {
+        "method": "generation",
+        "id": "holdout-28",
+        "words": [
+          "湖"
+        ],
+        "references": [
+          "奥兰多"
+        ],
+        "reason": "reference-miss"
+      },
+      {
+        "method": "generation",
+        "id": "holdout-29",
+        "words": [],
+        "references": [
+          "机械"
+        ],
+        "reason": "reference-miss"
+      },
+      {
+        "method": "generation",
+        "id": "holdout-30",
+        "words": [
+          "安德里亚"
+        ],
+        "references": [
+          "萨诺"
+        ],
+        "reason": "reference-miss"
+      },
+      {
+        "method": "generation",
+        "id": "holdout-31",
+        "words": [
+          "山",
+          "石"
+        ],
+        "references": [
+          "公园"
+        ],
+        "reason": "reference-miss"
+      },
+      {
+        "method": "generation",
+        "id": "holdout-32",
+        "words": [],
+        "references": [
+          "连续"
+        ],
+        "reason": "reference-miss"
+      },
+      {
+        "method": "generation",
+        "id": "holdout-33",
+        "words": [],
+        "references": [
+          "年"
+        ],
+        "reason": "reference-miss"
+      },
+      {
+        "method": "generation",
+        "id": "holdout-34",
+        "words": [],
+        "references": [
+          "大军"
+        ],
+        "reason": "reference-miss"
+      },
+      {
+        "method": "generation",
+        "id": "holdout-35",
+        "words": [],
+        "references": [
+          "只有"
+        ],
+        "reason": "reference-miss"
+      },
+      {
+        "method": "generation",
+        "id": "holdout-36",
+        "words": [],
+        "references": [
+          "婚"
+        ],
+        "reason": "reference-miss"
+      },
+      {
+        "method": "generation",
+        "id": "holdout-37",
+        "words": [],
+        "references": [
+          "年"
+        ],
+        "reason": "reference-miss"
+      },
+      {
+        "method": "generation",
+        "id": "holdout-39",
+        "words": [],
+        "references": [
+          "端"
+        ],
+        "reason": "reference-miss"
+      },
+      {
+        "method": "generation",
+        "id": "holdout-40",
+        "words": [
+          "查尔斯",
+          "克拉克"
+        ],
+        "references": [
+          "出版"
+        ],
+        "reason": "reference-miss"
+      },
+      {
+        "method": "generation",
+        "id": "holdout-41",
+        "words": [],
+        "references": [
+          "所"
+        ],
+        "reason": "reference-miss"
+      },
+      {
+        "method": "generation",
+        "id": "holdout-42",
+        "words": [],
+        "references": [
+          "同"
+        ],
+        "reason": "reference-miss"
+      },
+      {
+        "method": "generation",
+        "id": "holdout-43",
+        "words": [
+          "大佛"
+        ],
+        "references": [
+          "区"
+        ],
+        "reason": "reference-miss"
+      },
+      {
+        "method": "generation",
+        "id": "holdout-44",
+        "words": [],
+        "references": [
+          "代"
+        ],
+        "reason": "reference-miss"
+      },
+      {
+        "method": "generation",
+        "id": "holdout-45",
+        "words": [],
+        "references": [
+          "断"
+        ],
+        "reason": "reference-miss"
+      },
+      {
+        "method": "generation",
+        "id": "holdout-46",
+        "words": [],
+        "references": [
+          "没有"
+        ],
+        "reason": "reference-miss"
+      },
+      {
+        "method": "generation",
+        "id": "holdout-47",
+        "words": [],
+        "references": [
+          "女真"
+        ],
+        "reason": "reference-miss"
+      },
+      {
+        "method": "generation",
+        "id": "holdout-48",
+        "words": [],
+        "references": [
+          "分"
+        ],
+        "reason": "reference-miss"
+      },
+      {
+        "method": "generation",
+        "id": "holdout-49",
+        "words": [
+          "亨茨维尔"
+        ],
+        "references": [
+          "空间"
+        ],
+        "reason": "reference-miss"
+      },
+      {
+        "method": "generation",
+        "id": "holdout-50",
+        "words": [],
+        "references": [
+          "昭和"
+        ],
+        "reason": "reference-miss"
+      },
+      {
+        "method": "generation",
+        "id": "holdout-51",
+        "words": [],
+        "references": [
+          "成"
+        ],
+        "reason": "reference-miss"
+      },
+      {
+        "method": "generation",
+        "id": "holdout-52",
+        "words": [],
+        "references": [
+          "兼办"
+        ],
+        "reason": "reference-miss"
+      },
+      {
+        "method": "generation",
+        "id": "holdout-53",
+        "words": [],
+        "references": [
+          "表土"
+        ],
+        "reason": "reference-miss"
+      },
+      {
+        "method": "generation",
+        "id": "holdout-54",
+        "words": [
+          "内容",
+          "链接"
+        ],
+        "references": [
+          "厘头"
+        ],
+        "reason": "reference-miss"
+      },
+      {
+        "method": "generation",
+        "id": "holdout-55",
+        "words": [],
+        "references": [
+          "山西"
+        ],
+        "reason": "reference-miss"
+      }
+    ]
+  },
+  "budget_1000ms": {
+    "metrics": {
+      "dictionary": {
+        "cases": 41,
+        "positive_cases": 32,
+        "stop_cases": 9,
+        "recall": 0.15625,
+        "top1": 0.0625,
+        "top3": 0.0625,
+        "display_coverage": 0.5609756097560976,
+        "stop_false_display": 0.0,
+        "exact_display_precision": 0.03389830508474576,
+        "recall_external_cases": 27,
+        "recall_external_hits": 0,
+        "dictionary_external_cases": 21,
+        "dictionary_external_hits": 2,
+        "timeouts": 0
+      },
+      "scoring": {
+        "cases": 41,
+        "positive_cases": 32,
+        "stop_cases": 9,
+        "recall": 0.15625,
+        "top1": 0.0625,
+        "top3": 0.0625,
+        "display_coverage": 0.1951219512195122,
+        "stop_false_display": 0.0,
+        "exact_display_precision": 0.15384615384615385,
+        "recall_external_cases": 27,
+        "recall_external_hits": 0,
+        "dictionary_external_cases": 21,
+        "dictionary_external_hits": 2,
+        "timeouts": 0
+      },
+      "generation": {
+        "cases": 41,
+        "positive_cases": 32,
+        "stop_cases": 9,
+        "recall": 0.03125,
+        "top1": 0.03125,
+        "top3": 0.03125,
+        "display_coverage": 0.21951219512195122,
+        "stop_false_display": 0.0,
+        "exact_display_precision": 0.07142857142857142,
+        "recall_external_cases": 27,
+        "recall_external_hits": 1,
+        "dictionary_external_cases": 21,
+        "dictionary_external_hits": 1,
+        "timeouts": 0
+      }
+    },
+    "failures": [
+      {
+        "method": "dictionary",
+        "id": "holdout-24",
+        "words": [],
+        "references": [
+          "月"
+        ],
+        "reason": "reference-miss"
+      },
+      {
+        "method": "dictionary",
+        "id": "holdout-25",
+        "words": [
+          "优",
+          "洲坝"
+        ],
+        "references": [
+          "处死"
+        ],
+        "reason": "reference-miss"
+      },
+      {
+        "method": "dictionary",
+        "id": "holdout-26",
+        "words": [],
+        "references": [
+          "秀吉"
+        ],
+        "reason": "reference-miss"
+      },
+      {
+        "method": "dictionary",
+        "id": "holdout-27",
+        "words": [
+          "以",
+          "能",
+          "是"
+        ],
+        "references": [
+          "溯"
+        ],
+        "reason": "reference-miss"
+      },
+      {
+        "method": "dictionary",
+        "id": "holdout-28",
+        "words": [
+          "且",
+          "已",
+          "是"
+        ],
+        "references": [
+          "奥兰多"
+        ],
+        "reason": "reference-miss"
+      },
+      {
+        "method": "dictionary",
+        "id": "holdout-29",
+        "words": [],
+        "references": [
+          "机械"
+        ],
+        "reason": "reference-miss"
+      },
+      {
+        "method": "dictionary",
+        "id": "holdout-30",
+        "words": [
+          "肤",
+          "鞋",
+          "带"
+        ],
+        "references": [
+          "萨诺"
+        ],
+        "reason": "reference-miss"
+      },
+      {
+        "method": "dictionary",
+        "id": "holdout-31",
+        "words": [
+          "工",
+          "山",
+          "业"
+        ],
+        "references": [
+          "公园"
+        ],
+        "reason": "reference-miss"
+      },
+      {
+        "method": "dictionary",
+        "id": "holdout-32",
+        "words": [
+          "解",
+          "吗",
+          "一"
+        ],
+        "references": [
+          "连续"
+        ],
+        "reason": "reference-miss"
+      },
+      {
+        "method": "dictionary",
+        "id": "holdout-33",
+        "words": [],
+        "references": [
+          "年"
+        ],
+        "reason": "reference-miss"
+      },
+      {
+        "method": "dictionary",
+        "id": "holdout-34",
+        "words": [
+          "人",
+          "队"
+        ],
+        "references": [
+          "大军"
+        ],
+        "reason": "reference-miss"
+      },
+      {
+        "method": "dictionary",
+        "id": "holdout-35",
+        "words": [
+          "先",
+          "领",
+          "达"
+        ],
+        "references": [
+          "只有"
+        ],
+        "reason": "reference-miss"
+      },
+      {
+        "method": "dictionary",
+        "id": "holdout-36",
+        "words": [
+          "次",
+          "说",
+          "见"
+        ],
+        "references": [
+          "婚"
+        ],
+        "reason": "reference-miss"
+      },
+      {
+        "method": "dictionary",
+        "id": "holdout-37",
+        "words": [],
+        "references": [
+          "年"
+        ],
+        "reason": "reference-miss"
+      },
+      {
+        "method": "dictionary",
+        "id": "holdout-38",
+        "words": [],
+        "references": [
+          "年"
+        ],
+        "reason": "reference-miss"
+      },
+      {
+        "method": "dictionary",
+        "id": "holdout-39",
+        "words": [
+          "膀"
+        ],
+        "references": [
+          "端"
+        ],
+        "reason": "reference-miss"
+      },
+      {
+        "method": "dictionary",
+        "id": "holdout-40",
+        "words": [],
+        "references": [
+          "出版"
+        ],
+        "reason": "reference-miss"
+      },
+      {
+        "method": "dictionary",
+        "id": "holdout-41",
+        "words": [
+          "种",
+          "件",
+          "样的"
+        ],
+        "references": [
+          "所"
+        ],
+        "reason": "reference-miss"
+      },
+      {
+        "method": "dictionary",
+        "id": "holdout-43",
+        "words": [
+          "细",
+          "细看",
+          "细阅读"
+        ],
+        "references": [
+          "区"
+        ],
+        "reason": "reference-miss"
+      },
+      {
+        "method": "dictionary",
+        "id": "holdout-44",
+        "words": [
+          "种",
+          "员",
+          "个"
+        ],
+        "references": [
+          "代"
+        ],
+        "reason": "reference-miss"
+      },
+      {
+        "method": "dictionary",
+        "id": "holdout-45",
+        "words": [
+          "是",
+          "过",
+          "能"
+        ],
+        "references": [
+          "断"
+        ],
+        "reason": "reference-miss"
+      },
+      {
+        "method": "dictionary",
+        "id": "holdout-46",
+        "words": [
+          "节"
+        ],
+        "references": [
+          "没有"
+        ],
+        "reason": "reference-miss"
+      },
+      {
+        "method": "dictionary",
+        "id": "holdout-47",
+        "words": [
+          "者",
+          "作品",
+          "权"
+        ],
+        "references": [
+          "女真"
+        ],
+        "reason": "reference-miss"
+      },
+      {
+        "method": "dictionary",
+        "id": "holdout-49",
+        "words": [
+          "人",
+          "话",
+          "事"
+        ],
+        "references": [
+          "空间"
+        ],
+        "reason": "reference-miss"
+      },
+      {
+        "method": "dictionary",
+        "id": "holdout-50",
+        "words": [],
+        "references": [
+          "昭和"
+        ],
+        "reason": "reference-miss"
+      },
+      {
+        "method": "dictionary",
+        "id": "holdout-51",
+        "words": [
+          "自"
+        ],
+        "references": [
+          "成"
+        ],
+        "reason": "reference-miss"
+      },
+      {
+        "method": "dictionary",
+        "id": "holdout-52",
+        "words": [],
+        "references": [
+          "兼办"
+        ],
+        "reason": "reference-miss"
+      },
+      {
+        "method": "dictionary",
+        "id": "holdout-53",
+        "words": [
+          "线",
+          "于",
+          "家"
+        ],
+        "references": [
+          "表土"
+        ],
+        "reason": "reference-miss"
+      },
+      {
+        "method": "dictionary",
+        "id": "holdout-54",
+        "words": [
+          "法",
+          "论",
+          "聊"
+        ],
+        "references": [
+          "厘头"
+        ],
+        "reason": "reference-miss"
+      },
+      {
+        "method": "dictionary",
+        "id": "holdout-55",
+        "words": [
+          "人",
+          "队",
+          "特色"
+        ],
+        "references": [
+          "山西"
+        ],
+        "reason": "reference-miss"
+      },
+      {
+        "method": "scoring",
+        "id": "holdout-24",
+        "words": [],
+        "references": [
+          "月"
+        ],
+        "reason": "reference-miss"
+      },
+      {
+        "method": "scoring",
+        "id": "holdout-25",
+        "words": [],
+        "references": [
+          "处死"
+        ],
+        "reason": "reference-miss"
+      },
+      {
+        "method": "scoring",
+        "id": "holdout-26",
+        "words": [],
+        "references": [
+          "秀吉"
+        ],
+        "reason": "reference-miss"
+      },
+      {
+        "method": "scoring",
+        "id": "holdout-27",
+        "words": [],
+        "references": [
+          "溯"
+        ],
+        "reason": "reference-miss"
+      },
+      {
+        "method": "scoring",
+        "id": "holdout-28",
+        "words": [
+          "其"
+        ],
+        "references": [
+          "奥兰多"
+        ],
+        "reason": "reference-miss"
+      },
+      {
+        "method": "scoring",
+        "id": "holdout-29",
+        "words": [],
+        "references": [
+          "机械"
+        ],
+        "reason": "reference-miss"
+      },
+      {
+        "method": "scoring",
+        "id": "holdout-30",
+        "words": [],
+        "references": [
+          "萨诺"
+        ],
+        "reason": "reference-miss"
+      },
+      {
+        "method": "scoring",
+        "id": "holdout-31",
+        "words": [],
+        "references": [
+          "公园"
+        ],
+        "reason": "reference-miss"
+      },
+      {
+        "method": "scoring",
+        "id": "holdout-32",
+        "words": [],
+        "references": [
+          "连续"
+        ],
+        "reason": "reference-miss"
+      },
+      {
+        "method": "scoring",
+        "id": "holdout-33",
+        "words": [],
+        "references": [
+          "年"
+        ],
+        "reason": "reference-miss"
+      },
+      {
+        "method": "scoring",
+        "id": "holdout-34",
+        "words": [],
+        "references": [
+          "大军"
+        ],
+        "reason": "reference-miss"
+      },
+      {
+        "method": "scoring",
+        "id": "holdout-35",
+        "words": [
+          "高",
+          "低"
+        ],
+        "references": [
+          "只有"
+        ],
+        "reason": "reference-miss"
+      },
+      {
+        "method": "scoring",
+        "id": "holdout-36",
+        "words": [
+          "接再厉",
+          "做",
+          "向"
+        ],
+        "references": [
+          "婚"
+        ],
+        "reason": "reference-miss"
+      },
+      {
+        "method": "scoring",
+        "id": "holdout-37",
+        "words": [],
+        "references": [
+          "年"
+        ],
+        "reason": "reference-miss"
+      },
+      {
+        "method": "scoring",
+        "id": "holdout-38",
+        "words": [],
+        "references": [
+          "年"
+        ],
+        "reason": "reference-miss"
+      },
+      {
+        "method": "scoring",
+        "id": "holdout-39",
+        "words": [],
+        "references": [
+          "端"
+        ],
+        "reason": "reference-miss"
+      },
+      {
+        "method": "scoring",
+        "id": "holdout-40",
+        "words": [],
+        "references": [
+          "出版"
+        ],
+        "reason": "reference-miss"
+      },
+      {
+        "method": "scoring",
+        "id": "holdout-41",
+        "words": [
+          "本"
+        ],
+        "references": [
+          "所"
+        ],
+        "reason": "reference-miss"
+      },
+      {
+        "method": "scoring",
+        "id": "holdout-42",
+        "words": [],
+        "references": [
+          "同"
+        ],
+        "reason": "reference-miss"
+      },
+      {
+        "method": "scoring",
+        "id": "holdout-43",
+        "words": [],
+        "references": [
+          "区"
+        ],
+        "reason": "reference-miss"
+      },
+      {
+        "method": "scoring",
+        "id": "holdout-45",
+        "words": [],
+        "references": [
+          "断"
+        ],
+        "reason": "reference-miss"
+      },
+      {
+        "method": "scoring",
+        "id": "holdout-46",
+        "words": [
+          "节"
+        ],
+        "references": [
+          "没有"
+        ],
+        "reason": "reference-miss"
+      },
+      {
+        "method": "scoring",
+        "id": "holdout-47",
+        "words": [
+          "时间"
+        ],
+        "references": [
+          "女真"
+        ],
+        "reason": "reference-miss"
+      },
+      {
+        "method": "scoring",
+        "id": "holdout-49",
+        "words": [],
+        "references": [
+          "空间"
+        ],
+        "reason": "reference-miss"
+      },
+      {
+        "method": "scoring",
+        "id": "holdout-50",
+        "words": [],
+        "references": [
+          "昭和"
+        ],
+        "reason": "reference-miss"
+      },
+      {
+        "method": "scoring",
+        "id": "holdout-51",
+        "words": [],
+        "references": [
+          "成"
+        ],
+        "reason": "reference-miss"
+      },
+      {
+        "method": "scoring",
+        "id": "holdout-52",
+        "words": [],
+        "references": [
+          "兼办"
+        ],
+        "reason": "reference-miss"
+      },
+      {
+        "method": "scoring",
+        "id": "holdout-53",
+        "words": [],
+        "references": [
+          "表土"
+        ],
+        "reason": "reference-miss"
+      },
+      {
+        "method": "scoring",
+        "id": "holdout-54",
+        "words": [],
+        "references": [
+          "厘头"
+        ],
+        "reason": "reference-miss"
+      },
+      {
+        "method": "scoring",
+        "id": "holdout-55",
+        "words": [],
+        "references": [
+          "山西"
+        ],
+        "reason": "reference-miss"
+      },
+      {
+        "method": "generation",
+        "id": "holdout-24",
+        "words": [],
+        "references": [
+          "月"
+        ],
+        "reason": "reference-miss"
+      },
+      {
+        "method": "generation",
+        "id": "holdout-25",
+        "words": [],
+        "references": [
+          "处死"
+        ],
+        "reason": "reference-miss"
+      },
+      {
+        "method": "generation",
+        "id": "holdout-26",
+        "words": [
+          "田中"
+        ],
+        "references": [
+          "秀吉"
+        ],
+        "reason": "reference-miss"
+      },
+      {
+        "method": "generation",
+        "id": "holdout-27",
+        "words": [],
+        "references": [
+          "溯"
+        ],
+        "reason": "reference-miss"
+      },
+      {
+        "method": "generation",
+        "id": "holdout-28",
+        "words": [
+          "湖"
+        ],
+        "references": [
+          "奥兰多"
+        ],
+        "reason": "reference-miss"
+      },
+      {
+        "method": "generation",
+        "id": "holdout-29",
+        "words": [],
+        "references": [
+          "机械"
+        ],
+        "reason": "reference-miss"
+      },
+      {
+        "method": "generation",
+        "id": "holdout-30",
+        "words": [
+          "安德里亚"
+        ],
+        "references": [
+          "萨诺"
+        ],
+        "reason": "reference-miss"
+      },
+      {
+        "method": "generation",
+        "id": "holdout-31",
+        "words": [
+          "山",
+          "石"
+        ],
+        "references": [
+          "公园"
+        ],
+        "reason": "reference-miss"
+      },
+      {
+        "method": "generation",
+        "id": "holdout-32",
+        "words": [],
+        "references": [
+          "连续"
+        ],
+        "reason": "reference-miss"
+      },
+      {
+        "method": "generation",
+        "id": "holdout-33",
+        "words": [],
+        "references": [
+          "年"
+        ],
+        "reason": "reference-miss"
+      },
+      {
+        "method": "generation",
+        "id": "holdout-34",
+        "words": [],
+        "references": [
+          "大军"
+        ],
+        "reason": "reference-miss"
+      },
+      {
+        "method": "generation",
+        "id": "holdout-35",
+        "words": [],
+        "references": [
+          "只有"
+        ],
+        "reason": "reference-miss"
+      },
+      {
+        "method": "generation",
+        "id": "holdout-36",
+        "words": [],
+        "references": [
+          "婚"
+        ],
+        "reason": "reference-miss"
+      },
+      {
+        "method": "generation",
+        "id": "holdout-37",
+        "words": [],
+        "references": [
+          "年"
+        ],
+        "reason": "reference-miss"
+      },
+      {
+        "method": "generation",
+        "id": "holdout-39",
+        "words": [],
+        "references": [
+          "端"
+        ],
+        "reason": "reference-miss"
+      },
+      {
+        "method": "generation",
+        "id": "holdout-40",
+        "words": [
+          "查尔斯",
+          "克拉克"
+        ],
+        "references": [
+          "出版"
+        ],
+        "reason": "reference-miss"
+      },
+      {
+        "method": "generation",
+        "id": "holdout-41",
+        "words": [],
+        "references": [
+          "所"
+        ],
+        "reason": "reference-miss"
+      },
+      {
+        "method": "generation",
+        "id": "holdout-42",
+        "words": [],
+        "references": [
+          "同"
+        ],
+        "reason": "reference-miss"
+      },
+      {
+        "method": "generation",
+        "id": "holdout-43",
+        "words": [
+          "大佛"
+        ],
+        "references": [
+          "区"
+        ],
+        "reason": "reference-miss"
+      },
+      {
+        "method": "generation",
+        "id": "holdout-44",
+        "words": [],
+        "references": [
+          "代"
+        ],
+        "reason": "reference-miss"
+      },
+      {
+        "method": "generation",
+        "id": "holdout-45",
+        "words": [],
+        "references": [
+          "断"
+        ],
+        "reason": "reference-miss"
+      },
+      {
+        "method": "generation",
+        "id": "holdout-46",
+        "words": [],
+        "references": [
+          "没有"
+        ],
+        "reason": "reference-miss"
+      },
+      {
+        "method": "generation",
+        "id": "holdout-47",
+        "words": [],
+        "references": [
+          "女真"
+        ],
+        "reason": "reference-miss"
+      },
+      {
+        "method": "generation",
+        "id": "holdout-48",
+        "words": [],
+        "references": [
+          "分"
+        ],
+        "reason": "reference-miss"
+      },
+      {
+        "method": "generation",
+        "id": "holdout-49",
+        "words": [
+          "亨茨维尔"
+        ],
+        "references": [
+          "空间"
+        ],
+        "reason": "reference-miss"
+      },
+      {
+        "method": "generation",
+        "id": "holdout-50",
+        "words": [],
+        "references": [
+          "昭和"
+        ],
+        "reason": "reference-miss"
+      },
+      {
+        "method": "generation",
+        "id": "holdout-51",
+        "words": [],
+        "references": [
+          "成"
+        ],
+        "reason": "reference-miss"
+      },
+      {
+        "method": "generation",
+        "id": "holdout-52",
+        "words": [],
+        "references": [
+          "兼办"
+        ],
+        "reason": "reference-miss"
+      },
+      {
+        "method": "generation",
+        "id": "holdout-53",
+        "words": [],
+        "references": [
+          "表土"
+        ],
+        "reason": "reference-miss"
+      },
+      {
+        "method": "generation",
+        "id": "holdout-54",
+        "words": [
+          "内容",
+          "链接"
+        ],
+        "references": [
+          "厘头"
+        ],
+        "reason": "reference-miss"
+      },
+      {
+        "method": "generation",
+        "id": "holdout-55",
+        "words": [],
+        "references": [
+          "山西"
+        ],
+        "reason": "reference-miss"
+      }
+    ]
+  },
+  "chains": [
+    {
+      "chain": [
+        "田中"
+      ],
+      "dictionary": [],
+      "edit_isolated": null,
+      "edited_from": null,
+      "generated": [
+        "田中"
+      ],
+      "generation_error": null,
+      "generation_ms": 394.4724,
+      "id": "holdout-26",
+      "paired_chains": [
+        {
+          "final_prefix": "但是由于丰臣",
+          "method": "dictionary",
+          "steps": [
+            {
+              "choices": [],
+              "error": null,
+              "ms": 0.0024,
+              "prefix": "但是由于丰臣",
+              "selected": null
+            }
+          ]
+        },
+        {
+          "final_prefix": "但是由于丰臣",
+          "method": "scoring",
+          "steps": [
+            {
+              "choices": [],
+              "error": "Empty",
+              "ms": 0.9219999999999999,
+              "prefix": "但是由于丰臣",
+              "selected": null
+            }
+          ]
+        },
+        {
+          "final_prefix": "但是由于丰臣田中",
+          "method": "generation",
+          "steps": [
+            {
+              "choices": [
+                "田中"
+              ],
+              "error": null,
+              "ms": 379.32480000000004,
+              "prefix": "但是由于丰臣",
+              "selected": "田中"
+            },
+            {
+              "choices": [],
+              "error": "Empty",
+              "ms": 418.9006,
+              "prefix": "但是由于丰臣田中",
+              "selected": null
+            }
+          ]
+        }
+      ],
+      "prefix": "但是由于丰臣",
+      "score_error": "Empty",
+      "score_ms": 0.5039,
+      "scores": []
+    }
+  ],
+  "paired_chain_summary": {
+    "dictionary": {
+      "seeds": 41,
+      "selected_steps": 33,
+      "zero_step_chains": 18,
+      "three_step_chains": 2,
+      "lengths": [
+        0,
+        0,
+        1,
+        0,
+        0,
+        0,
+        3,
+        0,
+        1,
+        0,
+        0,
+        0,
+        2,
+        0,
+        1,
+        0,
+        2,
+        0,
+        1,
+        1,
+        1,
+        0,
+        0,
+        1,
+        0,
+        1,
+        1,
+        2,
+        1,
+        3,
+        1,
+        1,
+        1,
+        1,
+        0,
+        1,
+        0,
+        2,
+        2,
+        2,
+        0
+      ]
+    },
+    "scoring": {
+      "seeds": 41,
+      "selected_steps": 9,
+      "zero_step_chains": 33,
+      "three_step_chains": 0,
+      "lengths": [
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        1,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        1,
+        1,
+        0,
+        0,
+        0,
+        0,
+        1,
+        0,
+        0,
+        2,
+        0,
+        1,
+        1,
+        1,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0
+      ]
+    },
+    "generation": {
+      "seeds": 41,
+      "selected_steps": 11,
+      "zero_step_chains": 32,
+      "three_step_chains": 1,
+      "lengths": [
+        0,
+        0,
+        0,
+        0,
+        1,
+        0,
+        0,
+        0,
+        1,
+        0,
+        0,
+        0,
+        1,
+        0,
+        1,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        1,
+        0,
+        1,
+        0,
+        0,
+        1,
+        0,
+        0,
+        0,
+        0,
+        0,
+        3,
+        0,
+        0,
+        0,
+        0,
+        1,
+        0,
+        0
+      ]
+    }
+  },
+  "paired_chains": [
+    {
+      "id": "holdout-24",
+      "chains": [
+        {
+          "final_prefix": "1939年4",
+          "method": "dictionary",
+          "steps": [
+            {
+              "choices": [],
+              "error": null,
+              "ms": 0.0168,
+              "prefix": "1939年4",
+              "selected": null
+            }
+          ]
+        },
+        {
+          "final_prefix": "1939年4",
+          "method": "scoring",
+          "steps": [
+            {
+              "choices": [],
+              "error": "Empty",
+              "ms": 1.4848999999999999,
+              "prefix": "1939年4",
+              "selected": null
+            }
+          ]
+        },
+        {
+          "final_prefix": "1939年4",
+          "method": "generation",
+          "steps": [
+            {
+              "choices": [],
+              "error": "LowConfidence",
+              "ms": 144.3978,
+              "prefix": "1939年4",
+              "selected": null
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "stop-24",
+      "chains": [
+        {
+          "final_prefix": "1939年4月，日军攻占太平岛，并将其更名为长岛，纳入高雄州管理。",
+          "method": "dictionary",
+          "steps": [
+            {
+              "choices": [],
+              "error": null,
+              "ms": 0.0011,
+              "prefix": "1939年4月，日军攻占太平岛，并将其更名为长岛，纳入高雄州管理。",
+              "selected": null
+            }
+          ]
+        },
+        {
+          "final_prefix": "1939年4月，日军攻占太平岛，并将其更名为长岛，纳入高雄州管理。",
+          "method": "scoring",
+          "steps": [
+            {
+              "choices": [],
+              "error": "Empty",
+              "ms": 0.8962,
+              "prefix": "1939年4月，日军攻占太平岛，并将其更名为长岛，纳入高雄州管理。",
+              "selected": null
+            }
+          ]
+        },
+        {
+          "final_prefix": "1939年4月，日军攻占太平岛，并将其更名为长岛，纳入高雄州管理。",
+          "method": "generation",
+          "steps": [
+            {
+              "choices": [],
+              "error": "Empty",
+              "ms": 0.0036,
+              "prefix": "1939年4月，日军攻占太平岛，并将其更名为长岛，纳入高雄州管理。",
+              "selected": null
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "holdout-25",
+      "chains": [
+        {
+          "final_prefix": "统治期内，梅葛优",
+          "method": "dictionary",
+          "steps": [
+            {
+              "choices": [
+                "优",
+                "洲坝"
+              ],
+              "error": null,
+              "ms": 0.0021,
+              "prefix": "统治期内，梅葛",
+              "selected": "优"
+            },
+            {
+              "choices": [],
+              "error": null,
+              "ms": 0.0005,
+              "prefix": "统治期内，梅葛优",
+              "selected": null
+            }
+          ]
+        },
+        {
+          "final_prefix": "统治期内，梅葛",
+          "method": "scoring",
+          "steps": [
+            {
+              "choices": [],
+              "error": null,
+              "ms": 102.2328,
+              "prefix": "统治期内，梅葛",
+              "selected": null
+            }
+          ]
+        },
+        {
+          "final_prefix": "统治期内，梅葛",
+          "method": "generation",
+          "steps": [
+            {
+              "choices": [],
+              "error": "LowConfidence",
+              "ms": 98.9433,
+              "prefix": "统治期内，梅葛",
+              "selected": null
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "stop-25",
+      "chains": [
+        {
+          "final_prefix": "统治期内，梅葛处死了三位大学士；他还拥有为数众多的妻子，每个时期通常都不止一个，因此臭名远扬。",
+          "method": "dictionary",
+          "steps": [
+            {
+              "choices": [],
+              "error": null,
+              "ms": 0.0017000000000000001,
+              "prefix": "统治期内，梅葛处死了三位大学士；他还拥有为数众多的妻子，每个时期通常都不止一个，因此臭名远扬。",
+              "selected": null
+            }
+          ]
+        },
+        {
+          "final_prefix": "统治期内，梅葛处死了三位大学士；他还拥有为数众多的妻子，每个时期通常都不止一个，因此臭名远扬。",
+          "method": "scoring",
+          "steps": [
+            {
+              "choices": [],
+              "error": "Empty",
+              "ms": 0.6627,
+              "prefix": "统治期内，梅葛处死了三位大学士；他还拥有为数众多的妻子，每个时期通常都不止一个，因此臭名远扬。",
+              "selected": null
+            }
+          ]
+        },
+        {
+          "final_prefix": "统治期内，梅葛处死了三位大学士；他还拥有为数众多的妻子，每个时期通常都不止一个，因此臭名远扬。",
+          "method": "generation",
+          "steps": [
+            {
+              "choices": [],
+              "error": "Empty",
+              "ms": 0.0042,
+              "prefix": "统治期内，梅葛处死了三位大学士；他还拥有为数众多的妻子，每个时期通常都不止一个，因此臭名远扬。",
+              "selected": null
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "holdout-26",
+      "chains": [
+        {
+          "final_prefix": "但是由于丰臣",
+          "method": "dictionary",
+          "steps": [
+            {
+              "choices": [],
+              "error": null,
+              "ms": 0.0024,
+              "prefix": "但是由于丰臣",
+              "selected": null
+            }
+          ]
+        },
+        {
+          "final_prefix": "但是由于丰臣",
+          "method": "scoring",
+          "steps": [
+            {
+              "choices": [],
+              "error": "Empty",
+              "ms": 0.9219999999999999,
+              "prefix": "但是由于丰臣",
+              "selected": null
+            }
+          ]
+        },
+        {
+          "final_prefix": "但是由于丰臣田中",
+          "method": "generation",
+          "steps": [
+            {
+              "choices": [
+                "田中"
+              ],
+              "error": null,
+              "ms": 379.32480000000004,
+              "prefix": "但是由于丰臣",
+              "selected": "田中"
+            },
+            {
+              "choices": [],
+              "error": "Empty",
+              "ms": 418.9006,
+              "prefix": "但是由于丰臣田中",
+              "selected": null
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "stop-26",
+      "chains": [
+        {
+          "final_prefix": "但是由于丰臣秀吉在日本人心中的影响，人们把平民出身的政要与丰太合相比，称为“今太合”。",
+          "method": "dictionary",
+          "steps": [
+            {
+              "choices": [],
+              "error": null,
+              "ms": 0.0011,
+              "prefix": "但是由于丰臣秀吉在日本人心中的影响，人们把平民出身的政要与丰太合相比，称为“今太合”。",
+              "selected": null
+            }
+          ]
+        },
+        {
+          "final_prefix": "但是由于丰臣秀吉在日本人心中的影响，人们把平民出身的政要与丰太合相比，称为“今太合”。",
+          "method": "scoring",
+          "steps": [
+            {
+              "choices": [],
+              "error": "Empty",
+              "ms": 0.717,
+              "prefix": "但是由于丰臣秀吉在日本人心中的影响，人们把平民出身的政要与丰太合相比，称为“今太合”。",
+              "selected": null
+            }
+          ]
+        },
+        {
+          "final_prefix": "但是由于丰臣秀吉在日本人心中的影响，人们把平民出身的政要与丰太合相比，称为“今太合”。",
+          "method": "generation",
+          "steps": [
+            {
+              "choices": [],
+              "error": "Empty",
+              "ms": 0.0043,
+              "prefix": "但是由于丰臣秀吉在日本人心中的影响，人们把平民出身的政要与丰太合相比，称为“今太合”。",
+              "selected": null
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "holdout-27",
+      "chains": [
+        {
+          "final_prefix": "香会的历史最早可以用来",
+          "method": "dictionary",
+          "steps": [
+            {
+              "choices": [
+                "以",
+                "能",
+                "是"
+              ],
+              "error": null,
+              "ms": 0.0028,
+              "prefix": "香会的历史最早可",
+              "selected": "以"
+            },
+            {
+              "choices": [
+                "用",
+                "通过",
+                "看到"
+              ],
+              "error": null,
+              "ms": 0.001,
+              "prefix": "香会的历史最早可以",
+              "selected": "用"
+            },
+            {
+              "choices": [
+                "来",
+                "于"
+              ],
+              "error": null,
+              "ms": 0.0007,
+              "prefix": "香会的历史最早可以用",
+              "selected": "来"
+            }
+          ]
+        },
+        {
+          "final_prefix": "香会的历史最早可",
+          "method": "scoring",
+          "steps": [
+            {
+              "choices": [],
+              "error": null,
+              "ms": 819.4473,
+              "prefix": "香会的历史最早可",
+              "selected": null
+            }
+          ]
+        },
+        {
+          "final_prefix": "香会的历史最早可",
+          "method": "generation",
+          "steps": [
+            {
+              "choices": [],
+              "error": "LowConfidence",
+              "ms": 134.02810000000002,
+              "prefix": "香会的历史最早可",
+              "selected": null
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "stop-27",
+      "chains": [
+        {
+          "final_prefix": "香会的历史最早可溯至明朝。",
+          "method": "dictionary",
+          "steps": [
+            {
+              "choices": [],
+              "error": null,
+              "ms": 0.0026,
+              "prefix": "香会的历史最早可溯至明朝。",
+              "selected": null
+            }
+          ]
+        },
+        {
+          "final_prefix": "香会的历史最早可溯至明朝。",
+          "method": "scoring",
+          "steps": [
+            {
+              "choices": [],
+              "error": "Empty",
+              "ms": 0.8032,
+              "prefix": "香会的历史最早可溯至明朝。",
+              "selected": null
+            }
+          ]
+        },
+        {
+          "final_prefix": "香会的历史最早可溯至明朝。",
+          "method": "generation",
+          "steps": [
+            {
+              "choices": [],
+              "error": "Empty",
+              "ms": 0.0043,
+              "prefix": "香会的历史最早可溯至明朝。",
+              "selected": null
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "holdout-28",
+      "chains": [
+        {
+          "final_prefix": "城市地标为伊欧拉湖（LakeEola），而且",
+          "method": "dictionary",
+          "steps": [
+            {
+              "choices": [
+                "且",
+                "已",
+                "是"
+              ],
+              "error": null,
+              "ms": 0.0028,
+              "prefix": "城市地标为伊欧拉湖（LakeEola），而",
+              "selected": "且"
+            },
+            {
+              "choices": [],
+              "error": null,
+              "ms": 0.0007999999999999999,
+              "prefix": "城市地标为伊欧拉湖（LakeEola），而且",
+              "selected": null
+            }
+          ]
+        },
+        {
+          "final_prefix": "城市地标为伊欧拉湖（LakeEola），而其",
+          "method": "scoring",
+          "steps": [
+            {
+              "choices": [
+                "其"
+              ],
+              "error": null,
+              "ms": 139.5569,
+              "prefix": "城市地标为伊欧拉湖（LakeEola），而",
+              "selected": "其"
+            },
+            {
+              "choices": [],
+              "error": "Empty",
+              "ms": 0.9917999999999999,
+              "prefix": "城市地标为伊欧拉湖（LakeEola），而其",
+              "selected": null
+            }
+          ]
+        },
+        {
+          "final_prefix": "城市地标为伊欧拉湖（LakeEola），而湖",
+          "method": "generation",
+          "steps": [
+            {
+              "choices": [
+                "湖"
+              ],
+              "error": null,
+              "ms": 471.6788,
+              "prefix": "城市地标为伊欧拉湖（LakeEola），而",
+              "selected": "湖"
+            },
+            {
+              "choices": [],
+              "error": "LowConfidence",
+              "ms": 235.9806,
+              "prefix": "城市地标为伊欧拉湖（LakeEola），而湖",
+              "selected": null
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "stop-28",
+      "chains": [
+        {
+          "final_prefix": "城市地标为伊欧拉湖（LakeEola），而奥兰多市长为巴迪·戴尔（BuddyDyer）。",
+          "method": "dictionary",
+          "steps": [
+            {
+              "choices": [],
+              "error": null,
+              "ms": 0.0021,
+              "prefix": "城市地标为伊欧拉湖（LakeEola），而奥兰多市长为巴迪·戴尔（BuddyDyer）。",
+              "selected": null
+            }
+          ]
+        },
+        {
+          "final_prefix": "城市地标为伊欧拉湖（LakeEola），而奥兰多市长为巴迪·戴尔（BuddyDyer）。",
+          "method": "scoring",
+          "steps": [
+            {
+              "choices": [],
+              "error": "Empty",
+              "ms": 0.8327,
+              "prefix": "城市地标为伊欧拉湖（LakeEola），而奥兰多市长为巴迪·戴尔（BuddyDyer）。",
+              "selected": null
+            }
+          ]
+        },
+        {
+          "final_prefix": "城市地标为伊欧拉湖（LakeEola），而奥兰多市长为巴迪·戴尔（BuddyDyer）。",
+          "method": "generation",
+          "steps": [
+            {
+              "choices": [],
+              "error": "Empty",
+              "ms": 0.0072,
+              "prefix": "城市地标为伊欧拉湖（LakeEola），而奥兰多市长为巴迪·戴尔（BuddyDyer）。",
+              "selected": null
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "holdout-29",
+      "chains": [
+        {
+          "final_prefix": "他父亲的农用",
+          "method": "dictionary",
+          "steps": [
+            {
+              "choices": [],
+              "error": null,
+              "ms": 0.0028,
+              "prefix": "他父亲的农用",
+              "selected": null
+            }
+          ]
+        },
+        {
+          "final_prefix": "他父亲的农用",
+          "method": "scoring",
+          "steps": [
+            {
+              "choices": [],
+              "error": "Empty",
+              "ms": 1.1208,
+              "prefix": "他父亲的农用",
+              "selected": null
+            }
+          ]
+        },
+        {
+          "final_prefix": "他父亲的农用",
+          "method": "generation",
+          "steps": [
+            {
+              "choices": [],
+              "error": "LowConfidence",
+              "ms": 199.0422,
+              "prefix": "他父亲的农用",
+              "selected": null
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "stop-29",
+      "chains": [
+        {
+          "final_prefix": "他父亲的农用机械厂也在这一时期倒闭，辛德勒为此失业了一年。",
+          "method": "dictionary",
+          "steps": [
+            {
+              "choices": [],
+              "error": null,
+              "ms": 0.0018,
+              "prefix": "他父亲的农用机械厂也在这一时期倒闭，辛德勒为此失业了一年。",
+              "selected": null
+            }
+          ]
+        },
+        {
+          "final_prefix": "他父亲的农用机械厂也在这一时期倒闭，辛德勒为此失业了一年。",
+          "method": "scoring",
+          "steps": [
+            {
+              "choices": [],
+              "error": "Empty",
+              "ms": 0.8333,
+              "prefix": "他父亲的农用机械厂也在这一时期倒闭，辛德勒为此失业了一年。",
+              "selected": null
+            }
+          ]
+        },
+        {
+          "final_prefix": "他父亲的农用机械厂也在这一时期倒闭，辛德勒为此失业了一年。",
+          "method": "generation",
+          "steps": [
+            {
+              "choices": [],
+              "error": "Empty",
+              "ms": 0.0058000000000000005,
+              "prefix": "他父亲的农用机械厂也在这一时期倒闭，辛德勒为此失业了一年。",
+              "selected": null
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "holdout-30",
+      "chains": [
+        {
+          "final_prefix": "最古老的是安德里亚·皮肤病",
+          "method": "dictionary",
+          "steps": [
+            {
+              "choices": [
+                "肤",
+                "鞋",
+                "带"
+              ],
+              "error": null,
+              "ms": 0.0026,
+              "prefix": "最古老的是安德里亚·皮",
+              "selected": "肤"
+            },
+            {
+              "choices": [
+                "病",
+                "过敏",
+                "科"
+              ],
+              "error": null,
+              "ms": 0.0012,
+              "prefix": "最古老的是安德里亚·皮肤",
+              "selected": "病"
+            },
+            {
+              "choices": [],
+              "error": null,
+              "ms": 0.0005,
+              "prefix": "最古老的是安德里亚·皮肤病",
+              "selected": null
+            }
+          ]
+        },
+        {
+          "final_prefix": "最古老的是安德里亚·皮",
+          "method": "scoring",
+          "steps": [
+            {
+              "choices": [],
+              "error": null,
+              "ms": 321.2462,
+              "prefix": "最古老的是安德里亚·皮",
+              "selected": null
+            }
+          ]
+        },
+        {
+          "final_prefix": "最古老的是安德里亚·皮安德里亚",
+          "method": "generation",
+          "steps": [
+            {
+              "choices": [
+                "安德里亚"
+              ],
+              "error": null,
+              "ms": 456.43699999999995,
+              "prefix": "最古老的是安德里亚·皮",
+              "selected": "安德里亚"
+            },
+            {
+              "choices": [],
+              "error": "Empty",
+              "ms": 196.3186,
+              "prefix": "最古老的是安德里亚·皮安德里亚",
+              "selected": null
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "stop-30",
+      "chains": [
+        {
+          "final_prefix": "最古老的是安德里亚·皮萨诺的作品，作于1330年到1336年。",
+          "method": "dictionary",
+          "steps": [
+            {
+              "choices": [],
+              "error": null,
+              "ms": 0.0018,
+              "prefix": "最古老的是安德里亚·皮萨诺的作品，作于1330年到1336年。",
+              "selected": null
+            }
+          ]
+        },
+        {
+          "final_prefix": "最古老的是安德里亚·皮萨诺的作品，作于1330年到1336年。",
+          "method": "scoring",
+          "steps": [
+            {
+              "choices": [],
+              "error": "Empty",
+              "ms": 1.2088999999999999,
+              "prefix": "最古老的是安德里亚·皮萨诺的作品，作于1330年到1336年。",
+              "selected": null
+            }
+          ]
+        },
+        {
+          "final_prefix": "最古老的是安德里亚·皮萨诺的作品，作于1330年到1336年。",
+          "method": "generation",
+          "steps": [
+            {
+              "choices": [],
+              "error": "Empty",
+              "ms": 0.0058000000000000005,
+              "prefix": "最古老的是安德里亚·皮萨诺的作品，作于1330年到1336年。",
+              "selected": null
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "holdout-31",
+      "chains": [
+        {
+          "final_prefix": "而岩壁及石矿工",
+          "method": "dictionary",
+          "steps": [
+            {
+              "choices": [
+                "工",
+                "山",
+                "业"
+              ],
+              "error": null,
+              "ms": 0.0026,
+              "prefix": "而岩壁及石矿",
+              "selected": "工"
+            },
+            {
+              "choices": [],
+              "error": null,
+              "ms": 0.0006,
+              "prefix": "而岩壁及石矿工",
+              "selected": null
+            }
+          ]
+        },
+        {
+          "final_prefix": "而岩壁及石矿",
+          "method": "scoring",
+          "steps": [
+            {
+              "choices": [],
+              "error": null,
+              "ms": 98.0124,
+              "prefix": "而岩壁及石矿",
+              "selected": null
+            }
+          ]
+        },
+        {
+          "final_prefix": "而岩壁及石矿山",
+          "method": "generation",
+          "steps": [
+            {
+              "choices": [
+                "山",
+                "石"
+              ],
+              "error": null,
+              "ms": 422.5093,
+              "prefix": "而岩壁及石矿",
+              "selected": "山"
+            },
+            {
+              "choices": [],
+              "error": "LowConfidence",
+              "ms": 230.9977,
+              "prefix": "而岩壁及石矿山",
+              "selected": null
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "stop-31",
+      "chains": [
+        {
+          "final_prefix": "而岩壁及石矿公园的设计及工程将会考虑采纳早前在公众参与活动中举行概念设计比赛的参赛作品，由康乐及文化事务署所获得的拨款进行。",
+          "method": "dictionary",
+          "steps": [
+            {
+              "choices": [],
+              "error": null,
+              "ms": 0.0021,
+              "prefix": "而岩壁及石矿公园的设计及工程将会考虑采纳早前在公众参与活动中举行概念设计比赛的参赛作品，由康乐及文化事务署所获得的拨款进行。",
+              "selected": null
+            }
+          ]
+        },
+        {
+          "final_prefix": "而岩壁及石矿公园的设计及工程将会考虑采纳早前在公众参与活动中举行概念设计比赛的参赛作品，由康乐及文化事务署所获得的拨款进行。",
+          "method": "scoring",
+          "steps": [
+            {
+              "choices": [],
+              "error": "Empty",
+              "ms": 0.7309,
+              "prefix": "而岩壁及石矿公园的设计及工程将会考虑采纳早前在公众参与活动中举行概念设计比赛的参赛作品，由康乐及文化事务署所获得的拨款进行。",
+              "selected": null
+            }
+          ]
+        },
+        {
+          "final_prefix": "而岩壁及石矿公园的设计及工程将会考虑采纳早前在公众参与活动中举行概念设计比赛的参赛作品，由康乐及文化事务署所获得的拨款进行。",
+          "method": "generation",
+          "steps": [
+            {
+              "choices": [],
+              "error": "Empty",
+              "ms": 0.0047,
+              "prefix": "而岩壁及石矿公园的设计及工程将会考虑采纳早前在公众参与活动中举行概念设计比赛的参赛作品，由康乐及文化事务署所获得的拨款进行。",
+              "selected": null
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "holdout-32",
+      "chains": [
+        {
+          "final_prefix": "我们已经提及了解一下",
+          "method": "dictionary",
+          "steps": [
+            {
+              "choices": [
+                "解",
+                "吗",
+                "一"
+              ],
+              "error": null,
+              "ms": 0.0024,
+              "prefix": "我们已经提及了",
+              "selected": "解"
+            },
+            {
+              "choices": [
+                "一下",
+                "自己"
+              ],
+              "error": null,
+              "ms": 0.0009,
+              "prefix": "我们已经提及了解",
+              "selected": "一下"
+            },
+            {
+              "choices": [],
+              "error": null,
+              "ms": 0.0005,
+              "prefix": "我们已经提及了解一下",
+              "selected": null
+            }
+          ]
+        },
+        {
+          "final_prefix": "我们已经提及了",
+          "method": "scoring",
+          "steps": [
+            {
+              "choices": [],
+              "error": null,
+              "ms": 181.9192,
+              "prefix": "我们已经提及了",
+              "selected": null
+            }
+          ]
+        },
+        {
+          "final_prefix": "我们已经提及了",
+          "method": "generation",
+          "steps": [
+            {
+              "choices": [],
+              "error": "Empty",
+              "ms": 111.064,
+              "prefix": "我们已经提及了",
+              "selected": null
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "holdout-33",
+      "chains": [
+        {
+          "final_prefix": "车站建于1928",
+          "method": "dictionary",
+          "steps": [
+            {
+              "choices": [],
+              "error": null,
+              "ms": 0.0024,
+              "prefix": "车站建于1928",
+              "selected": null
+            }
+          ]
+        },
+        {
+          "final_prefix": "车站建于1928",
+          "method": "scoring",
+          "steps": [
+            {
+              "choices": [],
+              "error": "Empty",
+              "ms": 1.0244,
+              "prefix": "车站建于1928",
+              "selected": null
+            }
+          ]
+        },
+        {
+          "final_prefix": "车站建于1928",
+          "method": "generation",
+          "steps": [
+            {
+              "choices": [],
+              "error": "Empty",
+              "ms": 133.3177,
+              "prefix": "车站建于1928",
+              "selected": null
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "holdout-34",
+      "chains": [
+        {
+          "final_prefix": "面对南下的德国人",
+          "method": "dictionary",
+          "steps": [
+            {
+              "choices": [
+                "人",
+                "队"
+              ],
+              "error": null,
+              "ms": 0.0029000000000000002,
+              "prefix": "面对南下的德国",
+              "selected": "人"
+            },
+            {
+              "choices": [],
+              "error": null,
+              "ms": 0.0007,
+              "prefix": "面对南下的德国人",
+              "selected": null
+            }
+          ]
+        },
+        {
+          "final_prefix": "面对南下的德国",
+          "method": "scoring",
+          "steps": [
+            {
+              "choices": [],
+              "error": null,
+              "ms": 56.741600000000005,
+              "prefix": "面对南下的德国",
+              "selected": null
+            }
+          ]
+        },
+        {
+          "final_prefix": "面对南下的德国",
+          "method": "generation",
+          "steps": [
+            {
+              "choices": [],
+              "error": "Empty",
+              "ms": 128.1729,
+              "prefix": "面对南下的德国",
+              "selected": null
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "holdout-35",
+      "chains": [
+        {
+          "final_prefix": "希拉蕊的得票率先",
+          "method": "dictionary",
+          "steps": [
+            {
+              "choices": [
+                "先",
+                "领",
+                "达"
+              ],
+              "error": null,
+              "ms": 0.0024,
+              "prefix": "希拉蕊的得票率",
+              "selected": "先"
+            },
+            {
+              "choices": [],
+              "error": null,
+              "ms": 0.0014,
+              "prefix": "希拉蕊的得票率先",
+              "selected": null
+            }
+          ]
+        },
+        {
+          "final_prefix": "希拉蕊的得票率高",
+          "method": "scoring",
+          "steps": [
+            {
+              "choices": [
+                "高",
+                "低"
+              ],
+              "error": null,
+              "ms": 86.5929,
+              "prefix": "希拉蕊的得票率",
+              "selected": "高"
+            },
+            {
+              "choices": [],
+              "error": "Empty",
+              "ms": 1.03,
+              "prefix": "希拉蕊的得票率高",
+              "selected": null
+            }
+          ]
+        },
+        {
+          "final_prefix": "希拉蕊的得票率",
+          "method": "generation",
+          "steps": [
+            {
+              "choices": [],
+              "error": "Empty",
+              "ms": 124.49780000000001,
+              "prefix": "希拉蕊的得票率",
+              "selected": null
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "holdout-36",
+      "chains": [
+        {
+          "final_prefix": "虽然她从来没有再次",
+          "method": "dictionary",
+          "steps": [
+            {
+              "choices": [
+                "次",
+                "说",
+                "见"
+              ],
+              "error": null,
+              "ms": 0.0024,
+              "prefix": "虽然她从来没有再",
+              "selected": "次"
+            },
+            {
+              "choices": [],
+              "error": null,
+              "ms": 0.0007999999999999999,
+              "prefix": "虽然她从来没有再次",
+              "selected": null
+            }
+          ]
+        },
+        {
+          "final_prefix": "虽然她从来没有再接再厉",
+          "method": "scoring",
+          "steps": [
+            {
+              "choices": [
+                "接再厉",
+                "做",
+                "向"
+              ],
+              "error": null,
+              "ms": 111.8937,
+              "prefix": "虽然她从来没有再",
+              "selected": "接再厉"
+            },
+            {
+              "choices": [],
+              "error": "Empty",
+              "ms": 1.0218,
+              "prefix": "虽然她从来没有再接再厉",
+              "selected": null
+            }
+          ]
+        },
+        {
+          "final_prefix": "虽然她从来没有再",
+          "method": "generation",
+          "steps": [
+            {
+              "choices": [],
+              "error": "LowConfidence",
+              "ms": 226.3984,
+              "prefix": "虽然她从来没有再",
+              "selected": null
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "holdout-37",
+      "chains": [
+        {
+          "final_prefix": "夏绿蒂从1839",
+          "method": "dictionary",
+          "steps": [
+            {
+              "choices": [],
+              "error": null,
+              "ms": 0.0023,
+              "prefix": "夏绿蒂从1839",
+              "selected": null
+            }
+          ]
+        },
+        {
+          "final_prefix": "夏绿蒂从1839",
+          "method": "scoring",
+          "steps": [
+            {
+              "choices": [],
+              "error": "Empty",
+              "ms": 1.045,
+              "prefix": "夏绿蒂从1839",
+              "selected": null
+            }
+          ]
+        },
+        {
+          "final_prefix": "夏绿蒂从1839",
+          "method": "generation",
+          "steps": [
+            {
+              "choices": [],
+              "error": "LowConfidence",
+              "ms": 149.0796,
+              "prefix": "夏绿蒂从1839",
+              "selected": null
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "holdout-38",
+      "chains": [
+        {
+          "final_prefix": "两国在1897",
+          "method": "dictionary",
+          "steps": [
+            {
+              "choices": [],
+              "error": null,
+              "ms": 0.0025,
+              "prefix": "两国在1897",
+              "selected": null
+            }
+          ]
+        },
+        {
+          "final_prefix": "两国在1897",
+          "method": "scoring",
+          "steps": [
+            {
+              "choices": [],
+              "error": "Empty",
+              "ms": 1.0104,
+              "prefix": "两国在1897",
+              "selected": null
+            }
+          ]
+        },
+        {
+          "final_prefix": "两国在1897年",
+          "method": "generation",
+          "steps": [
+            {
+              "choices": [
+                "年",
+                "月",
+                "日"
+              ],
+              "error": null,
+              "ms": 429.7661,
+              "prefix": "两国在1897",
+              "selected": "年"
+            },
+            {
+              "choices": [],
+              "error": "Empty",
+              "ms": 149.1226,
+              "prefix": "两国在1897年",
+              "selected": null
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "holdout-39",
+      "chains": [
+        {
+          "final_prefix": "翅膀底色是锈红色，翅膀",
+          "method": "dictionary",
+          "steps": [
+            {
+              "choices": [
+                "膀"
+              ],
+              "error": null,
+              "ms": 0.0024,
+              "prefix": "翅膀底色是锈红色，翅",
+              "selected": "膀"
+            },
+            {
+              "choices": [],
+              "error": null,
+              "ms": 0.0007,
+              "prefix": "翅膀底色是锈红色，翅膀",
+              "selected": null
+            }
+          ]
+        },
+        {
+          "final_prefix": "翅膀底色是锈红色，翅",
+          "method": "scoring",
+          "steps": [
+            {
+              "choices": [],
+              "error": null,
+              "ms": 109.0058,
+              "prefix": "翅膀底色是锈红色，翅",
+              "selected": null
+            }
+          ]
+        },
+        {
+          "final_prefix": "翅膀底色是锈红色，翅",
+          "method": "generation",
+          "steps": [
+            {
+              "choices": [],
+              "error": "LowConfidence",
+              "ms": 252.83489999999998,
+              "prefix": "翅膀底色是锈红色，翅",
+              "selected": null
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "holdout-40",
+      "chains": [
+        {
+          "final_prefix": "查尔斯·克拉克在其同年",
+          "method": "dictionary",
+          "steps": [
+            {
+              "choices": [],
+              "error": null,
+              "ms": 0.0024,
+              "prefix": "查尔斯·克拉克在其同年",
+              "selected": null
+            }
+          ]
+        },
+        {
+          "final_prefix": "查尔斯·克拉克在其同年",
+          "method": "scoring",
+          "steps": [
+            {
+              "choices": [],
+              "error": "Empty",
+              "ms": 1.0267,
+              "prefix": "查尔斯·克拉克在其同年",
+              "selected": null
+            }
+          ]
+        },
+        {
+          "final_prefix": "查尔斯·克拉克在其同年查尔斯",
+          "method": "generation",
+          "steps": [
+            {
+              "choices": [
+                "查尔斯",
+                "克拉克"
+              ],
+              "error": null,
+              "ms": 511.23130000000003,
+              "prefix": "查尔斯·克拉克在其同年",
+              "selected": "查尔斯"
+            },
+            {
+              "choices": [],
+              "error": "LowConfidence",
+              "ms": 212.7387,
+              "prefix": "查尔斯·克拉克在其同年查尔斯",
+              "selected": null
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "holdout-41",
+      "chains": [
+        {
+          "final_prefix": "宁波效实中学是一种",
+          "method": "dictionary",
+          "steps": [
+            {
+              "choices": [
+                "种",
+                "件",
+                "样的"
+              ],
+              "error": null,
+              "ms": 0.0025,
+              "prefix": "宁波效实中学是一",
+              "selected": "种"
+            },
+            {
+              "choices": [],
+              "error": null,
+              "ms": 0.0006,
+              "prefix": "宁波效实中学是一种",
+              "selected": null
+            }
+          ]
+        },
+        {
+          "final_prefix": "宁波效实中学是一本",
+          "method": "scoring",
+          "steps": [
+            {
+              "choices": [
+                "本"
+              ],
+              "error": null,
+              "ms": 70.6918,
+              "prefix": "宁波效实中学是一",
+              "selected": "本"
+            },
+            {
+              "choices": [],
+              "error": "Empty",
+              "ms": 1.0573,
+              "prefix": "宁波效实中学是一本",
+              "selected": null
+            }
+          ]
+        },
+        {
+          "final_prefix": "宁波效实中学是一",
+          "method": "generation",
+          "steps": [
+            {
+              "choices": [],
+              "error": "LowConfidence",
+              "ms": 148.68970000000002,
+              "prefix": "宁波效实中学是一",
+              "selected": null
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "holdout-42",
+      "chains": [
+        {
+          "final_prefix": "夸克有着多种不同",
+          "method": "dictionary",
+          "steps": [
+            {
+              "choices": [
+                "同",
+                "是",
+                "过"
+              ],
+              "error": null,
+              "ms": 0.0026,
+              "prefix": "夸克有着多种不",
+              "selected": "同"
+            },
+            {
+              "choices": [],
+              "error": null,
+              "ms": 0.0005,
+              "prefix": "夸克有着多种不同",
+              "selected": null
+            }
+          ]
+        },
+        {
+          "final_prefix": "夸克有着多种不",
+          "method": "scoring",
+          "steps": [
+            {
+              "choices": [],
+              "error": null,
+              "ms": 130.5702,
+              "prefix": "夸克有着多种不",
+              "selected": null
+            }
+          ]
+        },
+        {
+          "final_prefix": "夸克有着多种不",
+          "method": "generation",
+          "steps": [
+            {
+              "choices": [],
+              "error": "LowConfidence",
+              "ms": 225.6613,
+              "prefix": "夸克有着多种不",
+              "selected": null
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "holdout-43",
+      "chains": [
+        {
+          "final_prefix": "大佛口亦为湾仔细看",
+          "method": "dictionary",
+          "steps": [
+            {
+              "choices": [
+                "细",
+                "细看",
+                "细阅读"
+              ],
+              "error": null,
+              "ms": 0.0023,
+              "prefix": "大佛口亦为湾仔",
+              "selected": "细"
+            },
+            {
+              "choices": [
+                "看",
+                "阅读"
+              ],
+              "error": null,
+              "ms": 0.001,
+              "prefix": "大佛口亦为湾仔细",
+              "selected": "看"
+            },
+            {
+              "choices": [],
+              "error": null,
+              "ms": 0.0006,
+              "prefix": "大佛口亦为湾仔细看",
+              "selected": null
+            }
+          ]
+        },
+        {
+          "final_prefix": "大佛口亦为湾仔",
+          "method": "scoring",
+          "steps": [
+            {
+              "choices": [],
+              "error": null,
+              "ms": 142.4692,
+              "prefix": "大佛口亦为湾仔",
+              "selected": null
+            }
+          ]
+        },
+        {
+          "final_prefix": "大佛口亦为湾仔大佛",
+          "method": "generation",
+          "steps": [
+            {
+              "choices": [
+                "大佛"
+              ],
+              "error": null,
+              "ms": 385.0534,
+              "prefix": "大佛口亦为湾仔",
+              "selected": "大佛"
+            },
+            {
+              "choices": [],
+              "error": "Empty",
+              "ms": 561.1555999999999,
+              "prefix": "大佛口亦为湾仔大佛",
+              "selected": null
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "holdout-44",
+      "chains": [
+        {
+          "final_prefix": "身为颓废的一种",
+          "method": "dictionary",
+          "steps": [
+            {
+              "choices": [
+                "种",
+                "员",
+                "个"
+              ],
+              "error": null,
+              "ms": 0.003,
+              "prefix": "身为颓废的一",
+              "selected": "种"
+            },
+            {
+              "choices": [],
+              "error": null,
+              "ms": 0.0007999999999999999,
+              "prefix": "身为颓废的一种",
+              "selected": null
+            }
+          ]
+        },
+        {
+          "final_prefix": "身为颓废的一代人",
+          "method": "scoring",
+          "steps": [
+            {
+              "choices": [
+                "代",
+                "生",
+                "群"
+              ],
+              "error": null,
+              "ms": 147.8153,
+              "prefix": "身为颓废的一",
+              "selected": "代"
+            },
+            {
+              "choices": [
+                "人"
+              ],
+              "error": null,
+              "ms": 76.7352,
+              "prefix": "身为颓废的一代",
+              "selected": "人"
+            },
+            {
+              "choices": [],
+              "error": "Empty",
+              "ms": 0.9958,
+              "prefix": "身为颓废的一代人",
+              "selected": null
+            }
+          ]
+        },
+        {
+          "final_prefix": "身为颓废的一",
+          "method": "generation",
+          "steps": [
+            {
+              "choices": [],
+              "error": "LowConfidence",
+              "ms": 141.46329999999998,
+              "prefix": "身为颓废的一",
+              "selected": null
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "holdout-45",
+      "chains": [
+        {
+          "final_prefix": "通过将原型的不是很好",
+          "method": "dictionary",
+          "steps": [
+            {
+              "choices": [
+                "是",
+                "过",
+                "能"
+              ],
+              "error": null,
+              "ms": 0.0036,
+              "prefix": "通过将原型的不",
+              "selected": "是"
+            },
+            {
+              "choices": [
+                "很",
+                "说",
+                "我"
+              ],
+              "error": null,
+              "ms": 0.0009,
+              "prefix": "通过将原型的不是",
+              "selected": "很"
+            },
+            {
+              "choices": [
+                "好"
+              ],
+              "error": null,
+              "ms": 0.0007,
+              "prefix": "通过将原型的不是很",
+              "selected": "好"
+            }
+          ]
+        },
+        {
+          "final_prefix": "通过将原型的不",
+          "method": "scoring",
+          "steps": [
+            {
+              "choices": [],
+              "error": null,
+              "ms": 134.70319999999998,
+              "prefix": "通过将原型的不",
+              "selected": null
+            }
+          ]
+        },
+        {
+          "final_prefix": "通过将原型的不",
+          "method": "generation",
+          "steps": [
+            {
+              "choices": [],
+              "error": "LowConfidence",
+              "ms": 157.9975,
+              "prefix": "通过将原型的不",
+              "selected": null
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "holdout-46",
+      "chains": [
+        {
+          "final_prefix": "雷妮拉的母亲节",
+          "method": "dictionary",
+          "steps": [
+            {
+              "choices": [
+                "节"
+              ],
+              "error": null,
+              "ms": 0.0027,
+              "prefix": "雷妮拉的母亲",
+              "selected": "节"
+            },
+            {
+              "choices": [],
+              "error": null,
+              "ms": 0.0006,
+              "prefix": "雷妮拉的母亲节",
+              "selected": null
+            }
+          ]
+        },
+        {
+          "final_prefix": "雷妮拉的母亲节",
+          "method": "scoring",
+          "steps": [
+            {
+              "choices": [
+                "节"
+              ],
+              "error": null,
+              "ms": 53.636900000000004,
+              "prefix": "雷妮拉的母亲",
+              "selected": "节"
+            },
+            {
+              "choices": [],
+              "error": "Empty",
+              "ms": 0.9963000000000001,
+              "prefix": "雷妮拉的母亲节",
+              "selected": null
+            }
+          ]
+        },
+        {
+          "final_prefix": "雷妮拉的母亲",
+          "method": "generation",
+          "steps": [
+            {
+              "choices": [],
+              "error": "Empty",
+              "ms": 109.7381,
+              "prefix": "雷妮拉的母亲",
+              "selected": null
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "holdout-47",
+      "chains": [
+        {
+          "final_prefix": "女真语最初使用者",
+          "method": "dictionary",
+          "steps": [
+            {
+              "choices": [
+                "者",
+                "作品",
+                "权"
+              ],
+              "error": null,
+              "ms": 0.0025,
+              "prefix": "女真语最初使用",
+              "selected": "者"
+            },
+            {
+              "choices": [],
+              "error": null,
+              "ms": 0.0007,
+              "prefix": "女真语最初使用者",
+              "selected": null
+            }
+          ]
+        },
+        {
+          "final_prefix": "女真语最初使用时间",
+          "method": "scoring",
+          "steps": [
+            {
+              "choices": [
+                "时间"
+              ],
+              "error": null,
+              "ms": 68.6808,
+              "prefix": "女真语最初使用",
+              "selected": "时间"
+            },
+            {
+              "choices": [],
+              "error": "Empty",
+              "ms": 0.9983,
+              "prefix": "女真语最初使用时间",
+              "selected": null
+            }
+          ]
+        },
+        {
+          "final_prefix": "女真语最初使用",
+          "method": "generation",
+          "steps": [
+            {
+              "choices": [],
+              "error": "Empty",
+              "ms": 112.2118,
+              "prefix": "女真语最初使用",
+              "selected": null
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "holdout-48",
+      "chains": [
+        {
+          "final_prefix": "孔恩瀑布由两部分",
+          "method": "dictionary",
+          "steps": [
+            {
+              "choices": [
+                "分"
+              ],
+              "error": null,
+              "ms": 0.0024,
+              "prefix": "孔恩瀑布由两部",
+              "selected": "分"
+            },
+            {
+              "choices": [],
+              "error": null,
+              "ms": 0.0007,
+              "prefix": "孔恩瀑布由两部分",
+              "selected": null
+            }
+          ]
+        },
+        {
+          "final_prefix": "孔恩瀑布由两部分",
+          "method": "scoring",
+          "steps": [
+            {
+              "choices": [
+                "分"
+              ],
+              "error": null,
+              "ms": 84.1275,
+              "prefix": "孔恩瀑布由两部",
+              "selected": "分"
+            },
+            {
+              "choices": [],
+              "error": "Empty",
+              "ms": 1.4706000000000001,
+              "prefix": "孔恩瀑布由两部分",
+              "selected": null
+            }
+          ]
+        },
+        {
+          "final_prefix": "孔恩瀑布由两部",
+          "method": "generation",
+          "steps": [
+            {
+              "choices": [],
+              "error": "LowConfidence",
+              "ms": 222.1996,
+              "prefix": "孔恩瀑布由两部",
+              "selected": null
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "holdout-49",
+      "chains": [
+        {
+          "final_prefix": "它在位于亨茨维尔的人",
+          "method": "dictionary",
+          "steps": [
+            {
+              "choices": [
+                "人",
+                "话",
+                "事"
+              ],
+              "error": null,
+              "ms": 0.0028,
+              "prefix": "它在位于亨茨维尔的",
+              "selected": "人"
+            },
+            {
+              "choices": [],
+              "error": null,
+              "ms": 0.0007,
+              "prefix": "它在位于亨茨维尔的人",
+              "selected": null
+            }
+          ]
+        },
+        {
+          "final_prefix": "它在位于亨茨维尔的",
+          "method": "scoring",
+          "steps": [
+            {
+              "choices": [],
+              "error": null,
+              "ms": 174.9677,
+              "prefix": "它在位于亨茨维尔的",
+              "selected": null
+            }
+          ]
+        },
+        {
+          "final_prefix": "它在位于亨茨维尔的亨茨维尔工厂亨茨维尔",
+          "method": "generation",
+          "steps": [
+            {
+              "choices": [
+                "亨茨维尔"
+              ],
+              "error": null,
+              "ms": 310.5581,
+              "prefix": "它在位于亨茨维尔的",
+              "selected": "亨茨维尔"
+            },
+            {
+              "choices": [
+                "工厂"
+              ],
+              "error": null,
+              "ms": 451.4246,
+              "prefix": "它在位于亨茨维尔的亨茨维尔",
+              "selected": "工厂"
+            },
+            {
+              "choices": [
+                "亨茨维尔"
+              ],
+              "error": null,
+              "ms": 416.3619,
+              "prefix": "它在位于亨茨维尔的亨茨维尔工厂",
+              "selected": "亨茨维尔"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "holdout-50",
+      "chains": [
+        {
+          "final_prefix": "1932年（",
+          "method": "dictionary",
+          "steps": [
+            {
+              "choices": [],
+              "error": null,
+              "ms": 0.0027,
+              "prefix": "1932年（",
+              "selected": null
+            }
+          ]
+        },
+        {
+          "final_prefix": "1932年（",
+          "method": "scoring",
+          "steps": [
+            {
+              "choices": [],
+              "error": "Empty",
+              "ms": 1.02,
+              "prefix": "1932年（",
+              "selected": null
+            }
+          ]
+        },
+        {
+          "final_prefix": "1932年（",
+          "method": "generation",
+          "steps": [
+            {
+              "choices": [],
+              "error": "LowConfidence",
+              "ms": 137.94310000000002,
+              "prefix": "1932年（",
+              "selected": null
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "holdout-51",
+      "chains": [
+        {
+          "final_prefix": "此作也被改编自",
+          "method": "dictionary",
+          "steps": [
+            {
+              "choices": [
+                "自"
+              ],
+              "error": null,
+              "ms": 0.003,
+              "prefix": "此作也被改编",
+              "selected": "自"
+            },
+            {
+              "choices": [],
+              "error": null,
+              "ms": 0.0007,
+              "prefix": "此作也被改编自",
+              "selected": null
+            }
+          ]
+        },
+        {
+          "final_prefix": "此作也被改编",
+          "method": "scoring",
+          "steps": [
+            {
+              "choices": [],
+              "error": null,
+              "ms": 55.7426,
+              "prefix": "此作也被改编",
+              "selected": null
+            }
+          ]
+        },
+        {
+          "final_prefix": "此作也被改编",
+          "method": "generation",
+          "steps": [
+            {
+              "choices": [],
+              "error": "Empty",
+              "ms": 462.4625,
+              "prefix": "此作也被改编",
+              "selected": null
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "holdout-52",
+      "chains": [
+        {
+          "final_prefix": "抗战胜利后，",
+          "method": "dictionary",
+          "steps": [
+            {
+              "choices": [],
+              "error": null,
+              "ms": 0.0021,
+              "prefix": "抗战胜利后，",
+              "selected": null
+            }
+          ]
+        },
+        {
+          "final_prefix": "抗战胜利后，",
+          "method": "scoring",
+          "steps": [
+            {
+              "choices": [],
+              "error": "Empty",
+              "ms": 1.0135999999999998,
+              "prefix": "抗战胜利后，",
+              "selected": null
+            }
+          ]
+        },
+        {
+          "final_prefix": "抗战胜利后，",
+          "method": "generation",
+          "steps": [
+            {
+              "choices": [],
+              "error": "LowConfidence",
+              "ms": 121.27159999999999,
+              "prefix": "抗战胜利后，",
+              "selected": null
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "holdout-53",
+      "chains": [
+        {
+          "final_prefix": "它主要分布在线观看",
+          "method": "dictionary",
+          "steps": [
+            {
+              "choices": [
+                "线",
+                "于",
+                "家"
+              ],
+              "error": null,
+              "ms": 0.0024,
+              "prefix": "它主要分布在",
+              "selected": "线"
+            },
+            {
+              "choices": [
+                "观看",
+                "人数",
+                "服务"
+              ],
+              "error": null,
+              "ms": 0.0007,
+              "prefix": "它主要分布在线",
+              "selected": "观看"
+            },
+            {
+              "choices": [],
+              "error": null,
+              "ms": 0.0006,
+              "prefix": "它主要分布在线观看",
+              "selected": null
+            }
+          ]
+        },
+        {
+          "final_prefix": "它主要分布在",
+          "method": "scoring",
+          "steps": [
+            {
+              "choices": [],
+              "error": null,
+              "ms": 504.02959999999996,
+              "prefix": "它主要分布在",
+              "selected": null
+            }
+          ]
+        },
+        {
+          "final_prefix": "它主要分布在",
+          "method": "generation",
+          "steps": [
+            {
+              "choices": [],
+              "error": "LowConfidence",
+              "ms": 100.6676,
+              "prefix": "它主要分布在",
+              "selected": null
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "holdout-54",
+      "chains": [
+        {
+          "final_prefix": "每段介绍两个无法使用",
+          "method": "dictionary",
+          "steps": [
+            {
+              "choices": [
+                "法",
+                "论",
+                "聊"
+              ],
+              "error": null,
+              "ms": 0.0027,
+              "prefix": "每段介绍两个无",
+              "selected": "法"
+            },
+            {
+              "choices": [
+                "使用",
+                "正常",
+                "控制"
+              ],
+              "error": null,
+              "ms": 0.0013,
+              "prefix": "每段介绍两个无法",
+              "selected": "使用"
+            },
+            {
+              "choices": [],
+              "error": null,
+              "ms": 0.0006,
+              "prefix": "每段介绍两个无法使用",
+              "selected": null
+            }
+          ]
+        },
+        {
+          "final_prefix": "每段介绍两个无",
+          "method": "scoring",
+          "steps": [
+            {
+              "choices": [],
+              "error": null,
+              "ms": 342.32230000000004,
+              "prefix": "每段介绍两个无",
+              "selected": null
+            }
+          ]
+        },
+        {
+          "final_prefix": "每段介绍两个无内容",
+          "method": "generation",
+          "steps": [
+            {
+              "choices": [
+                "内容",
+                "链接"
+              ],
+              "error": null,
+              "ms": 394.87850000000003,
+              "prefix": "每段介绍两个无",
+              "selected": "内容"
+            },
+            {
+              "choices": [],
+              "error": "Empty",
+              "ms": 378.81379999999996,
+              "prefix": "每段介绍两个无内容",
+              "selected": null
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "holdout-55",
+      "chains": [
+        {
+          "final_prefix": "宁武县在中国人民",
+          "method": "dictionary",
+          "steps": [
+            {
+              "choices": [
+                "人",
+                "队",
+                "特色"
+              ],
+              "error": null,
+              "ms": 0.0026,
+              "prefix": "宁武县在中国",
+              "selected": "人"
+            },
+            {
+              "choices": [
+                "民",
+                "寿",
+                "口"
+              ],
+              "error": null,
+              "ms": 0.0007,
+              "prefix": "宁武县在中国人",
+              "selected": "民"
+            },
+            {
+              "choices": [],
+              "error": null,
+              "ms": 0.0006,
+              "prefix": "宁武县在中国人民",
+              "selected": null
+            }
+          ]
+        },
+        {
+          "final_prefix": "宁武县在中国",
+          "method": "scoring",
+          "steps": [
+            {
+              "choices": [],
+              "error": null,
+              "ms": 81.18079999999999,
+              "prefix": "宁武县在中国",
+              "selected": null
+            }
+          ]
+        },
+        {
+          "final_prefix": "宁武县在中国",
+          "method": "generation",
+          "steps": [
+            {
+              "choices": [],
+              "error": "Empty",
+              "ms": 110.9708,
+              "prefix": "宁武县在中国",
+              "selected": null
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "empty",
+      "chains": [
+        {
+          "final_prefix": "",
+          "method": "dictionary",
+          "steps": [
+            {
+              "choices": [],
+              "error": null,
+              "ms": 0.002,
+              "prefix": "",
+              "selected": null
+            }
+          ]
+        },
+        {
+          "final_prefix": "",
+          "method": "scoring",
+          "steps": [
+            {
+              "choices": [],
+              "error": "Empty",
+              "ms": 0.6853,
+              "prefix": "",
+              "selected": null
+            }
+          ]
+        },
+        {
+          "final_prefix": "",
+          "method": "generation",
+          "steps": [
+            {
+              "choices": [],
+              "error": "Empty",
+              "ms": 0.0034000000000000002,
+              "prefix": "",
+              "selected": null
+            }
+          ]
+        }
+      ]
+    }
+  ],
+  "external_edits": [
+    {
+      "id": "holdout-24",
+      "isolated": true
+    },
+    {
+      "id": "holdout-28",
+      "isolated": true
+    },
+    {
+      "id": "holdout-32",
+      "isolated": true
+    },
+    {
+      "id": "holdout-36",
+      "isolated": true
+    },
+    {
+      "id": "holdout-40",
+      "isolated": true
+    },
+    {
+      "id": "holdout-44",
+      "isolated": true
+    },
+    {
+      "id": "holdout-48",
+      "isolated": true
+    },
+    {
+      "id": "holdout-52",
+      "isolated": true
+    }
+  ],
+  "limitations": [
+    "Single-reference matches are not semantic correctness; reasonable alternatives remain unjudged.",
+    "Recall-external means absent from this prefix recall, not proven absent from every dictionary.",
+    "Wiki source is independent of authored development prompts, not guaranteed absent from model pretraining.",
+    "No independent human annotation of alternatives or chains; no recommendation or accuracy improvement claim."
+  ]
+}

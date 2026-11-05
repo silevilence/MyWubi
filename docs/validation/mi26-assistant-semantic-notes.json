@@ -1,0 +1,1287 @@
+{
+  "reviewer_kind": "assistant",
+  "independent_human_votes": 0,
+  "use": "Qualitative diagnostics only; not blinded human accuracy or acceptance votes. No tuning follows this holdout.",
+  "license": "Source-derived text: CC-BY-SA-4.0; see generation-acceptance.json attribution and generation-corpus-LICENSE.txt.",
+  "chains": [
+    {
+      "id": "holdout-24",
+      "method": "dictionary",
+      "prefix": "1939年4",
+      "selected": [],
+      "final_prefix": "1939年4",
+      "judgment": "停止未形成链",
+      "reason": "保留为零步链和覆盖损失；不把存在参考答案直接等同于静默必错。"
+    },
+    {
+      "id": "holdout-24",
+      "method": "scoring",
+      "prefix": "1939年4",
+      "selected": [],
+      "final_prefix": "1939年4",
+      "judgment": "停止未形成链",
+      "reason": "保留为零步链和覆盖损失；不把存在参考答案直接等同于静默必错。"
+    },
+    {
+      "id": "holdout-24",
+      "method": "generation",
+      "prefix": "1939年4",
+      "selected": [],
+      "final_prefix": "1939年4",
+      "judgment": "停止未形成链",
+      "reason": "保留为零步链和覆盖损失；不把存在参考答案直接等同于静默必错。"
+    },
+    {
+      "id": "stop-24",
+      "method": "dictionary",
+      "prefix": "1939年4月，日军攻占太平岛，并将其更名为长岛，纳入高雄州管理。",
+      "selected": [],
+      "final_prefix": "1939年4月，日军攻占太平岛，并将其更名为长岛，纳入高雄州管理。",
+      "judgment": "符合预设停止",
+      "reason": "句末或空前文的预先标定停止例；未展示。"
+    },
+    {
+      "id": "stop-24",
+      "method": "scoring",
+      "prefix": "1939年4月，日军攻占太平岛，并将其更名为长岛，纳入高雄州管理。",
+      "selected": [],
+      "final_prefix": "1939年4月，日军攻占太平岛，并将其更名为长岛，纳入高雄州管理。",
+      "judgment": "符合预设停止",
+      "reason": "句末或空前文的预先标定停止例；未展示。"
+    },
+    {
+      "id": "stop-24",
+      "method": "generation",
+      "prefix": "1939年4月，日军攻占太平岛，并将其更名为长岛，纳入高雄州管理。",
+      "selected": [],
+      "final_prefix": "1939年4月，日军攻占太平岛，并将其更名为长岛，纳入高雄州管理。",
+      "judgment": "符合预设停止",
+      "reason": "句末或空前文的预先标定停止例；未展示。"
+    },
+    {
+      "id": "holdout-25",
+      "method": "dictionary",
+      "prefix": "统治期内，梅葛",
+      "selected": [
+        "优"
+      ],
+      "final_prefix": "统治期内，梅葛优",
+      "judgment": "需更多语境",
+      "reason": "专名“梅葛”后拼接“优”，不能仅按常见字串确认人名正确。"
+    },
+    {
+      "id": "holdout-25",
+      "method": "scoring",
+      "prefix": "统治期内，梅葛",
+      "selected": [],
+      "final_prefix": "统治期内，梅葛",
+      "judgment": "停止未形成链",
+      "reason": "保留为零步链和覆盖损失；不把存在参考答案直接等同于静默必错。"
+    },
+    {
+      "id": "holdout-25",
+      "method": "generation",
+      "prefix": "统治期内，梅葛",
+      "selected": [],
+      "final_prefix": "统治期内，梅葛",
+      "judgment": "停止未形成链",
+      "reason": "保留为零步链和覆盖损失；不把存在参考答案直接等同于静默必错。"
+    },
+    {
+      "id": "stop-25",
+      "method": "dictionary",
+      "prefix": "统治期内，梅葛处死了三位大学士；他还拥有为数众多的妻子，每个时期通常都不止一个，因此臭名远扬。",
+      "selected": [],
+      "final_prefix": "统治期内，梅葛处死了三位大学士；他还拥有为数众多的妻子，每个时期通常都不止一个，因此臭名远扬。",
+      "judgment": "符合预设停止",
+      "reason": "句末或空前文的预先标定停止例；未展示。"
+    },
+    {
+      "id": "stop-25",
+      "method": "scoring",
+      "prefix": "统治期内，梅葛处死了三位大学士；他还拥有为数众多的妻子，每个时期通常都不止一个，因此臭名远扬。",
+      "selected": [],
+      "final_prefix": "统治期内，梅葛处死了三位大学士；他还拥有为数众多的妻子，每个时期通常都不止一个，因此臭名远扬。",
+      "judgment": "符合预设停止",
+      "reason": "句末或空前文的预先标定停止例；未展示。"
+    },
+    {
+      "id": "stop-25",
+      "method": "generation",
+      "prefix": "统治期内，梅葛处死了三位大学士；他还拥有为数众多的妻子，每个时期通常都不止一个，因此臭名远扬。",
+      "selected": [],
+      "final_prefix": "统治期内，梅葛处死了三位大学士；他还拥有为数众多的妻子，每个时期通常都不止一个，因此臭名远扬。",
+      "judgment": "符合预设停止",
+      "reason": "句末或空前文的预先标定停止例；未展示。"
+    },
+    {
+      "id": "holdout-26",
+      "method": "dictionary",
+      "prefix": "但是由于丰臣",
+      "selected": [],
+      "final_prefix": "但是由于丰臣",
+      "judgment": "停止未形成链",
+      "reason": "保留为零步链和覆盖损失；不把存在参考答案直接等同于静默必错。"
+    },
+    {
+      "id": "holdout-26",
+      "method": "scoring",
+      "prefix": "但是由于丰臣",
+      "selected": [],
+      "final_prefix": "但是由于丰臣",
+      "judgment": "停止未形成链",
+      "reason": "保留为零步链和覆盖损失；不把存在参考答案直接等同于静默必错。"
+    },
+    {
+      "id": "holdout-26",
+      "method": "generation",
+      "prefix": "但是由于丰臣",
+      "selected": [
+        "田中"
+      ],
+      "final_prefix": "但是由于丰臣田中",
+      "judgment": "不合理",
+      "reason": "直接把“丰臣”续为另一姓氏“田中”，专名续接缺乏支持，需核验。"
+    },
+    {
+      "id": "stop-26",
+      "method": "dictionary",
+      "prefix": "但是由于丰臣秀吉在日本人心中的影响，人们把平民出身的政要与丰太合相比，称为“今太合”。",
+      "selected": [],
+      "final_prefix": "但是由于丰臣秀吉在日本人心中的影响，人们把平民出身的政要与丰太合相比，称为“今太合”。",
+      "judgment": "符合预设停止",
+      "reason": "句末或空前文的预先标定停止例；未展示。"
+    },
+    {
+      "id": "stop-26",
+      "method": "scoring",
+      "prefix": "但是由于丰臣秀吉在日本人心中的影响，人们把平民出身的政要与丰太合相比，称为“今太合”。",
+      "selected": [],
+      "final_prefix": "但是由于丰臣秀吉在日本人心中的影响，人们把平民出身的政要与丰太合相比，称为“今太合”。",
+      "judgment": "符合预设停止",
+      "reason": "句末或空前文的预先标定停止例；未展示。"
+    },
+    {
+      "id": "stop-26",
+      "method": "generation",
+      "prefix": "但是由于丰臣秀吉在日本人心中的影响，人们把平民出身的政要与丰太合相比，称为“今太合”。",
+      "selected": [],
+      "final_prefix": "但是由于丰臣秀吉在日本人心中的影响，人们把平民出身的政要与丰太合相比，称为“今太合”。",
+      "judgment": "符合预设停止",
+      "reason": "句末或空前文的预先标定停止例；未展示。"
+    },
+    {
+      "id": "holdout-27",
+      "method": "dictionary",
+      "prefix": "香会的历史最早可",
+      "selected": [
+        "以",
+        "用",
+        "来"
+      ],
+      "final_prefix": "香会的历史最早可以用来",
+      "judgment": "需更多语境",
+      "reason": "“可以”衔接自然，后续“用来”把历史话题引向用途，需要更多语境。"
+    },
+    {
+      "id": "holdout-27",
+      "method": "scoring",
+      "prefix": "香会的历史最早可",
+      "selected": [],
+      "final_prefix": "香会的历史最早可",
+      "judgment": "停止未形成链",
+      "reason": "保留为零步链和覆盖损失；不把存在参考答案直接等同于静默必错。"
+    },
+    {
+      "id": "holdout-27",
+      "method": "generation",
+      "prefix": "香会的历史最早可",
+      "selected": [],
+      "final_prefix": "香会的历史最早可",
+      "judgment": "停止未形成链",
+      "reason": "保留为零步链和覆盖损失；不把存在参考答案直接等同于静默必错。"
+    },
+    {
+      "id": "stop-27",
+      "method": "dictionary",
+      "prefix": "香会的历史最早可溯至明朝。",
+      "selected": [],
+      "final_prefix": "香会的历史最早可溯至明朝。",
+      "judgment": "符合预设停止",
+      "reason": "句末或空前文的预先标定停止例；未展示。"
+    },
+    {
+      "id": "stop-27",
+      "method": "scoring",
+      "prefix": "香会的历史最早可溯至明朝。",
+      "selected": [],
+      "final_prefix": "香会的历史最早可溯至明朝。",
+      "judgment": "符合预设停止",
+      "reason": "句末或空前文的预先标定停止例；未展示。"
+    },
+    {
+      "id": "stop-27",
+      "method": "generation",
+      "prefix": "香会的历史最早可溯至明朝。",
+      "selected": [],
+      "final_prefix": "香会的历史最早可溯至明朝。",
+      "judgment": "符合预设停止",
+      "reason": "句末或空前文的预先标定停止例；未展示。"
+    },
+    {
+      "id": "holdout-28",
+      "method": "dictionary",
+      "prefix": "城市地标为伊欧拉湖（LakeEola），而",
+      "selected": [
+        "且"
+      ],
+      "final_prefix": "城市地标为伊欧拉湖（LakeEola），而且",
+      "judgment": "合理",
+      "reason": "“而且”是可直接追加的连接词；仍需后续内容。"
+    },
+    {
+      "id": "holdout-28",
+      "method": "scoring",
+      "prefix": "城市地标为伊欧拉湖（LakeEola），而",
+      "selected": [
+        "其"
+      ],
+      "final_prefix": "城市地标为伊欧拉湖（LakeEola），而其",
+      "judgment": "合理",
+      "reason": "“而其”可作为下一分句开头；仍需后文。"
+    },
+    {
+      "id": "holdout-28",
+      "method": "generation",
+      "prefix": "城市地标为伊欧拉湖（LakeEola），而",
+      "selected": [
+        "湖"
+      ],
+      "final_prefix": "城市地标为伊欧拉湖（LakeEola），而湖",
+      "judgment": "需更多语境",
+      "reason": "“而湖”可以引出以湖为主语的分句，并非未命中参考就必错。"
+    },
+    {
+      "id": "stop-28",
+      "method": "dictionary",
+      "prefix": "城市地标为伊欧拉湖（LakeEola），而奥兰多市长为巴迪·戴尔（BuddyDyer）。",
+      "selected": [],
+      "final_prefix": "城市地标为伊欧拉湖（LakeEola），而奥兰多市长为巴迪·戴尔（BuddyDyer）。",
+      "judgment": "符合预设停止",
+      "reason": "句末或空前文的预先标定停止例；未展示。"
+    },
+    {
+      "id": "stop-28",
+      "method": "scoring",
+      "prefix": "城市地标为伊欧拉湖（LakeEola），而奥兰多市长为巴迪·戴尔（BuddyDyer）。",
+      "selected": [],
+      "final_prefix": "城市地标为伊欧拉湖（LakeEola），而奥兰多市长为巴迪·戴尔（BuddyDyer）。",
+      "judgment": "符合预设停止",
+      "reason": "句末或空前文的预先标定停止例；未展示。"
+    },
+    {
+      "id": "stop-28",
+      "method": "generation",
+      "prefix": "城市地标为伊欧拉湖（LakeEola），而奥兰多市长为巴迪·戴尔（BuddyDyer）。",
+      "selected": [],
+      "final_prefix": "城市地标为伊欧拉湖（LakeEola），而奥兰多市长为巴迪·戴尔（BuddyDyer）。",
+      "judgment": "符合预设停止",
+      "reason": "句末或空前文的预先标定停止例；未展示。"
+    },
+    {
+      "id": "holdout-29",
+      "method": "dictionary",
+      "prefix": "他父亲的农用",
+      "selected": [],
+      "final_prefix": "他父亲的农用",
+      "judgment": "停止未形成链",
+      "reason": "保留为零步链和覆盖损失；不把存在参考答案直接等同于静默必错。"
+    },
+    {
+      "id": "holdout-29",
+      "method": "scoring",
+      "prefix": "他父亲的农用",
+      "selected": [],
+      "final_prefix": "他父亲的农用",
+      "judgment": "停止未形成链",
+      "reason": "保留为零步链和覆盖损失；不把存在参考答案直接等同于静默必错。"
+    },
+    {
+      "id": "holdout-29",
+      "method": "generation",
+      "prefix": "他父亲的农用",
+      "selected": [],
+      "final_prefix": "他父亲的农用",
+      "judgment": "停止未形成链",
+      "reason": "保留为零步链和覆盖损失；不把存在参考答案直接等同于静默必错。"
+    },
+    {
+      "id": "stop-29",
+      "method": "dictionary",
+      "prefix": "他父亲的农用机械厂也在这一时期倒闭，辛德勒为此失业了一年。",
+      "selected": [],
+      "final_prefix": "他父亲的农用机械厂也在这一时期倒闭，辛德勒为此失业了一年。",
+      "judgment": "符合预设停止",
+      "reason": "句末或空前文的预先标定停止例；未展示。"
+    },
+    {
+      "id": "stop-29",
+      "method": "scoring",
+      "prefix": "他父亲的农用机械厂也在这一时期倒闭，辛德勒为此失业了一年。",
+      "selected": [],
+      "final_prefix": "他父亲的农用机械厂也在这一时期倒闭，辛德勒为此失业了一年。",
+      "judgment": "符合预设停止",
+      "reason": "句末或空前文的预先标定停止例；未展示。"
+    },
+    {
+      "id": "stop-29",
+      "method": "generation",
+      "prefix": "他父亲的农用机械厂也在这一时期倒闭，辛德勒为此失业了一年。",
+      "selected": [],
+      "final_prefix": "他父亲的农用机械厂也在这一时期倒闭，辛德勒为此失业了一年。",
+      "judgment": "符合预设停止",
+      "reason": "句末或空前文的预先标定停止例；未展示。"
+    },
+    {
+      "id": "holdout-30",
+      "method": "dictionary",
+      "prefix": "最古老的是安德里亚·皮",
+      "selected": [
+        "肤",
+        "病"
+      ],
+      "final_prefix": "最古老的是安德里亚·皮肤病",
+      "judgment": "不合理",
+      "reason": "把人名中的“皮”接成“皮肤病”，破坏专名边界。"
+    },
+    {
+      "id": "holdout-30",
+      "method": "scoring",
+      "prefix": "最古老的是安德里亚·皮",
+      "selected": [],
+      "final_prefix": "最古老的是安德里亚·皮",
+      "judgment": "停止未形成链",
+      "reason": "保留为零步链和覆盖损失；不把存在参考答案直接等同于静默必错。"
+    },
+    {
+      "id": "holdout-30",
+      "method": "generation",
+      "prefix": "最古老的是安德里亚·皮",
+      "selected": [
+        "安德里亚"
+      ],
+      "final_prefix": "最古老的是安德里亚·皮安德里亚",
+      "judgment": "不合理",
+      "reason": "重复较早的“安德里亚”，没有补完被截断的人名。"
+    },
+    {
+      "id": "stop-30",
+      "method": "dictionary",
+      "prefix": "最古老的是安德里亚·皮萨诺的作品，作于1330年到1336年。",
+      "selected": [],
+      "final_prefix": "最古老的是安德里亚·皮萨诺的作品，作于1330年到1336年。",
+      "judgment": "符合预设停止",
+      "reason": "句末或空前文的预先标定停止例；未展示。"
+    },
+    {
+      "id": "stop-30",
+      "method": "scoring",
+      "prefix": "最古老的是安德里亚·皮萨诺的作品，作于1330年到1336年。",
+      "selected": [],
+      "final_prefix": "最古老的是安德里亚·皮萨诺的作品，作于1330年到1336年。",
+      "judgment": "符合预设停止",
+      "reason": "句末或空前文的预先标定停止例；未展示。"
+    },
+    {
+      "id": "stop-30",
+      "method": "generation",
+      "prefix": "最古老的是安德里亚·皮萨诺的作品，作于1330年到1336年。",
+      "selected": [],
+      "final_prefix": "最古老的是安德里亚·皮萨诺的作品，作于1330年到1336年。",
+      "judgment": "符合预设停止",
+      "reason": "句末或空前文的预先标定停止例；未展示。"
+    },
+    {
+      "id": "holdout-31",
+      "method": "dictionary",
+      "prefix": "而岩壁及石矿",
+      "selected": [
+        "工"
+      ],
+      "final_prefix": "而岩壁及石矿工",
+      "judgment": "需更多语境",
+      "reason": "“岩壁及石矿工”把地物与人员并列，语义类别变化需要上下文支持。"
+    },
+    {
+      "id": "holdout-31",
+      "method": "scoring",
+      "prefix": "而岩壁及石矿",
+      "selected": [],
+      "final_prefix": "而岩壁及石矿",
+      "judgment": "停止未形成链",
+      "reason": "保留为零步链和覆盖损失；不把存在参考答案直接等同于静默必错。"
+    },
+    {
+      "id": "holdout-31",
+      "method": "generation",
+      "prefix": "而岩壁及石矿",
+      "selected": [
+        "山"
+      ],
+      "final_prefix": "而岩壁及石矿山",
+      "judgment": "需更多语境",
+      "reason": "“石矿山”可能指采石矿山，但搭配生硬；不能以单一参考判死。"
+    },
+    {
+      "id": "stop-31",
+      "method": "dictionary",
+      "prefix": "而岩壁及石矿公园的设计及工程将会考虑采纳早前在公众参与活动中举行概念设计比赛的参赛作品，由康乐及文化事务署所获得的拨款进行。",
+      "selected": [],
+      "final_prefix": "而岩壁及石矿公园的设计及工程将会考虑采纳早前在公众参与活动中举行概念设计比赛的参赛作品，由康乐及文化事务署所获得的拨款进行。",
+      "judgment": "符合预设停止",
+      "reason": "句末或空前文的预先标定停止例；未展示。"
+    },
+    {
+      "id": "stop-31",
+      "method": "scoring",
+      "prefix": "而岩壁及石矿公园的设计及工程将会考虑采纳早前在公众参与活动中举行概念设计比赛的参赛作品，由康乐及文化事务署所获得的拨款进行。",
+      "selected": [],
+      "final_prefix": "而岩壁及石矿公园的设计及工程将会考虑采纳早前在公众参与活动中举行概念设计比赛的参赛作品，由康乐及文化事务署所获得的拨款进行。",
+      "judgment": "符合预设停止",
+      "reason": "句末或空前文的预先标定停止例；未展示。"
+    },
+    {
+      "id": "stop-31",
+      "method": "generation",
+      "prefix": "而岩壁及石矿公园的设计及工程将会考虑采纳早前在公众参与活动中举行概念设计比赛的参赛作品，由康乐及文化事务署所获得的拨款进行。",
+      "selected": [],
+      "final_prefix": "而岩壁及石矿公园的设计及工程将会考虑采纳早前在公众参与活动中举行概念设计比赛的参赛作品，由康乐及文化事务署所获得的拨款进行。",
+      "judgment": "符合预设停止",
+      "reason": "句末或空前文的预先标定停止例；未展示。"
+    },
+    {
+      "id": "holdout-32",
+      "method": "dictionary",
+      "prefix": "我们已经提及了",
+      "selected": [
+        "解",
+        "一下"
+      ],
+      "final_prefix": "我们已经提及了解一下",
+      "judgment": "不合理",
+      "reason": "将“提及了”接成“提及了解一下”，把完成体“了”误作“了解”的词首。"
+    },
+    {
+      "id": "holdout-32",
+      "method": "scoring",
+      "prefix": "我们已经提及了",
+      "selected": [],
+      "final_prefix": "我们已经提及了",
+      "judgment": "停止未形成链",
+      "reason": "保留为零步链和覆盖损失；不把存在参考答案直接等同于静默必错。"
+    },
+    {
+      "id": "holdout-32",
+      "method": "generation",
+      "prefix": "我们已经提及了",
+      "selected": [],
+      "final_prefix": "我们已经提及了",
+      "judgment": "停止未形成链",
+      "reason": "保留为零步链和覆盖损失；不把存在参考答案直接等同于静默必错。"
+    },
+    {
+      "id": "holdout-33",
+      "method": "dictionary",
+      "prefix": "车站建于1928",
+      "selected": [],
+      "final_prefix": "车站建于1928",
+      "judgment": "停止未形成链",
+      "reason": "保留为零步链和覆盖损失；不把存在参考答案直接等同于静默必错。"
+    },
+    {
+      "id": "holdout-33",
+      "method": "scoring",
+      "prefix": "车站建于1928",
+      "selected": [],
+      "final_prefix": "车站建于1928",
+      "judgment": "停止未形成链",
+      "reason": "保留为零步链和覆盖损失；不把存在参考答案直接等同于静默必错。"
+    },
+    {
+      "id": "holdout-33",
+      "method": "generation",
+      "prefix": "车站建于1928",
+      "selected": [],
+      "final_prefix": "车站建于1928",
+      "judgment": "停止未形成链",
+      "reason": "保留为零步链和覆盖损失；不把存在参考答案直接等同于静默必错。"
+    },
+    {
+      "id": "holdout-34",
+      "method": "dictionary",
+      "prefix": "面对南下的德国",
+      "selected": [
+        "人"
+      ],
+      "final_prefix": "面对南下的德国人",
+      "judgment": "合理",
+      "reason": "“面对南下的德国人”在语法上自然；并不确认原文所指对象。"
+    },
+    {
+      "id": "holdout-34",
+      "method": "scoring",
+      "prefix": "面对南下的德国",
+      "selected": [],
+      "final_prefix": "面对南下的德国",
+      "judgment": "停止未形成链",
+      "reason": "保留为零步链和覆盖损失；不把存在参考答案直接等同于静默必错。"
+    },
+    {
+      "id": "holdout-34",
+      "method": "generation",
+      "prefix": "面对南下的德国",
+      "selected": [],
+      "final_prefix": "面对南下的德国",
+      "judgment": "停止未形成链",
+      "reason": "保留为零步链和覆盖损失；不把存在参考答案直接等同于静默必错。"
+    },
+    {
+      "id": "holdout-35",
+      "method": "dictionary",
+      "prefix": "希拉蕊的得票率",
+      "selected": [
+        "先"
+      ],
+      "final_prefix": "希拉蕊的得票率先",
+      "judgment": "不合理",
+      "reason": "“得票率先”把名词“得票率”的末字当成“率先”的开头。"
+    },
+    {
+      "id": "holdout-35",
+      "method": "scoring",
+      "prefix": "希拉蕊的得票率",
+      "selected": [
+        "高"
+      ],
+      "final_prefix": "希拉蕊的得票率高",
+      "judgment": "合理",
+      "reason": "“得票率高”搭配自然。"
+    },
+    {
+      "id": "holdout-35",
+      "method": "generation",
+      "prefix": "希拉蕊的得票率",
+      "selected": [],
+      "final_prefix": "希拉蕊的得票率",
+      "judgment": "停止未形成链",
+      "reason": "保留为零步链和覆盖损失；不把存在参考答案直接等同于静默必错。"
+    },
+    {
+      "id": "holdout-36",
+      "method": "dictionary",
+      "prefix": "虽然她从来没有再",
+      "selected": [
+        "次"
+      ],
+      "final_prefix": "虽然她从来没有再次",
+      "judgment": "合理",
+      "reason": "“没有再次”可继续接动作，不必与唯一参考相同。"
+    },
+    {
+      "id": "holdout-36",
+      "method": "scoring",
+      "prefix": "虽然她从来没有再",
+      "selected": [
+        "接再厉"
+      ],
+      "final_prefix": "虽然她从来没有再接再厉",
+      "judgment": "需更多语境",
+      "reason": "“没有再接再厉”可成立，但把普通“再次”语境改成评价努力，需要上下文。"
+    },
+    {
+      "id": "holdout-36",
+      "method": "generation",
+      "prefix": "虽然她从来没有再",
+      "selected": [],
+      "final_prefix": "虽然她从来没有再",
+      "judgment": "停止未形成链",
+      "reason": "保留为零步链和覆盖损失；不把存在参考答案直接等同于静默必错。"
+    },
+    {
+      "id": "holdout-37",
+      "method": "dictionary",
+      "prefix": "夏绿蒂从1839",
+      "selected": [],
+      "final_prefix": "夏绿蒂从1839",
+      "judgment": "停止未形成链",
+      "reason": "保留为零步链和覆盖损失；不把存在参考答案直接等同于静默必错。"
+    },
+    {
+      "id": "holdout-37",
+      "method": "scoring",
+      "prefix": "夏绿蒂从1839",
+      "selected": [],
+      "final_prefix": "夏绿蒂从1839",
+      "judgment": "停止未形成链",
+      "reason": "保留为零步链和覆盖损失；不把存在参考答案直接等同于静默必错。"
+    },
+    {
+      "id": "holdout-37",
+      "method": "generation",
+      "prefix": "夏绿蒂从1839",
+      "selected": [],
+      "final_prefix": "夏绿蒂从1839",
+      "judgment": "停止未形成链",
+      "reason": "保留为零步链和覆盖损失；不把存在参考答案直接等同于静默必错。"
+    },
+    {
+      "id": "holdout-38",
+      "method": "dictionary",
+      "prefix": "两国在1897",
+      "selected": [],
+      "final_prefix": "两国在1897",
+      "judgment": "停止未形成链",
+      "reason": "保留为零步链和覆盖损失；不把存在参考答案直接等同于静默必错。"
+    },
+    {
+      "id": "holdout-38",
+      "method": "scoring",
+      "prefix": "两国在1897",
+      "selected": [],
+      "final_prefix": "两国在1897",
+      "judgment": "停止未形成链",
+      "reason": "保留为零步链和覆盖损失；不把存在参考答案直接等同于静默必错。"
+    },
+    {
+      "id": "holdout-38",
+      "method": "generation",
+      "prefix": "两国在1897",
+      "selected": [
+        "年"
+      ],
+      "final_prefix": "两国在1897年",
+      "judgment": "合理",
+      "reason": "“两国在1897年”是自然的年份表达。"
+    },
+    {
+      "id": "holdout-39",
+      "method": "dictionary",
+      "prefix": "翅膀底色是锈红色，翅",
+      "selected": [
+        "膀"
+      ],
+      "final_prefix": "翅膀底色是锈红色，翅膀",
+      "judgment": "合理",
+      "reason": "补齐“翅膀”的剩余片段。"
+    },
+    {
+      "id": "holdout-39",
+      "method": "scoring",
+      "prefix": "翅膀底色是锈红色，翅",
+      "selected": [],
+      "final_prefix": "翅膀底色是锈红色，翅",
+      "judgment": "停止未形成链",
+      "reason": "保留为零步链和覆盖损失；不把存在参考答案直接等同于静默必错。"
+    },
+    {
+      "id": "holdout-39",
+      "method": "generation",
+      "prefix": "翅膀底色是锈红色，翅",
+      "selected": [],
+      "final_prefix": "翅膀底色是锈红色，翅",
+      "judgment": "停止未形成链",
+      "reason": "保留为零步链和覆盖损失；不把存在参考答案直接等同于静默必错。"
+    },
+    {
+      "id": "holdout-40",
+      "method": "dictionary",
+      "prefix": "查尔斯·克拉克在其同年",
+      "selected": [],
+      "final_prefix": "查尔斯·克拉克在其同年",
+      "judgment": "停止未形成链",
+      "reason": "保留为零步链和覆盖损失；不把存在参考答案直接等同于静默必错。"
+    },
+    {
+      "id": "holdout-40",
+      "method": "scoring",
+      "prefix": "查尔斯·克拉克在其同年",
+      "selected": [],
+      "final_prefix": "查尔斯·克拉克在其同年",
+      "judgment": "停止未形成链",
+      "reason": "保留为零步链和覆盖损失；不把存在参考答案直接等同于静默必错。"
+    },
+    {
+      "id": "holdout-40",
+      "method": "generation",
+      "prefix": "查尔斯·克拉克在其同年",
+      "selected": [
+        "查尔斯"
+      ],
+      "final_prefix": "查尔斯·克拉克在其同年查尔斯",
+      "judgment": "不合理",
+      "reason": "在“其同年”后再次拼接前文姓名，结构和指代不自然。"
+    },
+    {
+      "id": "holdout-41",
+      "method": "dictionary",
+      "prefix": "宁波效实中学是一",
+      "selected": [
+        "种"
+      ],
+      "final_prefix": "宁波效实中学是一种",
+      "judgment": "需更多语境",
+      "reason": "“中学是一种”需要类别名词；具名学校的分类说法较生硬。"
+    },
+    {
+      "id": "holdout-41",
+      "method": "scoring",
+      "prefix": "宁波效实中学是一",
+      "selected": [
+        "本"
+      ],
+      "final_prefix": "宁波效实中学是一本",
+      "judgment": "不合理",
+      "reason": "“中学是一本”把学校接成书籍量词，当前语境缺乏支持。"
+    },
+    {
+      "id": "holdout-41",
+      "method": "generation",
+      "prefix": "宁波效实中学是一",
+      "selected": [],
+      "final_prefix": "宁波效实中学是一",
+      "judgment": "停止未形成链",
+      "reason": "保留为零步链和覆盖损失；不把存在参考答案直接等同于静默必错。"
+    },
+    {
+      "id": "holdout-42",
+      "method": "dictionary",
+      "prefix": "夸克有着多种不",
+      "selected": [
+        "同"
+      ],
+      "final_prefix": "夸克有着多种不同",
+      "judgment": "合理",
+      "reason": "补齐“不同”，与前文“多种”相容。"
+    },
+    {
+      "id": "holdout-42",
+      "method": "scoring",
+      "prefix": "夸克有着多种不",
+      "selected": [],
+      "final_prefix": "夸克有着多种不",
+      "judgment": "停止未形成链",
+      "reason": "保留为零步链和覆盖损失；不把存在参考答案直接等同于静默必错。"
+    },
+    {
+      "id": "holdout-42",
+      "method": "generation",
+      "prefix": "夸克有着多种不",
+      "selected": [],
+      "final_prefix": "夸克有着多种不",
+      "judgment": "停止未形成链",
+      "reason": "保留为零步链和覆盖损失；不把存在参考答案直接等同于静默必错。"
+    },
+    {
+      "id": "holdout-43",
+      "method": "dictionary",
+      "prefix": "大佛口亦为湾仔",
+      "selected": [
+        "细",
+        "看"
+      ],
+      "final_prefix": "大佛口亦为湾仔细看",
+      "judgment": "不合理",
+      "reason": "“湾仔”地名被跨界拼成“湾仔细看”。"
+    },
+    {
+      "id": "holdout-43",
+      "method": "scoring",
+      "prefix": "大佛口亦为湾仔",
+      "selected": [],
+      "final_prefix": "大佛口亦为湾仔",
+      "judgment": "停止未形成链",
+      "reason": "保留为零步链和覆盖损失；不把存在参考答案直接等同于静默必错。"
+    },
+    {
+      "id": "holdout-43",
+      "method": "generation",
+      "prefix": "大佛口亦为湾仔",
+      "selected": [
+        "大佛"
+      ],
+      "final_prefix": "大佛口亦为湾仔大佛",
+      "judgment": "不合理",
+      "reason": "回到前文“大佛”，专名重复，不能可靠补全当前地名关系。"
+    },
+    {
+      "id": "holdout-44",
+      "method": "dictionary",
+      "prefix": "身为颓废的一",
+      "selected": [
+        "种"
+      ],
+      "final_prefix": "身为颓废的一种",
+      "judgment": "需更多语境",
+      "reason": "“身为颓废的一种”指代和类别未明，不能认定自然。"
+    },
+    {
+      "id": "holdout-44",
+      "method": "scoring",
+      "prefix": "身为颓废的一",
+      "selected": [
+        "代",
+        "人"
+      ],
+      "final_prefix": "身为颓废的一代人",
+      "judgment": "合理",
+      "reason": "“身为颓废的一代人”是可读的连续短语，不据此确认原文事实。"
+    },
+    {
+      "id": "holdout-44",
+      "method": "generation",
+      "prefix": "身为颓废的一",
+      "selected": [],
+      "final_prefix": "身为颓废的一",
+      "judgment": "停止未形成链",
+      "reason": "保留为零步链和覆盖损失；不把存在参考答案直接等同于静默必错。"
+    },
+    {
+      "id": "holdout-45",
+      "method": "dictionary",
+      "prefix": "通过将原型的不",
+      "selected": [
+        "是",
+        "很",
+        "好"
+      ],
+      "final_prefix": "通过将原型的不是很好",
+      "judgment": "不合理",
+      "reason": "“通过将原型的不是很好”缺少被处理对象，跨词拼接破坏结构。"
+    },
+    {
+      "id": "holdout-45",
+      "method": "scoring",
+      "prefix": "通过将原型的不",
+      "selected": [],
+      "final_prefix": "通过将原型的不",
+      "judgment": "停止未形成链",
+      "reason": "保留为零步链和覆盖损失；不把存在参考答案直接等同于静默必错。"
+    },
+    {
+      "id": "holdout-45",
+      "method": "generation",
+      "prefix": "通过将原型的不",
+      "selected": [],
+      "final_prefix": "通过将原型的不",
+      "judgment": "停止未形成链",
+      "reason": "保留为零步链和覆盖损失；不把存在参考答案直接等同于静默必错。"
+    },
+    {
+      "id": "holdout-46",
+      "method": "dictionary",
+      "prefix": "雷妮拉的母亲",
+      "selected": [
+        "节"
+      ],
+      "final_prefix": "雷妮拉的母亲节",
+      "judgment": "需更多语境",
+      "reason": "“母亲节”可构成另一话题，但前文没有节日语境，不能确认替代续接。"
+    },
+    {
+      "id": "holdout-46",
+      "method": "scoring",
+      "prefix": "雷妮拉的母亲",
+      "selected": [
+        "节"
+      ],
+      "final_prefix": "雷妮拉的母亲节",
+      "judgment": "需更多语境",
+      "reason": "“母亲节”转换话题，缺少节日语境支持。"
+    },
+    {
+      "id": "holdout-46",
+      "method": "generation",
+      "prefix": "雷妮拉的母亲",
+      "selected": [],
+      "final_prefix": "雷妮拉的母亲",
+      "judgment": "停止未形成链",
+      "reason": "保留为零步链和覆盖损失；不把存在参考答案直接等同于静默必错。"
+    },
+    {
+      "id": "holdout-47",
+      "method": "dictionary",
+      "prefix": "女真语最初使用",
+      "selected": [
+        "者"
+      ],
+      "final_prefix": "女真语最初使用者",
+      "judgment": "需更多语境",
+      "reason": "“女真语最初使用者”可读作名词短语，需要后文确认句法转向。"
+    },
+    {
+      "id": "holdout-47",
+      "method": "scoring",
+      "prefix": "女真语最初使用",
+      "selected": [
+        "时间"
+      ],
+      "final_prefix": "女真语最初使用时间",
+      "judgment": "需更多语境",
+      "reason": "“女真语最初使用时间”可读作时间话题，需要后文确认。"
+    },
+    {
+      "id": "holdout-47",
+      "method": "generation",
+      "prefix": "女真语最初使用",
+      "selected": [],
+      "final_prefix": "女真语最初使用",
+      "judgment": "停止未形成链",
+      "reason": "保留为零步链和覆盖损失；不把存在参考答案直接等同于静默必错。"
+    },
+    {
+      "id": "holdout-48",
+      "method": "dictionary",
+      "prefix": "孔恩瀑布由两部",
+      "selected": [
+        "分"
+      ],
+      "final_prefix": "孔恩瀑布由两部分",
+      "judgment": "合理",
+      "reason": "补齐“两部分”，与瀑布由若干部分组成的句法相容。"
+    },
+    {
+      "id": "holdout-48",
+      "method": "scoring",
+      "prefix": "孔恩瀑布由两部",
+      "selected": [
+        "分"
+      ],
+      "final_prefix": "孔恩瀑布由两部分",
+      "judgment": "合理",
+      "reason": "补齐“两部分”。"
+    },
+    {
+      "id": "holdout-48",
+      "method": "generation",
+      "prefix": "孔恩瀑布由两部",
+      "selected": [],
+      "final_prefix": "孔恩瀑布由两部",
+      "judgment": "停止未形成链",
+      "reason": "保留为零步链和覆盖损失；不把存在参考答案直接等同于静默必错。"
+    },
+    {
+      "id": "holdout-49",
+      "method": "dictionary",
+      "prefix": "它在位于亨茨维尔的",
+      "selected": [
+        "人"
+      ],
+      "final_prefix": "它在位于亨茨维尔的人",
+      "judgment": "需更多语境",
+      "reason": "“位于某地的人”尚可成短语，但前文“它在”后的角色衔接较生硬。"
+    },
+    {
+      "id": "holdout-49",
+      "method": "scoring",
+      "prefix": "它在位于亨茨维尔的",
+      "selected": [],
+      "final_prefix": "它在位于亨茨维尔的",
+      "judgment": "停止未形成链",
+      "reason": "保留为零步链和覆盖损失；不把存在参考答案直接等同于静默必错。"
+    },
+    {
+      "id": "holdout-49",
+      "method": "generation",
+      "prefix": "它在位于亨茨维尔的",
+      "selected": [
+        "亨茨维尔",
+        "工厂",
+        "亨茨维尔"
+      ],
+      "final_prefix": "它在位于亨茨维尔的亨茨维尔工厂亨茨维尔",
+      "judgment": "不合理",
+      "reason": "第一步已重复“亨茨维尔”，第三步再次重复；中间插入“工厂”未修复回环。"
+    },
+    {
+      "id": "holdout-50",
+      "method": "dictionary",
+      "prefix": "1932年（",
+      "selected": [],
+      "final_prefix": "1932年（",
+      "judgment": "停止未形成链",
+      "reason": "保留为零步链和覆盖损失；不把存在参考答案直接等同于静默必错。"
+    },
+    {
+      "id": "holdout-50",
+      "method": "scoring",
+      "prefix": "1932年（",
+      "selected": [],
+      "final_prefix": "1932年（",
+      "judgment": "停止未形成链",
+      "reason": "保留为零步链和覆盖损失；不把存在参考答案直接等同于静默必错。"
+    },
+    {
+      "id": "holdout-50",
+      "method": "generation",
+      "prefix": "1932年（",
+      "selected": [],
+      "final_prefix": "1932年（",
+      "judgment": "停止未形成链",
+      "reason": "保留为零步链和覆盖损失；不把存在参考答案直接等同于静默必错。"
+    },
+    {
+      "id": "holdout-51",
+      "method": "dictionary",
+      "prefix": "此作也被改编",
+      "selected": [
+        "自"
+      ],
+      "final_prefix": "此作也被改编自",
+      "judgment": "需更多语境",
+      "reason": "“被改编自”改变了被动句的方向，通常需区分改编来源与改编形式。"
+    },
+    {
+      "id": "holdout-51",
+      "method": "scoring",
+      "prefix": "此作也被改编",
+      "selected": [],
+      "final_prefix": "此作也被改编",
+      "judgment": "停止未形成链",
+      "reason": "保留为零步链和覆盖损失；不把存在参考答案直接等同于静默必错。"
+    },
+    {
+      "id": "holdout-51",
+      "method": "generation",
+      "prefix": "此作也被改编",
+      "selected": [],
+      "final_prefix": "此作也被改编",
+      "judgment": "停止未形成链",
+      "reason": "保留为零步链和覆盖损失；不把存在参考答案直接等同于静默必错。"
+    },
+    {
+      "id": "holdout-52",
+      "method": "dictionary",
+      "prefix": "抗战胜利后，",
+      "selected": [],
+      "final_prefix": "抗战胜利后，",
+      "judgment": "停止未形成链",
+      "reason": "保留为零步链和覆盖损失；不把存在参考答案直接等同于静默必错。"
+    },
+    {
+      "id": "holdout-52",
+      "method": "scoring",
+      "prefix": "抗战胜利后，",
+      "selected": [],
+      "final_prefix": "抗战胜利后，",
+      "judgment": "停止未形成链",
+      "reason": "保留为零步链和覆盖损失；不把存在参考答案直接等同于静默必错。"
+    },
+    {
+      "id": "holdout-52",
+      "method": "generation",
+      "prefix": "抗战胜利后，",
+      "selected": [],
+      "final_prefix": "抗战胜利后，",
+      "judgment": "停止未形成链",
+      "reason": "保留为零步链和覆盖损失；不把存在参考答案直接等同于静默必错。"
+    },
+    {
+      "id": "holdout-53",
+      "method": "dictionary",
+      "prefix": "它主要分布在",
+      "selected": [
+        "线",
+        "观看"
+      ],
+      "final_prefix": "它主要分布在线观看",
+      "judgment": "不合理",
+      "reason": "第二步“观看”令“分布在”滑向“在线观看”，破坏原有谓宾结构。"
+    },
+    {
+      "id": "holdout-53",
+      "method": "scoring",
+      "prefix": "它主要分布在",
+      "selected": [],
+      "final_prefix": "它主要分布在",
+      "judgment": "停止未形成链",
+      "reason": "保留为零步链和覆盖损失；不把存在参考答案直接等同于静默必错。"
+    },
+    {
+      "id": "holdout-53",
+      "method": "generation",
+      "prefix": "它主要分布在",
+      "selected": [],
+      "final_prefix": "它主要分布在",
+      "judgment": "停止未形成链",
+      "reason": "保留为零步链和覆盖损失；不把存在参考答案直接等同于静默必错。"
+    },
+    {
+      "id": "holdout-54",
+      "method": "dictionary",
+      "prefix": "每段介绍两个无",
+      "selected": [
+        "法",
+        "使用"
+      ],
+      "final_prefix": "每段介绍两个无法使用",
+      "judgment": "需更多语境",
+      "reason": "“两个无法使用”可继续接对象名词，当前链未完成名词短语。"
+    },
+    {
+      "id": "holdout-54",
+      "method": "scoring",
+      "prefix": "每段介绍两个无",
+      "selected": [],
+      "final_prefix": "每段介绍两个无",
+      "judgment": "停止未形成链",
+      "reason": "保留为零步链和覆盖损失；不把存在参考答案直接等同于静默必错。"
+    },
+    {
+      "id": "holdout-54",
+      "method": "generation",
+      "prefix": "每段介绍两个无",
+      "selected": [
+        "内容"
+      ],
+      "final_prefix": "每段介绍两个无内容",
+      "judgment": "需更多语境",
+      "reason": "“两个无内容”可能继续接对象名词，当前不完整，不能据此确认语义正确。"
+    },
+    {
+      "id": "holdout-55",
+      "method": "dictionary",
+      "prefix": "宁武县在中国",
+      "selected": [
+        "人",
+        "民"
+      ],
+      "final_prefix": "宁武县在中国人民",
+      "judgment": "需更多语境",
+      "reason": "“中国人民”可能引向群体视角，不能据当前地名片段确认这种转向。"
+    },
+    {
+      "id": "holdout-55",
+      "method": "scoring",
+      "prefix": "宁武县在中国",
+      "selected": [],
+      "final_prefix": "宁武县在中国",
+      "judgment": "停止未形成链",
+      "reason": "保留为零步链和覆盖损失；不把存在参考答案直接等同于静默必错。"
+    },
+    {
+      "id": "holdout-55",
+      "method": "generation",
+      "prefix": "宁武县在中国",
+      "selected": [],
+      "final_prefix": "宁武县在中国",
+      "judgment": "停止未形成链",
+      "reason": "保留为零步链和覆盖损失；不把存在参考答案直接等同于静默必错。"
+    },
+    {
+      "id": "empty",
+      "method": "dictionary",
+      "prefix": "",
+      "selected": [],
+      "final_prefix": "",
+      "judgment": "符合预设停止",
+      "reason": "句末或空前文的预先标定停止例；未展示。"
+    },
+    {
+      "id": "empty",
+      "method": "scoring",
+      "prefix": "",
+      "selected": [],
+      "final_prefix": "",
+      "judgment": "符合预设停止",
+      "reason": "句末或空前文的预先标定停止例；未展示。"
+    },
+    {
+      "id": "empty",
+      "method": "generation",
+      "prefix": "",
+      "selected": [],
+      "final_prefix": "",
+      "judgment": "符合预设停止",
+      "reason": "句末或空前文的预先标定停止例；未展示。"
+    }
+  ],
+  "all_nonempty_generation_candidates": [
+    {
+      "id": "holdout-26",
+      "prefix": "但是由于丰臣",
+      "generated": [
+        "田中"
+      ],
+      "note": "田中：专名拼接缺乏支持。"
+    },
+    {
+      "id": "holdout-28",
+      "prefix": "城市地标为伊欧拉湖（LakeEola），而",
+      "generated": [
+        "湖"
+      ],
+      "note": "湖：可能引出新分句，需更多语境。"
+    },
+    {
+      "id": "holdout-30",
+      "prefix": "最古老的是安德里亚·皮",
+      "generated": [
+        "安德里亚"
+      ],
+      "note": "安德里亚：重复较早前文，破坏截断人名。"
+    },
+    {
+      "id": "holdout-31",
+      "prefix": "而岩壁及石矿",
+      "generated": [
+        "山",
+        "石"
+      ],
+      "note": "山：可能但生硬；石：形成“石矿石”，存在冗余或词边界问题。"
+    },
+    {
+      "id": "holdout-38",
+      "prefix": "两国在1897",
+      "generated": [
+        "年",
+        "月",
+        "日"
+      ],
+      "note": "年：自然年份；月/日：1897 作为月或日的常规日期单位不自然。"
+    },
+    {
+      "id": "holdout-40",
+      "prefix": "查尔斯·克拉克在其同年",
+      "generated": [
+        "查尔斯",
+        "克拉克"
+      ],
+      "note": "查尔斯/克拉克：重复前文姓名，并未自然补全“其同年”。"
+    },
+    {
+      "id": "holdout-43",
+      "prefix": "大佛口亦为湾仔",
+      "generated": [
+        "大佛"
+      ],
+      "note": "大佛：重复名词，当前专名关系未获支持。"
+    },
+    {
+      "id": "holdout-49",
+      "prefix": "它在位于亨茨维尔的",
+      "generated": [
+        "亨茨维尔"
+      ],
+      "note": "亨茨维尔：重复前文地点，后续链继续回环。"
+    },
+    {
+      "id": "holdout-54",
+      "prefix": "每段介绍两个无",
+      "generated": [
+        "内容",
+        "链接"
+      ],
+      "note": "内容/链接：可作为“无…”修饰片段，但仍需对象名词和更多语境。"
+    }
+  ]
+}

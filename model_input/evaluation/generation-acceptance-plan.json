@@ -1,0 +1,38 @@
+{
+  "version": 1,
+  "model_sha256": "74a4da8c9fdbcd15bd1f6d01d621410d31c6fc00986f5eb687824e7b93d7a9db",
+  "policy_sha256": "32e1d45cdf10083ac2464066599f8b84be652295f5b307c9b8301c0a9e4812b7",
+  "scoring_gate": {
+    "minimum_score": -6.0,
+    "minimum_margin": 1.0,
+    "selection": "maximize dev reference hits minus non-reference displays; tie: hits, stricter gate",
+    "grid": {
+      "minimum_score": [
+        -8,
+        -6,
+        -4,
+        -3,
+        -2,
+        -1
+      ],
+      "minimum_margin": [
+        0,
+        0.5,
+        1
+      ]
+    }
+  },
+  "source_selection": {
+    "offset": 24,
+    "count": 32,
+    "order": "full sentence SHA-256 ascending",
+    "source": "pinned UD Chinese GSDSimp test corpus"
+  },
+  "edits": "every fourth positive externally replaces the next source prefix with this prefix",
+  "chains": "all seeds including negatives, all three methods, first candidate, at most three acknowledged append steps within 1000 ms per step; include zero-length and failed chains",
+  "budget_ms": 1000,
+  "quality_acceptance": "reproducible paired metrics and explicit unsuitable conclusion are acceptable; no requirement to improve accuracy or hide stopped chains",
+  "review": "blind candidate/chain sheets, two independent human reviewers and third-person adjudication protocol; assistant annotations are labeled separately and never counted as human votes",
+  "freeze_note": "Original Q4_K_M/v1 prompt, grammar, greedy decoding and confidence gate remain frozen. Compact-JSON and Q4_0 experiments were rejected using authored development probes only. JSON framing speculation was rejected by output-equivalence testing and removed. Final runtime uses only public prompt preparation and exact ranked grammar filtering. No inference has yet been run on the offset-24 holdout.",
+  "dataset_sha256": "691fa008487cd7947240d48ab6230516c06397d9d38f06bf8743de94c98bf2d9"
+}

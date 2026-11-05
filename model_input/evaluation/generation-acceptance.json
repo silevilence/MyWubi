@@ -1,0 +1,745 @@
+{
+  "source_url": "https://raw.githubusercontent.com/UniversalDependencies/UD_Chinese-GSDSimp/4231dfd59866fa5999ad4a6bc1fdecd7985b3b59/",
+  "source_hashes": {
+    "README.md": "02287bdf80282151d8ca7ef3c3f7a3c3b98609f7266f145e3e3dd0a05693abd3",
+    "LICENSE.txt": "899b1804a12ebc090b96339614eede1b64b686721b650a71430b55b5235f7f79",
+    "zh_gsdsimp-ud-test.conllu": "3af8046a6f32477b4d5cf3dd06bbf38682a380fe77aade3f68de97e51ab94900"
+  },
+  "attribution": "UD Chinese GSDSimp: Peng Qi, Koichi Yasuoka; converted from UD Chinese GSD, wiki genre. CC BY-SA 4.0. Original underlying wiki rights remain with their authors.",
+  "split_rule": "Entire external corpus source is holdout, none used for prompt or threshold tuning. Deduplicated full sentences; deterministic SHA-256 order. Authored development examples are a separate source.",
+  "exclusions": {
+    "too_short_or_long": 0,
+    "no_bounded_content_word": 1,
+    "duplicate_sentence": 0
+  },
+  "eligible_sentences": 499,
+  "selected_sentences": 32,
+  "selection_offset": 24,
+  "not_selected": 467,
+  "samples": [
+    {
+      "id": "holdout-24",
+      "split": "holdout",
+      "source": {
+        "repository": "UniversalDependencies/UD_Chinese-GSDSimp",
+        "revision": "4231dfd59866fa5999ad4a6bc1fdecd7985b3b59",
+        "file": "zh_gsdsimp-ud-test.conllu",
+        "sent_id": "test-s275",
+        "sentence_sha256": "09d52cddea7e312cef8b863c17e96f07f38137693e1f73d12e0d9735f45729d2",
+        "license": "CC-BY-SA-4.0"
+      },
+      "kind": "edited_next_word",
+      "prefix": "1939年4",
+      "references": [
+        "月"
+      ],
+      "should_stop": false,
+      "edited_from": "统治期内，梅葛"
+    },
+    {
+      "id": "stop-24",
+      "split": "holdout",
+      "source": {
+        "repository": "UniversalDependencies/UD_Chinese-GSDSimp",
+        "revision": "4231dfd59866fa5999ad4a6bc1fdecd7985b3b59",
+        "file": "zh_gsdsimp-ud-test.conllu",
+        "sent_id": "test-s275",
+        "sentence_sha256": "09d52cddea7e312cef8b863c17e96f07f38137693e1f73d12e0d9735f45729d2",
+        "license": "CC-BY-SA-4.0"
+      },
+      "kind": "sentence_stop",
+      "prefix": "1939年4月，日军攻占太平岛，并将其更名为长岛，纳入高雄州管理。",
+      "references": [],
+      "should_stop": true
+    },
+    {
+      "id": "holdout-25",
+      "split": "holdout",
+      "source": {
+        "repository": "UniversalDependencies/UD_Chinese-GSDSimp",
+        "revision": "4231dfd59866fa5999ad4a6bc1fdecd7985b3b59",
+        "file": "zh_gsdsimp-ud-test.conllu",
+        "sent_id": "test-s72",
+        "sentence_sha256": "0a766de19009e74b6951768395a2039130218a762c8a787913179d17c3478e59",
+        "license": "CC-BY-SA-4.0"
+      },
+      "kind": "next_word",
+      "prefix": "统治期内，梅葛",
+      "references": [
+        "处死"
+      ],
+      "should_stop": false
+    },
+    {
+      "id": "stop-25",
+      "split": "holdout",
+      "source": {
+        "repository": "UniversalDependencies/UD_Chinese-GSDSimp",
+        "revision": "4231dfd59866fa5999ad4a6bc1fdecd7985b3b59",
+        "file": "zh_gsdsimp-ud-test.conllu",
+        "sent_id": "test-s72",
+        "sentence_sha256": "0a766de19009e74b6951768395a2039130218a762c8a787913179d17c3478e59",
+        "license": "CC-BY-SA-4.0"
+      },
+      "kind": "sentence_stop",
+      "prefix": "统治期内，梅葛处死了三位大学士；他还拥有为数众多的妻子，每个时期通常都不止一个，因此臭名远扬。",
+      "references": [],
+      "should_stop": true
+    },
+    {
+      "id": "holdout-26",
+      "split": "holdout",
+      "source": {
+        "repository": "UniversalDependencies/UD_Chinese-GSDSimp",
+        "revision": "4231dfd59866fa5999ad4a6bc1fdecd7985b3b59",
+        "file": "zh_gsdsimp-ud-test.conllu",
+        "sent_id": "test-s286",
+        "sentence_sha256": "0aae6c9a41ae34619d18759ec3734e71293166e0d2c54e253be8d9b6653d1fcd",
+        "license": "CC-BY-SA-4.0"
+      },
+      "kind": "next_word",
+      "prefix": "但是由于丰臣",
+      "references": [
+        "秀吉"
+      ],
+      "should_stop": false
+    },
+    {
+      "id": "stop-26",
+      "split": "holdout",
+      "source": {
+        "repository": "UniversalDependencies/UD_Chinese-GSDSimp",
+        "revision": "4231dfd59866fa5999ad4a6bc1fdecd7985b3b59",
+        "file": "zh_gsdsimp-ud-test.conllu",
+        "sent_id": "test-s286",
+        "sentence_sha256": "0aae6c9a41ae34619d18759ec3734e71293166e0d2c54e253be8d9b6653d1fcd",
+        "license": "CC-BY-SA-4.0"
+      },
+      "kind": "sentence_stop",
+      "prefix": "但是由于丰臣秀吉在日本人心中的影响，人们把平民出身的政要与丰太合相比，称为“今太合”。",
+      "references": [],
+      "should_stop": true
+    },
+    {
+      "id": "holdout-27",
+      "split": "holdout",
+      "source": {
+        "repository": "UniversalDependencies/UD_Chinese-GSDSimp",
+        "revision": "4231dfd59866fa5999ad4a6bc1fdecd7985b3b59",
+        "file": "zh_gsdsimp-ud-test.conllu",
+        "sent_id": "test-s343",
+        "sentence_sha256": "0b639a7505e94fda24bde378da23556ac1dee4bc4c22bdab4c8472ab1840b05a",
+        "license": "CC-BY-SA-4.0"
+      },
+      "kind": "next_word",
+      "prefix": "香会的历史最早可",
+      "references": [
+        "溯"
+      ],
+      "should_stop": false
+    },
+    {
+      "id": "stop-27",
+      "split": "holdout",
+      "source": {
+        "repository": "UniversalDependencies/UD_Chinese-GSDSimp",
+        "revision": "4231dfd59866fa5999ad4a6bc1fdecd7985b3b59",
+        "file": "zh_gsdsimp-ud-test.conllu",
+        "sent_id": "test-s343",
+        "sentence_sha256": "0b639a7505e94fda24bde378da23556ac1dee4bc4c22bdab4c8472ab1840b05a",
+        "license": "CC-BY-SA-4.0"
+      },
+      "kind": "sentence_stop",
+      "prefix": "香会的历史最早可溯至明朝。",
+      "references": [],
+      "should_stop": true
+    },
+    {
+      "id": "holdout-28",
+      "split": "holdout",
+      "source": {
+        "repository": "UniversalDependencies/UD_Chinese-GSDSimp",
+        "revision": "4231dfd59866fa5999ad4a6bc1fdecd7985b3b59",
+        "file": "zh_gsdsimp-ud-test.conllu",
+        "sent_id": "test-s303",
+        "sentence_sha256": "0babcc8f3cfb4b64ae7ea0457d1e96d678e25767f01e3a559e9ae99936272277",
+        "license": "CC-BY-SA-4.0"
+      },
+      "kind": "edited_next_word",
+      "prefix": "城市地标为伊欧拉湖（LakeEola），而",
+      "references": [
+        "奥兰多"
+      ],
+      "should_stop": false,
+      "edited_from": "他父亲的农用"
+    },
+    {
+      "id": "stop-28",
+      "split": "holdout",
+      "source": {
+        "repository": "UniversalDependencies/UD_Chinese-GSDSimp",
+        "revision": "4231dfd59866fa5999ad4a6bc1fdecd7985b3b59",
+        "file": "zh_gsdsimp-ud-test.conllu",
+        "sent_id": "test-s303",
+        "sentence_sha256": "0babcc8f3cfb4b64ae7ea0457d1e96d678e25767f01e3a559e9ae99936272277",
+        "license": "CC-BY-SA-4.0"
+      },
+      "kind": "sentence_stop",
+      "prefix": "城市地标为伊欧拉湖（LakeEola），而奥兰多市长为巴迪·戴尔（BuddyDyer）。",
+      "references": [],
+      "should_stop": true
+    },
+    {
+      "id": "holdout-29",
+      "split": "holdout",
+      "source": {
+        "repository": "UniversalDependencies/UD_Chinese-GSDSimp",
+        "revision": "4231dfd59866fa5999ad4a6bc1fdecd7985b3b59",
+        "file": "zh_gsdsimp-ud-test.conllu",
+        "sent_id": "test-s325",
+        "sentence_sha256": "0d1cf5815c4c970cff0c5240528fcd1d4a063a0c6e31eb5cb8541c1e01eb92d0",
+        "license": "CC-BY-SA-4.0"
+      },
+      "kind": "next_word",
+      "prefix": "他父亲的农用",
+      "references": [
+        "机械"
+      ],
+      "should_stop": false
+    },
+    {
+      "id": "stop-29",
+      "split": "holdout",
+      "source": {
+        "repository": "UniversalDependencies/UD_Chinese-GSDSimp",
+        "revision": "4231dfd59866fa5999ad4a6bc1fdecd7985b3b59",
+        "file": "zh_gsdsimp-ud-test.conllu",
+        "sent_id": "test-s325",
+        "sentence_sha256": "0d1cf5815c4c970cff0c5240528fcd1d4a063a0c6e31eb5cb8541c1e01eb92d0",
+        "license": "CC-BY-SA-4.0"
+      },
+      "kind": "sentence_stop",
+      "prefix": "他父亲的农用机械厂也在这一时期倒闭，辛德勒为此失业了一年。",
+      "references": [],
+      "should_stop": true
+    },
+    {
+      "id": "holdout-30",
+      "split": "holdout",
+      "source": {
+        "repository": "UniversalDependencies/UD_Chinese-GSDSimp",
+        "revision": "4231dfd59866fa5999ad4a6bc1fdecd7985b3b59",
+        "file": "zh_gsdsimp-ud-test.conllu",
+        "sent_id": "test-s38",
+        "sentence_sha256": "0d45541fa3927e1a792610104407fd7cd47a8193daae99acc538bc6cafbe76d3",
+        "license": "CC-BY-SA-4.0"
+      },
+      "kind": "word_remainder",
+      "prefix": "最古老的是安德里亚·皮",
+      "references": [
+        "萨诺"
+      ],
+      "should_stop": false
+    },
+    {
+      "id": "stop-30",
+      "split": "holdout",
+      "source": {
+        "repository": "UniversalDependencies/UD_Chinese-GSDSimp",
+        "revision": "4231dfd59866fa5999ad4a6bc1fdecd7985b3b59",
+        "file": "zh_gsdsimp-ud-test.conllu",
+        "sent_id": "test-s38",
+        "sentence_sha256": "0d45541fa3927e1a792610104407fd7cd47a8193daae99acc538bc6cafbe76d3",
+        "license": "CC-BY-SA-4.0"
+      },
+      "kind": "sentence_stop",
+      "prefix": "最古老的是安德里亚·皮萨诺的作品，作于1330年到1336年。",
+      "references": [],
+      "should_stop": true
+    },
+    {
+      "id": "holdout-31",
+      "split": "holdout",
+      "source": {
+        "repository": "UniversalDependencies/UD_Chinese-GSDSimp",
+        "revision": "4231dfd59866fa5999ad4a6bc1fdecd7985b3b59",
+        "file": "zh_gsdsimp-ud-test.conllu",
+        "sent_id": "test-s463",
+        "sentence_sha256": "0d94c9e483f7c843e303039b9aecd5829b06ea2f360a7a01768c06ab4b1df279",
+        "license": "CC-BY-SA-4.0"
+      },
+      "kind": "next_word",
+      "prefix": "而岩壁及石矿",
+      "references": [
+        "公园"
+      ],
+      "should_stop": false
+    },
+    {
+      "id": "stop-31",
+      "split": "holdout",
+      "source": {
+        "repository": "UniversalDependencies/UD_Chinese-GSDSimp",
+        "revision": "4231dfd59866fa5999ad4a6bc1fdecd7985b3b59",
+        "file": "zh_gsdsimp-ud-test.conllu",
+        "sent_id": "test-s463",
+        "sentence_sha256": "0d94c9e483f7c843e303039b9aecd5829b06ea2f360a7a01768c06ab4b1df279",
+        "license": "CC-BY-SA-4.0"
+      },
+      "kind": "sentence_stop",
+      "prefix": "而岩壁及石矿公园的设计及工程将会考虑采纳早前在公众参与活动中举行概念设计比赛的参赛作品，由康乐及文化事务署所获得的拨款进行。",
+      "references": [],
+      "should_stop": true
+    },
+    {
+      "id": "holdout-32",
+      "split": "holdout",
+      "source": {
+        "repository": "UniversalDependencies/UD_Chinese-GSDSimp",
+        "revision": "4231dfd59866fa5999ad4a6bc1fdecd7985b3b59",
+        "file": "zh_gsdsimp-ud-test.conllu",
+        "sent_id": "test-s98",
+        "sentence_sha256": "0e2570d1fcbf470ddc04d88e8ad22e979b37805c24ba12f194a7e7429a8155b8",
+        "license": "CC-BY-SA-4.0"
+      },
+      "kind": "edited_next_word",
+      "prefix": "我们已经提及了",
+      "references": [
+        "连续"
+      ],
+      "should_stop": false,
+      "edited_from": "车站建于1928"
+    },
+    {
+      "id": "holdout-33",
+      "split": "holdout",
+      "source": {
+        "repository": "UniversalDependencies/UD_Chinese-GSDSimp",
+        "revision": "4231dfd59866fa5999ad4a6bc1fdecd7985b3b59",
+        "file": "zh_gsdsimp-ud-test.conllu",
+        "sent_id": "test-s202",
+        "sentence_sha256": "0ee76cb6440f5a7e74508464903de90f0637b4f2c30a84ab7149d10502ea4d85",
+        "license": "CC-BY-SA-4.0"
+      },
+      "kind": "next_word",
+      "prefix": "车站建于1928",
+      "references": [
+        "年"
+      ],
+      "should_stop": false
+    },
+    {
+      "id": "holdout-34",
+      "split": "holdout",
+      "source": {
+        "repository": "UniversalDependencies/UD_Chinese-GSDSimp",
+        "revision": "4231dfd59866fa5999ad4a6bc1fdecd7985b3b59",
+        "file": "zh_gsdsimp-ud-test.conllu",
+        "sent_id": "test-s46",
+        "sentence_sha256": "0ef87f009fc4009241524f9bd0a7d03001b5aa3562d87cdc45c7339893219ede",
+        "license": "CC-BY-SA-4.0"
+      },
+      "kind": "next_word",
+      "prefix": "面对南下的德国",
+      "references": [
+        "大军"
+      ],
+      "should_stop": false
+    },
+    {
+      "id": "holdout-35",
+      "split": "holdout",
+      "source": {
+        "repository": "UniversalDependencies/UD_Chinese-GSDSimp",
+        "revision": "4231dfd59866fa5999ad4a6bc1fdecd7985b3b59",
+        "file": "zh_gsdsimp-ud-test.conllu",
+        "sent_id": "test-s321",
+        "sentence_sha256": "0f550a21e11c2d25595296fe1050df00d2846012c847d648a93bb16ee6d53054",
+        "license": "CC-BY-SA-4.0"
+      },
+      "kind": "next_word",
+      "prefix": "希拉蕊的得票率",
+      "references": [
+        "只有"
+      ],
+      "should_stop": false
+    },
+    {
+      "id": "holdout-36",
+      "split": "holdout",
+      "source": {
+        "repository": "UniversalDependencies/UD_Chinese-GSDSimp",
+        "revision": "4231dfd59866fa5999ad4a6bc1fdecd7985b3b59",
+        "file": "zh_gsdsimp-ud-test.conllu",
+        "sent_id": "test-s89",
+        "sentence_sha256": "1011ff27d0ae4d5a1f086c29ec3e1bfc11e0e51a256520b147c971d72f9861ce",
+        "license": "CC-BY-SA-4.0"
+      },
+      "kind": "edited_word_remainder",
+      "prefix": "虽然她从来没有再",
+      "references": [
+        "婚"
+      ],
+      "should_stop": false,
+      "edited_from": "夏绿蒂从1839"
+    },
+    {
+      "id": "holdout-37",
+      "split": "holdout",
+      "source": {
+        "repository": "UniversalDependencies/UD_Chinese-GSDSimp",
+        "revision": "4231dfd59866fa5999ad4a6bc1fdecd7985b3b59",
+        "file": "zh_gsdsimp-ud-test.conllu",
+        "sent_id": "test-s154",
+        "sentence_sha256": "1034f1c67ce0067ddf608e670342aca8ed4e90c9e5234f6dab0f3ac5bb45b86d",
+        "license": "CC-BY-SA-4.0"
+      },
+      "kind": "next_word",
+      "prefix": "夏绿蒂从1839",
+      "references": [
+        "年"
+      ],
+      "should_stop": false
+    },
+    {
+      "id": "holdout-38",
+      "split": "holdout",
+      "source": {
+        "repository": "UniversalDependencies/UD_Chinese-GSDSimp",
+        "revision": "4231dfd59866fa5999ad4a6bc1fdecd7985b3b59",
+        "file": "zh_gsdsimp-ud-test.conllu",
+        "sent_id": "test-s370",
+        "sentence_sha256": "10373b86b596d856a8214d7d1e6f5a8d92d02f61656a12bb77d73febf7a4c484",
+        "license": "CC-BY-SA-4.0"
+      },
+      "kind": "next_word",
+      "prefix": "两国在1897",
+      "references": [
+        "年"
+      ],
+      "should_stop": false
+    },
+    {
+      "id": "holdout-39",
+      "split": "holdout",
+      "source": {
+        "repository": "UniversalDependencies/UD_Chinese-GSDSimp",
+        "revision": "4231dfd59866fa5999ad4a6bc1fdecd7985b3b59",
+        "file": "zh_gsdsimp-ud-test.conllu",
+        "sent_id": "test-s392",
+        "sentence_sha256": "110522bc9995e5a8725be85066a4e6c8bc280be52cbb94feb0df06d6b7e07de9",
+        "license": "CC-BY-SA-4.0"
+      },
+      "kind": "word_remainder",
+      "prefix": "翅膀底色是锈红色，翅",
+      "references": [
+        "端"
+      ],
+      "should_stop": false
+    },
+    {
+      "id": "holdout-40",
+      "split": "holdout",
+      "source": {
+        "repository": "UniversalDependencies/UD_Chinese-GSDSimp",
+        "revision": "4231dfd59866fa5999ad4a6bc1fdecd7985b3b59",
+        "file": "zh_gsdsimp-ud-test.conllu",
+        "sent_id": "test-s116",
+        "sentence_sha256": "11ffe3cf8d18af97a3a482544f8faa632858271ac73f7934db75754cf659fc87",
+        "license": "CC-BY-SA-4.0"
+      },
+      "kind": "edited_next_word",
+      "prefix": "查尔斯·克拉克在其同年",
+      "references": [
+        "出版"
+      ],
+      "should_stop": false,
+      "edited_from": "宁波效实中学是一"
+    },
+    {
+      "id": "holdout-41",
+      "split": "holdout",
+      "source": {
+        "repository": "UniversalDependencies/UD_Chinese-GSDSimp",
+        "revision": "4231dfd59866fa5999ad4a6bc1fdecd7985b3b59",
+        "file": "zh_gsdsimp-ud-test.conllu",
+        "sent_id": "test-s419",
+        "sentence_sha256": "1371afcc6fc37556e93a92b037fdf7feaab06367e21684c3bb942e352398b839",
+        "license": "CC-BY-SA-4.0"
+      },
+      "kind": "next_word",
+      "prefix": "宁波效实中学是一",
+      "references": [
+        "所"
+      ],
+      "should_stop": false
+    },
+    {
+      "id": "holdout-42",
+      "split": "holdout",
+      "source": {
+        "repository": "UniversalDependencies/UD_Chinese-GSDSimp",
+        "revision": "4231dfd59866fa5999ad4a6bc1fdecd7985b3b59",
+        "file": "zh_gsdsimp-ud-test.conllu",
+        "sent_id": "test-s292",
+        "sentence_sha256": "13ecc0e81ac13133a425ce50bd3a9d103826bac665df1d16fddde4ca0cef4ea6",
+        "license": "CC-BY-SA-4.0"
+      },
+      "kind": "word_remainder",
+      "prefix": "夸克有着多种不",
+      "references": [
+        "同"
+      ],
+      "should_stop": false
+    },
+    {
+      "id": "holdout-43",
+      "split": "holdout",
+      "source": {
+        "repository": "UniversalDependencies/UD_Chinese-GSDSimp",
+        "revision": "4231dfd59866fa5999ad4a6bc1fdecd7985b3b59",
+        "file": "zh_gsdsimp-ud-test.conllu",
+        "sent_id": "test-s181",
+        "sentence_sha256": "14a8d6ca97e45bf1ce1c2c312fa29a02bf30d59a03f693c6bc59cc5bb5c779e1",
+        "license": "CC-BY-SA-4.0"
+      },
+      "kind": "next_word",
+      "prefix": "大佛口亦为湾仔",
+      "references": [
+        "区"
+      ],
+      "should_stop": false
+    },
+    {
+      "id": "holdout-44",
+      "split": "holdout",
+      "source": {
+        "repository": "UniversalDependencies/UD_Chinese-GSDSimp",
+        "revision": "4231dfd59866fa5999ad4a6bc1fdecd7985b3b59",
+        "file": "zh_gsdsimp-ud-test.conllu",
+        "sent_id": "test-s364",
+        "sentence_sha256": "1589a204da4eb8febd1717149e1e1c178c392e847a7f703c5441a553571c0254",
+        "license": "CC-BY-SA-4.0"
+      },
+      "kind": "edited_next_word",
+      "prefix": "身为颓废的一",
+      "references": [
+        "代"
+      ],
+      "should_stop": false,
+      "edited_from": "通过将原型的不"
+    },
+    {
+      "id": "holdout-45",
+      "split": "holdout",
+      "source": {
+        "repository": "UniversalDependencies/UD_Chinese-GSDSimp",
+        "revision": "4231dfd59866fa5999ad4a6bc1fdecd7985b3b59",
+        "file": "zh_gsdsimp-ud-test.conllu",
+        "sent_id": "test-s180",
+        "sentence_sha256": "15d01f25afaf4cff9d7d9e818e018095835979bc6d409bf7ce0ffa293dd96f3d",
+        "license": "CC-BY-SA-4.0"
+      },
+      "kind": "word_remainder",
+      "prefix": "通过将原型的不",
+      "references": [
+        "断"
+      ],
+      "should_stop": false
+    },
+    {
+      "id": "holdout-46",
+      "split": "holdout",
+      "source": {
+        "repository": "UniversalDependencies/UD_Chinese-GSDSimp",
+        "revision": "4231dfd59866fa5999ad4a6bc1fdecd7985b3b59",
+        "file": "zh_gsdsimp-ud-test.conllu",
+        "sent_id": "test-s73",
+        "sentence_sha256": "16c1a5fb1aadd4063c79e415c7338d9c90b9d31d2b61ee57a37d806ecd2ba615",
+        "license": "CC-BY-SA-4.0"
+      },
+      "kind": "next_word",
+      "prefix": "雷妮拉的母亲",
+      "references": [
+        "没有"
+      ],
+      "should_stop": false
+    },
+    {
+      "id": "holdout-47",
+      "split": "holdout",
+      "source": {
+        "repository": "UniversalDependencies/UD_Chinese-GSDSimp",
+        "revision": "4231dfd59866fa5999ad4a6bc1fdecd7985b3b59",
+        "file": "zh_gsdsimp-ud-test.conllu",
+        "sent_id": "test-s340",
+        "sentence_sha256": "16ed29449766017c48ed3d7bc5ee57c4dfafe5e8b2ecc4fd22fc63878ed9bd42",
+        "license": "CC-BY-SA-4.0"
+      },
+      "kind": "next_word",
+      "prefix": "女真语最初使用",
+      "references": [
+        "女真"
+      ],
+      "should_stop": false
+    },
+    {
+      "id": "holdout-48",
+      "split": "holdout",
+      "source": {
+        "repository": "UniversalDependencies/UD_Chinese-GSDSimp",
+        "revision": "4231dfd59866fa5999ad4a6bc1fdecd7985b3b59",
+        "file": "zh_gsdsimp-ud-test.conllu",
+        "sent_id": "test-s389",
+        "sentence_sha256": "16f991c7549ebcd9e09120cae55a5c1074db64390d2ac659dad03d71c89a8cf2",
+        "license": "CC-BY-SA-4.0"
+      },
+      "kind": "edited_word_remainder",
+      "prefix": "孔恩瀑布由两部",
+      "references": [
+        "分"
+      ],
+      "should_stop": false,
+      "edited_from": "它在位于亨茨维尔的"
+    },
+    {
+      "id": "holdout-49",
+      "split": "holdout",
+      "source": {
+        "repository": "UniversalDependencies/UD_Chinese-GSDSimp",
+        "revision": "4231dfd59866fa5999ad4a6bc1fdecd7985b3b59",
+        "file": "zh_gsdsimp-ud-test.conllu",
+        "sent_id": "test-s22",
+        "sentence_sha256": "1916edb166a5c9baa48b257f488e82c3640a497782be4673243b9593ddd7a219",
+        "license": "CC-BY-SA-4.0"
+      },
+      "kind": "next_word",
+      "prefix": "它在位于亨茨维尔的",
+      "references": [
+        "空间"
+      ],
+      "should_stop": false
+    },
+    {
+      "id": "holdout-50",
+      "split": "holdout",
+      "source": {
+        "repository": "UniversalDependencies/UD_Chinese-GSDSimp",
+        "revision": "4231dfd59866fa5999ad4a6bc1fdecd7985b3b59",
+        "file": "zh_gsdsimp-ud-test.conllu",
+        "sent_id": "test-s137",
+        "sentence_sha256": "191d3a5bb32b3b7f778ccade8bcf02964a94913ac1bc45d738cc673a23edc896",
+        "license": "CC-BY-SA-4.0"
+      },
+      "kind": "next_word",
+      "prefix": "1932年（",
+      "references": [
+        "昭和"
+      ],
+      "should_stop": false
+    },
+    {
+      "id": "holdout-51",
+      "split": "holdout",
+      "source": {
+        "repository": "UniversalDependencies/UD_Chinese-GSDSimp",
+        "revision": "4231dfd59866fa5999ad4a6bc1fdecd7985b3b59",
+        "file": "zh_gsdsimp-ud-test.conllu",
+        "sent_id": "test-s190",
+        "sentence_sha256": "19e271533bfddb2772a84f8036e66c7d59f2dfce9b435bebc735ff453a2df380",
+        "license": "CC-BY-SA-4.0"
+      },
+      "kind": "next_word",
+      "prefix": "此作也被改编",
+      "references": [
+        "成"
+      ],
+      "should_stop": false
+    },
+    {
+      "id": "holdout-52",
+      "split": "holdout",
+      "source": {
+        "repository": "UniversalDependencies/UD_Chinese-GSDSimp",
+        "revision": "4231dfd59866fa5999ad4a6bc1fdecd7985b3b59",
+        "file": "zh_gsdsimp-ud-test.conllu",
+        "sent_id": "test-s472",
+        "sentence_sha256": "1ac48c7879254c7f740ab8df87d838138e2284a3722556cadba2b503c1574f30",
+        "license": "CC-BY-SA-4.0"
+      },
+      "kind": "edited_next_word",
+      "prefix": "抗战胜利后，",
+      "references": [
+        "兼办"
+      ],
+      "should_stop": false,
+      "edited_from": "它主要分布在"
+    },
+    {
+      "id": "holdout-53",
+      "split": "holdout",
+      "source": {
+        "repository": "UniversalDependencies/UD_Chinese-GSDSimp",
+        "revision": "4231dfd59866fa5999ad4a6bc1fdecd7985b3b59",
+        "file": "zh_gsdsimp-ud-test.conllu",
+        "sent_id": "test-s19",
+        "sentence_sha256": "1c6304e821f1a837e8f59e33025b449e3d27933484c2f36b541f7db819b027cc",
+        "license": "CC-BY-SA-4.0"
+      },
+      "kind": "next_word",
+      "prefix": "它主要分布在",
+      "references": [
+        "表土"
+      ],
+      "should_stop": false
+    },
+    {
+      "id": "holdout-54",
+      "split": "holdout",
+      "source": {
+        "repository": "UniversalDependencies/UD_Chinese-GSDSimp",
+        "revision": "4231dfd59866fa5999ad4a6bc1fdecd7985b3b59",
+        "file": "zh_gsdsimp-ud-test.conllu",
+        "sent_id": "test-s334",
+        "sentence_sha256": "1d470ed5f4b49d11ae66d4140e4b6c4d1a5d9cf25148a1b4409affb3d2ed2d6b",
+        "license": "CC-BY-SA-4.0"
+      },
+      "kind": "word_remainder",
+      "prefix": "每段介绍两个无",
+      "references": [
+        "厘头"
+      ],
+      "should_stop": false
+    },
+    {
+      "id": "holdout-55",
+      "split": "holdout",
+      "source": {
+        "repository": "UniversalDependencies/UD_Chinese-GSDSimp",
+        "revision": "4231dfd59866fa5999ad4a6bc1fdecd7985b3b59",
+        "file": "zh_gsdsimp-ud-test.conllu",
+        "sent_id": "test-s413",
+        "sentence_sha256": "1d685837410b9930fbc1994af69f7fc3573a8b81c1735f5c627e61153648aa20",
+        "license": "CC-BY-SA-4.0"
+      },
+      "kind": "next_word",
+      "prefix": "宁武县在中国",
+      "references": [
+        "山西"
+      ],
+      "should_stop": false
+    },
+    {
+      "id": "empty",
+      "split": "holdout",
+      "source": {
+        "repository": "empty-input-contract",
+        "license": "MIT"
+      },
+      "kind": "no_context",
+      "prefix": "",
+      "references": [],
+      "should_stop": true
+    }
+  ]
+}

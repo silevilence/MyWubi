@@ -22,3 +22,9 @@
 # Keep upstream notices byte-for-byte, including their original whitespace.
 /model_input/licenses/*.txt -text -whitespace
 /model_input/licenses/sources.json text eol=lf
+
+# Frozen generation evaluation hashes cover the original input/evidence bytes.
+/model_input/evaluation/generation-policy.json -text whitespace=blank-at-eol,blank-at-eof,space-before-tab,cr-at-eol
+/model_input/evaluation/generation-dev.json -text whitespace=blank-at-eol,blank-at-eof,space-before-tab,cr-at-eol
+/model_input/evaluation/generation-acceptance.json -text whitespace=blank-at-eol,blank-at-eof,space-before-tab,cr-at-eol
+/docs/validation/mi26-*.json -text whitespace=blank-at-eol,blank-at-eof,space-before-tab,cr-at-eol

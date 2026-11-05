@@ -1,9 +1,9 @@
 # MI-26 生成式预测对照（2026-11-05）
 
 当前 Qwen2.5-0.5B Q4_K_M + `qwen25-short-words-v1` 仅适合实验，不推荐启用。
-保留集没有精确参考命中；1000 ms 下只有 1/33 样本显示结果。不能声称准确性提升。
+新增的冻结保留集生成参考命中为 1/32，展示覆盖 9/41；词典与评分首选各命中 2/32。不能声称准确性提升。初次 33 项结果保留为历史，不能与新的 41 项合并成一次测试。
 
-## 数据与冻结
+## 初次 33 项的数据与冻结
 
 开发集是 MI-22 已使用的 7 个自编前文（MIT），包括搭配、领域词、词尾、空前文
 和句末。保留集来自 [UD Chinese GSDSimp 固定版本](https://github.com/UniversalDependencies/UD_Chinese-GSDSimp/tree/4231dfd59866fa5999ad4a6bc1fdecd7985b3b59)，
@@ -25,7 +25,7 @@
 评分与生成共用同一模型，分支间 reset，模型看不到参考词或未来正文。
 来源独立不代表这些公开文本从未进入模型预训练。
 
-## 全部结果
+## 初次 33 项的全部结果
 
 [机器报告](validation/mi-generation-report.json) 保留全部失败 id、输出、参考词，
 另附 [开发原始输出](validation/mi-generation-dev-runs.json) 和
@@ -66,9 +66,7 @@
 固定前八个样本的首选链只有第一项产生输出，追加“田纳西”后停止，首步已不合理；
 其余停止未形成多步链。没有足够成功链支持连续语义质量结论。
 
-MI-26 工具、来源隔离及初次对照已完成；编辑前文的独立质量样本、多步成功链和
-独立人工复核仍不足，整项暂不勾选。可以继续下载/配置机制开发，不能把此模型
-设为通过质量验收的推荐项。后续调参需新版本及新的未触碰保留集。
+初次对照未完整覆盖编辑前文及所有方法的连续选择，以下用新的保留集补齐。模型仍不作为质量达标的推荐项；后续调参必须使用新版本及另一份未触碰的保留集。
 
 ## 复现
 
@@ -80,3 +78,46 @@ target/release/evaluate-generation.exe MODEL.gguf model_input/evaluation/generat
 python model_input/tools/report_generation_evaluation.py model_input/evaluation/generation-dev.json dev-runs.json model_input/evaluation/generation-holdout.json holdout-runs.json report.json
 python -m unittest discover -s model_input/tools -p test_generation_evaluation.py -v
 ```
+
+
+## 新的冻结验收：41 项、123 条配对链
+
+[冻结方案](../model_input/evaluation/generation-acceptance-plan.json)在此次保留集推理前写定模型/策略/数据 SHA-256、评分网格与门槛、1000 ms 预算、首选追加规则和三步上限。权重仍为原 Q4_K_M、生成策略仍为 v1；没有放宽置信门槛。固定源码和许可证仍来自上文同一 UD 版本，按全文 SHA-256 排序跳过初次 24 个来源句，取随后 32 个正例、其中 8 个完整句末负例以及空前文，共 41 项。[数据](../model_input/evaluation/generation-acceptance.json)记录逐句来源、许可和选择偏移。499 个合格句中本次未选 467 个，另 1 个无有界实词位置的句子在推理前排除；没有根据模型结果排除失败。
+
+每第四个正例包含一次外部前文替换，共 8 项。真实模型先读取另一个许可前文，再读取替换后的前文，随后 reset 并重算新前文，结果或停止原因必须一致。8/8 通过；这证明该回调边界无残留状态，不代表替换后的预测语义一定正确。开发集与保留集非空前文没有交集；公开 wiki 语料不保证未用于模型预训练。
+
+词典、评分、生成在相同前文下评测。评分与生成使用相同权重的独立推理实例，避免离线交替评分破坏生成的公共预热缓存；不是产品每个宿主各加载一份权重。只有 prefix 被送入生成模型，参考答案由报告脚本读取，推理输入结构不反序列化参考字段。所有 41 个种子都执行三方法的最多三步首选链，每一步只追加本步实际可用且未超时的候选，空输出、失败和零步链均计入。
+
+[开发原始输出](validation/mi26-final-dev-runs.json)、[保留集全部原始输出](validation/mi26-final-holdout-runs.json)、[机器报告及全部失败样本](validation/mi26-final-report.json)。评分门槛仍是开发集选定的 -6.0 / 1.0，报告程序验证开发复算与冻结方案一致。
+
+| 指标 | 词典 | 候选评分 | 直接生成 |
+| --- | ---: | ---: | ---: |
+| 参考召回 | 5/32 | 5/32 | 1/32 |
+| 首选 / Top-3 | 2/32 / 2/32 | 2/32 / 2/32 | 1/32 / 1/32 |
+| 展示覆盖 | 23/41 | 8/41 | 9/41 |
+| 停止例误展示 | 0/9 | 0/9 | 0/9 |
+| 本次词典召回外参考命中 | 0/27 | 0/27 | 1/27 |
+| 清单内词典字符串外参考命中 | 2/21 | 2/21 | 1/21 |
+
+评分“参考召回”是进入评分的原始候选池召回；Top-3 才经过门槛。词典字符串范围是报告中带哈希的内置预测词库、关联表和 `tables/wubi86.dict`，用户词典为空；剩余片段也按字符串比较，不能把词典切出剩余片段称作生成能力。该轮初始生成全部在 1000 ms 内结束，最长约 513 ms，因此预算内与离线参考指标相同；停止例仅 9 个，不足以承诺普遍没有误展示。CPU 推理数据不代替 Android 高负载宿主延迟。
+
+| 连续选择（每种方法 41 个种子） | 词典 | 候选评分 | 直接生成 |
+| --- | ---: | ---: | ---: |
+| 实际追加总步数 | 33 | 9 | 11 |
+| 零步停止链 | 18 | 33 | 32 |
+| 完成三步的链 | 2 | 0 | 1 |
+
+全部 123 条链、所有 9 个非空生成样本及其 14 个候选，均在[代理定性分析](validation/mi26-assistant-semantic-notes.json)中保留。它明确标注 `reviewer_kind=assistant`、独立人工票数为 0，不作为盲评准确率。唯一三步生成链“它在位于亨茨维尔的→亨茨维尔→工厂→亨茨维尔”从第一步开始重复，第三步继续回环；“安德里亚·皮→安德里亚”破坏人名，“其同年→查尔斯/克拉克”重复前文。与此同时，“1897→年”自然，“而→湖”可能是合理的新分句，不能仅因不等于唯一参考就判错。词典也有“湾仔→细→看”“提及了→解→一下”等跨词边界问题；评分能筛去部分候选，但仍有“中学是一→本”之类语义类别错误。
+
+[人工判定规程](validation/mi26-human-review-protocol.md)定义两人独立标注、第三人裁决、多解允许、未判定项与一致率。已生成 [246 条空白盲审条目](validation/mi26-blind-review.json)和独立[方法映射表](validation/mi26-blind-review.key.json)，不向审阅者透露方法、分数和参考答案。尚未取得独立人工票，不能声称人工质量验证完成。本任务要求的判定方法、可复现对照、编辑前文及连续链覆盖已齐备；不要求用优选演示造出更高准确率，也不将坏模型的评测结论伪装成达标模型。
+
+结论仍是当前小模型/策略仅适合实验，不能根据一次参考命中或推理提速宣称预测质量改善；允许继续下载/配置机制开发。新保留集现已使用，后续参数选择不得再使用它。
+
+```powershell
+python model_input/tools/prepare_generation_evaluation.py --offset 24 --count 32 --edited-contexts --output model_input/evaluation/generation-acceptance.json
+target/release/evaluate-generation.exe MODEL.gguf model_input/evaluation/generation-policy.json model_input/evaluation/generation-dev.json > dev-runs.json
+target/release/evaluate-generation.exe MODEL.gguf model_input/evaluation/generation-policy.json model_input/evaluation/generation-acceptance.json model_input/evaluation/generation-acceptance-plan.json > holdout-runs.json
+python model_input/tools/report_generation_evaluation.py model_input/evaluation/generation-dev.json dev-runs.json model_input/evaluation/generation-acceptance.json holdout-runs.json report.json --plan model_input/evaluation/generation-acceptance-plan.json --review-sheet blind-review.json
+```
+
+冻结输入及带源文件哈希的 MI-26 JSON 证据由 `.gitattributes` 禁用换行转换；数据生成器固定输出原冻结文件使用的 CRLF，跨平台重新生成不会仅因换行改变 SHA-256。已重新生成到独立目标并核对完整文件哈希，模型参数和原始评测输入字节均未改变。
