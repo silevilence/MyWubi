@@ -316,13 +316,14 @@ mod tests {
         Component {
             id: "cpu".into(),
             version: version.into(),
-            application: "=0.7.0".into(),
+            application: format!("={}", env!("CARGO_PKG_VERSION")),
             os: "windows".into(),
             architecture: "x86_64".into(),
             capabilities: vec!["llama".into(), "onnx".into()],
             dependencies: vec![],
             source: format!(
-                "https://github.com/silevilence/MyWubi/releases/download/v0.7.0/{version}.zip"
+                "https://github.com/silevilence/MyWubi/releases/download/v{}/{version}.zip",
+                env!("CARGO_PKG_VERSION")
             ),
             license: "test".into(),
             archive: runtime::File {
