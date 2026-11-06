@@ -1,0 +1,14 @@
+{
+  "timestamp_utc": "2026-11-06T00:49:00.7814555Z",
+  "thermal": {
+    "unavailable": "拒绝访问 "
+  },
+  "note": "Battery status/charge is not energy consumption; thermal query is not retried with elevated privileges.",
+  "package_power_watts": null,
+  "battery": [
+    {
+      "BatteryStatus": 2,
+      "EstimatedChargeRemaining": 76
+    }
+  ]
+}

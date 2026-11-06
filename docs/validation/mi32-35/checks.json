@@ -1,0 +1,107 @@
+[
+  {
+    "command": "cargo test --workspace --locked",
+    "log_sha256": "82263eab0070aba116f57d017e8f1725d1e287aea5470e99422a6c0884a43cb6",
+    "log": "target/mi35-workspace-tests.log",
+    "last_lines": [
+      "running 0 tests",
+      "",
+      "test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s",
+      ""
+    ],
+    "test_totals": {
+      "passed": 359,
+      "failed": 0,
+      "ignored": 3
+    }
+  },
+  {
+    "command": "cargo test -p model_input --locked --release --features vulkan,ort --lib",
+    "log_sha256": "1f1107d1e7a41969a179fc7cb589d8b93bf2beb8f0bfb82d2ca7a2d2fb171936",
+    "log": "target/mi35-final-native-tests.log",
+    "last_lines": [
+      "test package::tests::failed_switch_preserves_live_model_and_success_invalidates_old_requests ... ok",
+      "",
+      "test result: ok. 34 passed; 0 failed; 1 ignored; 0 measured; 0 filtered out; finished in 0.27s",
+      ""
+    ],
+    "test_totals": {
+      "passed": 34,
+      "failed": 0,
+      "ignored": 1
+    }
+  },
+  {
+    "command": "cargo clippy -p core_engine -p model_input -p model_ipc --all-targets -- -D warnings",
+    "log_sha256": "e439ee24fe6bb32a91b1388ee1b78362b97a74b0c29500784691f0ad61449168",
+    "log": "target/mi35-final-clippy.log",
+    "last_lines": [
+      "    Checking model_input v0.6.2 (C:\\code\\rust\\MyWubi\\model_input)",
+      "    Finished `dev` profile [unoptimized + debuginfo] target(s) in 3.53s"
+    ]
+  },
+  {
+    "command": "cargo clippy -p model_input --locked --release --features vulkan,ort --all-targets -- -D warnings",
+    "log_sha256": "2fe2f2076e49ea37d178592b35462fe7e684bf52d5b48e18653b960f1433ce7b",
+    "log": "target/mi35-final-native-clippy.log",
+    "last_lines": [
+      "    Checking getrandom v0.4.3",
+      "    Checking fastrand v2.4.1",
+      "    Checking tempfile v3.27.0",
+      "    Finished `release` profile [optimized] target(s) in 19.97s"
+    ]
+  },
+  {
+    "command": ":app:compileDebugKotlin -x cargoBuild --console=plain",
+    "log_sha256": "33b67c3c9e71dc12c5e508956efaf6fdbac56dab4bf52ec2fe53d233cc5904aa",
+    "log": "target/mi32-kotlin.log",
+    "last_lines": [
+      "For more on this, please refer to https://docs.gradle.org/8.9/userguide/command_line_interface.html#sec:command_line_warnings in the Gradle documentation.",
+      "",
+      "BUILD SUCCESSFUL in 1m 5s",
+      "17 actionable tasks: 7 executed, 10 up-to-date"
+    ]
+  },
+  {
+    "command": "cargo build -p model_input --locked --release --features vulkan,ort --bin model-worker --bin probe-pipeline --bin probe-device",
+    "log_sha256": "c3c861899a4c0cc1331ad1930e74cdc142d35da402360995dc2684852ba065d6",
+    "log": "target/mi35-measure-build.log",
+    "last_lines": [
+      "   Compiling core_engine v0.6.2 (C:\\code\\rust\\MyWubi\\core_engine)",
+      "   Compiling model_input v0.6.2 (C:\\code\\rust\\MyWubi\\model_input)",
+      "    Finished `release` profile [optimized] target(s) in 1m 32s"
+    ]
+  },
+  {
+    "command": "cargo test --workspace --locked",
+    "log": "target/mi35-final-workspace-regression.log",
+    "log_sha256": "7f7c0699826ced958724958d2ceed02cd0ddd4324b56197475f034ab21c0097f",
+    "last_lines": [
+      "running 0 tests",
+      "",
+      "test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s",
+      ""
+    ],
+    "test_totals": {
+      "passed": 359,
+      "failed": 0,
+      "ignored": 3
+    }
+  },
+  {
+    "command": "cargo clippy -p core_engine -p model_input -p model_ipc --locked --all-targets -- -D warnings",
+    "log": "target/mi35-final-regression-clippy.log",
+    "log_sha256": "86a61b6efe746bfbc1e647687b3573fe53e63a117da3f85ce834403b9e07c4f4",
+    "last_lines": [
+      "    Finished `dev` profile [unoptimized + debuginfo] target(s) in 4.65s"
+    ]
+  },
+  {
+    "command": "cargo clippy -p model_input --locked --release --features vulkan,ort --all-targets -- -D warnings",
+    "log": "target/mi35-last-native-clippy.log",
+    "log_sha256": "5148d2b200e114a5dfeffe0fac1713c49c439601927fbdd215a125bd9e4425ca",
+    "last_lines": [
+      "    Finished `release` profile [optimized] target(s) in 10.93s"
+    ]
+  }
+]

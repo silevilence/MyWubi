@@ -29,6 +29,44 @@ Inference/Load 错误时先释放 GPU，再加载 CPU，只重试当前尚未发
 启动，应保留并使用独立 CPU 组件。不要把 GPU 工作进程覆盖为所有用户的唯一制品。
 组件自动下载、安装和版本切换由 MI-36～MI-39 跟进。
 
+## 自动选择与默认策略
+
+默认仍为 CPU，自动模式需用户主动选择。只有 Windows 的提前加载并保持模式才
+运行短基准；按需加载保留 CPU，避免将双后端筛选成本放入第一次输入。自动模式
+在加载时要求接通电源、未开启节能模式、无系统低内存信号，并满足设备内存准入；
+状态未知也保留 CPU。这些是加载时检查，不承诺拔掉电源后立即迁移已加载的模型。
+
+通过准入后，以当前模型、线程数和候选数，对六个固定公开前文样例顺序测量 CPU
+与一个候选 GPU。各样例须返回有效非空候选，CPU/GPU 的完整候选数组须逐项一致，
+GPU 总耗时和最慢样例均须改善超过 15%。失败、超时、输出差异或收益不足都保留
+CPU，并在执行状态显示原因；筛选内部先释放 CPU 权重再加载 GPU。该短基准只用于当前
+进程的保守筛选，不是质量认证或总体 P95，不缓存为永久硬件结论，也不读取宿主
+正文。加载/筛选本身仍可能受驱动首次编译和系统负载影响。
+
+手动 CPU/Vulkan/CUDA 选择不变。自动选中的 GPU 仍使用同一运行错误回退机制；
+本次模型 CPU 样例出现空输出，自动模式实际保留 CPU。分位、展示率与输出差异
+必须一起解释，不能只取 GPU 更快的成功请求宣称同等质量的净收益。
+
+## 可复现的共享会话与独立服务测量
+
+构建 `probe-pipeline` 后，在没有其他 model-worker 占用当前用户管道的测试会话中运行：
+
+```powershell
+./scripts/measure_model_pipeline.ps1 -BinaryDirectory target/mi-gpu/release `
+    -Store target/mi28-cross-source-store -ModelId qwen25-words -ModelVersion q4km-v1 `
+    -Device vulkan -Seconds 1800 -Iterations 60 -OutputPrefix target/vulkan-stability
+python model_input/tools/report_device_comparison.py target/vulkan-stability `
+    --output target/vulkan-stability-summary.json
+```
+
+脚本记录制品哈希、每次共享 Session 确认提交至独立服务 IPC 再到候选发布的耗时，
+以及工作进程资源；1000 ms 等待预算不变，超时和无候选均进入展示比例分母。
+该边界不含真实 TSF 宿主的编辑回调、GDI 绘制或屏幕扫描，不能称为屏幕可见延迟。
+`on_demand` 可测首次请求触发加载，`preload_keep` 记录就绪等待，持续测量前另有
+10 秒空闲驻留。分位采用 nearest-rank，仅统计首个请求之后的有效候选发布；
+缺失的 GPU 计数器、功耗和温度保留 null。完整原始记录、限制和结论见
+[MI-32～MI-35 验收记录](validation/mi32-35-review.md)。
+
 ## Vulkan 构建与可选制品
 
 固定 `llama-cpp-2`/sys 0.1.161。开发机使用 VS C++、LLVM libclang 和 Vulkan SDK

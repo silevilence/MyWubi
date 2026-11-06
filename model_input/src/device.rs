@@ -82,6 +82,42 @@ pub fn load(
     config: &PredictionConfig,
     state: ExecutionState,
 ) -> Result<Box<dyn ModelBackend>, Unavailable> {
+    if config.device == ModelDevice::Auto {
+        let devices = discover().unwrap_or_default();
+        let candidate = devices
+            .iter()
+            .find(|d| config.device_name.is_empty() || d.name == config.device_name);
+        let mut manual = config.clone();
+        manual.device = if candidate.is_some_and(|d| d.backend == "CUDA") {
+            ModelDevice::Cuda
+        } else {
+            ModelDevice::Vulkan
+        };
+        let admitted = choose(
+            &manual,
+            &devices,
+            package.manifest.files.iter().map(|f| f.bytes).sum(),
+        );
+        #[cfg(windows)]
+        let policy_allowed = model_ipc::auto_gpu_power_allowed()
+            && model_ipc::MemoryPressure::new()
+                .and_then(|m| m.is_low())
+                .is_ok_and(|low| !low);
+        #[cfg(not(windows))]
+        let policy_allowed = false;
+        let restriction = if package.manifest.backend == package::Backend::OnnxRuntime {
+            Some("当前 ONNX 适配仅启用 CPU".into())
+        } else if config.loading != core_engine::config::ModelLoading::PreloadKeep {
+            Some("按需模式避免短基准增加首次输入等待；自动模式保留 CPU".into())
+        } else if !policy_allowed {
+            Some("电池/节能、资源压力或状态未知时自动模式保留 CPU".into())
+        } else {
+            admitted.as_ref().err().cloned()
+        };
+        let (backend, execution, gpu) =
+            crate::auto_device::select(&package, config, admitted.ok().flatten(), restriction)?;
+        return wrap(backend, package, config.threads, state, execution, gpu);
+    }
     let mut execution = Execution {
         requested: config.device,
         requested_name: config.device_name.clone(),
@@ -124,11 +160,22 @@ pub fn load(
     } else {
         "CPU".into()
     });
+    wrap(backend, package, config.threads, state, execution, gpu)
+}
+
+fn wrap(
+    backend: Box<dyn ModelBackend>,
+    package: ValidatedPackage,
+    threads: u8,
+    state: ExecutionState,
+    execution: Execution,
+    gpu: bool,
+) -> Result<Box<dyn ModelBackend>, Unavailable> {
     *state.lock().map_err(|_| Unavailable::Inference)? = execution;
     Ok(Box::new(Recovering {
         backend: Some(backend),
         package,
-        threads: config.threads,
+        threads,
         gpu,
         state,
         cpu_load: package::load_with_threads,

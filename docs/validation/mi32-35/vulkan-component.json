@@ -1,0 +1,141 @@
+{
+  "architecture": "x86_64",
+  "cuda_architectures": "",
+  "backend": "vulkan",
+  "llama_cpp": "0.1.161",
+  "schema": 1,
+  "system_dependency": "GPU vendor Vulkan driver and vulkan-1.dll; SDK is build-only",
+  "files": [
+    {
+      "path": "concrt140.dll",
+      "sha256": "a5b9af428829ab7b61ceae9d88a37ce1053551379ee007d8df53a7ba4d33c251",
+      "bytes": 374352
+    },
+    {
+      "path": "features.json",
+      "sha256": "00e6d70159e3d629f1193a16c5cc13f4389843cecfa8094e321eeaec47217ec3",
+      "bytes": 53
+    },
+    {
+      "path": "model-native-runtime.json",
+      "sha256": "327dfcf1a6c6f2c3e82e9c3888f5e72859cf96f9c4e85d46ca02ee6e887ec743",
+      "bytes": 2111
+    },
+    {
+      "path": "model-worker.exe",
+      "sha256": "94ff0c48816422da81ee4da3153c727cf45e867210b7d3c3e3a19dbb893605c7",
+      "bytes": 51815936
+    },
+    {
+      "path": "msvcp140_1.dll",
+      "sha256": "456aebccb449fcba35f1109c259ba0aa10923e660f4de812a490d35f37f54fc9",
+      "bytes": 35920
+    },
+    {
+      "path": "msvcp140_2.dll",
+      "sha256": "7a403abf753d0bdf09776cf4bcb13b5a6ebe3a47670de124a3c621aa4b952f82",
+      "bytes": 274512
+    },
+    {
+      "path": "msvcp140_atomic_wait.dll",
+      "sha256": "d759dd381bdbd6142372de4cb57acc382e1b80c106b7414a408816564ee1eb6a",
+      "bytes": 57936
+    },
+    {
+      "path": "msvcp140_codecvt_ids.dll",
+      "sha256": "f781e1e0133c397c3a2c73fd4dbcdb442378ba20fced56a2f7db5822436ddd2a",
+      "bytes": 31312
+    },
+    {
+      "path": "msvcp140.dll",
+      "sha256": "639342ea9a67c0009122238ce070a8257e2e04d367d627509fec29f8442afb42",
+      "bytes": 642720
+    },
+    {
+      "path": "onnxruntime.dll",
+      "sha256": "e45f61e50d8650885452be538a00bb14a715e46a1bc3691000ce947e89ed0306",
+      "bytes": 19288376
+    },
+    {
+      "path": "vccorlib140.dll",
+      "sha256": "9ce6f235791450717f8e05ecd729e95ec98e9630a9caae661ba6773b669ecbf7",
+      "bytes": 350800
+    },
+    {
+      "path": "vcruntime140_1.dll",
+      "sha256": "a253a12e4a8e9e23ebfe0ced829f7751e4f42c60066986bf20515ced8dcc68cd",
+      "bytes": 50256
+    },
+    {
+      "path": "vcruntime140_threads.dll",
+      "sha256": "cd05a48a1183b074e81275d6c6472ecb5b09db8a0db8d1850b009ad041907ce9",
+      "bytes": 38560
+    },
+    {
+      "path": "vcruntime140.dll",
+      "sha256": "19c293ac482fdb882cd29d2b0e6d807419efdcada04068f03e5723670895e17d",
+      "bytes": 178848
+    },
+    {
+      "path": "model-licenses\\android-ndk-NOTICE.toolchain.txt",
+      "sha256": "cbe3237be53c0a819f8df6aac5358fdee848eee3b6571b4e2ca20767ebd7465e",
+      "bytes": 806124
+    },
+    {
+      "path": "model-licenses\\llama-cpp-LICENSE.txt",
+      "sha256": "94f29bbed6a22c35b992c5c6ebf0e7c92f13b836b90f36f461c9cf2f0f1d010d",
+      "bytes": 1078
+    },
+    {
+      "path": "model-licenses\\llama-cpp-rs-LICENSE-APACHE.txt",
+      "sha256": "62c7a1e35f56406896d7aa7ca52d0cc0d272ac022b5d2796e7d6905db8a3636a",
+      "bytes": 9723
+    },
+    {
+      "path": "model-licenses\\llama-cpp-rs-LICENSE-MIT.txt",
+      "sha256": "763912bd05f42956dbfa900bd1a2f8037c704f5c64d778c623ec5952454e24aa",
+      "bytes": 1046
+    },
+    {
+      "path": "model-licenses\\onnxruntime-LICENSE.txt",
+      "sha256": "c250d6278f0b47a6439fb7592b08b58a55eb9f535aa49a1db63211c3f982b674",
+      "bytes": 1094
+    },
+    {
+      "path": "model-licenses\\onnxruntime-ThirdPartyNotices.txt",
+      "sha256": "c53a76501ef60db6f865f20599f220761201ac4057683acefdab37d861b86622",
+      "bytes": 344457
+    },
+    {
+      "path": "model-licenses\\ort-LICENSE-APACHE.txt",
+      "sha256": "cfc7749b96f63bd31c3c42b5c471bf756814053e847c10f3eb003417bc523d30",
+      "bytes": 11358
+    },
+    {
+      "path": "model-licenses\\ort-LICENSE-MIT.txt",
+      "sha256": "6bba08de46289c40986a2e6b310e2da61fcea33b3c112c8320f6093f8f9cb71b",
+      "bytes": 1107
+    },
+    {
+      "path": "model-licenses\\README.md",
+      "sha256": "260119f9a079b04ba74642bb7b1fe04c25ffe3aad420e692a100f6debba837aa",
+      "bytes": 1834
+    },
+    {
+      "path": "model-licenses\\sources.json",
+      "sha256": "2ba26a1847a954c2808992543433edf04eaf822d6f67d9823bd4f24c0ea61dd1",
+      "bytes": 1406
+    },
+    {
+      "path": "model-licenses\\vulkan-headers-LICENSE-MIT.txt",
+      "sha256": "1ca3502222d967f3be5751c55f6b7ee735b5383909c3b501495f54b216dbf227",
+      "bytes": 1084
+    },
+    {
+      "path": "model-licenses\\vulkan-headers-LICENSE.md",
+      "sha256": "95ad366d23fadf701d355bc45fb8b82ae2d700239471d35d41286ac3b08ff903",
+      "bytes": 495
+    }
+  ],
+  "cpu_fallback": "Recoverable native failures use the included CPU backend. Keep the separate CPU component if this executable cannot start."
+}

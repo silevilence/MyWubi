@@ -1,0 +1,2 @@
+{"cpu_one_core_percent":null,"working_set":18108416,"gpu_shared_bytes":null,"seconds":0.1951584,"gpu_dedicated_bytes":null,"gpu_counter_error":null,"gpu_engine_max_percent":null,"private_bytes":14168064,"pid":34568}
+{"cpu_one_core_percent":135.30581980575815,"working_set":533315584,"gpu_shared_bytes":155648.0,"seconds":2.5509329,"gpu_dedicated_bytes":0.0,"gpu_counter_error":null,"gpu_engine_max_percent":0.0,"private_bytes":506458112,"pid":34568}

@@ -1,0 +1,1609 @@
+[
+  {
+    "source": "docs\\validation\\mi32-35\\cpu-final",
+    "prepared": {
+      "config": {
+        "device": "cpu",
+        "device_name": "",
+        "enabled": true,
+        "idle_seconds": 60,
+        "loading": "preload_keep",
+        "max_candidates": 3,
+        "model": {
+          "id": "qwen25-words",
+          "version": "q4km-v1"
+        },
+        "threads": 2,
+        "wait_ms": 1000
+      },
+      "event": "prepared",
+      "execution": {
+        "actual": "CPU",
+        "reason": null,
+        "requested": "cpu",
+        "requested_name": ""
+      },
+      "ms": 2207.8188,
+      "pid": 3676
+    },
+    "meta": {
+      "device": "cpu",
+      "unavailable": "No calibrated package-power or GPU-temperature provider is available in this harness",
+      "power_watts": null,
+      "temperature_celsius": null,
+      "worker_sha256": "94ff0c48816422da81ee4da3153c727cf45e867210b7d3c3e3a19dbb893605c7",
+      "timestamp_utc": "2026-11-06T00:46:40.0716313Z",
+      "measurement_boundary": "confirmed shared-session commit -> independent worker IPC -> shared candidate publication; excludes GDI paint/display scanout",
+      "cpu_logical_count": 14,
+      "probe_sha256": "5022c8c415d92cf8bac6a89c119b5e3956a120ecca11d1c9a8abdde063e320a2",
+      "duration_seconds": 0,
+      "loading": "preload_keep"
+    },
+    "first": {
+      "elapsed_seconds": 0.2962045,
+      "event": "prediction",
+      "index": 0,
+      "ms": 296.1755,
+      "prefix": "北京",
+      "result": {
+        "Ok": {
+          "key": {
+            "config": 1,
+            "context": 2,
+            "edit": {
+              "editor": 0,
+              "epoch": 0,
+              "generation": 1,
+              "runtime": 1,
+              "session": 1
+            },
+            "model": 1,
+            "query": {
+              "engine": 0,
+              "version": 1
+            },
+            "request": 1,
+            "view": 1
+          },
+          "protocol": 1,
+          "words": [
+            "市",
+            "区",
+            "县"
+          ]
+        }
+      },
+      "timeout": false,
+      "visible": true,
+      "words": [
+        "市",
+        "区",
+        "县"
+      ]
+    },
+    "requests": 60,
+    "duration_seconds": 24.0484896,
+    "warm_requests": 59,
+    "warm_visible_ms": {
+      "p50": 355.6573,
+      "p95": 462.6967,
+      "p99": 472.2523
+    },
+    "warm_timeout_rate": 0.0,
+    "warm_visible_ratio": 0.6610169491525424,
+    "results_by_prefix": {
+      "北京": [
+        "{\"error\": null, \"visible\": true, \"words\": [\"市\", \"区\", \"县\"]}"
+      ],
+      "我想喝": [
+        "{\"error\": \"Empty\", \"visible\": false, \"words\": []}"
+      ],
+      "明天去": [
+        "{\"error\": null, \"visible\": true, \"words\": [\"出差\", \"探亲\", \"休假\"]}"
+      ]
+    },
+    "resource_samples": 10,
+    "resources": {
+      "working_set": {
+        "peak": 533110784,
+        "median": 533094400,
+        "first": 533090304,
+        "last": 533110784
+      },
+      "private_bytes": {
+        "peak": 506363904,
+        "median": 506355712,
+        "first": 506355712,
+        "last": 506363904
+      },
+      "cpu_one_core_percent": {
+        "peak": 150.4127841995303,
+        "median": 127.43940568945844,
+        "first": 150.4127841995303,
+        "last": 143.56625239841662
+      },
+      "gpu_engine_max_percent": {
+        "peak": 0.0,
+        "median": 0.0,
+        "first": 0.0,
+        "last": 0.0
+      },
+      "gpu_dedicated_bytes": {
+        "peak": 0.0,
+        "median": 0.0,
+        "first": 0.0,
+        "last": 0.0
+      },
+      "gpu_shared_bytes": {
+        "peak": 155648.0,
+        "median": 155648.0,
+        "first": 155648.0,
+        "last": 155648.0
+      }
+    },
+    "warm_by_prefix": {
+      "北京": {
+        "requests": 19,
+        "visible_ms": {
+          "p50": 343.1305,
+          "p95": 472.2523,
+          "p99": 472.2523
+        },
+        "timeout_rate": 0.0,
+        "visible_ratio": 1.0
+      },
+      "我想喝": {
+        "requests": 20,
+        "visible_ms": {
+          "p50": null,
+          "p95": null,
+          "p99": null
+        },
+        "timeout_rate": 0.0,
+        "visible_ratio": 0.0
+      },
+      "明天去": {
+        "requests": 20,
+        "visible_ms": {
+          "p50": 375.03340000000003,
+          "p95": 434.33,
+          "p99": 462.6967
+        },
+        "timeout_rate": 0.0,
+        "visible_ratio": 1.0
+      }
+    }
+  },
+  {
+    "source": "docs\\validation\\mi32-35\\vulkan-final",
+    "prepared": {
+      "config": {
+        "device": "vulkan",
+        "device_name": "",
+        "enabled": true,
+        "idle_seconds": 60,
+        "loading": "preload_keep",
+        "max_candidates": 3,
+        "model": {
+          "id": "qwen25-words",
+          "version": "q4km-v1"
+        },
+        "threads": 2,
+        "wait_ms": 1000
+      },
+      "event": "prepared",
+      "execution": {
+        "actual": "Vulkan0 · Intel(R) Graphics",
+        "reason": null,
+        "requested": "vulkan",
+        "requested_name": ""
+      },
+      "ms": 2225.7408,
+      "pid": 28856
+    },
+    "meta": {
+      "device": "vulkan",
+      "unavailable": "No calibrated package-power or GPU-temperature provider is available in this harness",
+      "power_watts": null,
+      "temperature_celsius": null,
+      "worker_sha256": "94ff0c48816422da81ee4da3153c727cf45e867210b7d3c3e3a19dbb893605c7",
+      "timestamp_utc": "2026-11-06T00:47:07.8885814Z",
+      "measurement_boundary": "confirmed shared-session commit -> independent worker IPC -> shared candidate publication; excludes GDI paint/display scanout",
+      "cpu_logical_count": 14,
+      "probe_sha256": "5022c8c415d92cf8bac6a89c119b5e3956a120ecca11d1c9a8abdde063e320a2",
+      "duration_seconds": 0,
+      "loading": "preload_keep"
+    },
+    "first": {
+      "elapsed_seconds": 0.3054754,
+      "event": "prediction",
+      "index": 0,
+      "ms": 305.406,
+      "prefix": "北京",
+      "result": {
+        "Ok": {
+          "key": {
+            "config": 1,
+            "context": 2,
+            "edit": {
+              "editor": 0,
+              "epoch": 0,
+              "generation": 1,
+              "runtime": 1,
+              "session": 1
+            },
+            "model": 1,
+            "query": {
+              "engine": 0,
+              "version": 1
+            },
+            "request": 1,
+            "view": 1
+          },
+          "protocol": 1,
+          "words": [
+            "市",
+            "区",
+            "县"
+          ]
+        }
+      },
+      "timeout": false,
+      "visible": true,
+      "words": [
+        "市",
+        "区",
+        "县"
+      ]
+    },
+    "requests": 60,
+    "duration_seconds": 22.3325069,
+    "warm_requests": 59,
+    "warm_visible_ms": {
+      "p50": 254.0322,
+      "p95": 279.84520000000003,
+      "p99": 281.8617
+    },
+    "warm_timeout_rate": 0.0,
+    "warm_visible_ratio": 1.0,
+    "results_by_prefix": {
+      "北京": [
+        "{\"error\": null, \"visible\": true, \"words\": [\"市\", \"区\", \"县\"]}"
+      ],
+      "我想喝": [
+        "{\"error\": null, \"visible\": true, \"words\": [\"水\", \"茶\", \"咖啡\"]}"
+      ],
+      "明天去": [
+        "{\"error\": null, \"visible\": true, \"words\": [\"出差\", \"探亲\"]}"
+      ]
+    },
+    "resource_samples": 11,
+    "resources": {
+      "working_set": {
+        "peak": 959672320,
+        "median": 959668224,
+        "first": 34230272,
+        "last": 959672320
+      },
+      "private_bytes": {
+        "peak": 1002172416,
+        "median": 1002172416,
+        "first": 35438592,
+        "last": 1002172416
+      },
+      "cpu_one_core_percent": {
+        "peak": 63.603990525158956,
+        "median": 36.16975024090369,
+        "first": 63.603990525158956,
+        "last": 36.79959901474643
+      },
+      "gpu_engine_max_percent": {
+        "peak": 79.0,
+        "median": 54.0,
+        "first": 0.0,
+        "last": 42.0
+      },
+      "gpu_dedicated_bytes": {
+        "peak": 0.0,
+        "median": 0.0,
+        "first": 0.0,
+        "last": 0.0
+      },
+      "gpu_shared_bytes": {
+        "peak": 852721664.0,
+        "median": 852721664.0,
+        "first": 852058112.0,
+        "last": 852721664.0
+      }
+    },
+    "warm_by_prefix": {
+      "北京": {
+        "requests": 19,
+        "visible_ms": {
+          "p50": 259.21410000000003,
+          "p95": 281.8617,
+          "p99": 281.8617
+        },
+        "timeout_rate": 0.0,
+        "visible_ratio": 1.0
+      },
+      "我想喝": {
+        "requests": 20,
+        "visible_ms": {
+          "p50": 259.9733,
+          "p95": 277.2465,
+          "p99": 281.3827
+        },
+        "timeout_rate": 0.0,
+        "visible_ratio": 1.0
+      },
+      "明天去": {
+        "requests": 20,
+        "visible_ms": {
+          "p50": 225.8365,
+          "p95": 238.3896,
+          "p99": 241.9533
+        },
+        "timeout_rate": 0.0,
+        "visible_ratio": 1.0
+      }
+    }
+  },
+  {
+    "source": "docs\\validation\\mi32-35\\auto-final",
+    "prepared": {
+      "config": {
+        "device": "auto",
+        "device_name": "",
+        "enabled": true,
+        "idle_seconds": 60,
+        "loading": "preload_keep",
+        "max_candidates": 3,
+        "model": {
+          "id": "qwen25-words",
+          "version": "q4km-v1"
+        },
+        "threads": 2,
+        "wait_ms": 1000
+      },
+      "event": "prepared",
+      "execution": {
+        "actual": "CPU",
+        "reason": "CPU 短基准未得到完整有效输出：no result；保留 CPU",
+        "requested": "auto",
+        "requested_name": ""
+      },
+      "ms": 3134.8333,
+      "pid": 42516
+    },
+    "meta": {
+      "device": "auto",
+      "unavailable": "No calibrated package-power or GPU-temperature provider is available in this harness",
+      "power_watts": null,
+      "temperature_celsius": null,
+      "worker_sha256": "94ff0c48816422da81ee4da3153c727cf45e867210b7d3c3e3a19dbb893605c7",
+      "timestamp_utc": "2026-11-06T00:47:34.3670852Z",
+      "measurement_boundary": "confirmed shared-session commit -> independent worker IPC -> shared candidate publication; excludes GDI paint/display scanout",
+      "cpu_logical_count": 14,
+      "probe_sha256": "5022c8c415d92cf8bac6a89c119b5e3956a120ecca11d1c9a8abdde063e320a2",
+      "duration_seconds": 0,
+      "loading": "preload_keep"
+    },
+    "first": {
+      "elapsed_seconds": 0.3730413,
+      "event": "prediction",
+      "index": 0,
+      "ms": 373.0162,
+      "prefix": "北京",
+      "result": {
+        "Ok": {
+          "key": {
+            "config": 1,
+            "context": 2,
+            "edit": {
+              "editor": 0,
+              "epoch": 0,
+              "generation": 1,
+              "runtime": 1,
+              "session": 1
+            },
+            "model": 1,
+            "query": {
+              "engine": 0,
+              "version": 1
+            },
+            "request": 1,
+            "view": 1
+          },
+          "protocol": 1,
+          "words": [
+            "市",
+            "区",
+            "县"
+          ]
+        }
+      },
+      "timeout": false,
+      "visible": true,
+      "words": [
+        "市",
+        "区",
+        "县"
+      ]
+    },
+    "requests": 6,
+    "duration_seconds": 2.1953696,
+    "warm_requests": 5,
+    "warm_visible_ms": {
+      "p50": 336.8448,
+      "p95": 336.99760000000003,
+      "p99": 336.99760000000003
+    },
+    "warm_timeout_rate": 0.0,
+    "warm_visible_ratio": 0.6,
+    "results_by_prefix": {
+      "北京": [
+        "{\"error\": null, \"visible\": true, \"words\": [\"市\", \"区\", \"县\"]}"
+      ],
+      "我想喝": [
+        "{\"error\": \"Empty\", \"visible\": false, \"words\": []}"
+      ],
+      "明天去": [
+        "{\"error\": null, \"visible\": true, \"words\": [\"出差\", \"探亲\", \"休假\"]}"
+      ]
+    },
+    "resource_samples": 3,
+    "resources": {
+      "working_set": {
+        "peak": 533266432,
+        "median": 533241856,
+        "first": 34512896,
+        "last": 533266432
+      },
+      "private_bytes": {
+        "peak": 506466304,
+        "median": 506433536,
+        "first": 35672064,
+        "last": 506433536
+      },
+      "cpu_one_core_percent": {
+        "peak": 155.24267239851378,
+        "median": 152.26351059045317,
+        "first": 152.26351059045317,
+        "last": 155.24267239851378
+      },
+      "gpu_engine_max_percent": {
+        "peak": 0.0,
+        "median": 0.0,
+        "first": 0.0,
+        "last": 0.0
+      },
+      "gpu_dedicated_bytes": {
+        "peak": 0.0,
+        "median": 0.0,
+        "first": 0.0,
+        "last": 0.0
+      },
+      "gpu_shared_bytes": {
+        "peak": 155648.0,
+        "median": 155648.0,
+        "first": 155648.0,
+        "last": 155648.0
+      }
+    },
+    "warm_by_prefix": {
+      "北京": {
+        "requests": 1,
+        "visible_ms": {
+          "p50": 323.96659999999997,
+          "p95": 323.96659999999997,
+          "p99": 323.96659999999997
+        },
+        "timeout_rate": 0.0,
+        "visible_ratio": 1.0
+      },
+      "我想喝": {
+        "requests": 2,
+        "visible_ms": {
+          "p50": null,
+          "p95": null,
+          "p99": null
+        },
+        "timeout_rate": 0.0,
+        "visible_ratio": 0.0
+      },
+      "明天去": {
+        "requests": 2,
+        "visible_ms": {
+          "p50": 336.8448,
+          "p95": 336.99760000000003,
+          "p99": 336.99760000000003
+        },
+        "timeout_rate": 0.0,
+        "visible_ratio": 1.0
+      }
+    }
+  },
+  {
+    "source": "docs\\validation\\mi32-35\\cpu-cold-final",
+    "prepared": {
+      "config": {
+        "device": "cpu",
+        "device_name": "",
+        "enabled": true,
+        "idle_seconds": 60,
+        "loading": "on_demand",
+        "max_candidates": 3,
+        "model": {
+          "id": "qwen25-words",
+          "version": "q4km-v1"
+        },
+        "threads": 2,
+        "wait_ms": 1000
+      },
+      "event": "prepared",
+      "execution": {
+        "actual": null,
+        "reason": null,
+        "requested": "cpu",
+        "requested_name": ""
+      },
+      "ms": 23.5521,
+      "pid": 13020
+    },
+    "meta": {
+      "device": "cpu",
+      "unavailable": "No calibrated package-power or GPU-temperature provider is available in this harness",
+      "power_watts": null,
+      "temperature_celsius": null,
+      "worker_sha256": "94ff0c48816422da81ee4da3153c727cf45e867210b7d3c3e3a19dbb893605c7",
+      "timestamp_utc": "2026-11-06T00:47:41.9548183Z",
+      "measurement_boundary": "confirmed shared-session commit -> independent worker IPC -> shared candidate publication; excludes GDI paint/display scanout",
+      "cpu_logical_count": 14,
+      "probe_sha256": "5022c8c415d92cf8bac6a89c119b5e3956a120ecca11d1c9a8abdde063e320a2",
+      "duration_seconds": 0,
+      "loading": "on_demand"
+    },
+    "first": {
+      "elapsed_seconds": 1.0029922,
+      "event": "prediction",
+      "index": 0,
+      "ms": 1002.9516999999998,
+      "prefix": "北京",
+      "result": null,
+      "timeout": true,
+      "visible": false,
+      "words": []
+    },
+    "requests": 6,
+    "duration_seconds": 4.0541013,
+    "warm_requests": 5,
+    "warm_visible_ms": {
+      "p50": 347.3834,
+      "p95": 362.5896,
+      "p99": 362.5896
+    },
+    "warm_timeout_rate": 0.0,
+    "warm_visible_ratio": 0.6,
+    "results_by_prefix": {
+      "北京": [
+        "{\"error\": \"Timeout\", \"visible\": false, \"words\": []}",
+        "{\"error\": null, \"visible\": true, \"words\": [\"市\", \"区\", \"县\"]}"
+      ],
+      "我想喝": [
+        "{\"error\": \"Empty\", \"visible\": false, \"words\": []}"
+      ],
+      "明天去": [
+        "{\"error\": null, \"visible\": true, \"words\": [\"出差\", \"探亲\", \"休假\"]}"
+      ]
+    },
+    "resource_samples": 2,
+    "resources": {
+      "working_set": {
+        "peak": 533159936,
+        "median": 7823360,
+        "first": 7823360,
+        "last": 533159936
+      },
+      "private_bytes": {
+        "peak": 506408960,
+        "median": 1990656,
+        "first": 1990656,
+        "last": 506408960
+      },
+      "cpu_one_core_percent": {
+        "peak": 140.74655456683374,
+        "median": 140.74655456683374,
+        "first": 140.74655456683374,
+        "last": 140.74655456683374
+      },
+      "gpu_engine_max_percent": {
+        "peak": 0.0,
+        "median": 0.0,
+        "first": 0.0,
+        "last": 0.0
+      },
+      "gpu_dedicated_bytes": {
+        "peak": 0.0,
+        "median": 0.0,
+        "first": 0.0,
+        "last": 0.0
+      },
+      "gpu_shared_bytes": {
+        "peak": 155648.0,
+        "median": 155648.0,
+        "first": 155648.0,
+        "last": 155648.0
+      }
+    },
+    "warm_by_prefix": {
+      "北京": {
+        "requests": 1,
+        "visible_ms": {
+          "p50": 347.3834,
+          "p95": 347.3834,
+          "p99": 347.3834
+        },
+        "timeout_rate": 0.0,
+        "visible_ratio": 1.0
+      },
+      "我想喝": {
+        "requests": 2,
+        "visible_ms": {
+          "p50": null,
+          "p95": null,
+          "p99": null
+        },
+        "timeout_rate": 0.0,
+        "visible_ratio": 0.0
+      },
+      "明天去": {
+        "requests": 2,
+        "visible_ms": {
+          "p50": 332.58680000000004,
+          "p95": 362.5896,
+          "p99": 362.5896
+        },
+        "timeout_rate": 0.0,
+        "visible_ratio": 1.0
+      }
+    }
+  },
+  {
+    "source": "docs\\validation\\mi32-35\\vulkan-cold-final",
+    "prepared": {
+      "config": {
+        "device": "vulkan",
+        "device_name": "",
+        "enabled": true,
+        "idle_seconds": 60,
+        "loading": "on_demand",
+        "max_candidates": 3,
+        "model": {
+          "id": "qwen25-words",
+          "version": "q4km-v1"
+        },
+        "threads": 2,
+        "wait_ms": 1000
+      },
+      "event": "prepared",
+      "execution": {
+        "actual": null,
+        "reason": null,
+        "requested": "vulkan",
+        "requested_name": ""
+      },
+      "ms": 22.7107,
+      "pid": 22288
+    },
+    "meta": {
+      "device": "vulkan",
+      "unavailable": "No calibrated package-power or GPU-temperature provider is available in this harness",
+      "power_watts": null,
+      "temperature_celsius": null,
+      "worker_sha256": "94ff0c48816422da81ee4da3153c727cf45e867210b7d3c3e3a19dbb893605c7",
+      "timestamp_utc": "2026-11-06T00:47:47.0079756Z",
+      "measurement_boundary": "confirmed shared-session commit -> independent worker IPC -> shared candidate publication; excludes GDI paint/display scanout",
+      "cpu_logical_count": 14,
+      "probe_sha256": "5022c8c415d92cf8bac6a89c119b5e3956a120ecca11d1c9a8abdde063e320a2",
+      "duration_seconds": 0,
+      "loading": "on_demand"
+    },
+    "first": {
+      "elapsed_seconds": 1.0030944,
+      "event": "prediction",
+      "index": 0,
+      "ms": 1003.0566999999999,
+      "prefix": "北京",
+      "result": null,
+      "timeout": true,
+      "visible": false,
+      "words": []
+    },
+    "requests": 6,
+    "duration_seconds": 3.5791713,
+    "warm_requests": 5,
+    "warm_visible_ms": {
+      "p50": 252.3938,
+      "p95": 274.1823,
+      "p99": 274.1823
+    },
+    "warm_timeout_rate": 0.0,
+    "warm_visible_ratio": 1.0,
+    "results_by_prefix": {
+      "北京": [
+        "{\"error\": \"Timeout\", \"visible\": false, \"words\": []}",
+        "{\"error\": null, \"visible\": true, \"words\": [\"市\", \"区\", \"县\"]}"
+      ],
+      "我想喝": [
+        "{\"error\": null, \"visible\": true, \"words\": [\"水\", \"茶\", \"咖啡\"]}"
+      ],
+      "明天去": [
+        "{\"error\": null, \"visible\": true, \"words\": [\"出差\", \"探亲\"]}"
+      ]
+    },
+    "resource_samples": 2,
+    "resources": {
+      "working_set": {
+        "peak": 959995904,
+        "median": 35188736,
+        "first": 35188736,
+        "last": 959995904
+      },
+      "private_bytes": {
+        "peak": 1002561536,
+        "median": 35708928,
+        "first": 35708928,
+        "last": 1002561536
+      },
+      "cpu_one_core_percent": {
+        "peak": 67.37004875232913,
+        "median": 67.37004875232913,
+        "first": 67.37004875232913,
+        "last": 67.37004875232913
+      },
+      "gpu_engine_max_percent": {
+        "peak": 85.0,
+        "median": 0.0,
+        "first": 0.0,
+        "last": 85.0
+      },
+      "gpu_dedicated_bytes": {
+        "peak": 0.0,
+        "median": 0.0,
+        "first": 0.0,
+        "last": 0.0
+      },
+      "gpu_shared_bytes": {
+        "peak": 851881984.0,
+        "median": 851881984.0,
+        "first": 851881984.0,
+        "last": 851881984.0
+      }
+    },
+    "warm_by_prefix": {
+      "北京": {
+        "requests": 1,
+        "visible_ms": {
+          "p50": 252.3938,
+          "p95": 252.3938,
+          "p99": 252.3938
+        },
+        "timeout_rate": 0.0,
+        "visible_ratio": 1.0
+      },
+      "我想喝": {
+        "requests": 2,
+        "visible_ms": {
+          "p50": 255.00820000000002,
+          "p95": 274.1823,
+          "p99": 274.1823
+        },
+        "timeout_rate": 0.0,
+        "visible_ratio": 1.0
+      },
+      "明天去": {
+        "requests": 2,
+        "visible_ms": {
+          "p50": 218.995,
+          "p95": 238.789,
+          "p99": 238.789
+        },
+        "timeout_rate": 0.0,
+        "visible_ratio": 1.0
+      }
+    }
+  },
+  {
+    "source": "docs\\validation\\mi32-35\\auto-cold-final",
+    "prepared": {
+      "config": {
+        "device": "auto",
+        "device_name": "",
+        "enabled": true,
+        "idle_seconds": 60,
+        "loading": "on_demand",
+        "max_candidates": 3,
+        "model": {
+          "id": "qwen25-words",
+          "version": "q4km-v1"
+        },
+        "threads": 2,
+        "wait_ms": 1000
+      },
+      "event": "prepared",
+      "execution": {
+        "actual": null,
+        "reason": null,
+        "requested": "auto",
+        "requested_name": ""
+      },
+      "ms": 43.4135,
+      "pid": 34568
+    },
+    "meta": {
+      "device": "auto",
+      "unavailable": "No calibrated package-power or GPU-temperature provider is available in this harness",
+      "power_watts": null,
+      "temperature_celsius": null,
+      "worker_sha256": "94ff0c48816422da81ee4da3153c727cf45e867210b7d3c3e3a19dbb893605c7",
+      "timestamp_utc": "2026-11-06T00:47:52.0583231Z",
+      "measurement_boundary": "confirmed shared-session commit -> independent worker IPC -> shared candidate publication; excludes GDI paint/display scanout",
+      "cpu_logical_count": 14,
+      "probe_sha256": "5022c8c415d92cf8bac6a89c119b5e3956a120ecca11d1c9a8abdde063e320a2",
+      "duration_seconds": 0,
+      "loading": "on_demand"
+    },
+    "first": {
+      "elapsed_seconds": 1.0014277,
+      "event": "prediction",
+      "index": 0,
+      "ms": 1001.3866,
+      "prefix": "北京",
+      "result": null,
+      "timeout": true,
+      "visible": false,
+      "words": []
+    },
+    "requests": 6,
+    "duration_seconds": 4.012426,
+    "warm_requests": 5,
+    "warm_visible_ms": {
+      "p50": 333.7735,
+      "p95": 346.6124,
+      "p99": 346.6124
+    },
+    "warm_timeout_rate": 0.0,
+    "warm_visible_ratio": 0.6,
+    "results_by_prefix": {
+      "北京": [
+        "{\"error\": \"Timeout\", \"visible\": false, \"words\": []}",
+        "{\"error\": null, \"visible\": true, \"words\": [\"市\", \"区\", \"县\"]}"
+      ],
+      "我想喝": [
+        "{\"error\": \"Empty\", \"visible\": false, \"words\": []}"
+      ],
+      "明天去": [
+        "{\"error\": null, \"visible\": true, \"words\": [\"出差\", \"探亲\", \"休假\"]}"
+      ]
+    },
+    "resource_samples": 2,
+    "resources": {
+      "working_set": {
+        "peak": 533315584,
+        "median": 18108416,
+        "first": 18108416,
+        "last": 533315584
+      },
+      "private_bytes": {
+        "peak": 506458112,
+        "median": 14168064,
+        "first": 14168064,
+        "last": 506458112
+      },
+      "cpu_one_core_percent": {
+        "peak": 135.30581980575815,
+        "median": 135.30581980575815,
+        "first": 135.30581980575815,
+        "last": 135.30581980575815
+      },
+      "gpu_engine_max_percent": {
+        "peak": 0.0,
+        "median": 0.0,
+        "first": 0.0,
+        "last": 0.0
+      },
+      "gpu_dedicated_bytes": {
+        "peak": 0.0,
+        "median": 0.0,
+        "first": 0.0,
+        "last": 0.0
+      },
+      "gpu_shared_bytes": {
+        "peak": 155648.0,
+        "median": 155648.0,
+        "first": 155648.0,
+        "last": 155648.0
+      }
+    },
+    "warm_by_prefix": {
+      "北京": {
+        "requests": 1,
+        "visible_ms": {
+          "p50": 317.3764,
+          "p95": 317.3764,
+          "p99": 317.3764
+        },
+        "timeout_rate": 0.0,
+        "visible_ratio": 1.0
+      },
+      "我想喝": {
+        "requests": 2,
+        "visible_ms": {
+          "p50": null,
+          "p95": null,
+          "p99": null
+        },
+        "timeout_rate": 0.0,
+        "visible_ratio": 0.0
+      },
+      "明天去": {
+        "requests": 2,
+        "visible_ms": {
+          "p50": 333.7735,
+          "p95": 346.6124,
+          "p99": 346.6124
+        },
+        "timeout_rate": 0.0,
+        "visible_ratio": 1.0
+      }
+    }
+  },
+  {
+    "source": "docs\\validation\\mi32-35\\cpu-residency",
+    "prepared": {
+      "config": {
+        "device": "cpu",
+        "device_name": "",
+        "enabled": true,
+        "idle_seconds": 60,
+        "loading": "preload_keep",
+        "max_candidates": 3,
+        "model": {
+          "id": "qwen25-words",
+          "version": "q4km-v1"
+        },
+        "threads": 2,
+        "wait_ms": 1000
+      },
+      "event": "prepared",
+      "execution": {
+        "actual": "CPU",
+        "reason": null,
+        "requested": "cpu",
+        "requested_name": ""
+      },
+      "ms": 2161.9953,
+      "pid": 744
+    },
+    "meta": {
+      "probe_sha256": "5022c8c415d92cf8bac6a89c119b5e3956a120ecca11d1c9a8abdde063e320a2",
+      "measurement_boundary": "confirmed shared-session commit -> independent worker IPC -> shared candidate publication; excludes GDI paint/display scanout",
+      "duration_seconds": 30,
+      "unavailable": "No calibrated package-power or GPU-temperature provider is available in this harness",
+      "loading": "preload_keep",
+      "device": "cpu",
+      "cpu_logical_count": 14,
+      "worker_sha256": "94ff0c48816422da81ee4da3153c727cf45e867210b7d3c3e3a19dbb893605c7",
+      "temperature_celsius": null,
+      "timestamp_utc": "2026-11-06T01:18:19.3426587Z",
+      "power_watts": null
+    },
+    "first": {
+      "elapsed_seconds": 0.6052247,
+      "event": "prediction",
+      "index": 0,
+      "ms": 605.1617,
+      "prefix": "北京",
+      "result": {
+        "Ok": {
+          "key": {
+            "config": 1,
+            "context": 2,
+            "edit": {
+              "editor": 0,
+              "epoch": 0,
+              "generation": 1,
+              "runtime": 1,
+              "session": 1
+            },
+            "model": 1,
+            "query": {
+              "engine": 0,
+              "version": 1
+            },
+            "request": 1,
+            "view": 1
+          },
+          "protocol": 1,
+          "words": [
+            "市",
+            "区",
+            "县"
+          ]
+        }
+      },
+      "timeout": false,
+      "visible": true,
+      "words": [
+        "市",
+        "区",
+        "县"
+      ]
+    },
+    "requests": 60,
+    "duration_seconds": 36.7331501,
+    "warm_requests": 59,
+    "warm_visible_ms": {
+      "p50": 657.5585000000001,
+      "p95": 896.0633,
+      "p99": 978.5508000000001
+    },
+    "warm_timeout_rate": 0.01694915254237288,
+    "warm_visible_ratio": 0.6440677966101694,
+    "results_by_prefix": {
+      "北京": [
+        "{\"error\": null, \"visible\": true, \"words\": [\"市\", \"区\", \"县\"]}"
+      ],
+      "我想喝": [
+        "{\"error\": \"Empty\", \"visible\": false, \"words\": []}"
+      ],
+      "明天去": [
+        "{\"error\": \"Timeout\", \"visible\": false, \"words\": []}",
+        "{\"error\": null, \"visible\": true, \"words\": [\"出差\", \"探亲\", \"休假\"]}"
+      ]
+    },
+    "resource_samples": 20,
+    "resources": {
+      "working_set": {
+        "peak": 533217280,
+        "median": 533172224,
+        "first": 7766016,
+        "last": 533217280
+      },
+      "private_bytes": {
+        "peak": 506490880,
+        "median": 506429440,
+        "first": 1986560,
+        "last": 506490880
+      },
+      "cpu_one_core_percent": {
+        "peak": 155.85849634772694,
+        "median": 142.95927916342671,
+        "first": 117.56568789525186,
+        "last": 149.75599546288754
+      },
+      "gpu_engine_max_percent": {
+        "peak": 0.0,
+        "median": 0.0,
+        "first": 0.0,
+        "last": 0.0
+      },
+      "gpu_dedicated_bytes": {
+        "peak": 0.0,
+        "median": 0.0,
+        "first": 0.0,
+        "last": 0.0
+      },
+      "gpu_shared_bytes": {
+        "peak": 155648.0,
+        "median": 155648.0,
+        "first": 155648.0,
+        "last": 155648.0
+      }
+    },
+    "warm_by_prefix": {
+      "北京": {
+        "requests": 19,
+        "visible_ms": {
+          "p50": 616.6763,
+          "p95": 786.5114,
+          "p99": 786.5114
+        },
+        "timeout_rate": 0.0,
+        "visible_ratio": 1.0
+      },
+      "我想喝": {
+        "requests": 20,
+        "visible_ms": {
+          "p50": null,
+          "p95": null,
+          "p99": null
+        },
+        "timeout_rate": 0.0,
+        "visible_ratio": 0.0
+      },
+      "明天去": {
+        "requests": 20,
+        "visible_ms": {
+          "p50": 670.9774,
+          "p95": 978.5508000000001,
+          "p99": 978.5508000000001
+        },
+        "timeout_rate": 0.05,
+        "visible_ratio": 0.95
+      }
+    },
+    "resource_windows_approximate": {
+      "idle": {
+        "seconds": [
+          3.1619953,
+          11.161995300000001
+        ],
+        "samples": 3,
+        "resources": {
+          "working_set": {
+            "peak": 533045248,
+            "median": 533045248,
+            "first": 533045248,
+            "last": 533045248
+          },
+          "private_bytes": {
+            "peak": 506396672,
+            "median": 506396672,
+            "first": 506396672,
+            "last": 506396672
+          },
+          "cpu_one_core_percent": {
+            "peak": 1.95524122275009,
+            "median": 0.6454119266754222,
+            "first": 0.6454119266754222,
+            "last": 1.95524122275009
+          },
+          "gpu_engine_max_percent": {
+            "peak": 0.0,
+            "median": 0.0,
+            "first": 0.0,
+            "last": 0.0
+          },
+          "gpu_dedicated_bytes": {
+            "peak": 0.0,
+            "median": 0.0,
+            "first": 0.0,
+            "last": 0.0
+          },
+          "gpu_shared_bytes": {
+            "peak": 155648.0,
+            "median": 155648.0,
+            "first": 155648.0,
+            "last": 155648.0
+          }
+        }
+      },
+      "sustained_first_minute": {
+        "seconds": [
+          13.161995300000001,
+          47.895145400000004
+        ],
+        "samples": 14,
+        "resources": {
+          "working_set": {
+            "peak": 533217280,
+            "median": 533172224,
+            "first": 533164032,
+            "last": 533217280
+          },
+          "private_bytes": {
+            "peak": 506490880,
+            "median": 506429440,
+            "first": 506425344,
+            "last": 506490880
+          },
+          "cpu_one_core_percent": {
+            "peak": 155.85849634772694,
+            "median": 144.969370871322,
+            "first": 145.0133149014777,
+            "last": 149.75599546288754
+          },
+          "gpu_engine_max_percent": {
+            "peak": 0.0,
+            "median": 0.0,
+            "first": 0.0,
+            "last": 0.0
+          },
+          "gpu_dedicated_bytes": {
+            "peak": 0.0,
+            "median": 0.0,
+            "first": 0.0,
+            "last": 0.0
+          },
+          "gpu_shared_bytes": {
+            "peak": 155648.0,
+            "median": 155648.0,
+            "first": 155648.0,
+            "last": 155648.0
+          }
+        }
+      },
+      "sustained_last_minute": {
+        "seconds": [
+          13.161995300000001,
+          47.895145400000004
+        ],
+        "samples": 14,
+        "resources": {
+          "working_set": {
+            "peak": 533217280,
+            "median": 533172224,
+            "first": 533164032,
+            "last": 533217280
+          },
+          "private_bytes": {
+            "peak": 506490880,
+            "median": 506429440,
+            "first": 506425344,
+            "last": 506490880
+          },
+          "cpu_one_core_percent": {
+            "peak": 155.85849634772694,
+            "median": 144.969370871322,
+            "first": 145.0133149014777,
+            "last": 149.75599546288754
+          },
+          "gpu_engine_max_percent": {
+            "peak": 0.0,
+            "median": 0.0,
+            "first": 0.0,
+            "last": 0.0
+          },
+          "gpu_dedicated_bytes": {
+            "peak": 0.0,
+            "median": 0.0,
+            "first": 0.0,
+            "last": 0.0
+          },
+          "gpu_shared_bytes": {
+            "peak": 155648.0,
+            "median": 155648.0,
+            "first": 155648.0,
+            "last": 155648.0
+          }
+        }
+      }
+    }
+  },
+  {
+    "source": "docs\\validation\\mi32-35\\vulkan-stability",
+    "prepared": {
+      "config": {
+        "device": "vulkan",
+        "device_name": "",
+        "enabled": true,
+        "idle_seconds": 60,
+        "loading": "preload_keep",
+        "max_candidates": 3,
+        "model": {
+          "id": "qwen25-words",
+          "version": "q4km-v1"
+        },
+        "threads": 2,
+        "wait_ms": 1000
+      },
+      "event": "prepared",
+      "execution": {
+        "actual": "Vulkan0 · Intel(R) Graphics",
+        "reason": null,
+        "requested": "vulkan",
+        "requested_name": ""
+      },
+      "ms": 2203.2888000000003,
+      "pid": 39488
+    },
+    "meta": {
+      "device": "vulkan",
+      "unavailable": "No calibrated package-power or GPU-temperature provider is available in this harness",
+      "power_watts": null,
+      "temperature_celsius": null,
+      "worker_sha256": "94ff0c48816422da81ee4da3153c727cf45e867210b7d3c3e3a19dbb893605c7",
+      "timestamp_utc": "2026-11-06T00:47:57.1066829Z",
+      "measurement_boundary": "confirmed shared-session commit -> independent worker IPC -> shared candidate publication; excludes GDI paint/display scanout",
+      "cpu_logical_count": 14,
+      "probe_sha256": "5022c8c415d92cf8bac6a89c119b5e3956a120ecca11d1c9a8abdde063e320a2",
+      "duration_seconds": 1800,
+      "loading": "preload_keep"
+    },
+    "first": {
+      "elapsed_seconds": 0.2985758,
+      "event": "prediction",
+      "index": 0,
+      "ms": 298.4824,
+      "prefix": "北京",
+      "result": {
+        "Ok": {
+          "key": {
+            "config": 1,
+            "context": 2,
+            "edit": {
+              "editor": 0,
+              "epoch": 0,
+              "generation": 1,
+              "runtime": 1,
+              "session": 1
+            },
+            "model": 1,
+            "query": {
+              "engine": 0,
+              "version": 1
+            },
+            "request": 1,
+            "view": 1
+          },
+          "protocol": 1,
+          "words": [
+            "市",
+            "区",
+            "县"
+          ]
+        }
+      },
+      "timeout": false,
+      "visible": true,
+      "words": [
+        "市",
+        "区",
+        "县"
+      ]
+    },
+    "requests": 4727,
+    "duration_seconds": 1800.1249657,
+    "warm_requests": 4726,
+    "warm_visible_ms": {
+      "p50": 272.2622,
+      "p95": 317.33090000000004,
+      "p99": 341.87
+    },
+    "warm_timeout_rate": 0.0,
+    "warm_visible_ratio": 1.0,
+    "results_by_prefix": {
+      "北京": [
+        "{\"error\": null, \"visible\": true, \"words\": [\"市\", \"区\", \"县\"]}"
+      ],
+      "我想喝": [
+        "{\"error\": null, \"visible\": true, \"words\": [\"水\", \"茶\", \"咖啡\"]}"
+      ],
+      "明天去": [
+        "{\"error\": null, \"visible\": true, \"words\": [\"出差\", \"探亲\"]}"
+      ]
+    },
+    "resource_samples": 740,
+    "resources": {
+      "working_set": {
+        "peak": 961269760,
+        "median": 960049152,
+        "first": 35045376,
+        "last": 877240320
+      },
+      "private_bytes": {
+        "peak": 1003614208,
+        "median": 1002393600,
+        "first": 35622912,
+        "last": 1002397696
+      },
+      "cpu_one_core_percent": {
+        "peak": 64.19673696536746,
+        "median": 38.300147127505966,
+        "first": 64.19673696536746,
+        "last": 45.33353482492297
+      },
+      "gpu_engine_max_percent": {
+        "peak": 89.0,
+        "median": 52.0,
+        "first": 0.0,
+        "last": 76.0
+      },
+      "gpu_dedicated_bytes": {
+        "peak": 0.0,
+        "median": 0.0,
+        "first": 0.0,
+        "last": 0.0
+      },
+      "gpu_shared_bytes": {
+        "peak": 852721664.0,
+        "median": 852721664.0,
+        "first": 850870272.0,
+        "last": 852721664.0
+      }
+    },
+    "warm_by_prefix": {
+      "北京": {
+        "requests": 1575,
+        "visible_ms": {
+          "p50": 279.7534,
+          "p95": 321.0766,
+          "p99": 350.21750000000003
+        },
+        "timeout_rate": 0.0,
+        "visible_ratio": 1.0
+      },
+      "我想喝": {
+        "requests": 1575,
+        "visible_ms": {
+          "p50": 281.0049,
+          "p95": 324.0761,
+          "p99": 352.7763
+        },
+        "timeout_rate": 0.0,
+        "visible_ratio": 1.0
+      },
+      "明天去": {
+        "requests": 1576,
+        "visible_ms": {
+          "p50": 236.0149,
+          "p95": 276.7043,
+          "p99": 301.4719
+        },
+        "timeout_rate": 0.0,
+        "visible_ratio": 1.0
+      }
+    },
+    "warm_time_windows": {
+      "first_five_minutes": {
+        "requests": 823,
+        "visible_ms": {
+          "p50": 263.651,
+          "p95": 285.5127,
+          "p99": 300.4752
+        },
+        "timeout_rate": 0.0,
+        "visible_ratio": 1.0
+      },
+      "last_five_minutes": {
+        "requests": 763,
+        "visible_ms": {
+          "p50": 286.3174,
+          "p95": 326.3759,
+          "p99": 349.4859
+        },
+        "timeout_rate": 0.0,
+        "visible_ratio": 1.0
+      }
+    },
+    "resource_windows_approximate": {
+      "idle": {
+        "seconds": [
+          3.2032888,
+          11.2032888
+        ],
+        "samples": 3,
+        "resources": {
+          "working_set": {
+            "peak": 954105856,
+            "median": 954105856,
+            "first": 954105856,
+            "last": 954105856
+          },
+          "private_bytes": {
+            "peak": 996429824,
+            "median": 996429824,
+            "first": 996429824,
+            "last": 996429824
+          },
+          "cpu_one_core_percent": {
+            "peak": 2.631812541508947,
+            "median": 1.3035721213268991,
+            "first": 2.631812541508947,
+            "last": 0.6549525246397331
+          },
+          "gpu_engine_max_percent": {
+            "peak": 0.0,
+            "median": 0.0,
+            "first": 0.0,
+            "last": 0.0
+          },
+          "gpu_dedicated_bytes": {
+            "peak": 0.0,
+            "median": 0.0,
+            "first": 0.0,
+            "last": 0.0
+          },
+          "gpu_shared_bytes": {
+            "peak": 850870272.0,
+            "median": 850870272.0,
+            "first": 850870272.0,
+            "last": 850870272.0
+          }
+        }
+      },
+      "sustained_first_minute": {
+        "seconds": [
+          13.2032888,
+          72.2032888
+        ],
+        "samples": 25,
+        "resources": {
+          "working_set": {
+            "peak": 959705088,
+            "median": 959651840,
+            "first": 959422464,
+            "last": 959651840
+          },
+          "private_bytes": {
+            "peak": 1002266624,
+            "median": 1002168320,
+            "first": 1001951232,
+            "last": 1002168320
+          },
+          "cpu_one_core_percent": {
+            "peak": 43.045836124616706,
+            "median": 40.229826111338234,
+            "first": 39.892123745127186,
+            "last": 38.73065378898072
+          },
+          "gpu_engine_max_percent": {
+            "peak": 81.0,
+            "median": 54.0,
+            "first": 52.0,
+            "last": 60.0
+          },
+          "gpu_dedicated_bytes": {
+            "peak": 0.0,
+            "median": 0.0,
+            "first": 0.0,
+            "last": 0.0
+          },
+          "gpu_shared_bytes": {
+            "peak": 852721664.0,
+            "median": 852721664.0,
+            "first": 852721664.0,
+            "last": 852721664.0
+          }
+        }
+      },
+      "sustained_last_minute": {
+        "seconds": [
+          1752.3282545000002,
+          1811.3282545000002
+        ],
+        "samples": 24,
+        "resources": {
+          "working_set": {
+            "peak": 877240320,
+            "median": 877240320,
+            "first": 877240320,
+            "last": 877240320
+          },
+          "private_bytes": {
+            "peak": 1002397696,
+            "median": 1002397696,
+            "first": 1002397696,
+            "last": 1002397696
+          },
+          "cpu_one_core_percent": {
+            "peak": 43.15142585922472,
+            "median": 38.96135536341064,
+            "first": 43.15142585922472,
+            "last": 36.547058932862264
+          },
+          "gpu_engine_max_percent": {
+            "peak": 87.0,
+            "median": 52.0,
+            "first": 56.0,
+            "last": 79.0
+          },
+          "gpu_dedicated_bytes": {
+            "peak": 0.0,
+            "median": 0.0,
+            "first": 0.0,
+            "last": 0.0
+          },
+          "gpu_shared_bytes": {
+            "peak": 852721664.0,
+            "median": 852721664.0,
+            "first": 852721664.0,
+            "last": 852721664.0
+          }
+        }
+      }
+    }
+  }
+]

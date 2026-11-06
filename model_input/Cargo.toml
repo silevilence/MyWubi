@@ -41,6 +41,10 @@ name = "model-worker"
 path = "src/bin/model_worker.rs"
 
 [[bin]]
+name = "probe-pipeline"
+path = "src/bin/probe_pipeline.rs"
+
+[[bin]]
 name = "probe-device"
 path = "src/bin/probe_device.rs"
 

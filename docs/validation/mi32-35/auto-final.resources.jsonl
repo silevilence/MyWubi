@@ -1,0 +1,3 @@
+{"cpu_one_core_percent":null,"working_set":34512896,"gpu_shared_bytes":null,"seconds":0.2174354,"gpu_dedicated_bytes":null,"gpu_counter_error":null,"gpu_engine_max_percent":0.0,"private_bytes":35672064,"pid":42516}
+{"cpu_one_core_percent":152.26351059045317,"working_set":533241856,"gpu_shared_bytes":155648.0,"seconds":2.5879147,"gpu_dedicated_bytes":0.0,"gpu_counter_error":null,"gpu_engine_max_percent":0.0,"private_bytes":506466304,"pid":42516}
+{"cpu_one_core_percent":155.24267239851378,"working_set":533266432,"gpu_shared_bytes":155648.0,"seconds":4.9632281,"gpu_dedicated_bytes":0.0,"gpu_counter_error":null,"gpu_engine_max_percent":0.0,"private_bytes":506433536,"pid":42516}

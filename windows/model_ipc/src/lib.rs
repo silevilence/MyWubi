@@ -22,6 +22,15 @@ const MAX: usize = 65536;
 
 /// OS low-memory signal; it does not inspect any client input or application data.
 pub struct MemoryPressure(HANDLE);
+/// Unknown power state is conservative: automatic GPU requires AC and no saver.
+pub fn auto_gpu_power_allowed() -> bool {
+    use windows::Win32::System::Power::{GetSystemPowerStatus, SYSTEM_POWER_STATUS};
+    let mut status = SYSTEM_POWER_STATUS::default();
+    // SAFETY: status is an initialized writable Win32 output structure.
+    unsafe { GetSystemPowerStatus(&mut status) }.is_ok()
+        && status.ACLineStatus == 1
+        && status.SystemStatusFlag == 0
+}
 impl MemoryPressure {
     pub fn new() -> io::Result<Self> {
         use windows::Win32::System::Memory::*;

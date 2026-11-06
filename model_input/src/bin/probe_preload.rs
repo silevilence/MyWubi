@@ -13,7 +13,9 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
     }
     let args: Vec<_> = std::env::args().collect();
     if !(5..=6).contains(&args.len()) {
-        return Err("probe-preload STORE ID VERSION on_demand|preload_keep [cpu|vulkan|cuda]".into());
+        return Err(
+            "probe-preload STORE ID VERSION on_demand|preload_keep [cpu|vulkan|cuda]".into(),
+        );
     }
     let loading = match args[4].as_str() {
         "on_demand" => ModelLoading::OnDemand,

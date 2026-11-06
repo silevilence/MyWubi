@@ -1,0 +1,13 @@
+{
+  "loading": "on_demand",
+  "worker_sha256": "a485650c0d90c0e90dea029b87b38594f4e9284af849c69e869e4291999dd37d",
+  "duration_seconds": 0,
+  "device": "cpu",
+  "temperature_celsius": null,
+  "probe_sha256": "55bdd5913fea531f2a7f72af1b7058328ad87f7af7eeeeb296b5415e82e98755",
+  "cpu_logical_count": 14,
+  "measurement_boundary": "confirmed shared-session commit -> independent worker IPC -> shared candidate publication; excludes GDI paint/display scanout",
+  "power_watts": null,
+  "unavailable": "No calibrated package-power or GPU-temperature provider is available in this harness",
+  "timestamp_utc": "2026-11-06T00:38:19.3602427Z"
+}

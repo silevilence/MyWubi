@@ -1,0 +1,10 @@
+{
+  "version": 1,
+  "adapter": "qwen25-short-words-v1",
+  "model_sha256": "74a4da8c9fdbcd15bd1f6d01d621410d31c6fc00986f5eb687824e7b93d7a9db",
+  "max_tokens": 64,
+  "max_chars": 6,
+  "max_words": 3,
+  "minimum_mean_logprob": -3.0,
+  "evidence": "MI-22 authored development probes, generation-specific raw mean log probability. Functional experiment only; no independent quality endorsement. Prompt/grammar/greedy decoding fixed by qwen25-short-words-v1; GGUF hash binds tokenizer."
+}
