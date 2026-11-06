@@ -1,0 +1,15 @@
+{
+  "production_change": "IPC service startup deadline separated from candidate deadline",
+  "application_version": "0.7.0",
+  "application_hashes": {
+    "settings.exe": "aa87c4665c6d95a438d9e27b22a0627aa7e66dc861b3642a1a9136fcfd107699",
+    "im_engine.dll": "cd3f8a8d225b73e07776a7d7a09564a40a7cde6842eda62a88f18a8560b0669e"
+  },
+  "component_archive_unchanged": "35aa5f327643bbd7b14eb13e554ed0bc0c6fb5c917ff9a4915b22fae30d6eba8",
+  "assets": {
+    "MyWubi-0.7.0-full.nupkg": 19689097,
+    "MyWubi-components-cpu-0.7.0-windows-x86_64.zip": 10402754,
+    "MyWubi-win-Portable.zip": 19614923,
+    "MyWubi-win-Setup.exe": 24223369
+  }
+}

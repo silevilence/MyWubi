@@ -1,0 +1,15 @@
+running 1 test
+成功: 已终止 PID 为 892 的进程。
+[DEBUG-mi39-restart] error=Some(Timeout); status=None; elapsed=2.2070769s
+
+thread 'model_client::lifecycle_tests::active_client_recovers_from_service_crash_and_reactivation_shares_weights' (3040) panicked at windows\im_engine\src\model_client.rs:278:13:
+model service failed to prepare
+note: run with `RUST_BACKTRACE=1` environment variable to display a backtrace
+test model_client::lifecycle_tests::active_client_recovers_from_service_crash_and_reactivation_shares_weights ... FAILED
+
+failures:
+
+failures:
+    model_client::lifecycle_tests::active_client_recovers_from_service_crash_and_reactivation_shares_weights
+
+test result: FAILED. 0 passed; 1 failed; 0 ignored; 0 measured; 73 filtered out; finished in 35.56s

@@ -1,0 +1,10 @@
+running 1 test
+prepare helper exit -> model Ready: 4.7116084s; pid=4860
+first ordinary host after settings preload: 164.4986ms; response={"Ok":{"key":{"config":1,"context":1,"edit":{"editor":1,"epoch":1,"generation":1,"runtime":1,"session":1},"model":1,"query":{"engine":1,"version":1},"request":1,"view":1},"protocol":1,"words":["市"]}}
+test saved_preload_outlives_prepare_helper_exit has been running for over 60 seconds
+成功: 已终止 PID 为 4860 的进程。
+test saved_preload_outlives_prepare_helper_exit ... ok
+
+test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 70.74s
+
+test_exit=0

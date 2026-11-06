@@ -1,0 +1,5 @@
+install_exit=0
+catalog_exit=0
+SHA256 的 C:\Users\WDAGUtilityAccount\AppData\Local\MyWubi\current\im_engine.dll 哈希:
+cd3f8a8d225b73e07776a7d7a09564a40a7cde6842eda62a88f18a8560b0669e
+CertUtil: -hashfile 命令成功完成。

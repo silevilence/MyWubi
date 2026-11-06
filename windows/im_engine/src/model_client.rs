@@ -195,6 +195,10 @@ fn run(shared: Arc<(Mutex<State>, Condvar)>) {
                 let program = runtime_components::worker(&config_path, requested)
                     .or_else(|_| runtime_components::worker(&config_path, capability))
                     .map_err(|_| Unavailable::Load)?;
+                // Integrity verification can outlast one candidate request.
+                // Still configure the new service so the next input can use it;
+                // keep the original request deadline for publishing candidates.
+                let startup_deadline = Instant::now() + Duration::from_secs(5);
                 std::process::Command::new(&program)
                     .current_dir(program.parent().ok_or(Unavailable::Load)?)
                     .creation_flags(0x08000000)
@@ -213,7 +217,7 @@ fn run(shared: Arc<(Mutex<State>, Condvar)>) {
                     }) {
                         return Err(Unavailable::Cancelled);
                     }
-                    if Instant::now() >= deadline {
+                    if Instant::now() >= startup_deadline {
                         return Err(Unavailable::Timeout);
                     }
                     std::thread::sleep(Duration::from_millis(10));
@@ -225,6 +229,9 @@ fn run(shared: Arc<(Mutex<State>, Condvar)>) {
             let Some(request) = job.request else {
                 return Err(Unavailable::Empty);
             };
+            if Instant::now() >= deadline {
+                return Err(Unavailable::Timeout);
+            }
             exchange(serde_json::json!({"op":"Pause","paused":false}))?;
             exchange(serde_json::json!({"op":"Submit","request":request}))?;
             loop {
@@ -318,15 +325,28 @@ mod lifecycle_tests {
         request.prefix = "北京".into();
         request.code.clear();
         request.candidates.clear();
+        let mut recovery_config = config.clone();
+        recovery_config.wait_ms = 50;
         let start = Instant::now();
-        client.submit(root.clone(), config.clone(), request.clone());
+        client.submit(root.clone(), recovery_config, request.clone());
         assert!(
             start.elapsed() < Duration::from_millis(100),
             "input was blocked by restart"
         );
         let replacement = ready();
         assert_ne!(original, replacement);
+        assert!(matches!(
+            client.take(request.key),
+            Some(Err(Unavailable::Timeout))
+        ));
+        eprintln!(
+            "expired request timed out; service recovered: old={original}, new={replacement}"
+        );
         client.invalidate();
+        // Changing the test's 50ms budget restores the normal configuration;
+        // wait for that reconfiguration before measuring a warm response.
+        exchange(serde_json::json!({"op":"Configure","root":root,"config":config})).unwrap();
+        assert_eq!(ready(), replacement);
         request.key.request += 1;
         client.submit(root.clone(), config.clone(), request.clone());
         let start = Instant::now();

@@ -32,9 +32,9 @@
 
 线上 CI 尚未执行。Windows Sandbox CLI 可执行安装与原生请求，但远程图形连接反复显示断开，未取得最终 TSF/GDI 候选显示及上屏证据。以下安装器和便携验证仅覆盖明确列出的范围，不代替可见输入闭环。
 
-## 最终制品及升级证据
+## 首轮审计制品及升级证据
 
-最终构建输出为 `target/mi36-39-audited/`，版本 0.7.0、Windows x86_64。`settings.exe` SHA-256 为 `9af34e2452f110e99cd49eaddcaeb2e6367b3c7137dc287c2b8a126bc74eae77`，TSF DLL 为 `92bbf66ea6beca018d9ccc455dcd422e1f2040232f69e217a1f9e0cd80ceeea0`，组件 ZIP 为 `35aa5f327643bbd7b14eb13e554ed0bc0c6fb5c917ff9a4915b22fae30d6eba8`。之后只修改测试适配器、打包校验脚本及文档，不改变这些制品的生产代码。
+首轮审计构建输出为 `target/mi36-39-audited/`，版本 0.7.0、Windows x86_64。`settings.exe` SHA-256 为 `9af34e2452f110e99cd49eaddcaeb2e6367b3c7137dc287c2b8a126bc74eae77`，TSF DLL 为 `92bbf66ea6beca018d9ccc455dcd422e1f2040232f69e217a1f9e0cd80ceeea0`，组件 ZIP 为 `35aa5f327643bbd7b14eb13e554ed0bc0c6fb5c917ff9a4915b22fae30d6eba8`。后续补验发现并修复了客户端崩溃恢复问题，最终修订制品及验证范围见本文件末尾。
 
 | 场景 | 实测结果及范围 |
 | --- | --- |
@@ -67,7 +67,7 @@
 
 审核补充了安装更新失败后的运行选择：按受信清单顺序选择已安装且兼容的版本，新组件缺失/损坏时仍能使用明确保留的旧版本；不信任旧收据，也不自动启用旧同目录程序。增加回退/不兼容/撤销信任测试，并保护保存模型正在依赖的回退版本。清单重复键按 Windows 大小写语义拒绝。
 
-更新两个显式忽略的真实服务生命周期测试，使其使用实际设置辅助进程和受信组件目录，移除旧“复制 worker 到测试程序旁”假设。适配器编译及相关库回归 95 通过、2 忽略；这些生命周期忽略项未在此轮重新执行，不能当作已验收。脚本测试 6 通过，Rust 格式检查和组件/模型严格 Clippy 通过（[日志](mi36-39/components-clippy.log)）。
+更新两个显式忽略的真实服务生命周期测试，使其使用实际设置辅助进程和受信组件目录，移除旧“复制 worker 到测试程序旁”假设。适配器编译及相关库回归 95 通过、2 忽略；这两个生命周期项在后续干净沙盒补验，见下文；普通测试命令仍默认忽略真实服务操作。脚本测试 6 通过，Rust 格式检查和组件/模型严格 Clippy 通过（[日志](mi36-39/components-clippy.log)）。
 
 可复现命令：
 
@@ -81,3 +81,17 @@ python scripts/measure_component_distribution.py --application target/velopack-s
 ```
 
 真实组件测试需把 `MYWUBI_COMPONENT_CATALOG` 指向输出清单，`MI_COMPONENT_ARCHIVE` 指向对应 ZIP，`MI_GGUF_PACKAGE`/`MI_ONNX_PACKAGE` 指向真实模型包目录，再运行 `cargo test -p model_input --test components_real --locked -- --ignored --nocapture`。该测试只使用缓存，不声称完成在线下载。整个验证未修改主机已安装输入法或用户配置。
+
+## 后续生命周期补验与恢复修复（2026-11-06）
+
+正式组件地址再次请求仍为 HTTP 404；GitHub API 对本地提交 `b211e828847d1d584a5af8af5c30124b6d2adc36` 返回 Actions 运行数 0。本次仍未推送或发布。
+
+在同一干净 Windows 沙盒中，使用发布设置程序、编译清单及固定哈希组件执行两个真实服务测试：
+
+- 设置辅助进程退出后约 4.71 秒 Ready，首个普通请求约 164 毫秒返回“市”；无请求空闲 61 秒后仍驻留，关闭预测变 Idle，再启用复用同一 PID。[日志](mi36-39/sandbox-handoff.log)
+- 崩溃恢复首次失败，两次可复现。组件哈希校验约 2.2 秒耗尽候选请求的 1 秒预算，服务已启动但尚未收到 Configure；客户端直接返回 Timeout，使服务无法准备模型。[原始失败](mi36-39/sandbox-client-before-fix.log)、[定位日志](mi36-39/sandbox-client-diagnosis.log)
+- 修复把后台服务启动等待独立限制为 5 秒，保留原请求截止时间，并在发送候选请求前拒绝过期请求。恢复测试改用 50 毫秒预算断言原请求 Timeout，服务仍进入 Ready；显式恢复正常预算并完成配置后，新请求返回“市”，重新激活复用同一 PID。测试通过，耗时约 10.92 秒。[回归日志](mi36-39/sandbox-client-regression.log)
+
+本次相关库回归 95 通过、2 个真实服务测试默认忽略；随后上述两项分别显式运行通过。临时诊断代码已移除，格式和 diff 检查通过。这些测试调用实际 IPC 客户端和独立服务，不是 TSF/GDI 可见上屏证据。
+
+最终修订安装包位于 `target/mi36-39-recovery/`，原生组件 ZIP 完全不变。Setup 为 24,223,369 字节，Portable 为 19,614,923 字节；[修订制品哈希](mi36-39/recovery-artifacts.json)。修订安装包在沙盒中全新静默安装、运行清单命令和安装后 DLL 哈希比对通过（[日志](mi36-39/recovery-installed.txt)）。前述旧版升级和体积布局对照属于首轮审计制品；本修订仅变更 IPC 恢复逻辑，未重复旧版升级场景，也不将其记成最终修订包的重复验收。
