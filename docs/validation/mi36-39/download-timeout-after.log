@@ -20,4 +20,3 @@ test download::tests::stalled_body_times_out_and_preserves_resumable_bytes ... o
 test download::tests::response_header_timeout_does_not_abort_a_progressing_body ... ok
 
 test result: ok. 9 passed; 0 failed; 0 ignored; 0 measured; 27 filtered out; finished in 0.39s
-

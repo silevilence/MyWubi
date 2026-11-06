@@ -7,4 +7,3 @@ archive_sha256=794b61325ac095c706eeaa820364b571ad692204d6d41bbbb18a1a97ce155402;
 test published_component_download_and_both_native_backends_work_in_an_empty_store ... ok
 
 test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 2 filtered out; finished in 24.80s
-

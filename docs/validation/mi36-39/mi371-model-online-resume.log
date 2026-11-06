@@ -1,12 +1,12 @@
-attempt=1 
+attempt=1
 {"phase":"downloading","completed":0,"total":491411858,"file":"model.gguf","source":"hf_mirror"}
 Error: Network("timeout: receive response")
-attempt=2 
+attempt=2
 {"phase":"downloading","completed":6550153,"total":491411858,"file":"model.gguf","source":"hf_mirror"}
 {"phase":"downloading","completed":8404583,"total":491411858,"file":"model.gguf","source":"hf_mirror"}
 {"phase":"downloading","completed":16784481,"total":491411858,"file":"model.gguf","source":"hf_mirror"}
 Error: Network("timeout: receive response")
-attempt=3 
+attempt=3
 {"phase":"downloading","completed":22797409,"total":491411858,"file":"model.gguf","source":"hf_mirror"}
 {"phase":"downloading","completed":25181779,"total":491411858,"file":"model.gguf","source":"hf_mirror"}
 {"phase":"downloading","completed":33560583,"total":491411858,"file":"model.gguf","source":"hf_mirror"}
