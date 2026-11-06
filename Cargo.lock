@@ -340,9 +340,9 @@ checksum = "f2032f911046de80f0a198e0901378627c33f59ea0ac00e363d481118bd70a53"
 
 [[package]]
 name = "base64"
-version = "0.22.1"
+version = "0.23.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "72b3254f16251a8381aa12e40e3c4d2f0199f8c6508fbecb9d91f575e0fbb8c6"
+checksum = "ac07cdecf99051d9a5238b80f35af32cdeba5b336e55d957b318b50137e18da5"
 
 [[package]]
 name = "bindgen"
@@ -811,7 +811,7 @@ dependencies = [
 
 [[package]]
 name = "core_engine"
-version = "0.7.1"
+version = "0.7.2"
 dependencies = [
  "arc-swap",
  "criterion",
@@ -1808,7 +1808,7 @@ dependencies = [
 
 [[package]]
 name = "im_engine"
-version = "0.7.1"
+version = "0.7.2"
 dependencies = [
  "arc-swap",
  "core_engine",
@@ -2204,7 +2204,7 @@ dependencies = [
 
 [[package]]
 name = "model_input"
-version = "0.7.1"
+version = "0.7.2"
 dependencies = [
  "core_engine",
  "fs2",
@@ -2224,14 +2224,14 @@ dependencies = [
 
 [[package]]
 name = "model_ipc"
-version = "0.7.1"
+version = "0.7.2"
 dependencies = [
  "windows 0.62.2",
 ]
 
 [[package]]
 name = "mywubi_android"
-version = "0.7.1"
+version = "0.7.2"
 dependencies = [
  "core_engine",
  "jni",
@@ -3086,7 +3086,7 @@ dependencies = [
 
 [[package]]
 name = "runtime_components"
-version = "0.7.1"
+version = "0.7.2"
 dependencies = [
  "fs2",
  "semver",
@@ -3137,9 +3137,9 @@ dependencies = [
 
 [[package]]
 name = "rustls"
-version = "0.23.41"
+version = "0.23.46"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "6b92b125634d9b795e7beca796cc790df15a7fb38323bf3196fda83292d06b1f"
+checksum = "48e13bd8c0e9365c43cfa5c9e8f9ad49d3c8444926c9aac819e0e4dc503c8fdf"
 dependencies = [
  "log",
  "once_cell",
@@ -3161,9 +3161,9 @@ dependencies = [
 
 [[package]]
 name = "rustls-webpki"
-version = "0.103.13"
+version = "0.103.16"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "61c429a8649f110dddef65e2a5ad240f747e85f7758a6bccc7e5777bd33f756e"
+checksum = "4443b1b6d39d7c663139942cc4558262562d2c84123bb6282ef177009ca8b281"
 dependencies = [
  "ring",
  "rustls-pki-types",
@@ -3293,7 +3293,7 @@ dependencies = [
 
 [[package]]
 name = "settings"
-version = "0.7.1"
+version = "0.7.2"
 dependencies = [
  "core_engine",
  "dirs 5.0.1",
@@ -3655,7 +3655,7 @@ dependencies = [
 
 [[package]]
 name = "tip_manager"
-version = "0.7.1"
+version = "0.7.2"
 dependencies = [
  "log",
  "thiserror 1.0.69",
@@ -3852,9 +3852,9 @@ checksum = "8ecb6da28b8a351d773b68d5825ac39017e680750f980f3a1a85cd8dd28a47c1"
 
 [[package]]
 name = "ureq"
-version = "3.3.0"
+version = "3.5.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "dea7109cdcd5864d4eeb1b58a1648dc9bf520360d7af16ec26d0a9354bafcfc0"
+checksum = "e7be76686bdf7198002062423ca0d8cf9b75a27c8e1de804513b97e97b555d9d"
 dependencies = [
  "base64",
  "flate2",
@@ -3869,9 +3869,9 @@ dependencies = [
 
 [[package]]
 name = "ureq-proto"
-version = "0.6.0"
+version = "0.7.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "e994ba84b0bd1b1b0cf92878b7ef898a5c1760108fe7b6010327e274917a808c"
+checksum = "622dce33c252115466d83f63e9744a18f12b4406aae51a01c15ad8fcf1185eb3"
 dependencies = [
  "base64",
  "http",
@@ -4226,9 +4226,9 @@ dependencies = [
 
 [[package]]
 name = "webpki-roots"
-version = "1.0.8"
+version = "1.0.11"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "bf85cb06032201fa7c6f829d7db5a7e5aa45bcc0655327713065f6f0576731bf"
+checksum = "f5f280bbb2b287bc8e7de7e3852945a0ff50d1bbcb5ed42b6c7a568c546df171"
 dependencies = [
  "rustls-pki-types",
 ]

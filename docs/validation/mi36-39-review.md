@@ -115,3 +115,20 @@ python scripts/measure_component_distribution.py --application target/velopack-s
 复查时沙盒重启后已运行 6 分钟，驱动崩溃事件为 0（[结果](mi36-39/sandbox-repair-check.json)）。资源管理器、正式设置程序和记事本均可交互。正式 0.7.1 Setup 全新安装返回 0；仅在沙盒内注册输入法，记事本选中 MyWubi 后，默认码表 `a` 的“工”候选显示并可用空格上屏。组件下载失败期间基础输入仍能使用。这项仅证明基础 TSF/GDI 输入，不代表模型预测已上屏。用户主机未注册测试输入法，现有 AppData 配置未修改。
 
 MI-37～MI-39 父任务仍保持未完成：继续补验正式源在线下载、模型预测上屏及其离线/重启/后端切换流程。发布与沙盒桌面故障已经解除，不再把二者列为阻塞。
+
+## 可见预测、离线重启与下载超时修复
+
+正式 0.7.1 在恢复后的沙盒补验：
+
+- 设置页从正式 SHA-256 缓存恢复 CPU 组件安装，随后显式选择 GGUF 模型、设置提前加载和 1000 ms 等待、开启预测并保存。测试码表只包含 `a → 工` 和 `n → 北京`，替换范围仅为沙盒内测试配置目录；模型包使用已校验的本地样例。这不是全新在线下载闭环。
+- 记事本输入“北京”后显示 GGUF 候选“市、区、县”，空格选词后实际保存为“北京市”。[候选截图](mi36-39/mi371-gguf-visible.png)、[提交截图](mi36-39/mi371-gguf-committed.png)、[保存文本](mi36-39/mi371-gguf-committed.txt)。独立服务路径为沙盒 AppData 下的 `components/cpu--0.7.1/model-worker.exe`。
+- 设置页确认移除正在使用的 CPU 组件时，拒绝删除并要求先切回词典预测保存。[保护提示](mi36-39/mi371-active-removal-protected.png)。
+- 设置页切换 ONNX 样例并保存，显示候选并选词后保存为“北京天气”。[候选截图](mi36-39/mi371-onnx-visible.png)、[提交截图](mi36-39/mi371-onnx-committed.png)、[保存文本](mi36-39/mi371-onnx-committed.txt)、[受控目录 ORT 加载路径](mi36-39/mi371-onnx-loaded.json)。该样例只验证原生评分、准入和显示链路，其宽松阈值不代表模型质量达标。
+- 沙盒内部重启后，停用其唯一虚拟网卡，在未启动设置程序的情况下重新选择 MyWubi，保存的 ONNX 模型仍显示“天气、大学、时间、奥运、现代”并可选词。[离线网卡状态](mi36-39/mi371-offline-network.json)、[重启后离线候选](mi36-39/mi371-offline-after-restart.png)。验证结束恢复网卡；主机网卡未操作。
+- 同一沙盒使用生产下载器从 HF 镜像空目录下载模型，前两次失败后从保留偏移继续，第三次完成全部 491,411,858 字节并通过校验发布。[完整续传记录](mi36-39/mi371-model-online-resume.log)。模型下载通过不替代 GitHub 组件下载通过，也不把此前导入模型的截图算作这次在线模型的完整 UI 闭环。
+
+另发现可复现的下载缺陷：`ureq 3.3.0` 在正文阶段继续应用已经完成的响应头超时，慢速但持续传输也会报 `timeout: receive response`；[上游修复说明](https://github.com/algesten/ureq/pull/1194)。本地 TCP 测试立即发完响应头、发送一个字节后延迟正文，100 ms 响应头预算和 2 秒正文预算下，旧依赖在约 0.32 秒内失败（[修复前](mi36-39/download-timeout-before.log)）。
+
+更新至 `ureq 3.5.1` 后该测试通过；生产配置为连接 10 秒、响应头 20 秒、单次读写停滞 20 秒、正文总预算 10 分钟。新增停滞超时后保留部分字节并恢复下载测试，下载相关 9 项全部通过（[修复后](mi36-39/download-timeout-after.log)）。修复后的本机测试从空组件目录经正式 GitHub URL 安装并运行 GGUF/ONNX，配置保持关闭（[日志](mi36-39/fixed-host-component-online.log)）。沙盒同一在线测试仍有网络失败，不能据本机成功代替干净 Windows 验收。
+
+本次修复的工作区回归 371 通过、6 个显式真实环境测试默认忽略（[日志](mi36-39/download-fix-workspace.log)），组件与模型严格 Clippy 通过（[日志](mi36-39/download-fix-clippy.log)）。版本准备为 0.7.2；上述可见预测属于已发布的 0.7.1，后续 0.7.2 正式发布和制品验收另行记录。MI-37～MI-39 父任务继续保留未完成。

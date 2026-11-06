@@ -1,0 +1,23 @@
+   Compiling rustls-webpki v0.103.16
+   Compiling base64 v0.23.1
+   Compiling webpki-roots v1.0.11
+   Compiling ureq-proto v0.7.1
+   Compiling rustls v0.23.46
+   Compiling ureq v3.5.1
+   Compiling model_input v0.7.1 (C:\code\rust\MyWubi\model_input)
+    Finished `test` profile [unoptimized + debuginfo] target(s) in 20.83s
+     Running unittests src\lib.rs (target\debug\deps\model_input-5639aec4af0a4edb.exe)
+
+running 9 tests
+test download::tests::space_gate_and_pinned_source_mapping_are_explicit ... ok
+test download::tests::modelscope_requires_an_explicit_identical_artifact_and_fixed_revision ... ok
+test download::tests::disconnected_transfer_keeps_partial_and_retry_completes ... ok
+test download::tests::unavailable_source_does_not_replace_partial_data_and_can_be_retried ... ok
+test download::tests::incorrect_range_is_rejected_without_appending_and_ignored_range_restarts ... ok
+test download::tests::cancel_and_new_source_resume_the_same_pinned_artifact ... ok
+test download::tests::corrupted_file_is_not_accepted_and_retry_starts_clean ... ok
+test download::tests::stalled_body_times_out_and_preserves_resumable_bytes ... ok
+test download::tests::response_header_timeout_does_not_abort_a_progressing_body ... ok
+
+test result: ok. 9 passed; 0 failed; 0 ignored; 0 measured; 27 filtered out; finished in 0.39s
+

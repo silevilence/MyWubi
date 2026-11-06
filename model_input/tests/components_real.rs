@@ -2,16 +2,28 @@
 #[test]
 #[ignore = "requires compiled release catalog, MI_COMPONENT_ARCHIVE, MI_GGUF_PACKAGE and MI_ONNX_PACKAGE"]
 fn release_component_cache_install_and_both_native_backends_work_without_developer_path() {
-    exercise_release(false);
+    exercise_release(DownloadMode::Cached);
 }
 
 #[test]
 #[ignore = "downloads published components and a 491MB model; requires release catalog and MI_ONNX_PACKAGE"]
 fn published_components_and_model_download_into_an_empty_store() {
-    exercise_release(true);
+    exercise_release(DownloadMode::ComponentAndModel);
 }
 
-fn exercise_release(online: bool) {
+#[test]
+#[ignore = "downloads published components; requires release catalog, MI_GGUF_PACKAGE and MI_ONNX_PACKAGE"]
+fn published_component_download_and_both_native_backends_work_in_an_empty_store() {
+    exercise_release(DownloadMode::Component);
+}
+
+enum DownloadMode {
+    Cached,
+    Component,
+    ComponentAndModel,
+}
+
+fn exercise_release(mode: DownloadMode) {
     use std::{
         fs,
         io::Write,
@@ -25,7 +37,7 @@ fn exercise_release(online: bool) {
     let catalog = runtime_components::catalog().unwrap();
     let component = &catalog[0];
     let downloads = root.path().join("components/.downloads");
-    if !online {
+    if matches!(mode, DownloadMode::Cached) {
         fs::create_dir_all(&downloads).unwrap();
         fs::copy(
             std::env::var_os("MI_COMPONENT_ARCHIVE").unwrap(),
@@ -44,7 +56,7 @@ fn exercise_release(online: bool) {
         eprintln!("component_source={}", component.source);
     }
     model_input::components::install(&config, "llama", &AtomicBool::new(false), |_| {}).unwrap();
-    let downloaded = if online {
+    let downloaded = if matches!(mode, DownloadMode::ComponentAndModel) {
         let model = model_input::download::available_models()
             .into_iter()
             .next()

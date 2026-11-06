@@ -1,0 +1,715 @@
+   Compiling core_engine v0.7.1 (C:\code\rust\MyWubi\core_engine)
+   Compiling runtime_components v0.7.1 (C:\code\rust\MyWubi\windows\runtime_components)
+   Compiling ureq-proto v0.7.1
+   Compiling rustls v0.23.46
+warning: settings@0.7.1: 已复制 4 个码表到 C:\code\rust\MyWubi\target\debug\tables
+   Compiling ureq v3.5.1
+   Compiling velopack v1.2.0
+   Compiling model_input v0.7.1 (C:\code\rust\MyWubi\model_input)
+   Compiling im_engine v0.7.1 (C:\code\rust\MyWubi\windows\im_engine)
+   Compiling settings v0.7.1 (C:\code\rust\MyWubi\windows\settings)
+warning: linker stdout: symbols.o : warning LNK4104: 导出符号“DllCanUnloadNow”应为 PRIVATE␍
+         symbols.o : warning LNK4104: 导出符号“DllGetClassObject”应为 PRIVATE␍
+         symbols.o : warning LNK4104: 导出符号“DllRegisterServer”应为 PRIVATE␍
+         symbols.o : warning LNK4104: 导出符号“DllUnregisterServer”应为 PRIVATE
+  |
+  = note: `#[warn(linker_messages)]` on by default
+
+warning: `im_engine` (lib) generated 1 warning
+   Compiling mywubi_android v0.7.1 (C:\code\rust\MyWubi\android\native)
+    Finished `test` profile [unoptimized + debuginfo] target(s) in 1m 30s
+     Running unittests src\lib.rs (target\debug\deps\core_engine-5f8dde6853cf987a.exe)
+
+running 92 tests
+test assistance::context::tests::edits_and_editor_changes_clear_old_state_and_utf16_boundaries_are_checked ... ok
+test assistance::context::tests::uncertain_host_writes_never_become_confirmed_prefix ... ok
+test assistance::ranking::tests::stale_clicks_versions_bad_scores_and_low_confidence_cannot_change_selection ... ok
+test assistance::ranking::tests::timeout_failure_and_started_selection_permanently_freeze_order ... ok
+test assistance::context::tests::only_acknowledged_commits_survive_failed_edits_and_sensitive_bindings ... ok
+test assistance::ranking::tests::all_modes_preserve_identity_and_waiting_selection_uses_base_without_replay ... ok
+test config::tests::parse_full_config ... ok
+test config::prediction_config_tests::gpu_selection_roundtrips_without_enabling_prediction ... ok
+test config::tests::quick_select_hotkeys_roundtrip_and_default ... ok
+test config::tests::parse_with_defaults ... ok
+test config::prediction_config_tests::defaults_and_package_identity_are_portable_and_resource_bounded ... ok
+test config::tests::rejects_invalid_candidate_count ... ok
+test dictionary::tests::exact_match_returns_by_weight_desc ... ok
+test dictionary::tests::exact_match_unique ... ok
+test dictionary::tests::from_entries_handles_duplicate_codes ... ok
+test config::tests::roundtrip_toml ... ok
+test dictionary::tests::parse_crlf_line_endings ... ok
+test dictionary::tests::limit_truncates ... ok
+test dictionary::tests::has_prefix_empty_returns_false ... ok
+test dictionary::tests::parse_dictionary_reads_yaml_header ... ok
+test dictionary::tests::has_prefix_works ... ok
+test dictionary::tests::invalid_pinyin_and_temporary_configuration_is_rejected ... ok
+test dictionary::tests::parse_dictionary_rejects_code_longer_than_max_code_len ... ok
+test dictionary::tests::parse_dictionary_rejects_multi_character_wildcard ... ok
+test dictionary::tests::parse_dictionary_treats_empty_wildcard_as_disabled ... ok
+test config_path::tests::relative_resource_paths_are_resolved_from_config_parent ... ok
+test dictionary::tests::dictionary_is_send_sync ... ok
+test dictionary::tests::display_name_uses_nonblank_header_and_falls_back_for_old_tables ... ok
+test dictionary::tests::parse_dictionary_uses_defaults_without_yaml_header ... ok
+test dictionary::tests::parse_dictionary_rejects_unclosed_yaml_header ... ok
+test dictionary::tests::parse_dictionary_rejects_wildcard_outside_charset ... ok
+test dictionary::tests::parse_dictionary_rejects_wildcard_in_body_code ... ok
+test dictionary::tests::parse_empty_text_yields_empty ... ok
+test dictionary::tests::parse_indented_entry_is_trimmed ... ok
+test config_path::tests::portable_mode_wins_when_exe_dir_has_config ... ok
+test dictionary::tests::parse_lines_basic ... ok
+test dictionary::tests::parse_lines_default_weight ... ok
+test dictionary::tests::parse_max_u32_weight ... ok
+test dictionary::tests::parse_multiple_consecutive_tabs_in_weight_field ... ok
+test dictionary::tests::parse_empty_word_after_code ... ok
+test dictionary::tests::parse_extra_trailing_tab_ignored ... ok
+test dictionary::tests::parse_ignores_indented_comment ... ok
+test dictionary::tests::parse_preserves_code_with_digits ... ok
+test dictionary::tests::parse_non_numeric_negative_weight_falls_back_to_default ... ok
+test dictionary::tests::parse_rejects_empty_word_field ... ok
+test dictionary::tests::parse_non_numeric_weight_falls_back_to_default ... ok
+test dictionary::tests::parse_rejects_line_with_only_code_field ... ok
+test dictionary::tests::parse_only_comments_and_blanks ... ok
+test dictionary::tests::parse_unicode_in_word ... ok
+test dictionary::tests::parse_weight_overflow_falls_back_to_default ... ok
+test config_path::tests::appdata_mode_creates_default_config_when_portable_missing ... ok
+test dictionary::tests::parse_trailing_whitespace_is_trimmed ... ok
+test dictionary::tests::parse_rejects_invalid_line ... ok
+test dictionary::tests::parse_space_separated_not_supported ... ok
+test dictionary::tests::prefix_search ... ok
+test dictionary::tests::search_limit_zero_returns_empty ... ok
+test dictionary::tests::search_trie_falls_back_when_no_trie ... ok
+test dictionary::tests::search_nonexistent_prefix_returns_empty ... ok
+test dictionary::tests::temporary_and_pinyin_header_roundtrip ... ok
+test dictionary::tests::search_empty_prefix_returns_empty ... ok
+test dictionary::tests::validate_table_reports_charset_and_wildcard_violations ... ok
+test state_machine::tests::auto_commit_unique_on_four_code ... ok
+test state_machine::tests::commit_raw_current_preserves_uppercase ... ok
+test state_machine::tests::backspace_removes_trailing_punctuation_before_code_chars ... ok
+test state_machine::tests::esc_clears ... ok
+test state_machine::tests::backspace_to_empty_clears ... ok
+test state_machine::tests::commit_raw_current_ignores_candidates ... ok
+test state_machine::tests::passthrough_empty_buffer_on_space ... ok
+test state_machine::tests::enter_commits_raw_spelling ... ok
+test state_machine::tests::page_next_and_prev ... ok
+test dictionary::tests::save_table_roundtrip_preserves_header_and_entries ... ok
+test state_machine::tests::punctuation_passthrough_in_direct_mode ... ok
+test state_machine::tests::digit_char_selects_candidate_when_plain_code_is_active ... ok
+test state_machine::tests::punctuation_is_kept_in_raw_buffer_by_default ... ok
+test state_machine::tests::punctuation_passthroughs_when_idle ... ok
+test state_machine::tests::space_commits_first_candidate ... ok
+test state_machine::tests::select_by_number ... ok
+test state_machine::tests::consumption_prediction_matches_transition_without_mutating_spelling ... ok
+test state_machine::tests::typing_single_char_yields_candidates ... ok
+test state_machine::tests::uppercase_code_char_matches_uppercase_code_only ... ok
+test table_options::tests::entry_key_conflicts_name_the_hotkey ... ok
+test state_machine::tests::symbol_commits_raw_spelling_when_composing ... ok
+test table_options::tests::references_follow_the_main_table_directory ... ok
+test state_machine::tests::symbol_passthroughs_when_idle ... ok
+test tests::version_is_set ... ok
+test user_dictionary::tests::failed_save_keeps_in_memory_entries_unchanged ... ok
+test table_options::tests::pinyin_reference_requires_a_typed_table ... ok
+test user_dictionary::tests::import_merges_and_updates_duplicates ... ok
+test user_dictionary::tests::crud_roundtrip_persists_entries ... ok
+test assistance::prediction::tests::recall_distinguishes_word_remainders_and_next_words_without_repeating_prefix ... ok
+test assistance::prediction::tests::completed_words_do_not_restart_from_their_last_character ... ok
+test assistance::prediction::tests::complete_user_words_protect_their_boundary_and_still_allow_extensions ... ok
+
+test result: ok. 92 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.19s
+
+     Running tests\assistance_contract.rs (target\debug\deps\assistance_contract-f48c2b0e4bf04227.exe)
+
+running 6 tests
+test context_edits_and_backend_failures_discard_internal_state ... ok
+test every_identity_dimension_invalidates_old_response ... ok
+test rejects_missing_duplicate_foreign_nonfinite_and_incompatible_scores ... ok
+test sessions_reset_across_editors_errors_and_cancellation ... ok
+test score_only_backend_supports_prediction_reranking_without_proposal ... ok
+test negotiates_tasks_language_unicode_limits_and_candidate_identity ... ok
+
+test result: ok. 6 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+     Running tests\bundled_dictionaries.rs (target\debug\deps\bundled_dictionaries-ed95db7e3b1daaab.exe)
+
+running 3 tests
+test bundled_pinyin_loads_and_preserves_readings_and_boundaries ... ok
+test bundled_english_loads_and_supports_both_spellings_and_prefix_completion ... ok
+test bundled_tables_work_through_relative_references_and_temporary_input ... ok
+
+test result: ok. 3 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 1.69s
+
+     Running tests\candidate_contract.rs (target\debug\deps\candidate_contract-d718f1b338b65770.exe)
+
+running 3 tests
+test window_is_bounded_and_does_not_change_page_or_query_identity ... ok
+test structured_hint_is_never_committed_and_none_keeps_view_revision ... ok
+test stale_cross_session_and_invalidated_queries_cannot_select_same_position ... ok
+
+test result: ok. 3 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+     Running tests\config_projection.rs (target\debug\deps\config_projection-b8406b15399f5532.exe)
+
+running 4 tests
+test desktop_conflicts_are_diagnostics_for_touch_and_read_but_block_desktop_save ... ok
+test inactive_values_roundtrip_without_changing_effective_projection ... ok
+test explicit_private_storage_ignores_executable_directory_and_preserves_existing_data ... ok
+test prediction_upgrade_defaults_off_and_restart_preserves_explicit_missing_selection ... ok
+
+test result: ok. 4 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.04s
+
+     Running tests\data_contract.rs (target\debug\deps\data_contract-402490282b7be89c.exe)
+
+running 4 tests
+test conflict_detects_same_length_external_edit_and_leaves_draft_and_disk_intact ... ok
+test config_failure_reports_table_saved_and_invalid_table_writes_nothing ... ok
+test user_import_overrides_weights_and_stale_identity_never_deletes_another_entry ... ok
+test save_as_relocates_references_and_package_check_rejects_escape ... ok
+
+test result: ok. 4 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.09s
+
+     Running tests\ffi_protocol.rs (target\debug\deps\ffi_protocol-69c0f9391a4592fb.exe)
+
+running 4 tests
+test c_transport_matches_rust_and_rejects_invalid_buffers ... ok
+test table_metadata_reads_display_name_without_parsing_entries ... ok
+test editing_is_two_phase_and_handles_are_isolated ... ok
+test resources_preserve_versions_and_unicode ... ok
+
+test result: ok. 4 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.06s
+
+     Running tests\pinyin_search.rs (target\debug\deps\pinyin_search-2af6b1a62d68a023.exe)
+
+running 5 tests
+test explicit_boundaries_disambiguate_before_limit_and_deduplication ... ok
+test partial_boundaries_and_contiguous_prefixes_follow_the_contract ... ok
+test exact_results_precede_heavier_prefixes_unless_disabled ... ok
+test chinese_phrases_require_all_syllable_boundaries_in_the_file ... ok
+test pinyin_code_validation_counts_letters_only ... ok
+
+test result: ok. 5 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+     Running tests\prediction_session.rs (target\debug\deps\prediction_session-10641f256c873251.exe)
+
+running 18 tests
+test model_and_loading_hot_switches_preserve_pending_code_in_both_profiles ... ok
+test enter_ignores_suggestions_and_runtime_disable_preserves_pending_code ... ok
+test new_code_ignores_predictions_and_old_clicks_cannot_commit ... ok
+test model_prediction_waits_once_preserves_ids_and_discards_late_or_stale_scores ... ok
+test prediction_candidates_contain_words_without_status_labels ... ok
+test selected_model_can_receive_confirmed_context_without_dictionary_recall ... ok
+test model_wait_timeout_hides_predictions_without_intercepting_input ... ok
+test prediction_commit_keeps_the_entire_confirmed_prefix ... ok
+test replacing_owned_preedit_keeps_confirmed_prefix_across_separate_code_commits ... ok
+test generated_responses_after_external_edit_or_new_code_never_publish ... ok
+test both_profiles_predict_only_after_ack_and_chain_word_remainders_without_duplication ... ok
+test rejection_can_retry_but_uncertain_writes_and_editor_changes_invalidate_prediction ... ok
+test sensitive_editors_disabled_config_and_external_edits_never_predict ... ok
+test generated_words_use_confirmed_append_identity_and_retry_in_both_profiles ... ok
+test selecting_a_whole_word_does_not_start_an_overlapping_tail_chain ... ok
+test model_predictions_require_valid_admission_and_only_show_admitted_ids ... ok
+test prediction_numbers_follow_the_displayed_order_and_explicit_literals_stay_literal ... ok
+test visible_predictions_accept_space_and_number_keys_without_literal_characters ... ok
+
+test result: ok. 18 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 1.58s
+
+     Running tests\proposal_contract.rs (target\debug\deps\proposal_contract-441ea761f03917e0.exe)
+
+running 3 tests
+test scoring_only_empty_prefix_cancel_and_deadline_are_explicit ... ok
+test accepts_dictionary_independent_multichar_words_and_remainders ... ok
+test rejects_duplicates_repeated_prefix_explanations_fragments_and_overlong_text ... ok
+
+test result: ok. 3 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+     Running tests\reverse_lookup.rs (target\debug\deps\reverse_lookup-fa6a7977ba026da9.exe)
+
+running 2 tests
+test reverse_lookup_is_exact_deduplicated_and_shortest_first ... ok
+test hints_use_only_main_file_and_never_change_commit_text ... ok
+
+test result: ok. 2 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+     Running tests\runtime_contract.rs (target\debug\deps\runtime_contract-4483f4297f692314.exe)
+
+running 4 tests
+test legacy_fallback_keeps_main_usable_without_retrying_auxiliary_loading ... ok
+test merge_overrides_weights_but_reverse_index_only_uses_original_main ... ok
+test bad_auxiliary_reports_new_dependency_and_failed_or_late_build_keeps_current ... ok
+test invalid_user_data_rejects_reload_and_legacy_startup_falls_back_to_empty ... ok
+
+test result: ok. 4 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.04s
+
+     Running tests\semantic_events.rs (target\debug\deps\semantic_events-ba5fcbfe6eaaf5f8.exe)
+
+running 4 tests
+test declared_symbols_and_wildcards_are_code_but_literal_text_commits_once ... ok
+test explicit_digits_do_not_select_and_literal_intent_does_not_lookup ... ok
+test undeclared_touch_digit_is_literal_while_explicit_code_never_selects ... ok
+test legacy_mapping_is_exact_for_events_and_preflight_is_pure ... ok
+
+test result: ok. 4 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+     Running tests\semantic_modes.rs (target\debug\deps\semantic_modes-40cb8eff1c6030d9.exe)
+
+running 5 tests
+test touch_english_retains_raw_input_when_completion_is_broken ... ok
+test persistent_english_and_temporary_pinyin_restore_base_without_entry_key ... ok
+test duplicate_requests_and_unavailable_targets_preserve_input ... ok
+test clear_round_preserves_temporary_mode_but_end_restores_base ... ok
+test temporary_english_remains_one_shot_and_return_mode_survives_replacement ... ok
+
+test result: ok. 5 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+     Running tests\session_contract.rs (target\debug\deps\session_contract-617101dcf2388a86.exe)
+
+running 13 tests
+test active_mode_switch_waits_for_success_and_rejection_preserves_old_input ... ok
+test legacy_nested_input_advances_processing_before_ack_and_outer_cannot_publish ... ok
+test legacy_only_temporary_handle_rolls_back_not_switch_or_runtime_adoption ... ok
+test context_change_and_close_interrupt_pending_and_do_not_delete_new_selection ... ok
+test local_preedit_host_uses_current_selection_and_unknown_result_is_not_retried ... ok
+test partial_and_unknown_results_never_replay_commits_and_recovery_preserves_intent ... ok
+test unknown_ownership_is_not_inferred_from_a_previous_successful_preedit ... ok
+test local_base_preedit_is_committed_raw_before_focus_loss_or_runtime_update ... ok
+test password_input_is_literal_without_candidate_previews ... ok
+test touch_preview_is_not_published_busy_does_not_consume_next_key_and_ack_is_unique ... ok
+test none_keeps_view_and_overflow_has_one_edit_operation_with_converted_attribute ... ok
+test changed_context_adopts_latest_waiting_runtime_without_waiting_for_stale_ack ... ok
+test deferred_runtime_is_applied_after_ack_and_only_latest_is_adopted ... ok
+
+test result: ok. 13 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+     Running tests\state_machine_flow.rs (target\debug\deps\state_machine_flow-91069c62290151f4.exe)
+
+running 36 tests
+test enter_passthrough_when_idle ... ok
+test backspace_passthrough_when_idle ... ok
+test auto_commit_unique_immediate ... ok
+test backspace_to_empty_clears_state ... ok
+test candidate_words_are_unique_across_matching_codes ... ok
+test full_writing_session_multiple_commits ... ok
+test backspace_revises_spelling ... ok
+test esc_passthrough_when_idle ... ok
+test keep_typing_after_commit_starts_new_session ... ok
+test classic_four_code_space_first_commit ... ok
+test idle_chinese_symbol_commits_directly ... ok
+test esc_resets_to_idle ... ok
+test enter_commits_raw_spelling ... ok
+test overflow_code_commits_first_candidate_and_starts_next_code_when_enabled ... ok
+test overflow_code_stays_in_buffer_when_auto_commit_disabled ... ok
+test overflow_exact_code_commits_first_candidate_and_starts_next_code ... ok
+test page_next_advances_and_prev_returns ... ok
+test page_next_at_last_page_is_none ... ok
+test page_prev_at_first_page_is_none ... ok
+test prefix_candidates_include_remaining_code_hints ... ok
+test punctuation_after_candidate_commits_first_candidate_then_punctuation ... ok
+test punctuation_after_no_candidate_stays_editable_in_buffer ... ok
+test reset_clears_all_runtime_state ... ok
+test select_out_of_range_passthrough ... ok
+test space_passthrough_when_idle ... ok
+test select_second_candidate_by_number ... ok
+test space_with_no_candidate_commits_raw_letters ... ok
+test symbol_after_no_candidate_stays_in_spelling_buffer ... ok
+test symbol_passthrough_during_idle ... ok
+test uppercase_letter_matches_uppercase_code_only ... ok
+test typing_during_selecting_resets_candidates ... ok
+test uppercase_letters_are_case_sensitive_codes ... ok
+test digit_wildcard_is_not_used_as_candidate_selection ... ok
+test punctuation_wildcard_is_treated_as_code_input ... ok
+test loaded_dictionary_candidates_deduplicate_matching_codes ... ok
+test wildcard_occupies_exactly_one_code_position ... ok
+
+test result: ok. 36 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.02s
+
+     Running tests\temporary_bundle.rs (target\debug\deps\temporary_bundle-0c18ba72c133728f.exe)
+
+running 1 test
+test distributed_example_bundle_runs_both_modes_and_reverse_lookup ... ok
+
+test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.05s
+
+     Running tests\temporary_input.rs (target\debug\deps\temporary_input-c3c34f0f820ddbcf.exe)
+
+running 9 tests
+test backspace_to_empty_preserves_mode_until_next_backspace ... ok
+test functional_configuration_is_not_active_inside_temporary_modes ... ok
+test invalid_candidate_number_does_not_commit_or_modify_spelling ... ok
+test unavailable_modes_remain_in_menu_and_english_without_dictionary_works ... ok
+test apostrophes_are_editable_constraints_and_raw_commits_keep_them ... ok
+test english_punctuation_and_long_words_never_commit_automatically ... ok
+test empty_modes_cancel_without_committing_menu_labels ... ok
+test temporary_candidates_page_without_changing_commit_rules ... ok
+test commits_once_and_the_next_key_uses_the_main_table ... ok
+
+test result: ok. 9 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+     Running tests\temporary_loading.rs (target\debug\deps\temporary_loading-4d9bc1bc8fbfc9c4.exe)
+
+running 3 tests
+test capability_loading_does_not_require_desktop_entry_or_hotkeys ... ok
+test absolute_english_reference_and_relocated_bundle_load_correctly ... ok
+test missing_corrupt_and_restored_auxiliary_tables_leave_main_usable ... ok
+
+test result: ok. 3 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.05s
+
+     Running unittests src\lib.rs (target\debug\deps\im_engine-3c19eb7e09ad429f.exe)
+
+running 74 tests
+test candidate_window::tests::opaque_alpha_fix_keeps_black_text_visible ... ok
+test input_session::tests::external_termination_during_edit_invalidates_old_publication ... ok
+test input_session::tests::external_termination_clears_candidates_and_next_input_starts_fresh ... ok
+test input_session::tests::failed_edit_hides_candidates_blocks_until_recovery_and_does_not_recommit ... ok
+test input_session::tests::changing_editor_cleans_old_composition_before_starting_new_input ... ok
+test input_session::tests::missing_precise_anchor_preserves_fallback_and_previous_anchor ... ok
+test input_session::tests::none_preserves_view_and_preflight_does_not_advance_generation ... ok
+test input_session::tests::failed_temporary_commit_before_write_preserves_input_for_retry ... ok
+test input_session::tests::nested_input_sees_advanced_state_and_old_result_cannot_publish ... ok
+test input_session::tests::failed_cleanup_after_temporary_text_write_never_recommits ... ok
+test input_session::tests::failed_temporary_cancellation_recovery_still_deletes_raw_input ... ok
+test input_session::tests::candidate_and_spelling_views_share_edit_result_and_precise_anchor ... ok
+test input_session::tests::overflow_then_switch_to_english_commits_raw_next_code ... ok
+test input_session::tests::partial_edit_failure_never_replays_already_committed_text ... ok
+test input_session::tests::reload_and_focus_loss_end_old_composition_and_hide_candidates ... ok
+test key_filter::tests::ascii_punctuation_maps_to_chinese_symbol ... ok
+test input_session::tests::switch_and_reload_advance_before_edit_and_failure_does_not_rollback ... ok
+test input_session::tests::unavailable_mode_choices_use_disabled_style_without_error_text ... ok
+test key_filter::tests::classify_shifted_punctuation_as_symbol ... ok
+test input_session::tests::temporary_focus_switch_reload_and_empty_backspace_clear_session ... ok
+test input_session::tests::unchanged_runtime_does_not_interrupt_composition ... ok
+test input_session::tests::temporary_menu_never_enters_document_and_commit_returns_to_main ... ok
+test input_session::tests::preflight_and_execution_agree_on_idle_and_modified_keys ... ok
+test key_filter::tests::classify_shifted_uppercase_as_code_char ... ok
+test key_filter::tests::temporary_syntax_precedes_punctuation_and_shortcuts ... ok
+test key_filter::tests::temporary_space_rule_does_not_override_main_mode_page_binding ... ok
+test key_filter::tests::page_key_non_default_minus_equal ... ok
+test key_filter::tests::key_name_to_vk_maps_all_options ... ok
+test key_filter::tests::translate_common_punctuation_hotkeys_when_selecting ... ok
+test key_filter::tests::translate_backspace_and_esc ... ok
+test input_session::tests::preflight_matches_execution_for_idle_candidates_and_unmatched_spelling ... ok
+test key_filter::tests::page_next_takes_priority_over_page_prev ... ok
+test key_filter::tests::page_prev_works_for_non_default_key ... ok
+test key_filter::tests::translate_unknown_returns_none ... ok
+test key_filter::tests::selecting_state_maps_quick_select_hotkeys ... ok
+test key_filter::tests::translate_space_and_enter ... ok
+test lifecycle::tests::best_effort_failure_does_not_prevent_final_release ... ok
+test lifecycle::tests::duplicate_activation_preserves_original_manager_and_records ... ok
+test lifecycle::tests::cancelled_activation_does_not_start_runtime ... ok
+test lifecycle::tests::cleanup_calls_can_reenter_without_deadlocking_or_dropping_owner ... ok
+test lifecycle::tests::deactivation_during_registration_cleans_late_success_and_retains_failed_owner ... ok
+test model_client::lifecycle_tests::active_client_recovers_from_service_crash_and_reactivation_shares_weights ... ignored, real isolated service; set MYWUBI_TEST_MODEL_STORE; compile catalog and install trusted components first
+test lifecycle::tests::partial_registration_cleans_only_successful_records ... ok
+test reload::tests::active_table_event_triggers_reload ... ok
+test reload::tests::config_file_event_triggers_reload ... ok
+test lifecycle::tests::unactivated_owner_can_be_released_but_pending_owner_cannot ... ok
+test reload::tests::auxiliary_rename_delete_and_parent_creation_trigger_reload ... ok
+test reload::tests::failed_snapshot_keeps_old_revision_and_watches_new_reference_until_repaired ... ok
+test reload::tests::user_table_event_triggers_reload ... ok
+test reload::tests::unrelated_file_does_not_trigger_reload ... ok
+test lifecycle::tests::failure_retains_owner_continues_cleanup_and_retries_only_pending ... ok
+test input_session::tests::frozen_legacy_driver_matches_shared_adapter_across_keys_controls_and_failures ... ok
+test text_service::tests::advise_sink_rejects_wrong_iid_with_cannot_connect ... ok
+test text_service::tests::chinese_mode_uses_chinese_language_bar_text ... ok
+test text_service::tests::compartment_sink_starts_unregistered ... ok
+test screen_geometry::tests::normal_below_cursor ... ok
+test screen_geometry::tests::pt_to_px_uses_explicit_dpi ... ok
+test screen_geometry::tests::clamp_left_edge ... ok
+test screen_geometry::tests::clamp_right_edge ... ok
+test screen_geometry::tests::flip_above_when_near_bottom ... ok
+test text_service::tests::english_mode_uses_english_language_bar_text ... ok
+test text_service::tests::fixed_utf16_fills_description_and_keeps_trailing_nul ... ok
+test text_service::tests::advise_sink_maps_sink_query_failure_to_cannot_connect ... ok
+test text_service::tests::language_bar_item_uses_sdk_input_mode_guid ... ok
+test text_service::tests::shift_toggle_tracker_ignores_shift_letter_combo ... ok
+test text_service::tests::shift_toggle_tracker_resets_after_combo ... ok
+test text_service::tests::shift_toggle_tracker_toggles_for_shift_alone ... ok
+test reload::tests::native_watcher_observes_missing_directory_creation_and_retargeting ... ok
+test text_service::tests::theme_snapshot_comes_from_config_appearance ... ok
+test runtime_tests::user_dictionary_is_merged_without_duplicate_candidates ... ok
+test candidate_window::tests::unchanged_candidates_never_resize_to_a_clipped_intermediate_width ... ok
+test input_session::tests::model_wait_retains_the_confirmed_commit_anchor ... ok
+test text_service::tests::same_com_service_can_activate_after_deactivation ... ok
+test input_session::tests::prediction_keys_commit_visible_candidates_without_status_words ... ok
+
+test result: ok. 73 passed; 0 failed; 1 ignored; 0 measured; 0 filtered out; finished in 0.52s
+
+     Running tests\candidate_data_tests.rs (target\debug\deps\candidate_data_tests-afa6397903c67cb9.exe)
+
+running 3 tests
+test default_is_hidden ... ok
+test hidden_has_visible_false ... ok
+test visible_constructor_sets_all_fields ... ok
+
+test result: ok. 3 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+     Running unittests src\lib.rs (target\debug\deps\model_input-5cededc9c9b3eb0a.exe)
+
+running 36 tests
+test components::tests::insufficient_space_is_rejected_before_download_or_activation ... ok
+test auto_device::tests::auto_requires_matching_outputs_finite_times_and_worst_case_gain ... ok
+test device::tests::selection_requires_matching_backend_name_and_memory ... ok
+test device::tests::recovery_releases_gpu_and_does_not_retry_deadlines_or_confidence_failures ... ok
+test download::tests::modelscope_requires_an_explicit_identical_artifact_and_fixed_revision ... ok
+test download::tests::space_gate_and_pinned_source_mapping_are_explicit ... ok
+test compatibility::tests::oversized_metadata_key_is_rejected_before_allocation ... ok
+test download_manager::tests::management_rejects_unreviewed_versions_and_never_touches_saved_configuration ... ok
+test components::tests::unlisted_native_file_in_partial_stage_blocks_activation ... ok
+test generation::tests::policy_binds_model_tokenizer_adapter_and_budgets ... ok
+test generation::tests::complete_utf8_json_only_and_no_whitelist ... ok
+test catalog::tests::configuration_and_model_location_survive_application_version_changes ... ok
+test download::tests::disconnected_transfer_keeps_partial_and_retry_completes ... ok
+test download::tests::cancel_and_new_source_resume_the_same_pinned_artifact ... ok
+test prediction_policy::tests::admitted_ids_exclude_weak_candidates_without_changing_scores ... ok
+test prediction_policy::tests::low_absolute_score_and_ambiguous_top_are_silently_rejected ... ok
+test prediction_policy::tests::package_gate_rejects_uncalibrated_predict_but_keeps_raw_rank_evaluation ... ok
+test prediction_policy::tests::policy_is_bound_to_model_and_adapter_and_requires_finite_thresholds ... ok
+test catalog::tests::removal_preserves_selected_model_and_clears_only_unused_download_cache ... ok
+test download::tests::incorrect_range_is_rejected_without_appending_and_ignored_range_restarts ... ok
+test scheduler::tests::continuous_input_replaces_pending_work_and_never_delivers_cancelled_results ... ok
+test scheduler::tests::invalidating_an_idle_worker_clears_its_private_context_without_new_input ... ok
+test components::tests::verified_cache_installs_offline_and_keeps_configuration_unchanged ... ok
+test scheduler::tests::duplicate_requests_coalesce_and_results_expire_before_ui_delivery ... ok
+test download::tests::unavailable_source_does_not_replace_partial_data_and_can_be_retried ... ok
+test download::tests::corrupted_file_is_not_accepted_and_retry_starts_clean ... ok
+test package::tests::corruption_failed_import_and_active_removal_preserve_installed_package ... ok
+test components::tests::old_component_inventory_and_removal_respect_live_leases_and_dependencies ... ok
+test package::tests::prediction_policy_requires_hash_integrity_and_the_exact_model ... ok
+test package::tests::rejects_traversal_native_code_duplicate_case_names_and_unlisted_files ... ok
+test package::tests::generation_policy_is_independent_and_bound_to_exact_gguf ... ok
+test components::tests::interrupted_install_and_corrupt_update_preserve_working_version ... ok
+test worker::tests::bounded_worker_reuses_model_preserves_foreign_poll_results_and_unloads_on_pause_and_idle ... ok
+test worker::tests::preload_is_ready_only_after_warmup_keeps_weights_and_recovers_after_pause ... ok
+test download::tests::response_header_timeout_does_not_abort_a_progressing_body ... ok
+test download::tests::stalled_body_times_out_and_preserves_resumable_bytes ... ok
+
+test result: ok. 36 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.41s
+
+     Running unittests src\bin\download_model.rs (target\debug\deps\download_model-c24e163ea54fb7f3.exe)
+
+running 0 tests
+
+test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+     Running unittests src\bin\evaluate.rs (target\debug\deps\evaluate-84c942b56270b931.exe)
+
+running 0 tests
+
+test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+     Running unittests src\bin\model_worker.rs (target\debug\deps\model_worker-34a8a772b32c3b3d.exe)
+
+running 0 tests
+
+test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+     Running unittests src\bin\model_packages.rs (target\debug\deps\model_packages-4d2f6caa93129c85.exe)
+
+running 0 tests
+
+test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+     Running unittests src\bin\prediction_replay.rs (target\debug\deps\prediction_replay-d9953aa3e067c5e9.exe)
+
+running 0 tests
+
+test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+     Running unittests src\bin\probe_device.rs (target\debug\deps\probe_device-4e6f26c114f6166e.exe)
+
+running 0 tests
+
+test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+     Running unittests src\bin\probe_pipeline.rs (target\debug\deps\probe_pipeline-c886e9173451804d.exe)
+
+running 0 tests
+
+test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+     Running unittests src\bin\probe_preload.rs (target\debug\deps\probe_preload-b9ba3bf3db75fdf3.exe)
+
+running 0 tests
+
+test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+     Running unittests src\bin\probe_service.rs (target\debug\deps\probe_service-f60bc1b1a08ecd7c.exe)
+
+running 0 tests
+
+test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+     Running tests\components_real.rs (target\debug\deps\components_real-b3f9555157c8956b.exe)
+
+running 3 tests
+test published_component_download_and_both_native_backends_work_in_an_empty_store ... ignored, downloads published components; requires release catalog, MI_GGUF_PACKAGE and MI_ONNX_PACKAGE
+test published_components_and_model_download_into_an_empty_store ... ignored, downloads published components and a 491MB model; requires release catalog and MI_ONNX_PACKAGE
+test release_component_cache_install_and_both_native_backends_work_without_developer_path ... ignored, requires compiled release catalog, MI_COMPONENT_ARCHIVE, MI_GGUF_PACKAGE and MI_ONNX_PACKAGE
+
+test result: ok. 0 passed; 0 failed; 3 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+     Running tests\evaluation.rs (target\debug\deps\evaluation-a823f423a5c18ce7.exe)
+
+running 3 tests
+test missing_targets_are_recall_failures_and_wrong_reorders_have_a_denominator ... ok
+test explicit_pinyin_boundaries_exclude_incompatible_candidates ... ok
+test authored_corpus_is_disjoint_and_train_only_statistics_do_not_learn_test_labels ... ok
+
+test result: ok. 3 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+     Running tests\generation_session_real.rs (target\debug\deps\generation_session_real-0ee87b8861d7ff0a.exe)
+
+running 0 tests
+
+test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+     Running tests\llama_real.rs (target\debug\deps\llama_real-26499596e9e53bb1.exe)
+
+running 0 tests
+
+test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+     Running tests\trial.rs (target\debug\deps\trial-fe6941ef59dea6a9.exe)
+
+running 3 tests
+test real_local_package_import_and_trial_preserve_config ... ignored, requires explicitly prepared real local GGUF and llama backend
+test malformed_requests_and_oversized_metadata_are_bounded ... ok
+test import_and_trial_diagnose_four_failures_without_changing_saved_model ... ok
+
+test result: ok. 2 passed; 0 failed; 1 ignored; 0 measured; 0 filtered out; finished in 0.16s
+
+     Running unittests src\lib.rs (target\debug\deps\model_ipc-25c0f5376bfa0a28.exe)
+
+running 1 test
+test tests::local_pipe_is_single_instance_framed_and_round_trips_without_blocking_forever ... ok
+
+test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.01s
+
+     Running unittests src\lib.rs (target\debug\deps\mywubi_android-1c1adb30ccf71f50.exe)
+
+running 0 tests
+
+test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+     Running unittests src\lib.rs (target\debug\deps\runtime_components-01eb62fd329b2fa3.exe)
+
+running 1 test
+test activation_tests::failed_update_retains_only_an_explicitly_trusted_compatible_version ... ok
+
+test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.01s
+
+     Running tests\contract.rs (target\debug\deps\contract-b81712142bf2f58a.exe)
+
+running 4 tests
+test incompatible_or_untrusted_components_cannot_activate ... ok
+test cycles_missing_dependencies_and_windows_path_aliases_are_rejected ... ok
+test both_cpu_backends_share_one_payload_and_dependencies_are_deduplicated ... ok
+test missing_and_corrupt_files_are_not_installed ... ok
+
+test result: ok. 4 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.01s
+
+     Running unittests src\lib.rs (target\debug\deps\settings-b6b0e1104d486e06.exe)
+
+running 22 tests
+test panels::basic::tests::apply_hotkey_change_updates_value_and_marks_dirty ... ok
+test panels::appearance::tests::parse_hex_format ... ok
+test panels::appearance::tests::parse_invalid_rejected ... ok
+test table_session::tests::invalid_config_does_not_write_dirty_table ... ok
+test table_session::tests::header_change_invalidates_validation_until_checked ... ok
+test table_session::tests::scan_table_dir_hides_configured_user_dictionary ... ok
+test fonts::tests::settings_labels_have_glyphs ... ok
+test table_session::tests::initialization_loads_first_template_after_missing_table_and_empty_browse ... ok
+test table_session::tests::failed_selection_preserves_current_path_and_draft ... ok
+test table_session::tests::invalid_table_preserves_both_files_and_draft ... ok
+test table_session::tests::table_editor_filters_by_code_or_word ... ok
+test table_session::tests::dirty_draft_blocks_directory_and_table_switch_but_survives_rescan ... ok
+test table_session::tests::table_editor_rejects_multi_character_wildcard ... ok
+test table_session::tests::table_editor_ranks_code_exact_then_prefix_then_contains ... ok
+test table_session::tests::display_names_survive_save_as_without_changing_table_identity ... ok
+test table_session::tests::table_editor_ranks_word_exact_then_prefix_then_contains ... ok
+test table_session::tests::type_switch_keeps_entries_and_invalid_references_keep_drafts ... ok
+test table_session::tests::pinyin_editor_preserves_apostrophes_and_new_header_preview ... ok
+test table_session::tests::save_as_then_rescan_preserves_selection_and_saves_config ... ok
+test table_session::tests::config_write_failure_reports_partial_success_and_can_retry ... ok
+test table_session::tests::new_fields_survive_edit_save_reload_and_cross_directory_save ... ok
+test app_container::windows_acl::tests::grants_read_without_inheritance_or_removing_existing_access ... ok
+
+test result: ok. 22 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.15s
+
+     Running unittests src\main.rs (target\debug\deps\settings-05a43d21e2bbfc21.exe)
+
+running 0 tests
+
+test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+     Running tests\model_handoff.rs (target\debug\deps\model_handoff-ba1609dd5546e7ae.exe)
+
+running 1 test
+test saved_preload_outlives_prepare_helper_exit ... ignored, real per-user service; set MYWUBI_TEST_CONFIG and MYWUBI_TEST_SETTINGS; install trusted components first
+
+test result: ok. 0 passed; 0 failed; 1 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+     Running tests\prediction_settings.rs (target\debug\deps\prediction_settings-86ee973d5036f8f6.exe)
+
+running 1 test
+test saving_and_reopening_preserves_prediction_choices_without_installing_a_model ... ok
+
+test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.25s
+
+     Running unittests src\lib.rs (target\debug\deps\tip_manager-557b2bcd997da92c.exe)
+
+running 6 tests
+test detect::tests::test_detect_disabled_via_mock ... ok
+test detect::tests::test_detect_com_failure_via_mock ... ok
+test detect::tests::test_detect_enabled_via_mock ... ok
+test profile::mock::test_mock_enable_disable ... ok
+test profile::mock::test_mock_register_unregister ... ok
+test profile::mock::test_mock_failure ... ok
+
+test result: ok. 6 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+   Doc-tests core_engine
+
+running 0 tests
+
+test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+   Doc-tests im_engine
+
+running 0 tests
+
+test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+   Doc-tests model_input
+
+running 0 tests
+
+test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+   Doc-tests model_ipc
+
+running 0 tests
+
+test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+   Doc-tests mywubi_android
+
+running 0 tests
+
+test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+   Doc-tests runtime_components
+
+running 0 tests
+
+test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+   Doc-tests settings
+
+running 0 tests
+
+test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+   Doc-tests tip_manager
+
+running 0 tests
+
+test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+

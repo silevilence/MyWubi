@@ -207,7 +207,11 @@ pub(crate) fn agent() -> ureq::Agent {
         .https_only(true)
         .timeout_connect(Some(Duration::from_secs(10)))
         .timeout_recv_response(Some(Duration::from_secs(20)))
-        .timeout_recv_body(Some(Duration::from_secs(20)))
+        // Slow, progressing transfers may exceed the response-header budget.
+        // Bound stalls separately so cancellation/retry does not wait ten minutes.
+        .timeout_per_read(Some(Duration::from_secs(20)))
+        .timeout_per_write(Some(Duration::from_secs(20)))
+        .timeout_recv_body(Some(Duration::from_secs(10 * 60)))
         .max_redirects(8)
         .build()
         .into()
@@ -505,6 +509,11 @@ mod tests {
                 format!("HTTP/1.1 206 Partial Content\r\nContent-Length: {size}\r\nContent-Range: bytes {declared}-{}/{}\r\nConnection: close\r\n\r\n",bytes.len()-1,bytes.len())
             };
             let _ = stream.write_all(response.as_bytes());
+            if fault == "slow_body" {
+                let _ = stream.write_all(&body[..1]);
+                std::thread::sleep(Duration::from_millis(300));
+                body.remove(0);
+            }
             let _ = stream.write_all(&body);
             header
         });
@@ -529,6 +538,60 @@ mod tests {
             }
         });
         (result, server.join().unwrap())
+    }
+    #[test]
+    fn response_header_timeout_does_not_abort_a_progressing_body() {
+        let dir = tempfile::tempdir().unwrap();
+        let path = dir.path().join("partial.gguf");
+        let bytes = data();
+        let expected = artifact(&bytes);
+        let (url, server) = server(bytes, "slow_body");
+        let agent: ureq::Agent = ureq::Agent::config_builder()
+            .timeout_recv_response(Some(Duration::from_millis(100)))
+            .timeout_recv_body(Some(Duration::from_secs(2)))
+            .build()
+            .into();
+        let result = transfer(
+            &agent,
+            &url,
+            &path,
+            &expected,
+            &AtomicBool::new(false),
+            &mut |_| {},
+        );
+        server.join().unwrap();
+        result.expect("a received header must not impose its deadline on the body");
+        assert_eq!(fs::read(path).unwrap(), data());
+    }
+    #[test]
+    fn stalled_body_times_out_and_preserves_resumable_bytes() {
+        let dir = tempfile::tempdir().unwrap();
+        let path = dir.path().join("partial.gguf");
+        let bytes = data();
+        let expected = artifact(&bytes);
+        let (url, server) = server(bytes, "slow_body");
+        let agent: ureq::Agent = ureq::Agent::config_builder()
+            .timeout_recv_response(Some(Duration::from_secs(2)))
+            .timeout_recv_body(Some(Duration::from_secs(2)))
+            .timeout_per_read(Some(Duration::from_millis(100)))
+            .build()
+            .into();
+        let result = transfer(
+            &agent,
+            &url,
+            &path,
+            &expected,
+            &AtomicBool::new(false),
+            &mut |_| {},
+        );
+        server.join().unwrap();
+        assert!(matches!(result, Err(DownloadError::Network(_))));
+        let offset = fs::metadata(&path).unwrap().len();
+        assert!(offset > 0 && offset < expected.bytes);
+        let (result, header) = fetch(&path, "", None);
+        result.unwrap();
+        assert!(header.contains(&format!("range: bytes={offset}-")));
+        assert_eq!(fs::read(path).unwrap(), data());
     }
     #[test]
     fn cancel_and_new_source_resume_the_same_pinned_artifact() {

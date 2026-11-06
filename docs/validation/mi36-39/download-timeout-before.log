@@ -1,0 +1,20 @@
+   Compiling core_engine v0.7.1 (C:\code\rust\MyWubi\core_engine)
+   Compiling model_input v0.7.1 (C:\code\rust\MyWubi\model_input)
+    Finished `test` profile [unoptimized + debuginfo] target(s) in 13.92s
+     Running unittests src\lib.rs (target\debug\deps\model_input-92a731f8235bb753.exe)
+
+running 1 test
+
+thread 'download::tests::response_header_timeout_does_not_abort_a_progressing_body' (19728) panicked at model_input\src\download.rs:559:16:
+a received header must not impose its deadline on the body: Network("timeout: receive response")
+note: run with `RUST_BACKTRACE=1` environment variable to display a backtrace
+test download::tests::response_header_timeout_does_not_abort_a_progressing_body ... FAILED
+
+failures:
+
+failures:
+    download::tests::response_header_timeout_does_not_abort_a_progressing_body
+
+test result: FAILED. 0 passed; 1 failed; 0 ignored; 0 measured; 34 filtered out; finished in 0.32s
+
+error: test failed, to rerun pass `-p model_input --lib`
