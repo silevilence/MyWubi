@@ -2,6 +2,16 @@
 #[test]
 #[ignore = "requires compiled release catalog, MI_COMPONENT_ARCHIVE, MI_GGUF_PACKAGE and MI_ONNX_PACKAGE"]
 fn release_component_cache_install_and_both_native_backends_work_without_developer_path() {
+    exercise_release(false);
+}
+
+#[test]
+#[ignore = "downloads published components and a 491MB model; requires release catalog and MI_ONNX_PACKAGE"]
+fn published_components_and_model_download_into_an_empty_store() {
+    exercise_release(true);
+}
+
+fn exercise_release(online: bool) {
     use std::{
         fs,
         io::Write,
@@ -15,17 +25,56 @@ fn release_component_cache_install_and_both_native_backends_work_without_develop
     let catalog = runtime_components::catalog().unwrap();
     let component = &catalog[0];
     let downloads = root.path().join("components/.downloads");
-    fs::create_dir_all(&downloads).unwrap();
-    fs::copy(
-        std::env::var_os("MI_COMPONENT_ARCHIVE").unwrap(),
-        downloads.join(format!(
-            "{}-{}.part",
-            component.key(),
-            component.archive.sha256
-        )),
-    )
-    .unwrap();
+    if !online {
+        fs::create_dir_all(&downloads).unwrap();
+        fs::copy(
+            std::env::var_os("MI_COMPONENT_ARCHIVE").unwrap(),
+            downloads.join(format!(
+                "{}-{}.part",
+                component.key(),
+                component.archive.sha256
+            )),
+        )
+        .unwrap();
+    } else {
+        assert!(
+            !downloads.exists(),
+            "online acceptance must begin with no component cache"
+        );
+        eprintln!("component_source={}", component.source);
+    }
     model_input::components::install(&config, "llama", &AtomicBool::new(false), |_| {}).unwrap();
+    let downloaded = if online {
+        let model = model_input::download::available_models()
+            .into_iter()
+            .next()
+            .unwrap();
+        let source = if std::env::var("MI_MODEL_SOURCE").as_deref() == Ok("hf_mirror") {
+            model_input::download::Source::HfMirror
+        } else {
+            model_input::download::Source::HuggingFace
+        };
+        let store = core_engine::config_path::model_store_path(&config);
+        assert!(
+            !store.exists(),
+            "online acceptance must begin with no model cache"
+        );
+        let mut reported = 0;
+        Some(
+            model_input::download::download(&model, source, &store, &AtomicBool::new(false), |p| {
+                if p.completed >= reported + 64 * 1024 * 1024 || p.completed == p.total {
+                    eprintln!(
+                        "model_download: source={:?}; phase={}; bytes={}/{}",
+                        p.source, p.phase, p.completed, p.total
+                    );
+                    reported = p.completed;
+                }
+            })
+            .unwrap(),
+        )
+    } else {
+        None
+    };
     for (capability, variable) in [("llama", "MI_GGUF_PACKAGE"), ("onnx", "MI_ONNX_PACKAGE")] {
         let program = runtime_components::worker(&config, capability).unwrap();
         let mut command = Command::new(&program);
@@ -46,7 +95,15 @@ fn release_component_cache_install_and_both_native_backends_work_without_develop
             command.creation_flags(0x08000000);
         }
         let mut child = command.spawn().unwrap();
-        let request = serde_json::json!({"package":std::env::var(variable).unwrap(),"prefix":"北京","wait_ms":1000,"threads":2});
+        let package = if capability == "llama" {
+            downloaded
+                .clone()
+                .unwrap_or_else(|| std::env::var_os(variable).unwrap().into())
+        } else {
+            std::env::var_os(variable).unwrap().into()
+        };
+        let request =
+            serde_json::json!({"package":package,"prefix":"北京","wait_ms":1000,"threads":2});
         child
             .stdin
             .take()
