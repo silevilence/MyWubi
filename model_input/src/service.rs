@@ -17,12 +17,18 @@ use std::{
 pub struct BackendAvailability {
     pub llama: bool,
     pub onnx: bool,
+    #[serde(default)]
+    pub vulkan: bool,
+    #[serde(default)]
+    pub cuda: bool,
 }
 impl BackendAvailability {
     pub fn compiled() -> Self {
         Self {
             llama: cfg!(feature = "llama-cpp-2"),
             onnx: cfg!(feature = "ort"),
+            vulkan: cfg!(all(windows, feature = "vulkan")),
+            cuda: false,
         }
     }
     pub fn supports(self, backend: crate::package::Backend) -> bool {
@@ -37,6 +43,8 @@ impl BackendAvailability {
 #[serde(tag = "op", deny_unknown_fields)]
 pub enum Command {
     Features,
+    Devices,
+    Execution,
     Configure {
         root: PathBuf,
         config: PredictionConfig,
@@ -90,6 +98,10 @@ impl Endpoint {
                 .lock()
                 .map_err(|_| "inference owner unavailable")?;
             match command {
+                Command::Devices => {
+                    serde_json::to_value(crate::device::discover().map_err(|e| e.to_string())?)
+                        .map_err(|e| e.to_string())
+                }
                 Command::Features => {
                     serde_json::to_value(BackendAvailability::compiled()).map_err(|e| e.to_string())
                 }
@@ -149,6 +161,7 @@ impl Endpoint {
                             worker.pause(paused || self.pressure.load(Ordering::Relaxed));
                             Ok(serde_json::Value::Null)
                         }
+                        Command::Execution => Ok(serde_json::json!(worker.execution())),
                         Command::Status => Ok(serde_json::json!(worker.phase())),
                         _ => unreachable!(),
                     }

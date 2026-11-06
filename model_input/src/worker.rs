@@ -42,12 +42,17 @@ struct State {
 }
 pub struct Worker {
     shared: Arc<(Mutex<State>, Condvar)>,
+    execution: crate::device::ExecutionState,
 }
 type Backend = Box<dyn ModelBackend>;
-type Loader = fn(&std::path::Path, &PredictionConfig) -> Result<Backend, Unavailable>;
+type Loader = fn(
+    &std::path::Path,
+    &PredictionConfig,
+    crate::device::ExecutionState,
+) -> Result<Backend, Unavailable>;
 impl Worker {
     pub fn new(root: PathBuf, config: PredictionConfig) -> std::io::Result<Self> {
-        Self::with_loader(root, config, |root, config| {
+        Self::with_loader(root, config, |root, config, execution| {
             let name = config
                 .model
                 .as_ref()
@@ -55,7 +60,7 @@ impl Worker {
                 .ok_or(Unavailable::MissingModel)?;
             let package =
                 crate::package::validate(&root.join(name)).map_err(|_| Unavailable::Load)?;
-            crate::package::load_with_threads(&package, config.threads)
+            crate::device::load(package, config, execution)
         })
     }
     fn with_loader(root: PathBuf, config: PredictionConfig, load: Loader) -> std::io::Result<Self> {
@@ -76,15 +81,18 @@ impl Worker {
             Condvar::new(),
         ));
         let worker = Arc::clone(&shared);
+        let execution = Arc::new(Mutex::new(crate::device::Execution::default()));
+        let report = Arc::clone(&execution);
         std::thread::Builder::new()
             .name("mywubi-inference".into())
-            .spawn(move || run(worker, load))?;
-        Ok(Self { shared })
+            .spawn(move || run(worker, load, report))?;
+        Ok(Self { shared, execution })
     }
     pub fn configure(&self, config: PredictionConfig) {
         if let Ok(mut s) = self.shared.0.lock() {
             if s.config != config {
                 s.config = config;
+                s.phase = Phase::Idle;
                 s.epoch += 1;
                 invalidate(&mut s);
                 self.shared.1.notify_one();
@@ -96,6 +104,7 @@ impl Worker {
             if s.root != root || s.config != config {
                 s.root = root;
                 s.config = config;
+                s.phase = Phase::Idle;
                 s.epoch += 1;
                 invalidate(&mut s);
                 self.shared.1.notify_one();
@@ -117,6 +126,24 @@ impl Worker {
             invalidate(&mut s);
             self.shared.1.notify_one();
         }
+    }
+    pub fn execution(&self) -> crate::device::Execution {
+        let mut report = self.execution.lock().map(|r| r.clone()).unwrap_or_default();
+        if let Ok(state) = self.shared.0.lock() {
+            if report.requested != state.config.device
+                || report.requested_name != state.config.device_name
+            {
+                report.reason = None;
+            }
+            report.requested = state.config.device;
+            report.requested_name.clone_from(&state.config.device_name);
+            if state.phase != Phase::Ready {
+                report.actual = None;
+            }
+        } else {
+            report.actual = None;
+        }
+        report
     }
     pub fn phase(&self) -> Phase {
         self.shared
@@ -198,7 +225,11 @@ fn invalidate(s: &mut State) {
         c.cancel();
     }
 }
-fn run(shared: Arc<(Mutex<State>, Condvar)>, load: Loader) {
+fn run(
+    shared: Arc<(Mutex<State>, Condvar)>,
+    load: Loader,
+    execution: crate::device::ExecutionState,
+) {
     let mut loaded: Option<(PathBuf, PredictionConfig, ModelSession<Backend>)> = None;
     let mut prepared_epoch = None;
     loop {
@@ -298,7 +329,7 @@ fn run(shared: Arc<(Mutex<State>, Condvar)>, load: Loader) {
                 }
                 // A failed replacement leaves the last working instance intact.
                 // At most one replacement loads beside it, on this same thread.
-                let mut backend = load(&root, &config)?;
+                let mut backend = load(&root, &config, Arc::clone(&execution))?;
                 // Preparation has its own bounded budget and never reads user text.
                 // An expired first request can still leave a warmed instance for
                 // the next request. Epoch checks suppress superseded publication.
@@ -416,7 +447,11 @@ mod tests {
             })
         }
     }
-    fn load(path: &std::path::Path, _: &PredictionConfig) -> Result<Backend, Unavailable> {
+    fn load(
+        path: &std::path::Path,
+        _: &PredictionConfig,
+        _: crate::device::ExecutionState,
+    ) -> Result<Backend, Unavailable> {
         if path.ends_with("broken") {
             return Err(Unavailable::Load);
         }

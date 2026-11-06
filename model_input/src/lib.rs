@@ -1,6 +1,7 @@
 //! Optional model adapters and offline evaluation. Never linked into the TSF DLL.
 pub mod catalog;
 pub mod compatibility;
+pub mod device;
 pub mod download;
 pub mod download_manager;
 pub mod evaluation;

@@ -17,6 +17,13 @@ the base installer or APK. Each imported model supplies its own source and licen
   Upstream: https://github.com/utilityai/llama-cpp-rs
 * Android NDK 27.2.12479018: original `NOTICE.toolchain`, including the static C++
   runtime linked into the Android native library.
+* Optional Windows Vulkan component: Vulkan-Headers 1.4.363 (Khronos, MIT or
+  Apache-2.0), including the generated Vulkan-Hpp bindings. The checked-in MIT
+  notice and copyright inventory accompany the statically linked llama.cpp
+  backend. Vulkan SDK 1.4.363.1 / glslc are build tools, not redistributed.
+  The GPU vendor supplies `vulkan-1.dll` and the driver; no SDK, driver or model
+  weight is included in the component. Source:
+  https://github.com/KhronosGroup/Vulkan-Headers/tree/v1.4.363
 
 Run `python scripts/check_model_artifacts.py` to check the notice hashes; add
 `--apk PATH` or `--windows-dir PATH` to check a staged optional-model artifact.

@@ -12,8 +12,8 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
         Ok(response["value"].clone())
     }
     let args: Vec<_> = std::env::args().collect();
-    if args.len() != 5 {
-        return Err("probe-preload STORE ID VERSION on_demand|preload_keep".into());
+    if !(5..=6).contains(&args.len()) {
+        return Err("probe-preload STORE ID VERSION on_demand|preload_keep [cpu|vulkan|cuda]".into());
     }
     let loading = match args[4].as_str() {
         "on_demand" => ModelLoading::OnDemand,
@@ -23,6 +23,12 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
     let config = PredictionConfig {
         enabled: true,
         loading,
+        device: match args.get(5).map(String::as_str).unwrap_or("cpu") {
+            "cpu" => ModelDevice::Cpu,
+            "vulkan" => ModelDevice::Vulkan,
+            "cuda" => ModelDevice::Cuda,
+            _ => return Err("invalid device".into()),
+        },
         model: Some(ModelSelection {
             id: args[2].clone(),
             version: args[3].clone(),
@@ -45,7 +51,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
     }
     println!(
         "{}",
-        serde_json::json!({"event":"prepared","loading":loading,"ms":start.elapsed().as_secs_f64()*1000.,"phase":call(serde_json::json!({"op":"Status"}))?})
+        serde_json::json!({"event":"prepared","loading":loading,"ms":start.elapsed().as_secs_f64()*1000.,"phase":call(serde_json::json!({"op":"Status"}))?,"execution":call(serde_json::json!({"op":"Execution"}))?})
     );
     let mut request: ScoreRequest =
         serde_json::from_str(include_str!("../../evaluation/request.json"))?;

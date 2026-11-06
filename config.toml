@@ -55,3 +55,6 @@ max_candidates = 16
 idle_seconds = 60
 # on_demand：首次请求时加载；preload_keep：后台预热并保持，资源压力时可释放。
 loading = "on_demand"
+# GPU 仅在 Windows 可选模型组件中使用；不可用时回退 CPU。
+device = "cpu"
+device_name = ""

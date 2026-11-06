@@ -30,8 +30,14 @@ pub struct ModelCatalog {
     worker: Option<mpsc::Receiver<Result<Vec<Manifest>, String>>>,
     message: String,
     initialized: bool,
-    status_worker:
-        Option<mpsc::Receiver<(String, Option<model_input::service::BackendAvailability>)>>,
+    status_worker: Option<
+        mpsc::Receiver<(
+            String,
+            Option<model_input::service::BackendAvailability>,
+            Option<Vec<model_input::device::Device>>,
+        )>,
+    >,
+    devices: Vec<model_input::device::Device>,
     backends: Option<model_input::service::BackendAvailability>,
     last_status: Option<std::time::Instant>,
     status: String,
@@ -72,8 +78,30 @@ impl ModelCatalog {
                     .unwrap_or_else(|| "模型服务未运行；输入时按需启动".into());
             #[cfg(not(windows))]
             let status = String::from("此平台不支持 Windows 模型服务");
+            #[cfg(windows)]
+            let status = {
+                let execution = model_ipc::exchange(
+                    br#"{"op":"Execution"}"#,
+                    std::time::Duration::from_millis(300),
+                )
+                .ok()
+                .and_then(|b| serde_json::from_slice::<serde_json::Value>(&b).ok());
+                if let Some(v) = execution.filter(|v| v["ok"] == true) {
+                    format!(
+                        "{}；请求 {} {}；实际 {}；{}",
+                        status,
+                        v["value"]["requested"].as_str().unwrap_or("cpu"),
+                        v["value"]["requested_name"].as_str().unwrap_or(""),
+                        v["value"]["actual"].as_str().unwrap_or("尚未就绪"),
+                        v["value"]["reason"].as_str().unwrap_or("")
+                    )
+                } else {
+                    status
+                }
+            };
             let backends = if probe { Some(probe_backends()) } else { None };
-            let _ = tx.send((status, backends));
+            let devices = if probe { Some(probe_devices()) } else { None };
+            let _ = tx.send((status, backends, devices));
             ctx.request_repaint();
         });
     }
@@ -130,10 +158,13 @@ impl ModelCatalog {
             }
         }
         let before = config.prediction.clone();
-        if let Some((status, backends)) =
+        if let Some((status, backends, devices)) =
             self.status_worker.as_ref().and_then(|w| w.try_recv().ok())
         {
             self.status = status;
+            if let Some(devices) = devices {
+                self.devices = devices;
+            }
             if backends.is_some() {
                 self.backends = backends;
             }
@@ -195,7 +226,24 @@ impl ModelCatalog {
                 ui.add(eframe::egui::Slider::new(&mut config.prediction.threads,1..=4).text("CPU 线程"));
                 ui.add(eframe::egui::Slider::new(&mut config.prediction.max_candidates,1..=64).text("预测候选上限"));
                 ui.add_enabled(config.prediction.loading == core_engine::config::ModelLoading::OnDemand, eframe::egui::Slider::new(&mut config.prediction.idle_seconds,10..=600).text("空闲卸载（秒）"));
-                ui.small("当前执行设备：CPU。保持模式仍会在关闭或资源压力下释放。");
+                use core_engine::config::ModelDevice;
+                eframe::egui::ComboBox::from_id_source("model-device")
+                    .selected_text(format!("{:?}", config.prediction.device))
+                    .show_ui(ui, |ui| {
+                        ui.selectable_value(&mut config.prediction.device, ModelDevice::Cpu, "CPU");
+                        ui.selectable_value(&mut config.prediction.device, ModelDevice::Auto, "自动（无收益证据时使用 CPU）");
+                        ui.add_enabled_ui(backends.vulkan, |ui| { ui.selectable_value(&mut config.prediction.device, ModelDevice::Vulkan, "Vulkan"); });
+                        ui.add_enabled_ui(backends.cuda, |ui| { ui.selectable_value(&mut config.prediction.device, ModelDevice::Cuda, "CUDA"); });
+                    });
+                eframe::egui::ComboBox::from_id_source("model-device-name")
+                    .selected_text(if config.prediction.device_name.is_empty() {"首个匹配设备"} else {&config.prediction.device_name})
+                    .show_ui(ui, |ui| {
+                        ui.selectable_value(&mut config.prediction.device_name, String::new(), "首个匹配设备");
+                        for device in &self.devices {
+                            ui.selectable_value(&mut config.prediction.device_name, device.name.clone(), format!("{} · {}", device.name, device.description));
+                        }
+                    });
+                ui.small("GPU 需要对应可选组件；实际执行设备与回退原因见运行状态。保持模式仍会在关闭或资源压力下释放。");
             });
             ui.small(&self.message);
             ui.small("保存配置不代表模型已加载；模型不可用或超时隐藏本轮预测。尚无通过质量验收的推荐模型。");
@@ -221,4 +269,25 @@ fn probe_backends() -> model_input::service::BackendAvailability {
         }
     }
     Default::default()
+}
+
+fn probe_devices() -> Vec<model_input::device::Device> {
+    #[cfg(windows)]
+    {
+        use std::os::windows::process::CommandExt;
+        if let Some(output) = std::env::current_exe()
+            .ok()
+            .and_then(|exe| {
+                std::process::Command::new(exe.with_file_name("model-worker.exe"))
+                    .arg("--devices")
+                    .creation_flags(0x08000000)
+                    .output()
+                    .ok()
+            })
+            .filter(|o| o.status.success())
+        {
+            return serde_json::from_slice(&output.stdout).unwrap_or_default();
+        }
+    }
+    Vec::new()
 }

@@ -1,4 +1,4 @@
-//! CPU-only GGUF scoring and bounded word proposals.
+//! GGUF scoring and bounded word proposals; hardware stays in the model process.
 use core_engine::assistance::*;
 use llama_cpp_2::{
     context::{params::LlamaContextParams, LlamaContext},
@@ -13,6 +13,17 @@ use std::{num::NonZeroU32, path::Path, sync::OnceLock};
 // Runtime metadata stays process-local; models and contexts are released on drop.
 // A process-lifetime initializer avoids racing native init/free during model swaps.
 static BACKEND: OnceLock<Result<LlamaBackend, Unavailable>> = OnceLock::new();
+
+pub(crate) fn initialize() -> Result<&'static LlamaBackend, Unavailable> {
+    BACKEND
+        .get_or_init(|| {
+            let mut backend = LlamaBackend::init().map_err(|_| Unavailable::Load)?;
+            backend.void_logs();
+            Ok(backend)
+        })
+        .as_ref()
+        .map_err(|error| *error)
+}
 
 struct LoadedModel {
     model: LlamaModel,
@@ -43,26 +54,35 @@ pub struct LlamaScorer {
 
 impl LlamaScorer {
     pub fn load(path: &Path, context_tokens: u32, threads: i32) -> Result<Self, Unavailable> {
+        Self::load_on_device(path, context_tokens, threads, None)
+    }
+
+    pub fn load_on_device(
+        path: &Path,
+        context_tokens: u32,
+        threads: i32,
+        device: Option<usize>,
+    ) -> Result<Self, Unavailable> {
         if !path.is_file() {
             return Err(Unavailable::MissingModel);
         }
         if !(64..=4096).contains(&context_tokens) || !(1..=8).contains(&threads) {
             return Err(Unavailable::Limit);
         }
-        let backend = BACKEND
-            .get_or_init(|| {
-                let mut backend = LlamaBackend::init().map_err(|_| Unavailable::Load)?;
-                backend.void_logs();
-                Ok(backend)
-            })
-            .as_ref()
-            .map_err(|error| *error)?;
-        let model = LlamaModel::load_from_file(
-            backend,
-            path,
-            &LlamaModelParams::default().with_n_gpu_layers(0),
-        )
-        .map_err(|_| Unavailable::UnsupportedModel)?;
+        let backend = initialize()?;
+        let model_params = match device {
+            Some(index) => LlamaModelParams::default()
+                .with_n_gpu_layers(u32::MAX)
+                .with_split_mode(llama_cpp_2::model::params::LlamaSplitMode::None)
+                .with_devices(&[index])
+                .map_err(|_| Unavailable::Capability)?,
+            None => LlamaModelParams::default()
+                .with_n_gpu_layers(0)
+                .with_devices(&[])
+                .map_err(|_| Unavailable::Capability)?,
+        };
+        let model = LlamaModel::load_from_file(backend, path, &model_params)
+            .map_err(|_| Unavailable::UnsupportedModel)?;
         let params = LlamaContextParams::default()
             .with_n_ctx(NonZeroU32::new(context_tokens))
             .with_n_batch(context_tokens)

@@ -1,6 +1,15 @@
 #![cfg_attr(windows, windows_subsystem = "windows")]
 #[cfg(windows)]
 fn main() {
+    if std::env::args().any(|arg| arg == "--devices") {
+        use std::io::Write;
+        if let Ok(devices) = model_input::device::discover() {
+            if let Ok(bytes) = serde_json::to_vec(&devices) {
+                let _ = std::io::stdout().write_all(&bytes);
+            }
+        }
+        return;
+    }
     if std::env::args().any(|arg| arg == "--trial") {
         use std::io::{Read, Write};
         let mut input = Vec::new();

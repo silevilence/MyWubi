@@ -61,8 +61,8 @@ raw JSON 同时保存包含迟到结果的离线质量和截止回退质量：�
 ## 复现与决策
 
 ```powershell
-cargo run --release -p model_input --all-features --bin compare-models -- C:/models/qwen2.5-0.5b-instruct-q4_k_m.gguf
-cargo run --release -p model_input --all-features --bin compare-models -- C:/models/Qwen3-0.6B-Q4_0.gguf
+cargo run --release -p model_input --features llama-cpp-2,ort --bin compare-models -- C:/models/qwen2.5-0.5b-instruct-q4_k_m.gguf
+cargo run --release -p model_input --features llama-cpp-2,ort --bin compare-models -- C:/models/Qwen3-0.6B-Q4_0.gguf
 ```
 
 完整原始分数、失败原因、每次时延和分组指标分别保存在

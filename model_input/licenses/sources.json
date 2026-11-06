@@ -4,7 +4,8 @@
     "ort": "2.0.0-rc.15",
     "llama-cpp-2": "0.1.161",
     "llama-cpp-rs-revision": "e7af607ebd5ec2932709ef918c17cca2f9b0fce4",
-    "android-ndk": "27.2.12479018"
+    "android-ndk": "27.2.12479018",
+    "vulkan-headers": "1.4.363"
   },
   "files": {
     "android-ndk-NOTICE.toolchain.txt": "cbe3237be53c0a819f8df6aac5358fdee848eee3b6571b4e2ca20767ebd7465e",
@@ -14,7 +15,9 @@
     "onnxruntime-LICENSE.txt": "c250d6278f0b47a6439fb7592b08b58a55eb9f535aa49a1db63211c3f982b674",
     "onnxruntime-ThirdPartyNotices.txt": "c53a76501ef60db6f865f20599f220761201ac4057683acefdab37d861b86622",
     "ort-LICENSE-APACHE.txt": "cfc7749b96f63bd31c3c42b5c471bf756814053e847c10f3eb003417bc523d30",
-    "ort-LICENSE-MIT.txt": "6bba08de46289c40986a2e6b310e2da61fcea33b3c112c8320f6093f8f9cb71b"
+    "ort-LICENSE-MIT.txt": "6bba08de46289c40986a2e6b310e2da61fcea33b3c112c8320f6093f8f9cb71b",
+    "vulkan-headers-LICENSE.md": "95ad366d23fadf701d355bc45fb8b82ae2d700239471d35d41286ac3b08ff903",
+    "vulkan-headers-LICENSE-MIT.txt": "1ca3502222d967f3be5751c55f6b7ee735b5383909c3b501495f54b216dbf227"
   },
   "android_aar_sha256": "d4d50660300ed2c4f38ffdfd5ab5bfa3a22f995f282dda24f42ea3ea55467b49"
 }

@@ -20,6 +20,7 @@ ureq = { version = "3.3.0", default-features = false, features = ["rustls"] }
 [features]
 llama-cpp-2 = ["dep:llama-cpp-2", "dep:self_cell"]
 ort = ["dep:ort"]
+vulkan = ["llama-cpp-2", "llama-cpp-2/vulkan"]
 android-static-stdcxx = ["llama-cpp-2/android-static-stdcxx"]
 
 [[bin]]
@@ -37,6 +38,10 @@ path = "src/bin/prediction_replay.rs"
 [[bin]]
 name = "model-worker"
 path = "src/bin/model_worker.rs"
+
+[[bin]]
+name = "probe-device"
+path = "src/bin/probe_device.rs"
 
 [[bin]]
 name = "probe-preload"

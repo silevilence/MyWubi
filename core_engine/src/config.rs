@@ -45,6 +45,18 @@ pub struct PredictionConfig {
     pub max_candidates: u8,
     pub idle_seconds: u16,
     pub loading: ModelLoading,
+    pub device: ModelDevice,
+    /// Backend-local device name (for example Vulkan0), never a library path.
+    pub device_name: String,
+}
+#[derive(Debug, Clone, Copy, Default, PartialEq, Eq, Serialize, Deserialize)]
+#[serde(rename_all = "snake_case")]
+pub enum ModelDevice {
+    #[default]
+    Cpu,
+    Auto,
+    Vulkan,
+    Cuda,
 }
 #[derive(Debug, Clone, Copy, Default, PartialEq, Eq, Serialize, Deserialize)]
 #[serde(rename_all = "snake_case")]
@@ -63,6 +75,8 @@ impl Default for PredictionConfig {
             max_candidates: 16,
             idle_seconds: 60,
             loading: ModelLoading::OnDemand,
+            device: ModelDevice::Cpu,
+            device_name: String::new(),
         }
     }
 }
@@ -423,6 +437,11 @@ impl Config {
             || !(1..=4).contains(&p.threads)
             || !(1..=64).contains(&p.max_candidates)
             || !(10..=600).contains(&p.idle_seconds)
+            || p.device_name.len() > 64
+            || !p
+                .device_name
+                .bytes()
+                .all(|c| c.is_ascii_alphanumeric() || c == b'-' || c == b'_')
             || p.model.as_ref().is_some_and(|m| !m.valid())
         {
             return Err(Error::Invalid(
@@ -581,6 +600,8 @@ mod prediction_config_tests {
             "threads=255",
             "max_candidates=65",
             "idle_seconds=0",
+            "device='directml'",
+            "device_name='../plugin'",
         ] {
             assert!(Config::from_str(&format!("[prediction]\n{fragment}")).is_err());
         }
@@ -592,5 +613,19 @@ mod prediction_config_tests {
             });
             assert!(cfg.validate_for(ValidationContext::Read).is_err());
         }
+    }
+
+    #[test]
+    fn gpu_selection_roundtrips_without_enabling_prediction() {
+        let config =
+            Config::from_str("[prediction]\ndevice='vulkan'\ndevice_name='Vulkan0'").unwrap();
+        assert!(!config.prediction.enabled);
+        assert_eq!(config.prediction.device, ModelDevice::Vulkan);
+        assert_eq!(
+            Config::from_str(&config.to_string_toml().unwrap())
+                .unwrap()
+                .prediction,
+            config.prediction
+        );
     }
 }

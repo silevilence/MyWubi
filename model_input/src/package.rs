@@ -448,6 +448,14 @@ pub fn load_with_threads(
     package: &ValidatedPackage,
     threads: u8,
 ) -> Result<Box<dyn core_engine::assistance::ModelBackend>, core_engine::assistance::Unavailable> {
+    load_on_device(package, threads, None)
+}
+
+pub(crate) fn load_on_device(
+    package: &ValidatedPackage,
+    threads: u8,
+    device: Option<usize>,
+) -> Result<Box<dyn core_engine::assistance::ModelBackend>, core_engine::assistance::Unavailable> {
     use core_engine::assistance::Unavailable;
     if !(1..=4).contains(&threads) {
         return Err(Unavailable::Limit);
@@ -460,7 +468,12 @@ pub fn load_with_threads(
             Backend::LlamaCpp => {
                 #[cfg(feature = "llama-cpp-2")]
                 {
-                    let scorer = crate::llama::LlamaScorer::load(&model, 1024, i32::from(threads))?;
+                    let scorer = crate::llama::LlamaScorer::load_on_device(
+                        &model,
+                        1024,
+                        i32::from(threads),
+                        device,
+                    )?;
                     let scorer = match generation_policy(&checked.root, &checked.manifest)
                         .map_err(|_| Unavailable::Load)?
                     {
@@ -476,6 +489,9 @@ pub fn load_with_threads(
                 }
             }
             Backend::OnnxRuntime => {
+                if device.is_some() {
+                    return Err(Unavailable::Capability);
+                }
                 #[cfg(feature = "ort")]
                 {
                     let vocabulary = checked

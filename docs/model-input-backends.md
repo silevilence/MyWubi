@@ -29,7 +29,10 @@ Android 由应用在加载模型之前调用 `initialize_runtime(nativeLibraryDi
 ARM64 真机运行与资源测量仍属于 MI-14/18/19 的未验收部分。
 
 llama.cpp 固定 `llama-cpp-2=0.1.161` / 同版 sys crate（MIT OR Apache-2.0），关闭
-GPU、OpenMP 以及其它硬件后端，2 推理线程、1024 token 上下文。
+默认构建的 GPU、OpenMP 以及其它硬件后端，2 推理线程、1024 token 上下文。
+Windows 可通过独立 `vulkan` feature 构建可选组件；设备选择、回退和验证见
+[GPU 说明](model-input-gpu.md)。CPU 构建显式使用 `llama-cpp-2,ort`，不要用
+`--all-features` 隐式引入需要开发工具链的可选 GPU 后端。
 Android 构建固定 NDK 27.2.12479018、API 26、静态 C++ 库，目标链接 16 KB 页对齐。
 生成 Rust 库不能证明最终 APK 的 ABI/页大小或设备兼容性。
 
@@ -37,7 +40,7 @@ Android 构建固定 NDK 27.2.12479018、API 26、静态 C++ 库，目标链接 
 $env:MYWUBI_TEST_GGUF = 'C:/models/qwen2.5-0.5b-instruct-q4_k_m.gguf'
 cargo test -p model_input --features llama-cpp-2 --test llama_real -- --ignored
 cargo run -p model_input --features llama-cpp-2 --bin score-llama -- $env:MYWUBI_TEST_GGUF model_input/evaluation/request.json
-cargo run --release -p model_input --all-features --bin compare-models -- $env:MYWUBI_TEST_GGUF
+cargo run --release -p model_input --features llama-cpp-2,ort --bin compare-models -- $env:MYWUBI_TEST_GGUF
 ```
 
 ## GGUF 续接评分
@@ -115,7 +118,7 @@ logits，误差上限 1e-6。坏形状、未知算子样例必须被加载探测
 python model_input/tools/package_model.py onnx model_input/evaluation/onnx/counts.onnx target/count-package --vocabulary model_input/evaluation/onnx/vocabulary.json --id authored-counts --version v1 --source authored-MI01-train --license MIT
 cargo run -p model_input --bin model_packages -- validate target/count-package
 cargo run -p model_input --bin model_packages -- import target/count-package target/model-store
-cargo run -p model_input --all-features --bin model_packages -- score target/model-store/authored-counts--v1 model_input/evaluation/request.json
+cargo run -p model_input --features llama-cpp-2,ort --bin model_packages -- score target/model-store/authored-counts--v1 model_input/evaluation/request.json
 ```
 
 读取只允许固定数据扩展名；拒绝绝对路径、`..`、反斜杠、设备名、大小写重复名称、
@@ -132,7 +135,7 @@ cargo run -p model_input --all-features --bin model_packages -- score target/mod
 同一进程跨后端切换验证入口（需先导入对应 ID/version）：
 
 ```powershell
-cargo run --release -p model_input --all-features --bin model_packages -- switch target/model-store model_input/evaluation/request.json authored-counts@v1 qwen25-05b@q4km-v1 authored-counts@v1
+cargo run --release -p model_input --features llama-cpp-2,ort --bin model_packages -- switch target/model-store model_input/evaluation/request.json authored-counts@v1 qwen25-05b@q4km-v1 authored-counts@v1
 ```
 
 参考：[llama-cpp-2 API](https://docs.rs/llama-cpp-2/0.1.161/llama_cpp_2/)、

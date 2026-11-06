@@ -3,6 +3,8 @@ param(
     [string]$Target = 'windows',
     [string]$Sdk = 'C:\Program Files (x86)\Android\android-sdk',
     [string]$OnnxRuntime = $env:MYWUBI_ORT_DYLIB,
+    [ValidateSet('cpu', 'vulkan')]
+    [string]$Acceleration = 'cpu',
     [switch]$Test,
     [switch]$Release
 )
@@ -23,6 +25,17 @@ if (-not (Get-Command cmake -ErrorAction SilentlyContinue)) {
 if (-not $env:LIBCLANG_PATH) { $env:LIBCLANG_PATH = 'C:\Program Files\LLVM\bin' }
 if (-not (Test-Path -LiteralPath (Join-Path $env:LIBCLANG_PATH 'libclang.dll'))) { throw 'Set LIBCLANG_PATH to LLVM libclang directory' }
 $cargoArgs = @('build', '-p', 'model_input', '--locked', '--features', 'llama-cpp-2,ort')
+if ($Acceleration -ne 'cpu') {
+    if ($Target -ne 'windows') { throw 'GPU components are Windows-only; Android remains CPU' }
+    # MSBuild with upstream TrackFileAccess=false can schedule shader generation
+    # before its configure step. Ninja preserves the ExternalProject dependency.
+    if (-not (Get-Command cl -ErrorAction SilentlyContinue)) {
+        $vs = & $vswhere -latest -products '*' -property installationPath
+        & (Join-Path $vs 'Common7\Tools\Launch-VsDevShell.ps1') -Arch amd64 -HostArch amd64 -SkipAutomaticLocation | Out-Null
+    }
+    $env:CMAKE_GENERATOR = 'Ninja'
+    $cargoArgs += @('--features', $Acceleration)
+}
 if ($Test) { $cargoArgs[0] = 'test' }
 if ($Release) { $cargoArgs += '--release' }
 if ($Target -ne 'windows') {
