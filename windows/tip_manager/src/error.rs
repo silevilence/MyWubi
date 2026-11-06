@@ -5,6 +5,10 @@ use std::path::PathBuf;
 /// TIP 管理操作可能失败的所有方式。
 #[derive(Debug, thiserror::Error)]
 pub enum TipManagerError {
+    /// 搜索等 AppContainer 宿主所需的 DLL 访问权限准备失败。
+    #[error("输入法宿主访问准备失败: {0}")]
+    AppContainer(String),
+
     /// 注册表操作失败。
     #[error("注册表操作失败: {0}")]
     Registry(String),

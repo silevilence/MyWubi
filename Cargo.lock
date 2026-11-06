@@ -3658,6 +3658,7 @@ name = "tip_manager"
 version = "0.7.2"
 dependencies = [
  "log",
+ "tempfile",
  "thiserror 1.0.69",
  "windows 0.62.2",
  "windows-core 0.62.2",

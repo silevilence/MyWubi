@@ -31,6 +31,11 @@ fn main() {
         return;
     }
 
+    let tip_access_error = settings::vpk::prepare_tip_access().err();
+    if let Some(error) = &tip_access_error {
+        log::warn!("{error}");
+    }
+
     #[cfg(windows)]
     {
         // COM 初始化（tip_manager 的 ITfInputProcessorProfileMgr 调用需要）。
@@ -56,6 +61,9 @@ fn main() {
     let mut state = AppState::load(config_path, portable);
     if let Some(msg) = fallback_msg {
         state.status_msg = Some(msg);
+    }
+    if let Some(error) = tip_access_error {
+        state.status_msg = Some(format!("[!] {error}"));
     }
 
     let mut viewport = eframe::egui::ViewportBuilder::default()

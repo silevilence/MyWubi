@@ -68,11 +68,33 @@ pub enum UpdateState {
 /// Velopack 以特殊命令行参数触发本进程时，本函数处理其内部事务后可能直接退出。
 /// 正常启动时本函数直接返回，继续执行后续 GUI 逻辑。
 ///
-/// 注：不在此注册任何 TIP 安装/卸载钩子。Velopack 安装器在非提升上下文运行，
+/// 注：钩子仅准备 DLL 的只读/执行权限，不注册或卸载 TIP。安装器在非提升上下文运行，
 /// 而 TIP 注册需要管理员权限——若由安装器自动调用会触发提升冲突。TIP 注册
 /// 改由用户安装完成后手动运行 settings.exe，在「输入法管理」面板完成。
 pub fn init_velopack() {
-    velopack::VelopackApp::build().run();
+    let mut app = velopack::VelopackApp::build();
+    #[cfg(windows)]
+    {
+        app = app
+            .on_after_install_fast_callback(|_| prepare_tip_access_for_hook())
+            .on_after_update_fast_callback(|_| prepare_tip_access_for_hook());
+    }
+    app.run();
+}
+
+/// Reapply non-inheriting RX permissions after install/update or portable startup.
+pub fn prepare_tip_access() -> Result<(), String> {
+    let exe = std::env::current_exe().map_err(|error| error.to_string())?;
+    let directory = exe.parent().ok_or_else(|| "无法定位应用目录".to_string())?;
+    tip_manager::app_container::prepare_tip(&directory.join("im_engine.dll"))
+}
+
+#[cfg(windows)]
+fn prepare_tip_access_for_hook() {
+    crate::log::init();
+    if let Err(error) = prepare_tip_access() {
+        log::error!("安装/更新后准备搜索输入权限失败: {error}");
+    }
 }
 
 /// 启动后台更新检查线程，返回 worker 句柄。

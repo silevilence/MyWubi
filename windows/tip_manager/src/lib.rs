@@ -2,6 +2,7 @@
 //!
 //! 封装 TIP 全生命周期管理：注册表写入 + `ITfInputProcessorProfileMgr` COM 调用。
 
+pub mod app_container;
 pub mod detect;
 pub mod error;
 pub mod guids;
@@ -29,6 +30,10 @@ pub enum TipStatus {
 /// `dll_path` 为 `im_engine.dll` 的绝对路径。
 pub fn install(dll_path: &str) -> Result<(), TipManagerError> {
     log::info!("[tip_manager] 开始安装 TIP，dll_path={dll_path}");
+
+    // 必须先允许搜索等 AppContainer 宿主加载 DLL，再发布 COM 注册信息。
+    app_container::prepare_tip(std::path::Path::new(dll_path))
+        .map_err(TipManagerError::AppContainer)?;
 
     // 1. 注册表写入
     registrar::register_tip(dll_path)?;
