@@ -2,6 +2,8 @@
 
 日期：2026-11-06。范围为 Windows 组件分发，不改变预测默认关闭或 Android 原生库交付。
 
+最新进展：用户授权推送和发布后，V0.7.1 的正式发布与 Windows/Android CI 均已成功；Windows Sandbox 的显示连接现已恢复。首轮的 HTTP 404 和未发布限制属于历史记录，不再是当前阻塞。当前尚未完成的是干净沙盒在线下载组件及模型后的完整预测上屏闭环，详见文末。
+
 ## 已实现
 
 - MI-36：应用编译内置的版本化组件清单、固定官方来源、SHA-256、应用/系统/架构兼容性、能力与精确依赖解析。CPU 包为 GGUF/ONNX 共用服务及 CRT；模型包仍是纯数据。
@@ -26,7 +28,7 @@
 
 最终全工作区测试 369 通过、4 个显式设备/真实服务测试忽略（[原始结果](mi36-39/workspace-tests.log)）；其中组件真实测试随后单独在本机和沙盒执行通过。组件与模型模块严格 Clippy 通过。整个 Windows 前端严格 Clippy 仍被原有 COM 原始指针接口、GDI 分块和设置面板告警阻断，不记作通过。
 
-## 不能标为完成的项目
+## 首轮未完成项目（发布前）
 
 正式组件资产尚未发布，受信 URL 实际返回 HTTP 404；本次只做本地提交，不推送或发布。因此 MI-37/MI-38 的“全新安装后从正式源下载组件及模型”闭环保留未完成。下载失败不自动安装、不改预测设置，基础输入保持独立。
 
@@ -95,3 +97,21 @@ python scripts/measure_component_distribution.py --application target/velopack-s
 本次相关库回归 95 通过、2 个真实服务测试默认忽略；随后上述两项分别显式运行通过。临时诊断代码已移除，格式和 diff 检查通过。这些测试调用实际 IPC 客户端和独立服务，不是 TSF/GDI 可见上屏证据。
 
 最终修订安装包位于 `target/mi36-39-recovery/`，原生组件 ZIP 完全不变。Setup 为 24,223,369 字节，Portable 为 19,614,923 字节；[修订制品哈希](mi36-39/recovery-artifacts.json)。修订安装包在沙盒中全新静默安装、运行清单命令和安装后 DLL 哈希比对通过（[日志](mi36-39/recovery-installed.txt)）。前述旧版升级和体积布局对照属于首轮审计制品；本修订仅变更 IPC 恢复逻辑，未重复旧版升级场景，也不将其记成最终修订包的重复验收。
+
+## 正式发布与沙盒桌面恢复（2026-11-06）
+
+用户随后授权推送并发布组件。为保留已存在的 V0.7.0，发布修订版本 [V0.7.1](https://github.com/silevilence/MyWubi/releases/tag/V0.7.1)，标签指向 `5dccebb46ff20446a158b0b12dae85f7fb89e381`。[Actions 42161329247](https://github.com/silevilence/MyWubi/actions/runs/42161329247) 的 Windows、Android 和发布任务全部成功。正式 CPU ZIP 为 10,338,068 字节，SHA-256 为 `794b61325ac095c706eeaa820364b571ad692204d6d41bbbb18a1a97ce155402`；Setup 为 24,222,738 字节，Portable 为 19,614,756 字节。下载的 Setup 与 Portable 已对照正式 SHA256SUMS 校验。
+
+主机独立测试目录中的正式设置程序已从 GitHub 下载并安装 CPU 组件，显示 GGUF/ONNX 均可用；预测配置仍为关闭。新增显式在线测试从空目录调用生产下载和安装代码：本机完成组件安装，但随后模型下载超时；沙盒的组件请求也发生 `timeout: receive response`。这些失败不记为在线闭环通过。部分下载保留在不可激活的缓存目录，设置程序仍可操作。
+
+沙盒显示故障与下载超时分别定位。原沙盒已登录，但 System 事件 10121/10120/10111 报告 `RdpIdd.dll` 的 UMDF 驱动失败，随后远程会话以原因 17 断开。仅禁用 vGPU 未解决。修复步骤仅作用于临时沙盒：
+
+1. 用 `<Configuration><VGpu>Disable</VGpu><MemoryInMB>4096</MemoryInMB></Configuration>` 启动沙盒。
+2. 通过 `wsb exec --run-as System` 在**沙盒内**设置 `HKLM\SOFTWARE\Policies\Microsoft\Windows NT\Terminal Services\fEnableWddmDriver` 为 DWORD `0`，原值不存在。
+3. 在**沙盒内**执行 `shutdown.exe /r /t 0`，等待其重启，再连接并关闭失效的重连提示。没有重启主机或修改主机显示策略。
+
+该设置对应微软的 [RDP WDDM 显示驱动策略](https://learn.microsoft.com/en-us/windows/client-management/mdm/policy-csp-admx-terminalserver#ts_server_wddm_graphics_driver)，要求重启生效；[Windows Sandbox 支持内部重启保留状态](https://learn.microsoft.com/en-us/windows/security/application-security/application-isolation/windows-sandbox/windows-sandbox-overview)。在本机组合操作后恢复桌面；未单独验证策略变更和重启各自的必要性，不将其宣称为所有同类错误的通用修复。
+
+复查时沙盒重启后已运行 6 分钟，驱动崩溃事件为 0（[结果](mi36-39/sandbox-repair-check.json)）。资源管理器、正式设置程序和记事本均可交互。正式 0.7.1 Setup 全新安装返回 0；仅在沙盒内注册输入法，记事本选中 MyWubi 后，默认码表 `a` 的“工”候选显示并可用空格上屏。组件下载失败期间基础输入仍能使用。这项仅证明基础 TSF/GDI 输入，不代表模型预测已上屏。用户主机未注册测试输入法，现有 AppData 配置未修改。
+
+MI-37～MI-39 父任务仍保持未完成：继续补验正式源在线下载、模型预测上屏及其离线/重启/后端切换流程。发布与沙盒桌面故障已经解除，不再把二者列为阻塞。
