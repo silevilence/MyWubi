@@ -133,6 +133,20 @@ pub fn plan<'a>(
     os: &str,
     arch: &str,
 ) -> Result<Vec<&'a Component>, Error> {
+    let component = catalog
+        .iter()
+        .find(|c| c.capabilities.iter().any(|s| s == capability))
+        .ok_or(Error::Missing)?;
+    plan_component(catalog, component, application, os, arch)
+}
+
+fn plan_component<'a>(
+    catalog: &'a [Component],
+    component: &'a Component,
+    application: &str,
+    os: &str,
+    arch: &str,
+) -> Result<Vec<&'a Component>, Error> {
     fn visit<'a>(
         c: &'a Component,
         all: &'a [Component],
@@ -167,13 +181,12 @@ pub fn plan<'a>(
         Ok(())
     }
     let mut keys = BTreeSet::new();
-    if catalog.iter().any(|c| !keys.insert(c.key())) {
+    if catalog
+        .iter()
+        .any(|c| !keys.insert(c.key().to_ascii_lowercase()))
+    {
         return Err(Error::Manifest);
     }
-    let component = catalog
-        .iter()
-        .find(|c| c.capabilities.iter().any(|s| s == capability))
-        .ok_or(Error::Missing)?;
     let mut result = Vec::new();
     visit(
         component,
@@ -342,21 +355,35 @@ pub fn installed(root: &Path) -> Result<Vec<Component>, Error> {
 /// Background-thread resolution: verify application-authorized payloads before spawning.
 pub fn worker(config: &Path, capability: &str) -> Result<PathBuf, Error> {
     let all = catalog()?;
-    let plan = plan(
-        &all,
-        capability,
-        env!("CARGO_PKG_VERSION"),
-        std::env::consts::OS,
-        std::env::consts::ARCH,
-    )?;
-    let mut program = None;
-    for component in plan {
-        let dir = verify(&store(config), component)?;
-        if component.capabilities.iter().any(|c| c == capability) {
-            program = Some(dir.join("model-worker.exe"));
+    installed_worker(&store(config), &all, capability)
+}
+
+fn installed_worker(root: &Path, all: &[Component], capability: &str) -> Result<PathBuf, Error> {
+    let mut failure = Error::Missing;
+    // Catalog order expresses preference. A failed update must not hide a still
+    // compatible, verified version explicitly retained by this application.
+    for candidate in all
+        .iter()
+        .filter(|c| c.capabilities.iter().any(|c| c == capability))
+    {
+        let result = (|| {
+            for component in plan_component(
+                all,
+                candidate,
+                env!("CARGO_PKG_VERSION"),
+                std::env::consts::OS,
+                std::env::consts::ARCH,
+            )? {
+                verify(root, component)?;
+            }
+            Ok(root.join(candidate.key()).join("model-worker.exe"))
+        })();
+        match result {
+            Ok(program) => return Ok(program),
+            Err(error) => failure = error,
         }
     }
-    program.ok_or(Error::Missing)
+    Err(failure)
 }
 
 /// The only model-supplied input is a backend name; paths and sources remain application-owned.
@@ -375,5 +402,56 @@ pub fn model_capability(models: &Path, directory: &str) -> Result<&'static str, 
         Some("LlamaCpp") => Ok("llama"),
         Some("OnnxRuntime") => Ok("onnx"),
         _ => Err(Error::Manifest),
+    }
+}
+
+#[cfg(test)]
+mod activation_tests {
+    use super::*;
+    #[test]
+    fn failed_update_retains_only_an_explicitly_trusted_compatible_version() {
+        let root = tempfile::tempdir().unwrap();
+        let file = File {
+            path: "model-worker.exe".into(),
+            bytes: 1,
+            sha256: format!("{:x}", Sha256::digest(b"x")),
+        };
+        let old = Component {
+            id: "cpu".into(),
+            version: "1".into(),
+            application: format!("={}", env!("CARGO_PKG_VERSION")),
+            os: std::env::consts::OS.into(),
+            architecture: std::env::consts::ARCH.into(),
+            capabilities: vec!["llama".into()],
+            dependencies: vec![],
+            source: format!(
+                "https://github.com/silevilence/MyWubi/releases/download/v{}/cpu.zip",
+                env!("CARGO_PKG_VERSION")
+            ),
+            license: "test".into(),
+            archive: File {
+                path: "cpu.zip".into(),
+                ..file.clone()
+            },
+            installed_bytes: 1,
+            files: vec![file],
+        };
+        fs::create_dir(root.path().join(old.key())).unwrap();
+        let program = root.path().join(old.key()).join("model-worker.exe");
+        fs::write(&program, b"x").unwrap();
+        let newer = Component {
+            version: "2".into(),
+            ..old.clone()
+        };
+        assert_eq!(
+            installed_worker(root.path(), &[newer.clone(), old.clone()], "llama").unwrap(),
+            program
+        );
+        assert!(installed_worker(root.path(), std::slice::from_ref(&newer), "llama").is_err());
+        let incompatible = Component {
+            application: "<0.1.0".into(),
+            ..old
+        };
+        assert!(installed_worker(root.path(), &[newer, incompatible], "llama").is_err());
     }
 }

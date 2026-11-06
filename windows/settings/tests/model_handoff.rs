@@ -6,21 +6,13 @@ use std::{
 };
 
 #[test]
-#[ignore = "uses the real per-user service; set MYWUBI_TEST_CONFIG and MYWUBI_TEST_WORKER"]
-fn saved_preload_outlives_immediate_settings_exit() {
+#[ignore = "real per-user service; set MYWUBI_TEST_CONFIG and MYWUBI_TEST_SETTINGS; install trusted components first"]
+fn saved_preload_outlives_prepare_helper_exit() {
     let path = PathBuf::from(std::env::var("MYWUBI_TEST_CONFIG").unwrap());
-    if std::env::var_os("MYWUBI_HANDOFF_CHILD").is_some() {
-        let mut state = settings::state::AppState::load(path, true);
-        assert!(settings::save::save(&mut state));
-        std::process::exit(0);
-    }
     assert!(
         model_ipc::exchange(br#"{"op":"Status"}"#, Duration::from_millis(100)).is_err(),
         "run with no pre-existing service"
     );
-    let exe = std::env::current_exe().unwrap();
-    let worker = PathBuf::from(std::env::var("MYWUBI_TEST_WORKER").unwrap());
-    std::fs::copy(worker, exe.with_file_name("model-worker.exe")).unwrap();
     let cold = Instant::now();
     save_and_exit();
     let pid = wait_phase("Ready");
@@ -30,7 +22,7 @@ fn saved_preload_outlives_immediate_settings_exit() {
         original: std::fs::read(&path).unwrap(),
     };
     eprintln!(
-        "settings exit -> model Ready: {:?}; pid={pid}",
+        "prepare helper exit -> model Ready: {:?}; pid={pid}",
         cold.elapsed()
     );
     // A normal host resolves the same saved path without a Win32 verbatim
@@ -123,17 +115,16 @@ impl Drop for TestService {
 
 fn save_and_exit() {
     use std::os::windows::process::CommandExt;
-    assert!(Command::new(std::env::current_exe().unwrap())
-        .args([
-            "--ignored",
-            "--exact",
-            "saved_preload_outlives_immediate_settings_exit"
-        ])
-        .env("MYWUBI_HANDOFF_CHILD", "1")
-        .creation_flags(0x08000000)
-        .status()
-        .unwrap()
-        .success());
+    // Exercise the real release helper with its compiled trust catalog.
+    assert!(
+        Command::new(std::env::var_os("MYWUBI_TEST_SETTINGS").unwrap())
+            .arg("--prepare-model")
+            .arg(std::env::var_os("MYWUBI_TEST_CONFIG").unwrap())
+            .creation_flags(0x08000000)
+            .status()
+            .unwrap()
+            .success()
+    );
 }
 fn wait_phase(phase: &str) -> u32 {
     let start = Instant::now();

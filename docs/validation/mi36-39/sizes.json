@@ -1,0 +1,45 @@
+{
+  "application": "=0.7.0",
+  "architecture": "x86_64",
+  "method": "Identical current app binaries, same ZIP deflate level; legacy layout reconstructed, not an old published build.",
+  "layouts": {
+    "base_layout_reference": {
+      "download_bytes": 17077733,
+      "installed_bytes": 35390159
+    },
+    "legacy_model_layout_reconstructed": {
+      "download_bytes": 27482344,
+      "installed_bytes": 64537556
+    },
+    "unified_application": {
+      "download_bytes": 17079612,
+      "installed_bytes": 35393991
+    },
+    "independent_cpu_component": {
+      "download_bytes": 10402754,
+      "installed_bytes": 29143565
+    }
+  },
+  "first_enable_bytes": {
+    "legacy_layout_with_weights": 518882859,
+    "unified_with_component_and_weights": 518882881,
+    "model_weight_download_bytes": 491400515
+  },
+  "full_update_budget_not_measured_delta": {
+    "app_only": 17079612,
+    "component_only": 10402754,
+    "unchanged_models": 0
+  },
+  "reuse_rule": "Only compatible exact hashes in the new application catalog can be reused. Incompatible components require a new download.",
+  "actual_velopack_assets": {
+    "MyWubi-0.7.0-full.nupkg": 19689084,
+    "MyWubi-components-cpu-0.7.0-windows-x86_64.zip": 10402754,
+    "MyWubi-win-Portable.zip": 19614910,
+    "MyWubi-win-Setup.exe": 24223356
+  },
+  "application_hashes": {
+    "settings.exe": "9af34e2452f110e99cd49eaddcaeb2e6367b3c7137dc287c2b8a126bc74eae77",
+    "im_engine.dll": "92bbf66ea6beca018d9ccc455dcd422e1f2040232f69e217a1f9e0cd80ceeea0"
+  },
+  "component_archive_sha256": "35aa5f327643bbd7b14eb13e554ed0bc0c6fb5c917ff9a4915b22fae30d6eba8"
+}

@@ -1,0 +1,33 @@
+old_exit=0
+
+new_exit=0
+
+Comparing files C:\MIQA\FIXTURES\config.toml and C:\USERS\WDAGUTILITYACCOUNT\APPDATA\ROAMING\MYWUBI\CONFIG.TOML
+
+FC: no differences encountered
+
+
+
+Comparing files C:\MIQA\FIXTURES\user.dict and C:\USERS\WDAGUTILITYACCOUNT\APPDATA\ROAMING\MYWUBI\USER.DICT
+
+FC: no differences encountered
+
+
+
+Comparing files C:\MIQA\FIXTURES\model-marker.txt and C:\USERS\WDAGUTILITYACCOUNT\APPDATA\ROAMING\MYWUBI\MODELS\RETAINED-FIXTURE\MARKER.TXT
+
+FC: no differences encountered
+
+
+
+legacy_worker_in_current=no
+
+legacy_ort_in_current=no
+
+SHA256 的 C:\Users\WDAGUtilityAccount\AppData\Local\MyWubi\current\settings.exe 哈希:
+
+9af34e2452f110e99cd49eaddcaeb2e6367b3c7137dc287c2b8a126bc74eae77
+
+CertUtil: -hashfile 命令成功完成。
+
+complete

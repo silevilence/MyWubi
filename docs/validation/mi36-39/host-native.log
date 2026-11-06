@@ -1,0 +1,13 @@
+   Compiling runtime_components v0.7.0 (C:\code\rust\MyWubi\windows\runtime_components)
+   Compiling core_engine v0.7.0 (C:\code\rust\MyWubi\core_engine)
+   Compiling model_input v0.7.0 (C:\code\rust\MyWubi\model_input)
+    Finished `test` profile [unoptimized + debuginfo] target(s) in 10.63s
+     Running tests\components_real.rs (target\debug\deps\components_real-029289efc736955a.exe)
+
+running 1 test
+llama: {"elapsed_ms":3093,"ok":true,"value":{"load_ms":2757,"notice":"仅证明此样例兼容运行；空候选表示无召回或未过准入。不是质量认证，未选择模型或更改预测开关。","predict_ms":240,"words":["市"]}}
+onnx: {"elapsed_ms":27,"ok":true,"value":{"load_ms":13,"notice":"仅证明此样例兼容运行；空候选表示无召回或未过准入。不是质量认证，未选择模型或更改预测开关。","predict_ms":13,"words":["天气","大学","时间","奥运","现代","国际","市场","车展","银行","移动","市","人","地区","站","城","路"]}}
+archive_sha256=35aa5f327643bbd7b14eb13e554ed0bc0c6fb5c917ff9a4915b22fae30d6eba8; prediction remains disabled
+test release_component_cache_install_and_both_native_backends_work_without_developer_path ... ok
+
+test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 9.20s

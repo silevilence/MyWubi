@@ -292,18 +292,10 @@ mod lifecycle_tests {
             .success());
     }
     #[test]
-    #[ignore = "real isolated service; set MYWUBI_TEST_MODEL_STORE and MYWUBI_TEST_WORKER"]
+    #[ignore = "real isolated service; set MYWUBI_TEST_MODEL_STORE; compile catalog and install trusted components first"]
     fn active_client_recovers_from_service_crash_and_reactivation_shares_weights() {
         assert!(status().is_none(), "run with no existing service");
         let root = PathBuf::from(std::env::var("MYWUBI_TEST_MODEL_STORE").unwrap());
-        let program = PathBuf::from(std::env::var("MYWUBI_TEST_WORKER").unwrap());
-        std::fs::copy(
-            program,
-            std::env::current_exe()
-                .unwrap()
-                .with_file_name("model-worker.exe"),
-        )
-        .unwrap();
         let config = PredictionConfig {
             enabled: true,
             loading: ModelLoading::PreloadKeep,

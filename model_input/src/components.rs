@@ -258,14 +258,17 @@ pub fn remove(config: &Path, key: &str) -> Result<(), String> {
             runtime::model_capability(&core_engine::config_path::model_store_path(config), &name)
                 .map_err(|e| e.to_string())?;
         let trusted = runtime::catalog().map_err(|e| e.to_string())?;
-        if runtime::plan(
-            &trusted,
-            capability,
-            env!("CARGO_PKG_VERSION"),
-            std::env::consts::OS,
-            std::env::consts::ARCH,
-        )
-        .is_ok_and(|plan| plan.iter().any(|c| c.key() == key))
+        if trusted
+            .iter()
+            .any(|c| c.key() == key && c.capabilities.iter().any(|s| s == capability))
+            || runtime::plan(
+                &trusted,
+                capability,
+                env!("CARGO_PKG_VERSION"),
+                std::env::consts::OS,
+                std::env::consts::ARCH,
+            )
+            .is_ok_and(|plan| plan.iter().any(|c| c.key() == key))
         {
             return Err("已保存的模型使用此组件；请先选择词典预测并保存".into());
         }
