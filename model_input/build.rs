@@ -53,6 +53,11 @@ fn main() {
     };
     for directory in [profile.to_path_buf(), profile.join("deps")] {
         std::fs::create_dir_all(&directory).expect("create native runtime destination");
-        std::fs::copy(&source, directory.join(name)).expect("copy ONNX runtime");
+        let destination = directory.join(name);
+        // A developer may pass the already-staged DLL, and a running service
+        // may hold that identical file open. Do not overwrite identical bytes.
+        if std::fs::read(&destination).ok().as_deref() != Some(bytes.as_slice()) {
+            std::fs::copy(&source, destination).expect("copy ONNX runtime");
+        }
     }
 }

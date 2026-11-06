@@ -202,7 +202,7 @@ pub(crate) fn remove_cache(
     Ok(lock)
 }
 
-fn agent() -> ureq::Agent {
+pub(crate) fn agent() -> ureq::Agent {
     ureq::Agent::config_builder()
         .https_only(true)
         .timeout_connect(Some(Duration::from_secs(10)))
@@ -214,7 +214,7 @@ fn agent() -> ureq::Agent {
 }
 
 /// Download a single pinned artifact. Only verified bytes can be installed.
-fn transfer(
+pub(crate) fn transfer(
     agent: &ureq::Agent,
     url: &str,
     path: &Path,

@@ -92,11 +92,8 @@ impl Component {
             || self.archive.path.contains('/')
             || self.files.is_empty()
             || self.files.len() > 256
-            || self.source
-                != format!(
-                    "https://github.com/silevilence/MyWubi/releases/download/v{application}/{}",
-                    self.archive.path
-                )
+            || !['v', 'V'].iter().any(|prefix| self.source == format!(
+                "https://github.com/silevilence/MyWubi/releases/download/{prefix}{application}/{}", self.archive.path))
             || self.dependencies.iter().any(|d| !identifier(d))
         {
             return Err(Error::Manifest);
@@ -192,6 +189,28 @@ pub fn plan<'a>(
 pub fn store(config: &Path) -> PathBuf {
     config.with_file_name("components")
 }
+
+/// Leases protect component removal while a service process owns native libraries.
+pub fn lock(directory: &Path, name: &str, exclusive: bool) -> Result<fs::File, Error> {
+    no_links(directory)?;
+    let path = directory.join(name);
+    if path.exists() {
+        no_links(&path)?;
+    }
+    let file = fs::OpenOptions::new()
+        .create(true)
+        .truncate(false)
+        .read(true)
+        .write(true)
+        .open(path)?;
+    if exclusive {
+        fs2::FileExt::try_lock_exclusive(&file)
+    } else {
+        fs2::FileExt::try_lock_shared(&file)
+    }
+    .map_err(|_| Error::InUse)?;
+    Ok(file)
+}
 pub fn no_links(path: &Path) -> Result<(), Error> {
     for p in path.ancestors() {
         let meta = fs::symlink_metadata(p)?;
@@ -230,10 +249,42 @@ pub fn verify_file(path: &Path, file: &File) -> Result<(), Error> {
 }
 pub fn verify(root: &Path, component: &Component) -> Result<PathBuf, Error> {
     let directory = root.join(component.key());
+    verify_directory(&directory, component)?;
+    Ok(directory)
+}
+
+pub fn verify_directory(directory: &Path, component: &Component) -> Result<(), Error> {
+    fn inventory(root: &Path, directory: &Path, paths: &mut BTreeSet<String>) -> Result<(), Error> {
+        no_links(directory)?;
+        for entry in fs::read_dir(directory)? {
+            let path = entry?.path();
+            no_links(&path)?;
+            if path.is_dir() {
+                inventory(root, &path, paths)?;
+            } else {
+                paths.insert(
+                    path.strip_prefix(root)
+                        .map_err(|_| Error::Manifest)?
+                        .to_string_lossy()
+                        .replace('\\', "/"),
+                );
+            }
+        }
+        Ok(())
+    }
+    let mut actual = BTreeSet::new();
+    inventory(directory, directory, &mut actual)?;
+    actual.remove(".lease");
+    if actual != component.files.iter().map(|f| f.path.clone()).collect() {
+        return Err(Error::Integrity);
+    }
     for file in &component.files {
+        if !valid_file(file) {
+            return Err(Error::Manifest);
+        }
         verify_file(&directory.join(&file.path), file)?;
     }
-    Ok(directory)
+    Ok(())
 }
 /// Background-thread resolution: verify application-authorized payloads before spawning.
 pub fn worker(config: &Path, capability: &str) -> Result<PathBuf, Error> {
@@ -253,4 +304,23 @@ pub fn worker(config: &Path, capability: &str) -> Result<PathBuf, Error> {
         }
     }
     program.ok_or(Error::Missing)
+}
+
+/// The only model-supplied input is a backend name; paths and sources remain application-owned.
+pub fn model_capability(models: &Path, directory: &str) -> Result<&'static str, Error> {
+    if !identifier(directory) {
+        return Err(Error::Manifest);
+    }
+    let path = models.join(directory).join("manifest.json");
+    no_links(&path)?;
+    if fs::metadata(&path)?.len() > 65536 {
+        return Err(Error::Manifest);
+    }
+    let value: serde_json::Value =
+        serde_json::from_slice(&fs::read(path)?).map_err(|_| Error::Manifest)?;
+    match value["backend"].as_str() {
+        Some("LlamaCpp") => Ok("llama"),
+        Some("OnnxRuntime") => Ok("onnx"),
+        _ => Err(Error::Manifest),
+    }
 }

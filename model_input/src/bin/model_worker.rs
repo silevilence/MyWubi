@@ -1,6 +1,18 @@
 #![cfg_attr(windows, windows_subsystem = "windows")]
 #[cfg(windows)]
 fn main() {
+    // Acquired before runtime initialization. An installer removing this directory
+    // wins the race by taking an exclusive lease; this process then exits.
+    let _component_lease = std::env::current_exe().ok().and_then(|exe| {
+        let parent = exe.parent()?;
+        if !parent.join(".lease").exists() {
+            return None;
+        }
+        match runtime_components::lock(parent, ".lease", false) {
+            Ok(lease) => Some(lease),
+            Err(_) => std::process::exit(1),
+        }
+    });
     if std::env::args().any(|arg| arg == "--devices") {
         use std::io::Write;
         if let Ok(devices) = model_input::device::discover() {

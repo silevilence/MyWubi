@@ -30,23 +30,9 @@ impl Client {
     pub fn new() -> std::io::Result<Self> {
         let shared = Arc::new((Mutex::new(State::default()), Condvar::new()));
         let worker = Arc::clone(&shared);
-        let mut module = [0u16; 32768];
-        let length = unsafe {
-            windows::Win32::System::LibraryLoader::GetModuleFileNameW(
-                Some(windows::Win32::Foundation::HMODULE(
-                    crate::module_handle() as *mut _
-                )),
-                &mut module,
-            )
-        };
-        if length == 0 || length as usize >= module.len() {
-            return Err(std::io::ErrorKind::NotFound.into());
-        }
-        let program = PathBuf::from(String::from_utf16_lossy(&module[..length as usize]))
-            .with_file_name("model-worker.exe");
         let thread = std::thread::Builder::new()
             .name("mywubi-model-ipc".into())
-            .spawn(move || run(worker, program))?;
+            .spawn(move || run(worker))?;
         Ok(Self {
             shared,
             thread: Some(thread),
@@ -137,7 +123,7 @@ fn exchange(value: serde_json::Value) -> Result<serde_json::Value, Unavailable> 
     }
     Ok(response["value"].clone())
 }
-fn run(shared: Arc<(Mutex<State>, Condvar)>, program: PathBuf) {
+fn run(shared: Arc<(Mutex<State>, Condvar)>) {
     use std::os::windows::process::CommandExt;
     let mut last_launch = Instant::now() - Duration::from_secs(2);
     loop {
@@ -192,7 +178,25 @@ fn run(shared: Arc<(Mutex<State>, Condvar)>, program: PathBuf) {
                     return Err(Unavailable::Load);
                 }
                 last_launch = Instant::now();
+                let directory = job
+                    .config
+                    .model
+                    .as_ref()
+                    .and_then(|m| m.directory_name())
+                    .ok_or(Unavailable::MissingModel)?;
+                let capability = runtime_components::model_capability(&job.root, &directory)
+                    .map_err(|_| Unavailable::MissingModel)?;
+                let config_path = job.root.with_file_name("config.toml");
+                let requested = match job.config.device {
+                    core_engine::config::ModelDevice::Vulkan => "vulkan",
+                    core_engine::config::ModelDevice::Cuda => "cuda",
+                    _ => capability,
+                };
+                let program = runtime_components::worker(&config_path, requested)
+                    .or_else(|_| runtime_components::worker(&config_path, capability))
+                    .map_err(|_| Unavailable::Load)?;
                 std::process::Command::new(&program)
+                    .current_dir(program.parent().ok_or(Unavailable::Load)?)
                     .creation_flags(0x08000000)
                     .spawn()
                     .map_err(|_| Unavailable::Load)?;

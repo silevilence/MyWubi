@@ -83,7 +83,12 @@ pub fn user_sid() -> io::Result<String> {
     }
 }
 pub fn pipe_name() -> io::Result<String> {
-    Ok(format!(r"\\.\pipe\MyWubi-Prediction-v1-{}", user_sid()?))
+    // Never hand a new application's requests to a lingering legacy service.
+    Ok(format!(
+        r"\\.\pipe\MyWubi-Prediction-v2-{}-{}",
+        env!("CARGO_PKG_VERSION"),
+        user_sid()?
+    ))
 }
 fn transient(error: &io::Error) -> bool {
     matches!(error.raw_os_error(), Some(232 | 536 | 231))

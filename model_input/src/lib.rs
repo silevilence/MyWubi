@@ -2,6 +2,7 @@
 mod auto_device;
 pub mod catalog;
 pub mod compatibility;
+pub mod components;
 pub mod device;
 pub mod download;
 pub mod download_manager;
