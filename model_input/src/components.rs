@@ -33,7 +33,13 @@ fn cancelled(cancel: &AtomicBool) -> Result<(), String> {
 }
 
 fn check_space(required: u64, available: u64) -> Result<(), String> {
-    if available < required { Err(format!("磁盘空间不足：需要 {required} 字节，可用 {available} 字节")) } else { Ok(()) }
+    if available < required {
+        Err(format!(
+            "磁盘空间不足：需要 {required} 字节，可用 {available} 字节"
+        ))
+    } else {
+        Ok(())
+    }
 }
 
 /// Only a completely verified stage becomes visible at its immutable version path.
@@ -103,12 +109,21 @@ fn unpack(
     cancelled(cancel)?;
     // Stage and destination are on the same volume. Never overwrite a working version.
     runtime::verify_directory(&stage, component).map_err(|e| e.to_string())?;
+    let receipt = stage.join(".component.json");
+    if receipt.exists() {
+        runtime::no_links(&receipt).map_err(|e| e.to_string())?;
+    }
+    fs::write(
+        receipt,
+        serde_json::to_vec(component).map_err(|e| e.to_string())?,
+    )
+    .map_err(|e| e.to_string())?;
     drop(runtime::lock(&stage, ".lease", false).map_err(|e| e.to_string())?);
     let destination = root.join(component.key());
     if destination.exists() {
         // A corrupt same-version install must be repairable. Keep it for diagnosis;
         // a running service still blocks repair through its lease.
-        let lease = runtime::lock(&destination, ".lease", true).map_err(|e| e.to_string())?;
+        let lease = runtime::component_lease(&destination, true).map_err(|e| e.to_string())?;
         let quarantine = root.join(format!(
             "{}.invalid-{}",
             component.key(),
@@ -197,7 +212,12 @@ fn install_plan(
                 })
             },
         )
-        .map_err(|e| e.to_string())?;
+        .map_err(|e| match e {
+            download::DownloadError::Network(reason) => {
+                format!("组件下载失败：{reason}；请重试，或等待此应用版本的官方组件发布")
+            }
+            other => other.to_string(),
+        })?;
         publish(Progress {
             phase: "installing".into(),
             completed: completed + component.archive.bytes,
@@ -219,13 +239,37 @@ fn install_plan(
 
 /// Call after the UI has named affected models. Saved selections and runtime leases block removal.
 pub fn remove(config: &Path, key: &str) -> Result<(), String> {
-    let catalog = runtime::catalog().map_err(|e| e.to_string())?;
+    let mut catalog = runtime::catalog().map_err(|e| e.to_string())?;
+    let root = runtime::store(config);
+    for c in runtime::installed(&root).map_err(|e| e.to_string())? {
+        if !catalog.iter().any(|known| known.key() == c.key()) {
+            catalog.push(c);
+        }
+    }
     let component = catalog.iter().find(|c| c.key() == key).ok_or("未知组件")?;
     let saved = core_engine::Config::load(config).map_err(|e| e.to_string())?;
-    if saved.prediction.model.is_some() && !component.capabilities.is_empty() {
-        return Err("已保存的模型可能使用此组件；请先选择词典预测并保存".into());
+    if let Some(name) = saved
+        .prediction
+        .model
+        .as_ref()
+        .and_then(|m| m.directory_name())
+    {
+        let capability =
+            runtime::model_capability(&core_engine::config_path::model_store_path(config), &name)
+                .map_err(|e| e.to_string())?;
+        let trusted = runtime::catalog().map_err(|e| e.to_string())?;
+        if runtime::plan(
+            &trusted,
+            capability,
+            env!("CARGO_PKG_VERSION"),
+            std::env::consts::OS,
+            std::env::consts::ARCH,
+        )
+        .is_ok_and(|plan| plan.iter().any(|c| c.key() == key))
+        {
+            return Err("已保存的模型使用此组件；请先选择词典预测并保存".into());
+        }
     }
-    let root = runtime::store(config);
     let _install = runtime::lock(&root, "install.lock", true).map_err(|e| e.to_string())?;
     for dependent in &catalog {
         if dependent.dependencies.contains(&component.key()) && root.join(dependent.key()).exists()
@@ -234,7 +278,7 @@ pub fn remove(config: &Path, key: &str) -> Result<(), String> {
         }
     }
     let directory = root.join(component.key());
-    let lease = runtime::lock(&directory, ".lease", true).map_err(|e| e.to_string())?;
+    let lease = runtime::component_lease(&directory, true).map_err(|e| e.to_string())?;
     runtime::verify(&root, component).map_err(|e| e.to_string())?;
     // Renaming while holding the lease makes the component unavailable to new launches.
     let removed = root.join(format!("{}.removed", component.key()));
@@ -328,6 +372,15 @@ mod tests {
         .unwrap();
         runtime::verify(&root, &new).unwrap();
         runtime::verify(&root, &old).unwrap();
+        fs::write(root.join(new.key()).join("model-worker.exe"), b"broken").unwrap();
+        unpack(
+            &root,
+            &new,
+            &dir.path().join("2.zip"),
+            &AtomicBool::new(false),
+        )
+        .unwrap();
+        runtime::verify(&root, &new).unwrap();
     }
     #[test]
     fn verified_cache_installs_offline_and_keeps_configuration_unchanged() {
@@ -345,10 +398,10 @@ mod tests {
         install_plan(&root, &[&c], &AtomicBool::new(false), &mut |_| {}).unwrap();
         runtime::verify(&root, &c).unwrap();
         assert_eq!(fs::read(config).unwrap(), before);
-        let lease = runtime::lock(&root.join(c.key()), ".lease", false).unwrap();
-        assert!(runtime::lock(&root.join(c.key()), ".lease", true).is_err());
+        let lease = runtime::component_lease(&root.join(c.key()), false).unwrap();
+        assert!(runtime::component_lease(&root.join(c.key()), true).is_err());
         drop(lease);
-        assert!(runtime::lock(&root.join(c.key()), ".lease", true).is_ok());
+        assert!(runtime::component_lease(&root.join(c.key()), true).is_ok());
     }
     #[test]
     fn unlisted_native_file_in_partial_stage_blocks_activation() {
@@ -366,5 +419,42 @@ mod tests {
         )
         .is_err());
         assert!(!root.join(c.key()).exists());
+    }
+
+    #[test]
+    fn old_component_inventory_and_removal_respect_live_leases_and_dependencies() {
+        let dir = tempfile::tempdir().unwrap();
+        let root = dir.path().join("components");
+        fs::create_dir_all(root.join(".downloads")).unwrap();
+        let config = dir.path().join("config.toml");
+        core_engine::Config::default().save(&config).unwrap();
+        let old = fixture(dir.path(), "old-test-version");
+        unpack(
+            &root,
+            &old,
+            &dir.path().join("old-test-version.zip"),
+            &AtomicBool::new(false),
+        )
+        .unwrap();
+        assert!(runtime::installed(&root)
+            .unwrap()
+            .iter()
+            .any(|c| c.key() == old.key()));
+        let lease = runtime::component_lease(&root.join(old.key()), false).unwrap();
+        assert!(remove(&config, &old.key()).is_err());
+        drop(lease);
+        let mut dependent = fixture(dir.path(), "dependent-test-version");
+        dependent.dependencies.push(old.key());
+        unpack(
+            &root,
+            &dependent,
+            &dir.path().join("dependent-test-version.zip"),
+            &AtomicBool::new(false),
+        )
+        .unwrap();
+        assert!(remove(&config, &old.key()).unwrap_err().contains("依赖"));
+        remove(&config, &dependent.key()).unwrap();
+        remove(&config, &old.key()).unwrap();
+        assert!(!root.join(old.key()).exists());
     }
 }

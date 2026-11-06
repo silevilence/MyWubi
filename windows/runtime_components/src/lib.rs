@@ -211,6 +211,23 @@ pub fn lock(directory: &Path, name: &str, exclusive: bool) -> Result<fs::File, E
     .map_err(|_| Error::InUse)?;
     Ok(file)
 }
+
+/// Keep leases outside the payload: Windows cannot rename a directory containing
+/// an open lease file. Recheck after locking to reject concurrent removal.
+pub fn component_lease(directory: &Path, exclusive: bool) -> Result<fs::File, Error> {
+    no_links(directory)?;
+    let parent = directory.parent().ok_or(Error::Manifest)?;
+    let name = directory
+        .file_name()
+        .and_then(|n| n.to_str())
+        .ok_or(Error::Manifest)?;
+    if !identifier(name) {
+        return Err(Error::Manifest);
+    }
+    let lease = lock(parent, &format!("{name}.lease"), exclusive)?;
+    no_links(directory)?;
+    Ok(lease)
+}
 pub fn no_links(path: &Path) -> Result<(), Error> {
     for p in path.ancestors() {
         let meta = fs::symlink_metadata(p)?;
@@ -275,6 +292,7 @@ pub fn verify_directory(directory: &Path, component: &Component) -> Result<(), E
     let mut actual = BTreeSet::new();
     inventory(directory, directory, &mut actual)?;
     actual.remove(".lease");
+    actual.remove(".component.json");
     if actual != component.files.iter().map(|f| f.path.clone()).collect() {
         return Err(Error::Integrity);
     }
@@ -286,6 +304,41 @@ pub fn verify_directory(directory: &Path, component: &Component) -> Result<(), E
     }
     Ok(())
 }
+/// Receipts support old-version inventory and removal, never executable authorization.
+pub fn installed(root: &Path) -> Result<Vec<Component>, Error> {
+    if !root.exists() {
+        return Ok(Vec::new());
+    }
+    no_links(root)?;
+    let mut result = Vec::new();
+    for entry in fs::read_dir(root)? {
+        let path = entry?.path();
+        let name = path
+            .file_name()
+            .and_then(|n| n.to_str())
+            .ok_or(Error::Manifest)?;
+        if !identifier(name) || !path.is_dir() {
+            continue;
+        }
+        let receipt = path.join(".component.json");
+        if !receipt.exists() {
+            continue;
+        }
+        no_links(&receipt)?;
+        if fs::metadata(&receipt)?.len() > 128 * 1024 {
+            return Err(Error::Manifest);
+        }
+        let component: Component =
+            serde_json::from_slice(&fs::read(receipt)?).map_err(|_| Error::Manifest)?;
+        if component.key() != name || !identifier(&component.id) || !identifier(&component.version)
+        {
+            continue;
+        }
+        result.push(component);
+    }
+    Ok(result)
+}
+
 /// Background-thread resolution: verify application-authorized payloads before spawning.
 pub fn worker(config: &Path, capability: &str) -> Result<PathBuf, Error> {
     let all = catalog()?;

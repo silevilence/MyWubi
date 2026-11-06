@@ -8,7 +8,7 @@ fn main() {
         if !parent.join(".lease").exists() {
             return None;
         }
-        match runtime_components::lock(parent, ".lease", false) {
+        match runtime_components::component_lease(parent, false) {
             Ok(lease) => Some(lease),
             Err(_) => std::process::exit(1),
         }

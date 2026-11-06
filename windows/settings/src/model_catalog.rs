@@ -6,24 +6,88 @@ use std::{path::PathBuf, sync::mpsc};
 /// Hand the saved path to an independent process before allowing settings to
 /// exit. Loading and IPC retries belong to that process, never this UI thread.
 pub fn prepare_saved_model(path: &std::path::Path) -> Result<(), String> {
+    #[cfg(all(windows, not(test)))]
+    {
+        use std::os::windows::process::CommandExt;
+        // No managed service can be started before any component is installed.
+        // This cheap preflight avoids a helper process for ordinary dictionary-only saves.
+        let root = runtime_components::store(path);
+        if !runtime_components::catalog()
+            .map_err(|e| e.to_string())?
+            .iter()
+            .any(|c| root.join(c.key()).join("model-worker.exe").is_file())
+        {
+            return Err("缺少推理组件；可在设置中准备，基础输入不受影响".into());
+        }
+        let exe = std::env::current_exe().map_err(|e| e.to_string())?;
+        std::process::Command::new(exe)
+            .args([std::ffi::OsStr::new("--prepare-model"), path.as_os_str()])
+            .creation_flags(0x08000000)
+            .spawn()
+            .map_err(|e| format!("模型准备进程无法启动：{e}"))?;
+    }
+    #[cfg(any(not(windows), test))]
+    let _ = path;
+    Ok(())
+}
+
+/// Runs in a short-lived helper so saving and immediate UI exit do not interrupt preparation.
+pub fn run_saved_model(path: &std::path::Path) -> Result<(), String> {
+    let config = core_engine::Config::load(path).map_err(|e| e.to_string())?;
+    #[cfg(windows)]
+    {
+        let prepare = serde_json::json!({"op":"Prepare", "root":core_engine::config_path::model_store_path(path), "config":config.prediction});
+        if model_ipc::exchange(
+            prepare.to_string().as_bytes(),
+            std::time::Duration::from_millis(300),
+        )
+        .ok()
+        .and_then(|b| serde_json::from_slice::<serde_json::Value>(&b).ok())
+        .is_some_and(|v| v["ok"] == true)
+        {
+            return Ok(());
+        }
+    }
+    if !config.prediction.enabled || config.prediction.model.is_none() {
+        return Ok(());
+    }
+    let name = config
+        .prediction
+        .model
+        .as_ref()
+        .and_then(|m| m.directory_name())
+        .ok_or("模型选择无效")?;
+    let capability = runtime_components::model_capability(
+        &core_engine::config_path::model_store_path(path),
+        &name,
+    )
+    .map_err(|e| e.to_string())?;
+    let requested = match config.prediction.device {
+        core_engine::config::ModelDevice::Vulkan => "vulkan",
+        core_engine::config::ModelDevice::Cuda => "cuda",
+        _ => capability,
+    };
+    let program = runtime_components::worker(path, requested)
+        .or_else(|_| runtime_components::worker(path, capability))
+        .map_err(|e| e.to_string())?;
+    let mut command = std::process::Command::new(&program);
+    command
+        .current_dir(program.parent().ok_or("组件路径无效")?)
+        .arg("--config")
+        .arg(path);
     #[cfg(windows)]
     {
         use std::os::windows::process::CommandExt;
-        let exe = std::env::current_exe().map_err(|e| e.to_string())?;
-        std::process::Command::new(exe.with_file_name("model-worker.exe"))
-            .args([std::ffi::OsStr::new("--config"), path.as_os_str()])
-            .creation_flags(0x08000000)
-            .spawn()
-            .map_err(|e| format!("模型服务无法启动：{e}；请安装模型版发行包"))?;
+        command.creation_flags(0x08000000);
     }
-    #[cfg(not(windows))]
-    let _ = path;
+    command.spawn().map_err(|e| e.to_string())?;
     Ok(())
 }
 
 #[derive(Default)]
 pub struct ModelCatalog {
     downloads: crate::model_downloads::ModelDownloads,
+    components: crate::model_components::Components,
     download_refresh: bool,
     trial: crate::model_trial::ModelTrial,
     packages: Vec<Manifest>,
@@ -48,7 +112,7 @@ enum Operation {
     Remove(ModelSelection),
 }
 impl ModelCatalog {
-    fn refresh_status(&mut self, ctx: eframe::egui::Context) {
+    fn refresh_status(&mut self, path: &std::path::Path, ctx: eframe::egui::Context) {
         if self.status_worker.is_some() {
             return;
         }
@@ -56,6 +120,7 @@ impl ModelCatalog {
         self.status_worker = Some(rx);
         self.last_status = Some(std::time::Instant::now());
         let probe = self.backends.is_none();
+        let path = path.to_path_buf();
         std::thread::spawn(move || {
             #[cfg(windows)]
             let status =
@@ -68,7 +133,7 @@ impl ModelCatalog {
                         } else {
                             match v["value"].as_str() {
                                 Some("Loading") => "正在加载和预热".into(),
-                                Some("Ready") => "模型已就绪".into(),
+                                Some("Ready") => "已保存模型可预测".into(),
                                 Some("Paused") => "已暂停，释放资源".into(),
                                 Some("Idle") => "空闲，尚未加载".into(),
                                 _ => format!("运行失败：{}", v["value"]),
@@ -99,8 +164,16 @@ impl ModelCatalog {
                     status
                 }
             };
-            let backends = if probe { Some(probe_backends()) } else { None };
-            let devices = if probe { Some(probe_devices()) } else { None };
+            let backends = if probe {
+                Some(probe_backends(&path))
+            } else {
+                None
+            };
+            let devices = if probe {
+                Some(probe_devices(&path))
+            } else {
+                None
+            };
             let _ = tx.send((status, backends, devices));
             ctx.request_repaint();
         });
@@ -172,29 +245,34 @@ impl ModelCatalog {
         }
         let backends = self.backends.unwrap_or_default();
         ui.collapsing("预测模型与资源（实验性）", |ui| {
+            if self.components.show(ui, path, &self.packages) {
+                self.backends = None; self.last_status = None;
+                let _ = prepare_saved_model(path);
+            }
             if self.downloads.show(ui, path, &self.packages, backends) { self.download_refresh = true; }
             if self.download_refresh && self.worker.is_none() {
                 self.download_refresh = false;
                 self.start(path.into(), Operation::List, ui.ctx().clone());
+                let _ = prepare_saved_model(path);
             }
             self.trial.show(ui,path,&self.packages);
             ui.small("模型完全在本地运行。基础词典预测无需模型；只支持公开规范中的模型包。");
-            if self.last_status.is_none_or(|t| t.elapsed() >= std::time::Duration::from_secs(2)) { self.refresh_status(ui.ctx().clone()); }
+            if self.last_status.is_none_or(|t| t.elapsed() >= std::time::Duration::from_secs(2)) { self.refresh_status(path, ui.ctx().clone()); }
             ui.ctx().request_repaint_after(std::time::Duration::from_secs(2));
             ui.label(format!("运行组件：GGUF {}；ONNX {}", if backends.llama {"可用"} else {"未包含"}, if backends.onnx {"可用"} else {"未包含或不兼容"}));
-            if !backends.llama || !backends.onnx { ui.hyperlink_to("查看实验性模型版构建说明", "https://github.com/silevilence/MyWubi/blob/master/docs/model-input-integration.md"); }
+            if !backends.llama || !backends.onnx { ui.label("缺少组件时可先选择或下载模型，再从上方准备组件。"); }
             if self.packages.is_empty() { ui.label("尚无已安装模型：请导入本地模型包。不会自动下载或开启预测。"); }
             if config.prediction.model.as_ref().is_some_and(|m| !self.packages.iter().any(|p| p.id == m.id && p.version == m.version)) {
                 ui.colored_label(eframe::egui::Color32::YELLOW, "已选模型缺失或校验失败：请重新导入同版本，或明确选择词典预测。原选择已保留。");
             }
-            if ui.add_enabled(self.status_worker.is_none(),eframe::egui::Button::new("刷新运行状态")).clicked() {self.refresh_status(ui.ctx().clone());}
+            if ui.add_enabled(self.status_worker.is_none(),eframe::egui::Button::new("刷新运行状态")).clicked() {self.refresh_status(path, ui.ctx().clone());}
             ui.label(&self.status);
             ui.add_enabled_ui(self.worker.is_none(), |ui| {
                 eframe::egui::ComboBox::from_id_source("prediction-model")
                     .selected_text(config.prediction.model.as_ref().map(|m| format!("{} @ {}",m.id,m.version)).unwrap_or_else(|| "仅词典预测".into()))
                     .show_ui(ui, |ui| {
                         ui.selectable_value(&mut config.prediction.model, None, "仅词典预测");
-                        for package in self.packages.iter().filter(|p| backends.supports(p.backend) && (p.prediction_policy.is_some() || p.generation_policy.is_some()) && p.capabilities.tasks.contains(&core_engine::assistance::Task::Predict)) {
+                        for package in self.packages.iter().filter(|p| (p.prediction_policy.is_some() || p.generation_policy.is_some()) && p.capabilities.tasks.contains(&core_engine::assistance::Task::Predict)) {
                             ui.selectable_value(&mut config.prediction.model,
                                 Some(ModelSelection {id:package.id.clone(),version:package.version.clone()}),
                                 format!("{} @ {}",package.id,package.version));
@@ -253,17 +331,20 @@ impl ModelCatalog {
 }
 
 /// Query the shipped worker; settings may have been built without inference features.
-fn probe_backends() -> model_input::service::BackendAvailability {
+fn probe_backends(path: &std::path::Path) -> model_input::service::BackendAvailability {
     #[cfg(windows)]
     {
         use std::os::windows::process::CommandExt;
-        let result = std::env::current_exe().ok().and_then(|exe| {
-            std::process::Command::new(exe.with_file_name("model-worker.exe"))
-                .arg("--features")
-                .creation_flags(0x08000000)
-                .output()
-                .ok()
-        });
+        let result = runtime_components::worker(path, "llama")
+            .or_else(|_| runtime_components::worker(path, "onnx"))
+            .ok()
+            .and_then(|exe| {
+                std::process::Command::new(exe)
+                    .arg("--features")
+                    .creation_flags(0x08000000)
+                    .output()
+                    .ok()
+            });
         if let Some(output) = result.filter(|o| o.status.success()) {
             return serde_json::from_slice(&output.stdout).unwrap_or_default();
         }
@@ -271,14 +352,16 @@ fn probe_backends() -> model_input::service::BackendAvailability {
     Default::default()
 }
 
-fn probe_devices() -> Vec<model_input::device::Device> {
+fn probe_devices(path: &std::path::Path) -> Vec<model_input::device::Device> {
     #[cfg(windows)]
     {
         use std::os::windows::process::CommandExt;
-        if let Some(output) = std::env::current_exe()
+        if let Some(output) = runtime_components::worker(path, "vulkan")
+            .or_else(|_| runtime_components::worker(path, "cuda"))
+            .or_else(|_| runtime_components::worker(path, "llama"))
             .ok()
             .and_then(|exe| {
-                std::process::Command::new(exe.with_file_name("model-worker.exe"))
+                std::process::Command::new(exe)
                     .arg("--devices")
                     .creation_flags(0x08000000)
                     .output()

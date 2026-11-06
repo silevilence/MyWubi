@@ -73,8 +73,9 @@ impl ModelTrial {
                     self.worker = Some(rx);
                     self.result = "正在校验、加载与试运行…".into();
                     let ctx = ui.ctx().clone();
+                    let config_path = config.to_path_buf();
                     std::thread::spawn(move || {
-                        let _ = tx.send(run_process(request).unwrap_or_else(|e| e));
+                        let _ = tx.send(run_process(request, &config_path).unwrap_or_else(|e| e));
                         ctx.request_repaint();
                     });
                 }
@@ -89,15 +90,18 @@ impl ModelTrial {
     }
 }
 
-fn run_process(request: Request) -> Result<String, String> {
+fn run_process(request: Request, config: &Path) -> Result<String, String> {
     use std::{
         io::Write,
         process::{Command, Stdio},
         time::{Duration, Instant},
     };
-    let exe = std::env::current_exe()
-        .map_err(|e| e.to_string())?
-        .with_file_name("model-worker.exe");
+    let checked = model_input::compatibility::check(&request.package).map_err(|e| e.to_string())?;
+    let exe = runtime_components::worker(
+        config,
+        model_input::components::capability(checked.manifest.backend),
+    )
+    .map_err(|e| e.to_string())?;
     let mut command = Command::new(exe);
     command
         .arg("--trial")
@@ -111,7 +115,7 @@ fn run_process(request: Request) -> Result<String, String> {
     }
     let mut child = command
         .spawn()
-        .map_err(|_| "试运行组件缺失；请安装模型版发行包")?;
+        .map_err(|_| "试运行组件不可用；请在组件管理中准备或重试")?;
     let send = (|| {
         let mut stdin = child.stdin.take().ok_or("无法写入测试请求")?;
         stdin

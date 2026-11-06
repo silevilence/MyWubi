@@ -7,11 +7,29 @@
 use settings::{app::SettingsApp, config_path, log as log_mod, state::AppState};
 
 fn main() {
+    if std::env::args().any(|arg| arg == "--component-catalog") {
+        use std::io::Write;
+        if let Ok(catalog) = runtime_components::catalog() {
+            if let Ok(bytes) = serde_json::to_vec(&catalog) {
+                let _ = std::io::stdout().write_all(&bytes);
+            }
+        }
+        return;
+    }
     // VelopackApp 必须最先运行：处理安装/更新/卸载钩子参数时可能直接退出进程。
     // 正常启动时本调用直接返回，继续执行后续逻辑。
     settings::vpk::init_velopack();
 
     log_mod::init();
+
+    let args: Vec<_> = std::env::args_os().skip(1).collect();
+    if args.len() == 2 && args[0] == "--prepare-model" {
+        if let Err(error) = settings::model_catalog::run_saved_model(std::path::Path::new(&args[1]))
+        {
+            log::warn!("模型准备失败：{error}");
+        }
+        return;
+    }
 
     #[cfg(windows)]
     {

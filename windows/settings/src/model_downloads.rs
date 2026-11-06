@@ -98,7 +98,7 @@ impl ModelDownloads {
                     ui.label(error.to_string());
                 }
                 if !backends.supports(p.backend) {
-                    ui.label("缺少此模型运行组件；请先按构建说明准备实验性模型版。");
+                    ui.label("缺推理组件：可从上方准备组件，模型文件可独立下载。");
                 }
                 let label = if exists {
                     "已校验，可在模型选择中使用"
@@ -109,7 +109,7 @@ impl ModelDownloads {
                 };
                 if ui
                     .add_enabled(
-                        !running && !exists && mapping.is_ok() && backends.supports(p.backend),
+                        !running && !exists && mapping.is_ok(),
                         egui::Button::new(label),
                     )
                     .clicked()
