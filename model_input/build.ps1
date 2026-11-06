@@ -7,6 +7,7 @@ param(
     [string]$Acceleration = 'cpu',
     [string]$CudaArchitectures = '75;80;86;89',
     [switch]$Test,
+    [switch]$WorkerOnly,
     [switch]$Release
 )
 $ErrorActionPreference = 'Stop'
@@ -44,6 +45,10 @@ if ($Acceleration -ne 'cpu') {
     $cargoArgs += @('--features', $Acceleration)
 }
 if ($Test) { $cargoArgs[0] = 'test' }
+if ($WorkerOnly) {
+    if ($Target -ne 'windows' -or $Test) { throw 'WorkerOnly is for Windows service builds' }
+    $cargoArgs += @('--bin', 'model-worker')
+}
 if ($Release) { $cargoArgs += '--release' }
 if ($Target -ne 'windows') {
     if ($Test) { throw 'Cross-built tests require an Android device runner; do not count build as execution' }

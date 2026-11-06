@@ -12,7 +12,9 @@
 param(
     [string]$Version,
     [switch]$SkipBuild,
-    [switch]$WithModels,
+    [switch]$WithModels, # Deprecated: retained only to explain the unified workflow
+    [string]$ComponentCatalog,
+    [string]$ReleaseTag,
     [string]$OutputDirectory,
     [string]$OnnxRuntime = $env:MYWUBI_ORT_DYLIB
 )
@@ -34,6 +36,9 @@ if (-not $Version) {
     }
 }
 Write-Host "=== MyWubi Velopack 打包 (v$Version) ===" -ForegroundColor Cyan
+if (Test-Path -LiteralPath (Join-Path $releasesDir "MyWubi-$Version-full.nupkg")) {
+    throw 'This output directory already contains this release version. Use a new -OutputDirectory to keep the existing artifacts and avoid mixing builds.'
+}
 
 # ── 2. 校验 vpk 工具链 ─────────────────────────────────────
 $vpk = Get-Command vpk -ErrorAction SilentlyContinue
@@ -43,18 +48,23 @@ if (-not $vpk) {
     if ($LASTEXITCODE -ne 0) { throw "vpk 安装失败，请先安装 .NET SDK 8。" }
 }
 
-# ── 3. Release 编译 ────────────────────────────────────────
+# ── 3. Build optional payload first, then compile its trust catalog into the light app.
+if ($WithModels) { Write-Warning 'WithModels is deprecated. All packages are now unified; inference is a separate component.' }
 if (-not $SkipBuild) {
-    Write-Host "编译 Release 产物…" -ForegroundColor Green
-    Push-Location $repoRoot
-    cargo build --release
-    $buildExit = $LASTEXITCODE
-    Pop-Location
-    if ($buildExit -ne 0) { throw "cargo build --release 失败 ($buildExit)" }
-    if ($WithModels) {
-        if (-not $OnnxRuntime) { throw 'WithModels requires an application-bundled ONNX Runtime 1.31.1 DLL' }
-        & (Join-Path $repoRoot 'model_input/build.ps1') -Release -OnnxRuntime $OnnxRuntime
+    if (-not $ComponentCatalog) {
+        if (-not $OnnxRuntime) { throw 'Provide -OnnxRuntime (1.31.1 x64) to build the independent CPU component, or -ComponentCatalog for previously built release components.' }
+        & (Join-Path $repoRoot 'scripts/build_components.ps1') -Version $Version -OnnxRuntime $OnnxRuntime -OutputDirectory $releasesDir -Tag $ReleaseTag
+        $ComponentCatalog = Join-Path $releasesDir 'components.json'
     }
+    $previousCatalog = $env:MYWUBI_COMPONENT_CATALOG
+    try {
+        $env:MYWUBI_COMPONENT_CATALOG = (Resolve-Path -LiteralPath $ComponentCatalog).Path
+        Push-Location $repoRoot
+        try {
+            cargo build --release --locked -p settings -p im_engine
+            if ($LASTEXITCODE -ne 0) { throw 'Application build failed' }
+        } finally { Pop-Location }
+    } finally { $env:MYWUBI_COMPONENT_CATALOG = $previousCatalog }
 }
 
 # 校验关键产物存在
@@ -73,16 +83,16 @@ New-Item -ItemType Directory -Force -Path $stagingDir | Out-Null
 # 主二进制
 Copy-Item $settingsExe $stagingDir -Force
 Copy-Item $imEngineDll $stagingDir -Force
-if ($WithModels) {
-    $worker = Join-Path $targetDir 'model-worker.exe'
-    $ort = Join-Path $targetDir 'onnxruntime.dll'
-    if (-not (Test-Path -LiteralPath $worker) -or -not (Test-Path -LiteralPath $ort)) { throw 'Missing model service or ONNX runtime' }
-    Copy-Item -LiteralPath $worker -Destination $stagingDir -ErrorAction Stop
-    & (Join-Path $repoRoot 'scripts/stage_model_runtime.ps1') -Destination $stagingDir -OnnxRuntime $ort
-    $probe = Start-Process -FilePath (Join-Path $stagingDir 'model-worker.exe') -ArgumentList '--check-backends' -WindowStyle Hidden -Wait -PassThru
-    if ($probe.ExitCode -ne 0) { throw 'Model service backend/runtime check failed' }
-    Copy-Item -LiteralPath (Join-Path $repoRoot 'model_input/licenses') -Destination (Join-Path $stagingDir 'model-licenses') -Recurse -ErrorAction Stop
-    # User models live beside config.toml and are never collected into this staging directory.
+# Native inference libraries and model weights never enter the base application.
+$embeddedCatalogFile = Join-Path $stagingDir 'components.json'
+$probe = Start-Process -FilePath (Join-Path $stagingDir 'settings.exe') -ArgumentList '--component-catalog' -WindowStyle Hidden -Wait -PassThru -RedirectStandardOutput $embeddedCatalogFile
+if ($probe.ExitCode -ne 0) { throw 'Unable to inspect embedded component catalog' }
+$embeddedCatalog = @(Get-Content -LiteralPath $embeddedCatalogFile -Raw | ConvertFrom-Json)
+if ($embeddedCatalog.Count -eq 0) { throw 'Release application has no trusted component catalog; rebuild with -ComponentCatalog' }
+foreach ($component in $embeddedCatalog) {
+    $archivePath = Join-Path $releasesDir $component.archive.path
+    if (-not (Test-Path -LiteralPath $archivePath)) { throw "Missing independently distributed component: $archivePath" }
+    if ((Get-Item -LiteralPath $archivePath).Length -ne $component.archive.bytes -or (Get-FileHash -LiteralPath $archivePath -Algorithm SHA256).Hash.ToLowerInvariant() -ne $component.archive.sha256) { throw 'Application catalog and component archive do not match' }
 }
 
 # 码表（项目根 tables/ 目录下的自带码表）

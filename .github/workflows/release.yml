@@ -56,13 +56,19 @@ jobs:
         run: dotnet tool install -g vpk --version 1.2.0
       - name: Test workspace
         run: cargo test --workspace --locked
-      - name: Build Windows binaries
-        run: cargo build --release --locked -p settings -p im_engine
-      - name: Package Windows
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Prepare pinned ONNX runtime
+        run: python -m pip install onnxruntime==1.31.1
+      - name: Build unified Windows application and CPU components
         shell: pwsh
         env:
           RELEASE_VERSION: ${{ needs.metadata.outputs.version }}
-        run: ./build.ps1 -Version $env:RELEASE_VERSION -SkipBuild
+          RELEASE_TAG: ${{ needs.metadata.outputs.tag }}
+        run: |
+          $ort = python -c "import pathlib,onnxruntime; print(pathlib.Path(onnxruntime.__file__).parent/'capi'/'onnxruntime.dll')"
+          ./build.ps1 -Version $env:RELEASE_VERSION -ReleaseTag $env:RELEASE_TAG -OnnxRuntime $ort
       - uses: actions/upload-artifact@v4
         with:
           name: release-windows
@@ -71,6 +77,8 @@ jobs:
             Releases/*-Portable.zip
             Releases/*.nupkg
             Releases/releases.*.json
+            Releases/MyWubi-components-*.zip
+            Releases/components.json
           if-no-files-found: error
 
   android:
@@ -175,7 +183,7 @@ jobs:
           from pathlib import Path
           windows = Path('artifacts/release-windows')
           android = Path('artifacts/release-android')
-          for root, pattern in ((windows, '*-Setup.exe'), (windows, '*-Portable.zip'), (windows, '*.nupkg'), (windows, 'releases.*.json'), (android, '*.apk'), (android, 'android-update.json')):
+          for root, pattern in ((windows, '*-Setup.exe'), (windows, '*-Portable.zip'), (windows, 'MyWubi-components-*.zip'), (windows, 'components.json'), (windows, '*.nupkg'), (windows, 'releases.*.json'), (android, '*.apk'), (android, 'android-update.json')):
               if not list(root.glob(pattern)):
                   raise SystemExit(f'Missing release assets: {pattern}')
           destination = Path('dist')

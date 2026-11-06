@@ -10,7 +10,7 @@ Android 构建、安装和 Windows 码表迁移见 [Android 开发与使用](and
 
 V0.7.0 的字词预测、本地模型、模型下载与试运行、预加载及可选 GPU 加速均为**实验性功能**。预测默认关闭，不改变编码候选排序；当前没有通过质量验收的推荐模型，不保证预测准确性或 GPU 净收益。
 
-标准 Windows 安装包、便携包和 Android APK 不包含模型运行库或权重，可直接体验词典预测。本地模型预测需自行构建模型版，见[双端模型构建与接入](docs/model-input-integration.md)；可选 GPU 组件见[GPU 说明](docs/model-input-gpu.md)，不随标准包分发。CUDA、Android ARM64 真机及部分显示性能验收仍待补齐，ONNX GPU 暂不启用。
+Windows 已实现统一轻量安装包及按需推理组件，模型权重另行下载或导入；正式组件资产尚未发布，当前公开包仍可直接体验词典预测。组件准备、构建与验收边界见[组件说明](docs/model-input-components.md)及[验收记录](docs/validation/mi36-39-review.md)。Android 本地模型仍使用可选模型 APK，见[双端模型构建与接入](docs/model-input-integration.md)；可选 GPU 组件见[GPU 说明](docs/model-input-gpu.md)，不随标准包分发。CUDA、Android ARM64 真机及部分显示性能验收仍待补齐，ONNX GPU 暂不启用。
 
 ## 功能亮点
 

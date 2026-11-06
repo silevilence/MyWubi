@@ -1,6 +1,6 @@
 # 字词预测的模型接入与可选制品
 
-**实验性功能**：本文涉及的字词预测、本地模型、模型管理、下载与试运行、预加载均处于实验阶段。V0.7.0 标准发行包不包含模型运行库或权重；词典预测可直接启用，本地模型需按下方步骤自行构建模型版，默认仍关闭预测。可选 GPU 构建见 [GPU 说明](model-input-gpu.md)。
+**实验性功能**：本文涉及的字词预测、本地模型、模型管理、下载与试运行、预加载均处于实验阶段。当前代码采用 Windows 统一轻量包及按需推理组件，模型权重独立下载或导入。正式组件资产尚未发布，公开 V0.7.0 包不应被描述为已能在线安装组件；词典预测可直接启用，预测默认仍关闭。准备流程与发布边界见[组件说明](model-input-components.md)。可选 GPU 构建见 [GPU 说明](model-input-gpu.md)。
 
 2026-11-04。本轮优先完成上屏后的字词预测；智能排序的三种产品模式按用户指示暂缓。
 模型增强默认关闭，没有通过独立质量验收的推荐模型。本文的运行成功不等于预测效果达标。
@@ -60,7 +60,7 @@ Android 禁止选择未包含的后端。模型缺失、加载失败、异常分
 避免不可取消的冷加载并发堆积。取消计算与结果作废是两件事：后端检查取消点；冷加载若
 不能立即中断，输入线程不等待，完成后丢弃旧任务。模型加载、哈希校验、推理和析构都不持有 UI 锁。
 
-Windows 的 `im_engine.dll` 只链接轻量 IPC。`model-worker.exe` 按需启动，包含 CPU 后端，
+Windows 的 `im_engine.dll` 只链接 IPC 和组件校验，不链接推理后端。`model-worker.exe` 按需启动，包含 CPU 后端，
 设置窗口退出不影响它。命名管道为当前用户专用 DACL、拒绝远程客户端且只允许首个实例，
 消息最多 64KiB。由内核获取客户端 PID，隔离不同注入进程的会话编号，切换所有者重置状态。
 后台传输每次有截止时间；服务退出后下一次有效请求尝试重启。60 秒无 IPC 自动退出。
@@ -72,13 +72,13 @@ Android JNI 的管理端点不持有核心会话注册表锁执行推理。主�
 
 ## 构建与交付
 
-基础版沿用原构建，不强制携带模型、llama.cpp 或 ONNX Runtime。可选模型版：
+Windows 构建先产生独立 CPU 组件和可信清单，再编译统一轻量应用；不用更换基础版/模型版。Android 保留可选模型 APK：
 
 ```powershell
 # Windows x64；构建机提供官方 ONNX Runtime 1.31.1 的 x64 DLL。
-./build.ps1 -WithModels -OnnxRuntime C:/runtime/onnxruntime.dll
+./build.ps1 -OnnxRuntime C:/runtime/onnxruntime.dll
 # 同版本的独立验证包可指定输出目录，保留已有发布制品。
-# ./build.ps1 -WithModels -OnnxRuntime C:/runtime/onnxruntime.dll -OutputDirectory target/model-validation
+# ./build.ps1 -OnnxRuntime C:/runtime/onnxruntime.dll -OutputDirectory target/component-validation
 
 # Android arm64-v8a + x86_64；固定 NDK 27.2.12479018、Rust 1.99.1、JDK 21。
 ./android/build-models.ps1
