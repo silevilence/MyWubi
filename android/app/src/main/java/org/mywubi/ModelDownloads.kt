@@ -17,7 +17,7 @@ fun DownloadModels(model:SettingsModel) {
     val state=model.downloadStatus
     val phase=state.optString("phase","idle")
     val running=phase in listOf("starting","downloading","verifying","cancelling")
-    Text("下载模型",style=MaterialTheme.typography.titleMedium)
+    Text("下载模型（实验性）",style=MaterialTheme.typography.titleMedium)
     Text("下载完成后仍需选择、保存并主动开启预测。部分文件会保留供重试续传。")
     val sources=listOf("Hugging Face" to "hugging_face", "HF 镜像" to "hf_mirror", "ModelScope" to "model_scope")
     TableChoice("下载源", sources.first {it.second==source}.first, sources, !running) {
@@ -40,7 +40,7 @@ fun DownloadModels(model:SettingsModel) {
                 Text("${p.getString("backend")} · ${if(p.getJSONObject("capabilities").optBoolean("proposes_words")) "生成短字词" else "候选评分"} · ${p.getString("license")}")
                 Text(entry.getString("test_status"))
                 Text("来源：${p.getString("source")}")
-                if(!backend) Text("缺少运行组件，请先获取模型版发行包。")
+                if(!backend) Text("缺少运行组件；请先按构建说明准备实验性模型版。")
                 if(!mapped) Text("此源没有同版本制品映射，请选择其他源。")
                 Button(onClick={model.startDownload(JSONObject().put("id",id).put("version",version),source)},enabled=backend && mapped && !installed && !running,
                     modifier=Modifier.semantics {contentDescription="下载模型 $id @ $version"}) {

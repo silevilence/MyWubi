@@ -81,7 +81,7 @@ path = "src/bin/compare_models.rs"
 required-features = ["llama-cpp-2", "ort"]
 
 [target."cfg(windows)".dependencies]
-model_ipc = { version = "0.6.2", path = "../windows/model_ipc" }
+model_ipc = { version = "0.7.0", path = "../windows/model_ipc" }
 
 [dev-dependencies]
 tempfile = "3.27.0"

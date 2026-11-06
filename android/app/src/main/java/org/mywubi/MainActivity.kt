@@ -99,7 +99,7 @@ private fun SettingsScreen(model: SettingsModel, enable: () -> Unit, choose: () 
                 val basic = config.getJSONObject("basic")
                 val dict = config.getJSONObject("dictionary")
                 val prediction = config.optJSONObject("prediction") ?: JSONObject().put("enabled", false)
-                SettingToggle("上屏后显示字词预测", prediction.optBoolean("enabled"), !model.busy) { model.change("prediction", "enabled", it) }
+                SettingToggle("上屏后显示字词预测（实验性）", prediction.optBoolean("enabled"), !model.busy) { model.change("prediction", "enabled", it) }
                 Text("本地词典续接与常用搭配；点击或数字选词，空格选第一项，继续输入编码即忽略。默认关闭，编码候选顺序不变。")
                 PredictionModels(model, prediction) { modelPicker.launch(null) }
                 for ((key, label) in listOf("auto_commit_unique" to "唯一候选自动上屏", "commit_on_max_code_overflow" to "超过最大码长时顶字", "show_code_hints" to "显示候选编码提示")) {
@@ -181,7 +181,7 @@ private fun ApplyStatus(model: SettingsModel) {
 @Composable
 private fun PredictionModels(model:SettingsModel, prediction:JSONObject, import:()->Unit) {
     var expanded by rememberSaveable { mutableStateOf(false) }
-    OutlinedButton(onClick={expanded=!expanded}) { Text(if(expanded) "收起预测模型与资源" else "预测模型与资源") }
+    OutlinedButton(onClick={expanded=!expanded}) { Text(if(expanded) "收起预测模型与资源（实验性）" else "预测模型与资源（实验性）") }
     if(!expanded) return
     DownloadModels(model)
     ModelTrial(model)
@@ -203,7 +203,7 @@ private fun PredictionModels(model:SettingsModel, prediction:JSONObject, import:
         Text("已选模型缺失或校验失败：请导入同版本或明确选择词典预测，原选择已保留。")
     if(!model.modelBackends.optBoolean("llama") || !model.modelBackends.optBoolean("onnx")) {
         val context=androidx.compose.ui.platform.LocalContext.current
-        OutlinedButton(onClick={context.startActivity(Intent(Intent.ACTION_VIEW, android.net.Uri.parse("https://github.com/silevilence/MyWubi/releases")))}) { Text("获取模型版发行包") }
+        OutlinedButton(onClick={context.startActivity(Intent(Intent.ACTION_VIEW, android.net.Uri.parse("https://github.com/silevilence/MyWubi/blob/master/docs/model-input-integration.md")))}) { Text("查看实验性模型版构建说明") }
     }
     for(p in model.models) {
         val identity=JSONObject().put("id",p.getString("id")).put("version",p.getString("version"))

@@ -1,5 +1,7 @@
 # Android 开发
 
+V0.7.0 的字词预测、模型管理、下载与试运行、预加载均为**实验性功能**，预测默认关闭。标准发布 APK 不内置模型运行库或权重，本地模型需按[双端接入说明](../docs/model-input-integration.md)构建模型版；当前没有通过质量验收的推荐模型，ARM64 真机的耗电、温度与持续运行仍待验收。
+
 最低 Android 8.0 / API 26，编译/目标 API 35。固定 Gradle 8.9（Wrapper 校验 SHA-256）、
 AGP 8.7.3、Kotlin/Compose compiler 2.0.21、Compose BOM 2024.09.03、
 Build Tools 35.0.0、NDK 27.2.12479018、rust-android-gradle 0.9.6。

@@ -23,7 +23,7 @@ impl Default for ModelTrial {
 }
 impl ModelTrial {
     pub fn show(&mut self, ui: &mut egui::Ui, config: &Path, packages: &[Manifest]) {
-        if ui.button("自定义模型指南与试运行").clicked() {
+        if ui.button("自定义模型指南与试运行（实验性）").clicked() {
             self.guide = !self.guide;
         }
         if !self.guide {

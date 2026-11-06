@@ -10,7 +10,7 @@ crate-type = ["cdylib", "rlib"]
 [dependencies]
 core_engine = { path = "../../core_engine" }
 jni = "0.21.1"
-model_input = { version = "0.6.2", path = "../../model_input" }
+model_input = { version = "0.7.0", path = "../../model_input" }
 
 [features]
 llama = ["model_input/llama-cpp-2", "model_input/android-static-stdcxx"]

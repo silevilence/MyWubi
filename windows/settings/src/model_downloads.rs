@@ -53,7 +53,7 @@ impl ModelDownloads {
             "starting" | "downloading" | "verifying" | "cancelling"
         );
         ui.separator();
-        ui.heading("下载模型");
+        ui.heading("下载模型（实验性）");
         ui.small("仅下载所选模型；完成后仍需选择、保存并主动开启预测。未完成下载可重试续传。");
         ui.add_enabled_ui(!running, |ui| {
             egui::ComboBox::from_id_source("model-download-source")
@@ -98,7 +98,7 @@ impl ModelDownloads {
                     ui.label(error.to_string());
                 }
                 if !backends.supports(p.backend) {
-                    ui.label("缺少此模型运行组件，请先获取模型版发行包。");
+                    ui.label("缺少此模型运行组件；请先按构建说明准备实验性模型版。");
                 }
                 let label = if exists {
                     "已校验，可在模型选择中使用"

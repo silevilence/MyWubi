@@ -16,7 +16,7 @@ fun ModelTrial(model:SettingsModel) {
     var guide by remember {mutableStateOf(false)}
     var sample by rememberSaveable {mutableStateOf("北京")}
     var selected by rememberSaveable {mutableStateOf("")}
-    OutlinedButton(onClick={expanded=!expanded}) {Text("自定义模型指南与试运行")}
+    OutlinedButton(onClick={expanded=!expanded}) {Text("自定义模型指南与试运行（实验性）")}
     if(!expanded) return
     OutlinedButton(onClick={guide=true}) {Text("接入指南（离线可读）")}
     if(guide) {

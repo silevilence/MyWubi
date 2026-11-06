@@ -171,7 +171,7 @@ impl ModelCatalog {
             self.status_worker = None;
         }
         let backends = self.backends.unwrap_or_default();
-        ui.collapsing("预测模型与资源", |ui| {
+        ui.collapsing("预测模型与资源（实验性）", |ui| {
             if self.downloads.show(ui, path, &self.packages, backends) { self.download_refresh = true; }
             if self.download_refresh && self.worker.is_none() {
                 self.download_refresh = false;
@@ -182,7 +182,7 @@ impl ModelCatalog {
             if self.last_status.is_none_or(|t| t.elapsed() >= std::time::Duration::from_secs(2)) { self.refresh_status(ui.ctx().clone()); }
             ui.ctx().request_repaint_after(std::time::Duration::from_secs(2));
             ui.label(format!("运行组件：GGUF {}；ONNX {}", if backends.llama {"可用"} else {"未包含"}, if backends.onnx {"可用"} else {"未包含或不兼容"}));
-            if !backends.llama || !backends.onnx { ui.hyperlink_to("获取含所需运行组件的模型版发行包", "https://github.com/silevilence/MyWubi/releases"); }
+            if !backends.llama || !backends.onnx { ui.hyperlink_to("查看实验性模型版构建说明", "https://github.com/silevilence/MyWubi/blob/master/docs/model-input-integration.md"); }
             if self.packages.is_empty() { ui.label("尚无已安装模型：请导入本地模型包。不会自动下载或开启预测。"); }
             if config.prediction.model.as_ref().is_some_and(|m| !self.packages.iter().any(|p| p.id == m.id && p.version == m.version)) {
                 ui.colored_label(eframe::egui::Color32::YELLOW, "已选模型缺失或校验失败：请重新导入同版本，或明确选择词典预测。原选择已保留。");
