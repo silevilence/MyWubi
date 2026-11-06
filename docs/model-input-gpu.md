@@ -58,3 +58,35 @@ $env:CARGO_BUILD_JOBS = '4'
 原生 probe 记录包清单、load、warmup、每次预测结果与执行设备、关闭耗时；这是
 适配器测量，不能替代 TSF/JNI 首次可见预测。跨厂商未测范围、实际测量与端到端
 结论见本系列验收记录。ONNX 决策单独见 [MI-34 评估](model-input-onnx-gpu-decision.md)。
+
+## CUDA 组件开发入口（未完成 NVIDIA 真机验收）
+
+`cuda` 是独立 feature，复用同一 GGUF 加载、设备名称、预测、回退和准入路径；
+CPU/Vulkan 构建无需 CUDA Toolkit。构建时显式指定 `CUDA_PATH` 与 SM 架构，避免
+发布制品只包含构建机 GPU 的代码。默认编译目标 75/80/86/89 是待验证范围，
+不是兼容认证；其他 SM 需与所选 Toolkit 核对后显式提供。
+
+```powershell
+$env:CUDA_PATH = 'C:/Program Files/NVIDIA GPU Computing Toolkit/CUDA/v12.8'
+$env:CARGO_TARGET_DIR = 'target/mi-cuda'
+./model_input/build.ps1 -Acceleration cuda -CudaArchitectures '75;80;86;89' -Release
+./target/mi-cuda/release/probe-device.exe PACKAGE cuda - 3
+./scripts/stage_gpu_component.ps1 -Worker target/mi-cuda/release/model-worker.exe `
+    -Backend cuda -Destination target/cuda-component -OnnxRuntime C:/runtimes/onnxruntime.dll `
+    -CudaRuntimeDirectory "$env:CUDA_PATH/bin" -CudaLicense C:/runtimes/CUDA-EULA.txt `
+    -CudaArchitectures '75;80;86;89'
+```
+
+固定绑定的 sys crate 在 Windows 动态链接 cudart、cublas、cublasLt 和 nvcuda。
+制品脚本要求恰好一组对应 DLL、匹配版本的 NVIDIA 许可和 SM 清单；验证实际
+启动、导出能力和哈希后才生成组件清单。nvcuda.dll 由 NVIDIA 驱动提供，不从 SDK
+复制驱动，也不包含开发工具或模型权重。需要按实际导入表检查是否还有新增依赖。
+CUDA 12.8 的版本/驱动匹配参见 [NVIDIA 发布说明](https://docs.nvidia.com/cuda/archive/12.8.0/cuda-toolkit-release-notes/index.html)；
+该版本附带 Windows 571.96 驱动，不能将 12.x 的最低小版本兼容驱动数字直接当作
+本组件的完整硬件认证。分发文件范围和条件须与实际 Toolkit 的
+[CUDA EULA](https://docs.nvidia.com/cuda/archive/12.8.0/eula/index.html)对应。
+
+本机没有 NVIDIA GPU/Toolkit。已验证请求 CUDA 时明确回退 CPU，缺 Toolkit
+构建会提前失败；未构建或发布 CUDA 二进制，未宣称 CUDA 加速有效。必须补做
+真实同模型冷/热预测、输出对照、设备失效/显存不足和释放，以及运行库许可与
+制品验证后，才能勾选 MI-33 总任务。用户同意保留这部分实测待办。

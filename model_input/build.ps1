@@ -3,8 +3,9 @@ param(
     [string]$Target = 'windows',
     [string]$Sdk = 'C:\Program Files (x86)\Android\android-sdk',
     [string]$OnnxRuntime = $env:MYWUBI_ORT_DYLIB,
-    [ValidateSet('cpu', 'vulkan')]
+    [ValidateSet('cpu', 'vulkan', 'cuda')]
     [string]$Acceleration = 'cpu',
+    [string]$CudaArchitectures = '75;80;86;89',
     [switch]$Test,
     [switch]$Release
 )
@@ -27,6 +28,12 @@ if (-not (Test-Path -LiteralPath (Join-Path $env:LIBCLANG_PATH 'libclang.dll')))
 $cargoArgs = @('build', '-p', 'model_input', '--locked', '--features', 'llama-cpp-2,ort')
 if ($Acceleration -ne 'cpu') {
     if ($Target -ne 'windows') { throw 'GPU components are Windows-only; Android remains CPU' }
+    if ($Acceleration -eq 'cuda') {
+        if (-not $env:CUDA_PATH -or -not (Test-Path -LiteralPath "$env:CUDA_PATH\bin\nvcc.exe")) { throw 'CUDA build requires CUDA_PATH with the NVIDIA CUDA Toolkit; CPU builds do not' }
+        if ($CudaArchitectures -notmatch '^\d+(;\d+)*$') { throw 'Pass explicit CUDA SM architectures, for example 75;80;86;89' }
+        $env:PATH = "$env:CUDA_PATH\bin;$env:PATH"
+        $env:CMAKE_CUDA_ARCHITECTURES = $CudaArchitectures
+    }
     # MSBuild with upstream TrackFileAccess=false can schedule shader generation
     # before its configure step. Ninja preserves the ExternalProject dependency.
     if (-not (Get-Command cl -ErrorAction SilentlyContinue)) {

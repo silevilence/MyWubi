@@ -28,7 +28,7 @@ impl BackendAvailability {
             llama: cfg!(feature = "llama-cpp-2"),
             onnx: cfg!(feature = "ort"),
             vulkan: cfg!(all(windows, feature = "vulkan")),
-            cuda: false,
+            cuda: cfg!(all(windows, feature = "cuda")),
         }
     }
     pub fn supports(self, backend: crate::package::Backend) -> bool {
