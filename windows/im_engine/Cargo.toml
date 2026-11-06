@@ -19,6 +19,7 @@ notify = "8.2.0"
 dirs = "6"
 model_ipc = { version = "0.7.0", path = "../model_ipc" }
 serde_json.workspace = true
+runtime_components = { version = "0.7.0", path = "../runtime_components" }
 
 [target.'cfg(windows)'.dependencies]
 windows = { workspace = true, features = [

@@ -8,6 +8,7 @@ members = [
     "windows/settings",
     "windows/tip_manager",
     "windows/model_ipc",
+    "windows/runtime_components",
 ]
 
 [workspace.package]
