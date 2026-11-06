@@ -12,8 +12,8 @@ object Resources {
             val target = File(tables, name)
             if (!target.exists()) {
                 val text = context.assets.open("tables/$name").bufferedReader().use { it.readText() }.replace("\r\n", "\n")
-                val content = if (name == "wubi86.dict") text.replaceFirst("---\n", "---\ntemporary:\n  pinyin_table: pinyin.dict\n  english_table: english.dict\n  reverse_lookup: true\n") else text
-                atomicCreate(target, content)
+                // The shared table already declares its auxiliary dictionaries.
+                atomicCreate(target, text)
             }
         }
         return File(root, "config.toml").also {

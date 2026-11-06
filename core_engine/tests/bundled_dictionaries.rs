@@ -11,6 +11,37 @@ fn table_path(name: &str) -> std::path::PathBuf {
 }
 
 #[test]
+fn bundled_wubi_has_real_codes_weights_and_valid_configuration() {
+    let dictionary = Dictionary::load(table_path("wubi86.dict")).unwrap();
+    assert_eq!(dictionary.len(), 136_239);
+    let config = dictionary.table_config();
+    assert_eq!(config.display_name, "五笔86（Rime）");
+    assert_eq!(config.table_type, TableType::Shape);
+    assert_eq!(config.wildcard_key, Some('z'));
+    let report = core_engine::validate_table(config, dictionary.entries(), 10);
+    assert!(report.is_valid(), "{:?}", report.issues);
+    for (code, word) in [
+        ("a", "工"),
+        ("g", "一"),
+        ("wq", "你"),
+        ("gggg", "王"),
+        ("wqiy", "你"),
+        ("lgyi", "国"),
+        ("ggtt", "五笔"),
+    ] {
+        let matches = dictionary.search(code, SearchOptions::default());
+        assert_eq!(
+            (matches[0].code.as_str(), matches[0].word.as_str()),
+            (code, word)
+        );
+    }
+    assert_eq!(
+        dictionary.search("gggg", SearchOptions::default())[0].weight,
+        827_000_000
+    );
+}
+
+#[test]
 fn bundled_pinyin_loads_and_preserves_readings_and_boundaries() {
     let dictionary = Dictionary::load(table_path("pinyin.dict")).unwrap();
     assert_eq!(dictionary.table_config().table_type, TableType::Pinyin);
@@ -66,16 +97,20 @@ fn bundled_english_loads_and_supports_both_spellings_and_prefix_completion() {
 
 #[test]
 fn bundled_tables_work_through_relative_references_and_temporary_input() {
-    let main = Dictionary::from_text(
-        "---\ntemporary:\n  key: '`'\n  pinyin_table: pinyin.dict\n  english_table: english.dict\n---\na\t工\t1\n",
-    )
-    .unwrap();
+    let main = Dictionary::load(table_path("wubi86.dict")).unwrap();
     let tables = Arc::new(TemporaryTables::load(
         &main,
         &table_path("wubi86.dict"),
         &Hotkey::default(),
     ));
     assert!(tables.load_errors.is_empty(), "{:?}", tables.load_errors);
+    assert!(tables
+        .reverse
+        .as_ref()
+        .unwrap()
+        .codes("你")
+        .iter()
+        .any(|code| code == "wqiy"));
     let mut state = StateMachine::new(main);
     state.set_temporary_tables(tables);
     for (input, expected) in [
@@ -95,4 +130,9 @@ fn bundled_tables_work_through_relative_references_and_temporary_input() {
         );
         assert_eq!(state.mode(), InputMode::Main);
     }
+    state.handle(InputEvent::Char('a'));
+    assert_eq!(
+        state.handle(InputEvent::Space),
+        Transition::Commit("工".into())
+    );
 }

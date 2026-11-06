@@ -1,5 +1,17 @@
 {
   "sources": {
+    "wubi-wubi86.dict.yaml": {
+      "url": "https://raw.githubusercontent.com/rime/rime-wubi/152a0d3f3efe40cae216d1e3b338242446848d07/wubi86.dict.yaml",
+      "sha256": "f833d86b72341fe82e069a425b6625f29ef85f1bc0f34f6fb7975fe514888b5a"
+    },
+    "wubi-LICENSE": {
+      "url": "https://raw.githubusercontent.com/rime/rime-wubi/152a0d3f3efe40cae216d1e3b338242446848d07/LICENSE",
+      "sha256": "da7eabb7bafdf7d3ae5e9f223aa5bdc1eece45ac569dc21b3b037520b4464768"
+    },
+    "wubi-AUTHORS": {
+      "url": "https://raw.githubusercontent.com/rime/rime-wubi/152a0d3f3efe40cae216d1e3b338242446848d07/AUTHORS",
+      "sha256": "4e4ca0e3ae6763a7cd5913f92c3b28091a7ec97d5cf4fc96c8f1a294e43f2839"
+    },
     "pinyin_simp.dict.yaml": {
       "url": "https://raw.githubusercontent.com/rime/rime-pinyin-simp/0c6861ef7420ee780270ca6d993d18d4101049d0/pinyin_simp.dict.yaml",
       "sha256": "e341598343a0f0f2035bb1aafc34a7f3bb7887deeecb3f60796262aaa2983e6b"
@@ -16,6 +28,14 @@
       "url": "https://deb.debian.org/debian/pool/main/s/scowl/scowl_2020.12.07.orig.tar.gz",
       "sha256": "5587667caa20c4891390c2d42dbb4d5c4c3f41bee77af1457ece3ba23fb859cc"
     }
+  },
+  "wubi86": {
+    "entries": 136239,
+    "revision": "152a0d3f3efe40cae216d1e3b338242446848d07",
+    "source_rows": 136916,
+    "excluded_z_symbols": 677,
+    "missing_weights_defaulted_to_zero": 163,
+    "duplicates_merged": 0
   },
   "pinyin": {
     "entries": 65125,
@@ -51,6 +71,10 @@
     "excluded_rows": 24812
   },
   "outputs": {
+    "wubi86.dict": "63802db622c7ddbb252dbbaa369bbd6f43027449b2abdc0dc71a10e63176d145",
+    "licenses/rime-wubi-LICENSE.txt": "da7eabb7bafdf7d3ae5e9f223aa5bdc1eece45ac569dc21b3b037520b4464768",
+    "licenses/rime-wubi-AUTHORS.txt": "4e4ca0e3ae6763a7cd5913f92c3b28091a7ec97d5cf4fc96c8f1a294e43f2839",
+    "licenses/GPL-3.0.txt": "3972dc9744f6499f0f9b2dbf76696f2ae7ad8af9b23dde66d6af86c9dfb36986",
     "pinyin.dict": "234008541b549a2906c2879d8a9537400e82c5dd6b030f6440674c6b451d693b",
     "english.dict": "fe4a45b9325fbb53311da1978362fe6c3f29cb4a3185729deb99b68421e7f3e7",
     "licenses/rime-pinyin-simp-LICENSE.txt": "cfc7749b96f63bd31c3c42b5c471bf756814053e847c10f3eb003417bc523d30",

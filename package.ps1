@@ -44,9 +44,10 @@ if ($CopyConfig) {
 Write-Host "复制码表..." -ForegroundColor Green
 $tableDest = "$deployDir\tables"
 New-Item -ItemType Directory -Force -Path $tableDest | Out-Null
-Copy-Item "tables\*.dict" $tableDest -Force -ErrorAction SilentlyContinue
-# 不复制 user.dict（用户词库）
-Remove-Item "$tableDest\user.dict" -Force -ErrorAction SilentlyContinue
+foreach ($table in @('wubi86.dict', 'pinyin.dict', 'english.dict', 'README.md', 'sources.json')) {
+    Copy-Item -LiteralPath (Join-Path 'tables' $table) -Destination $tableDest -ErrorAction Stop
+}
+Copy-Item -LiteralPath 'tables\licenses' -Destination $tableDest -Recurse -ErrorAction Stop
 
 # 6. 显示结果
 Write-Host ""

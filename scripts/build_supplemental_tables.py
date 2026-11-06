@@ -17,7 +17,21 @@ from urllib.request import urlopen
 ROOT = Path(__file__).resolve().parents[1]
 PINYIN_REV = "0c6861ef7420ee780270ca6d993d18d4101049d0"
 PINYIN_BASE = f"https://raw.githubusercontent.com/rime/rime-pinyin-simp/{PINYIN_REV}"
+WUBI_REV = "152a0d3f3efe40cae216d1e3b338242446848d07"
+WUBI_BASE = f"https://raw.githubusercontent.com/rime/rime-wubi/{WUBI_REV}"
 SOURCES = {
+    "wubi-wubi86.dict.yaml": {
+        "url": f"{WUBI_BASE}/wubi86.dict.yaml",
+        "sha256": "f833d86b72341fe82e069a425b6625f29ef85f1bc0f34f6fb7975fe514888b5a",
+    },
+    "wubi-LICENSE": {
+        "url": f"{WUBI_BASE}/LICENSE",
+        "sha256": "da7eabb7bafdf7d3ae5e9f223aa5bdc1eece45ac569dc21b3b037520b4464768",
+    },
+    "wubi-AUTHORS": {
+        "url": f"{WUBI_BASE}/AUTHORS",
+        "sha256": "4e4ca0e3ae6763a7cd5913f92c3b28091a7ec97d5cf4fc96c8f1a294e43f2839",
+    },
     "pinyin_simp.dict.yaml": {
         "url": f"{PINYIN_BASE}/pinyin_simp.dict.yaml",
         "sha256": "e341598343a0f0f2035bb1aafc34a7f3bb7887deeecb3f60796262aaa2983e6b",
@@ -112,8 +126,38 @@ def english_rows(data):
     return rows, copyright_text, {"files": selected, "excluded_rows": excluded}
 
 
-def table_bytes(table_type, max_length, notice, rows):
-    header = (
+def wubi_rows(data):
+    rows = {}
+    excluded = missing_weight = count = 0
+    body = data.decode("utf-8").split("...\n", 1)[1]
+    for line in body.splitlines():
+        if not line.strip() or line.startswith("#"):
+            continue
+        columns = line.split("\t")
+        if len(columns) not in (2, 3, 4):
+            raise ValueError(f"Unsupported Wubi row: {line!r}")
+        word, code = columns[:2]
+        count += 1
+        # Reserve z for MyWubi's existing wildcard instead of importing Rime's
+        # zz symbol shortcuts, which would be unreachable with that wildcard.
+        if code.startswith("z"):
+            excluded += 1
+            continue
+        if not word or not re.fullmatch(r"[a-y]{1,4}", code):
+            raise ValueError(f"Unsupported Wubi code: {line!r}")
+        weight = int(columns[2]) if len(columns) >= 3 else 0
+        missing_weight += len(columns) == 2
+        if not 0 <= weight <= 0xFFFFFFFF:
+            raise ValueError(f"Invalid Wubi weight: {line!r}")
+        key = (code, word)
+        rows[key] = max(rows.get(key, 0), weight)
+    return rows, {"source_rows": count, "excluded_z_symbols": excluded,
+                  "missing_weights_defaulted_to_zero": missing_weight,
+                  "duplicates_merged": count - excluded - len(rows)}
+
+
+def table_bytes(table_type, max_length, notice, rows, header=None):
+    header = header or (
         f"---\ntype: {table_type}\nwildcard_key: ''\n"
         "charset: abcdefghijklmnopqrstuvwxyz\n"
         f"max_code_len: {max_length}\n---\n"
@@ -132,6 +176,7 @@ def main():
     parser.add_argument("--source-dir", type=Path, default=ROOT / "target/dictionary-sources")
     args = parser.parse_args()
     sources = {name: source_bytes(name, args.source_dir, args.download) for name in SOURCES}
+    wubi, wubi_stats = wubi_rows(sources["wubi-wubi86.dict.yaml"])
     pinyin, pinyin_stats = pinyin_rows(sources["pinyin_simp.dict.yaml"])
     english, copyright_text, english_stats = english_rows(sources["scowl-2020.12.07.tar.gz"])
     license_text = sources["pinyin-LICENSE"].decode("utf-8")
@@ -159,7 +204,39 @@ def main():
         "Complete upstream Copyright follows; keep it when redistributing this file.\n"
         + copyright_text
     )
+    gpl = (ROOT / "tables/licenses/GPL-3.0.txt").read_bytes()
+    if hashlib.sha256(gpl).hexdigest() != "3972dc9744f6499f0f9b2dbf76696f2ae7ad8af9b23dde66d6af86c9dfb36986":
+        raise ValueError("Bundled GPL-3.0 license checksum mismatch")
+    wubi_license = sources["wubi-LICENSE"].decode("utf-8")
+    wubi_authors = sources["wubi-AUTHORS"].decode("utf-8")
+    wubi_notice = (
+        "MyWubi Wubi 86 dictionary; derived from Rime rime-wubi.\n"
+        f"Source: {WUBI_BASE}/wubi86.dict.yaml\n"
+        "SPDX-License-Identifier: LGPL-3.0-only\n"
+        "Modified by MyWubi contributors on 2026-11-06:\n"
+        "Convert text/code/weight/stem to code/text/weight; omit Rime encoder stems.\n"
+        "Keep original integer weights; absent weights become zero. Sort by code/text.\n"
+        "Exclude z-prefixed symbol shortcuts to reserve z as the wildcard.\n"
+        "Add MyWubi header, temporary pinyin/English references and reverse lookup.\n"
+        "This editable UTF-8 file is the distributed source form of the dictionary.\n"
+        "The dictionary remains LGPL-3.0; it is NOT relicensed under the app's MIT license.\n"
+        "Original source header:\n"
+        + sources["wubi-wubi86.dict.yaml"].decode("utf-8").split("---", 1)[0]
+        + "\nUpstream AUTHORS:\n" + wubi_authors
+        + "\nComplete licenses follow; retain them when redistributing.\n"
+        + wubi_license + "\n" + gpl.decode("utf-8")
+    )
+    wubi_header = (
+        '---\ndisplay_name: "五笔86（Rime）"\ntype: shape\nwildcard_key: z\n'
+        "charset: abcdefghijklmnopqrstuvwxyz\nmax_code_len: 4\n"
+        "temporary:\n  key: '`'\n  pinyin_table: pinyin.dict\n"
+        "  english_table: english.dict\n  reverse_lookup: true\n---\n"
+    )
     outputs = {
+        "wubi86.dict": table_bytes("shape", 4, wubi_notice, wubi, wubi_header),
+        "licenses/rime-wubi-LICENSE.txt": sources["wubi-LICENSE"],
+        "licenses/rime-wubi-AUTHORS.txt": sources["wubi-AUTHORS"],
+        "licenses/GPL-3.0.txt": gpl,
         "pinyin.dict": table_bytes("pinyin", 64, pinyin_notice, pinyin),
         "english.dict": table_bytes("shape", 32, english_notice, english),
         "licenses/rime-pinyin-simp-LICENSE.txt": license_text.encode("utf-8"),
@@ -168,6 +245,7 @@ def main():
     }
     manifest = {
         "sources": SOURCES,
+        "wubi86": {"entries": len(wubi), "revision": WUBI_REV, **wubi_stats},
         "pinyin": {"entries": len(pinyin), **pinyin_stats},
         "english": {"entries": len(english), **english_stats},
         "outputs": {name: hashlib.sha256(data).hexdigest() for name, data in outputs.items()},
@@ -181,7 +259,7 @@ def main():
         else:
             path.parent.mkdir(parents=True, exist_ok=True)
             path.write_bytes(data)
-    print(f"{'Verified' if args.check else 'Generated'}: pinyin={len(pinyin)}, english={len(english)}")
+    print(f"{'Verified' if args.check else 'Generated'}: wubi86={len(wubi)}, pinyin={len(pinyin)}, english={len(english)}")
 
 
 if __name__ == "__main__":

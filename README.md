@@ -195,6 +195,6 @@ MyWubi/
 
 ## 许可
 
-MIT
+程序代码采用 MIT。内置码表保留各自许可：五笔 86 为 LGPL-3.0，拼音为 Apache-2.0，英文为 SCOWL 及其组件许可。来源、转换规则和完整许可见 [码表说明](tables/README.md)。
 
 双平台发布流程及签名维护见 [发布维护说明](docs/releasing.md)。

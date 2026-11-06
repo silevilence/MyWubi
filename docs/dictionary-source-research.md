@@ -1,4 +1,16 @@
-# 拼音和英文码表来源核查
+# 内置码表来源核查
+
+## 2026-11-06：五笔 86 替换
+
+采用 Rime 官方 `rime/rime-wubi`，固定提交 `152a0d3f3efe40cae216d1e3b338242446848d07`。选择依据是成熟发行渠道和可追溯授权，而非只看下载量：[上游说明](https://github.com/rime/rime-wubi/blob/152a0d3f3efe40cae216d1e3b338242446848d07/README.md) 明确其为五笔 86 方案，[Debian 包](https://packages.debian.org/sid/rime-data-wubi) 采用同一提交。核查时 GitHub API 显示 351 stars / 95 forks，仅作为社区使用线索，不视为质量保证。
+
+[AUTHORS](https://github.com/rime/rime-wubi/blob/152a0d3f3efe40cae216d1e3b338242446848d07/AUTHORS) 逐文件标明码表来自 Yu Yuwei 的 ibus-table，并记录原始工作归属；[LICENSE](https://github.com/rime/rime-wubi/blob/152a0d3f3efe40cae216d1e3b338242446848d07/LICENSE) 为 LGPL v3。[Debian 版权核查](https://metadata.ftp-master.debian.org/changelogs/main/r/rime-wubi/rime-wubi_0.0~git20231025.152a0d3-1_copyright) 也将该数据标为 LGPL-3.0。文件头中的 Wozy、Chen Xing、Yu Yuwei、Gong Chen 等原始归属一并保留。
+
+集成方式：单独分发可替换、可编辑的 UTF-8 码表，不编译进输入法算法；修改后的数据仍按 LGPL-3.0 提供，完整 LGPL/GPL、作者及修改说明内嵌并另存。程序代码继续采用 MIT，不能把码表也声称为 MIT。按这些条件转换和再分发与当前项目使用方式相容。Windows 正式/简易包和 Android 资源包含许可；单独分享码表时也有内嵌声明。编辑器重新保存会丢失注释，再分发编辑结果须随附完整许可与修改说明，详见码表 README。
+
+比较时也查看了 KyleBing 的极点方案；本次采用官方基础表，依据是其逐文件归属记录及 Debian 已分发的具体版本。没有将其他项目的仓库级 LICENSE 自动视为它所引用的一切词库的授权。
+
+转换结果为 136,239 条；保留数字权重，缺失权重设为 0，排除与本项目 `z` 万能键冲突的 677 条符号快捷码，丢弃 Rime 专用 stem 列。精确输入/输出 SHA-256、筛选统计见 `tables/sources.json`；`scripts/build_supplemental_tables.py --check` 使用本地缓存复现。此次只在线获取此前不存在的五笔源文件；拼音、英文及其许可全部复用现有资源，GPL v3 标准文本复用本地 Git for Windows 的 XZ 许可文件。
 
 核查日期：2026-10-23。以下结论针对列出的具体上游版本；生成文件的条数、转换规则和校验值以码表目录中的来源说明为准。
 
