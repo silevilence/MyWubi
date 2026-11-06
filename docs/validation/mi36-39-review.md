@@ -2,7 +2,7 @@
 
 日期：2026-11-06。范围为 Windows 组件分发，不改变预测默认关闭或 Android 原生库交付。
 
-最新进展：用户授权推送和发布后，V0.7.1 的正式发布与 Windows/Android CI 均已成功；Windows Sandbox 的显示连接现已恢复。首轮的 HTTP 404 和未发布限制属于历史记录，不再是当前阻塞。当前尚未完成的是干净沙盒在线下载组件及模型后的完整预测上屏闭环，详见文末。
+最终结论：MI-36～MI-39 验收完成，正式版本为 V0.7.2。Windows Sandbox 显示已恢复，组件和模型在线下载均有成功证据，标准安装与便携模式的离线预测上屏已通过。用户明确要求下载功能验证一次即可，后续复用本地文件；因此按分阶段证据验收，不把本地缓存安装写成又一次在线下载。下文保留历史失败及阶段状态，当前结论以文末最终验收为准。
 
 ## 已实现
 
@@ -41,8 +41,8 @@
 | 场景 | 实测结果及范围 |
 | --- | --- |
 | 标准全新安装 | 新建 Windows 沙盒，Setup 静默安装返回 0，安装后程序导出清单成功，程序哈希一致；[日志](mi36-39/fresh-check.txt) |
-| 旧基础版升级 | 实际 0.4.0 基础版 Setup → 0.7.0 Setup，均返回 0；合成配置、模型目录标记、用户词库逐字节不变，current 不带 worker/ORT，程序哈希一致；[日志](mi36-39/base-upgrade.txt) |
-| 旧模型版升级 | 实际 0.6.2 模型版 Setup → 0.7.0 Setup，同上全部通过；[日志](mi36-39/model-upgrade.txt) |
+| 旧基础版升级 | 本地构建的 0.4.0 基础版 Setup → 0.7.0 Setup，均返回 0；合成配置、模型目录标记、用户词库逐字节不变，current 不带 worker/ORT，程序哈希一致；[日志](mi36-39/base-upgrade.txt) |
+| 旧模型版升级 | 本地构建的 0.6.2 模型版 Setup → 0.7.0 Setup，同上全部通过；[日志](mi36-39/model-upgrade.txt) |
 | 便携全新使用 | 新 ZIP 解压后运行实际 settings 清单命令成功，原生可选载荷不在应用目录；[结果](mi36-39/portable-fresh.json) |
 | 便携覆盖升级 | 实际 0.6.2 Portable ZIP → 新 ZIP 覆盖，合成配置、模型目录标记与词库字节保留；旧 worker 文件保留但新加载器不授权它；[结果](mi36-39/portable-upgrade.json) |
 | 干净 Windows 原生请求 | 新建沙盒，无开发环境，生产安装器代码从校验缓存安装组件；独立进程清空开发环境变量，GGUF 返回“市”、ONNX 返回有效候选，配置不变；[日志](mi36-39/sandbox-native.log) |
@@ -132,3 +132,37 @@ MI-37～MI-39 父任务仍保持未完成：继续补验正式源在线下载、
 更新至 `ureq 3.5.1` 后该测试通过；生产配置为连接 10 秒、响应头 20 秒、单次读写停滞 20 秒、正文总预算 10 分钟。新增停滞超时后保留部分字节并恢复下载测试，下载相关 9 项全部通过（[修复后](mi36-39/download-timeout-after.log)）。修复后的本机测试从空组件目录经正式 GitHub URL 安装并运行 GGUF/ONNX，配置保持关闭（[日志](mi36-39/fixed-host-component-online.log)）。沙盒同一在线测试仍有网络失败，不能据本机成功代替干净 Windows 验收。
 
 本次修复的工作区回归 371 通过、6 个显式真实环境测试默认忽略（[日志](mi36-39/download-fix-workspace.log)），组件与模型严格 Clippy 通过（[日志](mi36-39/download-fix-clippy.log)）。版本准备为 0.7.2；上述可见预测属于已发布的 0.7.1，后续 0.7.2 正式发布和制品验收另行记录。MI-37～MI-39 父任务继续保留未完成。
+
+## 最终发布与验收（V0.7.2）
+
+[V0.7.2](https://github.com/silevilence/MyWubi/releases/tag/V0.7.2) 指向 `767a0631ea8a3eecc63798475cfbb8b7dee42497`。[Actions 42167716321](https://github.com/silevilence/MyWubi/actions/runs/42167716321) 的版本与脚本检查、Windows 工作区测试和打包、Android 签名与 ABI 检查、双端发布全部成功。正式下载的清单、CPU ZIP、Setup 和 Portable 均与发布的 SHA256SUMS 一致，见 [制品哈希](mi36-39/mi372-artifacts.json)。
+
+下载验收只复用已取得的成功证据，不再重复下载大文件：
+
+- 修复后的生产下载器在无开发环境的沙盒从空缓存下载正式 0.7.1 CPU 组件，随后运行 GGUF 和 ONNX，分别得到“市”和有效候选；配置保持预测关闭，381.82 秒通过。[完整日志](mi36-39/fixed-sandbox-component-online.log)。此测试嵌入的是 0.7.1 组件清单，不能称为下载了 0.7.2 组件。
+- 正式 0.7.2 设置页在全新的便携模型目录中，从 HF 镜像完成 491,411,858 字节下载和校验，模型变为可选，预测开关保持关闭。[界面](mi36-39/mi372-model-online-ready.png)、[来源记录](mi36-39/mi372-model-download-attempts.jsonl)、[实际文件哈希](mi36-39/mi372-online-model-hashes.json)。
+- 0.7.2 组件直接在线请求仍出现连接或响应头超时；系统 curl 也有同类连接失败。标准安装的一次重试已开始持续收取数据，但用户要求停止重复下载后立即终止，未记作完整下载成功。[失败界面](mi36-39/mi372-component-network-failure.png)。未更改 DNS、hosts 或 TLS 校验。
+- 后续仅复制已校验的正式 0.7.2 组件缓存和本地模型。停止下载进程后，临时停用沙盒唯一网卡，设置页仍能完成压缩包校验、逐文件校验和安装，两后端显示可用。[本地复用记录](mi36-39/mi372-local-reuse.json)、[离线状态](mi36-39/mi372-offline-local-validation.json)、[安装结果](mi36-39/mi372-offline-component-installed.png)。原生两后端的最终 0.7.2 组件请求也通过，[日志](mi36-39/mi372-native.log)。
+
+### 安装、升级与可见输入
+
+| 场景 | 最终证据 |
+| --- | --- |
+| 标准全新安装 | 卸载沙盒内测试应用，保留旧合成用户目录至备份后安装正式 0.7.2；首次运行生成默认配置，模型和组件目录均不存在，预测关闭。[准备记录](mi36-39/mi372-fresh-profile-preparation.json)、[默认配置](mi36-39/mi372-fresh-config.toml)、[状态及程序哈希](mi36-39/mi372-fresh-state.json)、[界面](mi36-39/mi372-fresh-resources.png) |
+| 下载期间基础输入 | 正式 DLL 在记事本将默认编码 `a` 的“工”正常上屏。[截图](mi36-39/mi372-basic-during-download.png)、[加载路径](mi36-39/mi372-loaded-tip.json) |
+| 标准安装离线预测 | 本地准备组件及模型后，通过设置页选择模型、提前加载、1000 ms 等待，再显式启用并保存；合成码表 `n → 北京` 后显示“市、区、县”，选择后实际保存为“北京市”。[保存配置](mi36-39/mi372-enabled-config.toml)、[独立服务路径](mi36-39/mi372-preloaded-worker.json)、[候选](mi36-39/mi372-standard-gguf-visible.png)、[上屏](mi36-39/mi372-standard-gguf-committed.png)、[文本](mi36-39/mi372-standard-gguf-committed.txt) |
+| 便携模式离线预测 | 复用本地组件和配置，重新注册沙盒内便携 DLL，关闭设置程序后在新记事本中完成相同预测上屏。[DLL 路径](mi36-39/mi372-portable-loaded-tip.json)、[便携服务路径](mi36-39/mi372-portable-worker.json)、[候选](mi36-39/mi372-portable-gguf-visible.png)、[上屏](mi36-39/mi372-portable-gguf-committed.png)、[文本](mi36-39/mi372-portable-gguf-committed.txt) |
+| 旧基础布局升级 | 本地 0.4.0 基础包 → 正式 0.7.2，配置、词库和真实 491,400,032 字节权重逐字节不变，应用目录不再携带 worker/ORT。[日志](mi36-39/mi372-base-upgrade.txt) |
+| 旧模型布局升级 | 本地 0.6.2 含推理库安装包 → 正式 0.7.2，同上全部通过。[日志](mi36-39/mi372-model-upgrade.txt) |
+| 正式旧版升级 | 从 GitHub 下载并核对 SHA256SUMS 的正式 0.6.2 Setup → 正式 0.7.2，配置、词库、真实模型和最终程序哈希均通过。[旧包来源](mi36-39/mi372-official062-source.json)、[日志](mi36-39/mi372-official062-upgrade.txt)；另有正式 0.7.1 → 0.7.2 的配置和真实权重保留证据，[日志](mi36-39/mi372-recent-upgrade.txt) |
+| 便携覆盖升级 | 本地 0.6.2 模型版 Portable → 正式 0.7.2 Portable，配置、词库和真实权重哈希不变；旧同目录 worker 残留但不在新受信组件目录。[结果](mi36-39/mi372-portable-upgrade.json) |
+
+旧布局测试包的来源进一步核实：0.4.0 基础包来自 `target/cp10-package/Releases`，0.6.2 模型包来自 `target/mi-model-release-final`，它们是此前本地构建产物，**不是对应标签的 GitHub 资产**。[旧产物哈希](mi36-39/mi372-old-artifacts.json)。正式旧版升级另以上表下载并校验过的 0.6.2 包证明。各场景复用同一无开发环境的沙盒；每次安装路径转换先卸载测试应用，用户数据为明确构造的测试数据，不声称每次都新建了虚拟机。
+
+### 体积与最终审核
+
+重新用未修改的正式 0.7.2 Portable 中的应用文件，按相同 ZIP deflate 9 参数测量：基础参考 17,093,854 字节，统一轻量应用 17,095,729 字节，重建旧模型布局 27,433,608 字节；独立 CPU 组件 10,337,901 字节。统一应用展开 35,423,803 字节，组件展开 28,907,806 字节。相同模型首次启用总量仍约 518.85 MB，拆分没有消除总成本。实际 Setup 为 24,239,404 字节，Portable 为 19,631,946 字节；这些包含 Velopack 载荷，口径与应用目录重压 ZIP 不同。[完整数据和更新预算](mi36-39/mi372-sizes.json)。
+
+最终逐项核对组件来源与兼容性、暂存/原子发布、失败回退与占用保护、模型纯数据边界、独立进程加载、设置显式启用及发布制品一致性，未发现阻塞 MI-36～MI-39 完成的问题。沿用已通过的工作区 371 项回归、组件/模型严格 Clippy、发布 CI 和本次真实制品验证；本次只补验和记录，没有再次修改发布代码。取消、损坏、空间不足、更新失败、共享依赖及移除由前述自动化和界面证据覆盖；后端切换、重启和离线持久性沿用正式 0.7.1 的可见验收，0.7.2 两后端原生请求及两种安装方式上屏补充验证通过。不宣称模型质量验收、全部旧版本或全部 Windows 设备验证完成，也不将原有 Windows 全模块严格 Clippy 告警记成通过。
+
+按用户要求采用“一次在线功能验证，后续本地复用”的验收范围，MI-36～MI-39 均可标记完成。结束时关闭测试程序和服务、注销沙盒内测试 TIP、恢复沙盒网卡，未修改主机输入法注册或用户 AppData；[最终环境状态](mi36-39/mi372-final-environment.json) 确认测试进程为空、沙盒网卡恢复 Up。

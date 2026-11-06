@@ -1,0 +1,10 @@
+
+running 1 test
+llama: {"elapsed_ms":4444,"ok":true,"value":{"load_ms":3979,"notice":"仅证明此样例兼容运行；空候选表示无召回或未过准入。不是质量认证，未选择模型或更改预测开关。","predict_ms":294,"words":["市"]}}
+onnx: {"elapsed_ms":102,"ok":true,"value":{"load_ms":81,"notice":"仅证明此样例兼容运行；空候选表示无召回或未过准入。不是质量认证，未选择模型或更改预测开关。","predict_ms":20,"words":["天气","大学","时间","奥运","现代","国际","市场","车展","银行","移动","市","人","地区","站","城","路"]}}
+archive_sha256=892c7446ceff51caef1985f3f71fb3727f75b524b601415f74bb08b845c6946b; prediction remains disabled
+test release_component_cache_install_and_both_native_backends_work_without_developer_path ... ok
+
+test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 2 filtered out; finished in 10.81s
+
+test_exit=0

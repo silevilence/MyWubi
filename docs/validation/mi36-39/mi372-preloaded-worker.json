@@ -1,0 +1,5 @@
+{
+    "ProcessId":  2620,
+    "ExecutablePath":  "C:\\Users\\WDAGUtilityAccount\\AppData\\Roaming\\MyWubi\\components\\cpu--0.7.2\\model-worker.exe",
+    "CommandLine":  "\"C:\\Users\\WDAGUtilityAccount\\AppData\\Roaming\\MyWubi\\components\\cpu--0.7.2\\model-worker.exe\" --config C:\\Users\\WDAGUtilityAccount\\AppData\\Roaming\\MyWubi\\config.toml"
+}

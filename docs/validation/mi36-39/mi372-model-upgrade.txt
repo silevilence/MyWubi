@@ -1,0 +1,19 @@
+Comparing files C:\MIQA\FIXTURES\upgrade-072.toml and C:\USERS\WDAGUTILITYACCOUNT\APPDATA\ROAMING\MYWUBI\CONFIG.TOML
+FC: no differences encountered
+
+Comparing files C:\MIQA\FIXTURES\user.dict and C:\USERS\WDAGUTILITYACCOUNT\APPDATA\ROAMING\MYWUBI\TABLES\USER.DICT
+FC: no differences encountered
+
+Comparing files C:\MIQA\DOWNLOADED-MODEL-071\model.gguf and C:\USERS\WDAGUTILITYACCOUNT\APPDATA\ROAMING\MYWUBI\MODELS\QWEN25-WORDS--Q4KM-V1\MODEL.GGUF
+FC: no differences encountered
+
+SHA256 的 C:\Users\WDAGUtilityAccount\AppData\Local\MyWubi\current\settings.exe 哈希:
+31349f183e5dd15ee658bcf13b0b2ececfe0a3c38b9539021e79a4b5ecd263e0
+CertUtil: -hashfile 命令成功完成。
+SHA256 的 C:\Users\WDAGUtilityAccount\AppData\Local\MyWubi\current\im_engine.dll 哈希:
+00164b9acf3c49ba2c68abd58e9db3d5817af269ed3ec3ea32cffc576e32e44a
+CertUtil: -hashfile 命令成功完成。
+SHA256 的 C:\Users\WDAGUtilityAccount\AppData\Roaming\MyWubi\models\qwen25-words--q4km-v1\model.gguf 哈希:
+74a4da8c9fdbcd15bd1f6d01d621410d31c6fc00986f5eb687824e7b93d7a9db
+CertUtil: -hashfile 命令成功完成。
+verified_config_dictionary_real_model_and_light_application=pass

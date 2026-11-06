@@ -1,0 +1,22 @@
+[
+  {
+    "File": "generation-policy.json",
+    "Bytes": 483,
+    "SHA256": "32e1d45cdf10083ac2464066599f8b84be652295f5b307c9b8301c0a9e4812b7"
+  },
+  {
+    "File": "LICENSE.txt",
+    "Bytes": 11343,
+    "SHA256": "832dd9e00a68dd83b3c3fb9f5588dad7dcf337a0db50f7d9483f310cd292e92e"
+  },
+  {
+    "File": "manifest.json",
+    "Bytes": 1123,
+    "SHA256": "bd4d6b716feaa31ea73bbba1722ae9392ffcf872673a1fa33f6be80e4a15a11e"
+  },
+  {
+    "File": "model.gguf",
+    "Bytes": 491400032,
+    "SHA256": "74a4da8c9fdbcd15bd1f6d01d621410d31c6fc00986f5eb687824e7b93d7a9db"
+  }
+]

@@ -1,0 +1,22 @@
+[
+  {
+    "Name": "components.json",
+    "Bytes": 5214,
+    "SHA256": "fe5d30a44c3f18d2296a2c728c24d282faba05241b42ddae78a6e15559b5b736"
+  },
+  {
+    "Name": "MyWubi-components-cpu-0.7.2-windows-x86_64.zip",
+    "Bytes": 10337901,
+    "SHA256": "892c7446ceff51caef1985f3f71fb3727f75b524b601415f74bb08b845c6946b"
+  },
+  {
+    "Name": "MyWubi-win-Portable.zip",
+    "Bytes": 19631946,
+    "SHA256": "306d5b8ae4fe12e8f8071682f7ce77a63234717b644c90fb9e42825e814c692d"
+  },
+  {
+    "Name": "MyWubi-win-Setup.exe",
+    "Bytes": 24239404,
+    "SHA256": "f0665519db9b24551cf3a60ee8b50e975c209d20dd3dacb6a670ce2f34d5743f"
+  }
+]

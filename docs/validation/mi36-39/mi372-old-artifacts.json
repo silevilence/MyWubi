@@ -1,0 +1,17 @@
+[
+  {
+    "Path": "C:\\code\\rust\\MyWubi\\target\\mi36-39-sandbox\\old-model-Setup.exe",
+    "Bytes": 33987342,
+    "SHA256": "fba4dde84903e49247887a28f442e8f6769e1b31e97263b3044a6d56134d30ea"
+  },
+  {
+    "Path": "C:\\code\\rust\\MyWubi\\target\\mi-model-release-final\\MyWubi-win-Portable.zip",
+    "Bytes": 29379650,
+    "SHA256": "dccbee596119a598d1d77381ce289dab8b3ac9e6d1dfdf1417ea476146776abc"
+  },
+  {
+    "Path": "C:\\code\\rust\\MyWubi\\target\\mi36-39-sandbox\\old-base-Setup.exe",
+    "Bytes": 23630308,
+    "SHA256": "1549071b68707e7ee57affe83bcf3d48399b65d3afde089c842015d2df79f3b8"
+  }
+]

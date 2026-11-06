@@ -1,0 +1,13 @@
+SHA256 的 C:\Users\WDAGUtilityAccount\AppData\Roaming\MyWubi\models\qwen25-words--q4km-v1\model.gguf 哈希:
+74a4da8c9fdbcd15bd1f6d01d621410d31c6fc00986f5eb687824e7b93d7a9db
+CertUtil: -hashfile 命令成功完成。
+Comparing files C:\MIQA\OUTPUT\mi371-before-upgrade.toml and C:\USERS\WDAGUTILITYACCOUNT\APPDATA\ROAMING\MYWUBI\CONFIG.TOML
+FC: no differences encountered
+
+SHA256 的 C:\Users\WDAGUtilityAccount\AppData\Roaming\MyWubi\models\qwen25-words--q4km-v1\model.gguf 哈希:
+74a4da8c9fdbcd15bd1f6d01d621410d31c6fc00986f5eb687824e7b93d7a9db
+CertUtil: -hashfile 命令成功完成。
+SHA256 的 C:\Users\WDAGUtilityAccount\AppData\Local\MyWubi\current\im_engine.dll 哈希:
+00164b9acf3c49ba2c68abd58e9db3d5817af269ed3ec3ea32cffc576e32e44a
+CertUtil: -hashfile 命令成功完成。
+complete
