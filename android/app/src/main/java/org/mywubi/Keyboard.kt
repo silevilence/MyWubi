@@ -1,6 +1,7 @@
 package org.mywubi
 
 import androidx.compose.foundation.background
+import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.ui.platform.LocalConfiguration
@@ -15,11 +16,13 @@ import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.lazy.grid.GridCells
+import androidx.compose.foundation.lazy.grid.GridItemSpan
 import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
 import androidx.compose.foundation.lazy.grid.items
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.RectangleShape
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.semantics.contentDescription
@@ -27,6 +30,7 @@ import androidx.compose.ui.semantics.onClick
 import androidx.compose.ui.semantics.role
 import androidx.compose.ui.semantics.clearAndSetSemantics
 import androidx.compose.ui.semantics.disabled
+import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.Lifecycle
@@ -85,6 +89,7 @@ fun Keyboard(model: KeyboardModel, dispatch: (Any) -> Unit, window: (Int) -> Uni
         mutableStateOf(if (model.layout in listOf("number", "phone")) "numbers" else "letters")
     }
     var expanded by remember(model.epoch) { mutableStateOf(false) }
+    val showExpanded = expanded && model.candidates.isNotEmpty() && !model.privateInput
     var asciiSymbols by remember(model.epoch, model.base, model.privateInput, model.layout) {
         mutableStateOf(model.privateInput || model.base == "English" || model.layout != "letters")
     }
@@ -97,6 +102,7 @@ fun Keyboard(model: KeyboardModel, dispatch: (Any) -> Unit, window: (Int) -> Uni
     fun input(label: String) { dispatch(JSONObject().put("InputText", JSONArray().put(label).put("Normal"))) }
     fun choose(item: CandidateItem) {
         dispatch(JSONObject().put("SelectCandidate", JSONArray().put(JSONObject(model.query)).put(item.id)))
+        expanded = false
     }
     MaterialTheme(colorScheme=colors) {
         val pinyinControl: @Composable () -> Unit = {
@@ -107,79 +113,119 @@ fun Keyboard(model: KeyboardModel, dispatch: (Any) -> Unit, window: (Int) -> Uni
             // Keep actions in the toolbar so their 48 dp touch targets do not enlarge this line.
             val showSpelling = model.spelling.isNotEmpty() && !model.privateInput
             val showClipboard = model.clipboard != null && model.spelling.isEmpty() && model.candidates.isEmpty() && !model.privateInput
-            Text(if (showSpelling) model.spelling else "",
-                Modifier.fillMaxWidth().heightIn(min=28.dp).padding(horizontal=12.dp, vertical=4.dp)
-                    .then(if (showSpelling) Modifier else Modifier.clearAndSetSemantics {}),
-                color=colors.primary, fontSize=16.sp, lineHeight=20.sp, maxLines=1,
-                overflow=androidx.compose.ui.text.style.TextOverflow.Ellipsis)
-            Row(Modifier.fillMaxWidth().heightIn(min=48.dp), verticalAlignment=androidx.compose.ui.Alignment.CenterVertically) {
-                Row(Modifier.weight(1f), verticalAlignment=androidx.compose.ui.Alignment.CenterVertically) {
-                    if (model.candidates.isEmpty() && !showClipboard) IconButton(onClick={tools=!tools}, modifier=Modifier.imeAction("键盘工具", true) {tools=!tools}) {
-                        androidx.compose.foundation.Image(androidx.compose.ui.res.painterResource(R.drawable.mywubi_brand), null, Modifier.size(28.dp))
+            if (showExpanded) {
+                Row(Modifier.fillMaxWidth().heightIn(min=48.dp), verticalAlignment=androidx.compose.ui.Alignment.CenterVertically) {
+                    val heading = if (showSpelling) model.spelling else if (model.prediction) "字词预测" else "全部候选"
+                    if (landscape) {
+                        Text("$heading · ${model.total} 个候选", Modifier.weight(1f).padding(horizontal=12.dp),
+                            color=colors.primary, fontSize=16.sp, maxLines=1,
+                            overflow=androidx.compose.ui.text.style.TextOverflow.Ellipsis)
+                    } else Column(Modifier.weight(1f).padding(horizontal=12.dp)) {
+                        Text(heading,
+                            color=colors.primary, fontSize=16.sp, maxLines=1,
+                            overflow=androidx.compose.ui.text.style.TextOverflow.Ellipsis)
+                        Text("${model.total} 个候选", color=colors.onSurfaceVariant, fontSize=12.sp, maxLines=1)
                     }
-                    if (showClipboard) {
-                        TextButton(onClick = { dispatch("PasteClipboard") }, enabled = model.enabled,
-                            modifier = Modifier.weight(1f).heightIn(min = 48.dp).imeAction("粘贴剪贴板内容", model.enabled) { dispatch("PasteClipboard") }) {
-                            Text("粘贴：${model.clipboard}", maxLines = 1, overflow = androidx.compose.ui.text.style.TextOverflow.Ellipsis)
+                    TextButton(onClick={expanded=false}, modifier=Modifier.imeAction("收起", true) {expanded=false}) { Text("收起", maxLines=1) }
+                    pinyinControl()
+                    IconButton(onClick=hideKeyboard,
+                        modifier=Modifier.size(48.dp).imeAction("收起键盘", true, hideKeyboard)) {
+                        Icon(androidx.compose.ui.res.painterResource(R.drawable.ic_hide_keyboard), null, Modifier.size(24.dp), tint=colors.onSurface)
+                    }
+                }
+            } else {
+                Text(if (showSpelling) model.spelling else "",
+                    Modifier.fillMaxWidth().heightIn(min=28.dp).padding(horizontal=12.dp, vertical=4.dp)
+                        .then(if (showSpelling) Modifier else Modifier.clearAndSetSemantics {}),
+                    color=colors.primary, fontSize=16.sp, lineHeight=20.sp, maxLines=1,
+                    overflow=androidx.compose.ui.text.style.TextOverflow.Ellipsis)
+                Row(Modifier.fillMaxWidth().heightIn(min=48.dp), verticalAlignment=androidx.compose.ui.Alignment.CenterVertically) {
+                    Row(Modifier.weight(1f), verticalAlignment=androidx.compose.ui.Alignment.CenterVertically) {
+                        if (model.candidates.isEmpty() && !showClipboard) IconButton(onClick={tools=!tools}, modifier=Modifier.imeAction("键盘工具", true) {tools=!tools}) {
+                            androidx.compose.foundation.Image(androidx.compose.ui.res.painterResource(R.drawable.mywubi_brand), null, Modifier.size(28.dp))
                         }
-                        IconButton(onClick = { dispatch("DismissClipboard") }, modifier = Modifier.size(48.dp)
-                            .imeAction("关闭剪贴板建议", true) { dispatch("DismissClipboard") }) { Text("×", fontSize = 24.sp) }
-                    } else if (model.candidates.isNotEmpty() && !model.privateInput) {
-                        if (model.prediction) Icon(androidx.compose.ui.res.painterResource(R.drawable.ic_prediction),
-                            "字词预测", Modifier.padding(start=8.dp).size(18.dp), tint=colors.primary)
-                        LazyRow(Modifier.weight(1f).height(48.dp)) {
-                            items(model.candidates, key={"${model.query}:${it.id}"}) { item -> CandidateButton(item, model.enabled) {choose(item)} }
-                        }
-                        TextButton(onClick={expanded=!expanded}, modifier=Modifier.imeAction(if(expanded) "收起" else "展开", true) {expanded=!expanded}) {
-                            Text(if(expanded) "收起" else "展开")
-                        }
-                    } else {
-                        Box(Modifier.weight(1f).padding(horizontal=8.dp)) {
-                            when {
-                                model.privateInput -> Icon(androidx.compose.ui.res.painterResource(R.drawable.ic_mode_lock),
-                                    "安全输入", Modifier.size(18.dp), tint=colors.onSurface)
-                                model.statusError -> IconButton(onClick=openSettings) {
-                                    Icon(androidx.compose.ui.res.painterResource(R.drawable.ic_input_error),
-                                        model.status, Modifier.size(20.dp), tint=MaterialTheme.colorScheme.error)
+                        if (showClipboard) {
+                            TextButton(onClick = { dispatch("PasteClipboard") }, enabled = model.enabled,
+                                modifier = Modifier.weight(1f).heightIn(min = 48.dp).imeAction("粘贴剪贴板内容", model.enabled) { dispatch("PasteClipboard") }) {
+                                Text("粘贴：${model.clipboard}", maxLines = 1, overflow = androidx.compose.ui.text.style.TextOverflow.Ellipsis)
+                            }
+                            IconButton(onClick = { dispatch("DismissClipboard") }, modifier = Modifier.size(48.dp)
+                                .imeAction("关闭剪贴板建议", true) { dispatch("DismissClipboard") }) { Text("×", fontSize = 24.sp) }
+                        } else if (model.candidates.isNotEmpty() && !model.privateInput) {
+                            if (model.prediction) Icon(androidx.compose.ui.res.painterResource(R.drawable.ic_prediction),
+                                "字词预测", Modifier.padding(start=8.dp).size(18.dp), tint=colors.primary)
+                            LazyRow(Modifier.weight(1f).height(48.dp)) {
+                                items(model.candidates, key={"${model.query}:${it.id}"}) { item -> CandidateButton(item, model.enabled) {choose(item)} }
+                            }
+                            TextButton(onClick={expanded=!expanded}, modifier=Modifier.imeAction(if(expanded) "收起" else "展开", true) {expanded=!expanded}) {
+                                Text(if(expanded) "收起" else "展开")
+                            }
+                        } else {
+                            Box(Modifier.weight(1f).padding(horizontal=8.dp)) {
+                                when {
+                                    model.privateInput -> Icon(androidx.compose.ui.res.painterResource(R.drawable.ic_mode_lock),
+                                        "安全输入", Modifier.size(18.dp), tint=colors.onSurface)
+                                    model.statusError -> IconButton(onClick=openSettings) {
+                                        Icon(androidx.compose.ui.res.painterResource(R.drawable.ic_input_error),
+                                            model.status, Modifier.size(20.dp), tint=MaterialTheme.colorScheme.error)
+                                    }
+                                    !model.enabled -> CircularProgressIndicator(Modifier.size(18.dp)
+                                        .clearAndSetSemantics { contentDescription = model.status }, strokeWidth=2.dp)
                                 }
-                                !model.enabled -> CircularProgressIndicator(Modifier.size(18.dp)
-                                    .clearAndSetSemantics { contentDescription = model.status }, strokeWidth=2.dp)
+                            }
+                            if (model.spelling.isEmpty() && model.temporary == null) {
+                                val showUpdate = model.idle && model.updateAvailable
+                                val label = if (showUpdate) "设置，有可用更新" else "设置"
+                                TextButton(onClick=openSettings, modifier=Modifier.imeAction(label, true, openSettings)) {
+                                    BadgedBox(badge = { if (showUpdate) Badge() }) { Text("设置") }
+                                }
                             }
                         }
-                        if (model.spelling.isEmpty() && model.temporary == null) {
-                            val showUpdate = model.idle && model.updateAvailable
-                            val label = if (showUpdate) "设置，有可用更新" else "设置"
-                            TextButton(onClick=openSettings, modifier=Modifier.imeAction(label, true, openSettings)) {
-                                BadgedBox(badge = { if (showUpdate) Badge() }) { Text("设置") }
-                            }
-                        }
+                        if (!showClipboard) pinyinControl()
                     }
-                    if (!showClipboard) pinyinControl()
+                    IconButton(onClick=hideKeyboard,
+                        modifier=Modifier.size(48.dp).imeAction("收起键盘", true, hideKeyboard)) {
+                        Icon(androidx.compose.ui.res.painterResource(R.drawable.ic_hide_keyboard), null,
+                            Modifier.size(24.dp), tint=colors.onSurface)
+                    }
                 }
-                IconButton(onClick=hideKeyboard,
-                    modifier=Modifier.size(48.dp).imeAction("收起键盘", true, hideKeyboard)) {
-                    Icon(androidx.compose.ui.res.painterResource(R.drawable.ic_hide_keyboard), null,
-                        Modifier.size(24.dp))
-                }
-            }
-            if (tools && model.spelling.isEmpty() && model.candidates.isEmpty()) {
-                Row(Modifier.fillMaxWidth(), horizontalArrangement=Arrangement.SpaceEvenly) {
-                    TextButton(onClick=openSettings) {Text("设置 / 码表")}
-                    TextButton(onClick=switchIme) {Text("切换输入法")}
-                    val enabled = baseEnabled && model.pinyinAvailable
-                    PinyinButton(pinyinMode, pinyinLabel, enabled) {cyclePinyin(); tools=false}
+                if (tools && model.spelling.isEmpty() && model.candidates.isEmpty()) {
+                    Row(Modifier.fillMaxWidth(), horizontalArrangement=Arrangement.SpaceEvenly) {
+                        TextButton(onClick=openSettings) {Text("设置 / 码表")}
+                        TextButton(onClick=switchIme) {Text("切换输入法")}
+                        val enabled = baseEnabled && model.pinyinAvailable
+                        PinyinButton(pinyinMode, pinyinLabel, enabled) {cyclePinyin(); tools=false}
+                    }
                 }
             }
         }
         val keys: @Composable () -> Unit = {
-            if (expanded && model.candidates.isNotEmpty() && !model.privateInput) {
-                LazyVerticalGrid(columns=GridCells.Adaptive(88.dp), modifier=Modifier.fillMaxWidth().height(160.dp)) {
-                    items(model.candidates,key={"${model.query}:${it.id}"}) { item -> CandidateButton(item,model.enabled) {choose(item)} }
+            if (showExpanded) {
+                val hasPages = model.offset > 0 || model.offset + model.candidates.size < model.total
+                val showHints = model.candidates.any { it.hint.isNotEmpty() }
+                // Spend the former spelling-strip space on the grid; retain the typing area's height.
+                val gridHeight = (if (landscape) 160.dp else 190.dp) - (if (hasPages) 48.dp else 0.dp)
+                key(model.query, model.offset) {
+                    val columnWidth = (112 * LocalDensity.current.fontScale.coerceIn(1f, 1.5f)).dp
+                    LazyVerticalGrid(columns=GridCells.Adaptive(columnWidth),
+                        modifier=Modifier.fillMaxWidth().height(gridHeight)
+                            .semantics { contentDescription = "全部候选" }) {
+                        items(model.candidates, key={it.id}, span={item ->
+                            GridItemSpan(if (item.text.codePointCount(0, item.text.length) > 4) minOf(2, maxLineSpan) else 1)
+                        }) { item -> ExpandedCandidateButton(item,model.enabled,showHints) {choose(item)} }
+                    }
                 }
-                Row(Modifier.fillMaxWidth(), horizontalArrangement=Arrangement.SpaceBetween) {
-                    TextButton(onClick={window((model.offset-256).coerceAtLeast(0))},enabled=model.offset>0) {Text("上一组")}
-                    Text("${model.offset+1}–${model.offset+model.candidates.size} / ${model.total}",Modifier.padding(12.dp))
-                    TextButton(onClick={window(model.offset+256)},enabled=model.offset+model.candidates.size<model.total) {Text("下一组")}
+                if (hasPages) Row(Modifier.fillMaxWidth().heightIn(min=48.dp), horizontalArrangement=Arrangement.SpaceBetween,
+                    verticalAlignment=androidx.compose.ui.Alignment.CenterVertically) {
+                    val previous = { window((model.offset-256).coerceAtLeast(0)) }
+                    val next = { window(model.offset+256) }
+                    val canNext = model.offset+model.candidates.size<model.total
+                    TextButton(onClick=previous,enabled=model.offset>0,
+                        modifier=Modifier.imeAction("上一组",model.offset>0,previous)) {Text("上一组", maxLines=1)}
+                    Text("${model.offset+1}–${model.offset+model.candidates.size} / ${model.total}",
+                        Modifier.weight(1f), fontSize=12.sp, maxLines=1, textAlign=androidx.compose.ui.text.style.TextAlign.Center)
+                    TextButton(onClick=next,enabled=canNext,
+                        modifier=Modifier.imeAction("下一组",canNext,next)) {Text("下一组", maxLines=1)}
                 }
             } else when (panel) {
                 "letters" -> {
@@ -236,8 +282,8 @@ fun Keyboard(model: KeyboardModel, dispatch: (Any) -> Unit, window: (Int) -> Uni
                     }
                 }
             }
-            if (panel != "numbers" || expanded) Row(Modifier.fillMaxWidth()) {
-                val showBackspace = expanded || panel == "symbols"
+            if (panel != "numbers" || showExpanded) Row(Modifier.fillMaxWidth()) {
+                val showBackspace = showExpanded || panel == "symbols"
                 Key(if(panel=="letters") "123" else "ABC",model.enabled,model.epoch,Modifier.weight(1.3f),function=true) {
                     panel=if(panel=="letters") "numbers" else "letters"; expanded=false
                 }
@@ -282,7 +328,7 @@ fun Keyboard(model: KeyboardModel, dispatch: (Any) -> Unit, window: (Int) -> Uni
             }
         CompositionLocalProvider(LocalKeyPreview provides preview) {
             Box(Modifier.fillMaxWidth().onGloballyPositioned { origin=it.positionInRoot(); keyboardWidth=it.size.width.toFloat() }) {
-                if(landscape) {
+                if(landscape && !showExpanded) {
                     Row(container,horizontalArrangement=Arrangement.spacedBy(8.dp)) {
                         Column(Modifier.weight(0.3f).heightIn(max=224.dp).verticalScroll(rememberScrollState())) {controls()}
                         Column(Modifier.weight(0.7f)) {keys()}
@@ -322,10 +368,31 @@ private fun CandidateButton(item: CandidateItem, enabled: Boolean, choose: () ->
 }
 
 @Composable
+private fun ExpandedCandidateButton(item: CandidateItem, enabled: Boolean, showHints: Boolean, choose: () -> Unit) {
+    val colors = MaterialTheme.colorScheme
+    val description = "候选 ${item.text}" + if(item.hint.isEmpty()) "" else "，编码提示 ${item.hint}"
+    Surface(onClick=choose, enabled=enabled, shape=RectangleShape, color=colors.surface,
+        contentColor=if(enabled) colors.onSurface else colors.onSurface.copy(alpha=0.38f),
+        border=BorderStroke(0.5.dp, colors.onSurface.copy(alpha=0.22f)),
+        modifier=Modifier.fillMaxWidth().heightIn(min=72.dp).imeAction(description,enabled,choose)) {
+        Column(Modifier.padding(horizontal=8.dp, vertical=12.dp),
+            verticalArrangement=Arrangement.Center, horizontalAlignment=androidx.compose.ui.Alignment.CenterHorizontally) {
+            Text(item.text, fontSize=20.sp, lineHeight=24.sp, maxLines=1, textAlign=androidx.compose.ui.text.style.TextAlign.Center,
+                overflow=androidx.compose.ui.text.style.TextOverflow.Ellipsis)
+            // Reserve the same hint line in every cell, and let text measure its own height.
+            // This keeps rows aligned even with Android's nonlinear font scaling.
+            if(showHints) Text(item.hint.ifEmpty { " " }, Modifier.padding(top=4.dp), fontSize=12.sp, lineHeight=16.sp, maxLines=1,
+                color=colors.onSurfaceVariant, overflow=androidx.compose.ui.text.style.TextOverflow.Ellipsis)
+        }
+    }
+}
+
+@Composable
 private fun Key(label:String,enabled:Boolean,epoch:Long,modifier:Modifier,repeat:Boolean=false,
                 description:String=label,function:Boolean=false,accent:Boolean=false,selected:Boolean=false,
                 alternate:String?=null,previewEnabled:Boolean=false,alternateAction:()->Unit={},clearAction:()->Unit={},action:()->Unit) {
-    val keyModifier=modifier.height(54.dp).padding(horizontal=2.dp,vertical=3.dp)
+    // The entire column is touchable. KeyTouch draws the inset keycap inside it.
+    val keyModifier=modifier.height(54.dp)
     val colors=MaterialTheme.colorScheme
     val background=when {accent || selected -> colors.primary; function -> colors.secondaryContainer; else -> colors.surfaceContainerLowest}
     val foreground=when {accent || selected -> colors.onPrimary; function -> colors.onSecondaryContainer; else -> colors.onSurface}

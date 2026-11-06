@@ -31,6 +31,58 @@ class KeyboardTouchTest {
     }
     private fun settled() { device.waitForIdle(); instrumentation.waitForIdleSync(); instrumentation.uiAutomation.clearCache() }
 
+    private fun fingers(action: Int, vararg points: Pair<Int, android.graphics.Point>) {
+        if (action == MotionEvent.ACTION_DOWN) downTime = SystemClock.uptimeMillis()
+        val properties = points.map { (id, _) -> MotionEvent.PointerProperties().apply {
+            this.id = id; toolType = MotionEvent.TOOL_TYPE_FINGER
+        } }.toTypedArray()
+        val coordinates = points.map { (_, point) -> MotionEvent.PointerCoords().apply {
+            x = point.x.toFloat(); y = point.y.toFloat(); pressure = 1f; size = 1f
+        } }.toTypedArray()
+        val event = MotionEvent.obtain(downTime, SystemClock.uptimeMillis(), action, points.size,
+            properties, coordinates, 0, 0, 1f, 1f, 0, 0, InputDevice.SOURCE_TOUCHSCREEN, 0)
+        try { assertTrue(instrumentation.uiAutomation.injectInputEvent(event, true)) } finally { event.recycle() }
+    }
+
+    @Test fun overlappingAlternatingFingersDoNotDropRepeatedKeys() {
+        val events = CopyOnWriteArrayList<Any>()
+        ActivityScenario.launch(MainActivity::class.java).use { scenario ->
+            scenario.onActivity { it.setContent { Keyboard(KeyboardModel(enabled=true), { events.add(it) }, {}, switchIme={}) } }
+            val q = key("q").visibleCenter
+            val w = key("w").visibleCenter
+            repeat(10) {
+                fingers(MotionEvent.ACTION_DOWN, 0 to q)
+                fingers(MotionEvent.ACTION_POINTER_DOWN or (1 shl MotionEvent.ACTION_POINTER_INDEX_SHIFT), 0 to q, 1 to w)
+                fingers(MotionEvent.ACTION_POINTER_UP, 0 to q, 1 to w)
+                // q is tapped again while w is still held, as during two-thumb typing.
+                fingers(MotionEvent.ACTION_POINTER_DOWN or (1 shl MotionEvent.ACTION_POINTER_INDEX_SHIFT), 1 to w, 2 to q)
+                fingers(MotionEvent.ACTION_POINTER_UP, 1 to w, 2 to q)
+                fingers(MotionEvent.ACTION_UP, 2 to q)
+            }
+            settled()
+            assertEquals("Every release must commit once even while the other finger stays down",
+                List(10) { listOf("q", "w", "q") }.flatten(),
+                events.map { (it as JSONObject).getJSONArray("InputText").getString(0) })
+        }
+    }
+
+    @Test fun visualKeyGuttersStillAcceptTaps() {
+        val events = CopyOnWriteArrayList<Any>()
+        ActivityScenario.launch(MainActivity::class.java).use { scenario ->
+            scenario.onActivity { it.setContent { Keyboard(KeyboardModel(enabled=true), { events.add(it) }, {}, switchIme={}) } }
+            val q = key("q").visibleCenter
+            val w = key("w").visibleCenter
+            val boundary = (q.x + w.x) / 2
+            // Both sides of the visual gutter belong to the nearest key column.
+            for (x in listOf(boundary - 1, boundary + 1)) {
+                touch(MotionEvent.ACTION_DOWN, x, q.y)
+                touch(MotionEvent.ACTION_UP, x, q.y)
+            }
+            settled()
+            assertEquals(listOf("q", "w"), events.map { (it as JSONObject).getJSONArray("InputText").getString(0) })
+        }
+    }
+
     @Test fun deleteHoldSwipeReleaseReturnAndContextCancellation() {
         val events = CopyOnWriteArrayList<Any>()
         var model by mutableStateOf(KeyboardModel(enabled = true))

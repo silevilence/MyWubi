@@ -13,7 +13,6 @@ import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.geometry.Rect
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.layout.boundsInRoot
 import androidx.compose.ui.layout.onGloballyPositioned
@@ -146,7 +145,7 @@ internal fun DeleteKeySurface(enabled: Boolean, epoch: Long, modifier: Modifier,
                 previews.clear(token)
             }
         }
-    }, shape = MaterialTheme.shapes.small,
+    }.padding(horizontal=2.dp, vertical=3.dp), shape = MaterialTheme.shapes.small,
         color = if (!enabled) colors.onSurface.copy(alpha = 0.12f) else if (pressed) colors.primaryContainer else background,
         contentColor = if (enabled) foreground else colors.onSurface.copy(alpha = 0.38f)) {
         Box(contentAlignment = Alignment.Center) { content() }
@@ -234,7 +233,9 @@ internal fun KeyTouchSurface(label: String, enabled: Boolean, epoch: Long, modif
                 }
             }
         }
-    Surface(touch.graphicsLayer { scaleX = if (pressed) 1.06f else 1f; scaleY = if (pressed) 1.06f else 1f },
+    // Apply visual spacing AFTER pointerInput so gutters still belong to this key.
+    // Press feedback changes color only; scaling must not move the hit region.
+    Surface(touch.padding(horizontal=2.dp, vertical=3.dp),
         shape = MaterialTheme.shapes.small,
         color = if (!enabled) colors.onSurface.copy(alpha = 0.12f) else if (pressed) colors.secondaryContainer else background,
         contentColor = if (!enabled) colors.onSurface.copy(alpha = 0.38f) else if (pressed) colors.onSecondaryContainer else foreground) {
