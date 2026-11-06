@@ -6,6 +6,46 @@ import org.junit.Assert.*
 import org.junit.Test
 
 class EditorContractTest {
+    @Test fun clearSelectsWholeEditorAndStopsWhenSelectionFailsOrContextChanges() {
+        for (mode in listOf("ok", "reject", "stale")) {
+            val calls = mutableListOf<String>()
+            var current = true
+            val connection = java.lang.reflect.Proxy.newProxyInstance(
+                android.view.inputmethod.InputConnection::class.java.classLoader,
+                arrayOf(android.view.inputmethod.InputConnection::class.java)
+            ) { _, method, args ->
+                calls.add(method.name)
+                if (method.name == "performContextMenuAction") {
+                    assertEquals(android.R.id.selectAll, args!![0])
+                    if (mode == "stale") current = false
+                    mode != "reject"
+                } else {
+                    if (method.name == "commitText") assertEquals("", args!![0])
+                    true
+                }
+            } as android.view.inputmethod.InputConnection
+            assertEquals(mode == "ok", EditorShortcuts.clear(connection) { current })
+            assertEquals(mode == "ok", calls.contains("commitText"))
+            assertEquals("endBatchEdit", calls.last())
+        }
+    }
+
+    @Test fun pasteCommitsLiteralTextExactlyOnceWithoutClipboardSideEffects() {
+        val values = mutableListOf<String>()
+        val connection = java.lang.reflect.Proxy.newProxyInstance(
+            android.view.inputmethod.InputConnection::class.java.classLoader,
+            arrayOf(android.view.inputmethod.InputConnection::class.java)
+        ) { _, method, args ->
+            assertNotEquals("performContextMenuAction", method.name)
+            if (method.name == "commitText") values.add(args!![0].toString())
+            true
+        } as android.view.inputmethod.InputConnection
+        val text = "beancount 今日确认\n😀"
+        assertTrue(EditorShortcuts.paste(connection, text) { true })
+        assertEquals(listOf(text), values)
+        assertFalse(EditorShortcuts.paste(connection, "stale") { false })
+        assertEquals(1, values.size)
+    }
     @Test fun clearingCompositionReleasesOwnershipEvenWhenFinishFails() {
         val connection = java.lang.reflect.Proxy.newProxyInstance(
             android.view.inputmethod.InputConnection::class.java.classLoader,

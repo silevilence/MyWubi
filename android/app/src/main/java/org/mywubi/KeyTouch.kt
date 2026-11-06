@@ -30,7 +30,7 @@ import kotlinx.coroutines.launch
 import kotlinx.coroutines.Job
 import kotlin.math.roundToInt
 
-internal data class KeyPreview(val owner: Any, val text: String, val bounds: Rect)
+internal data class KeyPreview(val owner: Any, val text: String, val bounds: Rect, val deletion: Boolean = false)
 internal class KeyPreviewState {
     var current by mutableStateOf<KeyPreview?>(null)
     fun clear(owner: Any) { if (current?.owner === owner) current = null }
@@ -52,15 +52,104 @@ internal fun letterSymbol(letter: Char, chinese: Boolean): String {
 internal fun KeyPreviewBubble(preview: KeyPreview?, origin: Offset, widthPx: Float) {
     if (preview == null) return
     val density = LocalDensity.current
-    val width = 56.dp
-    val height = 64.dp
+    val width = if (preview.deletion) 196.dp else 56.dp
+    val height = if (preview.deletion) 48.dp else 64.dp
     val x = (preview.bounds.center.x - origin.x - with(density) { width.toPx() } / 2)
         .coerceIn(0f, (widthPx - with(density) { width.toPx() }).coerceAtLeast(0f))
     val y = (preview.bounds.top - origin.y - with(density) { height.toPx() } + with(density) { 4.dp.toPx() }).coerceAtLeast(0f)
     Box(Modifier.offset { IntOffset(x.roundToInt(), y.roundToInt()) }.size(width, height)
         .shadow(6.dp, RoundedCornerShape(12.dp)).background(MaterialTheme.colorScheme.primary)
-        .clearAndSetSemantics { contentDescription = "按键预览" }, contentAlignment = Alignment.Center) {
-        Text(preview.text, color = MaterialTheme.colorScheme.onPrimary, fontSize = 30.sp, maxLines = 1)
+        .clearAndSetSemantics { contentDescription = if (preview.deletion) preview.text else "按键预览" }, contentAlignment = Alignment.Center) {
+        Text(preview.text, color = MaterialTheme.colorScheme.onPrimary, fontSize = if (preview.deletion) 16.sp else 30.sp, maxLines = 1)
+    }
+}
+
+/** Repeat stays active inside the key; only a deliberate held upward release clears the editor. */
+@Composable
+internal fun DeleteKeySurface(enabled: Boolean, epoch: Long, modifier: Modifier, background: Color,
+    foreground: Color, delete: () -> Unit, clear: () -> Unit, content: @Composable () -> Unit) {
+    val currentDelete by rememberUpdatedState(delete)
+    val currentClear by rememberUpdatedState(clear)
+    val previews = LocalKeyPreview.current
+    val scope = rememberCoroutineScope()
+    val lifecycle = LocalLifecycleOwner.current.lifecycle
+    var active by remember(lifecycle) { mutableStateOf(lifecycle.currentState.isAtLeast(Lifecycle.State.STARTED)) }
+    var revision by remember { mutableIntStateOf(0) }
+    var job by remember { mutableStateOf<Job?>(null) }
+    var pressed by remember { mutableStateOf(false) }
+    var bounds by remember { mutableStateOf(Rect.Zero) }
+    var owner by remember { mutableStateOf<Any?>(null) }
+    DisposableEffect(lifecycle) {
+        val observer = LifecycleEventObserver { _, _ ->
+            active = lifecycle.currentState.isAtLeast(Lifecycle.State.STARTED)
+            if (!active) { revision++; job?.cancel(); pressed = false; owner?.let(previews::clear) }
+        }
+        lifecycle.addObserver(observer)
+        onDispose { lifecycle.removeObserver(observer); job?.cancel(); owner?.let(previews::clear) }
+    }
+    val colors = MaterialTheme.colorScheme
+    Surface(modifier.onGloballyPositioned { bounds = it.boundsInRoot() }.clearAndSetSemantics {
+        role = Role.Button
+        contentDescription = "退格"
+        if (!enabled) disabled()
+        onClick { if (enabled) currentDelete(); enabled }
+        customActions = listOf(CustomAccessibilityAction("清空输入框") { if (enabled) currentClear(); enabled })
+    }.pointerInput(enabled, epoch, active, revision) {
+        if (!enabled || !active) return@pointerInput
+        awaitEachGesture {
+            val down = awaitFirstDown()
+            down.consume()
+            val token = Any()
+            val started = revision
+            owner = token
+            pressed = true
+            var held = false
+            var armed = false
+            var rise = 0f
+            val threshold = 40.dp.toPx()
+            fun updatePreview() {
+                armed = held && rise >= threshold
+                if (held) previews.current = KeyPreview(token, if (armed) "松手清空 · 下滑取消" else "↑ 上滑清空", bounds, deletion = true)
+            }
+            val repeat = scope.launch {
+                delay(400)
+                if (active && revision == started) {
+                    held = true
+                    updatePreview()
+                    while (active && revision == started) {
+                        if (!armed) currentDelete()
+                        delay(65)
+                    }
+                }
+            }
+            job = repeat
+            try {
+                while (true) {
+                    val event = awaitPointerEvent()
+                    val change = event.changes.firstOrNull { it.id == down.id } ?: break
+                    if (change.isConsumed || !active || revision != started || event.changes.count { it.pressed } > 1) break
+                    val point = change.position
+                    val slop = viewConfiguration.touchSlop
+                    if (point.x < -slop || point.x > size.width + slop || point.y > size.height + slop) break
+                    rise = down.position.y - point.y
+                    updatePreview()
+                    change.consume()
+                    if (!change.pressed) {
+                        repeat.cancel()
+                        if (armed) currentClear() else if (!held && rise < slop) currentDelete()
+                        break
+                    }
+                }
+            } finally {
+                repeat.cancel()
+                pressed = false
+                previews.clear(token)
+            }
+        }
+    }, shape = MaterialTheme.shapes.small,
+        color = if (!enabled) colors.onSurface.copy(alpha = 0.12f) else if (pressed) colors.primaryContainer else background,
+        contentColor = if (enabled) foreground else colors.onSurface.copy(alpha = 0.38f)) {
+        Box(contentAlignment = Alignment.Center) { content() }
     }
 }
 

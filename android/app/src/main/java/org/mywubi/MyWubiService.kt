@@ -31,6 +31,7 @@ class MyWubiService : InputMethodService() {
     private var hasSelection = false
     private val editor = EditorAdapter()
     private val inputQueue = InputQueue()
+    private val clipboardSuggestion = ClipboardSuggestion()
     private var connection: android.view.inputmethod.InputConnection? = null
     private var editorInfo: EditorInfo? = null
     private var supportsPreedit = true
@@ -141,6 +142,7 @@ class MyWubiService : InputMethodService() {
             editorInfo?.packageName == attribute?.packageName && editorInfo?.fieldId == attribute?.fieldId &&
             editorInfo?.inputType == attribute?.inputType && editorInfo?.imeOptions == attribute?.imeOptions
         if (sameEditor) { refresh(); return }
+        clipboardSuggestion.dismiss()
         inputQueue.invalidate()
         connection = nextConnection
         editorInfo = attribute
@@ -155,6 +157,7 @@ class MyWubiService : InputMethodService() {
     }
 
     override fun onFinishInput() {
+        clipboardSuggestion.dismiss()
         inputQueue.invalidate(); connection = null; editorInfo = null
         active = false; editorEpoch++; editor.abandon()
         pinyinMode = KeyMode.Off
@@ -213,11 +216,21 @@ class MyWubiService : InputMethodService() {
 
     override fun onStartInputView(info: EditorInfo?, restarting: Boolean) {
         super.onStartInputView(info,restarting)
+        if (!viewVisible) {
+            val allowed = inputPolicy.purpose != "Password" &&
+                (editorInfo?.imeOptions ?: 0) and EditorInfo.IME_FLAG_NO_PERSONALIZED_LEARNING == 0 &&
+                getSharedPreferences("android-ui", 0).getBoolean("clipboard_suggestion", true)
+            val clip = if (allowed) runCatching {
+                getSystemService(android.content.ClipboardManager::class.java).primaryClip
+            }.getOrNull() else null
+            clipboardSuggestion.offer(clip, allowed)
+        }
         viewVisible = true; viewOwner?.visible(true); keyboardActivity(); refresh()
         AppUpdates.get(this).check()
     }
 
     override fun onFinishInputView(finishingInput: Boolean) {
+        clipboardSuggestion.dismiss()
         predictionController.pause()
         invalidatePrediction()
         viewVisible = false; idle.touch(false, android.os.SystemClock.elapsedRealtime())
@@ -233,6 +246,7 @@ class MyWubiService : InputMethodService() {
         val stableIdle = active && viewVisible && session != null && idle.isIdle(
             android.os.SystemClock.elapsedRealtime(), spelling, items.length() > 0 || state.optBoolean("prediction_waiting"), editor.ownsPreedit, temporary != null)
         keyboard = KeyboardModel(
+            clipboard = clipboardSuggestion.preview(),
             epoch = editorEpoch, enabled = active && viewVisible && session != null,
             spelling = spelling,
             idle = stableIdle, updateAvailable = updateAvailable,
@@ -266,11 +280,14 @@ class MyWubiService : InputMethodService() {
 
     private fun dispatch(action: Any) {
         if (!active || !viewVisible) return
+        val request = if (action == "PasteClipboard") clipboardSuggestion.text?.let(::PasteClipboard) ?: return else action
+        clipboardSuggestion.dismiss()
         keyboardActivity()
+        if (request == "DismissClipboard") return
         if (getSharedPreferences("android-ui", 0).getBoolean("vibration", false)) {
             window?.window?.decorView?.performHapticFeedback(android.view.HapticFeedbackConstants.KEYBOARD_TAP)
         }
-        if (!inputQueue.submit { dispatchSerial(action) }) {
+        if (!inputQueue.submit { dispatchSerial(request) }) {
             error = "输入队列已满，请稍后重试"; render()
         }
     }
@@ -283,6 +300,7 @@ class MyWubiService : InputMethodService() {
     }
 
     override fun onKeyDown(keyCode: Int, event: android.view.KeyEvent?): Boolean {
+        clipboardSuggestion.dismiss()
         keyboardActivity()
         return super.onKeyDown(keyCode, event)
     }
@@ -298,6 +316,26 @@ class MyWubiService : InputMethodService() {
             syncPredictionPrefix()
             val recovery = NativeBridge.call("Recover", "session" to s.value) as? JSONObject
             if (recovery != null && !applyPlan(recovery)) { refresh(); return }
+            if (request == "ClearEditor" || request is PasteClipboard) {
+                fun current() = active && viewVisible && epoch == editorEpoch && connection === host
+                // A stale paste button must never replace a newly started composition.
+                if (request is PasteClipboard && (editor.ownsPreedit ||
+                    NativeBridge.objectCall("State", "session" to s.value).optJSONObject("view")?.optString("spelling").orEmpty().isNotEmpty())) return
+                invalidatePrediction()
+                writingHost = true
+                val applied = try {
+                    if (request is PasteClipboard) EditorShortcuts.paste(host, request.text, ::current)
+                    else EditorShortcuts.clear(host, ::current)
+                } finally { writingHost = false }
+                if (current()) {
+                    editor.abandon()
+                    editorEpoch++; inputQueue.invalidate(); attachEditor()
+                    error = if (applied) null else "当前应用未确认编辑操作，请检查输入框后继续"
+                    if (!applied) android.widget.Toast.makeText(this, error, android.widget.Toast.LENGTH_SHORT).show()
+                }
+                refresh()
+                return
+            }
             val cycling = request == "CyclePinyin"
             val nextPinyin = if (cycling) pinyinMode.next() else pinyinMode
             if (cycling && nextPinyin == KeyMode.Locked) {

@@ -63,6 +63,7 @@ class KeyboardLayoutTest {
             if (fontScale == null) device.takeScreenshot(File(instrumentation.targetContext.filesDir, "keyboard-height-idle.png"))
             val candidates = listOf(CandidateItem(1, "是", "j"))
             val states = listOf(
+                "clipboard" to ready.copy(clipboard="beancount 今日确认 ".repeat(15)),
                 "composing" to ready.copy(spelling="j", candidates=candidates),
                 "no matches" to ready.copy(spelling="zzzz"),
                 "long spelling" to ready.copy(spelling="abcdefghijklmnopqrstuvwxyz".repeat(3)),

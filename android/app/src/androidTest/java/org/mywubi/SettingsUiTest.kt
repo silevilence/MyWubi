@@ -9,6 +9,15 @@ import org.junit.Test
 class SettingsUiTest {
     private val instrumentation = InstrumentationRegistry.getInstrumentation()
     private val device = UiDevice.getInstance(instrumentation)
+    private val draftFile get() = java.io.File(instrumentation.targetContext.filesDir, "settings-draft.json")
+    private var previousDraft: ByteArray? = null
+    @org.junit.Before fun isolateDraft() {
+        previousDraft = draftFile.takeIf { it.exists() }?.readBytes()
+        if (draftFile.exists()) check(draftFile.delete())
+    }
+    @org.junit.After fun restoreDraft() {
+        previousDraft?.let { draftFile.writeBytes(it) } ?: run { if (draftFile.exists()) check(draftFile.delete()) }
+    }
     @get:org.junit.Rule val failureEvidence = object : org.junit.rules.TestWatcher() {
         override fun failed(error: Throwable, description: org.junit.runner.Description) {
             device.takeScreenshot(java.io.File(instrumentation.targetContext.filesDir, "settings-failure.png"))
@@ -18,12 +27,15 @@ class SettingsUiTest {
     private fun text(value: String): UiObject2 {
         instrumentation.uiAutomation.clearCache()
         device.wait(Until.findObject(By.text(value)), 1500)?.let { return it }
-        UiScrollable(UiSelector().scrollable(true)).setAsVerticalList().scrollToBeginning(20)
+        if (device.hasObject(By.desc("设置内容").scrollable(true)))
+            UiScrollable(UiSelector().description("设置内容").scrollable(true)).setAsVerticalList().scrollToBeginning(20)
         repeat(20) {
             instrumentation.uiAutomation.clearCache()
             device.findObject(By.text(value))?.let { return it }
-            device.swipe(device.displayWidth / 2, device.displayHeight * 4 / 5,
-                device.displayWidth / 2, device.displayHeight / 3, 30)
+            val content = device.findObject(By.desc("设置内容").scrollable(true))?.visibleBounds
+            if (content != null) device.swipe(content.centerX(), content.bottom - 30,
+                content.centerX(), content.top + content.height() / 4, 30)
+            else SystemClock.sleep(100)
             device.waitForIdle()
         }
         device.takeScreenshot(java.io.File(instrumentation.targetContext.filesDir, "settings-failure.png"))
@@ -82,6 +94,7 @@ class SettingsUiTest {
         device.pressBack(); text("保留并退出").click()
         device.executeShellCommand("am start -n org.mywubi/.MainActivity")
         text("已恢复未保存草稿")
+        text("码表").click()
         text("从手机导入码表").click()
         assertTrue(device.wait(Until.hasObject(By.pkg("com.google.android.documentsui")), 10000) || device.hasObject(By.pkg("com.android.documentsui")))
         device.pressBack()
@@ -99,6 +112,7 @@ class SettingsUiTest {
         NativeHandle(original.getLong("version")).close()
         try {
             device.executeShellCommand("am start -W -f 0x10008000 -n org.mywubi/.MainActivity")
+            text("码表").click()
             text("从手机导入码表").click()
             device.waitForIdle()
             device.wait(Until.findObject(By.desc("Show roots")), 5000)?.click()
@@ -135,6 +149,7 @@ class SettingsUiTest {
         NativeHandle(original.getLong("version")).close()
         try {
             device.executeShellCommand("am start -W -f 0x10008000 -n org.mywubi/.MainActivity")
+            text("码表").click()
             text("从手机导入码表").click()
             device.wait(Until.findObject(By.desc("Show roots")), 5000)?.click()
             device.waitForIdle()

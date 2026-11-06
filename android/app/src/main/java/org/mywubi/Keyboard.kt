@@ -11,7 +11,6 @@ import androidx.compose.ui.layout.positionInRoot
 import androidx.compose.ui.platform.LocalViewConfiguration
 import androidx.compose.ui.platform.ViewConfiguration
 import androidx.compose.ui.unit.DpSize
-import androidx.compose.foundation.gestures.detectTapGestures
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.items
@@ -33,21 +32,15 @@ import androidx.compose.ui.unit.sp
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.LifecycleOwner
 import androidx.lifecycle.LifecycleRegistry
-import androidx.lifecycle.LifecycleEventObserver
-import androidx.lifecycle.compose.LocalLifecycleOwner
 import androidx.savedstate.SavedStateRegistry
 import androidx.savedstate.SavedStateRegistryController
 import androidx.savedstate.SavedStateRegistryOwner
-import kotlinx.coroutines.coroutineScope
-import kotlinx.coroutines.delay
-import kotlinx.coroutines.isActive
-import kotlinx.coroutines.launch
-import kotlinx.coroutines.Job
 import org.json.JSONArray
 import org.json.JSONObject
 
 data class CandidateItem(val id: Long, val text: String, val hint: String)
 data class KeyboardModel(
+    val clipboard: String? = null,
     val prediction: Boolean = false,
     val epoch: Long = 0, val enabled: Boolean = false, val spelling: String = "",
     val status: String = "正在加载码表…", val statusError: Boolean = false,
@@ -113,6 +106,7 @@ fun Keyboard(model: KeyboardModel, dispatch: (Any) -> Unit, window: (Int) -> Uni
             // Reserve the same single text line while idle, composing or showing predictions.
             // Keep actions in the toolbar so their 48 dp touch targets do not enlarge this line.
             val showSpelling = model.spelling.isNotEmpty() && !model.privateInput
+            val showClipboard = model.clipboard != null && model.spelling.isEmpty() && model.candidates.isEmpty() && !model.privateInput
             Text(if (showSpelling) model.spelling else "",
                 Modifier.fillMaxWidth().heightIn(min=28.dp).padding(horizontal=12.dp, vertical=4.dp)
                     .then(if (showSpelling) Modifier else Modifier.clearAndSetSemantics {}),
@@ -120,10 +114,17 @@ fun Keyboard(model: KeyboardModel, dispatch: (Any) -> Unit, window: (Int) -> Uni
                 overflow=androidx.compose.ui.text.style.TextOverflow.Ellipsis)
             Row(Modifier.fillMaxWidth().heightIn(min=48.dp), verticalAlignment=androidx.compose.ui.Alignment.CenterVertically) {
                 Row(Modifier.weight(1f), verticalAlignment=androidx.compose.ui.Alignment.CenterVertically) {
-                    if (model.candidates.isEmpty()) IconButton(onClick={tools=!tools}, modifier=Modifier.imeAction("键盘工具", true) {tools=!tools}) {
+                    if (model.candidates.isEmpty() && !showClipboard) IconButton(onClick={tools=!tools}, modifier=Modifier.imeAction("键盘工具", true) {tools=!tools}) {
                         androidx.compose.foundation.Image(androidx.compose.ui.res.painterResource(R.drawable.mywubi_brand), null, Modifier.size(28.dp))
                     }
-                    if (model.candidates.isNotEmpty() && !model.privateInput) {
+                    if (showClipboard) {
+                        TextButton(onClick = { dispatch("PasteClipboard") }, enabled = model.enabled,
+                            modifier = Modifier.weight(1f).heightIn(min = 48.dp).imeAction("粘贴剪贴板内容", model.enabled) { dispatch("PasteClipboard") }) {
+                            Text("粘贴：${model.clipboard}", maxLines = 1, overflow = androidx.compose.ui.text.style.TextOverflow.Ellipsis)
+                        }
+                        IconButton(onClick = { dispatch("DismissClipboard") }, modifier = Modifier.size(48.dp)
+                            .imeAction("关闭剪贴板建议", true) { dispatch("DismissClipboard") }) { Text("×", fontSize = 24.sp) }
+                    } else if (model.candidates.isNotEmpty() && !model.privateInput) {
                         if (model.prediction) Icon(androidx.compose.ui.res.painterResource(R.drawable.ic_prediction),
                             "字词预测", Modifier.padding(start=8.dp).size(18.dp), tint=colors.primary)
                         LazyRow(Modifier.weight(1f).height(48.dp)) {
@@ -153,7 +154,7 @@ fun Keyboard(model: KeyboardModel, dispatch: (Any) -> Unit, window: (Int) -> Uni
                             }
                         }
                     }
-                    pinyinControl()
+                    if (!showClipboard) pinyinControl()
                 }
                 IconButton(onClick=hideKeyboard,
                     modifier=Modifier.size(48.dp).imeAction("收起键盘", true, hideKeyboard)) {
@@ -199,7 +200,7 @@ fun Keyboard(model: KeyboardModel, dispatch: (Any) -> Unit, window: (Int) -> Uni
                                             alternateAction={dispatch(JSONObject().put("InputSymbol", symbol))}) {input(value); shift=shift.consumed()}
                                     }
                                     if (index == 2) Key("⌫",model.enabled,model.epoch,Modifier.width(unit*1.5f),
-                                        repeat=true,description="退格",function=true) {dispatch("Backspace")}
+                                        repeat=true,description="退格",function=true,clearAction={dispatch("ClearEditor")}) {dispatch("Backspace")}
                                 }
                             }
                         }
@@ -218,7 +219,7 @@ fun Keyboard(model: KeyboardModel, dispatch: (Any) -> Unit, window: (Int) -> Uni
                             }
                         }
                         Column(Modifier.weight(1.5f)) {
-                            Key("⌫",model.enabled,model.epoch,Modifier.fillMaxWidth(),repeat=true,description="退格",function=true) {dispatch("Backspace")}
+                            Key("⌫",model.enabled,model.epoch,Modifier.fillMaxWidth(),repeat=true,description="退格",function=true,clearAction={dispatch("ClearEditor")}) {dispatch("Backspace")}
                             Key("ABC",model.enabled,model.epoch,Modifier.fillMaxWidth(),function=true) {panel="letters"}
                             Key("符号",model.enabled,model.epoch,Modifier.fillMaxWidth(),function=true) {panel="symbols"}
                             Key(model.enterLabel,model.enabled,model.epoch,Modifier.fillMaxWidth(),accent=true) {dispatch("Enter")}
@@ -241,7 +242,7 @@ fun Keyboard(model: KeyboardModel, dispatch: (Any) -> Unit, window: (Int) -> Uni
                     panel=if(panel=="letters") "numbers" else "letters"; expanded=false
                 }
                 Key(if(showBackspace) "⌫" else "符",model.enabled,model.epoch,Modifier.weight(1f),
-                    repeat=showBackspace,description=if(showBackspace) "退格" else "符号",function=true) {
+                    repeat=showBackspace,description=if(showBackspace) "退格" else "符号",function=true,clearAction={dispatch("ClearEditor")}) {
                     if(showBackspace) dispatch("Backspace") else {panel="symbols";expanded=false}
                 }
                 val punctuation = when(model.layout) { "email" -> "@"; "url" -> "/"; else -> if(model.base=="Main" && !model.privateInput) "，" else "," }
@@ -323,8 +324,7 @@ private fun CandidateButton(item: CandidateItem, enabled: Boolean, choose: () ->
 @Composable
 private fun Key(label:String,enabled:Boolean,epoch:Long,modifier:Modifier,repeat:Boolean=false,
                 description:String=label,function:Boolean=false,accent:Boolean=false,selected:Boolean=false,
-                alternate:String?=null,previewEnabled:Boolean=false,alternateAction:()->Unit={},action:()->Unit) {
-    val currentAction by rememberUpdatedState(action)
+                alternate:String?=null,previewEnabled:Boolean=false,alternateAction:()->Unit={},clearAction:()->Unit={},action:()->Unit) {
     val keyModifier=modifier.height(54.dp).padding(horizontal=2.dp,vertical=3.dp)
     val colors=MaterialTheme.colorScheme
     val background=when {accent || selected -> colors.primary; function -> colors.secondaryContainer; else -> colors.surfaceContainerLowest}
@@ -342,29 +342,7 @@ private fun Key(label:String,enabled:Boolean,epoch:Long,modifier:Modifier,repeat
         KeyTouchSurface(label,enabled,epoch,keyModifier,description,background,foreground,alternate,
             previewEnabled && label.length == 1,alternateAction,action) { KeyLabel(label) }
     } else {
-        val lifecycle = LocalLifecycleOwner.current.lifecycle
-        var pressed by remember { mutableStateOf(false) }
-        var repeatJob by remember { mutableStateOf<Job?>(null) }
-        DisposableEffect(lifecycle) {
-            val observer = LifecycleEventObserver { _, event ->
-                if (event == Lifecycle.Event.ON_STOP || event == Lifecycle.Event.ON_DESTROY) repeatJob?.cancel()
-            }
-            lifecycle.addObserver(observer)
-            onDispose { repeatJob?.cancel(); lifecycle.removeObserver(observer) }
-        }
-        Surface(modifier=keyModifier.imeAction(description,enabled) {currentAction()}.pointerInput(enabled,epoch) {
-        if(enabled) detectTapGestures(onPress={
-            pressed = true
-            coroutineScope {
-                var repeated = false
-                val job=launch {delay(400);repeated=true;while(isActive){currentAction();delay(65)}}
-                repeatJob = job
-                try { if (tryAwaitRelease() && !repeated) currentAction() } finally {job.cancel();pressed=false}
-            }
-        })
-    },shape=MaterialTheme.shapes.small,color=if(pressed) colors.primaryContainer else if(enabled) background else colors.onSurface.copy(alpha=0.12f),contentColor=if(enabled) foreground else colors.onSurface.copy(alpha=0.38f)) {
-        Box(contentAlignment=androidx.compose.ui.Alignment.Center) {KeyLabel(label)}
-    }
+        DeleteKeySurface(enabled, epoch, keyModifier, background, foreground, action, clearAction) { KeyLabel(label) }
     }
 }
 }

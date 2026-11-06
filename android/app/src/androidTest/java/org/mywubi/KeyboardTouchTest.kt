@@ -31,6 +31,53 @@ class KeyboardTouchTest {
     }
     private fun settled() { device.waitForIdle(); instrumentation.waitForIdleSync(); instrumentation.uiAutomation.clearCache() }
 
+    @Test fun deleteHoldSwipeReleaseReturnAndContextCancellation() {
+        val events = CopyOnWriteArrayList<Any>()
+        var model by mutableStateOf(KeyboardModel(enabled = true))
+        ActivityScenario.launch(MainActivity::class.java).use { scenario ->
+            scenario.onActivity { it.setContent { Keyboard(model, { events.add(it) }, {}, switchIme = {}) } }
+            key("退格").click(); settled()
+            assertEquals(listOf("Backspace"), events.toList())
+            val key = key("退格").visibleCenter
+            val rise = (70 * instrumentation.targetContext.resources.displayMetrics.density).toInt()
+            touch(MotionEvent.ACTION_DOWN, key.x, key.y)
+            SystemClock.sleep(550)
+            touch(MotionEvent.ACTION_MOVE, key.x, key.y - rise)
+            SystemClock.sleep(100)
+            assertTrue(device.hasObject(By.desc("松手清空 · 下滑取消")))
+            val beforeRelease = events.size
+            SystemClock.sleep(150)
+            assertEquals("上滑后停止逐字删除", beforeRelease, events.size)
+            touch(MotionEvent.ACTION_UP, key.x, key.y - rise); settled()
+            assertEquals("ClearEditor", events.last())
+            assertEquals(1, events.count { it == "ClearEditor" })
+            device.takeScreenshot(File(instrumentation.targetContext.filesDir, "keyboard-delete-complete.png"))
+
+            touch(MotionEvent.ACTION_DOWN, key.x, key.y)
+            SystemClock.sleep(450)
+            touch(MotionEvent.ACTION_MOVE, key.x, key.y - rise)
+            touch(MotionEvent.ACTION_MOVE, key.x, key.y)
+            touch(MotionEvent.ACTION_UP, key.x, key.y); settled()
+            assertEquals("滑回取消清空", 1, events.count { it == "ClearEditor" })
+
+            touch(MotionEvent.ACTION_DOWN, key.x, key.y)
+            SystemClock.sleep(450)
+            touch(MotionEvent.ACTION_MOVE, key.x, key.y - rise)
+            scenario.onActivity { model = model.copy(epoch = 1) }
+            SystemClock.sleep(100)
+            val afterContext = events.size
+            touch(MotionEvent.ACTION_UP, key.x, key.y - rise); settled()
+            assertEquals(afterContext, events.size)
+            assertFalse(device.hasObject(By.desc("松手清空 · 下滑取消")))
+
+            touch(MotionEvent.ACTION_DOWN, key.x, key.y)
+            SystemClock.sleep(450)
+            touch(MotionEvent.ACTION_MOVE, key.x, key.y - rise)
+            touch(MotionEvent.ACTION_CANCEL, key.x, key.y - rise); settled()
+            assertEquals(1, events.count { it == "ClearEditor" })
+        }
+    }
+
     @Test fun tapPreviewSwipeHoldAndCancellationCommitExactlyOnce() {
         val events = CopyOnWriteArrayList<Any>()
         var model by mutableStateOf(KeyboardModel(enabled=true, modesAvailable=true, pinyinAvailable=true, status="测试码表"))

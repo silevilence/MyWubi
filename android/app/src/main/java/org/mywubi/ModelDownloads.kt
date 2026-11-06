@@ -9,11 +9,18 @@ import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.unit.dp
 import org.json.JSONObject
+import kotlinx.coroutines.flow.first
 
 @Composable
 fun DownloadModels(model:SettingsModel) {
     var source by rememberSaveable { mutableStateOf(model.ui.getString("model-download-source","hf_mirror") ?: "hf_mirror") }
-    LaunchedEffect(Unit) { while(true) {model.refreshDownloadStatus();kotlinx.coroutines.delay(500)} }
+    LaunchedEffect(Unit) {
+        if (model.modelBackends.optBoolean("llama") || model.modelBackends.optBoolean("onnx")) {
+            snapshotFlow { model.busy }.first { !it }
+            model.ensureModelsLoaded()
+        }
+        while(true) {model.refreshDownloadStatus();kotlinx.coroutines.delay(500)}
+    }
     val state=model.downloadStatus
     val phase=state.optString("phase","idle")
     val running=phase in listOf("starting","downloading","verifying","cancelling")
@@ -37,15 +44,25 @@ fun DownloadModels(model:SettingsModel) {
             Column(Modifier.padding(12.dp),verticalArrangement=Arrangement.spacedBy(6.dp)) {
                 Text(entry.getString("title"),style=MaterialTheme.typography.titleMedium)
                 Text("下载 ${"%.1f".format(bytes/1048576.0)} MiB · 预估内存 ${entry.getLong("memory_bytes")/1048576} MiB")
-                Text("${p.getString("backend")} · ${if(p.getJSONObject("capabilities").optBoolean("proposes_words")) "生成短字词" else "候选评分"} · ${p.getString("license")}")
-                Text(entry.getString("test_status"))
-                Text("来源：${p.getString("source")}")
-                if(!backend) Text("缺少运行组件；请先按构建说明准备实验性模型版。")
+                SettingsDisclosure("模型详情与来源") {
+                    Text("${p.getString("backend")} · ${if(p.getJSONObject("capabilities").optBoolean("proposes_words")) "生成短字词" else "候选评分"} · ${p.getString("license")}")
+                    Text(entry.getString("test_status"))
+                    Text("来源：${p.getString("source")}")
+                }
+                if(!backend) {
+                    Text("当前版本无法运行此模型。请收起模型资源，选用词典预测并保存；如需实验模型，请先安装包含运行组件的模型版。")
+                    ModelBuildGuide()
+                }
                 if(!mapped) Text("此源没有同版本制品映射，请选择其他源。")
-                Button(onClick={model.startDownload(JSONObject().put("id",id).put("version",version),source)},enabled=backend && mapped && !installed && !running,
+                if (backend && !model.modelsLoaded) {
+                    Text(if (model.busy) "正在确认已安装模型；校验完成后可下载。" else "模型校验未完成，请重试。")
+                    if (!model.busy) OutlinedButton(onClick = model::refreshModels) { Text("重新校验模型") }
+                }
+                if (backend) Button(onClick={model.startDownload(JSONObject().put("id",id).put("version",version),source)},enabled=model.modelsLoaded && !model.busy && mapped && !installed && !running,
                     modifier=Modifier.semantics {contentDescription="下载模型 $id @ $version"}) {
                     Text(if(installed) "已校验，可选择" else if(phase in listOf("failed","cancelled")) "重试 / 续传下载" else "下载模型")
                 }
+                if (installed) Text("下一步：展开「导入与选择模型」，选择此模型，再开启预测并点击底部「保存设置」。")
             }
         }
     }
