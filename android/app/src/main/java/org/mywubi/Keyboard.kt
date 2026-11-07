@@ -2,8 +2,6 @@ package org.mywubi
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.BorderStroke
-import androidx.compose.foundation.rememberScrollState
-import androidx.compose.foundation.verticalScroll
 import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.geometry.Offset
@@ -43,6 +41,8 @@ import org.json.JSONArray
 import org.json.JSONObject
 
 data class CandidateItem(val id: Long, val text: String, val hint: String)
+
+private val LocalKeyboardKeyHeight = staticCompositionLocalOf { 54.dp }
 data class KeyboardModel(
     val clipboard: String? = null,
     val prediction: Boolean = false,
@@ -74,6 +74,7 @@ fun Keyboard(model: KeyboardModel, dispatch: (Any) -> Unit, window: (Int) -> Uni
              hideKeyboard: () -> Unit = {}, switchIme: () -> Unit) {
     val currentTouch by rememberUpdatedState(onTouch)
     val landscape = LocalConfiguration.current.orientation == android.content.res.Configuration.ORIENTATION_LANDSCAPE
+    val keyHeight = if (landscape) 48.dp else 54.dp
     var shift by remember(model.epoch) { mutableStateOf(KeyMode.Off) }
     val pinyinLabel = when (model.pinyinMode) {
         KeyMode.Locked -> "拼音 · 锁定"
@@ -204,7 +205,7 @@ fun Keyboard(model: KeyboardModel, dispatch: (Any) -> Unit, window: (Int) -> Uni
                 val hasPages = model.offset > 0 || model.offset + model.candidates.size < model.total
                 val showHints = model.candidates.any { it.hint.isNotEmpty() }
                 // Spend the former spelling-strip space on the grid; retain the typing area's height.
-                val gridHeight = (if (landscape) 160.dp else 190.dp) - (if (hasPages) 48.dp else 0.dp)
+                val gridHeight = keyHeight * 3 + 28.dp - (if (hasPages) 48.dp else 0.dp)
                 key(model.query, model.offset) {
                     val columnWidth = (112 * LocalDensity.current.fontScale.coerceIn(1f, 1.5f)).dp
                     LazyVerticalGrid(columns=GridCells.Adaptive(columnWidth),
@@ -312,7 +313,7 @@ fun Keyboard(model: KeyboardModel, dispatch: (Any) -> Unit, window: (Int) -> Uni
                 WindowInsets.mandatorySystemGestures.getBottom(this)).toDp().coerceAtLeast(32.dp)
         }
         val container=Modifier.fillMaxWidth().background(colors.surface)
-            .windowInsetsPadding(WindowInsets.navigationBars.only(WindowInsetsSides.Horizontal))
+            .windowInsetsPadding(WindowInsets.navigationBars.union(WindowInsets.displayCutout).only(WindowInsetsSides.Horizontal))
             .padding(start=3.dp, end=3.dp, top=4.dp, bottom=bottom)
             .pointerInput(Unit) {
                 var pressed = false
@@ -326,14 +327,16 @@ fun Keyboard(model: KeyboardModel, dispatch: (Any) -> Unit, window: (Int) -> Uni
                     }
                 } finally { if (pressed) currentTouch(false) }
             }
-        CompositionLocalProvider(LocalKeyPreview provides preview) {
+        CompositionLocalProvider(LocalKeyPreview provides preview, LocalKeyboardKeyHeight provides keyHeight) {
             Box(Modifier.fillMaxWidth().onGloballyPositioned { origin=it.positionInRoot(); keyboardWidth=it.size.width.toFloat() }) {
-                if(landscape && !showExpanded) {
-                    Row(container,horizontalArrangement=Arrangement.spacedBy(8.dp)) {
-                        Column(Modifier.weight(0.3f).heightIn(max=224.dp).verticalScroll(rememberScrollState())) {controls()}
-                        Column(Modifier.weight(0.7f)) {keys()}
+                Box(container, contentAlignment=androidx.compose.ui.Alignment.TopCenter) {
+                    // Keep candidates above every panel in either orientation. Capping the
+                    // shared width avoids stretching keys and moving controls on expansion.
+                    Column(Modifier.widthIn(max=600.dp).fillMaxWidth()) {
+                        controls()
+                        keys()
                     }
-                } else Column(container) {controls();keys()}
+                }
                 KeyPreviewBubble(preview.current, origin, keyboardWidth)
             }
         }
@@ -392,7 +395,7 @@ private fun Key(label:String,enabled:Boolean,epoch:Long,modifier:Modifier,repeat
                 description:String=label,function:Boolean=false,accent:Boolean=false,selected:Boolean=false,
                 alternate:String?=null,previewEnabled:Boolean=false,alternateAction:()->Unit={},clearAction:()->Unit={},action:()->Unit) {
     // The entire column is touchable. KeyTouch draws the inset keycap inside it.
-    val keyModifier=modifier.height(54.dp)
+    val keyModifier=modifier.height(LocalKeyboardKeyHeight.current)
     val colors=MaterialTheme.colorScheme
     val background=when {accent || selected -> colors.primary; function -> colors.secondaryContainer; else -> colors.surfaceContainerLowest}
     val foreground=when {accent || selected -> colors.onPrimary; function -> colors.onSecondaryContainer; else -> colors.onSurface}

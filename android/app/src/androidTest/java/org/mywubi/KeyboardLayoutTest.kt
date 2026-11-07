@@ -24,14 +24,17 @@ class KeyboardLayoutTest {
 
     @Test fun largeFontCompositionKeepsKeyboardHeightAndKeyPositionsStable() = checkCompositionLayout(2f)
 
-    private fun checkCompositionLayout(fontScale: Float? = null) {
+    @Test fun landscapeCandidatesStayAboveProportionalKeys() = checkCompositionLayout(landscape=true)
+
+    private fun checkCompositionLayout(fontScale: Float? = null,
+                                       landscape: Boolean = InstrumentationRegistry.getArguments().getString("layout_orientation") == "landscape") {
         val instrumentation = InstrumentationRegistry.getInstrumentation()
         val device = UiDevice.getInstance(instrumentation)
         val height = java.util.concurrent.atomic.AtomicInteger()
         val ready = KeyboardModel(enabled=true, modesAvailable=true, pinyinAvailable=true)
         var model by mutableStateOf(ready)
         ActivityScenario.launch(MainActivity::class.java).use { scenario ->
-            if (InstrumentationRegistry.getArguments().getString("layout_orientation") == "landscape") {
+            if (landscape) {
                 scenario.onActivity { it.requestedOrientation = android.content.pm.ActivityInfo.SCREEN_ORIENTATION_LANDSCAPE }
                 val deadline = android.os.SystemClock.uptimeMillis() + 10000
                 while (device.displayWidth <= device.displayHeight && android.os.SystemClock.uptimeMillis() < deadline) {
@@ -80,6 +83,16 @@ class KeyboardLayoutTest {
                 }
                 assertEquals("Keyboard height changed in $label", idleHeight, height.get())
                 assertEquals("Letter keys moved in $label", idleKey, bounds)
+                if (next.candidates.isNotEmpty()) {
+                    val candidate = device.wait(Until.findObject(By.desc("候选 是，编码提示 j").pkg("org.mywubi")), 5000)
+                        ?: error("Missing candidate in $label")
+                    val candidateBounds = candidate.visibleBounds
+                    assertTrue("Candidates must stay above the keyboard in $label", candidateBounds.bottom <= bounds.top)
+                    val minimum = (48 * instrumentation.targetContext.resources.displayMetrics.density).toInt()
+                    assertTrue("Candidate must have a visible touch target in $label", candidateBounds.width() >= minimum - 1)
+                    assertTrue("Candidate must not be vertically clipped in $label", candidateBounds.height() >= minimum - 1)
+                }
+                assertTrue("Landscape keys must not stretch into wide strips", bounds.width() <= bounds.height() * 1.25f)
             }
         }
     }
