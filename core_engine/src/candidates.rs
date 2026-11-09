@@ -14,6 +14,8 @@ pub struct CandidateId(pub usize);
 pub enum CandidateHint {
     CodeSuffix(String),
     ReverseCodes(Vec<String>),
+    /// Human-readable expression name; never part of committed text or an input code.
+    ExpressionName(String),
 }
 
 #[derive(Debug, Clone, PartialEq, Eq, serde::Serialize, serde::Deserialize)]

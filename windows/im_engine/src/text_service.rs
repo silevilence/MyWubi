@@ -1687,7 +1687,11 @@ impl ITfKeyEventSink_Impl for TextService_Impl {
             self.input.clear_prediction_context();
             return Ok(BOOL(0));
         };
-        if self.config_snapshot().prediction.enabled {
+        let config = self.config_snapshot();
+        if config.prediction.enabled
+            || config.expressions.emoji.needed()
+            || config.expressions.kaomoji.needed()
+        {
             if let Some(context) = pic.as_ref() {
                 let editor = context
                     .cast::<IUnknown>()
@@ -1696,7 +1700,7 @@ impl ITfKeyEventSink_Impl for TextService_Impl {
                 let prefix = crate::prediction_context::read(
                     context,
                     self.lifecycle.tid(),
-                    self.composition.lock().is_none(),
+                    config.prediction.enabled && self.composition.lock().is_none(),
                 );
                 self.input.sync_prediction_context(editor, prefix);
             } else {

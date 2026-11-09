@@ -227,6 +227,9 @@ impl ExpressionLibrary {
             .flatten()
             .map(|&index| &self.document.entries[index])
     }
+    pub(crate) fn exact_indices(&self, word: &str) -> &[usize] {
+        self.exact.get(word).map_or(&[], Vec::as_slice)
+    }
     /// Export without normalizing spaces, variation selectors, or combining characters.
     pub fn encode(&self) -> Result<String, ExpressionError> {
         Ok(format!(

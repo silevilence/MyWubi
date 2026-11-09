@@ -38,3 +38,21 @@ Android `:app:compileDebugKotlin --offline --console=plain` 通过，包括 arm6
 固定两个 MIT 数据仓库提交，详细授权范围、来源条款、中文映射核对和排除规则见 `expressions/KAOMOJI-SOURCES.md`。原始 43404 条记录，排除 3375 条（多行/控制字符/HTML 实体残留），合并完全相同的输出后收录 34354 条，547 个不同类别标识全部有中文映射。每个输出具有来源与许可；字体未覆盖不导致替换字符。
 
 `python scripts/build_expressions.py --check` 通过（5 个生成制品）；`cargo test -p core_engine --test expression_datasets --offline` 两项通过，遍历 3972 个 Emoji 和 34354 个颜文字的触发、来源和整库导出重载。数据首次获取后均本地复用。完整词库接入候选、打包、显示和运行时性能仍在后续任务验收。
+
+## EM-04 统一候选追加
+
+`core_engine/tests/expression_candidates.rs` 17 项测试覆盖完整词匹配、子串/递归隔离、跨触发词及两库去重、部分页/满页、数字 1～9、612 项长尾遍历、手机 256 项窗口、Unicode 原样提交、唯一满码暂缓、临时拼音与英文隔离、关闭时旧轨迹、过期 ID、热重载、宿主失败及隐私策略变化。输入候选与模型预测分开；预测候选不追加表情，迟到的模型响应不能改变已发布输入候选及其 ID。
+
+候选序列在查询变化时构造，分页和手机窗口共享缓存；表达式词条只保存词库种类和索引，不按查询复制整库输出字符串。普通文字页后的表情续页可全部翻阅，下一文字组从新页开始。具体优先级和页大小为 10 时的处理见 `docs/expressions.md`。
+
+共享会话覆盖确认前不发布、确定未写入的重试和旧 Windows 主模式清理协议。隐私策略在宿主确认期间改变时，分别更新已发布、待确认与回滚快照，不能暴露未确认文字或在确认后恢复已禁用表情。Windows `reentrant_privacy_change_publishes_only_confirmed_safe_candidates` 验证适配层发布的是确认后的安全视图。
+
+验证结果：
+
+- `cargo test -p core_engine --lib --tests --locked --offline`：246 项通过。
+- `cargo test -p im_engine --lib input_session::tests --locked --offline`：25 项通过，包括旧驱动逐键对照、失败恢复与重入宿主范围变更。
+- `cargo clippy -p core_engine --all-targets --all-features --locked --offline -- -D warnings`：通过；格式和差异空白检查通过。
+- Windows 全目标编译通过；Android `:app:compileDebugKotlin --offline --console=plain` 完成双 ABI 原生构建与 `ExpressionName` 提示解析编译。后续共享会话边界修复由上述核心及 Windows 测试覆盖；最终双端制品仍在 EM-08 集中重建验收。
+- Release 使用完整 3972/34354 条本地词库，“开心”得到 858 个候选，遍历结果与两库完整精确索引的并集一致；100 次查询 p50 46 μs、p95 64 μs。此测量不含词库加载、宿主编辑、绘制或 JNI，不代表手机性能。
+
+构建与测试复用本地依赖和词库，无新增下载。未执行本项真实界面交互；字体、视觉及外部宿主验收仍保持未完成，不以这些测试结果替代 EM-06～EM-08。

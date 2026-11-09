@@ -266,9 +266,14 @@ class MyWubiService : InputMethodService() {
                 val hints = item.getJSONArray("hints")
                 val hint = (0 until hints.length()).joinToString(" ") { n ->
                     val h = hints.getJSONObject(n)
-                    if(h.has("CodeSuffix")) h.getString("CodeSuffix") else {
-                        val codes=h.getJSONArray("ReverseCodes")
-                        (0 until codes.length()).joinToString("/") { codes.getString(it) }
+                    when {
+                        h.has("CodeSuffix") -> h.getString("CodeSuffix")
+                        h.has("ExpressionName") -> h.getString("ExpressionName")
+                        h.has("ReverseCodes") -> {
+                            val codes = h.getJSONArray("ReverseCodes")
+                            (0 until codes.length()).joinToString("/") { codes.getString(it) }
+                        }
+                        else -> ""
                     }
                 }
                 CandidateItem(item.getLong("id"),item.getString("text"),hint)

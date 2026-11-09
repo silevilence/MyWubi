@@ -143,9 +143,51 @@ impl SemanticEngine {
         &self.sm
     }
 
+    /// Refresh auxiliary candidates when the host's privacy policy changes.
+    pub(crate) fn set_expression_context(&mut self, allowed: bool) -> Option<Transition> {
+        if self.sm.expressions_allowed == allowed {
+            return None;
+        }
+        self.sm.expressions_allowed = allowed;
+        self.sm.appended = None;
+        self.sm.page = 0;
+        self.invalidate_query();
+        if self.sm.spelling.is_empty() {
+            return None;
+        }
+        match self.sm.mode {
+            InputMode::Main if !self.sm.has_buffered_punctuation() => {
+                self.sm.candidates_snapshot();
+                Some(Transition::Candidates {
+                    spelling: self.sm.spelling.clone(),
+                    candidates: self.sm.candidates.clone(),
+                    code_hints: self.sm.code_hints.clone(),
+                    page: self.sm.page,
+                    total_pages: self.sm.total_pages(),
+                })
+            }
+            InputMode::Pinyin => Some(self.sm.refresh_temporary()),
+            _ => None,
+        }
+    }
+
     /// Read-only window query. Full lookup is performed only on explicit queries,
     /// never duplicated on the Windows key path; only the bounded window is copied.
     pub fn candidate_window(&self, offset: usize, count: usize) -> CandidateWindow {
+        if self.sm.appended.is_some() {
+            let total = self.sm.total_candidates;
+            let offset = offset.min(total);
+            let end = offset.saturating_add(count.min(MAX_WINDOW)).min(total);
+            return CandidateWindow {
+                query_revision: self.query_revision,
+                view_revision: self.view_revision,
+                total,
+                offset,
+                candidates: (offset..end)
+                    .filter_map(|index| self.sm.appended_candidate(index))
+                    .collect(),
+            };
+        }
         let dict = match self.sm.mode {
             InputMode::Main => Some(&self.sm.dict),
             InputMode::Pinyin => self.sm.temporary.pinyin.as_ref(),
@@ -381,6 +423,10 @@ impl SemanticEngine {
                     | Transition::CommitThenSpelling { .. }
             )
         {
+            self.invalidate_query();
+        } else if page != self.sm.page && self.sm.appended.is_some() {
+            // Mixed text/expression pages invalidate old clicks, while IDs continue
+            // to address the same immutable sequence in the newly published query.
             self.invalidate_query();
         } else if page != self.sm.page {
             self.view_revision += 1;

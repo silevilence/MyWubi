@@ -8,8 +8,10 @@
 
 use crate::config::PunctuationMode;
 use crate::dictionary::{Dictionary, Entry, SearchOptions};
+use crate::expressions::{ExpressionResources, ExpressionsConfig};
 use crate::temporary::{InputMode, TemporaryTables};
 use std::sync::Arc;
+mod expression_candidates;
 pub mod semantic;
 mod temporary_input;
 
@@ -95,6 +97,10 @@ const DEFAULT_PAGE_SIZE: usize = 5;
 pub struct StateMachine {
     mode: InputMode,
     temporary: Arc<TemporaryTables>,
+    expressions: Arc<ExpressionResources>,
+    expression_config: ExpressionsConfig,
+    expressions_allowed: bool,
+    appended: Option<Arc<expression_candidates::AppendedCandidates>>,
     /// 当前绑定的码表（不可变，多线程共享）。
     dict: Arc<Dictionary>,
     /// 单页候选数。
@@ -166,6 +172,10 @@ impl StateMachine {
         Self {
             mode: InputMode::Main,
             temporary: Arc::new(TemporaryTables::default()),
+            expressions: Arc::default(),
+            expression_config: ExpressionsConfig::default(),
+            expressions_allowed: true,
+            appended: None,
             dict,
             page_size,
             auto_commit_unique,
@@ -192,6 +202,17 @@ impl StateMachine {
     pub fn set_temporary_tables(&mut self, tables: Arc<TemporaryTables>) {
         self.reset();
         self.temporary = tables;
+    }
+
+    /// Bind a consistent immutable resource snapshot; replacing it cancels old candidates.
+    pub fn set_expression_resources(
+        &mut self,
+        resources: Arc<ExpressionResources>,
+        config: ExpressionsConfig,
+    ) {
+        self.reset();
+        self.expressions = resources;
+        self.expression_config = config;
     }
 
     pub fn is_temporary_trigger(&self, c: char) -> bool {
@@ -225,6 +246,9 @@ impl StateMachine {
 
     /// 总页数。
     pub fn total_pages(&self) -> usize {
+        if let Some(appended) = &self.appended {
+            return appended.pages.len().max(1);
+        }
         self.total_candidates.div_ceil(self.page_size).max(1)
     }
 
@@ -267,6 +291,7 @@ impl StateMachine {
 
     /// 重置全部状态（不释放码表绑定）。
     pub fn reset(&mut self) {
+        self.appended = None;
         self.mode = InputMode::Main;
         self.spelling.clear();
         self.page = 0;
@@ -552,12 +577,20 @@ impl StateMachine {
 
     /// 重新扫一遍码表，刷新候选总数与当前页可见候选快照。
     fn candidates_snapshot(&mut self) {
+        if self.reuse_appended_page() {
+            return;
+        }
         let opts = SearchOptions {
             prefer_exact: true,
             limit: self.dict.len().max(1),
         };
         let lookup_key = self.lookup_key().to_string();
         let all: Vec<&Entry> = self.dict.search(&lookup_key, opts);
+        self.appended = self.build_appended(&all).map(Arc::new);
+        if self.appended.is_some() {
+            self.apply_appended_page();
+            return;
+        }
         self.total_candidates = all.len();
         let start = (self.page * self.page_size).min(all.len());
         let end = (start + self.page_size).min(all.len());
@@ -580,6 +613,7 @@ impl StateMachine {
     }
 
     fn reset_candidates(&mut self) {
+        self.appended = None;
         self.candidates.clear();
         self.code_hints.clear();
         self.total_candidates = 0;

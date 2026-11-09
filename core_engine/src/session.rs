@@ -195,7 +195,10 @@ pub struct Session {
 
 impl Session {
     pub fn new(runtime: &RuntimeSnapshot, profile: BehaviorProfile, context: HostContext) -> Self {
-        let engine = SemanticEngine::new(runtime.state_machine(), profile);
+        let mut engine = SemanticEngine::new(runtime.state_machine(), profile);
+        let _ = engine.set_expression_context(
+            context.purpose == InputPurpose::Text && context.allows_assistance,
+        );
         let mut prefix = crate::assistance::context::ContextBuffer::new(256);
         prefix.bind(
             context.editor,
@@ -279,6 +282,38 @@ impl Session {
         if self.context.allows_assistance != allowed {
             self.clear_prediction_context();
             self.context.allows_assistance = allowed;
+            let expressions_allowed = allowed && self.context.purpose == InputPurpose::Text;
+            let _ = self.engine.set_expression_context(expressions_allowed);
+            if let Some(transition) = self
+                .published_engine
+                .set_expression_context(expressions_allowed)
+            {
+                self.view = plan(
+                    self.published_engine.state_machine(),
+                    self.config.basic.show_code_hints,
+                    transition,
+                    &self.view,
+                )
+                .view;
+            }
+            // A privacy notification can arrive while a host edit awaits confirmation.
+            // Refresh each snapshot separately; never publish its unconfirmed input.
+            if let Some(pending) = &mut self.pending {
+                if let Some(transition) = pending.next.set_expression_context(expressions_allowed) {
+                    pending.plan.preview = ViewUpdate::Replace(
+                        plan(
+                            pending.next.state_machine(),
+                            self.config.basic.show_code_hints,
+                            transition,
+                            &self.view,
+                        )
+                        .view,
+                    );
+                }
+                if let Some(rollback) = &mut pending.rollback {
+                    let _ = rollback.set_expression_context(expressions_allowed);
+                }
+            }
             self.prefix.bind(
                 self.context.editor,
                 self.context.epoch,
@@ -694,7 +729,7 @@ impl Session {
         }
         let mut next = self.engine.clone();
         let rollback = (self.legacy()
-            && matches!(action, Action::Legacy(_))
+            && matches!(action, Action::Legacy(_) | Action::SelectCandidate(_, _))
             && self.state_machine().mode() != InputMode::Main)
             .then(|| self.engine.clone());
         let action = if !self.legacy() && self.context.purpose != InputPurpose::Text {
@@ -1094,6 +1129,9 @@ impl Session {
             self.prediction_dict = Arc::clone(&runtime.dict);
             self.revision = runtime.revision;
         }
+        let _ = self.engine.set_expression_context(
+            context.purpose == InputPurpose::Text && context.allows_assistance,
+        );
         self.published_engine = self.engine.clone();
         self.view = SessionView::default();
         self.prefix.bind(
@@ -1161,6 +1199,9 @@ impl Session {
             || self.state_machine().mode() == InputMode::Menu;
         let op = self.finish_operation(temporary);
         let mut next = SemanticEngine::new(runtime.state_machine(), self.engine.profile);
+        let _ = next.set_expression_context(
+            self.context.purpose == InputPurpose::Text && self.context.allows_assistance,
+        );
         if !self.legacy() && self.engine.base_mode() == BaseMode::English {
             next.dispatch(Action::SetBaseMode(BaseMode::English));
         }
@@ -1199,7 +1240,23 @@ impl Session {
                 &runtime.temporary.english,
             )
             && self.resources.temporary.load_errors == runtime.temporary.load_errors
+            && expression_resources_equal(&self.resources.expressions, &runtime.expressions)
     }
+}
+
+fn expression_resources_equal(
+    previous: &crate::expressions::ExpressionResources,
+    next: &crate::expressions::ExpressionResources,
+) -> bool {
+    [&previous.emoji, &previous.kaomoji]
+        .into_iter()
+        .zip([&next.emoji, &next.kaomoji])
+        .all(|(a, b)| {
+            a.path == b.path
+                && a.error == b.error
+                && a.library.as_ref().map(|library| library.document())
+                    == b.library.as_ref().map(|library| library.document())
+        })
 }
 fn plan(
     sm: &StateMachine,

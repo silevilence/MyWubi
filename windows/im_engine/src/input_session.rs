@@ -196,6 +196,7 @@ impl InputSession {
     pub fn sync_prediction_context(&self, editor: u64, prefix: crate::prediction_context::Prefix) {
         let mut core = self.core.lock();
         let visible = core.has_prediction();
+        let policy_changed = core.context().allows_assistance != prefix.allowed;
 
         if core.context().editor != editor {
             let mut context = core.context();
@@ -206,7 +207,14 @@ impl InputSession {
         core.set_assistance_allowed(prefix.allowed);
         let context = core.context();
         core.observe_prefix(context.editor, context.epoch, prefix.text.as_deref());
-        if visible && !core.has_prediction() {
+        if policy_changed {
+            let data = candidate_view(
+                core.snapshot(),
+                core.config(),
+                self.candidates.load().anchor,
+            );
+            self.candidates.store(Arc::new(data));
+        } else if visible && !core.has_prediction() {
             self.candidates
                 .store(Arc::new(CandidateData::hidden(ThemeSnapshot::from_config(
                     core.config(),
@@ -372,6 +380,14 @@ impl InputSession {
                         core.config(),
                         anchor.or(self.candidates.load().anchor),
                     );
+                } else if matches!(&plan.preview,
+                    core_engine::candidates::ViewUpdate::Replace(view)
+                        | core_engine::candidates::ViewUpdate::Reset(view)
+                        if view != core.snapshot())
+                {
+                    // A reentrant host policy change may have revised the pending
+                    // candidate view without changing the requested text edit.
+                    next_view = candidate_view(core.snapshot(), core.config(), next_view.anchor);
                 }
                 if core.has_prediction() {
                     let window = core.candidate_window(0, 64);
@@ -483,6 +499,61 @@ mod tests {
         assert!(data.spelling.is_empty());
         assert!(data.items[0].disabled);
         assert!(data.items[0].hint.is_empty());
+    }
+
+    #[test]
+    fn reentrant_privacy_change_publishes_only_confirmed_safe_candidates() {
+        use core_engine::expressions::*;
+        let library = ExpressionLibrary::parse(
+            concat!("# MyWubi Expressions 1\n", r#"{
+                "kind":"emoji","name":"test","version":"1",
+                "sources":[{"id":"test","url":"local:test","revision":"1","license":"MIT","notice":"fixture"}],
+                "entries":[{"text":"😀","name":"笑脸","triggers":["开心"],"order":0,"sources":["test"]}]
+            }"#), ExpressionKind::Emoji,
+        ).unwrap();
+        let mut config = Config::default();
+        config.basic.auto_commit_unique = false;
+        config.expressions.emoji.append = true;
+        let snapshot = RuntimeSnapshot {
+            dict: Dictionary::from_text("a\t开心\n").unwrap(),
+            temporary: Arc::default(),
+            expressions: Arc::new(ExpressionResources {
+                emoji: ExpressionResource {
+                    library: Some(Arc::new(library)),
+                    ..Default::default()
+                },
+                ..Default::default()
+            }),
+            config,
+            revision: 1,
+            config_path: "config.toml".into(),
+            system_table_path: "main.dict".into(),
+            user_table_path: "user.dict".into(),
+        };
+        let view = Arc::new(ArcSwap::from_pointee(CandidateData::default()));
+        let session = InputSession::from_snapshot(&snapshot, view.clone());
+        assert!(session.handle(InputEvent::Char('a'), false, None, |_| {
+            session.sync_prediction_context(
+                0,
+                crate::prediction_context::Prefix {
+                    allowed: false,
+                    text: None,
+                },
+            );
+            assert!(!view.load().visible);
+            Ok::<_, SessionEditError>(None)
+        }));
+        assert_eq!(view.load().items.len(), 1);
+        assert_eq!(view.load().items[0].text, "开心");
+        session.sync_prediction_context(
+            0,
+            crate::prediction_context::Prefix {
+                allowed: true,
+                text: None,
+            },
+        );
+        assert_eq!(view.load().items.len(), 2);
+        assert_eq!(view.load().items[1].text, "😀");
     }
 
     #[test]

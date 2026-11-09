@@ -90,6 +90,7 @@ impl StateMachine {
 
     pub(super) fn refresh_temporary(&mut self) -> Transition {
         if self.mode == InputMode::Menu {
+            self.appended = None;
             self.candidates = vec!["拼音".into(), "英文".into()];
             self.code_hints = vec![
                 self.temporary.pinyin_error.clone().unwrap_or_else(|| {
@@ -103,7 +104,7 @@ impl StateMachine {
             ];
             self.total_candidates = 2;
             self.state = InputState::Selecting;
-        } else {
+        } else if !self.reuse_appended_page() {
             let dict = match self.mode {
                 InputMode::Pinyin => self.temporary.pinyin.as_ref(),
                 InputMode::English => self.temporary.english.as_ref(),
@@ -120,27 +121,32 @@ impl StateMachine {
                     )
                 })
                 .unwrap_or_default();
-            self.total_candidates = all.len();
-            let start = (self.page * self.page_size).min(all.len());
-            let end = (start + self.page_size).min(all.len());
-            self.candidates = all[start..end]
-                .iter()
-                .map(|entry| entry.word.clone())
-                .collect();
-            self.code_hints = self
-                .candidates
-                .iter()
-                .map(|word| {
-                    if self.dict.table_config().temporary.reverse_lookup {
-                        self.temporary
-                            .reverse
-                            .as_ref()
-                            .map_or_else(String::new, |index| index.hint(word))
-                    } else {
-                        String::new()
-                    }
-                })
-                .collect();
+            self.appended = self.build_appended(&all).map(Arc::new);
+            if self.appended.is_some() {
+                self.apply_appended_page();
+            } else {
+                self.total_candidates = all.len();
+                let start = (self.page * self.page_size).min(all.len());
+                let end = (start + self.page_size).min(all.len());
+                self.candidates = all[start..end]
+                    .iter()
+                    .map(|entry| entry.word.clone())
+                    .collect();
+                self.code_hints = self
+                    .candidates
+                    .iter()
+                    .map(|word| {
+                        if self.dict.table_config().temporary.reverse_lookup {
+                            self.temporary
+                                .reverse
+                                .as_ref()
+                                .map_or_else(String::new, |index| index.hint(word))
+                        } else {
+                            String::new()
+                        }
+                    })
+                    .collect();
+            }
             self.state = if self.candidates.is_empty() {
                 InputState::Composing
             } else {

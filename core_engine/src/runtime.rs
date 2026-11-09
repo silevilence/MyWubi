@@ -38,6 +38,10 @@ impl RuntimeSnapshot {
             options.commit_on_max_code_overflow,
         );
         sm.set_temporary_tables(Arc::clone(&self.temporary));
+        sm.set_expression_resources(
+            Arc::clone(&self.expressions),
+            self.config.expressions.clone(),
+        );
         sm
     }
     pub fn dependencies(&self) -> Vec<PathBuf> {
