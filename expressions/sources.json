@@ -1,0 +1,42 @@
+{
+  "emoji-test-17.0.txt": {
+    "url": "https://www.unicode.org/Public/17.0.0/emoji/emoji-test.txt",
+    "sha256": "1d8a944f88d7952f7ef7c5167fef3c67995bcae24543949710231b03a201acda",
+    "bytes": 669326
+  },
+  "annotations-zh-48.xml": {
+    "url": "https://raw.githubusercontent.com/unicode-org/cldr/release-48/common/annotations/zh.xml",
+    "sha256": "92389f71659998736530c72d4dcc86e453fe0be170cde5c5ad27094cab2a2de8",
+    "bytes": 291028
+  },
+  "annotationsDerived-zh-48.xml": {
+    "url": "https://raw.githubusercontent.com/unicode-org/cldr/release-48/common/annotationsDerived/zh.xml",
+    "sha256": "777acebb7c4ed103c34f5605881a2537656e0a17d9d1127518da7cd54f612bcc",
+    "bytes": 502514
+  },
+  "UNICODE-LICENSE.txt": {
+    "url": "https://raw.githubusercontent.com/unicode-org/cldr/release-48/LICENSE",
+    "sha256": "b4c0ae8ef04f7059f96ce5bbe0467f9fe6f6d81bbe13517701dfeb961fb4d0b6",
+    "bytes": 2033
+  },
+  "emoji-test-18.0.txt": {
+    "url": "https://www.unicode.org/Public/18.0.0/emoji/emoji-test.txt",
+    "sha256": "8f3735cda1f92a779d78af67cf86066bb1f07143dc22f2ac29394d9bc57ab21a",
+    "bytes": 671655
+  },
+  "annotations-zh-49.xml": {
+    "url": "https://raw.githubusercontent.com/unicode-org/cldr/release-49/common/annotations/zh.xml",
+    "sha256": "820de5034133077d2baa31464de0c91e748ae3c659880c2918bf6a55e560a282",
+    "bytes": 292459
+  },
+  "annotationsDerived-zh-49.xml": {
+    "url": "https://raw.githubusercontent.com/unicode-org/cldr/release-49/common/annotationsDerived/zh.xml",
+    "sha256": "4fff4592df54051e4b8ebe49f17e3b6bd9c951303f99abeb989446b80ef64a1f",
+    "bytes": 504416
+  },
+  "UNICODE-49-LICENSE.txt": {
+    "url": "https://raw.githubusercontent.com/unicode-org/cldr/release-49/LICENSE",
+    "sha256": "65eb33419e22a297550a811b5b535f5e532f9a7e0114b516c0ea18afd53c3804",
+    "bytes": 3193
+  }
+}

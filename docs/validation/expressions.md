@@ -26,3 +26,9 @@ Android `:app:compileDebugKotlin --offline --console=plain` 通过，包括 arm6
 构建使用已有 Cargo/Gradle/SDK/NDK 缓存，Gradle 使用 `--offline`；没有重新下载构建依赖。当前 `adb devices -l` 无连接设备。Android 真机/模拟器显示、外部宿主和 TalkBack 验收未执行，EM-07/EM-08/EM-12 不可据编译结果完成。
 
 已在线获取本地不存在的 Unicode 17.0、CLDR 48 中文数据及许可，保存在 `expressions/sources` 并记录 SHA-256；后续生成与验证复用这些文件。
+
+## EM-02 Emoji 全集
+
+固定 Unicode 18.0 / CLDR release-49，3972 个输出、1272 个兼容别名，逐序列缺失/额外均为零，全部有中文触发词。相比 17.0 新增 19 个、删除 0 个。`python scripts/build_expressions.py --check` 离线重建一致；`cargo test -p core_engine --test expression_datasets --offline` 独立解析官方数据、遍历全部触发词和别名、导出重载均通过。原始字节校验和、完整许可和覆盖报告已保存。
+
+参考站点标示 3971，官方固定集 3972，总数差 1；站点 HTML 下载 403，未声称站点逐序列等价，详见 `expressions/README.md`。本库以官方全集验收，不因站点计数或本机字形缺失删减。18.0/49 为本次首次获取，17.0/48 复用上次本地文件；生成和测试不再下载。

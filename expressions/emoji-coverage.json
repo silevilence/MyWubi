@@ -1,0 +1,108 @@
+{
+  "unicode": "18.0",
+  "cldr": "49",
+  "expected": 3972,
+  "actual": 3972,
+  "missing": [],
+  "extra": [],
+  "chinese_trigger_coverage": 3972,
+  "qualifications": {
+    "fully-qualified": 3963,
+    "unqualified": 243,
+    "minimally-qualified": 1029,
+    "component": 9
+  },
+  "aliases": 1272,
+  "groups": {
+    "Smileys & Emotion": 172,
+    "People & Body": 2430,
+    "Component": 9,
+    "Animals & Nature": 161,
+    "Food & Drink": 132,
+    "Travel & Places": 221,
+    "Activities": 85,
+    "Objects": 268,
+    "Symbols": 224,
+    "Flags": 270
+  },
+  "added_since_17": [
+    {
+      "sequence": "1FAEB",
+      "name": "裂开"
+    },
+    {
+      "sequence": "1FAF9",
+      "name": "拇指左指"
+    },
+    {
+      "sequence": "1FAF9 1F3FB",
+      "name": "拇指左指: 较浅肤色"
+    },
+    {
+      "sequence": "1FAF9 1F3FC",
+      "name": "拇指左指: 中等-浅肤色"
+    },
+    {
+      "sequence": "1FAF9 1F3FD",
+      "name": "拇指左指: 中等肤色"
+    },
+    {
+      "sequence": "1FAF9 1F3FE",
+      "name": "拇指左指: 中等-深肤色"
+    },
+    {
+      "sequence": "1FAF9 1F3FF",
+      "name": "拇指左指: 较深肤色"
+    },
+    {
+      "sequence": "1FAFA",
+      "name": "拇指右指"
+    },
+    {
+      "sequence": "1FAFA 1F3FB",
+      "name": "拇指右指: 较浅肤色"
+    },
+    {
+      "sequence": "1FAFA 1F3FC",
+      "name": "拇指右指: 中等-浅肤色"
+    },
+    {
+      "sequence": "1FAFA 1F3FD",
+      "name": "拇指右指: 中等肤色"
+    },
+    {
+      "sequence": "1FAFA 1F3FE",
+      "name": "拇指右指: 中等-深肤色"
+    },
+    {
+      "sequence": "1FAFA 1F3FF",
+      "name": "拇指右指: 较深肤色"
+    },
+    {
+      "sequence": "1FACC",
+      "name": "帝王蝶"
+    },
+    {
+      "sequence": "1FADD",
+      "name": "酸黄瓜"
+    },
+    {
+      "sequence": "1F6D9",
+      "name": "灯塔"
+    },
+    {
+      "sequence": "1FA8B",
+      "name": "陨石"
+    },
+    {
+      "sequence": "1FA8C",
+      "name": "橡皮擦"
+    },
+    {
+      "sequence": "1FA8D",
+      "name": "抄网"
+    }
+  ],
+  "removed_since_17": [],
+  "output_sha256": "16056f5599579db163fd06c5574756afcb39301d97e68bbea3956bf112323802"
+}

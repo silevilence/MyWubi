@@ -765,12 +765,12 @@
     - [x] 两端复用共享资源定位规则；缺失、损坏、类型不符时报告具体资源错误并隔离该附加功能，普通输入保持可用；关闭的功能不要求安装对应资源。
     - 验收：配置往返、旧配置加载、主表切换、手改配置绕过、关闭后资源缺失、失败恢复均有覆盖；Windows 与 Android 得到相同校验结果。
 
-- [ ] **制作完整 Emoji 中文触发词库与版本清单**（预计 2～3 天）
+- [x] **制作完整 Emoji 中文触发词库与版本清单**（预计 2～3 天）
     - 关联：EM-02；依赖 EM-01。
-    - [ ] 参考用户指定的 [Emojiall 全部 Emoji](https://www.emojiall.com/zh-hans/all-emojis) 核对覆盖范围；实际数据以固定正式版本的 [Unicode emoji-test.txt](https://unicode.org/Public/emoji/latest/emoji-test.txt) 为全集基准，记录具体版本、固定下载地址和校验和，不在构建或输入时追随 `latest`。
-    - [ ] 全集包含该版本全部 fully-qualified 序列及 component，覆盖肤色、性别、发型、职业、家庭、旗帜、键帽与 ZWJ 组合；非 fully-qualified 写法作为兼容别名处理，不当成新的表情重复输出。不得仅提供常用或基础 Emoji 子集。
-    - [ ] 使用对应版本的 CLDR 中文 annotations 与 annotationsDerived 构造中文名称、关键词及变体触发词；补齐没有中文触发词的条目，每个收录项至少有一个可匹配的触发词，保留完整 Unicode 序列。
-    - [ ] 保留 [Unicode License v3](https://www.unicode.org/license.txt) 及 [CLDR 许可](https://github.com/unicode-org/cldr/blob/main/LICENSE) 要求的声明；Emojiall 作为覆盖参考，不直接打包其图片或站点独有释义。
+    - [x] 参考用户指定的 [Emojiall 全部 Emoji](https://www.emojiall.com/zh-hans/all-emojis) 核对覆盖范围；实际数据以固定正式版本的 [Unicode emoji-test.txt](https://unicode.org/Public/emoji/latest/emoji-test.txt) 为全集基准，记录具体版本、固定下载地址和校验和，不在构建或输入时追随 `latest`。
+    - [x] 全集包含该版本全部 fully-qualified 序列及 component，覆盖肤色、性别、发型、职业、家庭、旗帜、键帽与 ZWJ 组合；非 fully-qualified 写法作为兼容别名处理，不当成新的表情重复输出。不得仅提供常用或基础 Emoji 子集。
+    - [x] 使用对应版本的 CLDR 中文 annotations 与 annotationsDerived 构造中文名称、关键词及变体触发词；补齐没有中文触发词的条目，每个收录项至少有一个可匹配的触发词，保留完整 Unicode 序列。
+    - [x] 保留 [Unicode License v3](https://www.unicode.org/license.txt) 及 [CLDR 许可](https://github.com/unicode-org/cldr/blob/main/LICENSE) 要求的声明；Emojiall 作为覆盖参考，不直接打包其图片或站点独有释义。
     - 验收：对固定版本输出逐序列集合差异与触发词覆盖报告，缺失项为零；列出与参考站点因版本、变体口径产生的差异。源码、生成结果、版本和许可可追溯，系统缺字不成为删减全集的理由。
 
 - [ ] **整理许可明确且覆盖广泛的颜文字词库**（预计 2～3 天）
