@@ -45,6 +45,93 @@ class ExpressionHostTest {
         assertEquals(expected,host().text.orEmpty())
     }
 
+    @Test fun fullLibraryTailSelectionAndModeReturnDoNotLeakPartialQueries() {
+        val store = EngineStore(context)
+        val loaded = store.readConfig()
+        val original = JSONObject(loaded.getJSONObject("config").toString())
+        val config = JSONObject(original.toString())
+        val table = File(context.filesDir, "em-host-tail.dict").apply {
+            writeText("---\nmax_code_len: 4\n---\na\t禁止\nc\t车\nd\t开心\nx\t龘靐齉\n")
+        }
+        config.getJSONObject("dictionary").put("system_table", table.path).put("enable_user_dict", false)
+        config.getJSONObject("basic").put("auto_commit_unique", false)
+        config.put("prediction", JSONObject().put("enabled", false))
+        config.put("expressions", JSONObject()
+            .put("emoji", JSONObject().put("append", false).put("search", true))
+            .put("kaomoji", JSONObject().put("append", false).put("search", true)))
+        fun save(value: JSONObject, version: Long) {
+            NativeHandle(version).use { NativeHandle(store.saveConfig(value, it.value).getLong("version")).close() }
+        }
+        fun enter(label: String) { key("键盘工具"); button(label) }
+        try {
+            save(config, loaded.getLong("version"))
+            // Obtain the full-library ordering from an independent JNI session.
+            // The actual selection below still travels through the visible IME and OS editor.
+            val expected = NativeHandle(NativeBridge.objectCall("BuildRuntime", "path" to store.configFile.path).getLong("handle")).use { runtime ->
+                val editor = JSONObject("""{"editor":99,"epoch":1,"supports_preedit":true,"supports_insert":true,"owns_preedit":false,"purpose":"Text","selection_available":true,"surrounding_available":true,"enter_action":"Send"}""")
+                NativeHandle(NativeBridge.objectCall("CreateSession", "runtime" to runtime.value, "context" to editor).getLong("handle")).use { session ->
+                    for (action in listOf(JSONObject().put("BeginTemporary", "Kaomoji"), JSONObject().put("InputCode", "d"), "FindExpressions")) {
+                        val plan = NativeBridge.objectCall("Prepare", "session" to session.value, "action" to action)
+                        assertEquals("NoOp", plan.getString("op"))
+                        NativeBridge.objectCall("Ack", "session" to session.value, "token" to plan.getJSONObject("token"),
+                            "outcome" to "Applied", "owns_preedit" to false)
+                    }
+                    val first = NativeBridge.objectCall("Candidates", "session" to session.value, "offset" to 0, "count" to 256)
+                    val total = first.getInt("total")
+                    assertTrue("Use the full library, beyond the first candidate window", total > 512)
+                    val offset = ((total - 1) / 256) * 256
+                    val tail = NativeBridge.objectCall("Candidates", "session" to session.value, "offset" to offset, "count" to 256)
+                    JSONObject().put("total", total).put("offset", offset)
+                        .put("text", tail.getJSONArray("candidates").getJSONObject(0).getString("text"))
+                }
+            }
+            device.executeShellCommand("ime enable org.mywubi/.MyWubiService")
+            device.executeShellCommand("ime set org.mywubi/.MyWubiService")
+            device.executeShellCommand("am force-stop org.mywubi.acceptancehost")
+            device.executeShellCommand("am start -n org.mywubi.acceptancehost/.EditorActivity")
+            host().click(); fresh(By.desc("a").pkg("org.mywubi").enabled(true))
+            if (device.hasObject(By.desc("中 → 英"))) key("中 → 英")
+            val before = journal()
+
+            enter("Emoji 输入"); key("a"); key("空格"); key("x"); button("查找表情")
+            fresh(By.text("没有满足全部关键词的结果；以下仅为部分匹配。").pkg("org.mywubi"))
+            fresh(By.desc(Pattern.compile("候选 .*部分匹配.*")).pkg("org.mywubi"))
+            assertHost(""); assertEquals(before, journal()); shot("partial-query-local")
+            button("取消")
+            fresh(By.desc("英 → 中").pkg("org.mywubi").enabled(true))
+            assertEquals(before, journal())
+
+            // Cancel returns to English; entering the other mode still uses the main table.
+            enter("颜文字输入"); key("d"); button("查找表情"); key("展开")
+            val total = expected.getInt("total")
+            val lastOffset = expected.getInt("offset")
+            for (offset in 256..lastOffset step 256) {
+                key("下一组")
+                fresh(By.text("${offset + 1}–${minOf(offset + 256, total)} / $total").pkg("org.mywubi"))
+                assertEquals("Paging must never write the host", before, journal())
+            }
+            fresh(By.desc("下一组").pkg("org.mywubi").enabled(false))
+            val tailText = expected.getString("text")
+            fresh(By.desc(Pattern.compile("候选 ${Pattern.quote(tailText)}(?:，.*)?")).pkg("org.mywubi"))
+            shot("full-library-final-window")
+            candidate(tailText); assertHost(tailText)
+            fresh(By.desc("英 → 中").pkg("org.mywubi").enabled(true))
+            File(evidence, "full-library-tail.json").writeText(expected.toString(2))
+            File(evidence, "full-library-tail-journal.jsonl").writeText(journal())
+            shot("full-library-tail-committed")
+            device.pressKeyCode(KeyEvent.KEYCODE_Z, KeyEvent.META_CTRL_ON)
+            assertHost("")
+            // Re-entering Emoji after a tail commit must not retain the previous query/window.
+            enter("Emoji 输入"); key("a"); key("空格"); key("c"); button("查找表情")
+            candidate("🚳"); assertHost("🚳")
+            fresh(By.desc("英 → 中").pkg("org.mywubi").enabled(true))
+            shot("mode-return-committed")
+        } finally {
+            save(original, store.readConfig().getLong("version"))
+            device.pressBack(); device.pressBack()
+        }
+    }
+
     @Test fun realQueryEditsNeverTouchHostAndFinalEmojiAndLongKaomojiStayComplete() {
         val store=EngineStore(context)
         val loaded=store.readConfig()
