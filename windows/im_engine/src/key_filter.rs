@@ -235,6 +235,7 @@ fn mode_character(
         InputMode::Menu => true,
         InputMode::Pinyin => c == '\'' || c.is_ascii_alphanumeric(),
         InputMode::English => !c.is_control(),
+        InputMode::Emoji | InputMode::Kaomoji => !c.is_control(),
     };
     protected.then_some(InputEvent::Char(c))
 }

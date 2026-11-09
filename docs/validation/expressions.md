@@ -66,3 +66,11 @@ Android `:app:compileDebugKotlin --offline --console=plain` 通过，包括 arm6
 `expressions/bundle-files.tsv` 统一控制 Windows、Android 的 12 个分发文件。实际 Velopack 安装包、便携包与 Android APK 已生成；逐文件比较 Portable ZIP、full.nupkg、APK 中的全部 12 个文件与源码字节一致，包含完整 3972/34354 条词库及 4 份许可声明。产物及哈希记录位于本地 `target/em05-release`、`target/em05-package-verification.json`，后续验收继续复用；没有发布或推送。
 
 本地原先没有 Windows 打包所需的推理组件归档，因此仅首次获取同版本 V0.7.3 的 `components.json`（5214 字节）与 CPU 组件 ZIP（10337999 字节），分别校验 GitHub 发布摘要 `971e001033b3f52bf55f1141965567b36be7c4aed141df3e976900b691edca60`、`1bd46e99d18725c6814adf4b785739dd00e8f93dacf9d4731a38ea8b163611ff`。缓存保留在 `target/em-resource-cache/V0.7.3`；未下载旧安装包，也未重复下载验证资源。此项没有验证实际字体显示，专用模式开关在后续模式任务完成后才有可用入口。
+
+## EM-09 多词查询核心（界面入口仍待接入）
+
+`core_engine/tests/expression_query.rs` 11 项用例覆盖两种行为协议：多词累积、禁止提前写入宿主、禁止查询原文上屏、自动选词、无候选查找保留编码、无结果与空查询、跨词边界扩展字素退格、分阶段 Esc、返回原输入模式、612 项完整分页与窗口、过期点击、确认前不发布、确定失败重试、未知/部分写入不重放、重入代次、失焦/重载/开关/隐私取消。查询文字和编码只存在于输入法视图，不创建宿主预编辑。
+
+共享核心完整 lib/tests 263 项通过，严格 Clippy 通过，Windows 25 项会话回归通过；全目标编译通过。Android arm64-v8a/x86_64 JNI 与 APK 构建通过；复用已有 API 34 模拟器运行 `ExpressionQueryTest`，使用随包完整 Emoji 数据完成“禁止 → 自行车 → 查找 → 🚳”，验证 UTF-16/JNI 完整串、NoOp、失败重试和旧 ID 拒绝。此项是 JNI 契约证据，不是外部宿主或可见键盘界面验收。
+
+EM-09 保持未完成：核心动作已验证，辅助菜单入口、Windows Tab、Android 可点击查找/修改仍与 EM-11 一起接入；字体与真实宿主继续按原任务单独验收。此次构建复用本地依赖、词库和模拟器，没有新增下载。

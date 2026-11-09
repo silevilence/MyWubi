@@ -12,6 +12,7 @@ use crate::expressions::{ExpressionResources, ExpressionsConfig};
 use crate::temporary::{InputMode, TemporaryTables};
 use std::sync::Arc;
 mod expression_candidates;
+mod expression_query;
 pub mod semantic;
 mod temporary_input;
 
@@ -101,6 +102,7 @@ pub struct StateMachine {
     expression_config: ExpressionsConfig,
     expressions_allowed: bool,
     appended: Option<Arc<expression_candidates::AppendedCandidates>>,
+    expression_query: Option<Box<expression_query::ExpressionQuery>>,
     /// 当前绑定的码表（不可变，多线程共享）。
     dict: Arc<Dictionary>,
     /// 单页候选数。
@@ -176,6 +178,7 @@ impl StateMachine {
             expression_config: ExpressionsConfig::default(),
             expressions_allowed: true,
             appended: None,
+            expression_query: None,
             dict,
             page_size,
             auto_commit_unique,
@@ -246,6 +249,9 @@ impl StateMachine {
 
     /// 总页数。
     pub fn total_pages(&self) -> usize {
+        if self.expression_query.is_some() {
+            return self.total_candidates.div_ceil(self.page_size.min(9)).max(1);
+        }
         if let Some(appended) = &self.appended {
             return appended.pages.len().max(1);
         }
@@ -291,6 +297,7 @@ impl StateMachine {
 
     /// 重置全部状态（不释放码表绑定）。
     pub fn reset(&mut self) {
+        self.expression_query = None;
         self.appended = None;
         self.mode = InputMode::Main;
         self.spelling.clear();
@@ -303,6 +310,9 @@ impl StateMachine {
 
     /// 提交当前输入：有候选上屏首选，否则上屏原始缓冲。
     pub fn commit_current(&mut self) -> Option<(String, usize)> {
+        if self.expression_query.is_some() {
+            return None;
+        }
         if self.spelling.is_empty() {
             self.reset();
             return None;
@@ -319,6 +329,9 @@ impl StateMachine {
 
     /// 提交当前原始编码，不选候选词。
     pub fn commit_raw_current(&mut self) -> Option<(String, usize)> {
+        if self.expression_query.is_some() {
+            return None;
+        }
         if self.spelling.is_empty() {
             self.reset();
             return None;
@@ -331,6 +344,9 @@ impl StateMachine {
 
     /// 处理一个输入事件并返回对外行为。
     pub fn handle(&mut self, event: InputEvent) -> Transition {
+        if self.expression_query.is_some() {
+            return self.handle_expression(event);
+        }
         if self.mode != InputMode::Main {
             return self.handle_temporary(event);
         }

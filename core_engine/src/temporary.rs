@@ -45,6 +45,8 @@ pub enum InputMode {
     Menu,
     Pinyin,
     English,
+    Emoji,
+    Kaomoji,
 }
 
 impl InputMode {
@@ -54,6 +56,17 @@ impl InputMode {
             Self::Menu => "临时模式",
             Self::Pinyin => "临时拼音",
             Self::English => "临时英文",
+            Self::Emoji => "Emoji",
+            Self::Kaomoji => "颜文字",
+        }
+    }
+
+    pub fn expression_kind(self) -> Option<crate::expressions::ExpressionKind> {
+        use crate::expressions::ExpressionKind;
+        match self {
+            Self::Emoji => Some(ExpressionKind::Emoji),
+            Self::Kaomoji => Some(ExpressionKind::Kaomoji),
+            _ => None,
         }
     }
 }

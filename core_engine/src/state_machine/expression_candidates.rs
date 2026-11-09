@@ -20,7 +20,7 @@ pub(super) struct AppendedCandidates {
 }
 
 impl StateMachine {
-    fn expression_library(&self, kind: ExpressionKind) -> Option<&ExpressionLibrary> {
+    pub(super) fn expression_library(&self, kind: ExpressionKind) -> Option<&ExpressionLibrary> {
         match kind {
             ExpressionKind::Emoji => self.expressions.emoji.library.as_deref(),
             ExpressionKind::Kaomoji => self.expressions.kaomoji.library.as_deref(),

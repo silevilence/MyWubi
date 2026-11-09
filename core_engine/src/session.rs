@@ -153,6 +153,7 @@ pub struct Acknowledged {
 }
 
 struct Pending {
+    local_query: bool,
     owned_preedit_before: bool,
     previous_prediction: Option<crate::assistance::prediction::Prediction>,
     predict_after: bool,
@@ -729,7 +730,8 @@ impl Session {
         }
         let mut next = self.engine.clone();
         let rollback = (self.legacy()
-            && matches!(action, Action::Legacy(_) | Action::SelectCandidate(_, _))
+            && (matches!(action, Action::Legacy(_) | Action::SelectCandidate(_, _))
+                || self.state_machine().mode().expression_kind().is_some())
             && self.state_machine().mode() != InputMode::Main)
             .then(|| self.engine.clone());
         let action = if !self.legacy() && self.context.purpose != InputPurpose::Text {
@@ -812,10 +814,14 @@ impl Session {
         mut parts: PlanParts,
         cleanup: bool,
     ) -> Result<PreparedEdit, SessionError> {
+        let local_query = self.state_machine().mode().expression_kind().is_some()
+            || next.state_machine().mode().expression_kind().is_some();
         if self.closed {
             return Err(SessionError::Closed);
         }
-        let target = if self.legacy() {
+        let target = if self.state_machine().mode().expression_kind().is_some() {
+            EditTarget::CurrentSelection
+        } else if self.legacy() {
             EditTarget::LegacyRangeFallback
         } else if self.context.owns_preedit {
             EditTarget::OwnedComposition
@@ -884,6 +890,7 @@ impl Session {
             },
         };
         self.pending = Some(Pending {
+            local_query,
             owned_preedit_before: self.context.owns_preedit,
             previous_prediction: self.prediction.take(),
             predict_after: false,
@@ -989,7 +996,9 @@ impl Session {
                     pending.plan.op,
                     EditSessionOp::EndComposition { delete_text: true }
                 ));
-                self.cleanup = (self.legacy() || self.context.owns_preedit).then_some(delete);
+                self.cleanup = ((self.legacy() && !pending.local_query)
+                    || self.context.owns_preedit)
+                    .then_some(delete);
                 if self.cleanup.is_some() {
                     AckStatus::NeedsCleanup
                 } else {
@@ -1053,7 +1062,9 @@ impl Session {
         let mut next = self.engine.clone();
         let temporary =
             next.temporary_mode().is_some() || next.state_machine().mode() == InputMode::Menu;
-        let op = if temporary {
+        let op = if next.state_machine().mode().expression_kind().is_some() {
+            EditSessionOp::NoOp
+        } else if temporary {
             EditSessionOp::EndComposition { delete_text: true }
         } else if !next.state_machine().spelling().is_empty() {
             EditSessionOp::CommitAndReplace {
@@ -1079,6 +1090,9 @@ impl Session {
     }
 
     fn finish_operation(&self, temporary: bool) -> EditSessionOp {
+        if self.state_machine().mode().expression_kind().is_some() {
+            return EditSessionOp::NoOp;
+        }
         // Local preedit has no host range to finish: preserve a base round by
         // inserting its raw text while the old connection is still valid.
         if !self.legacy()
@@ -1267,7 +1281,7 @@ fn plan(
     let mut view = SessionView::default();
     let mut unchanged = false;
     let mut consumed = true;
-    let op = match transition {
+    let mut op = match transition {
         Transition::None => {
             unchanged = true;
             view = current.clone();
@@ -1386,6 +1400,19 @@ fn plan(
         view.spelling = sm.spelling().to_owned();
     }
     view.mode = sm.mode();
+    view.expression = sm.expression_view();
+    if view.expression.is_some()
+        || (current.expression.is_some()
+            && matches!(
+                op,
+                EditSessionOp::EndComposition { .. } | EditSessionOp::CompositionUpdate { .. }
+            ))
+    {
+        // Query words and codes are local UI state. Never start, update or finish
+        // host composition for this round, including cancellation and empty results.
+        op = EditSessionOp::NoOp;
+        view.preedit_kind = None;
+    }
     view.preedit_kind = match &op {
         EditSessionOp::CompositionUpdate { attr, .. }
         | EditSessionOp::CommitThenUpdate { attr, .. } => Some(*attr),

@@ -53,6 +53,9 @@ pub struct PresentationItem {
 
 #[derive(Debug, Clone, Default, PartialEq, Eq, serde::Serialize, serde::Deserialize)]
 pub struct SessionView {
+    /// Internal query only: this text must never become host preedit.
+    #[serde(default)]
+    pub expression: Option<ExpressionQueryView>,
     #[serde(default)]
     pub prediction: bool,
     pub visible: bool,
@@ -62,6 +65,21 @@ pub struct SessionView {
     pub total_pages: usize,
     pub mode: crate::InputMode,
     pub preedit_kind: Option<PreeditKind>,
+}
+
+#[derive(Debug, Clone, Copy, PartialEq, Eq, serde::Serialize, serde::Deserialize)]
+pub enum ExpressionPhase {
+    Editing,
+    Results,
+}
+
+#[derive(Debug, Clone, PartialEq, Eq, serde::Serialize, serde::Deserialize)]
+pub struct ExpressionQueryView {
+    pub kind: crate::expressions::ExpressionKind,
+    pub phase: ExpressionPhase,
+    pub text: String,
+    pub words: Vec<String>,
+    pub message: Option<String>,
 }
 
 /// None means keep the previously published view, including platform anchor fallback.

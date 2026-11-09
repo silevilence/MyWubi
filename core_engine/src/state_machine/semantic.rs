@@ -16,6 +16,18 @@ pub enum BaseMode {
 pub enum TemporaryMode {
     Pinyin,
     English,
+    Emoji,
+    Kaomoji,
+}
+
+impl TemporaryMode {
+    fn expression_kind(self) -> Option<crate::expressions::ExpressionKind> {
+        match self {
+            Self::Emoji => Some(crate::expressions::ExpressionKind::Emoji),
+            Self::Kaomoji => Some(crate::expressions::ExpressionKind::Kaomoji),
+            _ => None,
+        }
+    }
 }
 
 /// Availability is independent of menu bindings and text completion availability.
@@ -61,6 +73,8 @@ pub enum Action {
     OpenModeChooser,
     ChooseMode(TemporaryMode),
     CloseModeChooser,
+    FindExpressions,
+    EditExpressionQuery,
     SelectCandidate(QueryRevision, CandidateId),
 }
 
@@ -149,6 +163,17 @@ impl SemanticEngine {
             return None;
         }
         self.sm.expressions_allowed = allowed;
+        if !allowed && self.sm.expression_query.is_some() {
+            let previous = self
+                .sm
+                .expression_query
+                .as_ref()
+                .and_then(|q| q.return_temporary);
+            let transition = self.sm.exit_expression();
+            self.temporary = previous;
+            self.invalidate_query();
+            return Some(transition);
+        }
         self.sm.appended = None;
         self.sm.page = 0;
         self.invalidate_query();
@@ -174,6 +199,19 @@ impl SemanticEngine {
     /// Read-only window query. Full lookup is performed only on explicit queries,
     /// never duplicated on the Windows key path; only the bounded window is copied.
     pub fn candidate_window(&self, offset: usize, count: usize) -> CandidateWindow {
+        if self.sm.expression_query.is_some() {
+            let total = self.sm.total_candidates;
+            let offset = offset.min(total);
+            return CandidateWindow {
+                query_revision: self.query_revision,
+                view_revision: self.view_revision,
+                total,
+                offset,
+                candidates: (offset..offset.saturating_add(count.min(MAX_WINDOW)).min(total))
+                    .filter_map(|i| self.sm.expression_candidate(i))
+                    .collect(),
+            };
+        }
         if self.sm.appended.is_some() {
             let total = self.sm.total_candidates;
             let offset = offset.min(total);
@@ -192,7 +230,7 @@ impl SemanticEngine {
             InputMode::Main => Some(&self.sm.dict),
             InputMode::Pinyin => self.sm.temporary.pinyin.as_ref(),
             InputMode::English => self.sm.temporary.english.as_ref(),
-            InputMode::Menu => None,
+            InputMode::Menu | InputMode::Emoji | InputMode::Kaomoji => None,
         };
         let all = if let Some(dict) =
             dict.filter(|_| !self.sm.spelling.is_empty() && !self.sm.candidates.is_empty())
@@ -264,6 +302,8 @@ impl SemanticEngine {
             match self.sm.mode {
                 InputMode::Pinyin => Some(TemporaryMode::Pinyin),
                 InputMode::English => Some(TemporaryMode::English),
+                InputMode::Emoji => Some(TemporaryMode::Emoji),
+                InputMode::Kaomoji => Some(TemporaryMode::Kaomoji),
                 _ => None,
             }
         } else {
@@ -288,11 +328,21 @@ impl SemanticEngine {
                 candidate_support: tables.english.is_some(),
                 reason: tables.english_error.clone(),
             },
+            TemporaryMode::Emoji => self
+                .sm
+                .expression_capability(crate::expressions::ExpressionKind::Emoji),
+            TemporaryMode::Kaomoji => self
+                .sm
+                .expression_capability(crate::expressions::ExpressionKind::Kaomoji),
         }
     }
 
     /// End a round without changing the persistent mode; old StateMachine::reset stays unchanged.
     pub fn clear_composition(&mut self) {
+        if self.sm.expression_query.is_some() {
+            self.end_temporary();
+            return;
+        }
         let mode = self.sm.mode;
         self.sm.reset();
         self.sm.mode = mode;
@@ -325,6 +375,27 @@ impl SemanticEngine {
         base: Option<BaseMode>,
         temporary: Option<TemporaryMode>,
     ) -> ActionResult {
+        if let Some(kind) = temporary.and_then(TemporaryMode::expression_kind) {
+            if self.temporary_mode() == temporary {
+                return ActionResult::from_transition(Transition::None);
+            }
+            return match self.sm.begin_expression(kind, self.temporary_mode()) {
+                Ok(transition) => {
+                    self.temporary = temporary;
+                    ActionResult::from_transition(transition)
+                }
+                Err(reason) => ActionResult::rejected(Rejection::Unavailable(reason)),
+            };
+        }
+        if self
+            .sm
+            .expression_view()
+            .is_some_and(|q| !q.text.is_empty() || !self.sm.spelling.is_empty())
+        {
+            return ActionResult::rejected(Rejection::Unavailable(
+                "请先取消当前表情查询再切换模式".into(),
+            ));
+        }
         if (base.is_some() && base == Some(self.base) && self.temporary.is_none())
             || (temporary.is_some() && self.temporary_mode() == temporary)
         {
@@ -353,6 +424,8 @@ impl SemanticEngine {
         self.sm.mode = match temporary {
             Some(TemporaryMode::Pinyin) => InputMode::Pinyin,
             Some(TemporaryMode::English) => InputMode::English,
+            Some(TemporaryMode::Emoji) => InputMode::Emoji,
+            Some(TemporaryMode::Kaomoji) => InputMode::Kaomoji,
             None if self.base == BaseMode::English => InputMode::English,
             None => InputMode::Main,
         };
@@ -376,10 +449,14 @@ impl SemanticEngine {
             | Action::EndTemporary
             | Action::OpenModeChooser
             | Action::ChooseMode(_)
-            | Action::CloseModeChooser => true,
+            | Action::CloseModeChooser
+            | Action::FindExpressions
+            | Action::EditExpressionQuery => true,
             Action::Legacy(e) => self.sm.would_consume(e),
             Action::InputCode(c) => match self.sm.mode {
-                InputMode::Main => self.sm.accepts_code_char(*c),
+                InputMode::Main | InputMode::Emoji | InputMode::Kaomoji => {
+                    self.sm.accepts_code_char(*c)
+                }
                 InputMode::Pinyin => c.is_ascii_lowercase() || *c == '\'',
                 InputMode::English => !c.is_control(),
                 InputMode::Menu => false,
@@ -399,6 +476,16 @@ impl SemanticEngine {
     }
 
     pub fn dispatch(&mut self, action: Action) -> ActionResult {
+        let restores_entry_mode = !matches!(
+            action,
+            Action::SetBaseMode(_) | Action::BeginTemporary(_) | Action::ChooseMode(_)
+        );
+        let expression_before = self.sm.expression_view();
+        let return_temporary = self
+            .sm
+            .expression_query
+            .as_ref()
+            .map(|q| q.return_temporary);
         let before = (
             self.sm.spelling.clone(),
             self.sm.mode,
@@ -407,6 +494,11 @@ impl SemanticEngine {
         );
         let page = self.sm.page;
         let result = self.dispatch_inner(action);
+        if let Some(previous) =
+            return_temporary.filter(|_| restores_entry_mode && self.sm.expression_query.is_none())
+        {
+            self.temporary = previous;
+        }
         let changed = before
             != (
                 self.sm.spelling.clone(),
@@ -415,6 +507,7 @@ impl SemanticEngine {
                 self.temporary,
             );
         if changed
+            || expression_before != self.sm.expression_view()
             || matches!(
                 result.transition,
                 Transition::Commit(_)
@@ -424,7 +517,9 @@ impl SemanticEngine {
             )
         {
             self.invalidate_query();
-        } else if page != self.sm.page && self.sm.appended.is_some() {
+        } else if page != self.sm.page
+            && (self.sm.appended.is_some() || self.sm.expression_query.is_some())
+        {
             // Mixed text/expression pages invalidate old clicks, while IDs continue
             // to address the same immutable sequence in the newly published query.
             self.invalidate_query();
@@ -435,8 +530,14 @@ impl SemanticEngine {
     }
 
     fn dispatch_inner(&mut self, action: Action) -> ActionResult {
+        if self.sm.expression_query.is_some() {
+            if let Some(result) = self.dispatch_expression(&action) {
+                return result;
+            }
+        }
         let legacy = matches!(action, Action::Legacy(_));
         let transition = match action {
+            Action::FindExpressions | Action::EditExpressionQuery => Transition::None,
             Action::SelectCandidate(revision, id) => {
                 if revision != self.query_revision {
                     return ActionResult::rejected(Rejection::StaleCandidate);
@@ -572,5 +673,49 @@ impl SemanticEngine {
         let mut text = previous.map_or_else(String::new, |(text, _)| text);
         text.push_str(literal);
         Transition::Commit(text)
+    }
+
+    fn dispatch_expression(&mut self, action: &Action) -> Option<ActionResult> {
+        let transition = match action {
+            Action::SetBaseMode(_) | Action::BeginTemporary(_) | Action::ChooseMode(_) => {
+                return None
+            }
+            Action::OpenModeChooser => {
+                return Some(ActionResult::rejected(Rejection::Unavailable(
+                    "请先取消当前表情查询".into(),
+                )))
+            }
+            Action::EndTemporary | Action::CloseModeChooser => self.sm.exit_expression(),
+            Action::FindExpressions => self.sm.find_expressions(),
+            Action::EditExpressionQuery => self.sm.edit_expression(),
+            Action::SelectCandidate(revision, id) => {
+                if *revision != self.query_revision || id.0 >= self.sm.total_candidates {
+                    return Some(ActionResult::rejected(Rejection::StaleCandidate));
+                }
+                self.sm.select_expression_candidate(id.0)
+            }
+            Action::InputCode(c) => self.sm.handle_expression_code(*c),
+            Action::InputText(c, TextIntent::Normal) => {
+                self.sm.handle_expression(InputEvent::Char(*c))
+            }
+            Action::InputText(_, TextIntent::Literal)
+            | Action::InsertLiteral(_)
+            | Action::InputSymbol(_) => {
+                return Some(ActionResult::rejected(Rejection::Unavailable(
+                    "查询模式请使用主码表选词；字面文本不会写入宿主".into(),
+                )));
+            }
+            Action::Legacy(event) => self.sm.handle_expression(event.clone()),
+            Action::CommitPreferred | Action::Space => self.sm.handle_expression(InputEvent::Space),
+            Action::CommitRaw | Action::Enter => self.sm.handle_expression(InputEvent::Enter),
+            Action::Backspace => self.sm.handle_expression(InputEvent::Backspace),
+            Action::Cancel => self.sm.handle_expression(InputEvent::Esc),
+            Action::MoveCandidatePage(next) => self.sm.handle_expression(if *next {
+                InputEvent::PageNext
+            } else {
+                InputEvent::PagePrev
+            }),
+        };
+        Some(ActionResult::from_transition(transition))
     }
 }
