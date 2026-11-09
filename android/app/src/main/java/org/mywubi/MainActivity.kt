@@ -118,22 +118,7 @@ private fun SettingsScreen(model: SettingsModel, enable: () -> Unit, choose: () 
                     }
                     SettingToggle("启用用户词库", dict.getBoolean("enable_user_dict"), !model.busy) { model.change("dictionary", "enable_user_dict", it) }
                     HorizontalDivider()
-                    Text("Emoji 与颜文字", style = MaterialTheme.typography.titleMedium)
-                    for ((kind, label) in listOf("emoji" to "Emoji", "kaomoji" to "颜文字")) {
-                        val selection = config.optJSONObject("expressions")?.optJSONObject(kind) ?: JSONObject()
-                        fun changeExpression(key: String, value: Any) {
-                            val copy = JSONObject(selection.toString()).put(key, value)
-                            model.change("expressions", kind, copy)
-                        }
-                        Text(label)
-                        SettingToggle("普通输入时追加", selection.optBoolean("append"), !model.busy) { changeExpression("append", it) }
-                        SettingToggle("专用模式可用", selection.optBoolean("search"), !model.busy) { changeExpression("search", it) }
-                        OutlinedTextField(value = if (selection.isNull("resource")) "" else selection.optString("resource"),
-                            onValueChange = { changeExpression("resource", if (it.isEmpty()) JSONObject.NULL else it) },
-                            label = { Text("词库文件（留空使用内置）") }, singleLine = true, enabled = !model.busy,
-                            modifier = Modifier.fillMaxWidth())
-                    }
-                    Text("两类词库独立控制，切换主码表不改变这些设置。保存后生效。")
+                    ExpressionSettings(model, config)
                 }
                 OutlinedButton(onClick = { model.getApplication<android.app.Application>().startActivity(Intent(model.getApplication(), UpdateActivity::class.java).addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)) }) { Text("应用更新") }
             }
@@ -396,3 +381,64 @@ internal fun ModelBuildGuide() {
     if (failed) Text("无法打开浏览器。请到项目 GitHub 的 docs/model-input-integration.md 查看构建说明。")
 }
 private data class Budget(val key:String,val label:String,val range:IntRange,val default:Int)
+
+
+@Composable
+private fun ExpressionSettings(model: SettingsModel, config: JSONObject) {
+    var importing by rememberSaveable { mutableStateOf("emoji") }
+    val picker = rememberLauncherForActivityResult(ActivityResultContracts.OpenDocument()) { uri ->
+        uri?.let { model.importExpression(importing, it) }
+    }
+    Text("Emoji 与颜文字", style = MaterialTheme.typography.titleMedium)
+    if (model.expressionError.isNotEmpty()) Text(model.expressionError, color = MaterialTheme.colorScheme.error)
+    for ((kind, label) in listOf("emoji" to "Emoji", "kaomoji" to "颜文字")) {
+        val selection = config.optJSONObject("expressions")?.optJSONObject(kind) ?: JSONObject()
+        fun change(key: String, value: Any) {
+            model.change("expressions", kind, JSONObject(selection.toString()).put(key, value))
+        }
+        val entries = model.expressionResources[kind].orEmpty()
+        val resource = if (selection.isNull("resource")) null else selection.optString("resource")
+        val current = entries.firstOrNull { info ->
+            if (resource == null) info.optBoolean("builtin")
+            else java.io.File(info.getString("path")) == java.io.File(resource).let {
+                if (it.isAbsolute) it else java.io.File(model.store.configFile.parentFile, resource)
+            }
+        }
+        Text(label, style = MaterialTheme.typography.titleMedium)
+        SettingToggle("普通输入时追加", selection.optBoolean("append"), !model.busy) { change("append", it) }
+        SettingToggle("专用模式可用", selection.optBoolean("search"), !model.busy) { change("search", it) }
+        TableChoice("选择${label}词库", current?.optString("name") ?: "尚未检查所选词库",
+            entries.map { info ->
+                val prefix = if (info.optBoolean("builtin")) "内置 · " else ""
+                val error = if (!info.isNull("error")) "（不可用）" else ""
+                "$prefix${info.getString("name")}$error" to info.getString("path")
+            }, !model.busy && entries.isNotEmpty()) { path ->
+            model.selectExpression(kind, entries.first { it.getString("path") == path })
+        }
+        Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+            OutlinedButton(onClick = { importing = kind; picker.launch(arrayOf("*/*")) }, enabled = !model.busy) { Text("导入词库") }
+            TextButton(onClick = { model.selectExpression(kind, null) }, enabled = !model.busy) { Text("使用内置词库") }
+        }
+        if (current != null) {
+            if (!current.isNull("error")) Text(current.getString("error"), color = MaterialTheme.colorScheme.error)
+            else {
+                Text("校验通过 · ${current.getInt("entries")} 条 · 版本 ${current.getString("version")}")
+                Text(if (selection.optBoolean("append") || selection.optBoolean("search"))
+                    "保存后由输入法加载；当前宿主是否已采用请查看底部应用状态。" else "两个用途均关闭，输入法不加载此词库。",
+                    style = MaterialTheme.typography.bodySmall)
+                SettingsDisclosure("${label}来源与许可") {
+                    val sources = current.getJSONArray("sources")
+                    for (index in 0 until sources.length()) {
+                        val source = sources.getJSONObject(index)
+                        Text("${source.getString("id")} · ${source.getString("revision")} · ${source.getString("license")}")
+                        Text(source.getString("url"), style = MaterialTheme.typography.bodySmall)
+                        SettingsDisclosure("完整声明：${source.getString("id")}") { Text(source.getString("notice")) }
+                    }
+                }
+            }
+        }
+        HorizontalDivider()
+    }
+    TextButton(onClick = model::refreshExpressions, enabled = !model.busy) { Text("重新检查词库") }
+    Text("配置独立于主码表。导入会复制到应用私有目录，选择和开关需保存后生效。当前专用模式尚在开发。", style = MaterialTheme.typography.bodySmall)
+}

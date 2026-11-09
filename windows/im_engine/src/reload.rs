@@ -51,7 +51,14 @@ fn watch_loop(runtime: Arc<ArcSwap<RuntimeSnapshot>>) -> notify::Result<()> {
 
 fn publish_reload(runtime: &ArcSwap<RuntimeSnapshot>, snapshot: RuntimeSnapshot) -> Vec<PathBuf> {
     let attempted = paths(&snapshot);
-    if snapshot.temporary.load_errors.is_empty() {
+    let errors: Vec<_> = snapshot
+        .temporary
+        .load_errors
+        .iter()
+        .map(String::as_str)
+        .chain(snapshot.expressions.errors())
+        .collect();
+    if errors.is_empty() {
         let revision = snapshot.revision;
         runtime.store(Arc::new(snapshot));
         log::info!("[reload] 已发布新的运行时快照 revision={revision}");
@@ -62,7 +69,7 @@ fn publish_reload(runtime: &ArcSwap<RuntimeSnapshot>, snapshot: RuntimeSnapshot)
         targets.extend(attempted);
         log::error!(
             "[reload] 辅助码表重载失败，保留旧快照: {}",
-            snapshot.temporary.load_errors.join("; ")
+            errors.join("; ")
         );
         targets
     }
@@ -265,6 +272,37 @@ mod tests {
         let targets = publish_reload(&runtime, repaired);
         assert_eq!(runtime.load().revision, 3);
         assert_eq!(targets, paths(&runtime.load()));
+    }
+
+    #[test]
+    fn failed_expression_reload_keeps_old_snapshot_and_tracks_repair_path() {
+        use core_engine::expressions::{ExpressionResource, ExpressionResources};
+        let runtime = ArcSwap::from_pointee(runtime_snapshot());
+        let mut failed = runtime_snapshot();
+        failed.revision = 2;
+        let path = PathBuf::from(r"D:\expressions\custom.mwe");
+        failed.expressions = Arc::new(ExpressionResources {
+            emoji: ExpressionResource {
+                path: Some(path.clone()),
+                error: Some("broken".into()),
+                ..Default::default()
+            },
+            ..Default::default()
+        });
+        let targets = publish_reload(&runtime, failed);
+        assert_eq!(runtime.load().revision, 1);
+        assert!(targets.contains(&path));
+        let mut repaired = runtime_snapshot();
+        repaired.revision = 3;
+        repaired.expressions = Arc::new(ExpressionResources {
+            emoji: ExpressionResource {
+                path: Some(path),
+                ..Default::default()
+            },
+            ..Default::default()
+        });
+        publish_reload(&runtime, repaired);
+        assert_eq!(runtime.load().revision, 3);
     }
 
     #[test]

@@ -104,6 +104,7 @@ foreach ($table in @('wubi86.dict', 'pinyin.dict', 'english.dict', 'README.md', 
     Copy-Item -LiteralPath (Join-Path $tablesSrc $table) -Destination $tablesDst -ErrorAction Stop
 }
 Copy-Item -LiteralPath (Join-Path $tablesSrc 'licenses') -Destination $tablesDst -Recurse -ErrorAction Stop
+& (Join-Path $repoRoot 'scripts\copy-expression-bundle.ps1') -Destination (Join-Path $stagingDir 'expressions')
 
 # 注：不打包默认 config.toml。settings.exe 首次启动时会通过
 # config_path::resolve_config_path() 自动写入内置默认配置（便携模式优先，

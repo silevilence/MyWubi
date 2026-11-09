@@ -102,6 +102,13 @@ class EngineStore(private val context: Context) {
             trialConfig.getJSONObject("dictionary").put("system_table", TableCatalog(context).resolve(system).path)
             val user = trialConfig.getJSONObject("dictionary").getString("user_table")
             if (!File(user).isAbsolute) trialConfig.getJSONObject("dictionary").put("user_table", File(configFile.parentFile, user).path)
+            val expressions = trialConfig.optJSONObject("expressions")
+            for (kind in listOf("emoji", "kaomoji")) {
+                expressions?.optJSONObject(kind)?.let { selection ->
+                    val resource = if (selection.isNull("resource")) "expressions/$kind.mwe" else selection.getString("resource")
+                    if (!File(resource).isAbsolute) selection.put("resource", File(configFile.parentFile, resource).path)
+                }
+            }
             NativeHandle(NativeBridge.objectCall("FileVersion", "path" to trial.path).getLong("version")).use { trialVersion ->
                 val saved = NativeBridge.objectCall("SaveConfig", "path" to trial.path, "config" to trialConfig, "expected" to trialVersion.value)
                 NativeHandle(saved.getLong("version")).close()

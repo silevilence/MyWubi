@@ -11,6 +11,7 @@ pub mod config;
 pub mod config_path;
 pub mod data;
 pub mod dictionary;
+pub mod expression_store;
 pub mod expressions;
 pub mod ffi;
 mod pinyin;

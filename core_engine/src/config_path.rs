@@ -92,6 +92,19 @@ pub fn resolve_config_path_from(
     if created {
         copy_default_tables(exe_dir, app_config_dir)?;
     }
+    let bundle = exe_dir.join("expressions");
+    if bundle.is_dir() {
+        for kind in [
+            crate::expressions::ExpressionKind::Emoji,
+            crate::expressions::ExpressionKind::Kaomoji,
+        ] {
+            if let Err(error) =
+                crate::expression_store::prepare_builtin(&config_path, &bundle, kind)
+            {
+                log::warn!("内置表情词库准备失败（主输入仍可用）: {error}");
+            }
+        }
+    }
     Ok(ResolvedConfigPath {
         path: config_path,
         portable: false,

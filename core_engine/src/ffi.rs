@@ -109,6 +109,16 @@ enum Request {
     ReadTableConfig {
         path: PathBuf,
     },
+    ListExpressions {
+        path: PathBuf,
+        kind: expressions::ExpressionKind,
+        selected: expressions::ExpressionSelection,
+    },
+    ImportExpression {
+        path: PathBuf,
+        kind: expressions::ExpressionKind,
+        source: PathBuf,
+    },
     ValidateTable {
         config: TableConfig,
         entries: Vec<Entry>,
@@ -395,6 +405,18 @@ impl Registry {
             }
             Request::ReadTableConfig { path } => {
                 json!(crate::read_table_config(&path).map_err(|e| err(5, e.to_string()))?)
+            }
+            Request::ListExpressions {
+                path,
+                kind,
+                selected,
+            } => {
+                json!(expression_store::list(&path, kind, &selected)
+                    .map_err(|error| err(5, error))?)
+            }
+            Request::ImportExpression { path, kind, source } => {
+                json!(expression_store::import(&path, kind, &source)
+                    .map_err(|error| err(5, error))?)
             }
             Request::ReadTable { path } => {
                 let before = FileVersion::read(&path).map_err(data_error)?;

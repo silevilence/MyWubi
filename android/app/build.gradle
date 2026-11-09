@@ -62,6 +62,17 @@ tasks.register('prepareProtocolFixtures', Copy) {
     from('../../core_engine/tests/fixtures/protocol')
     into layout.buildDirectory.dir('generated/assets/protocol')
 }
+tasks.register('prepareExpressions', Sync) {
+    file('../../expressions/bundle-files.tsv').readLines('UTF-8').findAll { it && !it.startsWith('#') }.each { line ->
+        def fields = line.split('\t', 2)
+        def destination = new File(fields[1])
+        from("../../expressions/${fields[0]}") {
+            if (destination.parent) into destination.parent
+            rename { destination.name }
+        }
+    }
+    into layout.buildDirectory.dir('generated/assets/expressions')
+}
 tasks.register('prepareLicenses', Sync) {
     from('../../tables/licenses')
     from('../../tables') { include 'README.md', 'sources.json' }
@@ -76,7 +87,7 @@ tasks.register('verifyRustVersion') {
 }
 tasks.configureEach { task ->
     if (task.name.startsWith('cargoBuild')) task.dependsOn 'verifyRustVersion'
-    if (task.name == 'preBuild') task.dependsOn 'cargoBuild', 'prepareTables', 'prepareProtocolFixtures', 'prepareLicenses'
+    if (task.name == 'preBuild') task.dependsOn 'cargoBuild', 'prepareTables', 'prepareProtocolFixtures', 'prepareLicenses', 'prepareExpressions'
     if (task.name.startsWith('merge') && task.name.endsWith('JniLibFolders')) task.dependsOn 'cargoBuild'
     if (task.name == 'assembleDebug') task.doLast {
         def apk = layout.buildDirectory.file('outputs/apk/debug/app-debug.apk').get().asFile

@@ -18,5 +18,24 @@ pub(crate) fn prepare(config_path: &Path, config: &core_engine::Config) -> Resul
             }
         }
     }
+    for (kind, selection) in [
+        (
+            core_engine::expressions::ExpressionKind::Emoji,
+            &config.expressions.emoji,
+        ),
+        (
+            core_engine::expressions::ExpressionKind::Kaomoji,
+            &config.expressions.kaomoji,
+        ),
+    ] {
+        if selection.needed() {
+            let path = selection.path(config_path, kind);
+            for target in path.parent().into_iter().chain(Some(path.as_path())) {
+                if target.exists() {
+                    tip_manager::app_container::grant_read(target)?;
+                }
+            }
+        }
+    }
     Ok(())
 }

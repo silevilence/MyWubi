@@ -206,33 +206,10 @@ pub fn show(ui: &mut Ui, state: &mut AppState) {
 
 fn expressions(ui: &mut Ui, state: &mut AppState) {
     ui.collapsing("Emoji 与颜文字", |ui| {
-        let mut changed = false;
-        for (label, selection) in [
-            ("Emoji", &mut state.config.expressions.emoji),
-            ("颜文字", &mut state.config.expressions.kaomoji),
-        ] {
-            ui.push_id(label, |ui| {
-                ui.label(label);
-                changed |= ui
-                    .checkbox(&mut selection.append, "普通输入时追加")
-                    .changed();
-                changed |= ui.checkbox(&mut selection.search, "专用模式可用").changed();
-                let mut path = selection
-                    .resource
-                    .as_ref()
-                    .map(|p| p.to_string_lossy().into_owned())
-                    .unwrap_or_default();
-                ui.horizontal(|ui| {
-                    ui.label("词库文件（留空使用内置）");
-                    if ui.text_edit_singleline(&mut path).changed() {
-                        selection.resource = (!path.is_empty()).then(|| path.into());
-                        changed = true;
-                    }
-                });
-            });
-        }
-        ui.small("两类词库独立控制，切换主码表不改变这些设置。保存后生效。");
-        if changed {
+        if state
+            .expressions
+            .show(ui, &state.config_path, &mut state.config.expressions)
+        {
             state.mark_dirty();
         }
     });

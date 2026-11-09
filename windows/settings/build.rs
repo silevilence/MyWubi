@@ -38,6 +38,23 @@ fn main() {
         .and_then(|p| p.parent())
         .expect("workspace root");
     let target_root = ws_root.join("target");
+    println!("cargo:rerun-if-changed=../../expressions/bundle-files.tsv");
+    let bundle_manifest = std::fs::read_to_string(ws_root.join("expressions/bundle-files.tsv"))
+        .expect("expression bundle manifest");
+    for line in bundle_manifest
+        .lines()
+        .filter(|line| !line.starts_with('#') && !line.is_empty())
+    {
+        let (source, name) = line
+            .split_once('\t')
+            .expect("expression bundle source and target");
+        println!("cargo:rerun-if-changed=../../expressions/{source}");
+        let target = target_root.join(&profile).join("expressions").join(name);
+        std::fs::create_dir_all(target.parent().expect("bundle directory"))
+            .expect("create expression bundle directory");
+        std::fs::copy(ws_root.join("expressions").join(source), target)
+            .expect("copy expression bundle resource");
+    }
 
     let src = ws_root.join("tables");
     let dst = target_root.join(&profile).join("tables");

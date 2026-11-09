@@ -8,6 +8,17 @@ object Resources {
     @Synchronized fun prepare(context: Context): File {
         val root = File(context.filesDir, "engine").apply { mkdirs() }
         val tables = File(root, "tables").apply { mkdirs() }
+        val expressions = File(root, "expressions").apply { mkdirs() }
+        for (name in listOf("emoji.mwe", "kaomoji.mwe")) {
+            val target = File(expressions, name)
+            if (!target.exists()) {
+                // Keep existing files on upgrades, including user-maintained resources.
+                runCatching {
+                    val text = context.assets.open("expressions/$name").bufferedReader(Charsets.UTF_8).use { it.readText() }
+                    atomicCreate(target, text)
+                }.onFailure { android.util.Log.w("MyWubi", "内置表情词库准备失败：$name", it) }
+            }
+        }
         for (name in listOf("wubi86.dict", "pinyin.dict", "english.dict")) {
             val target = File(tables, name)
             if (!target.exists()) {

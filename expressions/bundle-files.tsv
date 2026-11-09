@@ -1,0 +1,13 @@
+# Source relative to expressions/; packaged path relative to expressions/.
+emoji.mwe	emoji.mwe
+kaomoji.mwe	kaomoji.mwe
+README.md	README.md
+KAOMOJI-SOURCES.md	KAOMOJI-SOURCES.md
+sources.json	sources.json
+kaomoji-sources.json	kaomoji-sources.json
+emoji-coverage.json	emoji-coverage.json
+kaomoji-coverage.json	kaomoji-coverage.json
+sources/UNICODE-49-LICENSE.txt	licenses/Unicode.txt
+sources/kaomojiya-LICENSE	licenses/Kaomojiya.txt
+sources/kaomojikan-LICENSE	licenses/Kaomojikan.txt
+licenses/MyWubi-MIT.txt	licenses/MyWubi-MIT.txt

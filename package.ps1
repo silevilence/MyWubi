@@ -48,6 +48,7 @@ foreach ($table in @('wubi86.dict', 'pinyin.dict', 'english.dict', 'README.md', 
     Copy-Item -LiteralPath (Join-Path 'tables' $table) -Destination $tableDest -ErrorAction Stop
 }
 Copy-Item -LiteralPath 'tables\licenses' -Destination $tableDest -Recurse -ErrorAction Stop
+& (Join-Path $PSScriptRoot 'scripts\copy-expression-bundle.ps1') -Destination (Join-Path $deployDir 'expressions')
 
 # 6. 显示结果
 Write-Host ""

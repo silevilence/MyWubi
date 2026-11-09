@@ -23,7 +23,7 @@ Android `:app:compileDebugKotlin --offline --console=plain` 通过，包括 arm6
 
 ## 资源与设备
 
-构建使用已有 Cargo/Gradle/SDK/NDK 缓存，Gradle 使用 `--offline`；没有重新下载构建依赖。当前 `adb devices -l` 无连接设备。Android 真机/模拟器显示、外部宿主和 TalkBack 验收未执行，EM-07/EM-08/EM-12 不可据编译结果完成。
+构建使用已有 Cargo/Gradle/SDK/NDK 缓存，Gradle 使用 `--offline`；没有重新下载构建依赖。用户确认暂时没有 Android 真机。已有 API 34 x86_64 模拟器以无窗口、软件渲染方式运行资源集成测试，没有擦除数据；真实显示、外部宿主和 TalkBack 验收未执行，EM-07/EM-08/EM-12 不可据编译或资源测试完成。
 
 已在线获取本地不存在的 Unicode 17.0、CLDR 48 中文数据及许可，保存在 `expressions/sources` 并记录 SHA-256；后续生成与验证复用这些文件。
 
@@ -56,3 +56,13 @@ Android `:app:compileDebugKotlin --offline --console=plain` 通过，包括 arm6
 - Release 使用完整 3972/34354 条本地词库，“开心”得到 858 个候选，遍历结果与两库完整精确索引的并集一致；100 次查询 p50 46 μs、p95 64 μs。此测量不含词库加载、宿主编辑、绘制或 JNI，不代表手机性能。
 
 构建与测试复用本地依赖和词库，无新增下载。未执行本项真实界面交互；字体、视觉及外部宿主验收仍保持未完成，不以这些测试结果替代 EM-06～EM-08。
+
+## EM-05 双端词库管理与分发
+
+共享资源目录接口提供完整元数据、错误状态、独立导入代次及缺失内置资源准备。Windows 后台工作线程与 Android 文件选择器均使用同一格式校验，导入不激活、不覆盖原文件；恢复内置仅改变选择。旧资源保留用于恢复，保存失败不覆盖配置，Windows 监视器发现附加词库损坏时保留旧快照。Windows 设置异步导入不能覆盖工作期间重新加载的选择。
+
+验证结果：核心 lib/tests 252 项通过（含 6 项资源管理用例），核心严格 Clippy 通过；Windows 8 项重载用例、22 项原设置用例及 1 项异步导入回归通过，全目标编译与 Release 构建通过。Android APK/测试 APK 离线构建成功，复用现有 API 34 模拟器运行 `ExpressionResourceTest` 与 `ResourceContractTest`，共 9 项通过，包含用途开关组合、持久导入、换表与重启后选择、错误类型、损坏保存隔离、恢复内置及升级保留。
+
+`expressions/bundle-files.tsv` 统一控制 Windows、Android 的 12 个分发文件。实际 Velopack 安装包、便携包与 Android APK 已生成；逐文件比较 Portable ZIP、full.nupkg、APK 中的全部 12 个文件与源码字节一致，包含完整 3972/34354 条词库及 4 份许可声明。产物及哈希记录位于本地 `target/em05-release`、`target/em05-package-verification.json`，后续验收继续复用；没有发布或推送。
+
+本地原先没有 Windows 打包所需的推理组件归档，因此仅首次获取同版本 V0.7.3 的 `components.json`（5214 字节）与 CPU 组件 ZIP（10337999 字节），分别校验 GitHub 发布摘要 `971e001033b3f52bf55f1141965567b36be7c4aed141df3e976900b691edca60`、`1bd46e99d18725c6814adf4b785739dd00e8f93dacf9d4731a38ea8b163611ff`。缓存保留在 `target/em-resource-cache/V0.7.3`；未下载旧安装包，也未重复下载验证资源。此项没有验证实际字体显示，专用模式开关在后续模式任务完成后才有可用入口。

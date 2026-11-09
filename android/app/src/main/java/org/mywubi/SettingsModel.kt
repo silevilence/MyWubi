@@ -33,6 +33,37 @@ class SettingsModel(application: Application) : AndroidViewModel(application) {
     var message by mutableStateOf(""); private set
     var pack by mutableStateOf<EngineStore.ImportSet?>(null); private set
     var tables by mutableStateOf<List<TableCatalog.Table>>(emptyList()); private set
+    var expressionResources by mutableStateOf<Map<String, List<JSONObject>>>(emptyMap()); private set
+    var expressionError by mutableStateOf(""); private set
+
+    fun refreshExpressions() {
+        val draft = JSONObject(config?.toString() ?: return)
+        work {
+            val result = runCatching { ExpressionCatalog(app).list(draft) }
+            val publish: () -> Unit = {
+                expressionResources = result.getOrDefault(emptyMap())
+                expressionError = result.exceptionOrNull()?.message ?: ""
+            }; publish
+        }
+    }
+
+    fun selectExpression(kind: String, resource: JSONObject?) {
+        val selection = JSONObject(config?.optJSONObject("expressions")?.optJSONObject(kind)?.toString() ?: "{}")
+        val path = if (resource == null || resource.optBoolean("builtin")) JSONObject.NULL
+            else File(resource.getString("path")).relativeToOrSelf(store.configFile.parentFile!!).path
+        selection.put("resource", path)
+        change("expressions", kind, selection)
+    }
+
+    fun importExpression(kind: String, uri: Uri) = work {
+        val resource = ExpressionCatalog(app).import(kind, uri)
+        val publish: () -> Unit = {
+            expressionResources = expressionResources + (kind to (expressionResources[kind].orEmpty() + resource))
+            expressionError = ""
+            selectExpression(kind, resource)
+            message = "词库已导入并选中；点击保存设置生效"
+        }; publish
+    }
     var models by mutableStateOf<List<JSONObject>>(emptyList()); private set
     var modelsLoaded by mutableStateOf(false); private set
     val downloadableModels = JSONObject(NativeBridge.modelDownloads("{\"op\":\"Available\"}".toByteArray()).toString(Charsets.UTF_8)).getJSONArray("value")
@@ -143,6 +174,7 @@ class SettingsModel(application: Application) : AndroidViewModel(application) {
         val saved = if (!discard && draftFile.baseFile.exists()) JSONObject(draftFile.openRead().bufferedReader().use { it.readText() }) else null
         val restored = saved?.getJSONObject("config") ?: loaded.getJSONObject("config")
         val available = TableCatalog(app).tables(restored.getJSONObject("dictionary").getString("system_table"))
+        val expressions = runCatching { ExpressionCatalog(app).list(restored) }
         val imported = saved?.optJSONObject("pack")?.let { p ->
             val files = p.getJSONArray("files")
             EngineStore.ImportSet(File(p.getString("root")), (0 until files.length()).map { i ->
@@ -157,6 +189,8 @@ class SettingsModel(application: Application) : AndroidViewModel(application) {
             baseline = saved?.optString("baseline") ?: disk
             config = restored; dirty = saved != null; pack = imported
             tables = available
+            expressionResources = expressions.getOrDefault(emptyMap())
+            expressionError = expressions.exceptionOrNull()?.message ?: ""
             // Large model checksums are only needed when the user opens model management.
             models = emptyList(); modelsLoaded = false
             message = if (saved != null && baseline != disk) "配置已被其他操作修改。草稿保留，请重新载入后合并。" else if (saved != null) "已恢复未保存草稿" else ""
