@@ -146,12 +146,18 @@ Compose 候选、展开页和设置预览使用同一系统字体检查，Emoji 
 | 查找、返回修改、再次查找 | 通过 | Tab/按钮通过 | 按钮通过 |
 | 无结果、取消 | 通过 | `龘靐齉` 空结果通过 | 同一查询、无候选断言通过 |
 | 部分匹配、长尾分页 | 全量和稳定顺序通过 | 部分匹配标题、43 页中翻至第 2 页 | API 26/34 实际部分匹配提示；2979 项结果翻至最后窗口并提交第 2817 项通过 |
-| 专用模式取消/提交后返回原模式 | 通过 | 其余模式切换边界待补齐 | API 26/34 从英文进入两种模式，取消及提交后恢复英文；重新查找无旧查询残留 |
+| 专用模式取消/提交后返回原模式 | 通过 | 临时英文→Emoji 提交/取消、临时英文→颜文字查找/取消，均返回临时英文 | API 26/34 从英文进入两种模式，取消及提交后恢复英文；重新查找无旧查询残留 |
 | 长颜文字完整提交 | 通过 | 166 标量，文件回读通过 | API 26/34，真实 EditText 回读通过 |
 | 满码、失焦、重载、宿主失败、过期结果 | 有自动化用例 | 实际满码、失焦、重载后旧候选点击通过；宿主失败注入仅适配器验证 | 实际满码、失焦、重载通过；失败/过期 ID 注入仅协议验证 |
 | 完整字体 / 组合序列 | 数据不截断 | 全量检测；实际多 DPI 待验收 | API 26/34 检测；真机/TalkBack 待验收 |
 
 浏览器验收记录包含两次内容相同的 `insertCompositionText`，最终正文是一份 🚳，没有查询词；Ctrl+Z 第一次内容不变，第二次清空。没有把这一现象写成“单次撤销通过”，也未仅凭事件数量推断核心重复提交。Android 外部 EditText 两个必过流程均为一次 Ctrl+Z 清空。Windows 宿主撤销差异仍需调查。
+
+第三轮 Windows 集中复验沿用最终 DLL/settings（SHA-256 与前轮一致），离线 Sandbox 26100.8655，Edge **157.0.4341.42**。普通中文逗号也出现两次同值组合更新、首次撤销仅选中原文、第二次清空；普通与表情的 12 个事件在归一化输出字符后完全同构。后续两类查询的取消/模式返回没有增加宿主事件。从“临时英文”进入 Emoji 完成 `a Space c Tab 1` 后恢复临时英文；再进入 Emoji 确认“禁止”后取消、进入颜文字查找“开心”后取消，也均恢复临时英文。语言栏“英”是关闭输入接管，不是该辅助模式，关闭时右键不打开菜单；使用说明已明确这一区别。
+
+同轮选区测试先普通输入“工”并全选，再执行 `k Tab 1`（“禁止车”→🚳）。查询期原文和选区保持，最终提交才替换；第一次撤销选中 🚳，第二次恢复“工”。日志共 21 个事件，其中最初一次 `insertFromPaste` 只有 beforeinput、没有 input 或正文变化（向沙盒粘贴种子文字未生效，之后用实际按键准备“工”），其余是种子普通输入和最终表情替换/撤销。归档文件 `ordinary-undo-journal.json`、`mode-return-undo-journal.json`、`selection-replacement-journal.json` 及 `undo-journal-check.json` 分别保留原始证据与离线核对结果，不能将日志核对称为可自动驱动 Edge 的回归测试。截图和浏览器/系统/制品版本齐备，第三轮沙盒已关闭。
+
+机制调查：[Microsoft 的 SetText 文档](https://learn.microsoft.com/en-us/windows/win32/api/msctf/nf-msctf-itfrange-settext)说明未持有组合时会创建默认临时组合；[Chromium 的 TSF 实现](https://chromium.googlesource.com/chromium/src/+/HEAD/ui/base/ime/win/tsf_text_store.cc)在同一编辑会话开始并提交组合时，会先设置组合再提交（本次读取的 blob 为 `3533b61ccf94a211fac0caabcd373cd4b0814691`）。结合对照现象，默认组合路径是重复 DOM 更新的合理解释，但还不是对该 Edge 二进制内部调用和撤销栈的直接证明。[InsertTextAtSelection 文档](https://learn.microsoft.com/en-us/windows/win32/api/msctf/nf-msctf-itfinsertatselection-inserttextatselection)也要求禁用默认组合时由调用方建立所需组合，不能仅加标志绕过。此次没有为消除 DOM 事件而更改提交逻辑；单次撤销仍未通过，兼容限制继续记录。
 
 补充 `ExpressionHostTest.fullLibraryTailSelectionAndModeReturnDoNotLeakPartialQueries`，API 26/34 各通过 1 项（40.868 s / 60.310 s）。使用随包完整颜文字库，“开心”返回 2979 项；真实键盘连续切换 11 次候选窗口，到达 2817–2979，最后一组的“下一组”禁用，选择第 2817 项 `ヽ(*≧ω≦)ﾉ` 后宿主逐字符一致，一次撤销清空。独立 JNI 会话只提供总数、排序和期望原串，真实操作仍通过可见 IME 和外部 EditText，未替换 InputConnection。宿主日志在查询和分页期间不变，最终只有一条原串写入；这不表示对全部 2979 项逐项点击过。
 

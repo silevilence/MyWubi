@@ -1,0 +1,19 @@
+{
+  "verified": "2026-11-09",
+  "scope": "Checks captured real browser journals, not a live TSF regression test",
+  "ordinary_and_expression_same_event_shape": true,
+  "ordinary_event_count": 12,
+  "expression_event_count_including_cancel_and_mode_changes": 12,
+  "replacement_event_count": 21,
+  "replacement_input_texts": [
+    "g",
+    "工",
+    "🚳",
+    "🚳",
+    "🚳",
+    "工"
+  ],
+  "replacement_final_text": "工",
+  "same_previously_tested_release_binaries": true,
+  "single_undo_passed": false
+}

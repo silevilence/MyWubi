@@ -1,0 +1,12 @@
+[
+    {
+        "Algorithm":  "SHA256",
+        "Hash":  "36B900E091D4403FFFF695943D77BDCE21BA2D2C4CD19B472280D8DE0F060C36",
+        "Path":  "C:\\EMApp\\im_engine.dll"
+    },
+    {
+        "Algorithm":  "SHA256",
+        "Hash":  "7C2CE9F3C3EB7D57671B473AF86E08B792DC7B4AA3AC1A00C903A6F033A15E20",
+        "Path":  "C:\\EMApp\\settings.exe"
+    }
+]

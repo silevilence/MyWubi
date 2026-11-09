@@ -1,0 +1,126 @@
+{
+  "text": "工",
+  "codepoints": [
+    "U+5DE5"
+  ],
+  "events": [
+    {
+      "kind": "beforeinput",
+      "data": null,
+      "inputType": "insertFromPaste",
+      "text": ""
+    },
+    {
+      "kind": "compositionstart",
+      "data": "",
+      "text": ""
+    },
+    {
+      "kind": "compositionupdate",
+      "data": "g",
+      "text": ""
+    },
+    {
+      "kind": "beforeinput",
+      "data": "g",
+      "inputType": "insertCompositionText",
+      "text": ""
+    },
+    {
+      "kind": "input",
+      "data": "g",
+      "inputType": "insertCompositionText",
+      "text": "g"
+    },
+    {
+      "kind": "compositionupdate",
+      "data": "工",
+      "text": "g"
+    },
+    {
+      "kind": "beforeinput",
+      "data": "工",
+      "inputType": "insertCompositionText",
+      "text": "g"
+    },
+    {
+      "kind": "input",
+      "data": "工",
+      "inputType": "insertCompositionText",
+      "text": "工"
+    },
+    {
+      "kind": "compositionend",
+      "data": "工",
+      "text": "工"
+    },
+    {
+      "kind": "compositionstart",
+      "data": "工",
+      "text": "工"
+    },
+    {
+      "kind": "compositionupdate",
+      "data": "🚳",
+      "text": "工"
+    },
+    {
+      "kind": "beforeinput",
+      "data": "🚳",
+      "inputType": "insertCompositionText",
+      "text": "工"
+    },
+    {
+      "kind": "input",
+      "data": "🚳",
+      "inputType": "insertCompositionText",
+      "text": "🚳"
+    },
+    {
+      "kind": "compositionupdate",
+      "data": "🚳",
+      "text": "🚳"
+    },
+    {
+      "kind": "beforeinput",
+      "data": "🚳",
+      "inputType": "insertCompositionText",
+      "text": "🚳"
+    },
+    {
+      "kind": "input",
+      "data": "🚳",
+      "inputType": "insertCompositionText",
+      "text": "🚳"
+    },
+    {
+      "kind": "compositionend",
+      "data": "🚳",
+      "text": "🚳"
+    },
+    {
+      "kind": "beforeinput",
+      "data": null,
+      "inputType": "historyUndo",
+      "text": "🚳"
+    },
+    {
+      "kind": "input",
+      "data": null,
+      "inputType": "historyUndo",
+      "text": "🚳"
+    },
+    {
+      "kind": "beforeinput",
+      "data": null,
+      "inputType": "historyUndo",
+      "text": "🚳"
+    },
+    {
+      "kind": "input",
+      "data": null,
+      "inputType": "historyUndo",
+      "text": "工"
+    }
+  ]
+}
