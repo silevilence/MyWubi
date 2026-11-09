@@ -34,6 +34,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
         config,
         revision: 1,
         temporary: Arc::default(),
+        expressions: Arc::default(),
         config_path: "c".into(),
         system_table_path: "s".into(),
         user_table_path: "u".into(),

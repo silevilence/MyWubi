@@ -104,6 +104,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
         dict: Dictionary::from_text("v\t北京\t100\n")?,
         revision: 1,
         temporary: Arc::default(),
+        expressions: Arc::default(),
         config_path: "fixture".into(),
         system_table_path: "fixture".into(),
         user_table_path: "fixture".into(),

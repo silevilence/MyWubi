@@ -37,6 +37,7 @@ fn prepared_generation_reaches_the_confirmed_session_before_its_deadline() {
         dict: Dictionary::from_text("v\t北京\t100\n").unwrap(),
         revision: 1,
         temporary: Arc::default(),
+        expressions: Arc::default(),
         config_path: "c".into(),
         system_table_path: "s".into(),
         user_table_path: "u".into(),
