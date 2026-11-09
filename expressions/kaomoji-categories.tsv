@@ -1,0 +1,409 @@
+# 上游类别标识（空格分隔） TAB 中文完整触发词（竖线分隔）；本项目人工语义映射，MIT。
+# 不把罗马字类别当作输入编码；精确保留原输出。合并类别只共享中文触发词，不合并输出变体。
+smile sumairu niconico nikkori egao	微笑|笑脸|笑
+happy yorokobu ureshii	开心|高兴|快乐|喜悦
+yatta waai banzai yossha yeay	太好了|万岁|欢呼|开心
+doya ehhen	得意|自豪
+yumekawa	梦幻|可爱
+dog	狗|小狗|动物
+cat nyaa	猫|小猫|喵|动物
+cute	可爱|萌
+shy hazukashii tereru	害羞|羞涩|脸红
+cry een uwaan	哭|哭泣|难过
+banana	香蕉
+sneaky kosokoso	偷偷|悄悄
+banban tataku	拍打|敲打
+ahaha bakushou kerakera	哈哈|大笑|笑
+akireru	无语|无奈
+aisatsu	问候|打招呼|你好
+akubi	哈欠|打哈欠
+benkyou	学习|读书
+azarashi	海豹|动物
+my-melody	美乐蒂
+miffy	米菲兔
+america	美国
+moeshinu	萌死了|太可爱了
+mojimoji	扭捏|害羞
+momimomi	揉揉|按摩
+munimuni	捏捏|软软
+mochimochi	软糯|团子
+muhuhu	偷笑|嘿嘿
+mukatsuku iraira	烦躁|生气
+ho	松口气|放心
+shakiin kiri	精神|认真
+mukimuki	肌肉|强壮
+muu fukurettsura suneru buu	嘟嘴|不满|闹别扭
+bow	鞠躬|行礼
+peek chira chirachira	偷看|探头
+eirin	永琳
+throw nageru poi suteru	扔|丢|投掷
+eieio fight ganbaru ouen furefure	加油|鼓励|努力
+happy-tears nakiwarai	喜极而泣|笑哭
+tooime	远目|望远
+rabbit	兔子|小兔|动物
+thanks azasu orei	谢谢|感谢
+wakuwaku tanoshimi wakuteka	期待|兴奋
+animal	动物
+suyaa neru	睡觉|睡着
+pikipiki bikibiki	青筋|生气
+angry oko okoru punpun	生气|愤怒|发火
+aori	挑衅|嘲讽
+anpanman	面包超人
+surisuri	蹭蹭|亲昵
+asease sweat aseru awateru	流汗|着急|慌张
+ichaicha	亲热|亲昵
+nadenade naderu yoshiyoshi iikoiiko	摸摸|摸头|安慰
+fish	鱼|动物
+kani	螃蟹|动物
+surprise bikkuri	惊讶|吃惊
+kiraan	闪亮|得意
+kirakira pikapika	闪闪发光|闪亮
+kaeru	青蛙|动物
+beer	啤酒|喝酒
+hirameku	灵感|想到了
+kirby	卡比
+kitsune	狐狸|动物
+sad shobon shonbori ochikkomu	悲伤|难过|失落
+uruuru pien	泪眼|委屈
+gokugoku nomu	喝|喝水
+line	分隔线|线条
+please	拜托|请求
+gyu hug dakitsuku	拥抱|抱抱
+shock gaan	震惊|打击
+shouten	升天|晕倒
+dogeza	跪下|道歉
+good-job otsukaresama	辛苦了|干得好
+genki	元气|有精神
+atamakakaeru	抱头|头痛
+gougoku	大哭|痛哭
+good-night	晚安
+good-morning	早安|早上好
+goron gorogoro	打滚|滚来滚去
+gu iine	赞|真棒
+yareyare	唉|无奈
+nodding fumufumu	点头|嗯嗯
+utau karaoke	唱歌
+dance	跳舞|舞蹈
+kita	来了|到了
+goo power gutts-pose	握拳|力量|加油
+nagareboshi	流星
+salute	敬礼
+zannen gakkari	遗憾|失望
+naguru punch	打拳|拳击
+vomit-blood	吐血
+congratulations	恭喜|祝贺
+heart	爱心|心
+fall taoreru	倒下|摔倒
+uhuhu fufufu	呵呵|偷笑
+ninmari niyaniya nichaa	坏笑|窃笑
+drooling jururi	流口水|馋
+sorry sumimasen ayamaru moushiwakenai	对不起|抱歉|道歉
+understand naruhodo	明白|懂了
+sorena	就是这样|赞同
+speech-bubble	对话框|气泡
+kiss chu	亲亲|亲吻
+nakama nakayoshi	伙伴|朋友|友好
+memo	笔记|记录
+gakuburu obieru	害怕|发抖
+tobokeru	装傻|装糊涂
+erai	真棒|了不起
+haahaa	喘气|气喘
+nigeru dash run sa	逃跑|快跑
+camp	露营
+ehehe	嘿嘿|害羞
+yakyuu	棒球
+eiga	电影
+gyapi	欢喜|欢呼
+haku	呕吐|吐
+basu	公交车|巴士
+hai	是的|好的
+haa tameiki	叹气|唉
+cafe ocha	咖啡|喝茶
+wing hane	翅膀
+hanabi	烟花|焰火
+wink	眨眼
+hanya hatena gimon n kubiwokashigeru	疑惑|问号|歪头
+haitacchi	击掌
+pray ogamu namunamu	祈祷|拜拜
+scary	恐怖|吓人
+applause pachipachi	鼓掌
+kiken chuui	危险|注意|警告
+kyorokyoro sagasu	张望|寻找
+love suki	喜欢|爱|爱你
+mogumogu mushamusha taberu	吃|吃饭|咀嚼
+tobu boon	飞|飞翔
+douzo sashidasu	请|请用|递出
+yoroshiku	请多关照|多多指教
+yabai	糟糕|不妙
+tsuntsun	戳戳
+kangaeru omou	思考|想
+magao	面无表情|严肃
+sun	冷淡|面无表情
+chiin	消沉|沉默
+dokidoki	心跳|心动
+kyaa gyaa	尖叫
+kyun zukyun	心动|心被击中
+kyururun	闪亮眼睛|可爱
+pasokon	电脑|打字
+beam	光线|发射
+tired shindoi guttari	疲惫|累|无力
+atsui	热|好热
+angel	天使
+shun	沮丧|低落
+peace	胜利|剪刀手
+jii jitome	盯|盯着|凝视
+nayamu	苦恼|烦恼
+delicious umai	好吃|美味
+ribbon	蝴蝶结
+peropero	舔|舔舔
+pe	呸|吐口水
+donbiki	嫌弃|退缩
+pokaan	发呆|呆住
+shirome	白眼|翻白眼
+e nandato	什么|惊讶
+dokodoko	咚咚|敲鼓
+doraemon	哆啦梦|哆啦A梦
+uun	犹豫|嗯
+piman	青椒
+happa	叶子|树叶
+hah	恍然大悟|突然
+ok	好的|可以|没问题
+ika	鱿鱼|乌贼|动物
+tengu	天狗
+urayamashii	羡慕
+itai	痛|好痛
+itterasshai	慢走|一路顺风
+irane	不需要|不要
+ittekimasu	我出门了|出发
+su suu	悄悄离开|溜走
+byebye sayounara matane	再见|拜拜|回头见
+tewofuru	挥手|打招呼
+zuko	跌倒|滑倒
+glasses	眼镜
+same	鲨鱼|动物
+sugoi	厉害|好厉害
+hanahoji	挖鼻孔
+hana	花|花朵
+gao ikaku	吼|咆哮|威吓
+giri	咬牙
+gokuri	咽口水|吞咽
+goshigoshi	揉眼|擦擦
+grave	墓碑|坟墓
+hawawa	慌乱|惊慌
+samui	冷|好冷
+sarasara	飘散|消散
+seki	咳嗽
+gyaru	辣妹
+fuwafuwa	轻飘飘|软软
+futon	被窝|被子
+mofumofu	毛茸茸
+sentaku	洗衣服
+gorua oraora	怒吼|发怒
+oshogatsu	新年|过年
+funsu	哼|气呼呼
+birthday	生日|生日快乐
+kurisumasu	圣诞|圣诞快乐
+tsu	耸肩|无奈
+haru	春天
+halloween	万圣节
+cracker	礼花|庆祝
+kabocha	南瓜
+karasu	乌鸦|动物
+kurage	水母|动物
+kakkoii	帅|酷
+kami	神|神明
+kuchibue	口哨|吹口哨
+kuma	熊|小熊|动物
+momonga	飞鼠|动物
+kushami	喷嚏|打喷嚏
+kusa	草|笑死
+kusai	臭|好臭
+kaze	感冒
+kuyashii gununu	不甘心|懊恼
+kimochiwarui	恶心|不舒服
+kanpai	干杯
+kizetsu	昏倒|昏厥
+juu	枪|射击
+runrun ukiuki	雀跃|开心
+jirai	地雷系
+jitabata abareru	挣扎|闹腾
+dame nainai	不行|不可以
+sabishii	寂寞|孤独
+ryosangata	甜美|量产型
+omoshiroi	有趣|好笑
+ojisan	大叔
+okane	钱|金钱
+kamoon oide	来吧|过来
+kando	感动
+nemui	困|困了|想睡觉
+natsu	夏天
+konbanwa	晚上好
+hengao	鬼脸|搞怪
+magic	魔法
+komaru konwaku	为难|困扰
+matsuri wasshoi	节庆|庆典
+meromero	迷恋|着迷
+mendokusai	麻烦|嫌麻烦
+mayuge	眉毛
+majo	魔女|女巫
+noroi	诅咒
+nosebleed	鼻血|流鼻血
+norinori tension-takai koufun	兴奋|激动
+nee	呐|喂
+odaijini	保重|早日康复
+obake	鬼|幽灵
+oshiri	屁股
+ooi yobu	呼喊|喂
+otaku	宅|阿宅
+oteage	没办法|举手投降
+paa	呆萌|傻笑
+aan	张嘴|啊
+oukan	皇冠
+sowasowa	坐立不安|忐忑
+paan binta	扇耳光|打脸
+achaa	哎呀|糟了
+ageru watasu	给你|递给
+amaeru	撒娇
+pugyaa	嘲笑
+shinpai fuan	担心|不安
+shinu shinikake	快死了|濒死
+shizukani hisohiso	安静|小声
+shisa	石狮|风狮爷
+tsurai	痛苦|难受
+yubisashi	指向|指你
+waruikao guhehe	坏笑|邪恶
+tsukkomi	吐槽
+tohoho	唉|垂头丧气
+tanuki	狸猫|动物
+tehe tehepero	吐舌|调皮
+tokeru	融化
+toutoi	太萌了|珍贵
+homoo	爬行
+hokkori iyashi	暖心|治愈
+juujika	十字架
+uttori	陶醉
+bishi	指正|严厉
+wakaranai	不懂|不知道
+biyoon	伸长|拉长
+character	角色
+buta	猪|小猪|动物
+catch tsukamaeru	接住|抓住
+buwaa	泪奔|大哭
+check	确认|检查
+star	星星
+chokon	端坐|坐好
+chiikawa	吉伊卡哇
+guaiwarui	不舒服|生病
+guhah bufo	喷笑|噗
+tadaima	我回来了
+guruguru	转圈|眩晕
+weei hyahha	嗨|狂欢
+yoboyobo	虚弱|衰老
+yarareta	被打败了|输了
+okaeri	欢迎回来
+takoyaki	章鱼烧
+horse	马|动物
+tako	章鱼|动物
+tori	鸟|小鸟|动物
+tabako	抽烟|香烟
+rice	米饭|饭
+kenmonmen	嫌储君
+zuizui	凑近|逼近
+piero	小丑
+uzai	烦人|讨厌
+safe sefusefu	安全|没事
+saikou	最棒|太棒了
+ude	手臂
+bakuhatsu	爆炸
+kusukusu pupupu	窃笑|偷笑
+kigou	符号|特殊符号
+kankoku	韩式|韩国
+shirasu	银鱼|小鱼
+chabudaigaeshi	掀桌|掀桌子
+ka	怒目|瞪眼
+aho	傻|笨蛋
+alphabet	字母
+hage	秃头
+zusaa	滑行|滑铲
+menhera	病娇
+naisho	秘密|保密
+baymax	大白
+iyan	讨厌啦|害羞
+aruku tokotoko	走路|行走
+shikametsura miken-shiwa	皱眉
+tobotobo	垂头丧气|慢慢走
+fuman	不满
+relax yurui	放松|悠闲
+tanoshii	开心|愉快
+tegami	信|写信
+nigawarai	苦笑
+valentine	情人节
+oni	鬼怪
+gessori	憔悴|消瘦
+yaseru	瘦|减肥
+muramura	欲望|心痒
+shinmiri	感伤|伤感
+yokatta	太好了|放心了
+pui	扭头|哼
+morimori	大吃|精神饱满
+zawazawa	骚动|不安
+tasukete	救命|帮帮我
+kyoshu	举手
+kieru	消失
+unagi	鳗鱼|动物
+akachan	宝宝|婴儿
+nyokinyoki	冒出|长出来
+bara	玫瑰
+fuun	哦|不以为然
+aki	秋天
+kitty	凯蒂猫
+kamera	相机|拍照
+herahera	傻笑|干笑
+owata	完了|完蛋了
+nikukyuu	肉垫|猫爪
+ninja	忍者
+tsuki	月亮
+shabondama	肥皂泡|泡泡
+taiyou	太阳
+shingichuu	讨论|商议
+ijikeru	闹别扭|委屈
+ahiru	鸭子|动物
+nakayubi	中指|竖中指
+shuriken	手里剑
+hamusutaa	仓鼠|动物
+hiyoko	小鸡|动物
+onara	放屁
+meramera	火焰|燃烧
+yuki	雪|下雪
+tora	老虎|动物
+hipparu	拉|拉扯
+kocchiminina	别看我
+shitauchi	咂嘴|啧
+gorira	大猩猩|动物
+sunglasses	墨镜|太阳镜
+kakureru	躲藏|藏起来
+gochisousama	吃好了|多谢款待
+muri	不行|办不到
+lion	狮子|动物
+itadakimasu	我开动了|开饭
+koronbia	胜利姿势|获胜
+hankachi	手帕|擦泪
+raritteru	眩晕|迷糊
+gokiburi	蟑螂|动物
+pochipochi	点点|按键
+mabushii	刺眼|耀眼
+deppa	龅牙
+kinchou	紧张
+pengin	企鹅|动物
+ame	雨|下雨
+tsuinteeru	双马尾
+uupaaruupaa	美西螈|六角恐龙|动物
+kamome	海鸥|动物
+debu	胖|胖胖
+matsuge	睫毛
+gaman	忍耐|忍住
+raamen	拉面
+yureru	摇晃|摇摆
+aa	字符画
+copype	复制粘贴|颜文字
+emoji	表情混搭|颜文字

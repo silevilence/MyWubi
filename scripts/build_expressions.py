@@ -9,6 +9,7 @@ import hashlib
 import json
 from pathlib import Path
 import re
+import unicodedata
 import xml.etree.ElementTree as ET
 
 ROOT = Path(__file__).resolve().parents[1]
@@ -31,6 +32,8 @@ def document_text(document):
 
 def source(name):
     manifest = json.loads((RESOURCES / "sources.json").read_text(encoding="utf-8"))
+    if name.startswith("kaomoji"):
+        manifest = json.loads((RESOURCES / "kaomoji-sources.json").read_text(encoding="utf-8"))
     data = (RESOURCES / "sources" / name).read_bytes()
     expected = manifest[name]
     if hashlib.sha256(data).hexdigest() != expected["sha256"] or len(data) != expected["bytes"]:
@@ -117,11 +120,107 @@ def emoji():
     return {RESOURCES / "emoji.mwe": encoded, RESOURCES / "emoji-coverage.json": json_text(report)}
 
 
+def category_mapping():
+    mapping = {}
+    for line in (RESOURCES / "kaomoji-categories.tsv").read_text(encoding="utf-8").splitlines():
+        if not line or line.startswith("#"):
+            continue
+        categories, terms = line.split("\t")
+        for category in categories.split():
+            if category in mapping:
+                raise ValueError(f"Duplicate category translation: {category}")
+            mapping[category] = terms.split("|")
+    return mapping
+
+
+def exclusion_reason(text):
+    if not text.strip():
+        return "blank"
+    if len(text) > 512:
+        return "over_512_codepoints"
+    if any(c in "\n\r\u2028\u2029" for c in text):
+        return "multiline"
+    if any(unicodedata.category(c) == "Cc" for c in text):
+        return "control_character"
+    if re.search(r"&(?:#\d+|#x[\da-fA-F]+|[A-Za-z]+);", text):
+        return "html_entity_residue"
+    return None
+
+
+def kaomoji():
+    mapping = category_mapping()
+    first = json.loads(source("kaomojiya-kaomoji.json"))
+    second = json.loads(source("kaomojikan-kaomoji.json"))
+    inputs = [
+        ("kaomojiya", category, index, text, [category])
+        for category, texts in first.items() for index, text in enumerate(texts)
+    ] + [
+        ("kaomojikan", item["slug"], index, item["text"], item["categories"])
+        for index, item in enumerate(second)
+    ]
+    counts = {name: dict(raw=0, accepted_occurrences=0, excluded_occurrences=0, unique_outputs=0, categories={})
+              for name in ("kaomojiya", "kaomojikan")}
+    unique = defaultdict(set)
+    entries, excluded = {}, []
+    for source_id, location, index, text, categories in inputs:
+        counts[source_id]["raw"] += 1
+        for category in categories:
+            if category not in mapping:
+                raise ValueError(f"Untranslated category: {category}")
+            counts[source_id]["categories"][category] = counts[source_id]["categories"].get(category, 0) + 1
+        reason = exclusion_reason(text)
+        if reason:
+            counts[source_id]["excluded_occurrences"] += 1
+            excluded.append(dict(source=source_id, location=location, index=index, text=text, reason=reason))
+            continue
+        counts[source_id]["accepted_occurrences"] += 1
+        unique[source_id].add(text)
+        terms = list(dict.fromkeys(term for category in categories for term in mapping[category]))
+        entry = entries.setdefault(text, dict(text=text, name=terms[0], triggers=[], tags=[], aliases=[],
+                                             order=len(entries), sources=[]))
+        entry["triggers"] = list(dict.fromkeys([*entry["triggers"], *terms]))
+        entry["tags"] = entry["triggers"].copy()
+        if source_id not in entry["sources"]:
+            entry["sources"].append(source_id)
+    for source_id in counts:
+        counts[source_id]["unique_outputs"] = len(unique[source_id])
+        counts[source_id]["duplicates_within_source"] = counts[source_id]["accepted_occurrences"] - len(unique[source_id])
+    source_manifest = json.loads((RESOURCES / "kaomoji-sources.json").read_text(encoding="utf-8"))
+    repositories = {"kaomojiya": "kaomojiya-collection/kaomoji-collection", "kaomojikan": "kaomojikan/kaomoji-data"}
+    sources = [dict(id=source_id, url="https://github.com/" + repo,
+                    revision=source_manifest[source_id + "-kaomoji.json"]["revision"],
+                    license="MIT", notice=source(source_id + "-LICENSE"))
+               for source_id, repo in repositories.items()]
+    sources.append(dict(id="mywubi-zh", url="https://github.com/silevilence/MyWubi",
+                        revision="kaomoji-categories-v1", license="MIT",
+                        notice=(RESOURCES / "licenses/MyWubi-MIT.txt").read_text(encoding="utf-8")))
+    for entry in entries.values():
+        entry["sources"].append("mywubi-zh")
+    doc = dict(kind="kaomoji", name="颜文字中文分类合集", version="2026.11.09-1", sources=sources, entries=list(entries.values()))
+    encoded = document_text(doc)
+    report = dict(sources=counts, total_raw=len(inputs), total_unique=len(entries),
+                  cross_source_duplicates=len(unique["kaomojiya"] & unique["kaomojikan"]),
+                  excluded_by_reason=dict(Counter(item["reason"] for item in excluded)),
+                  translated_categories=len(mapping),
+                  chinese_trigger_coverage=sum(any(re.search(r"[\u3400-\u9fff]", t) for t in e["triggers"]) for e in entries.values()),
+                  output_sha256=hashlib.sha256(encoded.encode()).hexdigest())
+    if report["chinese_trigger_coverage"] != len(entries):
+        raise ValueError("Kaomoji missing Chinese triggers")
+    return {RESOURCES / "kaomoji.mwe": encoded,
+            RESOURCES / "kaomoji-coverage.json": json_text(report),
+            RESOURCES / "kaomoji-excluded.json": json_text(excluded)}
+
+
 def main():
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--check", action="store_true", help="Verify without modifying outputs")
+    parser.add_argument("--kind", choices=("all", "emoji", "kaomoji"), default="all")
     args = parser.parse_args()
-    outputs = emoji()
+    outputs = {}
+    if args.kind in ("all", "emoji"):
+        outputs.update(emoji())
+    if args.kind in ("all", "kaomoji"):
+        outputs.update(kaomoji())
     for path, text in outputs.items():
         if args.check:
             if not path.exists() or path.read_bytes() != text.encode("utf-8"):

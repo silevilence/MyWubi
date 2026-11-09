@@ -28,3 +28,7 @@ cargo test -p core_engine --test expression_datasets --offline
 脚本先核对原始文件大小和 SHA-256，缺失或变化则失败，不联网下载；`--check` 不改文件。Rust 测试独立读取官方 code point 列，逐序列比对输出及所有兼容别名，并验证每个触发词能访问全部对应变体、导出重载无损。原始数据在 `.gitattributes` 中禁止换行转换，避免 Windows checkout 改变校验和。
 
 旧的 17.0/CLDR 48 原始文件保留用于版本对比和准备记录；活动词库固定为 18.0/49。当前生成结果仅代表数据完整性，候选框和宿主的字体显示仍由 EM-06/07/08 验收。
+
+## 颜文字（EM-03）
+
+`kaomoji.mwe` 收录 34354 个不同输出，来自两个固定 MIT 仓库版本，547 个类别标识有中文触发映射。来源、实际数量、分类复核和逐条排除清单见 [KAOMOJI-SOURCES.md](KAOMOJI-SOURCES.md)。无可穷尽的“全部颜文字”承诺。

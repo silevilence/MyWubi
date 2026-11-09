@@ -773,12 +773,12 @@
     - [x] 保留 [Unicode License v3](https://www.unicode.org/license.txt) 及 [CLDR 许可](https://github.com/unicode-org/cldr/blob/main/LICENSE) 要求的声明；Emojiall 作为覆盖参考，不直接打包其图片或站点独有释义。
     - 验收：对固定版本输出逐序列集合差异与触发词覆盖报告，缺失项为零；列出与参考站点因版本、变体口径产生的差异。源码、生成结果、版本和许可可追溯，系统缺字不成为删减全集的理由。
 
-- [ ] **整理许可明确且覆盖广泛的颜文字词库**（预计 2～3 天）
+- [x] **整理许可明确且覆盖广泛的颜文字词库**（预计 2～3 天）
     - 关联：EM-03；依赖 EM-01。
-    - [ ] 优先评估 [kaomoji-collection](https://github.com/kaomojiya-collection/kaomoji-collection)：项目自述收录 41,000+ 条、535 类，仓库提供 [MIT 许可](https://github.com/kaomojiya-collection/kaomoji-collection/blob/main/LICENSE)，数据来源标为 kaomojiya.org；固定版本后核实数据授权范围与来源声明，保留版权和许可。
-    - [ ] 将 [kaomojikan/kaomoji-data](https://github.com/kaomojikan/kaomoji-data) 作为补充候选（项目声明 MIT，提供情绪/场景分类）；逐来源记录实际条目数、去重后数量、类别及许可。没有可追溯再分发许可的数据不进入内置词库。
-    - [ ] 覆盖喜悦、悲伤、生气、惊讶、害羞、感谢、道歉、问候、鼓励、动物及动作等类别，建立经过复核的中文完整词/同义词映射；不沿用上游拼音编码作为触发输入，不宣称存在可穷尽的“全部颜文字”。
-    - [ ] 无损保留内部空格、反斜杠、特殊符号、组合字符及全半角差异；区分重复条目、不同变体和多词触发，不通过任意替换字符修复显示。对多行艺术字、超长内容和控制字符制定明确导入规则，输出排除清单与原因。
+    - [x] 优先评估 [kaomoji-collection](https://github.com/kaomojiya-collection/kaomoji-collection)：项目自述收录 41,000+ 条、535 类，仓库提供 [MIT 许可](https://github.com/kaomojiya-collection/kaomoji-collection/blob/main/LICENSE)，数据来源标为 kaomojiya.org；固定版本后核实数据授权范围与来源声明，保留版权和许可。
+    - [x] 将 [kaomojikan/kaomoji-data](https://github.com/kaomojikan/kaomoji-data) 作为补充候选（项目声明 MIT，提供情绪/场景分类）；逐来源记录实际条目数、去重后数量、类别及许可。没有可追溯再分发许可的数据不进入内置词库。
+    - [x] 覆盖喜悦、悲伤、生气、惊讶、害羞、感谢、道歉、问候、鼓励、动物及动作等类别，建立经过复核的中文完整词/同义词映射；不沿用上游拼音编码作为触发输入，不宣称存在可穷尽的“全部颜文字”。
+    - [x] 无损保留内部空格、反斜杠、特殊符号、组合字符及全半角差异；区分重复条目、不同变体和多词触发，不通过任意替换字符修复显示。对多行艺术字、超长内容和控制字符制定明确导入规则，输出排除清单与原因。
     - 验收：所有纳入条目有来源、许可与中文触发映射；分类覆盖、去重和排除数量可复核，含空格/特殊符号的样例经保存、导出、重载仍逐码点一致。最终选库以数据核验结果为准，不把仓库的规模声明当作已验收数量。
 
 - [ ] **接入文字候选匹配、追加显示与统一选择**（预计 2～3 天）

@@ -1,0 +1,44 @@
+{
+  "kaomojiya-kaomoji.json": {
+    "url": "https://raw.githubusercontent.com/kaomojiya-collection/kaomoji-collection/2ca1b394345a437bbec9e9b9445d1dd75ae3f7d4/kaomoji.json",
+    "sha256": "7373e5dabd04fdc91cfb452af6f65950fa6953a613c804cbcd790d3ed4ef738d",
+    "bytes": 1378383,
+    "revision": "2ca1b394345a437bbec9e9b9445d1dd75ae3f7d4"
+  },
+  "kaomojiya-README.md": {
+    "url": "https://raw.githubusercontent.com/kaomojiya-collection/kaomoji-collection/2ca1b394345a437bbec9e9b9445d1dd75ae3f7d4/README.md",
+    "sha256": "5590f5c6c26c4a11f53e9298966104e69311c74867a7e5d7ab3861ee4d74ccb0",
+    "bytes": 3124,
+    "revision": "2ca1b394345a437bbec9e9b9445d1dd75ae3f7d4"
+  },
+  "kaomojiya-LICENSE": {
+    "url": "https://raw.githubusercontent.com/kaomojiya-collection/kaomoji-collection/2ca1b394345a437bbec9e9b9445d1dd75ae3f7d4/LICENSE",
+    "sha256": "6caa0b409bc5bbbd06875c3b98ce4224da875e5d85409de2a3d3f12b25ecaae2",
+    "bytes": 1094,
+    "revision": "2ca1b394345a437bbec9e9b9445d1dd75ae3f7d4"
+  },
+  "kaomojikan-kaomoji.json": {
+    "url": "https://raw.githubusercontent.com/kaomojikan/kaomoji-data/60c92ea4e85279ad42ff525e9a40464ebeb1003e/kaomoji.json",
+    "sha256": "22721e1b31d60fee5a9bd9f26c8639ab4efee2e6c01cec3f674f0e0d1d3aea2b",
+    "bytes": 439007,
+    "revision": "60c92ea4e85279ad42ff525e9a40464ebeb1003e"
+  },
+  "kaomojikan-categories.json": {
+    "url": "https://raw.githubusercontent.com/kaomojikan/kaomoji-data/60c92ea4e85279ad42ff525e9a40464ebeb1003e/categories.json",
+    "sha256": "5b6c3f00d8ee35733f20238ee887cf85839217746051e1d644f497a432330a0b",
+    "bytes": 20476,
+    "revision": "60c92ea4e85279ad42ff525e9a40464ebeb1003e"
+  },
+  "kaomojikan-README.md": {
+    "url": "https://raw.githubusercontent.com/kaomojikan/kaomoji-data/60c92ea4e85279ad42ff525e9a40464ebeb1003e/README.md",
+    "sha256": "3a28f90660bd50880e1ee4a405451e4a2d03430d8b9a43e7bbf78b90e25b5869",
+    "bytes": 6645,
+    "revision": "60c92ea4e85279ad42ff525e9a40464ebeb1003e"
+  },
+  "kaomojikan-LICENSE": {
+    "url": "https://raw.githubusercontent.com/kaomojikan/kaomoji-data/60c92ea4e85279ad42ff525e9a40464ebeb1003e/LICENSE",
+    "sha256": "08cb2c981c94a80ef0b80be68cdec72e54faa8d81c96e3476a23955eb9ba8a3b",
+    "bytes": 1067,
+    "revision": "60c92ea4e85279ad42ff525e9a40464ebeb1003e"
+  }
+}
