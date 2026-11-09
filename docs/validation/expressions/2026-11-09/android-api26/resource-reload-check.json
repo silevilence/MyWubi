@@ -1,0 +1,6 @@
+{
+  "old_accessibility_action_returned": false,
+  "no_write_after_old_action": true,
+  "new_output": "🙂",
+  "scope": "Real InputMethodService, stale accessibility node action, external EditText; no JNI action injection"
+}

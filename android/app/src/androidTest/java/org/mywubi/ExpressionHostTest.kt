@@ -45,6 +45,106 @@ class ExpressionHostTest {
         assertEquals(expected,host().text.orEmpty())
     }
 
+    @Test fun numericChoicesStayLocalAndResourceReloadRejectsAnOldAccessibilityClick() {
+        val store = EngineStore(context)
+        val loaded = store.readConfig()
+        val original = JSONObject(loaded.getJSONObject("config").toString())
+        val config = JSONObject(original.toString())
+        val table = File(context.filesDir, "em-host-numeric.dict").apply {
+            writeText("---\nmax_code_len: 4\n---\na\t禁止\nc\t车\n")
+        }
+        val alternate = File(context.filesDir, "em-host-alternate.mwe").apply {
+            writeText("# MyWubi Expressions 1\n" + JSONObject()
+                .put("kind", "emoji").put("name", "重载验收样本").put("version", "1")
+                .put("sources", JSONArray().put(JSONObject().put("id", "fixture").put("url", "local:test")
+                    .put("revision", "1").put("license", "MIT").put("notice", "MyWubi test fixture")))
+                .put("entries", JSONArray().put(JSONObject().put("text", "🙂").put("name", "重载后的表情")
+                    .put("triggers", JSONArray().put("禁止车")).put("order", 0)
+                    .put("sources", JSONArray().put("fixture")))).toString())
+        }
+        config.getJSONObject("dictionary").put("system_table", table.path).put("enable_user_dict", false)
+        config.getJSONObject("basic").put("auto_commit_unique", false)
+        config.put("prediction", JSONObject().put("enabled", false))
+        config.put("expressions", JSONObject().put("emoji", JSONObject().put("append", false).put("search", true)))
+        fun save(value: JSONObject, version: Long) {
+            NativeHandle(version).use { NativeHandle(store.saveConfig(value, it.value).getLong("version")).close() }
+        }
+        fun enter() { key("键盘工具"); button("Emoji 输入") }
+        val automation = instrumentation.uiAutomation
+        val originalFlags = automation.serviceInfo.flags
+        val retainedNodes = mutableListOf<android.view.accessibility.AccessibilityNodeInfo>()
+        fun findOldCandidate(node: android.view.accessibility.AccessibilityNodeInfo): android.view.accessibility.AccessibilityNodeInfo? {
+            retainedNodes.add(node)
+            if (node.contentDescription?.toString()?.startsWith("候选 🚳") == true) return node
+            for (index in 0 until node.childCount) {
+                node.getChild(index)?.let { child -> findOldCandidate(child)?.let { return it } }
+            }
+            return null
+        }
+        try {
+            automation.serviceInfo = automation.serviceInfo.apply {
+                flags = flags or android.accessibilityservice.AccessibilityServiceInfo.FLAG_RETRIEVE_INTERACTIVE_WINDOWS
+            }
+            save(config, loaded.getLong("version"))
+            device.executeShellCommand("ime enable org.mywubi/.MyWubiService")
+            device.executeShellCommand("ime set org.mywubi/.MyWubiService")
+            device.executeShellCommand("am force-stop org.mywubi.acceptancehost")
+            // Wait for launch and UI idle before tapping; merely finding an editor
+            // node did not reliably open the keyboard on the first API 26 run.
+            device.executeShellCommand("am start -W -n org.mywubi.acceptancehost/.EditorActivity")
+            device.waitForIdle()
+            host().click(); fresh(By.desc("a").pkg("org.mywubi").enabled(true))
+            if (device.hasObject(By.desc("英 → 中"))) key("英 → 中")
+            val before = journal()
+
+            enter(); key("a"); key("123"); key("1")
+            fresh(By.text("关键词：禁止").pkg("org.mywubi"))
+            assertHost(""); assertEquals(before, journal()); shot("numeric-word-local")
+            key("ABC"); key("c"); key("空格"); button("查找表情")
+            fresh(By.descStartsWith("候选 🚳").pkg("org.mywubi"))
+            assertEquals(before, journal())
+            key("123"); key("1"); assertHost("🚳")
+            File(evidence, "numeric-final-journal.jsonl").writeText(journal())
+            shot("numeric-final-committed")
+            device.pressKeyCode(KeyEvent.KEYCODE_Z, KeyEvent.META_CTRL_ON); assertHost("")
+            key("ABC")
+
+            val beforeReload = journal()
+            enter(); key("a"); key("空格"); key("c"); button("查找表情")
+            fresh(By.descStartsWith("候选 🚳").pkg("org.mywubi"))
+            val oldCandidate = automation.windows.asSequence().mapNotNull { it.root }
+                .mapNotNull(::findOldCandidate).firstOrNull() ?: error("No actual accessibility candidate node")
+            config.getJSONObject("expressions").getJSONObject("emoji").put("resource", alternate.path)
+            save(config, store.readConfig().getLong("version"))
+            // Wait for the real service to publish idle controls after cancelling the old query.
+            fresh(By.desc("中 → 英").pkg("org.mywubi").enabled(true))
+            assertFalse(device.hasObject(By.descStartsWith("候选 🚳").pkg("org.mywubi")))
+            // Dispatch the retained virtual node's action, not a coordinate tap on a new key.
+            val oldActionAccepted = oldCandidate.performAction(android.view.accessibility.AccessibilityNodeInfo.ACTION_CLICK)
+            device.waitForIdle(); assertHost(""); assertEquals(beforeReload, journal())
+            shot("resource-reload-old-action")
+
+            enter(); key("a"); key("空格"); key("c"); button("查找表情")
+            fresh(By.descStartsWith("候选 🙂").pkg("org.mywubi"))
+            assertFalse(device.hasObject(By.descStartsWith("候选 🚳").pkg("org.mywubi")))
+            assertEquals(beforeReload, journal()); shot("resource-reload-new-result")
+            candidate("🙂"); assertHost("🙂")
+            File(evidence, "resource-reload-journal.jsonl").writeText(journal())
+            File(evidence, "resource-reload-check.json").writeText(JSONObject()
+                .put("old_accessibility_action_returned", oldActionAccepted)
+                .put("no_write_after_old_action", true).put("new_output", "🙂")
+                .put("scope", "Real InputMethodService, stale accessibility node action, external EditText; no JNI action injection")
+                .toString(2))
+            shot("resource-reload-committed")
+        } finally {
+            save(original, store.readConfig().getLong("version"))
+            automation.serviceInfo = automation.serviceInfo.apply { flags = originalFlags }
+            @Suppress("DEPRECATION")
+            retainedNodes.forEach { it.recycle() }
+            device.pressBack(); device.pressBack()
+        }
+    }
+
     @Test fun fullLibraryTailSelectionAndModeReturnDoNotLeakPartialQueries() {
         val store = EngineStore(context)
         val loaded = store.readConfig()

@@ -1,0 +1,38 @@
+INSTRUMENTATION_STATUS: numtests=1
+INSTRUMENTATION_STATUS: stream=
+org.mywubi.ExpressionHostTest:
+INSTRUMENTATION_STATUS: id=AndroidJUnitRunner
+INSTRUMENTATION_STATUS: test=numericChoicesStayLocalAndResourceReloadRejectsAnOldAccessibilityClick
+INSTRUMENTATION_STATUS: class=org.mywubi.ExpressionHostTest
+INSTRUMENTATION_STATUS: current=1
+INSTRUMENTATION_STATUS_CODE: 1
+INSTRUMENTATION_STATUS: numtests=1
+INSTRUMENTATION_STATUS: stream=
+Error in numericChoicesStayLocalAndResourceReloadRejectsAnOldAccessibilityClick(org.mywubi.ExpressionHostTest):
+java.lang.IllegalStateException: Missing BySelector [DESC='\Qa\E', PKG='\Qorg.mywubi\E', ENABLED='true']
+	at org.mywubi.ExpressionHostTest.fresh(ExpressionHostTest.kt:34)
+	at org.mywubi.ExpressionHostTest.numericChoicesStayLocalAndResourceReloadRejectsAnOldAccessibilityClick(ExpressionHostTest.kt:93)
+
+INSTRUMENTATION_STATUS: id=AndroidJUnitRunner
+INSTRUMENTATION_STATUS: test=numericChoicesStayLocalAndResourceReloadRejectsAnOldAccessibilityClick
+INSTRUMENTATION_STATUS: class=org.mywubi.ExpressionHostTest
+INSTRUMENTATION_STATUS: stack=java.lang.IllegalStateException: Missing BySelector [DESC='\Qa\E', PKG='\Qorg.mywubi\E', ENABLED='true']
+	at org.mywubi.ExpressionHostTest.fresh(ExpressionHostTest.kt:34)
+	at org.mywubi.ExpressionHostTest.numericChoicesStayLocalAndResourceReloadRejectsAnOldAccessibilityClick(ExpressionHostTest.kt:93)
+
+INSTRUMENTATION_STATUS: current=1
+INSTRUMENTATION_STATUS_CODE: -2
+INSTRUMENTATION_RESULT: stream=
+
+Time: 18.312
+There was 1 failure:
+1) numericChoicesStayLocalAndResourceReloadRejectsAnOldAccessibilityClick(org.mywubi.ExpressionHostTest)
+java.lang.IllegalStateException: Missing BySelector [DESC='\Qa\E', PKG='\Qorg.mywubi\E', ENABLED='true']
+	at org.mywubi.ExpressionHostTest.fresh(ExpressionHostTest.kt:34)
+	at org.mywubi.ExpressionHostTest.numericChoicesStayLocalAndResourceReloadRejectsAnOldAccessibilityClick(ExpressionHostTest.kt:93)
+
+FAILURES!!!
+Tests run: 1,  Failures: 1
+
+
+INSTRUMENTATION_CODE: -1
