@@ -31,6 +31,8 @@ pub struct Config {
     pub hotkey: Hotkey,
     #[serde(default)]
     pub prediction: PredictionConfig,
+    #[serde(default)]
+    pub expressions: crate::expressions::ExpressionsConfig,
 }
 
 /// Word predictions are independent of code-candidate sorting and disabled by default.
@@ -419,9 +421,30 @@ impl Config {
     ) -> Result<(), Error> {
         let path = path.as_ref();
         self.validate_for(context)?;
+        self.validate_resource_selection(path)?;
         let text = self.to_string_toml()?;
         crate::data::atomic_write(path, text.as_bytes())
             .map_err(|e| Error::Io(path.to_path_buf(), e.to_string()))?;
+        Ok(())
+    }
+
+    /// Validate resource choices before writing any member of a configuration bundle.
+    /// Disabled expression resources are deliberately not opened.
+    pub fn validate_resource_selection(&self, path: &Path) -> Result<(), Error> {
+        let main = crate::config_path::resolve_resource_path(path, &self.dictionary.system_table);
+        // Preserve first-run missing-resource behavior, but never save an expression as main.
+        if let Err(crate::dictionary::DictError::ExpressionResource) =
+            crate::read_table_config(&main)
+        {
+            return Err(Error::Invalid(
+                "dictionary.system_table".into(),
+                crate::dictionary::DictError::ExpressionResource.to_string(),
+            ));
+        }
+        let resources = crate::expressions::ExpressionResources::load(path, &self.expressions);
+        if let Some(error) = resources.errors().next() {
+            return Err(Error::Invalid("expressions".into(), error.to_owned()));
+        }
         Ok(())
     }
 

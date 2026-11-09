@@ -556,6 +556,7 @@ impl TextService {
         candidate_tx: Arc<ArcSwap<CandidateData>>,
     ) -> Self {
         let runtime = Arc::new(ArcSwap::from_pointee(RuntimeSnapshot {
+            expressions: Arc::default(),
             temporary: Arc::default(),
             revision: 0,
             dict,

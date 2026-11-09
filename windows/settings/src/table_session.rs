@@ -436,6 +436,12 @@ fn scan_table_dir(dir: &std::path::Path, excluded: Option<&std::path::Path>) -> 
         .flatten()
         .filter_map(|e| e.ok())
         .filter(|e| e.path().extension().is_some_and(|ext| ext == "dict"))
+        .filter(|e| {
+            !matches!(
+                core_engine::read_table_config(e.path()),
+                Err(core_engine::dictionary::DictError::ExpressionResource)
+            )
+        })
         .filter_map(|e| e.file_name().into_string().ok())
         .filter(|name| excluded_name != Some(name.as_str()))
         .collect();
@@ -446,6 +452,18 @@ fn scan_table_dir(dir: &std::path::Path, excluded: Option<&std::path::Path>) -> 
 #[cfg(test)]
 mod tests {
     use super::*;
+
+    #[test]
+    fn main_table_choices_exclude_renamed_expression_resources() {
+        let root = tempfile::tempdir().unwrap();
+        std::fs::write(root.path().join("main.dict"), "a\t开心\n").unwrap();
+        std::fs::write(
+            root.path().join("emoji.dict"),
+            format!("{}\n{{}}\n", core_engine::expressions::MAGIC),
+        )
+        .unwrap();
+        assert_eq!(scan_table_dir(root.path(), None), ["main.dict"]);
+    }
 
     #[test]
     fn display_names_survive_save_as_without_changing_table_identity() {

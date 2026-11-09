@@ -56,6 +56,7 @@ class TableCatalog(private val context: Context) {
                 result.add(Table(legacyLabel(active), active, true))
         }
         return result.distinctBy { it.file.canonicalPath }
+            .filter { runCatching { NativeBridge.objectCall("ReadTableConfig", "path" to it.file.path) }.isSuccess }
             .map { it.copy(label = displayLabel(it.file, it.label)) }
     }
 

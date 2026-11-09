@@ -117,6 +117,23 @@ private fun SettingsScreen(model: SettingsModel, enable: () -> Unit, choose: () 
                         SettingToggle(label, basic.getBoolean(key), !model.busy) { model.change("basic", key, it) }
                     }
                     SettingToggle("启用用户词库", dict.getBoolean("enable_user_dict"), !model.busy) { model.change("dictionary", "enable_user_dict", it) }
+                    HorizontalDivider()
+                    Text("Emoji 与颜文字", style = MaterialTheme.typography.titleMedium)
+                    for ((kind, label) in listOf("emoji" to "Emoji", "kaomoji" to "颜文字")) {
+                        val selection = config.optJSONObject("expressions")?.optJSONObject(kind) ?: JSONObject()
+                        fun changeExpression(key: String, value: Any) {
+                            val copy = JSONObject(selection.toString()).put(key, value)
+                            model.change("expressions", kind, copy)
+                        }
+                        Text(label)
+                        SettingToggle("普通输入时追加", selection.optBoolean("append"), !model.busy) { changeExpression("append", it) }
+                        SettingToggle("专用模式可用", selection.optBoolean("search"), !model.busy) { changeExpression("search", it) }
+                        OutlinedTextField(value = if (selection.isNull("resource")) "" else selection.optString("resource"),
+                            onValueChange = { changeExpression("resource", if (it.isEmpty()) JSONObject.NULL else it) },
+                            label = { Text("词库文件（留空使用内置）") }, singleLine = true, enabled = !model.busy,
+                            modifier = Modifier.fillMaxWidth())
+                    }
+                    Text("两类词库独立控制，切换主码表不改变这些设置。保存后生效。")
                 }
                 OutlinedButton(onClick = { model.getApplication<android.app.Application>().startActivity(Intent(model.getApplication(), UpdateActivity::class.java).addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)) }) { Text("应用更新") }
             }

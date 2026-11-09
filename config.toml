@@ -58,3 +58,10 @@ loading = "on_demand"
 # GPU 仅在 Windows 可选模型组件中使用；不可用时回退 CPU。
 device = "cpu"
 device_name = ""
+[expressions.emoji]
+append = false
+search = false
+
+[expressions.kaomoji]
+append = false
+search = false

@@ -138,6 +138,7 @@ mod tests {
 
     fn runtime_snapshot() -> RuntimeSnapshot {
         RuntimeSnapshot {
+            expressions: Arc::default(),
             temporary: Arc::default(),
             revision: 1,
             dict: Dictionary::from_entries(Vec::new(), None, Default::default()).unwrap(),

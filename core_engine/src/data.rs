@@ -185,6 +185,9 @@ pub fn save_bundle(
     if let Err(e) = config.validate_for(context) {
         return failed(config_path, DataError::Failed(e.to_string()));
     }
+    if let Err(e) = config.validate_resource_selection(config_path) {
+        return failed(config_path, DataError::Failed(e.to_string()));
+    }
     if let Err(e) = check(config_path, &config_policy) {
         return failed(config_path, e);
     }

@@ -25,6 +25,8 @@ const DEFAULT_CHARSET: &str = "abcdefghijklmnopqrstuvwxyz";
 /// 字典加载/解析错误。
 #[derive(Debug, Error)]
 pub enum DictError {
+    #[error("表情附加词库不能用作主码表或临时码表")]
+    ExpressionResource,
     #[error("无法读取码表文件 {0}: {1}")]
     Io(PathBuf, String),
     #[error("码表第 {0} 行格式非法: {1}")]
@@ -606,6 +608,7 @@ fn parse_dictionary(
 }
 
 fn split_yaml_header(text: &str) -> Result<(TableConfig, &str, usize), DictError> {
+    reject_expression_resource(text)?;
     let mut lines = text.split_inclusive('\n');
     let Some(first) = lines.next() else {
         return Ok((TableConfig::default(), text, 0));
@@ -660,6 +663,7 @@ pub fn read_table_config(path: impl AsRef<Path>) -> Result<TableConfig, DictErro
     let mut reader = BufReader::new(std::fs::File::open(path).map_err(io_error)?);
     let mut header = String::new();
     reader.read_line(&mut header).map_err(io_error)?;
+    reject_expression_resource(&header)?;
     if header
         .trim_end_matches(&['\r', '\n'][..])
         .trim_start_matches('\u{feff}')
@@ -677,6 +681,16 @@ pub fn read_table_config(path: impl AsRef<Path>) -> Result<TableConfig, DictErro
         }
     }
     split_yaml_header(&header).map(|(config, _, _)| config)
+}
+
+fn reject_expression_resource(text: &str) -> Result<(), DictError> {
+    if text
+        .trim_start_matches('\u{feff}')
+        .starts_with(crate::expressions::MAGIC)
+    {
+        return Err(DictError::ExpressionResource);
+    }
+    Ok(())
 }
 
 /// 读取可编辑码表，不因语义校验问题拒绝加载。

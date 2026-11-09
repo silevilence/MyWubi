@@ -10,6 +10,7 @@ fn runtime(enabled: bool, revision: u64) -> RuntimeSnapshot {
         dict,
         config,
         revision,
+        expressions: Arc::default(),
         temporary: Arc::default(),
         config_path: "c".into(),
         system_table_path: "s".into(),

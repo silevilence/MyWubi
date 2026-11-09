@@ -85,6 +85,7 @@ impl InputSession {
                 dict,
                 config,
                 revision,
+                expressions: Arc::default(),
                 temporary: Arc::default(),
                 config_path: "c".into(),
                 system_table_path: "s".into(),
@@ -541,6 +542,7 @@ mod tests {
                 let core = new.core.lock();
                 let snapshot = RuntimeSnapshot {
                     dict: Dictionary::from_text("---\ntemporary:\n  key: '`'\n  reverse_lookup: true\n---\nwq\t你好\na\t主\n").unwrap(),
+                    expressions: Arc::default(),
                     temporary: Arc::new(core_engine::TemporaryTables { pinyin: Some(Dictionary::from_text("---\ntype: pinyin\nmax_code_len: 64\n---\nni'hao\t你好\n").unwrap()), reverse: Some(core_engine::ReverseLookup::new(&Dictionary::from_text("wq\t你好\na\t主\n").unwrap())), ..Default::default() }),
                     config: core.config().clone(), revision: core.revision(), config_path: "c".into(), system_table_path: "s".into(), user_table_path: "u".into(),
                 };
@@ -686,6 +688,7 @@ mod tests {
         assert!(!session.chinese());
         assert_eq!(session.mode(), InputMode::Main);
         let snapshot = RuntimeSnapshot {
+            expressions: Arc::default(),
             temporary: Arc::default(),
             dict: Dictionary::from_text("x\t新\n").unwrap(),
             config: Config::default(),
@@ -741,6 +744,7 @@ mod tests {
         let mut config = Config::default();
         config.basic.show_code_hints = false;
         let snapshot = RuntimeSnapshot {
+            expressions: Arc::default(),
             temporary: tables,
             dict: main,
             config,
@@ -831,6 +835,7 @@ mod tests {
                 1 => session.set_chinese(false, |op| editor.apply(op)),
                 2 => {
                     let snapshot = RuntimeSnapshot {
+                        expressions: Arc::default(),
                         temporary: Arc::default(),
                         dict: Dictionary::from_text("a\t新\n").unwrap(),
                         config: session.config(),
@@ -984,6 +989,7 @@ mod tests {
         let mut config = session.config();
         config.appearance.font_size = 25;
         let snapshot = RuntimeSnapshot {
+            expressions: Arc::default(),
             temporary: Arc::default(),
             revision: 1,
             dict,
@@ -1078,6 +1084,7 @@ mod tests {
         let (session, candidates, mut editor, dict) = setup();
         type_text(&session, &mut editor, "b");
         let snapshot = RuntimeSnapshot {
+            expressions: Arc::default(),
             temporary: Arc::default(),
             revision: 0,
             dict,

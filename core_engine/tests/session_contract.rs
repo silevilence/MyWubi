@@ -6,6 +6,7 @@ fn runtime(revision: u64) -> Arc<RuntimeSnapshot> {
         revision,
         dict: Dictionary::from_text("---\ntemporary:\n  key: '`'\n---\na\t甲\naaaa\t王\nb\t工\n")
             .unwrap(),
+        expressions: Arc::default(),
         temporary: Arc::new(TemporaryTables {
             pinyin: Some(Dictionary::from_text("---\ntype: pinyin\n---\nni\t你\n").unwrap()),
             ..Default::default()

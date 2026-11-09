@@ -19,6 +19,7 @@ pub struct RuntimeSnapshot {
     pub revision: u64,
     pub dict: Arc<Dictionary>,
     pub temporary: Arc<TemporaryTables>,
+    pub expressions: Arc<crate::expressions::ExpressionResources>,
     pub config: Config,
     pub config_path: PathBuf,
     pub system_table_path: PathBuf,
@@ -46,6 +47,7 @@ impl RuntimeSnapshot {
             self.user_table_path.clone(),
         ];
         paths.extend(self.temporary.paths.iter().cloned());
+        paths.extend(self.expressions.paths().cloned());
         paths
     }
     /// Legacy construction tolerates auxiliary errors so the watcher can inspect new references.
@@ -113,6 +115,21 @@ impl RuntimeBuilder {
                 dependencies,
             });
         }
+        let expressions = Arc::new(crate::expressions::ExpressionResources::load(
+            &config_path,
+            &config.expressions,
+        ));
+        dependencies.extend(expressions.paths().cloned());
+        let expression_errors: Vec<_> = expressions.errors().collect();
+        for error in &expression_errors {
+            log::warn!("[expressions] {error}");
+        }
+        if policy == LoadPolicy::Reload && !expression_errors.is_empty() {
+            return Err(BuildError {
+                message: expression_errors.join("; "),
+                dependencies,
+            });
+        }
         let dict =
             merge_dictionary(main, &user_table_path, &config).map_err(|message| BuildError {
                 message,
@@ -125,6 +142,7 @@ impl RuntimeBuilder {
             revision: NEXT_REVISION.fetch_add(1, Ordering::Relaxed),
             dict,
             temporary,
+            expressions,
             config,
             config_path,
             system_table_path,
@@ -172,6 +190,7 @@ impl RuntimeBuilder {
             revision: NEXT_REVISION.fetch_add(1, Ordering::Relaxed),
             dict,
             temporary: Arc::default(),
+            expressions: Arc::default(),
             config,
             config_path: path,
             system_table_path,
@@ -240,7 +259,10 @@ impl RuntimeStore {
     }
     pub fn publish(&self, request: u64, snapshot: RuntimeSnapshot) -> bool {
         let mut latest = self.request.lock();
-        if request != *latest || !snapshot.temporary.load_errors.is_empty() {
+        if request != *latest
+            || !snapshot.temporary.load_errors.is_empty()
+            || snapshot.expressions.errors().next().is_some()
+        {
             return false;
         }
         self.current.store(Arc::new(snapshot));
