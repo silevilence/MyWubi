@@ -9,6 +9,7 @@
 | `windows/host-font-versions.json` | 主机字体版本与回退字体摘要，区别于沙盒元数据 |
 | `windows/browser-*.png` | 真实 Edge 中两个必过查询的候选界面 |
 | `windows/em-host-*.json` | Edge 宿主 input/composition/undo 事件及最终码点 |
+| `windows/numeric-reload-*`、`resource-reload-*.png`、`gate-*.png` | 数字选词、空格/数字提交、实际词库切换与旧点击、关闭再开启输入接管的宿主证据及离线日志核对 |
 | `windows/notepad-*.txt` | 真实记事本保存文件，UTF-8 回读与期望逐字符相等 |
 | `windows/candidate-*.png` | 颜色、组合回退、长串、暗色字号和滚动 |
 | `windows/query-*.png` | 部分匹配与无结果，二者不能混用 |
@@ -31,3 +32,5 @@ Windows 事件日志显示最终只写入一份表情，但 Edge 有两次同值
 后续补验：`browser-caret-fixed.png`、`browser-automatic-local.png`、`browser-focus-cancelled.png`、`browser-stale-click-rejected.png` 与 `browser-boundaries-journal.json` 记录只读定位修复和边界检查。`host-boundaries-test.log` 包含 Android 视图隐藏修复后的失焦、重载、满码回归。`android-ordinary-initial.log` 保留旧测试假设导致的初次失败，修正后结果在 `android-benchmark-mode-regression.log`，两者不可混为一次全绿运行。
 
 `windows/ordinary-undo-journal.json` 与 `mode-return-undo-journal.json` 是普通标点和表情两步撤销的对照；`selection-replacement-journal.json` 验证原选区仅在最终选择时被替换、撤销后恢复。`android-api26/numeric-reload-initial-failure.log/png` 单独记录补测首次未弹出键盘的准备失败，最终双系统成功日志不覆盖该记录。
+
+`windows/NUMERIC-RELOAD-CHECKLIST.md` 是第四轮集中操作前准备的清单，实际重开菜单后进一步进入 Emoji 模式，确认关键词为空。`numeric-words-local.png` 与 `space-final-committed.png` 对应数字组合查询和空格提交；`resource-old-result.png` 及 `resource-reload-*.png` 对应重载前、重载后旧点击和新结果。单条 `emoji-reload-fixture.mwe` 是本地重载验收样本，实际选择保存在 `numeric-reload-active-config.toml`，不属于发布全集。最终日志只有两次表情提交与中间撤销，沙盒关闭后完成离线断言并保存 `numeric-reload-journal-check.json`。

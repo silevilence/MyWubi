@@ -1,0 +1,2 @@
+# MyWubi Expressions 1
+{"kind":"emoji","name":"重载验收样本","version":"1","sources":[{"revision":"1","url":"local:test","notice":"MyWubi test fixture","id":"fixture","license":"MIT"}],"entries":[{"text":"🙂","triggers":["禁止车"],"name":"重载后的表情","order":0,"sources":["fixture"]}]}

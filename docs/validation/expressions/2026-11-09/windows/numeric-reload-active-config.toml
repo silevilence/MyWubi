@@ -1,0 +1,22 @@
+[basic]
+auto_commit_unique = false
+[dictionary]
+system_table = "tables/em-main.dict"
+user_table = "tables/em-user.dict"
+enable_user_dict = false
+[expressions.emoji]
+resource = "expressions/imports/emoji-reload-fixture.mwe"
+append = false
+search = true
+[expressions.kaomoji]
+resource = "expressions/imports/kaomoji-em-fixture.mwe"
+append = true
+search = true
+[hotkey]
+page_next = "Tab"
+
+[appearance]
+font_size = 14
+primary_color = 0xff1e88e5
+background_color = 0xffffffff
+highlight_color = 0xffffd54f

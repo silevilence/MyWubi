@@ -1,0 +1,25 @@
+{
+  "scope": "Offline assertions against captured live Edge events; not an automated UI regression",
+  "event_count": 20,
+  "input_texts": [
+    "🚳",
+    "🚳",
+    "🚳",
+    "",
+    "🙂",
+    "🙂"
+  ],
+  "final_text": "🙂",
+  "final_codepoints": [
+    "U+1F642"
+  ],
+  "query_text_leaked": false,
+  "duplicated_output_text": false,
+  "first_commit_event_count": 8,
+  "undo_event_count": 4,
+  "new_library_commit_event_count": 8,
+  "other_host_events": 0,
+  "single_undo_passed": false,
+  "active_resource": "expressions/imports/emoji-reload-fixture.mwe",
+  "sandbox_stopped": true
+}
