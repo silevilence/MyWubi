@@ -811,7 +811,7 @@ dependencies = [
 
 [[package]]
 name = "core_engine"
-version = "0.7.3"
+version = "0.8.0"
 dependencies = [
  "arc-swap",
  "criterion",
@@ -1809,7 +1809,7 @@ dependencies = [
 
 [[package]]
 name = "im_engine"
-version = "0.7.3"
+version = "0.8.0"
 dependencies = [
  "arc-swap",
  "core_engine",
@@ -2206,7 +2206,7 @@ dependencies = [
 
 [[package]]
 name = "model_input"
-version = "0.7.3"
+version = "0.8.0"
 dependencies = [
  "core_engine",
  "fs2",
@@ -2226,14 +2226,14 @@ dependencies = [
 
 [[package]]
 name = "model_ipc"
-version = "0.7.3"
+version = "0.8.0"
 dependencies = [
  "windows 0.62.2",
 ]
 
 [[package]]
 name = "mywubi_android"
-version = "0.7.3"
+version = "0.8.0"
 dependencies = [
  "core_engine",
  "jni",
@@ -3088,7 +3088,7 @@ dependencies = [
 
 [[package]]
 name = "runtime_components"
-version = "0.7.3"
+version = "0.8.0"
 dependencies = [
  "fs2",
  "semver",
@@ -3295,7 +3295,7 @@ dependencies = [
 
 [[package]]
 name = "settings"
-version = "0.7.3"
+version = "0.8.0"
 dependencies = [
  "core_engine",
  "dirs 5.0.1",
@@ -3566,7 +3566,7 @@ dependencies = [
 
 [[package]]
 name = "text_render"
-version = "0.7.3"
+version = "0.8.0"
 dependencies = [
  "core_engine",
  "serde_json",
@@ -3669,7 +3669,7 @@ dependencies = [
 
 [[package]]
 name = "tip_manager"
-version = "0.7.3"
+version = "0.8.0"
 dependencies = [
  "log",
  "tempfile",
