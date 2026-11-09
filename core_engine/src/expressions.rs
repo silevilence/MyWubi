@@ -115,6 +115,7 @@ pub enum ExpressionError {
 pub struct ExpressionLibrary {
     document: ExpressionDocument,
     exact: BTreeMap<String, Vec<usize>>,
+    search: crate::expression_search::SearchIndex,
 }
 
 impl ExpressionLibrary {
@@ -206,7 +207,12 @@ impl ExpressionLibrary {
                 }
             }
         }
-        Ok(Self { document, exact })
+        let search = crate::expression_search::SearchIndex::new(&document.entries);
+        Ok(Self {
+            document,
+            exact,
+            search,
+        })
     }
 
     pub fn load(path: &Path, expected: ExpressionKind) -> Result<Self, ExpressionError> {
@@ -219,6 +225,10 @@ impl ExpressionLibrary {
 
     pub fn document(&self) -> &ExpressionDocument {
         &self.document
+    }
+    /// Dedicated-mode lookup only; automatic append keeps the strict trigger index.
+    pub fn search(&self, query: &str, words: &[String]) -> crate::expression_search::SearchResults {
+        self.search.search(query, words)
     }
     pub fn exact(&self, word: &str) -> impl Iterator<Item = &ExpressionEntry> {
         self.exact

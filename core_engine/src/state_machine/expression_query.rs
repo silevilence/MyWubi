@@ -1,6 +1,7 @@
 //! A local word-building round followed by an explicit expression selection.
 //! Only selecting a result may produce a host commit.
 use super::*;
+use crate::expression_search::{ExpressionMatch, MatchQuality};
 use crate::{candidates::*, expressions::ExpressionKind, Capability, TemporaryMode};
 use unicode_segmentation::UnicodeSegmentation;
 
@@ -11,7 +12,7 @@ pub(super) struct ExpressionQuery {
     builder: Box<StateMachine>,
     word_code: String,
     word_candidates: Arc<Vec<Entry>>,
-    results: Option<Arc<Vec<usize>>>,
+    results: Option<Arc<Vec<ExpressionMatch>>>,
     message: Option<String>,
     return_mode: InputMode,
     pub(super) return_temporary: Option<TemporaryMode>,
@@ -217,24 +218,20 @@ impl StateMachine {
                 if query.words.is_empty() {
                     query.message = Some("请先输入并确认查询文字。".into());
                 } else if let Some(library) = self.expression_library(query.kind) {
-                    // EM-10 extends this exact result stage with local fuzzy ranking.
                     let text = query.text();
-                    let results = library
-                        .document()
-                        .entries
+                    let result = library.search(&text, &query.words);
+                    query.message = if result.matches.is_empty() {
+                        Some("没有匹配结果，可返回修改关键词。".into())
+                    } else if result
+                        .matches
                         .iter()
-                        .enumerate()
-                        .filter(|(_, e)| {
-                            e.name == text
-                                || e.triggers.contains(&text)
-                                || e.aliases.contains(&text)
-                        })
-                        .map(|(i, _)| i)
-                        .collect::<Vec<_>>();
-                    query.message = results
-                        .is_empty()
-                        .then(|| "没有匹配结果，可返回修改关键词。".into());
-                    query.results = Some(Arc::new(results));
+                        .all(|row| row.quality == MatchQuality::Partial)
+                    {
+                        Some("没有满足全部关键词的结果；以下仅为部分匹配。".into())
+                    } else {
+                        None
+                    };
+                    query.results = Some(Arc::new(result.matches));
                     self.page = 0;
                 }
             }
@@ -256,16 +253,28 @@ impl StateMachine {
     pub(super) fn expression_candidate(&self, index: usize) -> Option<Candidate> {
         let query = self.expression_query.as_ref()?;
         if let Some(results) = &query.results {
+            let result = results.get(index)?;
             let entry = self
                 .expression_library(query.kind)?
                 .document()
                 .entries
-                .get(*results.get(index)?)?;
+                .get(result.index)?;
             Some(Candidate {
                 id: CandidateId(index),
                 text: entry.text.clone(),
-                exact: true,
-                hints: vec![CandidateHint::ExpressionName(entry.name.clone())],
+                exact: result.quality == MatchQuality::Exact,
+                hints: vec![
+                    CandidateHint::ExpressionName(entry.name.clone()),
+                    CandidateHint::ExpressionMatch(
+                        match result.quality {
+                            MatchQuality::Exact => "名称/别名匹配",
+                            MatchQuality::AllTerms => "关键词匹配",
+                            MatchQuality::Loose => "宽松匹配",
+                            MatchQuality::Partial => "部分匹配",
+                        }
+                        .into(),
+                    ),
+                ],
             })
         } else {
             let entry = query.word_candidates.get(index)?;
@@ -410,9 +419,16 @@ impl StateMachine {
             self.candidates = candidates.iter().map(|c| c.text.clone()).collect();
             self.code_hints = candidates
                 .into_iter()
-                .map(|c| match c.hints.into_iter().next() {
-                    Some(CandidateHint::ExpressionName(name)) => name,
-                    _ => String::new(),
+                .map(|c| {
+                    c.hints
+                        .into_iter()
+                        .filter_map(|hint| match hint {
+                            CandidateHint::ExpressionName(text)
+                            | CandidateHint::ExpressionMatch(text) => Some(text),
+                            _ => None,
+                        })
+                        .collect::<Vec<_>>()
+                        .join(" · ")
                 })
                 .collect();
         } else {

@@ -164,9 +164,9 @@ impl StateMachine {
                     .hints
                     .into_iter()
                     .map(|hint| match hint {
-                        CandidateHint::CodeSuffix(text) | CandidateHint::ExpressionName(text) => {
-                            text
-                        }
+                        CandidateHint::CodeSuffix(text)
+                        | CandidateHint::ExpressionName(text)
+                        | CandidateHint::ExpressionMatch(text) => text,
                         CandidateHint::ReverseCodes(codes) => codes.join(" / "),
                     })
                     .collect::<Vec<_>>()

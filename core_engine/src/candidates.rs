@@ -16,6 +16,8 @@ pub enum CandidateHint {
     ReverseCodes(Vec<String>),
     /// Human-readable expression name; never part of committed text or an input code.
     ExpressionName(String),
+    /// Search quality, including partial matches; display only.
+    ExpressionMatch(String),
 }
 
 #[derive(Debug, Clone, PartialEq, Eq, serde::Serialize, serde::Deserialize)]

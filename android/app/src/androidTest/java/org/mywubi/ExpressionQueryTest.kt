@@ -13,7 +13,7 @@ class ExpressionQueryTest {
     @Test fun multiwordQueryStaysLocalAndOnlyTheCompleteExpressionCrossesJni() {
         val context = InstrumentationRegistry.getInstrumentation().targetContext
         val root = File(context.cacheDir, "query-${UUID.randomUUID()}").apply { mkdirs() }
-        File(root, "main.dict").writeText("a\t禁止\nb\t自行车\nc\t开心\n")
+        File(root, "main.dict").writeText("a\t禁止\nb\t自行车\nc\t开心\nd\t车\n")
         context.assets.open("expressions/emoji.mwe").use { input -> File(root, "emoji.mwe").outputStream().use(input::copyTo) }
         val config = File(root, "config.toml").apply {
             writeText("""[basic]
@@ -54,6 +54,17 @@ resource = "emoji.mwe"
                 ack(retry)
                 assertTrue(state().getJSONObject("view").isNull("expression"))
                 try { prepare(action); fail("stale result accepted") } catch (e: ProtocolException) { assertEquals(7, e.code) }
+                local(JSONObject().put("BeginTemporary", "Emoji"))
+                local(JSONObject().put("InputCode", "a")); local("Space")
+                local(JSONObject().put("InputCode", "d")); local("FindExpressions")
+                assertEquals("禁止车", state().getJSONObject("view").getJSONObject("expression").getString("text"))
+                val fuzzy = NativeBridge.objectCall("Candidates", "session" to session.value, "offset" to 0, "count" to 256)
+                val found = fuzzy.getJSONArray("candidates")
+                val match = (0 until found.length()).map(found::getJSONObject).first { it.getString("text") == "🚳" }
+                assertTrue(match.getJSONArray("hints").toString().contains("ExpressionMatch"))
+                val chosen = prepare(JSONObject().put("SelectCandidate", JSONArray().put(fuzzy.getJSONObject("query_revision")).put(match.getInt("id"))))
+                assertEquals("🚳", chosen.getJSONObject("op").getJSONObject("CommitAndReplace").getString("text"))
+                ack(chosen)
             }
         }
     }

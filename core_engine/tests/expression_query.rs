@@ -193,15 +193,15 @@ fn backspace_and_escape_are_stage_aware_and_grapheme_safe_across_word_boundaries
     assert_eq!(s.snapshot().expression.as_ref().unwrap().text, "o\u{308}");
     local(&mut s, Action::Backspace);
     assert_eq!(s.snapshot().expression.as_ref().unwrap().text, "");
-    word(&mut s, 'a');
+    word(&mut s, 'e');
     local(&mut s, Action::InputCode('z'));
     local(&mut s, Action::Cancel);
-    assert_eq!(s.snapshot().expression.as_ref().unwrap().text, "禁止");
+    assert_eq!(s.snapshot().expression.as_ref().unwrap().text, "o");
     local(&mut s, Action::FindExpressions);
     assert_eq!(s.candidate_window(0, 10).total, 0);
     local(&mut s, Action::Space);
     local(&mut s, Action::Backspace);
-    assert_eq!(s.snapshot().expression.as_ref().unwrap().text, "禁止");
+    assert_eq!(s.snapshot().expression.as_ref().unwrap().text, "o");
     local(&mut s, Action::FindExpressions);
     local(&mut s, Action::Cancel);
     assert_eq!(
@@ -443,4 +443,36 @@ fn a_superseded_legacy_prepare_cannot_publish_an_old_query_or_submit_it() {
         AckStatus::Published
     );
     assert_eq!(s.snapshot().expression.as_ref().unwrap().text, "禁止");
+}
+
+#[test]
+fn partial_search_is_explicit_in_header_and_candidate_hints_but_never_in_output() {
+    let mut r = runtime();
+    r.dict = Dictionary::from_text("a\t禁止猫\n").unwrap();
+    let mut s = Session::new(&r, BehaviorProfile::TouchV1, HostContext::default());
+    begin(&mut s);
+    word(&mut s, 'a');
+    local(&mut s, Action::FindExpressions);
+    assert!(s
+        .snapshot()
+        .expression
+        .as_ref()
+        .unwrap()
+        .message
+        .as_ref()
+        .unwrap()
+        .contains("部分匹配"));
+    let window = s.candidate_window(0, 1);
+    assert!(!window.candidates[0].exact);
+    assert!(window.candidates[0]
+        .hints
+        .contains(&CandidateHint::ExpressionMatch("部分匹配".into())));
+    assert!(s.snapshot().items[0].hint.contains("部分匹配"));
+    assert_eq!(
+        apply(&mut s, Action::Space).op,
+        EditSessionOp::CommitAndReplace {
+            text: "🚳".into(),
+            replace_len: 0
+        }
+    );
 }

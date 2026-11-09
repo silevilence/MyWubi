@@ -269,6 +269,7 @@ class MyWubiService : InputMethodService() {
                     when {
                         h.has("CodeSuffix") -> h.getString("CodeSuffix")
                         h.has("ExpressionName") -> h.getString("ExpressionName")
+                        h.has("ExpressionMatch") -> h.getString("ExpressionMatch")
                         h.has("ReverseCodes") -> {
                             val codes = h.getJSONArray("ReverseCodes")
                             (0 until codes.length()).joinToString("/") { codes.getString(it) }
