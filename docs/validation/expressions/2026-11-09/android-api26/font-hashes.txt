@@ -1,0 +1,3 @@
+405704c88e6187f9275046fd6c398d42f31b3f5db51d94e564ddfe0238b39484  /system/fonts/NotoColorEmoji.ttf
+797e35f7f5d6020a5c6ea13b42ecd668bcfb3bbc4baa0e74773527e5b6cb3174  /system/fonts/Roboto-Regular.ttf
+aea63eb09eb66980e12511d9502bd9a3fc030ab8ae319afb9d43d2cc4bfbe494  /system/fonts/NotoSansCJK-Regular.ttc

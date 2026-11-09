@@ -30,6 +30,8 @@ use windows::Win32::System::SystemServices::DLL_PROCESS_ATTACH;
 
 pub mod candidate_data;
 mod candidate_dispatch;
+mod candidate_layout;
+mod candidate_renderer;
 pub mod candidate_window;
 mod config_path;
 pub mod factory;

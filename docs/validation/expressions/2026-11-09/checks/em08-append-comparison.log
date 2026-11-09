@@ -1,0 +1,10 @@
+   Compiling core_engine v0.7.3 (C:\code\rust\MyWubi\core_engine)
+    Finished `release` profile [optimized] target(s) in 2m 24s
+     Running tests\expression_candidates.rs (target\release\deps\expression_candidates-eb5013432c03eeb8.exe)
+
+running 1 test
+append disabled: 1 candidate; p50=1600ns p95=1900ns
+full-library append: 858 candidates; p50=161us p95=264us
+test full_shipped_libraries_preserve_all_matching_outputs_and_report_query_cost ... ok
+
+test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 16 filtered out; finished in 0.79s

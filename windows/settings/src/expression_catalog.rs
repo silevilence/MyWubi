@@ -44,6 +44,7 @@ mod tests {
 }
 #[derive(Default)]
 pub struct ExpressionCatalog {
+    preview: crate::expression_preview::ExpressionPreview,
     entries: [Vec<ResourceInfo>; 2],
     key: Option<Key>,
     worker: Option<mpsc::Receiver<Result<Loaded, String>>>,
@@ -262,7 +263,8 @@ impl ExpressionCatalog {
         if refresh || import.is_some() {
             self.start(path, config, import);
         }
-        ui.small("配置独立于主码表。导入会复制到配置目录；选择和开关需保存后生效。当前专用模式尚在开发。");
+        self.preview.ui(ui);
+        ui.small("配置独立于主码表。导入会复制到配置目录；选择和开关需保存后生效。中文输入时右键点击语言栏中/英按钮可打开辅助输入菜单。");
         changed
     }
 }

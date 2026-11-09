@@ -1,0 +1,120 @@
+{
+  "text": "🚳",
+  "codepoints": [
+    "U+1F6B3"
+  ],
+  "events": [
+    {
+      "kind": "compositionstart",
+      "data": "",
+      "text": ""
+    },
+    {
+      "kind": "compositionupdate",
+      "data": "🚳",
+      "text": ""
+    },
+    {
+      "kind": "beforeinput",
+      "data": "🚳",
+      "inputType": "insertCompositionText",
+      "text": ""
+    },
+    {
+      "kind": "input",
+      "data": "🚳",
+      "inputType": "insertCompositionText",
+      "text": "🚳"
+    },
+    {
+      "kind": "compositionupdate",
+      "data": "🚳",
+      "text": "🚳"
+    },
+    {
+      "kind": "beforeinput",
+      "data": "🚳",
+      "inputType": "insertCompositionText",
+      "text": "🚳"
+    },
+    {
+      "kind": "input",
+      "data": "🚳",
+      "inputType": "insertCompositionText",
+      "text": "🚳"
+    },
+    {
+      "kind": "compositionend",
+      "data": "🚳",
+      "text": "🚳"
+    },
+    {
+      "kind": "beforeinput",
+      "data": null,
+      "inputType": "historyUndo",
+      "text": "🚳"
+    },
+    {
+      "kind": "input",
+      "data": null,
+      "inputType": "historyUndo",
+      "text": "🚳"
+    },
+    {
+      "kind": "beforeinput",
+      "data": null,
+      "inputType": "historyUndo",
+      "text": "🚳"
+    },
+    {
+      "kind": "input",
+      "data": null,
+      "inputType": "historyUndo",
+      "text": ""
+    },
+    {
+      "kind": "compositionstart",
+      "data": "",
+      "text": ""
+    },
+    {
+      "kind": "compositionupdate",
+      "data": "🚳",
+      "text": ""
+    },
+    {
+      "kind": "beforeinput",
+      "data": "🚳",
+      "inputType": "insertCompositionText",
+      "text": ""
+    },
+    {
+      "kind": "input",
+      "data": "🚳",
+      "inputType": "insertCompositionText",
+      "text": "🚳"
+    },
+    {
+      "kind": "compositionupdate",
+      "data": "🚳",
+      "text": "🚳"
+    },
+    {
+      "kind": "beforeinput",
+      "data": "🚳",
+      "inputType": "insertCompositionText",
+      "text": "🚳"
+    },
+    {
+      "kind": "input",
+      "data": "🚳",
+      "inputType": "insertCompositionText",
+      "text": "🚳"
+    },
+    {
+      "kind": "compositionend",
+      "data": "🚳",
+      "text": "🚳"
+    }
+  ]
+}

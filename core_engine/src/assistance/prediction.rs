@@ -111,6 +111,7 @@ impl Lexicon {
             .take(limit.min(64))
             .enumerate()
             .map(|(id, (text, _))| Candidate {
+                expression_kind: None,
                 id: CandidateId(id),
                 text,
                 exact: true,

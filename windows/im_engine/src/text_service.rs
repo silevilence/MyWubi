@@ -634,18 +634,82 @@ impl TextService {
             .cast::<IUnknown>()
             .map(|u| u.as_raw() as usize as u64)
             .unwrap_or(0);
-        let prefix = crate::prediction_context::read(&context, self.lifecycle.tid(), true);
+        let prediction = version == 0 || self.input.has_prediction();
+        let prefix = crate::prediction_context::read(&context, self.lifecycle.tid(), prediction);
         // After an external notification (or just before a click), an unreadable
         // range cannot prove that a previously displayed suggestion is still current.
-        if prefix.allowed && prefix.text.is_none() {
+        if prediction && prefix.allowed && prefix.text.is_none() {
             self.input.clear_prediction_context();
             return;
         }
         self.input.sync_prediction_context(editor, prefix);
         if version != 0 {
             self.input
-                .choose_prediction(version, id, |op| self.run_edit(op, Some(&context)));
+                .choose_candidate(version, id, |op| self.run_edit(op, Some(&context)));
             self.pump_prediction();
+        }
+    }
+
+    fn show_mode_chooser(&self) {
+        self.sync_runtime_if_needed();
+        if !self.input.chinese() {
+            return;
+        }
+        let Some(context) = self
+            .lifecycle
+            .manager()
+            .and_then(|tm| unsafe { tm.GetFocus().ok() })
+            .and_then(|dm| unsafe { dm.GetTop().ok() })
+        else {
+            return;
+        };
+        if !self.prepare_context(Some(&context)).unwrap_or(false) {
+            return;
+        }
+        let editor = context
+            .cast::<IUnknown>()
+            .map(|u| u.as_raw() as usize as u64)
+            .unwrap_or(0);
+        self.input.sync_prediction_context(
+            editor,
+            crate::prediction_context::read(&context, self.lifecycle.tid(), false),
+        );
+        self.ensure_candidate_window(Some(&context));
+        let anchor = crate::screen_geometry::get_selection_position(&context, self.lifecycle.tid())
+            .or_else(|| {
+                crate::screen_geometry::get_caret_position_win32(self.theme_snapshot().font_size)
+            })
+            .or_else(crate::screen_geometry::get_cursor_position);
+        self.input
+            .action(core_engine::Action::OpenModeChooser, anchor, |op| {
+                self.run_edit(op, Some(&context))
+            });
+    }
+
+    fn ensure_candidate_window(&self, context: Option<&ITfContext>) {
+        let owner = unsafe {
+            context
+                .and_then(|context| context.GetActiveView().ok())
+                .and_then(|view| view.GetWnd().ok())
+                .filter(|hwnd| !hwnd.is_invalid())
+                .unwrap_or_else(|| windows::Win32::UI::Input::KeyboardAndMouse::GetFocus())
+        };
+        let mut window = self.candidate_window.lock();
+        if window.as_ref().is_some_and(|window| !window.is_running()) {
+            window.take();
+        }
+        if let Some(window) = window.as_ref() {
+            window.set_owner(owner);
+        } else {
+            *window = Some(CandidateWindow::spawn(
+                Arc::clone(&self.candidate_tx),
+                owner,
+                self.candidate_dispatch
+                    .lock()
+                    .as_ref()
+                    .map(|d| d.hwnd())
+                    .unwrap_or_default(),
+            ));
         }
     }
     fn pump_prediction(&self) {
@@ -1198,7 +1262,10 @@ impl ITfLangBarItem_Impl for TextService_Impl {
 
     fn GetTooltipString(&self) -> Result<windows::core::BSTR> {
         let chinese = self.input.chinese();
-        Ok(windows::core::BSTR::from(lang_bar_display(chinese).1))
+        Ok(windows::core::BSTR::from(format!(
+            "{}；右键打开辅助输入",
+            lang_bar_display(chinese).1
+        )))
     }
 }
 
@@ -1206,6 +1273,8 @@ impl ITfLangBarItemButton_Impl for TextService_Impl {
     fn OnClick(&self, click: TfLBIClick, _pt: &POINT, _prcarea: *const RECT) -> Result<()> {
         if click == TF_LBI_CLK_LEFT {
             self.toggle_ime_mode();
+        } else if click == windows::Win32::UI::TextServices::TF_LBI_CLK_RIGHT {
+            self.show_mode_chooser();
         }
         Ok(())
     }
@@ -1707,38 +1776,21 @@ impl ITfKeyEventSink_Impl for TextService_Impl {
                 self.input.clear_prediction_context();
             }
         }
-        // GetWnd 可能在 WinRT 自定义编辑控件中返回空句柄；回退到 TSF 线程焦点。
-        let owner = unsafe {
-            pic.as_ref()
-                .and_then(|context| context.GetActiveView().ok())
-                .and_then(|view| view.GetWnd().ok())
-                .filter(|hwnd| !hwnd.is_invalid())
-                .unwrap_or_else(|| windows::Win32::UI::Input::KeyboardAndMouse::GetFocus())
-        };
-        {
-            let mut window = self.candidate_window.lock();
-            if window.as_ref().is_some_and(|window| !window.is_running()) {
-                window.take();
-            }
-            if let Some(window) = window.as_ref() {
-                window.set_owner(owner);
-            } else {
-                *window = Some(CandidateWindow::spawn(
-                    Arc::clone(&self.candidate_tx),
-                    owner,
-                    self.candidate_dispatch
-                        .lock()
-                        .as_ref()
-                        .map(|d| d.hwnd())
-                        .unwrap_or_default(),
-                ));
-            }
-        }
+        self.ensure_candidate_window(pic.as_ref());
         let theme = self.theme_snapshot();
-        let anchor = self
-            .candidate_tx
-            .load()
-            .anchor
+        let local_query = matches!(
+            self.input.mode(),
+            core_engine::InputMode::Menu
+                | core_engine::InputMode::Emoji
+                | core_engine::InputMode::Kaomoji
+        );
+        let anchor = pic
+            .as_ref()
+            .filter(|_| local_query)
+            .and_then(|context| {
+                crate::screen_geometry::get_selection_position(context, self.lifecycle.tid())
+            })
+            .or(self.candidate_tx.load().anchor)
             .or_else(|| crate::screen_geometry::get_caret_position_win32(theme.font_size))
             .or_else(crate::screen_geometry::get_cursor_position);
         let handled = self

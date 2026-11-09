@@ -1,0 +1,218 @@
+{
+  "distinct_characters": 3500,
+  "entries": 34354,
+  "failures": [
+    {
+      "families": [
+        "Ebrima",
+        "Segoe UI"
+      ],
+      "missing": 1,
+      "name": "美乐蒂",
+      "text": "૮ꕤ︎︎ 0 .̮ 0 ა",
+      "visible_glyphs": 8
+    },
+    {
+      "families": [
+        "Ebrima",
+        "Gadugi",
+        "Microsoft YaHei UI",
+        "Segoe UI"
+      ],
+      "missing": 1,
+      "name": "美乐蒂",
+      "text": "(ᒍꕤ︎︎｡O ‐ O｡U)",
+      "visible_glyphs": 11
+    },
+    {
+      "families": [
+        "Segoe UI"
+      ],
+      "missing": 1,
+      "name": "鞠躬",
+      "text": "(♥︎︎ᴗ͈ˬᴗ͈)⁾⁾⁾",
+      "visible_glyphs": 12
+    },
+    {
+      "families": [
+        "Gadugi",
+        "Segoe UI",
+        "Yu Gothic UI"
+      ],
+      "missing": 1,
+      "name": "跳舞",
+      "text": "*♪(ˊᗜˋو)و︎︎♬*",
+      "visible_glyphs": 12
+    },
+    {
+      "families": [
+        "Microsoft YaHei UI",
+        "Nirmala UI",
+        "Segoe UI"
+      ],
+      "missing": 1,
+      "name": "明白",
+      "text": "ദ്ദി( ᴖ ·̫ ᴖ )︎︎了解",
+      "visible_glyphs": 11
+    },
+    {
+      "families": [
+        "Microsoft YaHei UI",
+        "Segoe UI"
+      ],
+      "missing": 2,
+      "name": "流汗",
+      "text": "((٩(,,*ロ*,,)۶))󾭛󾭛",
+      "visible_glyphs": 17
+    },
+    {
+      "families": [
+        "Segoe UI",
+        "Segoe UI Emoji"
+      ],
+      "missing": 1,
+      "name": "胜利",
+      "text": "✌︎( ¨̮ )︎︎❤︎︎︎︎︎",
+      "visible_glyphs": 7
+    },
+    {
+      "families": [
+        "Segoe UI"
+      ],
+      "missing": 1,
+      "name": "咬牙",
+      "text": "︎( ¨̯ )",
+      "visible_glyphs": 5
+    },
+    {
+      "families": [
+        "Segoe UI",
+        "Segoe UI Emoji"
+      ],
+      "missing": 1,
+      "name": "生日",
+      "text": "ʜᴀᴘᴘʏ ʙɪʀᴛʜᴅᴀʏ︎︎❤︎︎",
+      "visible_glyphs": 15
+    },
+    {
+      "families": [
+        "Segoe UI",
+        "Segoe UI Historic",
+        "Segoe UI Symbol"
+      ],
+      "missing": 3,
+      "name": "圣诞",
+      "text": "𓏸︎︎︎︎𓈒 𝙼𝚎𝚛𝚛𝚢 𝙲𝚑𝚛𝚒𝚜𝚝𝚖𝚊𝚜𓍄𓂃𓈒*",
+      "visible_glyphs": 23
+    },
+    {
+      "families": [
+        "Segoe UI"
+      ],
+      "missing": 2,
+      "name": "口哨",
+      "text": "( 󾀔ε󾀔 )",
+      "visible_glyphs": 5
+    },
+    {
+      "families": [
+        "Meiryo UI",
+        "Segoe UI",
+        "Segoe UI Historic",
+        "Yu Gothic UI"
+      ],
+      "missing": 2,
+      "name": "兴奋",
+      "text": "‪︎︎( ◜︎︎𖥦◝و(و  ~♪",
+      "visible_glyphs": 11
+    },
+    {
+      "families": [
+        "Gadugi",
+        "Segoe UI",
+        "Yu Gothic UI"
+      ],
+      "missing": 1,
+      "name": "兴奋",
+      "text": "♬*♪(ˊᗜˋو)و︎︎",
+      "visible_glyphs": 11
+    },
+    {
+      "families": [
+        "Gadugi",
+        "Microsoft YaHei UI",
+        "Segoe UI",
+        "Yu Gothic UI"
+      ],
+      "missing": 1,
+      "name": "给你",
+      "text": "( ᐡ• ˕ •ᐡ)⊃⌒︎︎",
+      "visible_glyphs": 10
+    },
+    {
+      "families": [
+        "Microsoft YaHei UI",
+        "Segoe UI"
+      ],
+      "missing": 2,
+      "name": "吐舌",
+      "text": "(󾀒؂󾀒）",
+      "visible_glyphs": 5
+    },
+    {
+      "families": [
+        "Microsoft YaHei UI",
+        "Microsoft Yi Baiti",
+        "Segoe UI",
+        "Segoe UI Emoji"
+      ],
+      "missing": 3,
+      "name": "端坐",
+      "text": "︎︎☁︎︎*.( ˙꒳˙ ︎︎☁︎︎*.)ﾁｮｺﾝ♡",
+      "visible_glyphs": 19
+    },
+    {
+      "families": [
+        "Meiryo UI",
+        "Microsoft YaHei UI",
+        "Segoe UI"
+      ],
+      "missing": 2,
+      "name": "月亮",
+      "text": "︎︎☾。",
+      "visible_glyphs": 4
+    }
+  ],
+  "fallback_entries": 17,
+  "families": [
+    "Ebrima",
+    "Gadugi",
+    "Javanese Text",
+    "Leelawadee UI",
+    "MV Boli",
+    "Malgun Gothic",
+    "Meiryo UI",
+    "Microsoft Himalaya",
+    "Microsoft JhengHei UI",
+    "Microsoft New Tai Lue",
+    "Microsoft Tai Le",
+    "Microsoft YaHei UI",
+    "Microsoft Yi Baiti",
+    "Mongolian Baiti",
+    "Myanmar Text",
+    "Nirmala UI",
+    "Sans Serif Collection",
+    "Segoe UI",
+    "Segoe UI Emoji",
+    "Segoe UI Historic",
+    "Segoe UI Symbol",
+    "Yu Gothic UI"
+  ],
+  "missing_characters": [
+    "U+FE0E",
+    "U+FE0F",
+    "U+FE012",
+    "U+FE014",
+    "U+FEB5B"
+  ]
+}

@@ -1,0 +1,224 @@
+//! Cached DirectWrite/Direct2D raster, presented through the existing layered HWND.
+use crate::{
+    candidate_data::CandidateData,
+    candidate_layout::{foreground, Scene},
+    screen_geometry::compute_window_rect,
+};
+use std::sync::Arc;
+use text_render::{Draw, TextSystem};
+use windows::{
+    core::Result,
+    Win32::{Foundation::*, Graphics::Gdi::*, UI::WindowsAndMessaging::*},
+};
+
+pub(crate) const SCROLL_UP: usize = usize::MAX - 10;
+pub(crate) const SCROLL_DOWN: usize = usize::MAX - 11;
+
+#[derive(Default)]
+pub(crate) struct Renderer {
+    system: Option<TextSystem>,
+    scene: Option<Scene>,
+    last: Option<Arc<CandidateData>>,
+    geometry: Option<(i32, i32, i32, i32, i32)>,
+    position: Option<(i32, i32)>,
+    scroll: f32,
+    dirty: bool,
+}
+
+impl Renderer {
+    pub fn scroll(&mut self, delta: f32) {
+        self.scroll = (self.scroll + delta).max(0.0);
+        self.dirty = true;
+    }
+    pub fn reset(&mut self) {
+        self.last = None;
+        self.scene = None;
+        self.scroll = 0.0;
+    }
+
+    pub fn draw(
+        &mut self,
+        hwnd: HWND,
+        data: Arc<CandidateData>,
+        hits: &mut Vec<(RECT, u64, usize)>,
+    ) -> Result<()> {
+        let anchor = data
+            .anchor
+            .or_else(crate::screen_geometry::get_cursor_position);
+        let monitor = crate::candidate_window::get_monitor_rect(hwnd, anchor);
+        let size = crate::screen_geometry::pt_to_px_for_window(hwnd, data.theme.font_size).max(12);
+        let geometry = (monitor.0, monitor.1, monitor.2, monitor.3, size);
+        let scale = size as f32 / 19.0;
+        let max_width = (900.0 * scale).min((monitor.2 - monitor.0 - 16).max(80) as f32);
+        let max_height = (650.0 * scale).min((monitor.3 - monitor.1 - 16).max(80) as f32);
+        if self.system.is_none() {
+            self.system = Some(TextSystem::new()?);
+        }
+        let Some(system) = self.system.as_mut() else {
+            return Ok(());
+        };
+        if self
+            .last
+            .as_ref()
+            .is_none_or(|last| !Arc::ptr_eq(last, &data))
+            || self.geometry != Some(geometry)
+        {
+            self.scene = Some(Scene::build(system, &data, size as f32, max_width)?);
+            self.scroll = 0.0;
+            self.dirty = true;
+            self.last = Some(data.clone());
+            self.geometry = Some(geometry);
+        }
+        let Some(scene) = &self.scene else {
+            return Ok(());
+        };
+        let overflow = scene.height > max_height;
+        let footer_height = if overflow {
+            size as f32 * 1.8 + 8.0
+        } else {
+            0.0
+        };
+        let height = scene.height.min(max_height);
+        let visible_height = height - footer_height;
+        self.scroll = self
+            .scroll
+            .clamp(0.0, (scene.height - visible_height).max(0.0));
+        let (width, height_px) = (scene.width.ceil() as i32, height.ceil() as i32);
+        let position = anchor
+            .map(|anchor| compute_window_rect(anchor, (width, height_px), monitor))
+            .unwrap_or((monitor.0 + 8, monitor.1 + 8));
+        if !self.dirty && self.position == Some(position) {
+            return Ok(());
+        }
+        let mut draws = Vec::new();
+        let mut next_hits = Vec::new();
+        for block in &scene.blocks {
+            let top = block.y - self.scroll;
+            let bottom = top + block.layout.height;
+            if bottom <= 0.0 || top >= visible_height {
+                continue;
+            }
+            if let Some(color) = block.background {
+                draws.push(Draw::Fill {
+                    left: block.x - 2.0,
+                    top,
+                    right: block.x + block.layout.width + 2.0,
+                    bottom,
+                    color,
+                });
+            }
+            draws.push(Draw::Text {
+                layout: &block.layout,
+                x: block.x,
+                y: top,
+                color: block.color,
+            });
+            if let (Some(id), Some(token)) = (block.id, data.selection_token) {
+                next_hits.push((
+                    RECT {
+                        left: (block.x - 2.0).floor() as i32,
+                        top: top.max(0.0).ceil() as i32,
+                        right: (block.x + block.layout.width + 2.0).ceil().min(scene.width) as i32,
+                        bottom: bottom.min(visible_height).floor() as i32,
+                    },
+                    token,
+                    id,
+                ));
+            }
+        }
+        let scroll_up;
+        let scroll_down;
+        if overflow {
+            // Opaque footer covers scrolled text. Its controls never send host actions.
+            draws.push(Draw::Fill {
+                left: 0.0,
+                top: visible_height,
+                right: scene.width,
+                bottom: height,
+                color: data.theme.background_color,
+            });
+            scroll_up = system.layout(
+                "[ 向上 ]",
+                "Segoe UI",
+                size as f32,
+                scene.width / 2.0 - 12.0,
+            )?;
+            scroll_down = system.layout(
+                "[ 向下 ]",
+                "Segoe UI",
+                size as f32,
+                scene.width / 2.0 - 12.0,
+            )?;
+            for (layout, x, id) in [
+                (&scroll_up, 6.0, SCROLL_UP),
+                (&scroll_down, scene.width / 2.0, SCROLL_DOWN),
+            ] {
+                draws.push(Draw::Text {
+                    layout,
+                    x,
+                    y: visible_height + 4.0,
+                    color: foreground(data.theme.background_color),
+                });
+                next_hits.push((
+                    RECT {
+                        left: x as i32,
+                        top: visible_height.ceil() as i32,
+                        right: (x + layout.width).ceil() as i32,
+                        bottom: height_px,
+                    },
+                    0,
+                    id,
+                ));
+            }
+        }
+        let border = 0xffa0a0a0;
+        for (left, top, right, bottom) in [
+            (0.0, 0.0, scene.width, 1.0),
+            (0.0, height - 1.0, scene.width, height),
+            (0.0, 0.0, 1.0, height),
+            (scene.width - 1.0, 0.0, scene.width, height),
+        ] {
+            draws.push(Draw::Fill {
+                left,
+                top,
+                right,
+                bottom,
+                color: border,
+            });
+        }
+        let bitmap = system.render(
+            width as u32,
+            height_px as u32,
+            data.theme.background_color,
+            &draws,
+        )?;
+        unsafe {
+            UpdateLayeredWindow(
+                hwnd,
+                None,
+                Some(&POINT {
+                    x: position.0,
+                    y: position.1,
+                }),
+                Some(&SIZE {
+                    cx: width,
+                    cy: height_px,
+                }),
+                Some(bitmap.dc()),
+                Some(&POINT { x: 0, y: 0 }),
+                COLORREF::default(),
+                Some(&BLENDFUNCTION {
+                    BlendOp: AC_SRC_OVER as u8,
+                    BlendFlags: 0,
+                    SourceConstantAlpha: 255,
+                    AlphaFormat: AC_SRC_ALPHA as u8,
+                }),
+                ULW_ALPHA,
+            )?;
+        }
+        *hits = next_hits;
+        self.position = Some(position);
+        self.dirty = false;
+        Ok(())
+    }
+}

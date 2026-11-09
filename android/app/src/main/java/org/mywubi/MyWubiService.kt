@@ -233,8 +233,17 @@ class MyWubiService : InputMethodService() {
         clipboardSuggestion.dismiss()
         predictionController.pause()
         invalidatePrediction()
+        inputQueue.invalidate()
+        // Returning to the same editor can skip onFinishInput on newer Android.
+        // A hidden private query must still be cancelled without touching host text.
+        session?.let { current ->
+            if (NativeBridge.objectCall("State", "session" to current.value)
+                    .optJSONObject("view")?.optJSONObject("expression") != null) {
+                applyPlan(NativeBridge.objectCall("Prepare", "session" to current.value, "action" to "EndTemporary"))
+            }
+        }
         viewVisible = false; idle.touch(false, android.os.SystemClock.elapsedRealtime())
-        main.removeCallbacks(idleRefresh); render(); viewOwner?.visible(false)
+        main.removeCallbacks(idleRefresh); refresh(); viewOwner?.visible(false)
         super.onFinishInputView(finishingInput)
     }
 
@@ -242,10 +251,18 @@ class MyWubiService : InputMethodService() {
         if (destroyed) return
         val items = candidates.optJSONArray("candidates") ?: JSONArray()
         val spelling = state.optJSONObject("view")?.optString("spelling") ?: ""
-        val temporary = state.optString("temporary").takeIf { it == "Pinyin" || it == "English" }
+        val temporary = state.optString("temporary").takeIf { it in listOf("Pinyin", "English", "Emoji", "Kaomoji") }
         val stableIdle = active && viewVisible && session != null && idle.isIdle(
             android.os.SystemClock.elapsedRealtime(), spelling, items.length() > 0 || state.optBoolean("prediction_waiting"), editor.ownsPreedit, temporary != null)
         keyboard = KeyboardModel(
+            expression = state.optJSONObject("view")?.optJSONObject("expression")?.let { query ->
+                ExpressionQueryUi(query.getString("kind"), query.getString("phase"), query.getString("text"),
+                    query.optString("message").takeIf { it.isNotBlank() && it != "null" })
+            },
+            emojiAvailable = state.optJSONObject("emoji")?.optBoolean("available") == true,
+            kaomojiAvailable = state.optJSONObject("kaomoji")?.optBoolean("available") == true,
+            emojiReason = state.optJSONObject("emoji")?.optString("reason")?.takeIf { it != "null" },
+            kaomojiReason = state.optJSONObject("kaomoji")?.optString("reason")?.takeIf { it != "null" },
             clipboard = clipboardSuggestion.preview(),
             epoch = editorEpoch, enabled = active && viewVisible && session != null,
             spelling = spelling,
@@ -277,7 +294,8 @@ class MyWubiService : InputMethodService() {
                         else -> ""
                     }
                 }
-                CandidateItem(item.getLong("id"),item.getString("text"),hint)
+                CandidateItem(item.getLong("id"),item.getString("text"),hint,
+                    item.optString("expression_kind").takeIf { it == "emoji" || it == "kaomoji" })
             },
             query = candidates.optJSONObject("query_revision")?.toString() ?: "{}",
             total = candidates.optInt("total"), offset = candidates.optInt("offset")
@@ -323,6 +341,12 @@ class MyWubiService : InputMethodService() {
             val recovery = NativeBridge.call("Recover", "session" to s.value) as? JSONObject
             if (recovery != null && !applyPlan(recovery)) { refresh(); return }
             if (request == "ClearEditor" || request is PasteClipboard) {
+                val localQuery = NativeBridge.objectCall("State", "session" to s.value)
+                    .optJSONObject("view")?.optJSONObject("expression") != null
+                if(localQuery) {
+                    if(request == "ClearEditor") applyPlan(NativeBridge.objectCall("Prepare", "session" to s.value, "action" to "EndTemporary"))
+                    refresh(); return
+                }
                 fun current() = active && viewVisible && epoch == editorEpoch && connection === host
                 // A stale paste button must never replace a newly started composition.
                 if (request is PasteClipboard && (editor.ownsPreedit ||
@@ -362,7 +386,7 @@ class MyWubiService : InputMethodService() {
                 if (cycling) pinyinMode = nextPinyin
                 if (action is JSONObject && action.has("SetBaseMode")) pinyinMode = KeyMode.Off
                 val current = NativeBridge.objectCall("State", "session" to s.value)
-                if (current.optString("temporary") != "Pinyin") {
+                if (current.optString("temporary") !in listOf("Pinyin", "Emoji", "Kaomoji")) {
                     if (pinyinMode == KeyMode.Locked && current.optJSONObject("pinyin")?.optBoolean("available") == true) {
                         val resume = NativeBridge.objectCall("Prepare", "session" to s.value,
                             "action" to JSONObject().put("BeginTemporary", "Pinyin"))

@@ -1,0 +1,6984 @@
+{
+  "distinct_characters": 1460,
+  "entries": 3972,
+  "failures": [
+    {
+      "families": [
+        "Segoe UI Emoji"
+      ],
+      "missing": 1,
+      "name": "裂开",
+      "text": "🫫",
+      "visible_glyphs": 1
+    },
+    {
+      "families": [
+        "Segoe UI Emoji"
+      ],
+      "missing": 1,
+      "name": "变形的脸",
+      "text": "🫪",
+      "visible_glyphs": 1
+    },
+    {
+      "families": [
+        "Segoe UI Emoji"
+      ],
+      "missing": 1,
+      "name": "打斗云团",
+      "text": "🫯",
+      "visible_glyphs": 1
+    },
+    {
+      "families": [
+        "Segoe UI Emoji"
+      ],
+      "missing": 1,
+      "name": "拇指左指",
+      "text": "🫹",
+      "visible_glyphs": 1
+    },
+    {
+      "families": [
+        "Segoe UI Emoji"
+      ],
+      "missing": 1,
+      "name": "拇指左指: 较浅肤色",
+      "text": "🫹🏻",
+      "visible_glyphs": 2
+    },
+    {
+      "families": [
+        "Segoe UI Emoji"
+      ],
+      "missing": 1,
+      "name": "拇指左指: 中等-浅肤色",
+      "text": "🫹🏼",
+      "visible_glyphs": 2
+    },
+    {
+      "families": [
+        "Segoe UI Emoji"
+      ],
+      "missing": 1,
+      "name": "拇指左指: 中等肤色",
+      "text": "🫹🏽",
+      "visible_glyphs": 2
+    },
+    {
+      "families": [
+        "Segoe UI Emoji"
+      ],
+      "missing": 1,
+      "name": "拇指左指: 中等-深肤色",
+      "text": "🫹🏾",
+      "visible_glyphs": 2
+    },
+    {
+      "families": [
+        "Segoe UI Emoji"
+      ],
+      "missing": 1,
+      "name": "拇指左指: 较深肤色",
+      "text": "🫹🏿",
+      "visible_glyphs": 2
+    },
+    {
+      "families": [
+        "Segoe UI Emoji"
+      ],
+      "missing": 1,
+      "name": "拇指右指",
+      "text": "🫺",
+      "visible_glyphs": 1
+    },
+    {
+      "families": [
+        "Segoe UI Emoji"
+      ],
+      "missing": 1,
+      "name": "拇指右指: 较浅肤色",
+      "text": "🫺🏻",
+      "visible_glyphs": 2
+    },
+    {
+      "families": [
+        "Segoe UI Emoji"
+      ],
+      "missing": 1,
+      "name": "拇指右指: 中等-浅肤色",
+      "text": "🫺🏼",
+      "visible_glyphs": 2
+    },
+    {
+      "families": [
+        "Segoe UI Emoji"
+      ],
+      "missing": 1,
+      "name": "拇指右指: 中等肤色",
+      "text": "🫺🏽",
+      "visible_glyphs": 2
+    },
+    {
+      "families": [
+        "Segoe UI Emoji"
+      ],
+      "missing": 1,
+      "name": "拇指右指: 中等-深肤色",
+      "text": "🫺🏾",
+      "visible_glyphs": 2
+    },
+    {
+      "families": [
+        "Segoe UI Emoji"
+      ],
+      "missing": 1,
+      "name": "拇指右指: 较深肤色",
+      "text": "🫺🏿",
+      "visible_glyphs": 2
+    },
+    {
+      "families": [
+        "Segoe UI Emoji"
+      ],
+      "missing": 0,
+      "name": "握手: 较浅肤色中等-浅肤色",
+      "text": "🫱🏻‍🫲🏼",
+      "visible_glyphs": 2
+    },
+    {
+      "families": [
+        "Segoe UI Emoji"
+      ],
+      "missing": 0,
+      "name": "握手: 较浅肤色中等肤色",
+      "text": "🫱🏻‍🫲🏽",
+      "visible_glyphs": 2
+    },
+    {
+      "families": [
+        "Segoe UI Emoji"
+      ],
+      "missing": 0,
+      "name": "握手: 较浅肤色中等-深肤色",
+      "text": "🫱🏻‍🫲🏾",
+      "visible_glyphs": 2
+    },
+    {
+      "families": [
+        "Segoe UI Emoji"
+      ],
+      "missing": 0,
+      "name": "握手: 较浅肤色较深肤色",
+      "text": "🫱🏻‍🫲🏿",
+      "visible_glyphs": 2
+    },
+    {
+      "families": [
+        "Segoe UI Emoji"
+      ],
+      "missing": 0,
+      "name": "握手: 中等-浅肤色较浅肤色",
+      "text": "🫱🏼‍🫲🏻",
+      "visible_glyphs": 2
+    },
+    {
+      "families": [
+        "Segoe UI Emoji"
+      ],
+      "missing": 0,
+      "name": "握手: 中等-浅肤色中等肤色",
+      "text": "🫱🏼‍🫲🏽",
+      "visible_glyphs": 2
+    },
+    {
+      "families": [
+        "Segoe UI Emoji"
+      ],
+      "missing": 0,
+      "name": "握手: 中等-浅肤色中等-深肤色",
+      "text": "🫱🏼‍🫲🏾",
+      "visible_glyphs": 2
+    },
+    {
+      "families": [
+        "Segoe UI Emoji"
+      ],
+      "missing": 0,
+      "name": "握手: 中等-浅肤色较深肤色",
+      "text": "🫱🏼‍🫲🏿",
+      "visible_glyphs": 2
+    },
+    {
+      "families": [
+        "Segoe UI Emoji"
+      ],
+      "missing": 0,
+      "name": "握手: 中等肤色较浅肤色",
+      "text": "🫱🏽‍🫲🏻",
+      "visible_glyphs": 2
+    },
+    {
+      "families": [
+        "Segoe UI Emoji"
+      ],
+      "missing": 0,
+      "name": "握手: 中等肤色中等-浅肤色",
+      "text": "🫱🏽‍🫲🏼",
+      "visible_glyphs": 2
+    },
+    {
+      "families": [
+        "Segoe UI Emoji"
+      ],
+      "missing": 0,
+      "name": "握手: 中等肤色中等-深肤色",
+      "text": "🫱🏽‍🫲🏾",
+      "visible_glyphs": 2
+    },
+    {
+      "families": [
+        "Segoe UI Emoji"
+      ],
+      "missing": 0,
+      "name": "握手: 中等肤色较深肤色",
+      "text": "🫱🏽‍🫲🏿",
+      "visible_glyphs": 2
+    },
+    {
+      "families": [
+        "Segoe UI Emoji"
+      ],
+      "missing": 0,
+      "name": "握手: 中等-深肤色较浅肤色",
+      "text": "🫱🏾‍🫲🏻",
+      "visible_glyphs": 2
+    },
+    {
+      "families": [
+        "Segoe UI Emoji"
+      ],
+      "missing": 0,
+      "name": "握手: 中等-深肤色中等-浅肤色",
+      "text": "🫱🏾‍🫲🏼",
+      "visible_glyphs": 2
+    },
+    {
+      "families": [
+        "Segoe UI Emoji"
+      ],
+      "missing": 0,
+      "name": "握手: 中等-深肤色中等肤色",
+      "text": "🫱🏾‍🫲🏽",
+      "visible_glyphs": 2
+    },
+    {
+      "families": [
+        "Segoe UI Emoji"
+      ],
+      "missing": 0,
+      "name": "握手: 中等-深肤色较深肤色",
+      "text": "🫱🏾‍🫲🏿",
+      "visible_glyphs": 2
+    },
+    {
+      "families": [
+        "Segoe UI Emoji"
+      ],
+      "missing": 0,
+      "name": "握手: 较深肤色较浅肤色",
+      "text": "🫱🏿‍🫲🏻",
+      "visible_glyphs": 2
+    },
+    {
+      "families": [
+        "Segoe UI Emoji"
+      ],
+      "missing": 0,
+      "name": "握手: 较深肤色中等-浅肤色",
+      "text": "🫱🏿‍🫲🏼",
+      "visible_glyphs": 2
+    },
+    {
+      "families": [
+        "Segoe UI Emoji"
+      ],
+      "missing": 0,
+      "name": "握手: 较深肤色中等肤色",
+      "text": "🫱🏿‍🫲🏽",
+      "visible_glyphs": 2
+    },
+    {
+      "families": [
+        "Segoe UI Emoji"
+      ],
+      "missing": 0,
+      "name": "握手: 较深肤色中等-深肤色",
+      "text": "🫱🏿‍🫲🏾",
+      "visible_glyphs": 2
+    },
+    {
+      "families": [
+        "Segoe UI Emoji"
+      ],
+      "missing": 1,
+      "name": "毛怪",
+      "text": "🫈",
+      "visible_glyphs": 1
+    },
+    {
+      "families": [
+        "Segoe UI Emoji"
+      ],
+      "missing": 0,
+      "name": "芭蕾舞者",
+      "text": "🧑‍🩰",
+      "visible_glyphs": 2
+    },
+    {
+      "families": [
+        "Segoe UI Emoji"
+      ],
+      "missing": 0,
+      "name": "芭蕾舞者: 较浅肤色",
+      "text": "🧑🏻‍🩰",
+      "visible_glyphs": 2
+    },
+    {
+      "families": [
+        "Segoe UI Emoji"
+      ],
+      "missing": 0,
+      "name": "芭蕾舞者: 中等-浅肤色",
+      "text": "🧑🏼‍🩰",
+      "visible_glyphs": 2
+    },
+    {
+      "families": [
+        "Segoe UI Emoji"
+      ],
+      "missing": 0,
+      "name": "芭蕾舞者: 中等肤色",
+      "text": "🧑🏽‍🩰",
+      "visible_glyphs": 2
+    },
+    {
+      "families": [
+        "Segoe UI Emoji"
+      ],
+      "missing": 0,
+      "name": "芭蕾舞者: 中等-深肤色",
+      "text": "🧑🏾‍🩰",
+      "visible_glyphs": 2
+    },
+    {
+      "families": [
+        "Segoe UI Emoji"
+      ],
+      "missing": 0,
+      "name": "芭蕾舞者: 较深肤色",
+      "text": "🧑🏿‍🩰",
+      "visible_glyphs": 2
+    },
+    {
+      "families": [
+        "Segoe UI Emoji"
+      ],
+      "missing": 0,
+      "name": "戴兔耳朵的人: 较浅肤色",
+      "text": "👯🏻",
+      "visible_glyphs": 2
+    },
+    {
+      "families": [
+        "Segoe UI Emoji"
+      ],
+      "missing": 0,
+      "name": "戴兔耳朵的人: 中等-浅肤色",
+      "text": "👯🏼",
+      "visible_glyphs": 2
+    },
+    {
+      "families": [
+        "Segoe UI Emoji"
+      ],
+      "missing": 0,
+      "name": "戴兔耳朵的人: 中等肤色",
+      "text": "👯🏽",
+      "visible_glyphs": 2
+    },
+    {
+      "families": [
+        "Segoe UI Emoji"
+      ],
+      "missing": 0,
+      "name": "戴兔耳朵的人: 中等-深肤色",
+      "text": "👯🏾",
+      "visible_glyphs": 2
+    },
+    {
+      "families": [
+        "Segoe UI Emoji"
+      ],
+      "missing": 0,
+      "name": "戴兔耳朵的人: 较深肤色",
+      "text": "👯🏿",
+      "visible_glyphs": 2
+    },
+    {
+      "families": [
+        "Segoe UI Emoji"
+      ],
+      "missing": 0,
+      "name": "兔先生: 较浅肤色",
+      "text": "👯🏻‍♂️",
+      "visible_glyphs": 3
+    },
+    {
+      "families": [
+        "Segoe UI Emoji"
+      ],
+      "missing": 0,
+      "name": "兔先生: 中等-浅肤色",
+      "text": "👯🏼‍♂️",
+      "visible_glyphs": 3
+    },
+    {
+      "families": [
+        "Segoe UI Emoji"
+      ],
+      "missing": 0,
+      "name": "兔先生: 中等肤色",
+      "text": "👯🏽‍♂️",
+      "visible_glyphs": 3
+    },
+    {
+      "families": [
+        "Segoe UI Emoji"
+      ],
+      "missing": 0,
+      "name": "兔先生: 中等-深肤色",
+      "text": "👯🏾‍♂️",
+      "visible_glyphs": 3
+    },
+    {
+      "families": [
+        "Segoe UI Emoji"
+      ],
+      "missing": 0,
+      "name": "兔先生: 较深肤色",
+      "text": "👯🏿‍♂️",
+      "visible_glyphs": 3
+    },
+    {
+      "families": [
+        "Segoe UI Emoji"
+      ],
+      "missing": 0,
+      "name": "兔女郎: 较浅肤色",
+      "text": "👯🏻‍♀️",
+      "visible_glyphs": 3
+    },
+    {
+      "families": [
+        "Segoe UI Emoji"
+      ],
+      "missing": 0,
+      "name": "兔女郎: 中等-浅肤色",
+      "text": "👯🏼‍♀️",
+      "visible_glyphs": 3
+    },
+    {
+      "families": [
+        "Segoe UI Emoji"
+      ],
+      "missing": 0,
+      "name": "兔女郎: 中等肤色",
+      "text": "👯🏽‍♀️",
+      "visible_glyphs": 3
+    },
+    {
+      "families": [
+        "Segoe UI Emoji"
+      ],
+      "missing": 0,
+      "name": "兔女郎: 中等-深肤色",
+      "text": "👯🏾‍♀️",
+      "visible_glyphs": 3
+    },
+    {
+      "families": [
+        "Segoe UI Emoji"
+      ],
+      "missing": 0,
+      "name": "兔女郎: 较深肤色",
+      "text": "👯🏿‍♀️",
+      "visible_glyphs": 3
+    },
+    {
+      "families": [
+        "Segoe UI Emoji"
+      ],
+      "missing": 0,
+      "name": "戴兔耳朵的人: 较浅肤色中等-浅肤色",
+      "text": "🧑🏻‍🐰‍🧑🏼",
+      "visible_glyphs": 3
+    },
+    {
+      "families": [
+        "Segoe UI Emoji"
+      ],
+      "missing": 0,
+      "name": "戴兔耳朵的人: 较浅肤色中等肤色",
+      "text": "🧑🏻‍🐰‍🧑🏽",
+      "visible_glyphs": 3
+    },
+    {
+      "families": [
+        "Segoe UI Emoji"
+      ],
+      "missing": 0,
+      "name": "戴兔耳朵的人: 较浅肤色中等-深肤色",
+      "text": "🧑🏻‍🐰‍🧑🏾",
+      "visible_glyphs": 3
+    },
+    {
+      "families": [
+        "Segoe UI Emoji"
+      ],
+      "missing": 0,
+      "name": "戴兔耳朵的人: 较浅肤色较深肤色",
+      "text": "🧑🏻‍🐰‍🧑🏿",
+      "visible_glyphs": 3
+    },
+    {
+      "families": [
+        "Segoe UI Emoji"
+      ],
+      "missing": 0,
+      "name": "戴兔耳朵的人: 中等-浅肤色较浅肤色",
+      "text": "🧑🏼‍🐰‍🧑🏻",
+      "visible_glyphs": 3
+    },
+    {
+      "families": [
+        "Segoe UI Emoji"
+      ],
+      "missing": 0,
+      "name": "戴兔耳朵的人: 中等-浅肤色中等肤色",
+      "text": "🧑🏼‍🐰‍🧑🏽",
+      "visible_glyphs": 3
+    },
+    {
+      "families": [
+        "Segoe UI Emoji"
+      ],
+      "missing": 0,
+      "name": "戴兔耳朵的人: 中等-浅肤色中等-深肤色",
+      "text": "🧑🏼‍🐰‍🧑🏾",
+      "visible_glyphs": 3
+    },
+    {
+      "families": [
+        "Segoe UI Emoji"
+      ],
+      "missing": 0,
+      "name": "戴兔耳朵的人: 中等-浅肤色较深肤色",
+      "text": "🧑🏼‍🐰‍🧑🏿",
+      "visible_glyphs": 3
+    },
+    {
+      "families": [
+        "Segoe UI Emoji"
+      ],
+      "missing": 0,
+      "name": "戴兔耳朵的人: 中等肤色较浅肤色",
+      "text": "🧑🏽‍🐰‍🧑🏻",
+      "visible_glyphs": 3
+    },
+    {
+      "families": [
+        "Segoe UI Emoji"
+      ],
+      "missing": 0,
+      "name": "戴兔耳朵的人: 中等肤色中等-浅肤色",
+      "text": "🧑🏽‍🐰‍🧑🏼",
+      "visible_glyphs": 3
+    },
+    {
+      "families": [
+        "Segoe UI Emoji"
+      ],
+      "missing": 0,
+      "name": "戴兔耳朵的人: 中等肤色中等-深肤色",
+      "text": "🧑🏽‍🐰‍🧑🏾",
+      "visible_glyphs": 3
+    },
+    {
+      "families": [
+        "Segoe UI Emoji"
+      ],
+      "missing": 0,
+      "name": "戴兔耳朵的人: 中等肤色较深肤色",
+      "text": "🧑🏽‍🐰‍🧑🏿",
+      "visible_glyphs": 3
+    },
+    {
+      "families": [
+        "Segoe UI Emoji"
+      ],
+      "missing": 0,
+      "name": "戴兔耳朵的人: 中等-深肤色较浅肤色",
+      "text": "🧑🏾‍🐰‍🧑🏻",
+      "visible_glyphs": 3
+    },
+    {
+      "families": [
+        "Segoe UI Emoji"
+      ],
+      "missing": 0,
+      "name": "戴兔耳朵的人: 中等-深肤色中等-浅肤色",
+      "text": "🧑🏾‍🐰‍🧑🏼",
+      "visible_glyphs": 3
+    },
+    {
+      "families": [
+        "Segoe UI Emoji"
+      ],
+      "missing": 0,
+      "name": "戴兔耳朵的人: 中等-深肤色中等肤色",
+      "text": "🧑🏾‍🐰‍🧑🏽",
+      "visible_glyphs": 3
+    },
+    {
+      "families": [
+        "Segoe UI Emoji"
+      ],
+      "missing": 0,
+      "name": "戴兔耳朵的人: 中等-深肤色较深肤色",
+      "text": "🧑🏾‍🐰‍🧑🏿",
+      "visible_glyphs": 3
+    },
+    {
+      "families": [
+        "Segoe UI Emoji"
+      ],
+      "missing": 0,
+      "name": "戴兔耳朵的人: 较深肤色较浅肤色",
+      "text": "🧑🏿‍🐰‍🧑🏻",
+      "visible_glyphs": 3
+    },
+    {
+      "families": [
+        "Segoe UI Emoji"
+      ],
+      "missing": 0,
+      "name": "戴兔耳朵的人: 较深肤色中等-浅肤色",
+      "text": "🧑🏿‍🐰‍🧑🏼",
+      "visible_glyphs": 3
+    },
+    {
+      "families": [
+        "Segoe UI Emoji"
+      ],
+      "missing": 0,
+      "name": "戴兔耳朵的人: 较深肤色中等肤色",
+      "text": "🧑🏿‍🐰‍🧑🏽",
+      "visible_glyphs": 3
+    },
+    {
+      "families": [
+        "Segoe UI Emoji"
+      ],
+      "missing": 0,
+      "name": "戴兔耳朵的人: 较深肤色中等-深肤色",
+      "text": "🧑🏿‍🐰‍🧑🏾",
+      "visible_glyphs": 3
+    },
+    {
+      "families": [
+        "Segoe UI Emoji"
+      ],
+      "missing": 0,
+      "name": "兔先生: 较浅肤色中等-浅肤色",
+      "text": "👨🏻‍🐰‍👨🏼",
+      "visible_glyphs": 3
+    },
+    {
+      "families": [
+        "Segoe UI Emoji"
+      ],
+      "missing": 0,
+      "name": "兔先生: 较浅肤色中等肤色",
+      "text": "👨🏻‍🐰‍👨🏽",
+      "visible_glyphs": 3
+    },
+    {
+      "families": [
+        "Segoe UI Emoji"
+      ],
+      "missing": 0,
+      "name": "兔先生: 较浅肤色中等-深肤色",
+      "text": "👨🏻‍🐰‍👨🏾",
+      "visible_glyphs": 3
+    },
+    {
+      "families": [
+        "Segoe UI Emoji"
+      ],
+      "missing": 0,
+      "name": "兔先生: 较浅肤色较深肤色",
+      "text": "👨🏻‍🐰‍👨🏿",
+      "visible_glyphs": 3
+    },
+    {
+      "families": [
+        "Segoe UI Emoji"
+      ],
+      "missing": 0,
+      "name": "兔先生: 中等-浅肤色较浅肤色",
+      "text": "👨🏼‍🐰‍👨🏻",
+      "visible_glyphs": 3
+    },
+    {
+      "families": [
+        "Segoe UI Emoji"
+      ],
+      "missing": 0,
+      "name": "兔先生: 中等-浅肤色中等肤色",
+      "text": "👨🏼‍🐰‍👨🏽",
+      "visible_glyphs": 3
+    },
+    {
+      "families": [
+        "Segoe UI Emoji"
+      ],
+      "missing": 0,
+      "name": "兔先生: 中等-浅肤色中等-深肤色",
+      "text": "👨🏼‍🐰‍👨🏾",
+      "visible_glyphs": 3
+    },
+    {
+      "families": [
+        "Segoe UI Emoji"
+      ],
+      "missing": 0,
+      "name": "兔先生: 中等-浅肤色较深肤色",
+      "text": "👨🏼‍🐰‍👨🏿",
+      "visible_glyphs": 3
+    },
+    {
+      "families": [
+        "Segoe UI Emoji"
+      ],
+      "missing": 0,
+      "name": "兔先生: 中等肤色较浅肤色",
+      "text": "👨🏽‍🐰‍👨🏻",
+      "visible_glyphs": 3
+    },
+    {
+      "families": [
+        "Segoe UI Emoji"
+      ],
+      "missing": 0,
+      "name": "兔先生: 中等肤色中等-浅肤色",
+      "text": "👨🏽‍🐰‍👨🏼",
+      "visible_glyphs": 3
+    },
+    {
+      "families": [
+        "Segoe UI Emoji"
+      ],
+      "missing": 0,
+      "name": "兔先生: 中等肤色中等-深肤色",
+      "text": "👨🏽‍🐰‍👨🏾",
+      "visible_glyphs": 3
+    },
+    {
+      "families": [
+        "Segoe UI Emoji"
+      ],
+      "missing": 0,
+      "name": "兔先生: 中等肤色较深肤色",
+      "text": "👨🏽‍🐰‍👨🏿",
+      "visible_glyphs": 3
+    },
+    {
+      "families": [
+        "Segoe UI Emoji"
+      ],
+      "missing": 0,
+      "name": "兔先生: 中等-深肤色较浅肤色",
+      "text": "👨🏾‍🐰‍👨🏻",
+      "visible_glyphs": 3
+    },
+    {
+      "families": [
+        "Segoe UI Emoji"
+      ],
+      "missing": 0,
+      "name": "兔先生: 中等-深肤色中等-浅肤色",
+      "text": "👨🏾‍🐰‍👨🏼",
+      "visible_glyphs": 3
+    },
+    {
+      "families": [
+        "Segoe UI Emoji"
+      ],
+      "missing": 0,
+      "name": "兔先生: 中等-深肤色中等肤色",
+      "text": "👨🏾‍🐰‍👨🏽",
+      "visible_glyphs": 3
+    },
+    {
+      "families": [
+        "Segoe UI Emoji"
+      ],
+      "missing": 0,
+      "name": "兔先生: 中等-深肤色较深肤色",
+      "text": "👨🏾‍🐰‍👨🏿",
+      "visible_glyphs": 3
+    },
+    {
+      "families": [
+        "Segoe UI Emoji"
+      ],
+      "missing": 0,
+      "name": "兔先生: 较深肤色较浅肤色",
+      "text": "👨🏿‍🐰‍👨🏻",
+      "visible_glyphs": 3
+    },
+    {
+      "families": [
+        "Segoe UI Emoji"
+      ],
+      "missing": 0,
+      "name": "兔先生: 较深肤色中等-浅肤色",
+      "text": "👨🏿‍🐰‍👨🏼",
+      "visible_glyphs": 3
+    },
+    {
+      "families": [
+        "Segoe UI Emoji"
+      ],
+      "missing": 0,
+      "name": "兔先生: 较深肤色中等肤色",
+      "text": "👨🏿‍🐰‍👨🏽",
+      "visible_glyphs": 3
+    },
+    {
+      "families": [
+        "Segoe UI Emoji"
+      ],
+      "missing": 0,
+      "name": "兔先生: 较深肤色中等-深肤色",
+      "text": "👨🏿‍🐰‍👨🏾",
+      "visible_glyphs": 3
+    },
+    {
+      "families": [
+        "Segoe UI Emoji"
+      ],
+      "missing": 0,
+      "name": "兔女郎: 较浅肤色中等-浅肤色",
+      "text": "👩🏻‍🐰‍👩🏼",
+      "visible_glyphs": 3
+    },
+    {
+      "families": [
+        "Segoe UI Emoji"
+      ],
+      "missing": 0,
+      "name": "兔女郎: 较浅肤色中等肤色",
+      "text": "👩🏻‍🐰‍👩🏽",
+      "visible_glyphs": 3
+    },
+    {
+      "families": [
+        "Segoe UI Emoji"
+      ],
+      "missing": 0,
+      "name": "兔女郎: 较浅肤色中等-深肤色",
+      "text": "👩🏻‍🐰‍👩🏾",
+      "visible_glyphs": 3
+    },
+    {
+      "families": [
+        "Segoe UI Emoji"
+      ],
+      "missing": 0,
+      "name": "兔女郎: 较浅肤色较深肤色",
+      "text": "👩🏻‍🐰‍👩🏿",
+      "visible_glyphs": 3
+    },
+    {
+      "families": [
+        "Segoe UI Emoji"
+      ],
+      "missing": 0,
+      "name": "兔女郎: 中等-浅肤色较浅肤色",
+      "text": "👩🏼‍🐰‍👩🏻",
+      "visible_glyphs": 3
+    },
+    {
+      "families": [
+        "Segoe UI Emoji"
+      ],
+      "missing": 0,
+      "name": "兔女郎: 中等-浅肤色中等肤色",
+      "text": "👩🏼‍🐰‍👩🏽",
+      "visible_glyphs": 3
+    },
+    {
+      "families": [
+        "Segoe UI Emoji"
+      ],
+      "missing": 0,
+      "name": "兔女郎: 中等-浅肤色中等-深肤色",
+      "text": "👩🏼‍🐰‍👩🏾",
+      "visible_glyphs": 3
+    },
+    {
+      "families": [
+        "Segoe UI Emoji"
+      ],
+      "missing": 0,
+      "name": "兔女郎: 中等-浅肤色较深肤色",
+      "text": "👩🏼‍🐰‍👩🏿",
+      "visible_glyphs": 3
+    },
+    {
+      "families": [
+        "Segoe UI Emoji"
+      ],
+      "missing": 0,
+      "name": "兔女郎: 中等肤色较浅肤色",
+      "text": "👩🏽‍🐰‍👩🏻",
+      "visible_glyphs": 3
+    },
+    {
+      "families": [
+        "Segoe UI Emoji"
+      ],
+      "missing": 0,
+      "name": "兔女郎: 中等肤色中等-浅肤色",
+      "text": "👩🏽‍🐰‍👩🏼",
+      "visible_glyphs": 3
+    },
+    {
+      "families": [
+        "Segoe UI Emoji"
+      ],
+      "missing": 0,
+      "name": "兔女郎: 中等肤色中等-深肤色",
+      "text": "👩🏽‍🐰‍👩🏾",
+      "visible_glyphs": 3
+    },
+    {
+      "families": [
+        "Segoe UI Emoji"
+      ],
+      "missing": 0,
+      "name": "兔女郎: 中等肤色较深肤色",
+      "text": "👩🏽‍🐰‍👩🏿",
+      "visible_glyphs": 3
+    },
+    {
+      "families": [
+        "Segoe UI Emoji"
+      ],
+      "missing": 0,
+      "name": "兔女郎: 中等-深肤色较浅肤色",
+      "text": "👩🏾‍🐰‍👩🏻",
+      "visible_glyphs": 3
+    },
+    {
+      "families": [
+        "Segoe UI Emoji"
+      ],
+      "missing": 0,
+      "name": "兔女郎: 中等-深肤色中等-浅肤色",
+      "text": "👩🏾‍🐰‍👩🏼",
+      "visible_glyphs": 3
+    },
+    {
+      "families": [
+        "Segoe UI Emoji"
+      ],
+      "missing": 0,
+      "name": "兔女郎: 中等-深肤色中等肤色",
+      "text": "👩🏾‍🐰‍👩🏽",
+      "visible_glyphs": 3
+    },
+    {
+      "families": [
+        "Segoe UI Emoji"
+      ],
+      "missing": 0,
+      "name": "兔女郎: 中等-深肤色较深肤色",
+      "text": "👩🏾‍🐰‍👩🏿",
+      "visible_glyphs": 3
+    },
+    {
+      "families": [
+        "Segoe UI Emoji"
+      ],
+      "missing": 0,
+      "name": "兔女郎: 较深肤色较浅肤色",
+      "text": "👩🏿‍🐰‍👩🏻",
+      "visible_glyphs": 3
+    },
+    {
+      "families": [
+        "Segoe UI Emoji"
+      ],
+      "missing": 0,
+      "name": "兔女郎: 较深肤色中等-浅肤色",
+      "text": "👩🏿‍🐰‍👩🏼",
+      "visible_glyphs": 3
+    },
+    {
+      "families": [
+        "Segoe UI Emoji"
+      ],
+      "missing": 0,
+      "name": "兔女郎: 较深肤色中等肤色",
+      "text": "👩🏿‍🐰‍👩🏽",
+      "visible_glyphs": 3
+    },
+    {
+      "families": [
+        "Segoe UI Emoji"
+      ],
+      "missing": 0,
+      "name": "兔女郎: 较深肤色中等-深肤色",
+      "text": "👩🏿‍🐰‍👩🏾",
+      "visible_glyphs": 3
+    },
+    {
+      "families": [
+        "Segoe UI Emoji"
+      ],
+      "missing": 0,
+      "name": "摔跤选手: 较浅肤色",
+      "text": "🤼🏻",
+      "visible_glyphs": 2
+    },
+    {
+      "families": [
+        "Segoe UI Emoji"
+      ],
+      "missing": 0,
+      "name": "摔跤选手: 中等-浅肤色",
+      "text": "🤼🏼",
+      "visible_glyphs": 2
+    },
+    {
+      "families": [
+        "Segoe UI Emoji"
+      ],
+      "missing": 0,
+      "name": "摔跤选手: 中等肤色",
+      "text": "🤼🏽",
+      "visible_glyphs": 2
+    },
+    {
+      "families": [
+        "Segoe UI Emoji"
+      ],
+      "missing": 0,
+      "name": "摔跤选手: 中等-深肤色",
+      "text": "🤼🏾",
+      "visible_glyphs": 2
+    },
+    {
+      "families": [
+        "Segoe UI Emoji"
+      ],
+      "missing": 0,
+      "name": "摔跤选手: 较深肤色",
+      "text": "🤼🏿",
+      "visible_glyphs": 2
+    },
+    {
+      "families": [
+        "Segoe UI Emoji"
+      ],
+      "missing": 0,
+      "name": "男生摔跤: 较浅肤色",
+      "text": "🤼🏻‍♂️",
+      "visible_glyphs": 3
+    },
+    {
+      "families": [
+        "Segoe UI Emoji"
+      ],
+      "missing": 0,
+      "name": "男生摔跤: 中等-浅肤色",
+      "text": "🤼🏼‍♂️",
+      "visible_glyphs": 3
+    },
+    {
+      "families": [
+        "Segoe UI Emoji"
+      ],
+      "missing": 0,
+      "name": "男生摔跤: 中等肤色",
+      "text": "🤼🏽‍♂️",
+      "visible_glyphs": 3
+    },
+    {
+      "families": [
+        "Segoe UI Emoji"
+      ],
+      "missing": 0,
+      "name": "男生摔跤: 中等-深肤色",
+      "text": "🤼🏾‍♂️",
+      "visible_glyphs": 3
+    },
+    {
+      "families": [
+        "Segoe UI Emoji"
+      ],
+      "missing": 0,
+      "name": "男生摔跤: 较深肤色",
+      "text": "🤼🏿‍♂️",
+      "visible_glyphs": 3
+    },
+    {
+      "families": [
+        "Segoe UI Emoji"
+      ],
+      "missing": 0,
+      "name": "女生摔跤: 较浅肤色",
+      "text": "🤼🏻‍♀️",
+      "visible_glyphs": 3
+    },
+    {
+      "families": [
+        "Segoe UI Emoji"
+      ],
+      "missing": 0,
+      "name": "女生摔跤: 中等-浅肤色",
+      "text": "🤼🏼‍♀️",
+      "visible_glyphs": 3
+    },
+    {
+      "families": [
+        "Segoe UI Emoji"
+      ],
+      "missing": 0,
+      "name": "女生摔跤: 中等肤色",
+      "text": "🤼🏽‍♀️",
+      "visible_glyphs": 3
+    },
+    {
+      "families": [
+        "Segoe UI Emoji"
+      ],
+      "missing": 0,
+      "name": "女生摔跤: 中等-深肤色",
+      "text": "🤼🏾‍♀️",
+      "visible_glyphs": 3
+    },
+    {
+      "families": [
+        "Segoe UI Emoji"
+      ],
+      "missing": 0,
+      "name": "女生摔跤: 较深肤色",
+      "text": "🤼🏿‍♀️",
+      "visible_glyphs": 3
+    },
+    {
+      "families": [
+        "Segoe UI Emoji"
+      ],
+      "missing": 1,
+      "name": "摔跤选手: 较浅肤色中等-浅肤色",
+      "text": "🧑🏻‍🫯‍🧑🏼",
+      "visible_glyphs": 3
+    },
+    {
+      "families": [
+        "Segoe UI Emoji"
+      ],
+      "missing": 1,
+      "name": "摔跤选手: 较浅肤色中等肤色",
+      "text": "🧑🏻‍🫯‍🧑🏽",
+      "visible_glyphs": 3
+    },
+    {
+      "families": [
+        "Segoe UI Emoji"
+      ],
+      "missing": 1,
+      "name": "摔跤选手: 较浅肤色中等-深肤色",
+      "text": "🧑🏻‍🫯‍🧑🏾",
+      "visible_glyphs": 3
+    },
+    {
+      "families": [
+        "Segoe UI Emoji"
+      ],
+      "missing": 1,
+      "name": "摔跤选手: 较浅肤色较深肤色",
+      "text": "🧑🏻‍🫯‍🧑🏿",
+      "visible_glyphs": 3
+    },
+    {
+      "families": [
+        "Segoe UI Emoji"
+      ],
+      "missing": 1,
+      "name": "摔跤选手: 中等-浅肤色较浅肤色",
+      "text": "🧑🏼‍🫯‍🧑🏻",
+      "visible_glyphs": 3
+    },
+    {
+      "families": [
+        "Segoe UI Emoji"
+      ],
+      "missing": 1,
+      "name": "摔跤选手: 中等-浅肤色中等肤色",
+      "text": "🧑🏼‍🫯‍🧑🏽",
+      "visible_glyphs": 3
+    },
+    {
+      "families": [
+        "Segoe UI Emoji"
+      ],
+      "missing": 1,
+      "name": "摔跤选手: 中等-浅肤色中等-深肤色",
+      "text": "🧑🏼‍🫯‍🧑🏾",
+      "visible_glyphs": 3
+    },
+    {
+      "families": [
+        "Segoe UI Emoji"
+      ],
+      "missing": 1,
+      "name": "摔跤选手: 中等-浅肤色较深肤色",
+      "text": "🧑🏼‍🫯‍🧑🏿",
+      "visible_glyphs": 3
+    },
+    {
+      "families": [
+        "Segoe UI Emoji"
+      ],
+      "missing": 1,
+      "name": "摔跤选手: 中等肤色较浅肤色",
+      "text": "🧑🏽‍🫯‍🧑🏻",
+      "visible_glyphs": 3
+    },
+    {
+      "families": [
+        "Segoe UI Emoji"
+      ],
+      "missing": 1,
+      "name": "摔跤选手: 中等肤色中等-浅肤色",
+      "text": "🧑🏽‍🫯‍🧑🏼",
+      "visible_glyphs": 3
+    },
+    {
+      "families": [
+        "Segoe UI Emoji"
+      ],
+      "missing": 1,
+      "name": "摔跤选手: 中等肤色中等-深肤色",
+      "text": "🧑🏽‍🫯‍🧑🏾",
+      "visible_glyphs": 3
+    },
+    {
+      "families": [
+        "Segoe UI Emoji"
+      ],
+      "missing": 1,
+      "name": "摔跤选手: 中等肤色较深肤色",
+      "text": "🧑🏽‍🫯‍🧑🏿",
+      "visible_glyphs": 3
+    },
+    {
+      "families": [
+        "Segoe UI Emoji"
+      ],
+      "missing": 1,
+      "name": "摔跤选手: 中等-深肤色较浅肤色",
+      "text": "🧑🏾‍🫯‍🧑🏻",
+      "visible_glyphs": 3
+    },
+    {
+      "families": [
+        "Segoe UI Emoji"
+      ],
+      "missing": 1,
+      "name": "摔跤选手: 中等-深肤色中等-浅肤色",
+      "text": "🧑🏾‍🫯‍🧑🏼",
+      "visible_glyphs": 3
+    },
+    {
+      "families": [
+        "Segoe UI Emoji"
+      ],
+      "missing": 1,
+      "name": "摔跤选手: 中等-深肤色中等肤色",
+      "text": "🧑🏾‍🫯‍🧑🏽",
+      "visible_glyphs": 3
+    },
+    {
+      "families": [
+        "Segoe UI Emoji"
+      ],
+      "missing": 1,
+      "name": "摔跤选手: 中等-深肤色较深肤色",
+      "text": "🧑🏾‍🫯‍🧑🏿",
+      "visible_glyphs": 3
+    },
+    {
+      "families": [
+        "Segoe UI Emoji"
+      ],
+      "missing": 1,
+      "name": "摔跤选手: 较深肤色较浅肤色",
+      "text": "🧑🏿‍🫯‍🧑🏻",
+      "visible_glyphs": 3
+    },
+    {
+      "families": [
+        "Segoe UI Emoji"
+      ],
+      "missing": 1,
+      "name": "摔跤选手: 较深肤色中等-浅肤色",
+      "text": "🧑🏿‍🫯‍🧑🏼",
+      "visible_glyphs": 3
+    },
+    {
+      "families": [
+        "Segoe UI Emoji"
+      ],
+      "missing": 1,
+      "name": "摔跤选手: 较深肤色中等肤色",
+      "text": "🧑🏿‍🫯‍🧑🏽",
+      "visible_glyphs": 3
+    },
+    {
+      "families": [
+        "Segoe UI Emoji"
+      ],
+      "missing": 1,
+      "name": "摔跤选手: 较深肤色中等-深肤色",
+      "text": "🧑🏿‍🫯‍🧑🏾",
+      "visible_glyphs": 3
+    },
+    {
+      "families": [
+        "Segoe UI Emoji"
+      ],
+      "missing": 1,
+      "name": "男生摔跤: 较浅肤色中等-浅肤色",
+      "text": "👨🏻‍🫯‍👨🏼",
+      "visible_glyphs": 3
+    },
+    {
+      "families": [
+        "Segoe UI Emoji"
+      ],
+      "missing": 1,
+      "name": "男生摔跤: 较浅肤色中等肤色",
+      "text": "👨🏻‍🫯‍👨🏽",
+      "visible_glyphs": 3
+    },
+    {
+      "families": [
+        "Segoe UI Emoji"
+      ],
+      "missing": 1,
+      "name": "男生摔跤: 较浅肤色中等-深肤色",
+      "text": "👨🏻‍🫯‍👨🏾",
+      "visible_glyphs": 3
+    },
+    {
+      "families": [
+        "Segoe UI Emoji"
+      ],
+      "missing": 1,
+      "name": "男生摔跤: 较浅肤色较深肤色",
+      "text": "👨🏻‍🫯‍👨🏿",
+      "visible_glyphs": 3
+    },
+    {
+      "families": [
+        "Segoe UI Emoji"
+      ],
+      "missing": 1,
+      "name": "男生摔跤: 中等-浅肤色较浅肤色",
+      "text": "👨🏼‍🫯‍👨🏻",
+      "visible_glyphs": 3
+    },
+    {
+      "families": [
+        "Segoe UI Emoji"
+      ],
+      "missing": 1,
+      "name": "男生摔跤: 中等-浅肤色中等肤色",
+      "text": "👨🏼‍🫯‍👨🏽",
+      "visible_glyphs": 3
+    },
+    {
+      "families": [
+        "Segoe UI Emoji"
+      ],
+      "missing": 1,
+      "name": "男生摔跤: 中等-浅肤色中等-深肤色",
+      "text": "👨🏼‍🫯‍👨🏾",
+      "visible_glyphs": 3
+    },
+    {
+      "families": [
+        "Segoe UI Emoji"
+      ],
+      "missing": 1,
+      "name": "男生摔跤: 中等-浅肤色较深肤色",
+      "text": "👨🏼‍🫯‍👨🏿",
+      "visible_glyphs": 3
+    },
+    {
+      "families": [
+        "Segoe UI Emoji"
+      ],
+      "missing": 1,
+      "name": "男生摔跤: 中等肤色较浅肤色",
+      "text": "👨🏽‍🫯‍👨🏻",
+      "visible_glyphs": 3
+    },
+    {
+      "families": [
+        "Segoe UI Emoji"
+      ],
+      "missing": 1,
+      "name": "男生摔跤: 中等肤色中等-浅肤色",
+      "text": "👨🏽‍🫯‍👨🏼",
+      "visible_glyphs": 3
+    },
+    {
+      "families": [
+        "Segoe UI Emoji"
+      ],
+      "missing": 1,
+      "name": "男生摔跤: 中等肤色中等-深肤色",
+      "text": "👨🏽‍🫯‍👨🏾",
+      "visible_glyphs": 3
+    },
+    {
+      "families": [
+        "Segoe UI Emoji"
+      ],
+      "missing": 1,
+      "name": "男生摔跤: 中等肤色较深肤色",
+      "text": "👨🏽‍🫯‍👨🏿",
+      "visible_glyphs": 3
+    },
+    {
+      "families": [
+        "Segoe UI Emoji"
+      ],
+      "missing": 1,
+      "name": "男生摔跤: 中等-深肤色较浅肤色",
+      "text": "👨🏾‍🫯‍👨🏻",
+      "visible_glyphs": 3
+    },
+    {
+      "families": [
+        "Segoe UI Emoji"
+      ],
+      "missing": 1,
+      "name": "男生摔跤: 中等-深肤色中等-浅肤色",
+      "text": "👨🏾‍🫯‍👨🏼",
+      "visible_glyphs": 3
+    },
+    {
+      "families": [
+        "Segoe UI Emoji"
+      ],
+      "missing": 1,
+      "name": "男生摔跤: 中等-深肤色中等肤色",
+      "text": "👨🏾‍🫯‍👨🏽",
+      "visible_glyphs": 3
+    },
+    {
+      "families": [
+        "Segoe UI Emoji"
+      ],
+      "missing": 1,
+      "name": "男生摔跤: 中等-深肤色较深肤色",
+      "text": "👨🏾‍🫯‍👨🏿",
+      "visible_glyphs": 3
+    },
+    {
+      "families": [
+        "Segoe UI Emoji"
+      ],
+      "missing": 1,
+      "name": "男生摔跤: 较深肤色较浅肤色",
+      "text": "👨🏿‍🫯‍👨🏻",
+      "visible_glyphs": 3
+    },
+    {
+      "families": [
+        "Segoe UI Emoji"
+      ],
+      "missing": 1,
+      "name": "男生摔跤: 较深肤色中等-浅肤色",
+      "text": "👨🏿‍🫯‍👨🏼",
+      "visible_glyphs": 3
+    },
+    {
+      "families": [
+        "Segoe UI Emoji"
+      ],
+      "missing": 1,
+      "name": "男生摔跤: 较深肤色中等肤色",
+      "text": "👨🏿‍🫯‍👨🏽",
+      "visible_glyphs": 3
+    },
+    {
+      "families": [
+        "Segoe UI Emoji"
+      ],
+      "missing": 1,
+      "name": "男生摔跤: 较深肤色中等-深肤色",
+      "text": "👨🏿‍🫯‍👨🏾",
+      "visible_glyphs": 3
+    },
+    {
+      "families": [
+        "Segoe UI Emoji"
+      ],
+      "missing": 1,
+      "name": "女生摔跤: 较浅肤色中等-浅肤色",
+      "text": "👩🏻‍🫯‍👩🏼",
+      "visible_glyphs": 3
+    },
+    {
+      "families": [
+        "Segoe UI Emoji"
+      ],
+      "missing": 1,
+      "name": "女生摔跤: 较浅肤色中等肤色",
+      "text": "👩🏻‍🫯‍👩🏽",
+      "visible_glyphs": 3
+    },
+    {
+      "families": [
+        "Segoe UI Emoji"
+      ],
+      "missing": 1,
+      "name": "女生摔跤: 较浅肤色中等-深肤色",
+      "text": "👩🏻‍🫯‍👩🏾",
+      "visible_glyphs": 3
+    },
+    {
+      "families": [
+        "Segoe UI Emoji"
+      ],
+      "missing": 1,
+      "name": "女生摔跤: 较浅肤色较深肤色",
+      "text": "👩🏻‍🫯‍👩🏿",
+      "visible_glyphs": 3
+    },
+    {
+      "families": [
+        "Segoe UI Emoji"
+      ],
+      "missing": 1,
+      "name": "女生摔跤: 中等-浅肤色较浅肤色",
+      "text": "👩🏼‍🫯‍👩🏻",
+      "visible_glyphs": 3
+    },
+    {
+      "families": [
+        "Segoe UI Emoji"
+      ],
+      "missing": 1,
+      "name": "女生摔跤: 中等-浅肤色中等肤色",
+      "text": "👩🏼‍🫯‍👩🏽",
+      "visible_glyphs": 3
+    },
+    {
+      "families": [
+        "Segoe UI Emoji"
+      ],
+      "missing": 1,
+      "name": "女生摔跤: 中等-浅肤色中等-深肤色",
+      "text": "👩🏼‍🫯‍👩🏾",
+      "visible_glyphs": 3
+    },
+    {
+      "families": [
+        "Segoe UI Emoji"
+      ],
+      "missing": 1,
+      "name": "女生摔跤: 中等-浅肤色较深肤色",
+      "text": "👩🏼‍🫯‍👩🏿",
+      "visible_glyphs": 3
+    },
+    {
+      "families": [
+        "Segoe UI Emoji"
+      ],
+      "missing": 1,
+      "name": "女生摔跤: 中等肤色较浅肤色",
+      "text": "👩🏽‍🫯‍👩🏻",
+      "visible_glyphs": 3
+    },
+    {
+      "families": [
+        "Segoe UI Emoji"
+      ],
+      "missing": 1,
+      "name": "女生摔跤: 中等肤色中等-浅肤色",
+      "text": "👩🏽‍🫯‍👩🏼",
+      "visible_glyphs": 3
+    },
+    {
+      "families": [
+        "Segoe UI Emoji"
+      ],
+      "missing": 1,
+      "name": "女生摔跤: 中等肤色中等-深肤色",
+      "text": "👩🏽‍🫯‍👩🏾",
+      "visible_glyphs": 3
+    },
+    {
+      "families": [
+        "Segoe UI Emoji"
+      ],
+      "missing": 1,
+      "name": "女生摔跤: 中等肤色较深肤色",
+      "text": "👩🏽‍🫯‍👩🏿",
+      "visible_glyphs": 3
+    },
+    {
+      "families": [
+        "Segoe UI Emoji"
+      ],
+      "missing": 1,
+      "name": "女生摔跤: 中等-深肤色较浅肤色",
+      "text": "👩🏾‍🫯‍👩🏻",
+      "visible_glyphs": 3
+    },
+    {
+      "families": [
+        "Segoe UI Emoji"
+      ],
+      "missing": 1,
+      "name": "女生摔跤: 中等-深肤色中等-浅肤色",
+      "text": "👩🏾‍🫯‍👩🏼",
+      "visible_glyphs": 3
+    },
+    {
+      "families": [
+        "Segoe UI Emoji"
+      ],
+      "missing": 1,
+      "name": "女生摔跤: 中等-深肤色中等肤色",
+      "text": "👩🏾‍🫯‍👩🏽",
+      "visible_glyphs": 3
+    },
+    {
+      "families": [
+        "Segoe UI Emoji"
+      ],
+      "missing": 1,
+      "name": "女生摔跤: 中等-深肤色较深肤色",
+      "text": "👩🏾‍🫯‍👩🏿",
+      "visible_glyphs": 3
+    },
+    {
+      "families": [
+        "Segoe UI Emoji"
+      ],
+      "missing": 1,
+      "name": "女生摔跤: 较深肤色较浅肤色",
+      "text": "👩🏿‍🫯‍👩🏻",
+      "visible_glyphs": 3
+    },
+    {
+      "families": [
+        "Segoe UI Emoji"
+      ],
+      "missing": 1,
+      "name": "女生摔跤: 较深肤色中等-浅肤色",
+      "text": "👩🏿‍🫯‍👩🏼",
+      "visible_glyphs": 3
+    },
+    {
+      "families": [
+        "Segoe UI Emoji"
+      ],
+      "missing": 1,
+      "name": "女生摔跤: 较深肤色中等肤色",
+      "text": "👩🏿‍🫯‍👩🏽",
+      "visible_glyphs": 3
+    },
+    {
+      "families": [
+        "Segoe UI Emoji"
+      ],
+      "missing": 1,
+      "name": "女生摔跤: 较深肤色中等-深肤色",
+      "text": "👩🏿‍🫯‍👩🏾",
+      "visible_glyphs": 3
+    },
+    {
+      "families": [
+        "Segoe UI Emoji"
+      ],
+      "missing": 0,
+      "name": "手拉手的两个人",
+      "text": "🧑‍🤝‍🧑",
+      "visible_glyphs": 2
+    },
+    {
+      "families": [
+        "Segoe UI Emoji"
+      ],
+      "missing": 0,
+      "name": "手拉手的两个人: 较浅肤色",
+      "text": "🧑🏻‍🤝‍🧑🏻",
+      "visible_glyphs": 2
+    },
+    {
+      "families": [
+        "Segoe UI Emoji"
+      ],
+      "missing": 0,
+      "name": "手拉手的两个人: 较浅肤色中等-浅肤色",
+      "text": "🧑🏻‍🤝‍🧑🏼",
+      "visible_glyphs": 2
+    },
+    {
+      "families": [
+        "Segoe UI Emoji"
+      ],
+      "missing": 0,
+      "name": "手拉手的两个人: 较浅肤色中等肤色",
+      "text": "🧑🏻‍🤝‍🧑🏽",
+      "visible_glyphs": 2
+    },
+    {
+      "families": [
+        "Segoe UI Emoji"
+      ],
+      "missing": 0,
+      "name": "手拉手的两个人: 较浅肤色中等-深肤色",
+      "text": "🧑🏻‍🤝‍🧑🏾",
+      "visible_glyphs": 2
+    },
+    {
+      "families": [
+        "Segoe UI Emoji"
+      ],
+      "missing": 0,
+      "name": "手拉手的两个人: 较浅肤色较深肤色",
+      "text": "🧑🏻‍🤝‍🧑🏿",
+      "visible_glyphs": 2
+    },
+    {
+      "families": [
+        "Segoe UI Emoji"
+      ],
+      "missing": 0,
+      "name": "手拉手的两个人: 中等-浅肤色较浅肤色",
+      "text": "🧑🏼‍🤝‍🧑🏻",
+      "visible_glyphs": 2
+    },
+    {
+      "families": [
+        "Segoe UI Emoji"
+      ],
+      "missing": 0,
+      "name": "手拉手的两个人: 中等-浅肤色",
+      "text": "🧑🏼‍🤝‍🧑🏼",
+      "visible_glyphs": 2
+    },
+    {
+      "families": [
+        "Segoe UI Emoji"
+      ],
+      "missing": 0,
+      "name": "手拉手的两个人: 中等-浅肤色中等肤色",
+      "text": "🧑🏼‍🤝‍🧑🏽",
+      "visible_glyphs": 2
+    },
+    {
+      "families": [
+        "Segoe UI Emoji"
+      ],
+      "missing": 0,
+      "name": "手拉手的两个人: 中等-浅肤色中等-深肤色",
+      "text": "🧑🏼‍🤝‍🧑🏾",
+      "visible_glyphs": 2
+    },
+    {
+      "families": [
+        "Segoe UI Emoji"
+      ],
+      "missing": 0,
+      "name": "手拉手的两个人: 中等-浅肤色较深肤色",
+      "text": "🧑🏼‍🤝‍🧑🏿",
+      "visible_glyphs": 2
+    },
+    {
+      "families": [
+        "Segoe UI Emoji"
+      ],
+      "missing": 0,
+      "name": "手拉手的两个人: 中等肤色较浅肤色",
+      "text": "🧑🏽‍🤝‍🧑🏻",
+      "visible_glyphs": 2
+    },
+    {
+      "families": [
+        "Segoe UI Emoji"
+      ],
+      "missing": 0,
+      "name": "手拉手的两个人: 中等肤色中等-浅肤色",
+      "text": "🧑🏽‍🤝‍🧑🏼",
+      "visible_glyphs": 2
+    },
+    {
+      "families": [
+        "Segoe UI Emoji"
+      ],
+      "missing": 0,
+      "name": "手拉手的两个人: 中等肤色",
+      "text": "🧑🏽‍🤝‍🧑🏽",
+      "visible_glyphs": 2
+    },
+    {
+      "families": [
+        "Segoe UI Emoji"
+      ],
+      "missing": 0,
+      "name": "手拉手的两个人: 中等肤色中等-深肤色",
+      "text": "🧑🏽‍🤝‍🧑🏾",
+      "visible_glyphs": 2
+    },
+    {
+      "families": [
+        "Segoe UI Emoji"
+      ],
+      "missing": 0,
+      "name": "手拉手的两个人: 中等肤色较深肤色",
+      "text": "🧑🏽‍🤝‍🧑🏿",
+      "visible_glyphs": 2
+    },
+    {
+      "families": [
+        "Segoe UI Emoji"
+      ],
+      "missing": 0,
+      "name": "手拉手的两个人: 中等-深肤色较浅肤色",
+      "text": "🧑🏾‍🤝‍🧑🏻",
+      "visible_glyphs": 2
+    },
+    {
+      "families": [
+        "Segoe UI Emoji"
+      ],
+      "missing": 0,
+      "name": "手拉手的两个人: 中等-深肤色中等-浅肤色",
+      "text": "🧑🏾‍🤝‍🧑🏼",
+      "visible_glyphs": 2
+    },
+    {
+      "families": [
+        "Segoe UI Emoji"
+      ],
+      "missing": 0,
+      "name": "手拉手的两个人: 中等-深肤色中等肤色",
+      "text": "🧑🏾‍🤝‍🧑🏽",
+      "visible_glyphs": 2
+    },
+    {
+      "families": [
+        "Segoe UI Emoji"
+      ],
+      "missing": 0,
+      "name": "手拉手的两个人: 中等-深肤色",
+      "text": "🧑🏾‍🤝‍🧑🏾",
+      "visible_glyphs": 2
+    },
+    {
+      "families": [
+        "Segoe UI Emoji"
+      ],
+      "missing": 0,
+      "name": "手拉手的两个人: 中等-深肤色较深肤色",
+      "text": "🧑🏾‍🤝‍🧑🏿",
+      "visible_glyphs": 2
+    },
+    {
+      "families": [
+        "Segoe UI Emoji"
+      ],
+      "missing": 0,
+      "name": "手拉手的两个人: 较深肤色较浅肤色",
+      "text": "🧑🏿‍🤝‍🧑🏻",
+      "visible_glyphs": 2
+    },
+    {
+      "families": [
+        "Segoe UI Emoji"
+      ],
+      "missing": 0,
+      "name": "手拉手的两个人: 较深肤色中等-浅肤色",
+      "text": "🧑🏿‍🤝‍🧑🏼",
+      "visible_glyphs": 2
+    },
+    {
+      "families": [
+        "Segoe UI Emoji"
+      ],
+      "missing": 0,
+      "name": "手拉手的两个人: 较深肤色中等肤色",
+      "text": "🧑🏿‍🤝‍🧑🏽",
+      "visible_glyphs": 2
+    },
+    {
+      "families": [
+        "Segoe UI Emoji"
+      ],
+      "missing": 0,
+      "name": "手拉手的两个人: 较深肤色中等-深肤色",
+      "text": "🧑🏿‍🤝‍🧑🏾",
+      "visible_glyphs": 2
+    },
+    {
+      "families": [
+        "Segoe UI Emoji"
+      ],
+      "missing": 0,
+      "name": "手拉手的两个人: 较深肤色",
+      "text": "🧑🏿‍🤝‍🧑🏿",
+      "visible_glyphs": 2
+    },
+    {
+      "families": [
+        "Segoe UI Emoji"
+      ],
+      "missing": 0,
+      "name": "手拉手的两个女人: 较浅肤色中等-浅肤色",
+      "text": "👩🏻‍🤝‍👩🏼",
+      "visible_glyphs": 2
+    },
+    {
+      "families": [
+        "Segoe UI Emoji"
+      ],
+      "missing": 0,
+      "name": "手拉手的两个女人: 较浅肤色中等肤色",
+      "text": "👩🏻‍🤝‍👩🏽",
+      "visible_glyphs": 2
+    },
+    {
+      "families": [
+        "Segoe UI Emoji"
+      ],
+      "missing": 0,
+      "name": "手拉手的两个女人: 较浅肤色中等-深肤色",
+      "text": "👩🏻‍🤝‍👩🏾",
+      "visible_glyphs": 2
+    },
+    {
+      "families": [
+        "Segoe UI Emoji"
+      ],
+      "missing": 0,
+      "name": "手拉手的两个女人: 较浅肤色较深肤色",
+      "text": "👩🏻‍🤝‍👩🏿",
+      "visible_glyphs": 2
+    },
+    {
+      "families": [
+        "Segoe UI Emoji"
+      ],
+      "missing": 0,
+      "name": "手拉手的两个女人: 中等-浅肤色较浅肤色",
+      "text": "👩🏼‍🤝‍👩🏻",
+      "visible_glyphs": 2
+    },
+    {
+      "families": [
+        "Segoe UI Emoji"
+      ],
+      "missing": 0,
+      "name": "手拉手的两个女人: 中等-浅肤色中等肤色",
+      "text": "👩🏼‍🤝‍👩🏽",
+      "visible_glyphs": 2
+    },
+    {
+      "families": [
+        "Segoe UI Emoji"
+      ],
+      "missing": 0,
+      "name": "手拉手的两个女人: 中等-浅肤色中等-深肤色",
+      "text": "👩🏼‍🤝‍👩🏾",
+      "visible_glyphs": 2
+    },
+    {
+      "families": [
+        "Segoe UI Emoji"
+      ],
+      "missing": 0,
+      "name": "手拉手的两个女人: 中等-浅肤色较深肤色",
+      "text": "👩🏼‍🤝‍👩🏿",
+      "visible_glyphs": 2
+    },
+    {
+      "families": [
+        "Segoe UI Emoji"
+      ],
+      "missing": 0,
+      "name": "手拉手的两个女人: 中等肤色较浅肤色",
+      "text": "👩🏽‍🤝‍👩🏻",
+      "visible_glyphs": 2
+    },
+    {
+      "families": [
+        "Segoe UI Emoji"
+      ],
+      "missing": 0,
+      "name": "手拉手的两个女人: 中等肤色中等-浅肤色",
+      "text": "👩🏽‍🤝‍👩🏼",
+      "visible_glyphs": 2
+    },
+    {
+      "families": [
+        "Segoe UI Emoji"
+      ],
+      "missing": 0,
+      "name": "手拉手的两个女人: 中等肤色中等-深肤色",
+      "text": "👩🏽‍🤝‍👩🏾",
+      "visible_glyphs": 2
+    },
+    {
+      "families": [
+        "Segoe UI Emoji"
+      ],
+      "missing": 0,
+      "name": "手拉手的两个女人: 中等肤色较深肤色",
+      "text": "👩🏽‍🤝‍👩🏿",
+      "visible_glyphs": 2
+    },
+    {
+      "families": [
+        "Segoe UI Emoji"
+      ],
+      "missing": 0,
+      "name": "手拉手的两个女人: 中等-深肤色较浅肤色",
+      "text": "👩🏾‍🤝‍👩🏻",
+      "visible_glyphs": 2
+    },
+    {
+      "families": [
+        "Segoe UI Emoji"
+      ],
+      "missing": 0,
+      "name": "手拉手的两个女人: 中等-深肤色中等-浅肤色",
+      "text": "👩🏾‍🤝‍👩🏼",
+      "visible_glyphs": 2
+    },
+    {
+      "families": [
+        "Segoe UI Emoji"
+      ],
+      "missing": 0,
+      "name": "手拉手的两个女人: 中等-深肤色中等肤色",
+      "text": "👩🏾‍🤝‍👩🏽",
+      "visible_glyphs": 2
+    },
+    {
+      "families": [
+        "Segoe UI Emoji"
+      ],
+      "missing": 0,
+      "name": "手拉手的两个女人: 中等-深肤色较深肤色",
+      "text": "👩🏾‍🤝‍👩🏿",
+      "visible_glyphs": 2
+    },
+    {
+      "families": [
+        "Segoe UI Emoji"
+      ],
+      "missing": 0,
+      "name": "手拉手的两个女人: 较深肤色较浅肤色",
+      "text": "👩🏿‍🤝‍👩🏻",
+      "visible_glyphs": 2
+    },
+    {
+      "families": [
+        "Segoe UI Emoji"
+      ],
+      "missing": 0,
+      "name": "手拉手的两个女人: 较深肤色中等-浅肤色",
+      "text": "👩🏿‍🤝‍👩🏼",
+      "visible_glyphs": 2
+    },
+    {
+      "families": [
+        "Segoe UI Emoji"
+      ],
+      "missing": 0,
+      "name": "手拉手的两个女人: 较深肤色中等肤色",
+      "text": "👩🏿‍🤝‍👩🏽",
+      "visible_glyphs": 2
+    },
+    {
+      "families": [
+        "Segoe UI Emoji"
+      ],
+      "missing": 0,
+      "name": "手拉手的两个女人: 较深肤色中等-深肤色",
+      "text": "👩🏿‍🤝‍👩🏾",
+      "visible_glyphs": 2
+    },
+    {
+      "families": [
+        "Segoe UI Emoji"
+      ],
+      "missing": 0,
+      "name": "手拉手的一男一女: 较浅肤色中等-浅肤色",
+      "text": "👩🏻‍🤝‍👨🏼",
+      "visible_glyphs": 2
+    },
+    {
+      "families": [
+        "Segoe UI Emoji"
+      ],
+      "missing": 0,
+      "name": "手拉手的一男一女: 较浅肤色中等肤色",
+      "text": "👩🏻‍🤝‍👨🏽",
+      "visible_glyphs": 2
+    },
+    {
+      "families": [
+        "Segoe UI Emoji"
+      ],
+      "missing": 0,
+      "name": "手拉手的一男一女: 较浅肤色中等-深肤色",
+      "text": "👩🏻‍🤝‍👨🏾",
+      "visible_glyphs": 2
+    },
+    {
+      "families": [
+        "Segoe UI Emoji"
+      ],
+      "missing": 0,
+      "name": "手拉手的一男一女: 较浅肤色较深肤色",
+      "text": "👩🏻‍🤝‍👨🏿",
+      "visible_glyphs": 2
+    },
+    {
+      "families": [
+        "Segoe UI Emoji"
+      ],
+      "missing": 0,
+      "name": "手拉手的一男一女: 中等-浅肤色较浅肤色",
+      "text": "👩🏼‍🤝‍👨🏻",
+      "visible_glyphs": 2
+    },
+    {
+      "families": [
+        "Segoe UI Emoji"
+      ],
+      "missing": 0,
+      "name": "手拉手的一男一女: 中等-浅肤色中等肤色",
+      "text": "👩🏼‍🤝‍👨🏽",
+      "visible_glyphs": 2
+    },
+    {
+      "families": [
+        "Segoe UI Emoji"
+      ],
+      "missing": 0,
+      "name": "手拉手的一男一女: 中等-浅肤色中等-深肤色",
+      "text": "👩🏼‍🤝‍👨🏾",
+      "visible_glyphs": 2
+    },
+    {
+      "families": [
+        "Segoe UI Emoji"
+      ],
+      "missing": 0,
+      "name": "手拉手的一男一女: 中等-浅肤色较深肤色",
+      "text": "👩🏼‍🤝‍👨🏿",
+      "visible_glyphs": 2
+    },
+    {
+      "families": [
+        "Segoe UI Emoji"
+      ],
+      "missing": 0,
+      "name": "手拉手的一男一女: 中等肤色较浅肤色",
+      "text": "👩🏽‍🤝‍👨🏻",
+      "visible_glyphs": 2
+    },
+    {
+      "families": [
+        "Segoe UI Emoji"
+      ],
+      "missing": 0,
+      "name": "手拉手的一男一女: 中等肤色中等-浅肤色",
+      "text": "👩🏽‍🤝‍👨🏼",
+      "visible_glyphs": 2
+    },
+    {
+      "families": [
+        "Segoe UI Emoji"
+      ],
+      "missing": 0,
+      "name": "手拉手的一男一女: 中等肤色中等-深肤色",
+      "text": "👩🏽‍🤝‍👨🏾",
+      "visible_glyphs": 2
+    },
+    {
+      "families": [
+        "Segoe UI Emoji"
+      ],
+      "missing": 0,
+      "name": "手拉手的一男一女: 中等肤色较深肤色",
+      "text": "👩🏽‍🤝‍👨🏿",
+      "visible_glyphs": 2
+    },
+    {
+      "families": [
+        "Segoe UI Emoji"
+      ],
+      "missing": 0,
+      "name": "手拉手的一男一女: 中等-深肤色较浅肤色",
+      "text": "👩🏾‍🤝‍👨🏻",
+      "visible_glyphs": 2
+    },
+    {
+      "families": [
+        "Segoe UI Emoji"
+      ],
+      "missing": 0,
+      "name": "手拉手的一男一女: 中等-深肤色中等-浅肤色",
+      "text": "👩🏾‍🤝‍👨🏼",
+      "visible_glyphs": 2
+    },
+    {
+      "families": [
+        "Segoe UI Emoji"
+      ],
+      "missing": 0,
+      "name": "手拉手的一男一女: 中等-深肤色中等肤色",
+      "text": "👩🏾‍🤝‍👨🏽",
+      "visible_glyphs": 2
+    },
+    {
+      "families": [
+        "Segoe UI Emoji"
+      ],
+      "missing": 0,
+      "name": "手拉手的一男一女: 中等-深肤色较深肤色",
+      "text": "👩🏾‍🤝‍👨🏿",
+      "visible_glyphs": 2
+    },
+    {
+      "families": [
+        "Segoe UI Emoji"
+      ],
+      "missing": 0,
+      "name": "手拉手的一男一女: 较深肤色较浅肤色",
+      "text": "👩🏿‍🤝‍👨🏻",
+      "visible_glyphs": 2
+    },
+    {
+      "families": [
+        "Segoe UI Emoji"
+      ],
+      "missing": 0,
+      "name": "手拉手的一男一女: 较深肤色中等-浅肤色",
+      "text": "👩🏿‍🤝‍👨🏼",
+      "visible_glyphs": 2
+    },
+    {
+      "families": [
+        "Segoe UI Emoji"
+      ],
+      "missing": 0,
+      "name": "手拉手的一男一女: 较深肤色中等肤色",
+      "text": "👩🏿‍🤝‍👨🏽",
+      "visible_glyphs": 2
+    },
+    {
+      "families": [
+        "Segoe UI Emoji"
+      ],
+      "missing": 0,
+      "name": "手拉手的一男一女: 较深肤色中等-深肤色",
+      "text": "👩🏿‍🤝‍👨🏾",
+      "visible_glyphs": 2
+    },
+    {
+      "families": [
+        "Segoe UI Emoji"
+      ],
+      "missing": 0,
+      "name": "手拉手的两个男人: 较浅肤色中等-浅肤色",
+      "text": "👨🏻‍🤝‍👨🏼",
+      "visible_glyphs": 2
+    },
+    {
+      "families": [
+        "Segoe UI Emoji"
+      ],
+      "missing": 0,
+      "name": "手拉手的两个男人: 较浅肤色中等肤色",
+      "text": "👨🏻‍🤝‍👨🏽",
+      "visible_glyphs": 2
+    },
+    {
+      "families": [
+        "Segoe UI Emoji"
+      ],
+      "missing": 0,
+      "name": "手拉手的两个男人: 较浅肤色中等-深肤色",
+      "text": "👨🏻‍🤝‍👨🏾",
+      "visible_glyphs": 2
+    },
+    {
+      "families": [
+        "Segoe UI Emoji"
+      ],
+      "missing": 0,
+      "name": "手拉手的两个男人: 较浅肤色较深肤色",
+      "text": "👨🏻‍🤝‍👨🏿",
+      "visible_glyphs": 2
+    },
+    {
+      "families": [
+        "Segoe UI Emoji"
+      ],
+      "missing": 0,
+      "name": "手拉手的两个男人: 中等-浅肤色较浅肤色",
+      "text": "👨🏼‍🤝‍👨🏻",
+      "visible_glyphs": 2
+    },
+    {
+      "families": [
+        "Segoe UI Emoji"
+      ],
+      "missing": 0,
+      "name": "手拉手的两个男人: 中等-浅肤色中等肤色",
+      "text": "👨🏼‍🤝‍👨🏽",
+      "visible_glyphs": 2
+    },
+    {
+      "families": [
+        "Segoe UI Emoji"
+      ],
+      "missing": 0,
+      "name": "手拉手的两个男人: 中等-浅肤色中等-深肤色",
+      "text": "👨🏼‍🤝‍👨🏾",
+      "visible_glyphs": 2
+    },
+    {
+      "families": [
+        "Segoe UI Emoji"
+      ],
+      "missing": 0,
+      "name": "手拉手的两个男人: 中等-浅肤色较深肤色",
+      "text": "👨🏼‍🤝‍👨🏿",
+      "visible_glyphs": 2
+    },
+    {
+      "families": [
+        "Segoe UI Emoji"
+      ],
+      "missing": 0,
+      "name": "手拉手的两个男人: 中等肤色较浅肤色",
+      "text": "👨🏽‍🤝‍👨🏻",
+      "visible_glyphs": 2
+    },
+    {
+      "families": [
+        "Segoe UI Emoji"
+      ],
+      "missing": 0,
+      "name": "手拉手的两个男人: 中等肤色中等-浅肤色",
+      "text": "👨🏽‍🤝‍👨🏼",
+      "visible_glyphs": 2
+    },
+    {
+      "families": [
+        "Segoe UI Emoji"
+      ],
+      "missing": 0,
+      "name": "手拉手的两个男人: 中等肤色中等-深肤色",
+      "text": "👨🏽‍🤝‍👨🏾",
+      "visible_glyphs": 2
+    },
+    {
+      "families": [
+        "Segoe UI Emoji"
+      ],
+      "missing": 0,
+      "name": "手拉手的两个男人: 中等肤色较深肤色",
+      "text": "👨🏽‍🤝‍👨🏿",
+      "visible_glyphs": 2
+    },
+    {
+      "families": [
+        "Segoe UI Emoji"
+      ],
+      "missing": 0,
+      "name": "手拉手的两个男人: 中等-深肤色较浅肤色",
+      "text": "👨🏾‍🤝‍👨🏻",
+      "visible_glyphs": 2
+    },
+    {
+      "families": [
+        "Segoe UI Emoji"
+      ],
+      "missing": 0,
+      "name": "手拉手的两个男人: 中等-深肤色中等-浅肤色",
+      "text": "👨🏾‍🤝‍👨🏼",
+      "visible_glyphs": 2
+    },
+    {
+      "families": [
+        "Segoe UI Emoji"
+      ],
+      "missing": 0,
+      "name": "手拉手的两个男人: 中等-深肤色中等肤色",
+      "text": "👨🏾‍🤝‍👨🏽",
+      "visible_glyphs": 2
+    },
+    {
+      "families": [
+        "Segoe UI Emoji"
+      ],
+      "missing": 0,
+      "name": "手拉手的两个男人: 中等-深肤色较深肤色",
+      "text": "👨🏾‍🤝‍👨🏿",
+      "visible_glyphs": 2
+    },
+    {
+      "families": [
+        "Segoe UI Emoji"
+      ],
+      "missing": 0,
+      "name": "手拉手的两个男人: 较深肤色较浅肤色",
+      "text": "👨🏿‍🤝‍👨🏻",
+      "visible_glyphs": 2
+    },
+    {
+      "families": [
+        "Segoe UI Emoji"
+      ],
+      "missing": 0,
+      "name": "手拉手的两个男人: 较深肤色中等-浅肤色",
+      "text": "👨🏿‍🤝‍👨🏼",
+      "visible_glyphs": 2
+    },
+    {
+      "families": [
+        "Segoe UI Emoji"
+      ],
+      "missing": 0,
+      "name": "手拉手的两个男人: 较深肤色中等肤色",
+      "text": "👨🏿‍🤝‍👨🏽",
+      "visible_glyphs": 2
+    },
+    {
+      "families": [
+        "Segoe UI Emoji"
+      ],
+      "missing": 0,
+      "name": "手拉手的两个男人: 较深肤色中等-深肤色",
+      "text": "👨🏿‍🤝‍👨🏾",
+      "visible_glyphs": 2
+    },
+    {
+      "families": [
+        "Segoe UI Emoji"
+      ],
+      "missing": 0,
+      "name": "亲吻: 成人成人较浅肤色中等-浅肤色",
+      "text": "🧑🏻‍❤️‍💋‍🧑🏼",
+      "visible_glyphs": 3
+    },
+    {
+      "families": [
+        "Segoe UI Emoji"
+      ],
+      "missing": 0,
+      "name": "亲吻: 成人成人较浅肤色中等肤色",
+      "text": "🧑🏻‍❤️‍💋‍🧑🏽",
+      "visible_glyphs": 3
+    },
+    {
+      "families": [
+        "Segoe UI Emoji"
+      ],
+      "missing": 0,
+      "name": "亲吻: 成人成人较浅肤色中等-深肤色",
+      "text": "🧑🏻‍❤️‍💋‍🧑🏾",
+      "visible_glyphs": 3
+    },
+    {
+      "families": [
+        "Segoe UI Emoji"
+      ],
+      "missing": 0,
+      "name": "亲吻: 成人成人较浅肤色较深肤色",
+      "text": "🧑🏻‍❤️‍💋‍🧑🏿",
+      "visible_glyphs": 3
+    },
+    {
+      "families": [
+        "Segoe UI Emoji"
+      ],
+      "missing": 0,
+      "name": "亲吻: 成人成人中等-浅肤色较浅肤色",
+      "text": "🧑🏼‍❤️‍💋‍🧑🏻",
+      "visible_glyphs": 3
+    },
+    {
+      "families": [
+        "Segoe UI Emoji"
+      ],
+      "missing": 0,
+      "name": "亲吻: 成人成人中等-浅肤色中等肤色",
+      "text": "🧑🏼‍❤️‍💋‍🧑🏽",
+      "visible_glyphs": 3
+    },
+    {
+      "families": [
+        "Segoe UI Emoji"
+      ],
+      "missing": 0,
+      "name": "亲吻: 成人成人中等-浅肤色中等-深肤色",
+      "text": "🧑🏼‍❤️‍💋‍🧑🏾",
+      "visible_glyphs": 3
+    },
+    {
+      "families": [
+        "Segoe UI Emoji"
+      ],
+      "missing": 0,
+      "name": "亲吻: 成人成人中等-浅肤色较深肤色",
+      "text": "🧑🏼‍❤️‍💋‍🧑🏿",
+      "visible_glyphs": 3
+    },
+    {
+      "families": [
+        "Segoe UI Emoji"
+      ],
+      "missing": 0,
+      "name": "亲吻: 成人成人中等肤色较浅肤色",
+      "text": "🧑🏽‍❤️‍💋‍🧑🏻",
+      "visible_glyphs": 3
+    },
+    {
+      "families": [
+        "Segoe UI Emoji"
+      ],
+      "missing": 0,
+      "name": "亲吻: 成人成人中等肤色中等-浅肤色",
+      "text": "🧑🏽‍❤️‍💋‍🧑🏼",
+      "visible_glyphs": 3
+    },
+    {
+      "families": [
+        "Segoe UI Emoji"
+      ],
+      "missing": 0,
+      "name": "亲吻: 成人成人中等肤色中等-深肤色",
+      "text": "🧑🏽‍❤️‍💋‍🧑🏾",
+      "visible_glyphs": 3
+    },
+    {
+      "families": [
+        "Segoe UI Emoji"
+      ],
+      "missing": 0,
+      "name": "亲吻: 成人成人中等肤色较深肤色",
+      "text": "🧑🏽‍❤️‍💋‍🧑🏿",
+      "visible_glyphs": 3
+    },
+    {
+      "families": [
+        "Segoe UI Emoji"
+      ],
+      "missing": 0,
+      "name": "亲吻: 成人成人中等-深肤色较浅肤色",
+      "text": "🧑🏾‍❤️‍💋‍🧑🏻",
+      "visible_glyphs": 3
+    },
+    {
+      "families": [
+        "Segoe UI Emoji"
+      ],
+      "missing": 0,
+      "name": "亲吻: 成人成人中等-深肤色中等-浅肤色",
+      "text": "🧑🏾‍❤️‍💋‍🧑🏼",
+      "visible_glyphs": 3
+    },
+    {
+      "families": [
+        "Segoe UI Emoji"
+      ],
+      "missing": 0,
+      "name": "亲吻: 成人成人中等-深肤色中等肤色",
+      "text": "🧑🏾‍❤️‍💋‍🧑🏽",
+      "visible_glyphs": 3
+    },
+    {
+      "families": [
+        "Segoe UI Emoji"
+      ],
+      "missing": 0,
+      "name": "亲吻: 成人成人中等-深肤色较深肤色",
+      "text": "🧑🏾‍❤️‍💋‍🧑🏿",
+      "visible_glyphs": 3
+    },
+    {
+      "families": [
+        "Segoe UI Emoji"
+      ],
+      "missing": 0,
+      "name": "亲吻: 成人成人较深肤色较浅肤色",
+      "text": "🧑🏿‍❤️‍💋‍🧑🏻",
+      "visible_glyphs": 3
+    },
+    {
+      "families": [
+        "Segoe UI Emoji"
+      ],
+      "missing": 0,
+      "name": "亲吻: 成人成人较深肤色中等-浅肤色",
+      "text": "🧑🏿‍❤️‍💋‍🧑🏼",
+      "visible_glyphs": 3
+    },
+    {
+      "families": [
+        "Segoe UI Emoji"
+      ],
+      "missing": 0,
+      "name": "亲吻: 成人成人较深肤色中等肤色",
+      "text": "🧑🏿‍❤️‍💋‍🧑🏽",
+      "visible_glyphs": 3
+    },
+    {
+      "families": [
+        "Segoe UI Emoji"
+      ],
+      "missing": 0,
+      "name": "亲吻: 成人成人较深肤色中等-深肤色",
+      "text": "🧑🏿‍❤️‍💋‍🧑🏾",
+      "visible_glyphs": 3
+    },
+    {
+      "families": [
+        "Segoe UI Emoji"
+      ],
+      "missing": 0,
+      "name": "亲吻: 女人男人",
+      "text": "👩‍❤️‍💋‍👨",
+      "visible_glyphs": 3
+    },
+    {
+      "families": [
+        "Segoe UI Emoji"
+      ],
+      "missing": 0,
+      "name": "亲吻: 女人男人较浅肤色",
+      "text": "👩🏻‍❤️‍💋‍👨🏻",
+      "visible_glyphs": 3
+    },
+    {
+      "families": [
+        "Segoe UI Emoji"
+      ],
+      "missing": 0,
+      "name": "亲吻: 女人男人较浅肤色中等-浅肤色",
+      "text": "👩🏻‍❤️‍💋‍👨🏼",
+      "visible_glyphs": 3
+    },
+    {
+      "families": [
+        "Segoe UI Emoji"
+      ],
+      "missing": 0,
+      "name": "亲吻: 女人男人较浅肤色中等肤色",
+      "text": "👩🏻‍❤️‍💋‍👨🏽",
+      "visible_glyphs": 3
+    },
+    {
+      "families": [
+        "Segoe UI Emoji"
+      ],
+      "missing": 0,
+      "name": "亲吻: 女人男人较浅肤色中等-深肤色",
+      "text": "👩🏻‍❤️‍💋‍👨🏾",
+      "visible_glyphs": 3
+    },
+    {
+      "families": [
+        "Segoe UI Emoji"
+      ],
+      "missing": 0,
+      "name": "亲吻: 女人男人较浅肤色较深肤色",
+      "text": "👩🏻‍❤️‍💋‍👨🏿",
+      "visible_glyphs": 3
+    },
+    {
+      "families": [
+        "Segoe UI Emoji"
+      ],
+      "missing": 0,
+      "name": "亲吻: 女人男人中等-浅肤色较浅肤色",
+      "text": "👩🏼‍❤️‍💋‍👨🏻",
+      "visible_glyphs": 3
+    },
+    {
+      "families": [
+        "Segoe UI Emoji"
+      ],
+      "missing": 0,
+      "name": "亲吻: 女人男人中等-浅肤色",
+      "text": "👩🏼‍❤️‍💋‍👨🏼",
+      "visible_glyphs": 3
+    },
+    {
+      "families": [
+        "Segoe UI Emoji"
+      ],
+      "missing": 0,
+      "name": "亲吻: 女人男人中等-浅肤色中等肤色",
+      "text": "👩🏼‍❤️‍💋‍👨🏽",
+      "visible_glyphs": 3
+    },
+    {
+      "families": [
+        "Segoe UI Emoji"
+      ],
+      "missing": 0,
+      "name": "亲吻: 女人男人中等-浅肤色中等-深肤色",
+      "text": "👩🏼‍❤️‍💋‍👨🏾",
+      "visible_glyphs": 3
+    },
+    {
+      "families": [
+        "Segoe UI Emoji"
+      ],
+      "missing": 0,
+      "name": "亲吻: 女人男人中等-浅肤色较深肤色",
+      "text": "👩🏼‍❤️‍💋‍👨🏿",
+      "visible_glyphs": 3
+    },
+    {
+      "families": [
+        "Segoe UI Emoji"
+      ],
+      "missing": 0,
+      "name": "亲吻: 女人男人中等肤色较浅肤色",
+      "text": "👩🏽‍❤️‍💋‍👨🏻",
+      "visible_glyphs": 3
+    },
+    {
+      "families": [
+        "Segoe UI Emoji"
+      ],
+      "missing": 0,
+      "name": "亲吻: 女人男人中等肤色中等-浅肤色",
+      "text": "👩🏽‍❤️‍💋‍👨🏼",
+      "visible_glyphs": 3
+    },
+    {
+      "families": [
+        "Segoe UI Emoji"
+      ],
+      "missing": 0,
+      "name": "亲吻: 女人男人中等肤色",
+      "text": "👩🏽‍❤️‍💋‍👨🏽",
+      "visible_glyphs": 3
+    },
+    {
+      "families": [
+        "Segoe UI Emoji"
+      ],
+      "missing": 0,
+      "name": "亲吻: 女人男人中等肤色中等-深肤色",
+      "text": "👩🏽‍❤️‍💋‍👨🏾",
+      "visible_glyphs": 3
+    },
+    {
+      "families": [
+        "Segoe UI Emoji"
+      ],
+      "missing": 0,
+      "name": "亲吻: 女人男人中等肤色较深肤色",
+      "text": "👩🏽‍❤️‍💋‍👨🏿",
+      "visible_glyphs": 3
+    },
+    {
+      "families": [
+        "Segoe UI Emoji"
+      ],
+      "missing": 0,
+      "name": "亲吻: 女人男人中等-深肤色较浅肤色",
+      "text": "👩🏾‍❤️‍💋‍👨🏻",
+      "visible_glyphs": 3
+    },
+    {
+      "families": [
+        "Segoe UI Emoji"
+      ],
+      "missing": 0,
+      "name": "亲吻: 女人男人中等-深肤色中等-浅肤色",
+      "text": "👩🏾‍❤️‍💋‍👨🏼",
+      "visible_glyphs": 3
+    },
+    {
+      "families": [
+        "Segoe UI Emoji"
+      ],
+      "missing": 0,
+      "name": "亲吻: 女人男人中等-深肤色中等肤色",
+      "text": "👩🏾‍❤️‍💋‍👨🏽",
+      "visible_glyphs": 3
+    },
+    {
+      "families": [
+        "Segoe UI Emoji"
+      ],
+      "missing": 0,
+      "name": "亲吻: 女人男人中等-深肤色",
+      "text": "👩🏾‍❤️‍💋‍👨🏾",
+      "visible_glyphs": 3
+    },
+    {
+      "families": [
+        "Segoe UI Emoji"
+      ],
+      "missing": 0,
+      "name": "亲吻: 女人男人中等-深肤色较深肤色",
+      "text": "👩🏾‍❤️‍💋‍👨🏿",
+      "visible_glyphs": 3
+    },
+    {
+      "families": [
+        "Segoe UI Emoji"
+      ],
+      "missing": 0,
+      "name": "亲吻: 女人男人较深肤色较浅肤色",
+      "text": "👩🏿‍❤️‍💋‍👨🏻",
+      "visible_glyphs": 3
+    },
+    {
+      "families": [
+        "Segoe UI Emoji"
+      ],
+      "missing": 0,
+      "name": "亲吻: 女人男人较深肤色中等-浅肤色",
+      "text": "👩🏿‍❤️‍💋‍👨🏼",
+      "visible_glyphs": 3
+    },
+    {
+      "families": [
+        "Segoe UI Emoji"
+      ],
+      "missing": 0,
+      "name": "亲吻: 女人男人较深肤色中等肤色",
+      "text": "👩🏿‍❤️‍💋‍👨🏽",
+      "visible_glyphs": 3
+    },
+    {
+      "families": [
+        "Segoe UI Emoji"
+      ],
+      "missing": 0,
+      "name": "亲吻: 女人男人较深肤色中等-深肤色",
+      "text": "👩🏿‍❤️‍💋‍👨🏾",
+      "visible_glyphs": 3
+    },
+    {
+      "families": [
+        "Segoe UI Emoji"
+      ],
+      "missing": 0,
+      "name": "亲吻: 女人男人较深肤色",
+      "text": "👩🏿‍❤️‍💋‍👨🏿",
+      "visible_glyphs": 3
+    },
+    {
+      "families": [
+        "Segoe UI Emoji"
+      ],
+      "missing": 0,
+      "name": "亲吻: 男人男人",
+      "text": "👨‍❤️‍💋‍👨",
+      "visible_glyphs": 3
+    },
+    {
+      "families": [
+        "Segoe UI Emoji"
+      ],
+      "missing": 0,
+      "name": "亲吻: 男人男人较浅肤色",
+      "text": "👨🏻‍❤️‍💋‍👨🏻",
+      "visible_glyphs": 3
+    },
+    {
+      "families": [
+        "Segoe UI Emoji"
+      ],
+      "missing": 0,
+      "name": "亲吻: 男人男人较浅肤色中等-浅肤色",
+      "text": "👨🏻‍❤️‍💋‍👨🏼",
+      "visible_glyphs": 3
+    },
+    {
+      "families": [
+        "Segoe UI Emoji"
+      ],
+      "missing": 0,
+      "name": "亲吻: 男人男人较浅肤色中等肤色",
+      "text": "👨🏻‍❤️‍💋‍👨🏽",
+      "visible_glyphs": 3
+    },
+    {
+      "families": [
+        "Segoe UI Emoji"
+      ],
+      "missing": 0,
+      "name": "亲吻: 男人男人较浅肤色中等-深肤色",
+      "text": "👨🏻‍❤️‍💋‍👨🏾",
+      "visible_glyphs": 3
+    },
+    {
+      "families": [
+        "Segoe UI Emoji"
+      ],
+      "missing": 0,
+      "name": "亲吻: 男人男人较浅肤色较深肤色",
+      "text": "👨🏻‍❤️‍💋‍👨🏿",
+      "visible_glyphs": 3
+    },
+    {
+      "families": [
+        "Segoe UI Emoji"
+      ],
+      "missing": 0,
+      "name": "亲吻: 男人男人中等-浅肤色较浅肤色",
+      "text": "👨🏼‍❤️‍💋‍👨🏻",
+      "visible_glyphs": 3
+    },
+    {
+      "families": [
+        "Segoe UI Emoji"
+      ],
+      "missing": 0,
+      "name": "亲吻: 男人男人中等-浅肤色",
+      "text": "👨🏼‍❤️‍💋‍👨🏼",
+      "visible_glyphs": 3
+    },
+    {
+      "families": [
+        "Segoe UI Emoji"
+      ],
+      "missing": 0,
+      "name": "亲吻: 男人男人中等-浅肤色中等肤色",
+      "text": "👨🏼‍❤️‍💋‍👨🏽",
+      "visible_glyphs": 3
+    },
+    {
+      "families": [
+        "Segoe UI Emoji"
+      ],
+      "missing": 0,
+      "name": "亲吻: 男人男人中等-浅肤色中等-深肤色",
+      "text": "👨🏼‍❤️‍💋‍👨🏾",
+      "visible_glyphs": 3
+    },
+    {
+      "families": [
+        "Segoe UI Emoji"
+      ],
+      "missing": 0,
+      "name": "亲吻: 男人男人中等-浅肤色较深肤色",
+      "text": "👨🏼‍❤️‍💋‍👨🏿",
+      "visible_glyphs": 3
+    },
+    {
+      "families": [
+        "Segoe UI Emoji"
+      ],
+      "missing": 0,
+      "name": "亲吻: 男人男人中等肤色较浅肤色",
+      "text": "👨🏽‍❤️‍💋‍👨🏻",
+      "visible_glyphs": 3
+    },
+    {
+      "families": [
+        "Segoe UI Emoji"
+      ],
+      "missing": 0,
+      "name": "亲吻: 男人男人中等肤色中等-浅肤色",
+      "text": "👨🏽‍❤️‍💋‍👨🏼",
+      "visible_glyphs": 3
+    },
+    {
+      "families": [
+        "Segoe UI Emoji"
+      ],
+      "missing": 0,
+      "name": "亲吻: 男人男人中等肤色",
+      "text": "👨🏽‍❤️‍💋‍👨🏽",
+      "visible_glyphs": 3
+    },
+    {
+      "families": [
+        "Segoe UI Emoji"
+      ],
+      "missing": 0,
+      "name": "亲吻: 男人男人中等肤色中等-深肤色",
+      "text": "👨🏽‍❤️‍💋‍👨🏾",
+      "visible_glyphs": 3
+    },
+    {
+      "families": [
+        "Segoe UI Emoji"
+      ],
+      "missing": 0,
+      "name": "亲吻: 男人男人中等肤色较深肤色",
+      "text": "👨🏽‍❤️‍💋‍👨🏿",
+      "visible_glyphs": 3
+    },
+    {
+      "families": [
+        "Segoe UI Emoji"
+      ],
+      "missing": 0,
+      "name": "亲吻: 男人男人中等-深肤色较浅肤色",
+      "text": "👨🏾‍❤️‍💋‍👨🏻",
+      "visible_glyphs": 3
+    },
+    {
+      "families": [
+        "Segoe UI Emoji"
+      ],
+      "missing": 0,
+      "name": "亲吻: 男人男人中等-深肤色中等-浅肤色",
+      "text": "👨🏾‍❤️‍💋‍👨🏼",
+      "visible_glyphs": 3
+    },
+    {
+      "families": [
+        "Segoe UI Emoji"
+      ],
+      "missing": 0,
+      "name": "亲吻: 男人男人中等-深肤色中等肤色",
+      "text": "👨🏾‍❤️‍💋‍👨🏽",
+      "visible_glyphs": 3
+    },
+    {
+      "families": [
+        "Segoe UI Emoji"
+      ],
+      "missing": 0,
+      "name": "亲吻: 男人男人中等-深肤色",
+      "text": "👨🏾‍❤️‍💋‍👨🏾",
+      "visible_glyphs": 3
+    },
+    {
+      "families": [
+        "Segoe UI Emoji"
+      ],
+      "missing": 0,
+      "name": "亲吻: 男人男人中等-深肤色较深肤色",
+      "text": "👨🏾‍❤️‍💋‍👨🏿",
+      "visible_glyphs": 3
+    },
+    {
+      "families": [
+        "Segoe UI Emoji"
+      ],
+      "missing": 0,
+      "name": "亲吻: 男人男人较深肤色较浅肤色",
+      "text": "👨🏿‍❤️‍💋‍👨🏻",
+      "visible_glyphs": 3
+    },
+    {
+      "families": [
+        "Segoe UI Emoji"
+      ],
+      "missing": 0,
+      "name": "亲吻: 男人男人较深肤色中等-浅肤色",
+      "text": "👨🏿‍❤️‍💋‍👨🏼",
+      "visible_glyphs": 3
+    },
+    {
+      "families": [
+        "Segoe UI Emoji"
+      ],
+      "missing": 0,
+      "name": "亲吻: 男人男人较深肤色中等肤色",
+      "text": "👨🏿‍❤️‍💋‍👨🏽",
+      "visible_glyphs": 3
+    },
+    {
+      "families": [
+        "Segoe UI Emoji"
+      ],
+      "missing": 0,
+      "name": "亲吻: 男人男人较深肤色中等-深肤色",
+      "text": "👨🏿‍❤️‍💋‍👨🏾",
+      "visible_glyphs": 3
+    },
+    {
+      "families": [
+        "Segoe UI Emoji"
+      ],
+      "missing": 0,
+      "name": "亲吻: 男人男人较深肤色",
+      "text": "👨🏿‍❤️‍💋‍👨🏿",
+      "visible_glyphs": 3
+    },
+    {
+      "families": [
+        "Segoe UI Emoji"
+      ],
+      "missing": 0,
+      "name": "亲吻: 女人女人",
+      "text": "👩‍❤️‍💋‍👩",
+      "visible_glyphs": 3
+    },
+    {
+      "families": [
+        "Segoe UI Emoji"
+      ],
+      "missing": 0,
+      "name": "亲吻: 女人女人较浅肤色",
+      "text": "👩🏻‍❤️‍💋‍👩🏻",
+      "visible_glyphs": 3
+    },
+    {
+      "families": [
+        "Segoe UI Emoji"
+      ],
+      "missing": 0,
+      "name": "亲吻: 女人女人较浅肤色中等-浅肤色",
+      "text": "👩🏻‍❤️‍💋‍👩🏼",
+      "visible_glyphs": 3
+    },
+    {
+      "families": [
+        "Segoe UI Emoji"
+      ],
+      "missing": 0,
+      "name": "亲吻: 女人女人较浅肤色中等肤色",
+      "text": "👩🏻‍❤️‍💋‍👩🏽",
+      "visible_glyphs": 3
+    },
+    {
+      "families": [
+        "Segoe UI Emoji"
+      ],
+      "missing": 0,
+      "name": "亲吻: 女人女人较浅肤色中等-深肤色",
+      "text": "👩🏻‍❤️‍💋‍👩🏾",
+      "visible_glyphs": 3
+    },
+    {
+      "families": [
+        "Segoe UI Emoji"
+      ],
+      "missing": 0,
+      "name": "亲吻: 女人女人较浅肤色较深肤色",
+      "text": "👩🏻‍❤️‍💋‍👩🏿",
+      "visible_glyphs": 3
+    },
+    {
+      "families": [
+        "Segoe UI Emoji"
+      ],
+      "missing": 0,
+      "name": "亲吻: 女人女人中等-浅肤色较浅肤色",
+      "text": "👩🏼‍❤️‍💋‍👩🏻",
+      "visible_glyphs": 3
+    },
+    {
+      "families": [
+        "Segoe UI Emoji"
+      ],
+      "missing": 0,
+      "name": "亲吻: 女人女人中等-浅肤色",
+      "text": "👩🏼‍❤️‍💋‍👩🏼",
+      "visible_glyphs": 3
+    },
+    {
+      "families": [
+        "Segoe UI Emoji"
+      ],
+      "missing": 0,
+      "name": "亲吻: 女人女人中等-浅肤色中等肤色",
+      "text": "👩🏼‍❤️‍💋‍👩🏽",
+      "visible_glyphs": 3
+    },
+    {
+      "families": [
+        "Segoe UI Emoji"
+      ],
+      "missing": 0,
+      "name": "亲吻: 女人女人中等-浅肤色中等-深肤色",
+      "text": "👩🏼‍❤️‍💋‍👩🏾",
+      "visible_glyphs": 3
+    },
+    {
+      "families": [
+        "Segoe UI Emoji"
+      ],
+      "missing": 0,
+      "name": "亲吻: 女人女人中等-浅肤色较深肤色",
+      "text": "👩🏼‍❤️‍💋‍👩🏿",
+      "visible_glyphs": 3
+    },
+    {
+      "families": [
+        "Segoe UI Emoji"
+      ],
+      "missing": 0,
+      "name": "亲吻: 女人女人中等肤色较浅肤色",
+      "text": "👩🏽‍❤️‍💋‍👩🏻",
+      "visible_glyphs": 3
+    },
+    {
+      "families": [
+        "Segoe UI Emoji"
+      ],
+      "missing": 0,
+      "name": "亲吻: 女人女人中等肤色中等-浅肤色",
+      "text": "👩🏽‍❤️‍💋‍👩🏼",
+      "visible_glyphs": 3
+    },
+    {
+      "families": [
+        "Segoe UI Emoji"
+      ],
+      "missing": 0,
+      "name": "亲吻: 女人女人中等肤色",
+      "text": "👩🏽‍❤️‍💋‍👩🏽",
+      "visible_glyphs": 3
+    },
+    {
+      "families": [
+        "Segoe UI Emoji"
+      ],
+      "missing": 0,
+      "name": "亲吻: 女人女人中等肤色中等-深肤色",
+      "text": "👩🏽‍❤️‍💋‍👩🏾",
+      "visible_glyphs": 3
+    },
+    {
+      "families": [
+        "Segoe UI Emoji"
+      ],
+      "missing": 0,
+      "name": "亲吻: 女人女人中等肤色较深肤色",
+      "text": "👩🏽‍❤️‍💋‍👩🏿",
+      "visible_glyphs": 3
+    },
+    {
+      "families": [
+        "Segoe UI Emoji"
+      ],
+      "missing": 0,
+      "name": "亲吻: 女人女人中等-深肤色较浅肤色",
+      "text": "👩🏾‍❤️‍💋‍👩🏻",
+      "visible_glyphs": 3
+    },
+    {
+      "families": [
+        "Segoe UI Emoji"
+      ],
+      "missing": 0,
+      "name": "亲吻: 女人女人中等-深肤色中等-浅肤色",
+      "text": "👩🏾‍❤️‍💋‍👩🏼",
+      "visible_glyphs": 3
+    },
+    {
+      "families": [
+        "Segoe UI Emoji"
+      ],
+      "missing": 0,
+      "name": "亲吻: 女人女人中等-深肤色中等肤色",
+      "text": "👩🏾‍❤️‍💋‍👩🏽",
+      "visible_glyphs": 3
+    },
+    {
+      "families": [
+        "Segoe UI Emoji"
+      ],
+      "missing": 0,
+      "name": "亲吻: 女人女人中等-深肤色",
+      "text": "👩🏾‍❤️‍💋‍👩🏾",
+      "visible_glyphs": 3
+    },
+    {
+      "families": [
+        "Segoe UI Emoji"
+      ],
+      "missing": 0,
+      "name": "亲吻: 女人女人中等-深肤色较深肤色",
+      "text": "👩🏾‍❤️‍💋‍👩🏿",
+      "visible_glyphs": 3
+    },
+    {
+      "families": [
+        "Segoe UI Emoji"
+      ],
+      "missing": 0,
+      "name": "亲吻: 女人女人较深肤色较浅肤色",
+      "text": "👩🏿‍❤️‍💋‍👩🏻",
+      "visible_glyphs": 3
+    },
+    {
+      "families": [
+        "Segoe UI Emoji"
+      ],
+      "missing": 0,
+      "name": "亲吻: 女人女人较深肤色中等-浅肤色",
+      "text": "👩🏿‍❤️‍💋‍👩🏼",
+      "visible_glyphs": 3
+    },
+    {
+      "families": [
+        "Segoe UI Emoji"
+      ],
+      "missing": 0,
+      "name": "亲吻: 女人女人较深肤色中等肤色",
+      "text": "👩🏿‍❤️‍💋‍👩🏽",
+      "visible_glyphs": 3
+    },
+    {
+      "families": [
+        "Segoe UI Emoji"
+      ],
+      "missing": 0,
+      "name": "亲吻: 女人女人较深肤色中等-深肤色",
+      "text": "👩🏿‍❤️‍💋‍👩🏾",
+      "visible_glyphs": 3
+    },
+    {
+      "families": [
+        "Segoe UI Emoji"
+      ],
+      "missing": 0,
+      "name": "亲吻: 女人女人较深肤色",
+      "text": "👩🏿‍❤️‍💋‍👩🏿",
+      "visible_glyphs": 3
+    },
+    {
+      "families": [
+        "Segoe UI Emoji"
+      ],
+      "missing": 0,
+      "name": "情侣: 成人成人较浅肤色中等-浅肤色",
+      "text": "🧑🏻‍❤️‍🧑🏼",
+      "visible_glyphs": 3
+    },
+    {
+      "families": [
+        "Segoe UI Emoji"
+      ],
+      "missing": 0,
+      "name": "情侣: 成人成人较浅肤色中等肤色",
+      "text": "🧑🏻‍❤️‍🧑🏽",
+      "visible_glyphs": 3
+    },
+    {
+      "families": [
+        "Segoe UI Emoji"
+      ],
+      "missing": 0,
+      "name": "情侣: 成人成人较浅肤色中等-深肤色",
+      "text": "🧑🏻‍❤️‍🧑🏾",
+      "visible_glyphs": 3
+    },
+    {
+      "families": [
+        "Segoe UI Emoji"
+      ],
+      "missing": 0,
+      "name": "情侣: 成人成人较浅肤色较深肤色",
+      "text": "🧑🏻‍❤️‍🧑🏿",
+      "visible_glyphs": 3
+    },
+    {
+      "families": [
+        "Segoe UI Emoji"
+      ],
+      "missing": 0,
+      "name": "情侣: 成人成人中等-浅肤色较浅肤色",
+      "text": "🧑🏼‍❤️‍🧑🏻",
+      "visible_glyphs": 3
+    },
+    {
+      "families": [
+        "Segoe UI Emoji"
+      ],
+      "missing": 0,
+      "name": "情侣: 成人成人中等-浅肤色中等肤色",
+      "text": "🧑🏼‍❤️‍🧑🏽",
+      "visible_glyphs": 3
+    },
+    {
+      "families": [
+        "Segoe UI Emoji"
+      ],
+      "missing": 0,
+      "name": "情侣: 成人成人中等-浅肤色中等-深肤色",
+      "text": "🧑🏼‍❤️‍🧑🏾",
+      "visible_glyphs": 3
+    },
+    {
+      "families": [
+        "Segoe UI Emoji"
+      ],
+      "missing": 0,
+      "name": "情侣: 成人成人中等-浅肤色较深肤色",
+      "text": "🧑🏼‍❤️‍🧑🏿",
+      "visible_glyphs": 3
+    },
+    {
+      "families": [
+        "Segoe UI Emoji"
+      ],
+      "missing": 0,
+      "name": "情侣: 成人成人中等肤色较浅肤色",
+      "text": "🧑🏽‍❤️‍🧑🏻",
+      "visible_glyphs": 3
+    },
+    {
+      "families": [
+        "Segoe UI Emoji"
+      ],
+      "missing": 0,
+      "name": "情侣: 成人成人中等肤色中等-浅肤色",
+      "text": "🧑🏽‍❤️‍🧑🏼",
+      "visible_glyphs": 3
+    },
+    {
+      "families": [
+        "Segoe UI Emoji"
+      ],
+      "missing": 0,
+      "name": "情侣: 成人成人中等肤色中等-深肤色",
+      "text": "🧑🏽‍❤️‍🧑🏾",
+      "visible_glyphs": 3
+    },
+    {
+      "families": [
+        "Segoe UI Emoji"
+      ],
+      "missing": 0,
+      "name": "情侣: 成人成人中等肤色较深肤色",
+      "text": "🧑🏽‍❤️‍🧑🏿",
+      "visible_glyphs": 3
+    },
+    {
+      "families": [
+        "Segoe UI Emoji"
+      ],
+      "missing": 0,
+      "name": "情侣: 成人成人中等-深肤色较浅肤色",
+      "text": "🧑🏾‍❤️‍🧑🏻",
+      "visible_glyphs": 3
+    },
+    {
+      "families": [
+        "Segoe UI Emoji"
+      ],
+      "missing": 0,
+      "name": "情侣: 成人成人中等-深肤色中等-浅肤色",
+      "text": "🧑🏾‍❤️‍🧑🏼",
+      "visible_glyphs": 3
+    },
+    {
+      "families": [
+        "Segoe UI Emoji"
+      ],
+      "missing": 0,
+      "name": "情侣: 成人成人中等-深肤色中等肤色",
+      "text": "🧑🏾‍❤️‍🧑🏽",
+      "visible_glyphs": 3
+    },
+    {
+      "families": [
+        "Segoe UI Emoji"
+      ],
+      "missing": 0,
+      "name": "情侣: 成人成人中等-深肤色较深肤色",
+      "text": "🧑🏾‍❤️‍🧑🏿",
+      "visible_glyphs": 3
+    },
+    {
+      "families": [
+        "Segoe UI Emoji"
+      ],
+      "missing": 0,
+      "name": "情侣: 成人成人较深肤色较浅肤色",
+      "text": "🧑🏿‍❤️‍🧑🏻",
+      "visible_glyphs": 3
+    },
+    {
+      "families": [
+        "Segoe UI Emoji"
+      ],
+      "missing": 0,
+      "name": "情侣: 成人成人较深肤色中等-浅肤色",
+      "text": "🧑🏿‍❤️‍🧑🏼",
+      "visible_glyphs": 3
+    },
+    {
+      "families": [
+        "Segoe UI Emoji"
+      ],
+      "missing": 0,
+      "name": "情侣: 成人成人较深肤色中等肤色",
+      "text": "🧑🏿‍❤️‍🧑🏽",
+      "visible_glyphs": 3
+    },
+    {
+      "families": [
+        "Segoe UI Emoji"
+      ],
+      "missing": 0,
+      "name": "情侣: 成人成人较深肤色中等-深肤色",
+      "text": "🧑🏿‍❤️‍🧑🏾",
+      "visible_glyphs": 3
+    },
+    {
+      "families": [
+        "Segoe UI Emoji"
+      ],
+      "missing": 0,
+      "name": "情侣: 女人男人",
+      "text": "👩‍❤️‍👨",
+      "visible_glyphs": 3
+    },
+    {
+      "families": [
+        "Segoe UI Emoji"
+      ],
+      "missing": 0,
+      "name": "情侣: 女人男人较浅肤色",
+      "text": "👩🏻‍❤️‍👨🏻",
+      "visible_glyphs": 3
+    },
+    {
+      "families": [
+        "Segoe UI Emoji"
+      ],
+      "missing": 0,
+      "name": "情侣: 女人男人较浅肤色中等-浅肤色",
+      "text": "👩🏻‍❤️‍👨🏼",
+      "visible_glyphs": 3
+    },
+    {
+      "families": [
+        "Segoe UI Emoji"
+      ],
+      "missing": 0,
+      "name": "情侣: 女人男人较浅肤色中等肤色",
+      "text": "👩🏻‍❤️‍👨🏽",
+      "visible_glyphs": 3
+    },
+    {
+      "families": [
+        "Segoe UI Emoji"
+      ],
+      "missing": 0,
+      "name": "情侣: 女人男人较浅肤色中等-深肤色",
+      "text": "👩🏻‍❤️‍👨🏾",
+      "visible_glyphs": 3
+    },
+    {
+      "families": [
+        "Segoe UI Emoji"
+      ],
+      "missing": 0,
+      "name": "情侣: 女人男人较浅肤色较深肤色",
+      "text": "👩🏻‍❤️‍👨🏿",
+      "visible_glyphs": 3
+    },
+    {
+      "families": [
+        "Segoe UI Emoji"
+      ],
+      "missing": 0,
+      "name": "情侣: 女人男人中等-浅肤色较浅肤色",
+      "text": "👩🏼‍❤️‍👨🏻",
+      "visible_glyphs": 3
+    },
+    {
+      "families": [
+        "Segoe UI Emoji"
+      ],
+      "missing": 0,
+      "name": "情侣: 女人男人中等-浅肤色",
+      "text": "👩🏼‍❤️‍👨🏼",
+      "visible_glyphs": 3
+    },
+    {
+      "families": [
+        "Segoe UI Emoji"
+      ],
+      "missing": 0,
+      "name": "情侣: 女人男人中等-浅肤色中等肤色",
+      "text": "👩🏼‍❤️‍👨🏽",
+      "visible_glyphs": 3
+    },
+    {
+      "families": [
+        "Segoe UI Emoji"
+      ],
+      "missing": 0,
+      "name": "情侣: 女人男人中等-浅肤色中等-深肤色",
+      "text": "👩🏼‍❤️‍👨🏾",
+      "visible_glyphs": 3
+    },
+    {
+      "families": [
+        "Segoe UI Emoji"
+      ],
+      "missing": 0,
+      "name": "情侣: 女人男人中等-浅肤色较深肤色",
+      "text": "👩🏼‍❤️‍👨🏿",
+      "visible_glyphs": 3
+    },
+    {
+      "families": [
+        "Segoe UI Emoji"
+      ],
+      "missing": 0,
+      "name": "情侣: 女人男人中等肤色较浅肤色",
+      "text": "👩🏽‍❤️‍👨🏻",
+      "visible_glyphs": 3
+    },
+    {
+      "families": [
+        "Segoe UI Emoji"
+      ],
+      "missing": 0,
+      "name": "情侣: 女人男人中等肤色中等-浅肤色",
+      "text": "👩🏽‍❤️‍👨🏼",
+      "visible_glyphs": 3
+    },
+    {
+      "families": [
+        "Segoe UI Emoji"
+      ],
+      "missing": 0,
+      "name": "情侣: 女人男人中等肤色",
+      "text": "👩🏽‍❤️‍👨🏽",
+      "visible_glyphs": 3
+    },
+    {
+      "families": [
+        "Segoe UI Emoji"
+      ],
+      "missing": 0,
+      "name": "情侣: 女人男人中等肤色中等-深肤色",
+      "text": "👩🏽‍❤️‍👨🏾",
+      "visible_glyphs": 3
+    },
+    {
+      "families": [
+        "Segoe UI Emoji"
+      ],
+      "missing": 0,
+      "name": "情侣: 女人男人中等肤色较深肤色",
+      "text": "👩🏽‍❤️‍👨🏿",
+      "visible_glyphs": 3
+    },
+    {
+      "families": [
+        "Segoe UI Emoji"
+      ],
+      "missing": 0,
+      "name": "情侣: 女人男人中等-深肤色较浅肤色",
+      "text": "👩🏾‍❤️‍👨🏻",
+      "visible_glyphs": 3
+    },
+    {
+      "families": [
+        "Segoe UI Emoji"
+      ],
+      "missing": 0,
+      "name": "情侣: 女人男人中等-深肤色中等-浅肤色",
+      "text": "👩🏾‍❤️‍👨🏼",
+      "visible_glyphs": 3
+    },
+    {
+      "families": [
+        "Segoe UI Emoji"
+      ],
+      "missing": 0,
+      "name": "情侣: 女人男人中等-深肤色中等肤色",
+      "text": "👩🏾‍❤️‍👨🏽",
+      "visible_glyphs": 3
+    },
+    {
+      "families": [
+        "Segoe UI Emoji"
+      ],
+      "missing": 0,
+      "name": "情侣: 女人男人中等-深肤色",
+      "text": "👩🏾‍❤️‍👨🏾",
+      "visible_glyphs": 3
+    },
+    {
+      "families": [
+        "Segoe UI Emoji"
+      ],
+      "missing": 0,
+      "name": "情侣: 女人男人中等-深肤色较深肤色",
+      "text": "👩🏾‍❤️‍👨🏿",
+      "visible_glyphs": 3
+    },
+    {
+      "families": [
+        "Segoe UI Emoji"
+      ],
+      "missing": 0,
+      "name": "情侣: 女人男人较深肤色较浅肤色",
+      "text": "👩🏿‍❤️‍👨🏻",
+      "visible_glyphs": 3
+    },
+    {
+      "families": [
+        "Segoe UI Emoji"
+      ],
+      "missing": 0,
+      "name": "情侣: 女人男人较深肤色中等-浅肤色",
+      "text": "👩🏿‍❤️‍👨🏼",
+      "visible_glyphs": 3
+    },
+    {
+      "families": [
+        "Segoe UI Emoji"
+      ],
+      "missing": 0,
+      "name": "情侣: 女人男人较深肤色中等肤色",
+      "text": "👩🏿‍❤️‍👨🏽",
+      "visible_glyphs": 3
+    },
+    {
+      "families": [
+        "Segoe UI Emoji"
+      ],
+      "missing": 0,
+      "name": "情侣: 女人男人较深肤色中等-深肤色",
+      "text": "👩🏿‍❤️‍👨🏾",
+      "visible_glyphs": 3
+    },
+    {
+      "families": [
+        "Segoe UI Emoji"
+      ],
+      "missing": 0,
+      "name": "情侣: 女人男人较深肤色",
+      "text": "👩🏿‍❤️‍👨🏿",
+      "visible_glyphs": 3
+    },
+    {
+      "families": [
+        "Segoe UI Emoji"
+      ],
+      "missing": 0,
+      "name": "情侣: 男人男人",
+      "text": "👨‍❤️‍👨",
+      "visible_glyphs": 3
+    },
+    {
+      "families": [
+        "Segoe UI Emoji"
+      ],
+      "missing": 0,
+      "name": "情侣: 男人男人较浅肤色",
+      "text": "👨🏻‍❤️‍👨🏻",
+      "visible_glyphs": 3
+    },
+    {
+      "families": [
+        "Segoe UI Emoji"
+      ],
+      "missing": 0,
+      "name": "情侣: 男人男人较浅肤色中等-浅肤色",
+      "text": "👨🏻‍❤️‍👨🏼",
+      "visible_glyphs": 3
+    },
+    {
+      "families": [
+        "Segoe UI Emoji"
+      ],
+      "missing": 0,
+      "name": "情侣: 男人男人较浅肤色中等肤色",
+      "text": "👨🏻‍❤️‍👨🏽",
+      "visible_glyphs": 3
+    },
+    {
+      "families": [
+        "Segoe UI Emoji"
+      ],
+      "missing": 0,
+      "name": "情侣: 男人男人较浅肤色中等-深肤色",
+      "text": "👨🏻‍❤️‍👨🏾",
+      "visible_glyphs": 3
+    },
+    {
+      "families": [
+        "Segoe UI Emoji"
+      ],
+      "missing": 0,
+      "name": "情侣: 男人男人较浅肤色较深肤色",
+      "text": "👨🏻‍❤️‍👨🏿",
+      "visible_glyphs": 3
+    },
+    {
+      "families": [
+        "Segoe UI Emoji"
+      ],
+      "missing": 0,
+      "name": "情侣: 男人男人中等-浅肤色较浅肤色",
+      "text": "👨🏼‍❤️‍👨🏻",
+      "visible_glyphs": 3
+    },
+    {
+      "families": [
+        "Segoe UI Emoji"
+      ],
+      "missing": 0,
+      "name": "情侣: 男人男人中等-浅肤色",
+      "text": "👨🏼‍❤️‍👨🏼",
+      "visible_glyphs": 3
+    },
+    {
+      "families": [
+        "Segoe UI Emoji"
+      ],
+      "missing": 0,
+      "name": "情侣: 男人男人中等-浅肤色中等肤色",
+      "text": "👨🏼‍❤️‍👨🏽",
+      "visible_glyphs": 3
+    },
+    {
+      "families": [
+        "Segoe UI Emoji"
+      ],
+      "missing": 0,
+      "name": "情侣: 男人男人中等-浅肤色中等-深肤色",
+      "text": "👨🏼‍❤️‍👨🏾",
+      "visible_glyphs": 3
+    },
+    {
+      "families": [
+        "Segoe UI Emoji"
+      ],
+      "missing": 0,
+      "name": "情侣: 男人男人中等-浅肤色较深肤色",
+      "text": "👨🏼‍❤️‍👨🏿",
+      "visible_glyphs": 3
+    },
+    {
+      "families": [
+        "Segoe UI Emoji"
+      ],
+      "missing": 0,
+      "name": "情侣: 男人男人中等肤色较浅肤色",
+      "text": "👨🏽‍❤️‍👨🏻",
+      "visible_glyphs": 3
+    },
+    {
+      "families": [
+        "Segoe UI Emoji"
+      ],
+      "missing": 0,
+      "name": "情侣: 男人男人中等肤色中等-浅肤色",
+      "text": "👨🏽‍❤️‍👨🏼",
+      "visible_glyphs": 3
+    },
+    {
+      "families": [
+        "Segoe UI Emoji"
+      ],
+      "missing": 0,
+      "name": "情侣: 男人男人中等肤色",
+      "text": "👨🏽‍❤️‍👨🏽",
+      "visible_glyphs": 3
+    },
+    {
+      "families": [
+        "Segoe UI Emoji"
+      ],
+      "missing": 0,
+      "name": "情侣: 男人男人中等肤色中等-深肤色",
+      "text": "👨🏽‍❤️‍👨🏾",
+      "visible_glyphs": 3
+    },
+    {
+      "families": [
+        "Segoe UI Emoji"
+      ],
+      "missing": 0,
+      "name": "情侣: 男人男人中等肤色较深肤色",
+      "text": "👨🏽‍❤️‍👨🏿",
+      "visible_glyphs": 3
+    },
+    {
+      "families": [
+        "Segoe UI Emoji"
+      ],
+      "missing": 0,
+      "name": "情侣: 男人男人中等-深肤色较浅肤色",
+      "text": "👨🏾‍❤️‍👨🏻",
+      "visible_glyphs": 3
+    },
+    {
+      "families": [
+        "Segoe UI Emoji"
+      ],
+      "missing": 0,
+      "name": "情侣: 男人男人中等-深肤色中等-浅肤色",
+      "text": "👨🏾‍❤️‍👨🏼",
+      "visible_glyphs": 3
+    },
+    {
+      "families": [
+        "Segoe UI Emoji"
+      ],
+      "missing": 0,
+      "name": "情侣: 男人男人中等-深肤色中等肤色",
+      "text": "👨🏾‍❤️‍👨🏽",
+      "visible_glyphs": 3
+    },
+    {
+      "families": [
+        "Segoe UI Emoji"
+      ],
+      "missing": 0,
+      "name": "情侣: 男人男人中等-深肤色",
+      "text": "👨🏾‍❤️‍👨🏾",
+      "visible_glyphs": 3
+    },
+    {
+      "families": [
+        "Segoe UI Emoji"
+      ],
+      "missing": 0,
+      "name": "情侣: 男人男人中等-深肤色较深肤色",
+      "text": "👨🏾‍❤️‍👨🏿",
+      "visible_glyphs": 3
+    },
+    {
+      "families": [
+        "Segoe UI Emoji"
+      ],
+      "missing": 0,
+      "name": "情侣: 男人男人较深肤色较浅肤色",
+      "text": "👨🏿‍❤️‍👨🏻",
+      "visible_glyphs": 3
+    },
+    {
+      "families": [
+        "Segoe UI Emoji"
+      ],
+      "missing": 0,
+      "name": "情侣: 男人男人较深肤色中等-浅肤色",
+      "text": "👨🏿‍❤️‍👨🏼",
+      "visible_glyphs": 3
+    },
+    {
+      "families": [
+        "Segoe UI Emoji"
+      ],
+      "missing": 0,
+      "name": "情侣: 男人男人较深肤色中等肤色",
+      "text": "👨🏿‍❤️‍👨🏽",
+      "visible_glyphs": 3
+    },
+    {
+      "families": [
+        "Segoe UI Emoji"
+      ],
+      "missing": 0,
+      "name": "情侣: 男人男人较深肤色中等-深肤色",
+      "text": "👨🏿‍❤️‍👨🏾",
+      "visible_glyphs": 3
+    },
+    {
+      "families": [
+        "Segoe UI Emoji"
+      ],
+      "missing": 0,
+      "name": "情侣: 男人男人较深肤色",
+      "text": "👨🏿‍❤️‍👨🏿",
+      "visible_glyphs": 3
+    },
+    {
+      "families": [
+        "Segoe UI Emoji"
+      ],
+      "missing": 0,
+      "name": "情侣: 女人女人",
+      "text": "👩‍❤️‍👩",
+      "visible_glyphs": 3
+    },
+    {
+      "families": [
+        "Segoe UI Emoji"
+      ],
+      "missing": 0,
+      "name": "情侣: 女人女人较浅肤色",
+      "text": "👩🏻‍❤️‍👩🏻",
+      "visible_glyphs": 3
+    },
+    {
+      "families": [
+        "Segoe UI Emoji"
+      ],
+      "missing": 0,
+      "name": "情侣: 女人女人较浅肤色中等-浅肤色",
+      "text": "👩🏻‍❤️‍👩🏼",
+      "visible_glyphs": 3
+    },
+    {
+      "families": [
+        "Segoe UI Emoji"
+      ],
+      "missing": 0,
+      "name": "情侣: 女人女人较浅肤色中等肤色",
+      "text": "👩🏻‍❤️‍👩🏽",
+      "visible_glyphs": 3
+    },
+    {
+      "families": [
+        "Segoe UI Emoji"
+      ],
+      "missing": 0,
+      "name": "情侣: 女人女人较浅肤色中等-深肤色",
+      "text": "👩🏻‍❤️‍👩🏾",
+      "visible_glyphs": 3
+    },
+    {
+      "families": [
+        "Segoe UI Emoji"
+      ],
+      "missing": 0,
+      "name": "情侣: 女人女人较浅肤色较深肤色",
+      "text": "👩🏻‍❤️‍👩🏿",
+      "visible_glyphs": 3
+    },
+    {
+      "families": [
+        "Segoe UI Emoji"
+      ],
+      "missing": 0,
+      "name": "情侣: 女人女人中等-浅肤色较浅肤色",
+      "text": "👩🏼‍❤️‍👩🏻",
+      "visible_glyphs": 3
+    },
+    {
+      "families": [
+        "Segoe UI Emoji"
+      ],
+      "missing": 0,
+      "name": "情侣: 女人女人中等-浅肤色",
+      "text": "👩🏼‍❤️‍👩🏼",
+      "visible_glyphs": 3
+    },
+    {
+      "families": [
+        "Segoe UI Emoji"
+      ],
+      "missing": 0,
+      "name": "情侣: 女人女人中等-浅肤色中等肤色",
+      "text": "👩🏼‍❤️‍👩🏽",
+      "visible_glyphs": 3
+    },
+    {
+      "families": [
+        "Segoe UI Emoji"
+      ],
+      "missing": 0,
+      "name": "情侣: 女人女人中等-浅肤色中等-深肤色",
+      "text": "👩🏼‍❤️‍👩🏾",
+      "visible_glyphs": 3
+    },
+    {
+      "families": [
+        "Segoe UI Emoji"
+      ],
+      "missing": 0,
+      "name": "情侣: 女人女人中等-浅肤色较深肤色",
+      "text": "👩🏼‍❤️‍👩🏿",
+      "visible_glyphs": 3
+    },
+    {
+      "families": [
+        "Segoe UI Emoji"
+      ],
+      "missing": 0,
+      "name": "情侣: 女人女人中等肤色较浅肤色",
+      "text": "👩🏽‍❤️‍👩🏻",
+      "visible_glyphs": 3
+    },
+    {
+      "families": [
+        "Segoe UI Emoji"
+      ],
+      "missing": 0,
+      "name": "情侣: 女人女人中等肤色中等-浅肤色",
+      "text": "👩🏽‍❤️‍👩🏼",
+      "visible_glyphs": 3
+    },
+    {
+      "families": [
+        "Segoe UI Emoji"
+      ],
+      "missing": 0,
+      "name": "情侣: 女人女人中等肤色",
+      "text": "👩🏽‍❤️‍👩🏽",
+      "visible_glyphs": 3
+    },
+    {
+      "families": [
+        "Segoe UI Emoji"
+      ],
+      "missing": 0,
+      "name": "情侣: 女人女人中等肤色中等-深肤色",
+      "text": "👩🏽‍❤️‍👩🏾",
+      "visible_glyphs": 3
+    },
+    {
+      "families": [
+        "Segoe UI Emoji"
+      ],
+      "missing": 0,
+      "name": "情侣: 女人女人中等肤色较深肤色",
+      "text": "👩🏽‍❤️‍👩🏿",
+      "visible_glyphs": 3
+    },
+    {
+      "families": [
+        "Segoe UI Emoji"
+      ],
+      "missing": 0,
+      "name": "情侣: 女人女人中等-深肤色较浅肤色",
+      "text": "👩🏾‍❤️‍👩🏻",
+      "visible_glyphs": 3
+    },
+    {
+      "families": [
+        "Segoe UI Emoji"
+      ],
+      "missing": 0,
+      "name": "情侣: 女人女人中等-深肤色中等-浅肤色",
+      "text": "👩🏾‍❤️‍👩🏼",
+      "visible_glyphs": 3
+    },
+    {
+      "families": [
+        "Segoe UI Emoji"
+      ],
+      "missing": 0,
+      "name": "情侣: 女人女人中等-深肤色中等肤色",
+      "text": "👩🏾‍❤️‍👩🏽",
+      "visible_glyphs": 3
+    },
+    {
+      "families": [
+        "Segoe UI Emoji"
+      ],
+      "missing": 0,
+      "name": "情侣: 女人女人中等-深肤色",
+      "text": "👩🏾‍❤️‍👩🏾",
+      "visible_glyphs": 3
+    },
+    {
+      "families": [
+        "Segoe UI Emoji"
+      ],
+      "missing": 0,
+      "name": "情侣: 女人女人中等-深肤色较深肤色",
+      "text": "👩🏾‍❤️‍👩🏿",
+      "visible_glyphs": 3
+    },
+    {
+      "families": [
+        "Segoe UI Emoji"
+      ],
+      "missing": 0,
+      "name": "情侣: 女人女人较深肤色较浅肤色",
+      "text": "👩🏿‍❤️‍👩🏻",
+      "visible_glyphs": 3
+    },
+    {
+      "families": [
+        "Segoe UI Emoji"
+      ],
+      "missing": 0,
+      "name": "情侣: 女人女人较深肤色中等-浅肤色",
+      "text": "👩🏿‍❤️‍👩🏼",
+      "visible_glyphs": 3
+    },
+    {
+      "families": [
+        "Segoe UI Emoji"
+      ],
+      "missing": 0,
+      "name": "情侣: 女人女人较深肤色中等肤色",
+      "text": "👩🏿‍❤️‍👩🏽",
+      "visible_glyphs": 3
+    },
+    {
+      "families": [
+        "Segoe UI Emoji"
+      ],
+      "missing": 0,
+      "name": "情侣: 女人女人较深肤色中等-深肤色",
+      "text": "👩🏿‍❤️‍👩🏾",
+      "visible_glyphs": 3
+    },
+    {
+      "families": [
+        "Segoe UI Emoji"
+      ],
+      "missing": 0,
+      "name": "情侣: 女人女人较深肤色",
+      "text": "👩🏿‍❤️‍👩🏿",
+      "visible_glyphs": 3
+    },
+    {
+      "families": [
+        "Segoe UI Emoji"
+      ],
+      "missing": 0,
+      "name": "家庭: 男人女人男孩",
+      "text": "👨‍👩‍👦",
+      "visible_glyphs": 3
+    },
+    {
+      "families": [
+        "Segoe UI Emoji"
+      ],
+      "missing": 0,
+      "name": "家庭: 男人女人女孩",
+      "text": "👨‍👩‍👧",
+      "visible_glyphs": 3
+    },
+    {
+      "families": [
+        "Segoe UI Emoji"
+      ],
+      "missing": 0,
+      "name": "家庭: 男人女人女孩男孩",
+      "text": "👨‍👩‍👧‍👦",
+      "visible_glyphs": 4
+    },
+    {
+      "families": [
+        "Segoe UI Emoji"
+      ],
+      "missing": 0,
+      "name": "家庭: 男人女人男孩男孩",
+      "text": "👨‍👩‍👦‍👦",
+      "visible_glyphs": 4
+    },
+    {
+      "families": [
+        "Segoe UI Emoji"
+      ],
+      "missing": 0,
+      "name": "家庭: 男人女人女孩女孩",
+      "text": "👨‍👩‍👧‍👧",
+      "visible_glyphs": 4
+    },
+    {
+      "families": [
+        "Segoe UI Emoji"
+      ],
+      "missing": 0,
+      "name": "家庭: 男人男人男孩",
+      "text": "👨‍👨‍👦",
+      "visible_glyphs": 3
+    },
+    {
+      "families": [
+        "Segoe UI Emoji"
+      ],
+      "missing": 0,
+      "name": "家庭: 男人男人女孩",
+      "text": "👨‍👨‍👧",
+      "visible_glyphs": 3
+    },
+    {
+      "families": [
+        "Segoe UI Emoji"
+      ],
+      "missing": 0,
+      "name": "家庭: 男人男人女孩男孩",
+      "text": "👨‍👨‍👧‍👦",
+      "visible_glyphs": 4
+    },
+    {
+      "families": [
+        "Segoe UI Emoji"
+      ],
+      "missing": 0,
+      "name": "家庭: 男人男人男孩男孩",
+      "text": "👨‍👨‍👦‍👦",
+      "visible_glyphs": 4
+    },
+    {
+      "families": [
+        "Segoe UI Emoji"
+      ],
+      "missing": 0,
+      "name": "家庭: 男人男人女孩女孩",
+      "text": "👨‍👨‍👧‍👧",
+      "visible_glyphs": 4
+    },
+    {
+      "families": [
+        "Segoe UI Emoji"
+      ],
+      "missing": 0,
+      "name": "家庭: 女人女人男孩",
+      "text": "👩‍👩‍👦",
+      "visible_glyphs": 3
+    },
+    {
+      "families": [
+        "Segoe UI Emoji"
+      ],
+      "missing": 0,
+      "name": "家庭: 女人女人女孩",
+      "text": "👩‍👩‍👧",
+      "visible_glyphs": 3
+    },
+    {
+      "families": [
+        "Segoe UI Emoji"
+      ],
+      "missing": 0,
+      "name": "家庭: 女人女人女孩男孩",
+      "text": "👩‍👩‍👧‍👦",
+      "visible_glyphs": 4
+    },
+    {
+      "families": [
+        "Segoe UI Emoji"
+      ],
+      "missing": 0,
+      "name": "家庭: 女人女人男孩男孩",
+      "text": "👩‍👩‍👦‍👦",
+      "visible_glyphs": 4
+    },
+    {
+      "families": [
+        "Segoe UI Emoji"
+      ],
+      "missing": 0,
+      "name": "家庭: 女人女人女孩女孩",
+      "text": "👩‍👩‍👧‍👧",
+      "visible_glyphs": 4
+    },
+    {
+      "families": [
+        "Segoe UI Emoji"
+      ],
+      "missing": 0,
+      "name": "家庭: 男人男孩",
+      "text": "👨‍👦",
+      "visible_glyphs": 2
+    },
+    {
+      "families": [
+        "Segoe UI Emoji"
+      ],
+      "missing": 0,
+      "name": "家庭: 男人男孩男孩",
+      "text": "👨‍👦‍👦",
+      "visible_glyphs": 3
+    },
+    {
+      "families": [
+        "Segoe UI Emoji"
+      ],
+      "missing": 0,
+      "name": "家庭: 男人女孩",
+      "text": "👨‍👧",
+      "visible_glyphs": 2
+    },
+    {
+      "families": [
+        "Segoe UI Emoji"
+      ],
+      "missing": 0,
+      "name": "家庭: 男人女孩男孩",
+      "text": "👨‍👧‍👦",
+      "visible_glyphs": 3
+    },
+    {
+      "families": [
+        "Segoe UI Emoji"
+      ],
+      "missing": 0,
+      "name": "家庭: 男人女孩女孩",
+      "text": "👨‍👧‍👧",
+      "visible_glyphs": 3
+    },
+    {
+      "families": [
+        "Segoe UI Emoji"
+      ],
+      "missing": 0,
+      "name": "家庭: 女人男孩",
+      "text": "👩‍👦",
+      "visible_glyphs": 2
+    },
+    {
+      "families": [
+        "Segoe UI Emoji"
+      ],
+      "missing": 0,
+      "name": "家庭: 女人男孩男孩",
+      "text": "👩‍👦‍👦",
+      "visible_glyphs": 3
+    },
+    {
+      "families": [
+        "Segoe UI Emoji"
+      ],
+      "missing": 0,
+      "name": "家庭: 女人女孩",
+      "text": "👩‍👧",
+      "visible_glyphs": 2
+    },
+    {
+      "families": [
+        "Segoe UI Emoji"
+      ],
+      "missing": 0,
+      "name": "家庭: 女人女孩男孩",
+      "text": "👩‍👧‍👦",
+      "visible_glyphs": 3
+    },
+    {
+      "families": [
+        "Segoe UI Emoji"
+      ],
+      "missing": 0,
+      "name": "家庭: 女人女孩女孩",
+      "text": "👩‍👧‍👧",
+      "visible_glyphs": 3
+    },
+    {
+      "families": [
+        "Segoe UI Emoji"
+      ],
+      "missing": 0,
+      "name": "一孩家庭",
+      "text": "🧑‍🧑‍🧒",
+      "visible_glyphs": 3
+    },
+    {
+      "families": [
+        "Segoe UI Emoji"
+      ],
+      "missing": 0,
+      "name": "二孩家庭",
+      "text": "🧑‍🧑‍🧒‍🧒",
+      "visible_glyphs": 4
+    },
+    {
+      "families": [
+        "Segoe UI Emoji"
+      ],
+      "missing": 0,
+      "name": "单亲一孩家庭",
+      "text": "🧑‍🧒",
+      "visible_glyphs": 2
+    },
+    {
+      "families": [
+        "Segoe UI Emoji"
+      ],
+      "missing": 0,
+      "name": "单亲二孩家庭",
+      "text": "🧑‍🧒‍🧒",
+      "visible_glyphs": 3
+    },
+    {
+      "families": [
+        "Segoe UI Emoji"
+      ],
+      "missing": 1,
+      "name": "虎鲸",
+      "text": "🫍",
+      "visible_glyphs": 1
+    },
+    {
+      "families": [
+        "Segoe UI Emoji"
+      ],
+      "missing": 1,
+      "name": "帝王蝶",
+      "text": "🫌",
+      "visible_glyphs": 1
+    },
+    {
+      "families": [
+        "Segoe UI Emoji"
+      ],
+      "missing": 1,
+      "name": "酸黄瓜",
+      "text": "🫝",
+      "visible_glyphs": 1
+    },
+    {
+      "families": [
+        "Segoe UI Emoji"
+      ],
+      "missing": 1,
+      "name": "山体滑坡",
+      "text": "🛘",
+      "visible_glyphs": 1
+    },
+    {
+      "families": [
+        "Segoe UI Emoji"
+      ],
+      "missing": 1,
+      "name": "灯塔",
+      "text": "🛙",
+      "visible_glyphs": 1
+    },
+    {
+      "families": [
+        "Segoe UI Emoji"
+      ],
+      "missing": 1,
+      "name": "陨石",
+      "text": "🪋",
+      "visible_glyphs": 1
+    },
+    {
+      "families": [
+        "Segoe UI Emoji"
+      ],
+      "missing": 1,
+      "name": "长号",
+      "text": "🪊",
+      "visible_glyphs": 1
+    },
+    {
+      "families": [
+        "Segoe UI Emoji"
+      ],
+      "missing": 1,
+      "name": "宝箱",
+      "text": "🪎",
+      "visible_glyphs": 1
+    },
+    {
+      "families": [
+        "Segoe UI Emoji"
+      ],
+      "missing": 1,
+      "name": "橡皮擦",
+      "text": "🪌",
+      "visible_glyphs": 1
+    },
+    {
+      "families": [
+        "Segoe UI Emoji"
+      ],
+      "missing": 1,
+      "name": "抄网",
+      "text": "🪍",
+      "visible_glyphs": 1
+    },
+    {
+      "families": [
+        "Segoe UI Emoji"
+      ],
+      "missing": 0,
+      "name": "旗: 阿森松岛",
+      "text": "🇦🇨",
+      "visible_glyphs": 2
+    },
+    {
+      "families": [
+        "Segoe UI Emoji"
+      ],
+      "missing": 0,
+      "name": "旗: 安道尔",
+      "text": "🇦🇩",
+      "visible_glyphs": 2
+    },
+    {
+      "families": [
+        "Segoe UI Emoji"
+      ],
+      "missing": 0,
+      "name": "旗: 阿拉伯联合酋长国",
+      "text": "🇦🇪",
+      "visible_glyphs": 2
+    },
+    {
+      "families": [
+        "Segoe UI Emoji"
+      ],
+      "missing": 0,
+      "name": "旗: 阿富汗",
+      "text": "🇦🇫",
+      "visible_glyphs": 2
+    },
+    {
+      "families": [
+        "Segoe UI Emoji"
+      ],
+      "missing": 0,
+      "name": "旗: 安提瓜和巴布达",
+      "text": "🇦🇬",
+      "visible_glyphs": 2
+    },
+    {
+      "families": [
+        "Segoe UI Emoji"
+      ],
+      "missing": 0,
+      "name": "旗: 安圭拉",
+      "text": "🇦🇮",
+      "visible_glyphs": 2
+    },
+    {
+      "families": [
+        "Segoe UI Emoji"
+      ],
+      "missing": 0,
+      "name": "旗: 阿尔巴尼亚",
+      "text": "🇦🇱",
+      "visible_glyphs": 2
+    },
+    {
+      "families": [
+        "Segoe UI Emoji"
+      ],
+      "missing": 0,
+      "name": "旗: 亚美尼亚",
+      "text": "🇦🇲",
+      "visible_glyphs": 2
+    },
+    {
+      "families": [
+        "Segoe UI Emoji"
+      ],
+      "missing": 0,
+      "name": "旗: 安哥拉",
+      "text": "🇦🇴",
+      "visible_glyphs": 2
+    },
+    {
+      "families": [
+        "Segoe UI Emoji"
+      ],
+      "missing": 0,
+      "name": "旗: 南极洲",
+      "text": "🇦🇶",
+      "visible_glyphs": 2
+    },
+    {
+      "families": [
+        "Segoe UI Emoji"
+      ],
+      "missing": 0,
+      "name": "旗: 阿根廷",
+      "text": "🇦🇷",
+      "visible_glyphs": 2
+    },
+    {
+      "families": [
+        "Segoe UI Emoji"
+      ],
+      "missing": 0,
+      "name": "旗: 美属萨摩亚",
+      "text": "🇦🇸",
+      "visible_glyphs": 2
+    },
+    {
+      "families": [
+        "Segoe UI Emoji"
+      ],
+      "missing": 0,
+      "name": "旗: 奥地利",
+      "text": "🇦🇹",
+      "visible_glyphs": 2
+    },
+    {
+      "families": [
+        "Segoe UI Emoji"
+      ],
+      "missing": 0,
+      "name": "旗: 澳大利亚",
+      "text": "🇦🇺",
+      "visible_glyphs": 2
+    },
+    {
+      "families": [
+        "Segoe UI Emoji"
+      ],
+      "missing": 0,
+      "name": "旗: 阿鲁巴",
+      "text": "🇦🇼",
+      "visible_glyphs": 2
+    },
+    {
+      "families": [
+        "Segoe UI Emoji"
+      ],
+      "missing": 0,
+      "name": "旗: 奥兰群岛",
+      "text": "🇦🇽",
+      "visible_glyphs": 2
+    },
+    {
+      "families": [
+        "Segoe UI Emoji"
+      ],
+      "missing": 0,
+      "name": "旗: 阿塞拜疆",
+      "text": "🇦🇿",
+      "visible_glyphs": 2
+    },
+    {
+      "families": [
+        "Segoe UI Emoji"
+      ],
+      "missing": 0,
+      "name": "旗: 波斯尼亚和黑塞哥维那",
+      "text": "🇧🇦",
+      "visible_glyphs": 2
+    },
+    {
+      "families": [
+        "Segoe UI Emoji"
+      ],
+      "missing": 0,
+      "name": "旗: 巴巴多斯",
+      "text": "🇧🇧",
+      "visible_glyphs": 2
+    },
+    {
+      "families": [
+        "Segoe UI Emoji"
+      ],
+      "missing": 0,
+      "name": "旗: 孟加拉国",
+      "text": "🇧🇩",
+      "visible_glyphs": 2
+    },
+    {
+      "families": [
+        "Segoe UI Emoji"
+      ],
+      "missing": 0,
+      "name": "旗: 比利时",
+      "text": "🇧🇪",
+      "visible_glyphs": 2
+    },
+    {
+      "families": [
+        "Segoe UI Emoji"
+      ],
+      "missing": 0,
+      "name": "旗: 布基纳法索",
+      "text": "🇧🇫",
+      "visible_glyphs": 2
+    },
+    {
+      "families": [
+        "Segoe UI Emoji"
+      ],
+      "missing": 0,
+      "name": "旗: 保加利亚",
+      "text": "🇧🇬",
+      "visible_glyphs": 2
+    },
+    {
+      "families": [
+        "Segoe UI Emoji"
+      ],
+      "missing": 0,
+      "name": "旗: 巴林",
+      "text": "🇧🇭",
+      "visible_glyphs": 2
+    },
+    {
+      "families": [
+        "Segoe UI Emoji"
+      ],
+      "missing": 0,
+      "name": "旗: 布隆迪",
+      "text": "🇧🇮",
+      "visible_glyphs": 2
+    },
+    {
+      "families": [
+        "Segoe UI Emoji"
+      ],
+      "missing": 0,
+      "name": "旗: 贝宁",
+      "text": "🇧🇯",
+      "visible_glyphs": 2
+    },
+    {
+      "families": [
+        "Segoe UI Emoji"
+      ],
+      "missing": 0,
+      "name": "旗: 圣巴泰勒米",
+      "text": "🇧🇱",
+      "visible_glyphs": 2
+    },
+    {
+      "families": [
+        "Segoe UI Emoji"
+      ],
+      "missing": 0,
+      "name": "旗: 百慕大",
+      "text": "🇧🇲",
+      "visible_glyphs": 2
+    },
+    {
+      "families": [
+        "Segoe UI Emoji"
+      ],
+      "missing": 0,
+      "name": "旗: 文莱",
+      "text": "🇧🇳",
+      "visible_glyphs": 2
+    },
+    {
+      "families": [
+        "Segoe UI Emoji"
+      ],
+      "missing": 0,
+      "name": "旗: 玻利维亚",
+      "text": "🇧🇴",
+      "visible_glyphs": 2
+    },
+    {
+      "families": [
+        "Segoe UI Emoji"
+      ],
+      "missing": 0,
+      "name": "旗: 荷属加勒比区",
+      "text": "🇧🇶",
+      "visible_glyphs": 2
+    },
+    {
+      "families": [
+        "Segoe UI Emoji"
+      ],
+      "missing": 0,
+      "name": "旗: 巴西",
+      "text": "🇧🇷",
+      "visible_glyphs": 2
+    },
+    {
+      "families": [
+        "Segoe UI Emoji"
+      ],
+      "missing": 0,
+      "name": "旗: 巴哈马",
+      "text": "🇧🇸",
+      "visible_glyphs": 2
+    },
+    {
+      "families": [
+        "Segoe UI Emoji"
+      ],
+      "missing": 0,
+      "name": "旗: 不丹",
+      "text": "🇧🇹",
+      "visible_glyphs": 2
+    },
+    {
+      "families": [
+        "Segoe UI Emoji"
+      ],
+      "missing": 0,
+      "name": "旗: 布韦岛",
+      "text": "🇧🇻",
+      "visible_glyphs": 2
+    },
+    {
+      "families": [
+        "Segoe UI Emoji"
+      ],
+      "missing": 0,
+      "name": "旗: 博茨瓦纳",
+      "text": "🇧🇼",
+      "visible_glyphs": 2
+    },
+    {
+      "families": [
+        "Segoe UI Emoji"
+      ],
+      "missing": 0,
+      "name": "旗: 白俄罗斯",
+      "text": "🇧🇾",
+      "visible_glyphs": 2
+    },
+    {
+      "families": [
+        "Segoe UI Emoji"
+      ],
+      "missing": 0,
+      "name": "旗: 伯利兹",
+      "text": "🇧🇿",
+      "visible_glyphs": 2
+    },
+    {
+      "families": [
+        "Segoe UI Emoji"
+      ],
+      "missing": 0,
+      "name": "旗: 加拿大",
+      "text": "🇨🇦",
+      "visible_glyphs": 2
+    },
+    {
+      "families": [
+        "Segoe UI Emoji"
+      ],
+      "missing": 0,
+      "name": "旗: 科科斯（基林）群岛",
+      "text": "🇨🇨",
+      "visible_glyphs": 2
+    },
+    {
+      "families": [
+        "Segoe UI Emoji"
+      ],
+      "missing": 0,
+      "name": "旗: 刚果（金）",
+      "text": "🇨🇩",
+      "visible_glyphs": 2
+    },
+    {
+      "families": [
+        "Segoe UI Emoji"
+      ],
+      "missing": 0,
+      "name": "旗: 中非共和国",
+      "text": "🇨🇫",
+      "visible_glyphs": 2
+    },
+    {
+      "families": [
+        "Segoe UI Emoji"
+      ],
+      "missing": 0,
+      "name": "旗: 刚果（布）",
+      "text": "🇨🇬",
+      "visible_glyphs": 2
+    },
+    {
+      "families": [
+        "Segoe UI Emoji"
+      ],
+      "missing": 0,
+      "name": "旗: 瑞士",
+      "text": "🇨🇭",
+      "visible_glyphs": 2
+    },
+    {
+      "families": [
+        "Segoe UI Emoji"
+      ],
+      "missing": 0,
+      "name": "旗: 科特迪瓦",
+      "text": "🇨🇮",
+      "visible_glyphs": 2
+    },
+    {
+      "families": [
+        "Segoe UI Emoji"
+      ],
+      "missing": 0,
+      "name": "旗: 库克群岛",
+      "text": "🇨🇰",
+      "visible_glyphs": 2
+    },
+    {
+      "families": [
+        "Segoe UI Emoji"
+      ],
+      "missing": 0,
+      "name": "旗: 智利",
+      "text": "🇨🇱",
+      "visible_glyphs": 2
+    },
+    {
+      "families": [
+        "Segoe UI Emoji"
+      ],
+      "missing": 0,
+      "name": "旗: 喀麦隆",
+      "text": "🇨🇲",
+      "visible_glyphs": 2
+    },
+    {
+      "families": [
+        "Segoe UI Emoji"
+      ],
+      "missing": 0,
+      "name": "旗: 中国",
+      "text": "🇨🇳",
+      "visible_glyphs": 2
+    },
+    {
+      "families": [
+        "Segoe UI Emoji"
+      ],
+      "missing": 0,
+      "name": "旗: 哥伦比亚",
+      "text": "🇨🇴",
+      "visible_glyphs": 2
+    },
+    {
+      "families": [
+        "Segoe UI Emoji"
+      ],
+      "missing": 0,
+      "name": "旗: 克利珀顿岛",
+      "text": "🇨🇵",
+      "visible_glyphs": 2
+    },
+    {
+      "families": [
+        "Segoe UI Emoji"
+      ],
+      "missing": 0,
+      "name": "旗: 萨克岛",
+      "text": "🇨🇶",
+      "visible_glyphs": 2
+    },
+    {
+      "families": [
+        "Segoe UI Emoji"
+      ],
+      "missing": 0,
+      "name": "旗: 哥斯达黎加",
+      "text": "🇨🇷",
+      "visible_glyphs": 2
+    },
+    {
+      "families": [
+        "Segoe UI Emoji"
+      ],
+      "missing": 0,
+      "name": "旗: 古巴",
+      "text": "🇨🇺",
+      "visible_glyphs": 2
+    },
+    {
+      "families": [
+        "Segoe UI Emoji"
+      ],
+      "missing": 0,
+      "name": "旗: 佛得角",
+      "text": "🇨🇻",
+      "visible_glyphs": 2
+    },
+    {
+      "families": [
+        "Segoe UI Emoji"
+      ],
+      "missing": 0,
+      "name": "旗: 库拉索",
+      "text": "🇨🇼",
+      "visible_glyphs": 2
+    },
+    {
+      "families": [
+        "Segoe UI Emoji"
+      ],
+      "missing": 0,
+      "name": "旗: 圣诞岛",
+      "text": "🇨🇽",
+      "visible_glyphs": 2
+    },
+    {
+      "families": [
+        "Segoe UI Emoji"
+      ],
+      "missing": 0,
+      "name": "旗: 塞浦路斯",
+      "text": "🇨🇾",
+      "visible_glyphs": 2
+    },
+    {
+      "families": [
+        "Segoe UI Emoji"
+      ],
+      "missing": 0,
+      "name": "旗: 捷克",
+      "text": "🇨🇿",
+      "visible_glyphs": 2
+    },
+    {
+      "families": [
+        "Segoe UI Emoji"
+      ],
+      "missing": 0,
+      "name": "旗: 德国",
+      "text": "🇩🇪",
+      "visible_glyphs": 2
+    },
+    {
+      "families": [
+        "Segoe UI Emoji"
+      ],
+      "missing": 0,
+      "name": "旗: 迪戈加西亚岛",
+      "text": "🇩🇬",
+      "visible_glyphs": 2
+    },
+    {
+      "families": [
+        "Segoe UI Emoji"
+      ],
+      "missing": 0,
+      "name": "旗: 吉布提",
+      "text": "🇩🇯",
+      "visible_glyphs": 2
+    },
+    {
+      "families": [
+        "Segoe UI Emoji"
+      ],
+      "missing": 0,
+      "name": "旗: 丹麦",
+      "text": "🇩🇰",
+      "visible_glyphs": 2
+    },
+    {
+      "families": [
+        "Segoe UI Emoji"
+      ],
+      "missing": 0,
+      "name": "旗: 多米尼克",
+      "text": "🇩🇲",
+      "visible_glyphs": 2
+    },
+    {
+      "families": [
+        "Segoe UI Emoji"
+      ],
+      "missing": 0,
+      "name": "旗: 多米尼加共和国",
+      "text": "🇩🇴",
+      "visible_glyphs": 2
+    },
+    {
+      "families": [
+        "Segoe UI Emoji"
+      ],
+      "missing": 0,
+      "name": "旗: 阿尔及利亚",
+      "text": "🇩🇿",
+      "visible_glyphs": 2
+    },
+    {
+      "families": [
+        "Segoe UI Emoji"
+      ],
+      "missing": 0,
+      "name": "旗: 休达及梅利利亚",
+      "text": "🇪🇦",
+      "visible_glyphs": 2
+    },
+    {
+      "families": [
+        "Segoe UI Emoji"
+      ],
+      "missing": 0,
+      "name": "旗: 厄瓜多尔",
+      "text": "🇪🇨",
+      "visible_glyphs": 2
+    },
+    {
+      "families": [
+        "Segoe UI Emoji"
+      ],
+      "missing": 0,
+      "name": "旗: 爱沙尼亚",
+      "text": "🇪🇪",
+      "visible_glyphs": 2
+    },
+    {
+      "families": [
+        "Segoe UI Emoji"
+      ],
+      "missing": 0,
+      "name": "旗: 埃及",
+      "text": "🇪🇬",
+      "visible_glyphs": 2
+    },
+    {
+      "families": [
+        "Segoe UI Emoji"
+      ],
+      "missing": 0,
+      "name": "旗: 西撒哈拉",
+      "text": "🇪🇭",
+      "visible_glyphs": 2
+    },
+    {
+      "families": [
+        "Segoe UI Emoji"
+      ],
+      "missing": 0,
+      "name": "旗: 厄立特里亚",
+      "text": "🇪🇷",
+      "visible_glyphs": 2
+    },
+    {
+      "families": [
+        "Segoe UI Emoji"
+      ],
+      "missing": 0,
+      "name": "旗: 西班牙",
+      "text": "🇪🇸",
+      "visible_glyphs": 2
+    },
+    {
+      "families": [
+        "Segoe UI Emoji"
+      ],
+      "missing": 0,
+      "name": "旗: 埃塞俄比亚",
+      "text": "🇪🇹",
+      "visible_glyphs": 2
+    },
+    {
+      "families": [
+        "Segoe UI Emoji"
+      ],
+      "missing": 0,
+      "name": "旗: 欧盟",
+      "text": "🇪🇺",
+      "visible_glyphs": 2
+    },
+    {
+      "families": [
+        "Segoe UI Emoji"
+      ],
+      "missing": 0,
+      "name": "旗: 芬兰",
+      "text": "🇫🇮",
+      "visible_glyphs": 2
+    },
+    {
+      "families": [
+        "Segoe UI Emoji"
+      ],
+      "missing": 0,
+      "name": "旗: 斐济",
+      "text": "🇫🇯",
+      "visible_glyphs": 2
+    },
+    {
+      "families": [
+        "Segoe UI Emoji"
+      ],
+      "missing": 0,
+      "name": "旗: 福克兰群岛",
+      "text": "🇫🇰",
+      "visible_glyphs": 2
+    },
+    {
+      "families": [
+        "Segoe UI Emoji"
+      ],
+      "missing": 0,
+      "name": "旗: 密克罗尼西亚",
+      "text": "🇫🇲",
+      "visible_glyphs": 2
+    },
+    {
+      "families": [
+        "Segoe UI Emoji"
+      ],
+      "missing": 0,
+      "name": "旗: 法罗群岛",
+      "text": "🇫🇴",
+      "visible_glyphs": 2
+    },
+    {
+      "families": [
+        "Segoe UI Emoji"
+      ],
+      "missing": 0,
+      "name": "旗: 法国",
+      "text": "🇫🇷",
+      "visible_glyphs": 2
+    },
+    {
+      "families": [
+        "Segoe UI Emoji"
+      ],
+      "missing": 0,
+      "name": "旗: 加蓬",
+      "text": "🇬🇦",
+      "visible_glyphs": 2
+    },
+    {
+      "families": [
+        "Segoe UI Emoji"
+      ],
+      "missing": 0,
+      "name": "旗: 英国",
+      "text": "🇬🇧",
+      "visible_glyphs": 2
+    },
+    {
+      "families": [
+        "Segoe UI Emoji"
+      ],
+      "missing": 0,
+      "name": "旗: 格林纳达",
+      "text": "🇬🇩",
+      "visible_glyphs": 2
+    },
+    {
+      "families": [
+        "Segoe UI Emoji"
+      ],
+      "missing": 0,
+      "name": "旗: 格鲁吉亚",
+      "text": "🇬🇪",
+      "visible_glyphs": 2
+    },
+    {
+      "families": [
+        "Segoe UI Emoji"
+      ],
+      "missing": 0,
+      "name": "旗: 法属圭亚那",
+      "text": "🇬🇫",
+      "visible_glyphs": 2
+    },
+    {
+      "families": [
+        "Segoe UI Emoji"
+      ],
+      "missing": 0,
+      "name": "旗: 根西岛",
+      "text": "🇬🇬",
+      "visible_glyphs": 2
+    },
+    {
+      "families": [
+        "Segoe UI Emoji"
+      ],
+      "missing": 0,
+      "name": "旗: 加纳",
+      "text": "🇬🇭",
+      "visible_glyphs": 2
+    },
+    {
+      "families": [
+        "Segoe UI Emoji"
+      ],
+      "missing": 0,
+      "name": "旗: 直布罗陀",
+      "text": "🇬🇮",
+      "visible_glyphs": 2
+    },
+    {
+      "families": [
+        "Segoe UI Emoji"
+      ],
+      "missing": 0,
+      "name": "旗: 格陵兰",
+      "text": "🇬🇱",
+      "visible_glyphs": 2
+    },
+    {
+      "families": [
+        "Segoe UI Emoji"
+      ],
+      "missing": 0,
+      "name": "旗: 冈比亚",
+      "text": "🇬🇲",
+      "visible_glyphs": 2
+    },
+    {
+      "families": [
+        "Segoe UI Emoji"
+      ],
+      "missing": 0,
+      "name": "旗: 几内亚",
+      "text": "🇬🇳",
+      "visible_glyphs": 2
+    },
+    {
+      "families": [
+        "Segoe UI Emoji"
+      ],
+      "missing": 0,
+      "name": "旗: 瓜德罗普",
+      "text": "🇬🇵",
+      "visible_glyphs": 2
+    },
+    {
+      "families": [
+        "Segoe UI Emoji"
+      ],
+      "missing": 0,
+      "name": "旗: 赤道几内亚",
+      "text": "🇬🇶",
+      "visible_glyphs": 2
+    },
+    {
+      "families": [
+        "Segoe UI Emoji"
+      ],
+      "missing": 0,
+      "name": "旗: 希腊",
+      "text": "🇬🇷",
+      "visible_glyphs": 2
+    },
+    {
+      "families": [
+        "Segoe UI Emoji"
+      ],
+      "missing": 0,
+      "name": "旗: 南乔治亚和南桑威奇群岛",
+      "text": "🇬🇸",
+      "visible_glyphs": 2
+    },
+    {
+      "families": [
+        "Segoe UI Emoji"
+      ],
+      "missing": 0,
+      "name": "旗: 危地马拉",
+      "text": "🇬🇹",
+      "visible_glyphs": 2
+    },
+    {
+      "families": [
+        "Segoe UI Emoji"
+      ],
+      "missing": 0,
+      "name": "旗: 关岛",
+      "text": "🇬🇺",
+      "visible_glyphs": 2
+    },
+    {
+      "families": [
+        "Segoe UI Emoji"
+      ],
+      "missing": 0,
+      "name": "旗: 几内亚比绍",
+      "text": "🇬🇼",
+      "visible_glyphs": 2
+    },
+    {
+      "families": [
+        "Segoe UI Emoji"
+      ],
+      "missing": 0,
+      "name": "旗: 圭亚那",
+      "text": "🇬🇾",
+      "visible_glyphs": 2
+    },
+    {
+      "families": [
+        "Segoe UI Emoji"
+      ],
+      "missing": 0,
+      "name": "旗: 中国香港特别行政区",
+      "text": "🇭🇰",
+      "visible_glyphs": 2
+    },
+    {
+      "families": [
+        "Segoe UI Emoji"
+      ],
+      "missing": 0,
+      "name": "旗: 赫德岛和麦克唐纳群岛",
+      "text": "🇭🇲",
+      "visible_glyphs": 2
+    },
+    {
+      "families": [
+        "Segoe UI Emoji"
+      ],
+      "missing": 0,
+      "name": "旗: 洪都拉斯",
+      "text": "🇭🇳",
+      "visible_glyphs": 2
+    },
+    {
+      "families": [
+        "Segoe UI Emoji"
+      ],
+      "missing": 0,
+      "name": "旗: 克罗地亚",
+      "text": "🇭🇷",
+      "visible_glyphs": 2
+    },
+    {
+      "families": [
+        "Segoe UI Emoji"
+      ],
+      "missing": 0,
+      "name": "旗: 海地",
+      "text": "🇭🇹",
+      "visible_glyphs": 2
+    },
+    {
+      "families": [
+        "Segoe UI Emoji"
+      ],
+      "missing": 0,
+      "name": "旗: 匈牙利",
+      "text": "🇭🇺",
+      "visible_glyphs": 2
+    },
+    {
+      "families": [
+        "Segoe UI Emoji"
+      ],
+      "missing": 0,
+      "name": "旗: 加纳利群岛",
+      "text": "🇮🇨",
+      "visible_glyphs": 2
+    },
+    {
+      "families": [
+        "Segoe UI Emoji"
+      ],
+      "missing": 0,
+      "name": "旗: 印度尼西亚",
+      "text": "🇮🇩",
+      "visible_glyphs": 2
+    },
+    {
+      "families": [
+        "Segoe UI Emoji"
+      ],
+      "missing": 0,
+      "name": "旗: 爱尔兰",
+      "text": "🇮🇪",
+      "visible_glyphs": 2
+    },
+    {
+      "families": [
+        "Segoe UI Emoji"
+      ],
+      "missing": 0,
+      "name": "旗: 以色列",
+      "text": "🇮🇱",
+      "visible_glyphs": 2
+    },
+    {
+      "families": [
+        "Segoe UI Emoji"
+      ],
+      "missing": 0,
+      "name": "旗: 马恩岛",
+      "text": "🇮🇲",
+      "visible_glyphs": 2
+    },
+    {
+      "families": [
+        "Segoe UI Emoji"
+      ],
+      "missing": 0,
+      "name": "旗: 印度",
+      "text": "🇮🇳",
+      "visible_glyphs": 2
+    },
+    {
+      "families": [
+        "Segoe UI Emoji"
+      ],
+      "missing": 0,
+      "name": "旗: 英属印度洋领地",
+      "text": "🇮🇴",
+      "visible_glyphs": 2
+    },
+    {
+      "families": [
+        "Segoe UI Emoji"
+      ],
+      "missing": 0,
+      "name": "旗: 伊拉克",
+      "text": "🇮🇶",
+      "visible_glyphs": 2
+    },
+    {
+      "families": [
+        "Segoe UI Emoji"
+      ],
+      "missing": 0,
+      "name": "旗: 伊朗",
+      "text": "🇮🇷",
+      "visible_glyphs": 2
+    },
+    {
+      "families": [
+        "Segoe UI Emoji"
+      ],
+      "missing": 0,
+      "name": "旗: 冰岛",
+      "text": "🇮🇸",
+      "visible_glyphs": 2
+    },
+    {
+      "families": [
+        "Segoe UI Emoji"
+      ],
+      "missing": 0,
+      "name": "旗: 意大利",
+      "text": "🇮🇹",
+      "visible_glyphs": 2
+    },
+    {
+      "families": [
+        "Segoe UI Emoji"
+      ],
+      "missing": 0,
+      "name": "旗: 泽西岛",
+      "text": "🇯🇪",
+      "visible_glyphs": 2
+    },
+    {
+      "families": [
+        "Segoe UI Emoji"
+      ],
+      "missing": 0,
+      "name": "旗: 牙买加",
+      "text": "🇯🇲",
+      "visible_glyphs": 2
+    },
+    {
+      "families": [
+        "Segoe UI Emoji"
+      ],
+      "missing": 0,
+      "name": "旗: 约旦",
+      "text": "🇯🇴",
+      "visible_glyphs": 2
+    },
+    {
+      "families": [
+        "Segoe UI Emoji"
+      ],
+      "missing": 0,
+      "name": "旗: 日本",
+      "text": "🇯🇵",
+      "visible_glyphs": 2
+    },
+    {
+      "families": [
+        "Segoe UI Emoji"
+      ],
+      "missing": 0,
+      "name": "旗: 肯尼亚",
+      "text": "🇰🇪",
+      "visible_glyphs": 2
+    },
+    {
+      "families": [
+        "Segoe UI Emoji"
+      ],
+      "missing": 0,
+      "name": "旗: 吉尔吉斯斯坦",
+      "text": "🇰🇬",
+      "visible_glyphs": 2
+    },
+    {
+      "families": [
+        "Segoe UI Emoji"
+      ],
+      "missing": 0,
+      "name": "旗: 柬埔寨",
+      "text": "🇰🇭",
+      "visible_glyphs": 2
+    },
+    {
+      "families": [
+        "Segoe UI Emoji"
+      ],
+      "missing": 0,
+      "name": "旗: 基里巴斯",
+      "text": "🇰🇮",
+      "visible_glyphs": 2
+    },
+    {
+      "families": [
+        "Segoe UI Emoji"
+      ],
+      "missing": 0,
+      "name": "旗: 科摩罗",
+      "text": "🇰🇲",
+      "visible_glyphs": 2
+    },
+    {
+      "families": [
+        "Segoe UI Emoji"
+      ],
+      "missing": 0,
+      "name": "旗: 圣基茨和尼维斯",
+      "text": "🇰🇳",
+      "visible_glyphs": 2
+    },
+    {
+      "families": [
+        "Segoe UI Emoji"
+      ],
+      "missing": 0,
+      "name": "旗: 朝鲜",
+      "text": "🇰🇵",
+      "visible_glyphs": 2
+    },
+    {
+      "families": [
+        "Segoe UI Emoji"
+      ],
+      "missing": 0,
+      "name": "旗: 韩国",
+      "text": "🇰🇷",
+      "visible_glyphs": 2
+    },
+    {
+      "families": [
+        "Segoe UI Emoji"
+      ],
+      "missing": 0,
+      "name": "旗: 科威特",
+      "text": "🇰🇼",
+      "visible_glyphs": 2
+    },
+    {
+      "families": [
+        "Segoe UI Emoji"
+      ],
+      "missing": 0,
+      "name": "旗: 开曼群岛",
+      "text": "🇰🇾",
+      "visible_glyphs": 2
+    },
+    {
+      "families": [
+        "Segoe UI Emoji"
+      ],
+      "missing": 0,
+      "name": "旗: 哈萨克斯坦",
+      "text": "🇰🇿",
+      "visible_glyphs": 2
+    },
+    {
+      "families": [
+        "Segoe UI Emoji"
+      ],
+      "missing": 0,
+      "name": "旗: 老挝",
+      "text": "🇱🇦",
+      "visible_glyphs": 2
+    },
+    {
+      "families": [
+        "Segoe UI Emoji"
+      ],
+      "missing": 0,
+      "name": "旗: 黎巴嫩",
+      "text": "🇱🇧",
+      "visible_glyphs": 2
+    },
+    {
+      "families": [
+        "Segoe UI Emoji"
+      ],
+      "missing": 0,
+      "name": "旗: 圣卢西亚",
+      "text": "🇱🇨",
+      "visible_glyphs": 2
+    },
+    {
+      "families": [
+        "Segoe UI Emoji"
+      ],
+      "missing": 0,
+      "name": "旗: 列支敦士登",
+      "text": "🇱🇮",
+      "visible_glyphs": 2
+    },
+    {
+      "families": [
+        "Segoe UI Emoji"
+      ],
+      "missing": 0,
+      "name": "旗: 斯里兰卡",
+      "text": "🇱🇰",
+      "visible_glyphs": 2
+    },
+    {
+      "families": [
+        "Segoe UI Emoji"
+      ],
+      "missing": 0,
+      "name": "旗: 利比里亚",
+      "text": "🇱🇷",
+      "visible_glyphs": 2
+    },
+    {
+      "families": [
+        "Segoe UI Emoji"
+      ],
+      "missing": 0,
+      "name": "旗: 莱索托",
+      "text": "🇱🇸",
+      "visible_glyphs": 2
+    },
+    {
+      "families": [
+        "Segoe UI Emoji"
+      ],
+      "missing": 0,
+      "name": "旗: 立陶宛",
+      "text": "🇱🇹",
+      "visible_glyphs": 2
+    },
+    {
+      "families": [
+        "Segoe UI Emoji"
+      ],
+      "missing": 0,
+      "name": "旗: 卢森堡",
+      "text": "🇱🇺",
+      "visible_glyphs": 2
+    },
+    {
+      "families": [
+        "Segoe UI Emoji"
+      ],
+      "missing": 0,
+      "name": "旗: 拉脱维亚",
+      "text": "🇱🇻",
+      "visible_glyphs": 2
+    },
+    {
+      "families": [
+        "Segoe UI Emoji"
+      ],
+      "missing": 0,
+      "name": "旗: 利比亚",
+      "text": "🇱🇾",
+      "visible_glyphs": 2
+    },
+    {
+      "families": [
+        "Segoe UI Emoji"
+      ],
+      "missing": 0,
+      "name": "旗: 摩洛哥",
+      "text": "🇲🇦",
+      "visible_glyphs": 2
+    },
+    {
+      "families": [
+        "Segoe UI Emoji"
+      ],
+      "missing": 0,
+      "name": "旗: 摩纳哥",
+      "text": "🇲🇨",
+      "visible_glyphs": 2
+    },
+    {
+      "families": [
+        "Segoe UI Emoji"
+      ],
+      "missing": 0,
+      "name": "旗: 摩尔多瓦",
+      "text": "🇲🇩",
+      "visible_glyphs": 2
+    },
+    {
+      "families": [
+        "Segoe UI Emoji"
+      ],
+      "missing": 0,
+      "name": "旗: 黑山",
+      "text": "🇲🇪",
+      "visible_glyphs": 2
+    },
+    {
+      "families": [
+        "Segoe UI Emoji"
+      ],
+      "missing": 0,
+      "name": "旗: 法属圣马丁",
+      "text": "🇲🇫",
+      "visible_glyphs": 2
+    },
+    {
+      "families": [
+        "Segoe UI Emoji"
+      ],
+      "missing": 0,
+      "name": "旗: 马达加斯加",
+      "text": "🇲🇬",
+      "visible_glyphs": 2
+    },
+    {
+      "families": [
+        "Segoe UI Emoji"
+      ],
+      "missing": 0,
+      "name": "旗: 马绍尔群岛",
+      "text": "🇲🇭",
+      "visible_glyphs": 2
+    },
+    {
+      "families": [
+        "Segoe UI Emoji"
+      ],
+      "missing": 0,
+      "name": "旗: 北马其顿",
+      "text": "🇲🇰",
+      "visible_glyphs": 2
+    },
+    {
+      "families": [
+        "Segoe UI Emoji"
+      ],
+      "missing": 0,
+      "name": "旗: 马里",
+      "text": "🇲🇱",
+      "visible_glyphs": 2
+    },
+    {
+      "families": [
+        "Segoe UI Emoji"
+      ],
+      "missing": 0,
+      "name": "旗: 缅甸",
+      "text": "🇲🇲",
+      "visible_glyphs": 2
+    },
+    {
+      "families": [
+        "Segoe UI Emoji"
+      ],
+      "missing": 0,
+      "name": "旗: 蒙古",
+      "text": "🇲🇳",
+      "visible_glyphs": 2
+    },
+    {
+      "families": [
+        "Segoe UI Emoji"
+      ],
+      "missing": 0,
+      "name": "旗: 中国澳门特别行政区",
+      "text": "🇲🇴",
+      "visible_glyphs": 2
+    },
+    {
+      "families": [
+        "Segoe UI Emoji"
+      ],
+      "missing": 0,
+      "name": "旗: 北马里亚纳群岛",
+      "text": "🇲🇵",
+      "visible_glyphs": 2
+    },
+    {
+      "families": [
+        "Segoe UI Emoji"
+      ],
+      "missing": 0,
+      "name": "旗: 马提尼克",
+      "text": "🇲🇶",
+      "visible_glyphs": 2
+    },
+    {
+      "families": [
+        "Segoe UI Emoji"
+      ],
+      "missing": 0,
+      "name": "旗: 毛里塔尼亚",
+      "text": "🇲🇷",
+      "visible_glyphs": 2
+    },
+    {
+      "families": [
+        "Segoe UI Emoji"
+      ],
+      "missing": 0,
+      "name": "旗: 蒙特塞拉特",
+      "text": "🇲🇸",
+      "visible_glyphs": 2
+    },
+    {
+      "families": [
+        "Segoe UI Emoji"
+      ],
+      "missing": 0,
+      "name": "旗: 马耳他",
+      "text": "🇲🇹",
+      "visible_glyphs": 2
+    },
+    {
+      "families": [
+        "Segoe UI Emoji"
+      ],
+      "missing": 0,
+      "name": "旗: 毛里求斯",
+      "text": "🇲🇺",
+      "visible_glyphs": 2
+    },
+    {
+      "families": [
+        "Segoe UI Emoji"
+      ],
+      "missing": 0,
+      "name": "旗: 马尔代夫",
+      "text": "🇲🇻",
+      "visible_glyphs": 2
+    },
+    {
+      "families": [
+        "Segoe UI Emoji"
+      ],
+      "missing": 0,
+      "name": "旗: 马拉维",
+      "text": "🇲🇼",
+      "visible_glyphs": 2
+    },
+    {
+      "families": [
+        "Segoe UI Emoji"
+      ],
+      "missing": 0,
+      "name": "旗: 墨西哥",
+      "text": "🇲🇽",
+      "visible_glyphs": 2
+    },
+    {
+      "families": [
+        "Segoe UI Emoji"
+      ],
+      "missing": 0,
+      "name": "旗: 马来西亚",
+      "text": "🇲🇾",
+      "visible_glyphs": 2
+    },
+    {
+      "families": [
+        "Segoe UI Emoji"
+      ],
+      "missing": 0,
+      "name": "旗: 莫桑比克",
+      "text": "🇲🇿",
+      "visible_glyphs": 2
+    },
+    {
+      "families": [
+        "Segoe UI Emoji"
+      ],
+      "missing": 0,
+      "name": "旗: 纳米比亚",
+      "text": "🇳🇦",
+      "visible_glyphs": 2
+    },
+    {
+      "families": [
+        "Segoe UI Emoji"
+      ],
+      "missing": 0,
+      "name": "旗: 新喀里多尼亚",
+      "text": "🇳🇨",
+      "visible_glyphs": 2
+    },
+    {
+      "families": [
+        "Segoe UI Emoji"
+      ],
+      "missing": 0,
+      "name": "旗: 尼日尔",
+      "text": "🇳🇪",
+      "visible_glyphs": 2
+    },
+    {
+      "families": [
+        "Segoe UI Emoji"
+      ],
+      "missing": 0,
+      "name": "旗: 诺福克岛",
+      "text": "🇳🇫",
+      "visible_glyphs": 2
+    },
+    {
+      "families": [
+        "Segoe UI Emoji"
+      ],
+      "missing": 0,
+      "name": "旗: 尼日利亚",
+      "text": "🇳🇬",
+      "visible_glyphs": 2
+    },
+    {
+      "families": [
+        "Segoe UI Emoji"
+      ],
+      "missing": 0,
+      "name": "旗: 尼加拉瓜",
+      "text": "🇳🇮",
+      "visible_glyphs": 2
+    },
+    {
+      "families": [
+        "Segoe UI Emoji"
+      ],
+      "missing": 0,
+      "name": "旗: 荷兰",
+      "text": "🇳🇱",
+      "visible_glyphs": 2
+    },
+    {
+      "families": [
+        "Segoe UI Emoji"
+      ],
+      "missing": 0,
+      "name": "旗: 挪威",
+      "text": "🇳🇴",
+      "visible_glyphs": 2
+    },
+    {
+      "families": [
+        "Segoe UI Emoji"
+      ],
+      "missing": 0,
+      "name": "旗: 尼泊尔",
+      "text": "🇳🇵",
+      "visible_glyphs": 2
+    },
+    {
+      "families": [
+        "Segoe UI Emoji"
+      ],
+      "missing": 0,
+      "name": "旗: 瑙鲁",
+      "text": "🇳🇷",
+      "visible_glyphs": 2
+    },
+    {
+      "families": [
+        "Segoe UI Emoji"
+      ],
+      "missing": 0,
+      "name": "旗: 纽埃",
+      "text": "🇳🇺",
+      "visible_glyphs": 2
+    },
+    {
+      "families": [
+        "Segoe UI Emoji"
+      ],
+      "missing": 0,
+      "name": "旗: 新西兰",
+      "text": "🇳🇿",
+      "visible_glyphs": 2
+    },
+    {
+      "families": [
+        "Segoe UI Emoji"
+      ],
+      "missing": 0,
+      "name": "旗: 阿曼",
+      "text": "🇴🇲",
+      "visible_glyphs": 2
+    },
+    {
+      "families": [
+        "Segoe UI Emoji"
+      ],
+      "missing": 0,
+      "name": "旗: 巴拿马",
+      "text": "🇵🇦",
+      "visible_glyphs": 2
+    },
+    {
+      "families": [
+        "Segoe UI Emoji"
+      ],
+      "missing": 0,
+      "name": "旗: 秘鲁",
+      "text": "🇵🇪",
+      "visible_glyphs": 2
+    },
+    {
+      "families": [
+        "Segoe UI Emoji"
+      ],
+      "missing": 0,
+      "name": "旗: 法属波利尼西亚",
+      "text": "🇵🇫",
+      "visible_glyphs": 2
+    },
+    {
+      "families": [
+        "Segoe UI Emoji"
+      ],
+      "missing": 0,
+      "name": "旗: 巴布亚新几内亚",
+      "text": "🇵🇬",
+      "visible_glyphs": 2
+    },
+    {
+      "families": [
+        "Segoe UI Emoji"
+      ],
+      "missing": 0,
+      "name": "旗: 菲律宾",
+      "text": "🇵🇭",
+      "visible_glyphs": 2
+    },
+    {
+      "families": [
+        "Segoe UI Emoji"
+      ],
+      "missing": 0,
+      "name": "旗: 巴基斯坦",
+      "text": "🇵🇰",
+      "visible_glyphs": 2
+    },
+    {
+      "families": [
+        "Segoe UI Emoji"
+      ],
+      "missing": 0,
+      "name": "旗: 波兰",
+      "text": "🇵🇱",
+      "visible_glyphs": 2
+    },
+    {
+      "families": [
+        "Segoe UI Emoji"
+      ],
+      "missing": 0,
+      "name": "旗: 圣皮埃尔和密克隆群岛",
+      "text": "🇵🇲",
+      "visible_glyphs": 2
+    },
+    {
+      "families": [
+        "Segoe UI Emoji"
+      ],
+      "missing": 0,
+      "name": "旗: 皮特凯恩群岛",
+      "text": "🇵🇳",
+      "visible_glyphs": 2
+    },
+    {
+      "families": [
+        "Segoe UI Emoji"
+      ],
+      "missing": 0,
+      "name": "旗: 波多黎各",
+      "text": "🇵🇷",
+      "visible_glyphs": 2
+    },
+    {
+      "families": [
+        "Segoe UI Emoji"
+      ],
+      "missing": 0,
+      "name": "旗: 巴勒斯坦领土",
+      "text": "🇵🇸",
+      "visible_glyphs": 2
+    },
+    {
+      "families": [
+        "Segoe UI Emoji"
+      ],
+      "missing": 0,
+      "name": "旗: 葡萄牙",
+      "text": "🇵🇹",
+      "visible_glyphs": 2
+    },
+    {
+      "families": [
+        "Segoe UI Emoji"
+      ],
+      "missing": 0,
+      "name": "旗: 帕劳",
+      "text": "🇵🇼",
+      "visible_glyphs": 2
+    },
+    {
+      "families": [
+        "Segoe UI Emoji"
+      ],
+      "missing": 0,
+      "name": "旗: 巴拉圭",
+      "text": "🇵🇾",
+      "visible_glyphs": 2
+    },
+    {
+      "families": [
+        "Segoe UI Emoji"
+      ],
+      "missing": 0,
+      "name": "旗: 卡塔尔",
+      "text": "🇶🇦",
+      "visible_glyphs": 2
+    },
+    {
+      "families": [
+        "Segoe UI Emoji"
+      ],
+      "missing": 0,
+      "name": "旗: 留尼汪",
+      "text": "🇷🇪",
+      "visible_glyphs": 2
+    },
+    {
+      "families": [
+        "Segoe UI Emoji"
+      ],
+      "missing": 0,
+      "name": "旗: 罗马尼亚",
+      "text": "🇷🇴",
+      "visible_glyphs": 2
+    },
+    {
+      "families": [
+        "Segoe UI Emoji"
+      ],
+      "missing": 0,
+      "name": "旗: 塞尔维亚",
+      "text": "🇷🇸",
+      "visible_glyphs": 2
+    },
+    {
+      "families": [
+        "Segoe UI Emoji"
+      ],
+      "missing": 0,
+      "name": "旗: 俄罗斯",
+      "text": "🇷🇺",
+      "visible_glyphs": 2
+    },
+    {
+      "families": [
+        "Segoe UI Emoji"
+      ],
+      "missing": 0,
+      "name": "旗: 卢旺达",
+      "text": "🇷🇼",
+      "visible_glyphs": 2
+    },
+    {
+      "families": [
+        "Segoe UI Emoji"
+      ],
+      "missing": 0,
+      "name": "旗: 沙特阿拉伯",
+      "text": "🇸🇦",
+      "visible_glyphs": 2
+    },
+    {
+      "families": [
+        "Segoe UI Emoji"
+      ],
+      "missing": 0,
+      "name": "旗: 所罗门群岛",
+      "text": "🇸🇧",
+      "visible_glyphs": 2
+    },
+    {
+      "families": [
+        "Segoe UI Emoji"
+      ],
+      "missing": 0,
+      "name": "旗: 塞舌尔",
+      "text": "🇸🇨",
+      "visible_glyphs": 2
+    },
+    {
+      "families": [
+        "Segoe UI Emoji"
+      ],
+      "missing": 0,
+      "name": "旗: 苏丹",
+      "text": "🇸🇩",
+      "visible_glyphs": 2
+    },
+    {
+      "families": [
+        "Segoe UI Emoji"
+      ],
+      "missing": 0,
+      "name": "旗: 瑞典",
+      "text": "🇸🇪",
+      "visible_glyphs": 2
+    },
+    {
+      "families": [
+        "Segoe UI Emoji"
+      ],
+      "missing": 0,
+      "name": "旗: 新加坡",
+      "text": "🇸🇬",
+      "visible_glyphs": 2
+    },
+    {
+      "families": [
+        "Segoe UI Emoji"
+      ],
+      "missing": 0,
+      "name": "旗: 圣赫勒拿",
+      "text": "🇸🇭",
+      "visible_glyphs": 2
+    },
+    {
+      "families": [
+        "Segoe UI Emoji"
+      ],
+      "missing": 0,
+      "name": "旗: 斯洛文尼亚",
+      "text": "🇸🇮",
+      "visible_glyphs": 2
+    },
+    {
+      "families": [
+        "Segoe UI Emoji"
+      ],
+      "missing": 0,
+      "name": "旗: 斯瓦尔巴和扬马延",
+      "text": "🇸🇯",
+      "visible_glyphs": 2
+    },
+    {
+      "families": [
+        "Segoe UI Emoji"
+      ],
+      "missing": 0,
+      "name": "旗: 斯洛伐克",
+      "text": "🇸🇰",
+      "visible_glyphs": 2
+    },
+    {
+      "families": [
+        "Segoe UI Emoji"
+      ],
+      "missing": 0,
+      "name": "旗: 塞拉利昂",
+      "text": "🇸🇱",
+      "visible_glyphs": 2
+    },
+    {
+      "families": [
+        "Segoe UI Emoji"
+      ],
+      "missing": 0,
+      "name": "旗: 圣马力诺",
+      "text": "🇸🇲",
+      "visible_glyphs": 2
+    },
+    {
+      "families": [
+        "Segoe UI Emoji"
+      ],
+      "missing": 0,
+      "name": "旗: 塞内加尔",
+      "text": "🇸🇳",
+      "visible_glyphs": 2
+    },
+    {
+      "families": [
+        "Segoe UI Emoji"
+      ],
+      "missing": 0,
+      "name": "旗: 索马里",
+      "text": "🇸🇴",
+      "visible_glyphs": 2
+    },
+    {
+      "families": [
+        "Segoe UI Emoji"
+      ],
+      "missing": 0,
+      "name": "旗: 苏里南",
+      "text": "🇸🇷",
+      "visible_glyphs": 2
+    },
+    {
+      "families": [
+        "Segoe UI Emoji"
+      ],
+      "missing": 0,
+      "name": "旗: 南苏丹",
+      "text": "🇸🇸",
+      "visible_glyphs": 2
+    },
+    {
+      "families": [
+        "Segoe UI Emoji"
+      ],
+      "missing": 0,
+      "name": "旗: 圣多美和普林西比",
+      "text": "🇸🇹",
+      "visible_glyphs": 2
+    },
+    {
+      "families": [
+        "Segoe UI Emoji"
+      ],
+      "missing": 0,
+      "name": "旗: 萨尔瓦多",
+      "text": "🇸🇻",
+      "visible_glyphs": 2
+    },
+    {
+      "families": [
+        "Segoe UI Emoji"
+      ],
+      "missing": 0,
+      "name": "旗: 荷属圣马丁",
+      "text": "🇸🇽",
+      "visible_glyphs": 2
+    },
+    {
+      "families": [
+        "Segoe UI Emoji"
+      ],
+      "missing": 0,
+      "name": "旗: 叙利亚",
+      "text": "🇸🇾",
+      "visible_glyphs": 2
+    },
+    {
+      "families": [
+        "Segoe UI Emoji"
+      ],
+      "missing": 0,
+      "name": "旗: 斯威士兰",
+      "text": "🇸🇿",
+      "visible_glyphs": 2
+    },
+    {
+      "families": [
+        "Segoe UI Emoji"
+      ],
+      "missing": 0,
+      "name": "旗: 特里斯坦-达库尼亚群岛",
+      "text": "🇹🇦",
+      "visible_glyphs": 2
+    },
+    {
+      "families": [
+        "Segoe UI Emoji"
+      ],
+      "missing": 0,
+      "name": "旗: 特克斯和凯科斯群岛",
+      "text": "🇹🇨",
+      "visible_glyphs": 2
+    },
+    {
+      "families": [
+        "Segoe UI Emoji"
+      ],
+      "missing": 0,
+      "name": "旗: 乍得",
+      "text": "🇹🇩",
+      "visible_glyphs": 2
+    },
+    {
+      "families": [
+        "Segoe UI Emoji"
+      ],
+      "missing": 0,
+      "name": "旗: 法属南部领地",
+      "text": "🇹🇫",
+      "visible_glyphs": 2
+    },
+    {
+      "families": [
+        "Segoe UI Emoji"
+      ],
+      "missing": 0,
+      "name": "旗: 多哥",
+      "text": "🇹🇬",
+      "visible_glyphs": 2
+    },
+    {
+      "families": [
+        "Segoe UI Emoji"
+      ],
+      "missing": 0,
+      "name": "旗: 泰国",
+      "text": "🇹🇭",
+      "visible_glyphs": 2
+    },
+    {
+      "families": [
+        "Segoe UI Emoji"
+      ],
+      "missing": 0,
+      "name": "旗: 塔吉克斯坦",
+      "text": "🇹🇯",
+      "visible_glyphs": 2
+    },
+    {
+      "families": [
+        "Segoe UI Emoji"
+      ],
+      "missing": 0,
+      "name": "旗: 托克劳",
+      "text": "🇹🇰",
+      "visible_glyphs": 2
+    },
+    {
+      "families": [
+        "Segoe UI Emoji"
+      ],
+      "missing": 0,
+      "name": "旗: 东帝汶",
+      "text": "🇹🇱",
+      "visible_glyphs": 2
+    },
+    {
+      "families": [
+        "Segoe UI Emoji"
+      ],
+      "missing": 0,
+      "name": "旗: 土库曼斯坦",
+      "text": "🇹🇲",
+      "visible_glyphs": 2
+    },
+    {
+      "families": [
+        "Segoe UI Emoji"
+      ],
+      "missing": 0,
+      "name": "旗: 突尼斯",
+      "text": "🇹🇳",
+      "visible_glyphs": 2
+    },
+    {
+      "families": [
+        "Segoe UI Emoji"
+      ],
+      "missing": 0,
+      "name": "旗: 汤加",
+      "text": "🇹🇴",
+      "visible_glyphs": 2
+    },
+    {
+      "families": [
+        "Segoe UI Emoji"
+      ],
+      "missing": 0,
+      "name": "旗: 土耳其",
+      "text": "🇹🇷",
+      "visible_glyphs": 2
+    },
+    {
+      "families": [
+        "Segoe UI Emoji"
+      ],
+      "missing": 0,
+      "name": "旗: 特立尼达和多巴哥",
+      "text": "🇹🇹",
+      "visible_glyphs": 2
+    },
+    {
+      "families": [
+        "Segoe UI Emoji"
+      ],
+      "missing": 0,
+      "name": "旗: 图瓦卢",
+      "text": "🇹🇻",
+      "visible_glyphs": 2
+    },
+    {
+      "families": [
+        "Segoe UI Emoji"
+      ],
+      "missing": 0,
+      "name": "旗: 台湾",
+      "text": "🇹🇼",
+      "visible_glyphs": 2
+    },
+    {
+      "families": [
+        "Segoe UI Emoji"
+      ],
+      "missing": 0,
+      "name": "旗: 坦桑尼亚",
+      "text": "🇹🇿",
+      "visible_glyphs": 2
+    },
+    {
+      "families": [
+        "Segoe UI Emoji"
+      ],
+      "missing": 0,
+      "name": "旗: 乌克兰",
+      "text": "🇺🇦",
+      "visible_glyphs": 2
+    },
+    {
+      "families": [
+        "Segoe UI Emoji"
+      ],
+      "missing": 0,
+      "name": "旗: 乌干达",
+      "text": "🇺🇬",
+      "visible_glyphs": 2
+    },
+    {
+      "families": [
+        "Segoe UI Emoji"
+      ],
+      "missing": 0,
+      "name": "旗: 美国本土外小岛屿",
+      "text": "🇺🇲",
+      "visible_glyphs": 2
+    },
+    {
+      "families": [
+        "Segoe UI Emoji"
+      ],
+      "missing": 0,
+      "name": "旗: 联合国",
+      "text": "🇺🇳",
+      "visible_glyphs": 2
+    },
+    {
+      "families": [
+        "Segoe UI Emoji"
+      ],
+      "missing": 0,
+      "name": "旗: 美国",
+      "text": "🇺🇸",
+      "visible_glyphs": 2
+    },
+    {
+      "families": [
+        "Segoe UI Emoji"
+      ],
+      "missing": 0,
+      "name": "旗: 乌拉圭",
+      "text": "🇺🇾",
+      "visible_glyphs": 2
+    },
+    {
+      "families": [
+        "Segoe UI Emoji"
+      ],
+      "missing": 0,
+      "name": "旗: 乌兹别克斯坦",
+      "text": "🇺🇿",
+      "visible_glyphs": 2
+    },
+    {
+      "families": [
+        "Segoe UI Emoji"
+      ],
+      "missing": 0,
+      "name": "旗: 梵蒂冈",
+      "text": "🇻🇦",
+      "visible_glyphs": 2
+    },
+    {
+      "families": [
+        "Segoe UI Emoji"
+      ],
+      "missing": 0,
+      "name": "旗: 圣文森特和格林纳丁斯",
+      "text": "🇻🇨",
+      "visible_glyphs": 2
+    },
+    {
+      "families": [
+        "Segoe UI Emoji"
+      ],
+      "missing": 0,
+      "name": "旗: 委内瑞拉",
+      "text": "🇻🇪",
+      "visible_glyphs": 2
+    },
+    {
+      "families": [
+        "Segoe UI Emoji"
+      ],
+      "missing": 0,
+      "name": "旗: 英属维尔京群岛",
+      "text": "🇻🇬",
+      "visible_glyphs": 2
+    },
+    {
+      "families": [
+        "Segoe UI Emoji"
+      ],
+      "missing": 0,
+      "name": "旗: 美属维尔京群岛",
+      "text": "🇻🇮",
+      "visible_glyphs": 2
+    },
+    {
+      "families": [
+        "Segoe UI Emoji"
+      ],
+      "missing": 0,
+      "name": "旗: 越南",
+      "text": "🇻🇳",
+      "visible_glyphs": 2
+    },
+    {
+      "families": [
+        "Segoe UI Emoji"
+      ],
+      "missing": 0,
+      "name": "旗: 瓦努阿图",
+      "text": "🇻🇺",
+      "visible_glyphs": 2
+    },
+    {
+      "families": [
+        "Segoe UI Emoji"
+      ],
+      "missing": 0,
+      "name": "旗: 瓦利斯和富图纳",
+      "text": "🇼🇫",
+      "visible_glyphs": 2
+    },
+    {
+      "families": [
+        "Segoe UI Emoji"
+      ],
+      "missing": 0,
+      "name": "旗: 萨摩亚",
+      "text": "🇼🇸",
+      "visible_glyphs": 2
+    },
+    {
+      "families": [
+        "Segoe UI Emoji"
+      ],
+      "missing": 0,
+      "name": "旗: 科索沃",
+      "text": "🇽🇰",
+      "visible_glyphs": 2
+    },
+    {
+      "families": [
+        "Segoe UI Emoji"
+      ],
+      "missing": 0,
+      "name": "旗: 也门",
+      "text": "🇾🇪",
+      "visible_glyphs": 2
+    },
+    {
+      "families": [
+        "Segoe UI Emoji"
+      ],
+      "missing": 0,
+      "name": "旗: 马约特",
+      "text": "🇾🇹",
+      "visible_glyphs": 2
+    },
+    {
+      "families": [
+        "Segoe UI Emoji"
+      ],
+      "missing": 0,
+      "name": "旗: 南非",
+      "text": "🇿🇦",
+      "visible_glyphs": 2
+    },
+    {
+      "families": [
+        "Segoe UI Emoji"
+      ],
+      "missing": 0,
+      "name": "旗: 赞比亚",
+      "text": "🇿🇲",
+      "visible_glyphs": 2
+    },
+    {
+      "families": [
+        "Segoe UI Emoji"
+      ],
+      "missing": 0,
+      "name": "旗: 津巴布韦",
+      "text": "🇿🇼",
+      "visible_glyphs": 2
+    }
+  ],
+  "fallback_entries": 772,
+  "families": [
+    "Segoe UI Emoji"
+  ],
+  "missing_characters": [
+    "U+FE0F",
+    "U+1F6D8",
+    "U+1F6D9",
+    "U+1FA89",
+    "U+1FA8A",
+    "U+1FA8B",
+    "U+1FA8C",
+    "U+1FA8D",
+    "U+1FA8E",
+    "U+1FA8F",
+    "U+1FABE",
+    "U+1FAC6",
+    "U+1FAC8",
+    "U+1FACC",
+    "U+1FACD",
+    "U+1FADC",
+    "U+1FADD",
+    "U+1FADF",
+    "U+1FAE9",
+    "U+1FAEA",
+    "U+1FAEB",
+    "U+1FAEF",
+    "U+1FAF9",
+    "U+1FAFA"
+  ]
+}

@@ -1,0 +1,85 @@
+   Compiling im_engine v0.7.3 (C:\code\rust\MyWubi\windows\im_engine)
+    Finished `test` profile [unoptimized + debuginfo] target(s) in 2.72s
+     Running unittests src\lib.rs (target\debug\deps\im_engine-b250b726453db9de.exe)
+
+running 78 tests
+test candidate_window::tests::opaque_alpha_fix_keeps_black_text_visible ... ok
+test input_session::tests::external_termination_during_edit_invalidates_old_publication ... ok
+test input_session::tests::nested_input_sees_advanced_state_and_old_result_cannot_publish ... ok
+test input_session::tests::missing_precise_anchor_preserves_fallback_and_previous_anchor ... ok
+test input_session::tests::candidate_and_spelling_views_share_edit_result_and_precise_anchor ... ok
+test input_session::tests::failed_temporary_cancellation_recovery_still_deletes_raw_input ... ok
+test input_session::tests::changing_editor_cleans_old_composition_before_starting_new_input ... ok
+test input_session::tests::external_termination_clears_candidates_and_next_input_starts_fresh ... ok
+test input_session::tests::failed_edit_hides_candidates_blocks_until_recovery_and_does_not_recommit ... ok
+test input_session::tests::failed_temporary_commit_before_write_preserves_input_for_retry ... ok
+test input_session::tests::failed_cleanup_after_temporary_text_write_never_recommits ... ok
+test input_session::tests::expression_menu_query_controls_and_results_share_versioned_clicks_without_host_preedit ... ok
+test input_session::tests::none_preserves_view_and_preflight_does_not_advance_generation ... ok
+test input_session::tests::overflow_then_switch_to_english_commits_raw_next_code ... ok
+test input_session::tests::preflight_and_execution_agree_on_idle_and_modified_keys ... ok
+test input_session::tests::partial_edit_failure_never_replays_already_committed_text ... ok
+test input_session::tests::reentrant_privacy_change_publishes_only_confirmed_safe_candidates ... ok
+test input_session::tests::unavailable_mode_choices_use_disabled_style_without_error_text ... ok
+test input_session::tests::reload_and_focus_loss_end_old_composition_and_hide_candidates ... ok
+test input_session::tests::switch_and_reload_advance_before_edit_and_failure_does_not_rollback ... ok
+test input_session::tests::unchanged_runtime_does_not_interrupt_composition ... ok
+test key_filter::tests::ascii_punctuation_maps_to_chinese_symbol ... ok
+test key_filter::tests::classify_shifted_punctuation_as_symbol ... ok
+test key_filter::tests::classify_shifted_uppercase_as_code_char ... ok
+test key_filter::tests::expression_tab_is_reserved_before_custom_page_mapping_only_in_expression_modes ... ok
+test input_session::tests::temporary_menu_never_enters_document_and_commit_returns_to_main ... ok
+test input_session::tests::preflight_matches_execution_for_idle_candidates_and_unmatched_spelling ... ok
+test input_session::tests::temporary_focus_switch_reload_and_empty_backspace_clear_session ... ok
+test key_filter::tests::key_name_to_vk_maps_all_options ... ok
+test key_filter::tests::temporary_syntax_precedes_punctuation_and_shortcuts ... ok
+test key_filter::tests::page_next_takes_priority_over_page_prev ... ok
+test key_filter::tests::page_prev_works_for_non_default_key ... ok
+test key_filter::tests::temporary_space_rule_does_not_override_main_mode_page_binding ... ok
+test lifecycle::tests::best_effort_failure_does_not_prevent_final_release ... ok
+test key_filter::tests::page_key_non_default_minus_equal ... ok
+test key_filter::tests::selecting_state_maps_quick_select_hotkeys ... ok
+test key_filter::tests::translate_backspace_and_esc ... ok
+test key_filter::tests::translate_unknown_returns_none ... ok
+test key_filter::tests::translate_common_punctuation_hotkeys_when_selecting ... ok
+test lifecycle::tests::cancelled_activation_does_not_start_runtime ... ok
+test lifecycle::tests::cleanup_calls_can_reenter_without_deadlocking_or_dropping_owner ... ok
+test lifecycle::tests::failure_retains_owner_continues_cleanup_and_retries_only_pending ... ok
+test key_filter::tests::translate_space_and_enter ... ok
+test lifecycle::tests::duplicate_activation_preserves_original_manager_and_records ... ok
+test lifecycle::tests::deactivation_during_registration_cleans_late_success_and_retains_failed_owner ... ok
+test lifecycle::tests::partial_registration_cleans_only_successful_records ... ok
+test model_client::lifecycle_tests::active_client_recovers_from_service_crash_and_reactivation_shares_weights ... ignored, real isolated service; set MYWUBI_TEST_MODEL_STORE; compile catalog and install trusted components first
+test lifecycle::tests::unactivated_owner_can_be_released_but_pending_owner_cannot ... ok
+test reload::tests::config_file_event_triggers_reload ... ok
+test reload::tests::active_table_event_triggers_reload ... ok
+test reload::tests::auxiliary_rename_delete_and_parent_creation_trigger_reload ... ok
+test reload::tests::failed_expression_reload_keeps_old_snapshot_and_tracks_repair_path ... ok
+test reload::tests::failed_snapshot_keeps_old_revision_and_watches_new_reference_until_repaired ... ok
+test reload::tests::unrelated_file_does_not_trigger_reload ... ok
+test reload::tests::user_table_event_triggers_reload ... ok
+test screen_geometry::tests::clamp_left_edge ... ok
+test screen_geometry::tests::flip_above_when_near_bottom ... ok
+test screen_geometry::tests::normal_below_cursor ... ok
+test screen_geometry::tests::clamp_right_edge ... ok
+test screen_geometry::tests::pt_to_px_uses_explicit_dpi ... ok
+test text_service::tests::advise_sink_maps_sink_query_failure_to_cannot_connect ... ok
+test text_service::tests::advise_sink_rejects_wrong_iid_with_cannot_connect ... ok
+test text_service::tests::compartment_sink_starts_unregistered ... ok
+test text_service::tests::chinese_mode_uses_chinese_language_bar_text ... ok
+test text_service::tests::english_mode_uses_english_language_bar_text ... ok
+test text_service::tests::fixed_utf16_fills_description_and_keeps_trailing_nul ... ok
+test text_service::tests::language_bar_item_uses_sdk_input_mode_guid ... ok
+test text_service::tests::shift_toggle_tracker_ignores_shift_letter_combo ... ok
+test text_service::tests::shift_toggle_tracker_resets_after_combo ... ok
+test text_service::tests::shift_toggle_tracker_toggles_for_shift_alone ... ok
+test text_service::tests::theme_snapshot_comes_from_config_appearance ... ok
+test input_session::tests::frozen_legacy_driver_matches_shared_adapter_across_keys_controls_and_failures ... ok
+test reload::tests::native_watcher_observes_missing_directory_creation_and_retargeting ... ok
+test runtime_tests::user_dictionary_is_merged_without_duplicate_candidates ... ok
+test candidate_window::tests::unchanged_candidates_never_resize_to_a_clipped_intermediate_width ... ok
+test text_service::tests::same_com_service_can_activate_after_deactivation ... ok
+test input_session::tests::model_wait_retains_the_confirmed_commit_anchor ... ok
+test input_session::tests::prediction_keys_commit_visible_candidates_without_status_words ... ok
+
+test result: ok. 77 passed; 0 failed; 1 ignored; 0 measured; 0 filtered out; finished in 0.27s

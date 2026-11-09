@@ -177,6 +177,9 @@ impl SemanticEngine {
         self.sm.appended = None;
         self.sm.page = 0;
         self.invalidate_query();
+        if self.sm.mode == InputMode::Menu {
+            return Some(self.sm.refresh_temporary());
+        }
         if self.sm.spelling.is_empty() {
             return None;
         }
@@ -199,6 +202,36 @@ impl SemanticEngine {
     /// Read-only window query. Full lookup is performed only on explicit queries,
     /// never duplicated on the Windows key path; only the bounded window is copied.
     pub fn candidate_window(&self, offset: usize, count: usize) -> CandidateWindow {
+        if self.sm.mode == InputMode::Menu {
+            let offset = offset.min(self.sm.candidates.len());
+            return CandidateWindow {
+                query_revision: self.query_revision,
+                view_revision: self.view_revision,
+                total: self.sm.candidates.len(),
+                offset,
+                candidates: self
+                    .sm
+                    .candidates
+                    .iter()
+                    .enumerate()
+                    .skip(offset)
+                    .take(count.min(MAX_WINDOW))
+                    .map(|(i, text)| Candidate {
+                        expression_kind: None,
+                        id: CandidateId(i),
+                        text: text.clone(),
+                        exact: true,
+                        hints: self
+                            .sm
+                            .code_hints
+                            .get(i)
+                            .filter(|s| !s.is_empty())
+                            .map(|s| vec![CandidateHint::ExpressionMatch(s.clone())])
+                            .unwrap_or_default(),
+                    })
+                    .collect(),
+            };
+        }
         if self.sm.expression_query.is_some() {
             let total = self.sm.total_candidates;
             let offset = offset.min(total);
@@ -273,6 +306,7 @@ impl SemanticEngine {
                     Vec::new()
                 };
                 Candidate {
+                    expression_kind: None,
                     id: CandidateId(offset + index),
                     text: entry.word.clone(),
                     exact: entry.code == self.sm.spelling,
@@ -440,9 +474,7 @@ impl SemanticEngine {
     pub fn would_handle(&self, action: &Action) -> bool {
         match action {
             Action::SelectCandidate(revision, id) => {
-                *revision == self.query_revision
-                    && self.sm.mode != InputMode::Menu
-                    && id.0 < self.sm.total_candidates
+                *revision == self.query_revision && id.0 < self.sm.total_candidates
             }
             Action::SetBaseMode(_)
             | Action::BeginTemporary(_)
@@ -542,6 +574,18 @@ impl SemanticEngine {
                 if revision != self.query_revision {
                     return ActionResult::rejected(Rejection::StaleCandidate);
                 }
+                if self.sm.mode == InputMode::Menu {
+                    let Some(mode) = [
+                        TemporaryMode::Pinyin,
+                        TemporaryMode::English,
+                        TemporaryMode::Emoji,
+                        TemporaryMode::Kaomoji,
+                    ]
+                    .get(id.0) else {
+                        return ActionResult::rejected(Rejection::StaleCandidate);
+                    };
+                    return self.change_mode(None, Some(*mode));
+                }
                 let window = self.candidate_window(id.0, 1);
                 let Some(candidate) = window.candidates.first() else {
                     return ActionResult::rejected(Rejection::StaleCandidate);
@@ -564,6 +608,9 @@ impl SemanticEngine {
             Action::OpenModeChooser => {
                 if !self.sm.spelling.is_empty() {
                     return ActionResult::rejected(Rejection::Unavailable("输入缓冲非空".into()));
+                }
+                if self.sm.mode != InputMode::Menu {
+                    self.sm.menu_return = self.sm.mode;
                 }
                 self.sm.mode = InputMode::Menu;
                 self.sm.refresh_temporary()

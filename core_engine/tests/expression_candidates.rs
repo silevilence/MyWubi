@@ -520,6 +520,25 @@ fn full_shipped_libraries_preserve_all_matching_outputs_and_report_query_cost() 
             ..Default::default()
         },
     });
+    // Same main table and input, with resident resources held constant: isolate
+    // append dispatch overhead from disk loading and the frontend render path.
+    let mut disabled = r.clone();
+    disabled.config.expressions.emoji.append = false;
+    disabled.config.expressions.kaomoji.append = false;
+    let mut baseline = SemanticEngine::new(disabled.state_machine(), BehaviorProfile::TouchV1);
+    let mut baseline_times = Vec::new();
+    for _ in 0..100 {
+        baseline.dispatch(Action::Cancel);
+        let start = Instant::now();
+        input(&mut baseline, "a");
+        baseline_times.push(start.elapsed().as_nanos());
+    }
+    assert_eq!(baseline.candidate_window(0, MAX_WINDOW).total, 1);
+    baseline_times.sort_unstable();
+    eprintln!(
+        "append disabled: 1 candidate; p50={}ns p95={}ns",
+        baseline_times[50], baseline_times[95]
+    );
     let mut e = SemanticEngine::new(r.state_machine(), BehaviorProfile::TouchV1);
     let mut timings = Vec::new();
     for _ in 0..100 {

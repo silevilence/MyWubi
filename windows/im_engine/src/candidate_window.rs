@@ -5,7 +5,6 @@
 
 use std::ffi::c_void;
 use std::mem;
-use std::ptr;
 use std::sync::mpsc;
 use std::thread::JoinHandle;
 
@@ -16,7 +15,6 @@ use windows::Win32::Graphics::Gdi::*;
 use windows::Win32::UI::WindowsAndMessaging::*;
 
 use crate::candidate_data::CandidateData;
-use crate::screen_geometry::compute_window_rect;
 
 /// 窗口类名（使用 w!() 宏）。
 const CLASS_NAME: windows::core::PCWSTR = w!("MyWubiCandidateWindow");
@@ -25,9 +23,6 @@ const TIMER_ID: usize = 1;
 const SET_OWNER: u32 = WM_APP + 1;
 const TIMER_INTERVAL_MS: u32 = 16;
 const SHUTDOWN_TIMEOUT_MS: u64 = 500;
-const DEFAULT_WIN_W: i32 = 200;
-const DEFAULT_WIN_H: i32 = 34;
-const WINDOW_BORDER_COLOR: u32 = 0xFFD9DEE5;
 
 /// `GWLP_USERDATA` 中嵌入的实例数据。
 struct WindowData {
@@ -35,6 +30,7 @@ struct WindowData {
     target: HWND,
     hits: std::cell::RefCell<Vec<(RECT, u64, usize)>>,
     pressed: std::cell::Cell<Option<(u64, usize)>>,
+    renderer: std::cell::RefCell<crate::candidate_renderer::Renderer>,
 }
 
 /// 透明候选框窗口句柄（拥有窗口线程生命周期）。
@@ -204,6 +200,7 @@ fn run_window_thread(
         target: HWND(target as *mut c_void),
         hits: Default::default(),
         pressed: Default::default(),
+        renderer: Default::default(),
     });
     let window_data_ptr = Box::into_raw(window_data);
 
@@ -302,7 +299,17 @@ unsafe extern "system" fn wnd_proc(
                     let pressed = data.pressed.take();
                     let _ = windows::Win32::UI::Input::KeyboardAndMouse::ReleaseCapture();
                     if let Some((query, id)) = pressed.filter(|p| Some(*p) == hit) {
-                        if !data.target.is_invalid() {
+                        if id == crate::candidate_renderer::SCROLL_UP
+                            || id == crate::candidate_renderer::SCROLL_DOWN
+                        {
+                            data.renderer.borrow_mut().scroll(
+                                if id == crate::candidate_renderer::SCROLL_UP {
+                                    -120.0
+                                } else {
+                                    120.0
+                                },
+                            );
+                        } else if !data.target.is_invalid() {
                             let _ = PostMessageW(
                                 Some(data.target),
                                 crate::candidate_dispatch::SELECT,
@@ -312,6 +319,14 @@ unsafe extern "system" fn wnd_proc(
                         }
                     }
                 }
+            }
+            LRESULT(0)
+        }
+        WM_MOUSEWHEEL => {
+            let ptr = GetWindowLongPtrW(hwnd, GWLP_USERDATA) as *mut WindowData;
+            if !ptr.is_null() {
+                let delta = ((wparam.0 >> 16) as u16) as i16;
+                (*ptr).renderer.borrow_mut().scroll(-f32::from(delta));
             }
             LRESULT(0)
         }
@@ -361,17 +376,30 @@ fn handle_timer(hwnd: HWND) {
     if window_data.pressed.get().is_some() {
         return;
     }
-    let data = window_data.data_src.load();
+    let data = window_data.data_src.load_full();
 
     if data.visible {
         // 实际文字尺寸、位置和贴图由 UpdateLayeredWindow 一次性提交。
         // 先用估算尺寸 SetWindowPos 会在每轮定时器中裁切右侧候选。
-        gdi_render_candidate_window(hwnd, window_data, &data);
+        let rendered =
+            window_data
+                .renderer
+                .borrow_mut()
+                .draw(hwnd, data, &mut window_data.hits.borrow_mut());
+        if let Err(error) = rendered {
+            window_data.hits.borrow_mut().clear();
+            log::error!("候选窗口系统文字渲染失败: {error}");
+            unsafe {
+                let _ = ShowWindow(hwnd, SW_HIDE);
+            }
+            return;
+        }
 
         unsafe {
             let _ = ShowWindow(hwnd, SW_SHOWNA);
         }
     } else {
+        window_data.renderer.borrow_mut().reset();
         window_data.hits.borrow_mut().clear();
         unsafe {
             let _ = ShowWindow(hwnd, SW_HIDE);
@@ -381,15 +409,28 @@ fn handle_timer(hwnd: HWND) {
 
 // ── 辅助函数 ──────────────────────────────────────────────────────
 
-fn get_monitor_rect(hwnd: HWND) -> (i32, i32, i32, i32) {
+pub(crate) fn get_monitor_rect(
+    hwnd: HWND,
+    anchor: Option<crate::candidate_data::ScreenPoint>,
+) -> (i32, i32, i32, i32) {
     unsafe {
-        let monitor = MonitorFromWindow(hwnd, MONITOR_DEFAULTTONEAREST);
+        let monitor = anchor
+            .map(|point| {
+                MonitorFromPoint(
+                    POINT {
+                        x: point.x,
+                        y: point.y,
+                    },
+                    MONITOR_DEFAULTTONEAREST,
+                )
+            })
+            .unwrap_or_else(|| MonitorFromWindow(hwnd, MONITOR_DEFAULTTONEAREST));
         let mut info = MONITORINFO {
             cbSize: mem::size_of::<MONITORINFO>() as u32,
             ..mem::zeroed()
         };
         if GetMonitorInfoW(monitor, &mut info).as_bool() {
-            let r = info.rcMonitor;
+            let r = info.rcWork;
             (r.left, r.top, r.right, r.bottom)
         } else {
             (
@@ -399,298 +440,6 @@ fn get_monitor_rect(hwnd: HWND) -> (i32, i32, i32, i32) {
                 GetSystemMetrics(SM_CYSCREEN),
             )
         }
-    }
-}
-
-// ── GDI 渲染 ──────────────────────────────────────────────────────
-
-/// 分解 ARGB 0xAARRGGBB 为 (r, g, b, a) 分量。
-fn unpack_argb(color: u32) -> (u8, u8, u8, u8) {
-    let a = ((color >> 24) & 0xFF) as u8;
-    let r = ((color >> 16) & 0xFF) as u8;
-    let g = ((color >> 8) & 0xFF) as u8;
-    let b = (color & 0xFF) as u8;
-    (r, g, b, a)
-}
-
-/// 把 ARGB 颜色转换为 GDI COLORREF（0x00BBGGRR）。
-fn argb_to_colorref(color: u32) -> COLORREF {
-    let (r, g, b, _) = unpack_argb(color);
-    COLORREF((b as u32) | ((g as u32) << 8) | ((r as u32) << 16))
-}
-
-fn fill_alpha_channel(pixels: &mut [u8], alpha: u8) {
-    for chunk in pixels.chunks_exact_mut(4) {
-        chunk[3] = alpha;
-    }
-}
-
-/// 使用 GDI 渲染候选框（两行：编码行 + 候选词行）并通过 UpdateLayeredWindow 贴图。
-fn gdi_render_candidate_window(hwnd: HWND, window_data: &WindowData, data: &CandidateData) {
-    if data.items.is_empty() && data.spelling.is_empty() {
-        return;
-    }
-
-    unsafe {
-        let hdc_screen = GetDC(Some(HWND::default()));
-        if hdc_screen.is_invalid() {
-            return;
-        }
-        let hdc_mem = CreateCompatibleDC(Some(hdc_screen));
-        if hdc_mem.is_invalid() {
-            let _ = ReleaseDC(None, hdc_screen);
-            return;
-        }
-
-        // font_size 以 pt 为单位，转换为像素
-        let fs_px = crate::screen_geometry::pt_to_px(data.theme.font_size).max(12);
-        let row_h = (fs_px as f64 * 1.4) as i32;
-        let padding = 8i32;
-        let item_gap = 8i32;
-        let show_spelling = !data.spelling.is_empty();
-        let total_h = if show_spelling {
-            row_h * 2 + 6
-        } else {
-            row_h + 6
-        };
-
-        let font = CreateFontW(
-            -fs_px,
-            0,
-            0,
-            0,
-            FW_NORMAL.0 as i32,
-            0,
-            0,
-            0,
-            DEFAULT_CHARSET,
-            OUT_DEFAULT_PRECIS,
-            CLIP_DEFAULT_PRECIS,
-            ANTIALIASED_QUALITY,
-            (DEFAULT_PITCH.0 | FF_DONTCARE.0).into(),
-            w!("Microsoft YaHei"),
-        );
-        if font.is_invalid() {
-            let _ = DeleteDC(hdc_mem);
-            let _ = ReleaseDC(None, hdc_screen);
-            return;
-        }
-        let old_font = SelectObject(hdc_mem, HGDIOBJ(font.0));
-        let _ = SetBkMode(hdc_mem, TRANSPARENT);
-
-        // 计算窗口宽度
-        let mut item_widths = Vec::with_capacity(data.items.len());
-        for item in &data.items {
-            let lw: Vec<u16> = item.label.encode_utf16().collect();
-            let tw: Vec<u16> = item.text.encode_utf16().collect();
-            let hw: Vec<u16> = item.hint.encode_utf16().collect();
-            let mut ls = SIZE::default();
-            let mut ts = SIZE::default();
-            let mut hs = SIZE::default();
-            let _ = GetTextExtentPoint32W(hdc_mem, &lw, &mut ls);
-            let _ = GetTextExtentPoint32W(hdc_mem, &tw, &mut ts);
-            let _ = GetTextExtentPoint32W(hdc_mem, &hw, &mut hs);
-            item_widths.push((ls.cx + ts.cx + hs.cx + 4).max(24));
-        }
-        let total_cand_w = item_widths.iter().sum::<i32>()
-            + item_gap * data.items.len().saturating_sub(1) as i32
-            + padding * 2;
-        let mut spell_w = 0i32;
-        if show_spelling {
-            let sw: Vec<u16> = data.spelling.encode_utf16().collect();
-            let mut sz = SIZE::default();
-            let _ = GetTextExtentPoint32W(hdc_mem, &sw, &mut sz);
-            spell_w = sz.cx + padding * 2;
-        }
-        let win_w = total_cand_w.max(spell_w).max(DEFAULT_WIN_W);
-        let win_h = total_h.max(DEFAULT_WIN_H);
-        let mon_rect = get_monitor_rect(hwnd);
-        let (pos_x, pos_y) = data
-            .anchor
-            .or_else(crate::screen_geometry::get_cursor_position)
-            .map(|anchor| compute_window_rect(anchor, (win_w, win_h), mon_rect))
-            .unwrap_or((
-                mon_rect.0 + (mon_rect.2 - mon_rect.0 - win_w) / 2,
-                mon_rect.1 + (mon_rect.3 - mon_rect.1 - win_h) / 2,
-            ));
-
-        // 创建 DIB
-        let bmi = BITMAPINFO {
-            bmiHeader: BITMAPINFOHEADER {
-                biSize: mem::size_of::<BITMAPINFOHEADER>() as u32,
-                biWidth: win_w,
-                biHeight: -win_h,
-                biPlanes: 1,
-                biBitCount: 32,
-                biCompression: BI_RGB.0,
-                ..mem::zeroed()
-            },
-            bmiColors: [RGBQUAD::default(); 1],
-        };
-        let mut bits: *mut c_void = ptr::null_mut();
-        let hbitmap =
-            match CreateDIBSection(Some(hdc_mem), &bmi, DIB_RGB_COLORS, &mut bits, None, 0) {
-                Ok(b) => b,
-                Err(e) => {
-                    log::error!("候选窗口: CreateDIBSection 失败: {e}");
-                    let _ = DeleteDC(hdc_mem);
-                    let _ = ReleaseDC(None, hdc_screen);
-                    return;
-                }
-            };
-        if hbitmap.is_invalid() || bits.is_null() {
-            let _ = DeleteDC(hdc_mem);
-            let _ = ReleaseDC(None, hdc_screen);
-            return;
-        }
-        let old_bitmap = SelectObject(hdc_mem, HGDIOBJ(hbitmap.0));
-        let pixels = std::slice::from_raw_parts_mut(bits as *mut u8, (win_w * win_h * 4) as usize);
-
-        // 填充背景
-        let bg = CreateSolidBrush(argb_to_colorref(data.theme.background_color));
-        let _ = FillRect(
-            hdc_mem,
-            &RECT {
-                left: 0,
-                top: 0,
-                right: win_w,
-                bottom: win_h,
-            },
-            bg,
-        );
-        let _ = DeleteObject(HGDIOBJ(bg.0));
-
-        let border = CreateSolidBrush(argb_to_colorref(WINDOW_BORDER_COLOR));
-        let _ = FrameRect(
-            hdc_mem,
-            &RECT {
-                left: 0,
-                top: 0,
-                right: win_w,
-                bottom: win_h,
-            },
-            border,
-        );
-        let _ = DeleteObject(HGDIOBJ(border.0));
-
-        // ── 绘制编码行（第一行）──
-        if show_spelling {
-            let sw: Vec<u16> = data.spelling.encode_utf16().collect();
-            let mut sz = SIZE::default();
-            let _ = GetTextExtentPoint32W(hdc_mem, &sw, &mut sz);
-            let _ = SetTextColor(hdc_mem, argb_to_colorref(data.theme.primary_color));
-            let _ = TextOutW(hdc_mem, padding, (row_h - sz.cy) / 2, &sw);
-        }
-
-        // ── 绘制候选词行（第二行）──
-        let cand_y = if show_spelling { row_h + 2 } else { 0 };
-        let mut cx = padding;
-        let mut hits = Vec::new();
-        for (i, item) in data.items.iter().enumerate() {
-            let lw: Vec<u16> = item.label.encode_utf16().collect();
-            let tw: Vec<u16> = item.text.encode_utf16().collect();
-            let hw: Vec<u16> = item.hint.encode_utf16().collect();
-            let mut ls = SIZE::default();
-            let mut ts = SIZE::default();
-            let mut hs = SIZE::default();
-            let _ = GetTextExtentPoint32W(hdc_mem, &lw, &mut ls);
-            let _ = GetTextExtentPoint32W(hdc_mem, &tw, &mut ts);
-            let _ = GetTextExtentPoint32W(hdc_mem, &hw, &mut hs);
-            let item_w = item_widths
-                .get(i)
-                .copied()
-                .unwrap_or(ls.cx + ts.cx + hs.cx + 4);
-            if i == data.highlighted && !item.disabled {
-                let hl = CreateSolidBrush(argb_to_colorref(data.theme.highlight_color));
-                let _ = FillRect(
-                    hdc_mem,
-                    &RECT {
-                        left: cx - 2,
-                        top: cand_y + 1,
-                        right: cx + item_w + 2,
-                        bottom: cand_y + row_h - 1,
-                    },
-                    hl,
-                );
-                let _ = DeleteObject(HGDIOBJ(hl.0));
-                let _ = SetTextColor(hdc_mem, COLORREF(0x00FFFFFF));
-                let _ = TextOutW(hdc_mem, cx, cand_y + (row_h - ls.cy) / 2, &lw);
-                let _ = TextOutW(hdc_mem, cx + ls.cx, cand_y + (row_h - ts.cy) / 2, &tw);
-                let _ = TextOutW(
-                    hdc_mem,
-                    cx + ls.cx + ts.cx,
-                    cand_y + (row_h - hs.cy) / 2,
-                    &hw,
-                );
-            } else {
-                let _ = SetTextColor(hdc_mem, argb_to_colorref(data.theme.primary_color));
-                let _ = TextOutW(hdc_mem, cx, cand_y + (row_h - ls.cy) / 2, &lw);
-                let _ = SetTextColor(
-                    hdc_mem,
-                    COLORREF(if item.disabled {
-                        0x00808080
-                    } else {
-                        0x00000000
-                    }),
-                );
-                let _ = TextOutW(hdc_mem, cx + ls.cx, cand_y + (row_h - ts.cy) / 2, &tw);
-                let _ = SetTextColor(hdc_mem, argb_to_colorref(data.theme.primary_color));
-                let _ = TextOutW(
-                    hdc_mem,
-                    cx + ls.cx + ts.cx,
-                    cand_y + (row_h - hs.cy) / 2,
-                    &hw,
-                );
-            }
-            if let (Some(query), Some(id)) = (data.prediction_query, data.prediction_ids.get(i)) {
-                hits.push((
-                    RECT {
-                        left: cx - 2,
-                        right: cx + item_w + 2,
-                        top: cand_y,
-                        bottom: cand_y + row_h,
-                    },
-                    query,
-                    *id,
-                ));
-            }
-            cx += item_w + item_gap;
-        }
-
-        // 分层窗口上的纯黑文本也必须带 alpha，否则会被当成完全透明。
-        fill_alpha_channel(pixels, 255);
-
-        // UpdateLayeredWindow
-        let blend = BLENDFUNCTION {
-            BlendOp: AC_SRC_OVER as u8,
-            BlendFlags: 0,
-            SourceConstantAlpha: 255,
-            AlphaFormat: AC_SRC_ALPHA as u8,
-        };
-        let rendered = UpdateLayeredWindow(
-            hwnd,
-            Some(hdc_screen),
-            Some(&POINT { x: pos_x, y: pos_y }),
-            Some(&SIZE {
-                cx: win_w,
-                cy: win_h,
-            }),
-            Some(hdc_mem),
-            Some(&POINT { x: 0, y: 0 }),
-            COLORREF::default(),
-            Some(&blend),
-            ULW_ALPHA,
-        );
-        if rendered.is_ok() {
-            *window_data.hits.borrow_mut() = hits;
-        }
-
-        let _ = SelectObject(hdc_mem, old_font);
-        let _ = DeleteObject(HGDIOBJ(font.0));
-        let _ = SelectObject(hdc_mem, old_bitmap);
-        let _ = DeleteObject(HGDIOBJ(hbitmap.0));
-        let _ = DeleteDC(hdc_mem);
-        let _ = ReleaseDC(None, hdc_screen);
     }
 }
 
@@ -727,6 +476,7 @@ mod tests {
                 .into_iter()
                 .enumerate()
                 .map(|(index, text)| CandidateItem {
+                    expression_kind: None,
                     disabled: false,
                     label: format!("{}.", index + 1),
                     text: text.into(),
@@ -740,6 +490,7 @@ mod tests {
             target: HWND::default(),
             hits: Default::default(),
             pressed: Default::default(),
+            renderer: Default::default(),
         };
         unsafe {
             let hwnd = CreateWindowExW(
@@ -784,15 +535,5 @@ mod tests {
             sizes.iter().all(|size| *size == sizes[0]),
             "candidate width oscillates: {sizes:?}"
         );
-    }
-
-    #[test]
-    fn opaque_alpha_fix_keeps_black_text_visible() {
-        let mut pixels = vec![0u8, 0u8, 0u8, 0u8, 255u8, 255u8, 255u8, 0u8];
-
-        fill_alpha_channel(&mut pixels, 255);
-
-        assert_eq!(pixels[3], 255);
-        assert_eq!(pixels[7], 255);
     }
 }

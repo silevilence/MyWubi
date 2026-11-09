@@ -136,6 +136,10 @@ impl StateMachine {
             }
         };
         Some(Candidate {
+            expression_kind: match row {
+                Row::Expression(kind, _) => Some(*kind),
+                Row::Text(_) => None,
+            },
             id: CandidateId(index),
             text,
             exact,

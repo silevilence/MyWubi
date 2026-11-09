@@ -6,8 +6,40 @@ import androidx.test.uiautomator.UiDevice
 import androidx.test.uiautomator.Until
 import org.junit.Assert.*
 import org.junit.Test
+import org.junit.Before
+import org.junit.After
+import org.json.JSONObject
+import java.io.File
 
 class ModeHostTest {
+    private var original: JSONObject? = null
+    private fun save(config: JSONObject, version: Long) {
+        val store = EngineStore(InstrumentationRegistry.getInstrumentation().targetContext)
+        NativeHandle(version).use { NativeHandle(store.saveConfig(config, it.value).getLong("version")).close() }
+    }
+    @Before fun prepareModeFixtures() {
+        val context = InstrumentationRegistry.getInstrumentation().targetContext
+        val loaded = EngineStore(context).readConfig()
+        original = JSONObject(loaded.getJSONObject("config").toString())
+        val root = File(context.cacheDir, "mode-host-fixture").apply { mkdirs() }
+        File(root, "pinyin.dict").writeText("---\ntype: pinyin\nmax_code_len: 64\n---\nni\t你\n")
+        File(root, "english.dict").writeText("---\nmax_code_len: 64\n---\nhello\thello\n")
+        val table = File(root, "main.dict").apply {
+            writeText("---\nmax_code_len: 4\ntemporary:\n  pinyin_table: pinyin.dict\n  english_table: english.dict\n---\nggll\t王\n")
+        }
+        val config = JSONObject(original.toString())
+        config.getJSONObject("dictionary").put("system_table", table.path).put("enable_user_dict", false)
+        config.getJSONObject("basic").put("auto_commit_unique", false)
+        config.put("prediction", JSONObject().put("enabled", false))
+        config.put("expressions", JSONObject())
+        save(config, loaded.getLong("version"))
+    }
+    @After fun restoreConfig() {
+        original?.let { config ->
+            val loaded = EngineStore(InstrumentationRegistry.getInstrumentation().targetContext).readConfig()
+            save(config, loaded.getLong("version"))
+        }
+    }
     @Test fun englishTemporaryPinyinAndDigitsInExternalHost() {
         val device=UiDevice.getInstance(InstrumentationRegistry.getInstrumentation())
         device.executeShellCommand("ime enable org.mywubi/.MyWubiService")
@@ -40,12 +72,11 @@ class ModeHostTest {
             } while(android.os.SystemClock.uptimeMillis()<deadline)
             throw AssertionError("Expected Settings text: $value")
         }
+        assertTrue("输入服务应已显示并可用", device.wait(Until.hasObject(By.desc("q").pkg("org.mywubi").enabled(true)),15000))
         if(device.hasObject(By.desc("英 → 中"))) key("英 → 中")
         val context = InstrumentationRegistry.getInstrumentation().targetContext
-        val config = EngineStore(context).readConfig()
-        NativeHandle(config.getLong("version")).close()
-        val label = TableCatalog(context).label(config.getJSONObject("config").getJSONObject("dictionary").getString("system_table"))
-        assertTrue("键盘应显示当前码表名称", device.wait(Until.hasObject(By.text(label)),5000))
+        // Idle spelling is blank; the toolbar can show either tools or a clipboard suggestion.
+        assertTrue(device.hasObject(By.desc("中 → 英").pkg("org.mywubi").enabled(true)))
         device.takeScreenshot(java.io.File(context.filesDir,"keyboard-current-table.png"))
         key("中 → 英")
         text("hello");key("空格");expect("hello ")

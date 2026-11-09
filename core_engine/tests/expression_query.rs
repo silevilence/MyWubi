@@ -476,3 +476,44 @@ fn partial_search_is_explicit_in_header_and_candidate_hints_but_never_in_output(
         }
     );
 }
+
+#[test]
+fn mode_chooser_uses_versioned_clicks_without_a_main_table_trigger() {
+    for profile in profiles() {
+        let mut s = Session::new(&runtime(), profile, HostContext::default());
+        assert!(s.state_machine().temporary_trigger().is_none());
+        apply(&mut s, Action::OpenModeChooser);
+        let menu = s.candidate_window(0, 10);
+        assert_eq!(
+            menu.candidates
+                .iter()
+                .map(|c| c.text.as_str())
+                .collect::<Vec<_>>(),
+            ["拼音", "英文", "Emoji", "颜文字"]
+        );
+        local(
+            &mut s,
+            Action::SelectCandidate(menu.query_revision, menu.candidates[2].id),
+        );
+        word(&mut s, 'c');
+        local(&mut s, Action::Legacy(InputEvent::FindExpressions));
+        assert_eq!(s.candidate_window(0, 1).candidates[0].text, "🚳");
+        assert!(s
+            .prepare(Action::SelectCandidate(
+                menu.query_revision,
+                menu.candidates[0].id
+            ))
+            .is_err());
+        local(&mut s, Action::Legacy(InputEvent::FindExpressions));
+        local(&mut s, Action::EndTemporary);
+        apply(&mut s, Action::BeginTemporary(TemporaryMode::Pinyin));
+        apply(&mut s, Action::OpenModeChooser);
+        let menu = s.candidate_window(0, 4);
+        local(
+            &mut s,
+            Action::SelectCandidate(menu.query_revision, menu.candidates[3].id),
+        );
+        local(&mut s, Action::EndTemporary);
+        assert_eq!(s.state_machine().mode(), InputMode::Pinyin);
+    }
+}

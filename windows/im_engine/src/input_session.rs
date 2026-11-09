@@ -184,11 +184,7 @@ impl InputSession {
                 core.config(),
                 self.candidates.load().anchor,
             );
-            if core.has_prediction() {
-                let window = core.candidate_window(0, 64);
-                data.prediction_query = Some(window.query_revision.version);
-                data.prediction_ids = window.candidates.iter().map(|c| c.id.0).collect();
-            }
+            bind_selection(&core, &mut data);
             self.candidates.store(Arc::new(data));
         }
         core.prediction_request().is_some()
@@ -208,11 +204,12 @@ impl InputSession {
         let context = core.context();
         core.observe_prefix(context.editor, context.epoch, prefix.text.as_deref());
         if policy_changed {
-            let data = candidate_view(
+            let mut data = candidate_view(
                 core.snapshot(),
                 core.config(),
                 self.candidates.load().anchor,
             );
+            bind_selection(&core, &mut data);
             self.candidates.store(Arc::new(data));
         } else if visible && !core.has_prediction() {
             self.candidates
@@ -241,25 +238,59 @@ impl InputSession {
             Err(_) => false,
         }
     }
-    pub fn choose_prediction<E: EditFailure>(
+    pub fn action<E: EditFailure>(
         &self,
-        version: u64,
+        action: Action,
+        anchor: Option<ScreenPoint>,
+        edit: impl FnMut(&EditSessionOp) -> Result<Option<ScreenPoint>, E>,
+    ) -> bool {
+        let plan = self.core.lock().prepare(action);
+        match plan {
+            Ok(plan) => self.execute(plan, anchor, edit),
+            Err(_) => false,
+        }
+    }
+
+    pub fn choose_candidate<E: EditFailure>(
+        &self,
+        token: u64,
         id: usize,
         edit: impl FnMut(&EditSessionOp) -> Result<Option<ScreenPoint>, E>,
     ) {
+        let view = self.candidates.load_full();
+        if view.selection_token != Some(token) {
+            return;
+        }
+        let Some(query) = view.selection_query else {
+            return;
+        };
+        let action = if view.selection_ids.contains(&id) {
+            Action::SelectCandidate(query, core_engine::candidates::CandidateId(id))
+        } else if view.controls.iter().any(|control| control.id == id) {
+            match id {
+                crate::candidate_data::FIND_EXPRESSIONS => Action::FindExpressions,
+                crate::candidate_data::EDIT_EXPRESSION => Action::EditExpressionQuery,
+                crate::candidate_data::CANCEL_EXPRESSION => Action::EndTemporary,
+                crate::candidate_data::PREVIOUS_PAGE => Action::Legacy(InputEvent::PagePrev),
+                crate::candidate_data::NEXT_PAGE => Action::Legacy(InputEvent::PageNext),
+                _ => return,
+            }
+        } else {
+            return;
+        };
         let plan = {
             let mut core = self.core.lock();
-            if !core.has_prediction() {
+            if core.candidate_window(0, 0).query_revision != query {
                 return;
             }
-            core.prepare(Action::SelectCandidate(
-                core_engine::candidates::QueryRevision { engine: 0, version },
-                core_engine::candidates::CandidateId(id),
-            ))
+            core.prepare(action)
         };
         if let Ok(plan) = plan {
-            self.execute(plan, self.candidates.load().anchor, edit);
+            self.execute(plan, view.anchor, edit);
         }
+    }
+    pub fn has_prediction(&self) -> bool {
+        self.core.lock().has_prediction()
     }
     pub fn recover<E: EditFailure>(
         &self,
@@ -389,16 +420,12 @@ impl InputSession {
                     // candidate view without changing the requested text edit.
                     next_view = candidate_view(core.snapshot(), core.config(), next_view.anchor);
                 }
-                if core.has_prediction() {
-                    let window = core.candidate_window(0, 64);
-                    next_view.prediction_query = Some(window.query_revision.version);
-                    next_view.prediction_ids = window.candidates.iter().map(|c| c.id.0).collect();
-                }
                 if next_view.visible || core.waiting_for_prediction() {
                     if let Ok(precise) = result {
                         next_view.anchor = precise.or(next_view.anchor);
                     }
                 }
+                bind_selection(&core, &mut next_view);
                 self.candidates.store(Arc::new(next_view));
             }
             AckStatus::NeedsCleanup => {
@@ -420,9 +447,57 @@ fn candidate_view(
 ) -> CandidateData {
     let mut data = CandidateData::hidden(ThemeSnapshot::from_config(config));
     data.visible = view.visible;
+    data.mode_label = view.mode.label().into();
+    data.expression = view.expression.clone();
+    if let Some(query) = &view.expression {
+        use crate::candidate_data::*;
+        let results = query.phase == core_engine::candidates::ExpressionPhase::Results;
+        data.controls = vec![
+            CandidateControl {
+                id: if results {
+                    EDIT_EXPRESSION
+                } else {
+                    FIND_EXPRESSIONS
+                },
+                label: if results {
+                    "修改关键词"
+                } else {
+                    "查找表情 (Tab)"
+                }
+                .into(),
+            },
+            CandidateControl {
+                id: CANCEL_EXPRESSION,
+                label: "取消".into(),
+            },
+        ];
+    }
+    if view.mode == InputMode::Menu {
+        data.notices = view
+            .items
+            .iter()
+            .filter(|item| !item.hint.is_empty())
+            .map(|item| format!("{}：{}", item.text, item.hint))
+            .collect();
+    }
     data.spelling = view.spelling.clone();
     data.page = view.page;
     data.total_pages = view.total_pages;
+    if view.total_pages > 1 {
+        use crate::candidate_data::{CandidateControl, NEXT_PAGE, PREVIOUS_PAGE};
+        if view.page > 0 {
+            data.controls.push(CandidateControl {
+                id: PREVIOUS_PAGE,
+                label: "上一页".into(),
+            });
+        }
+        if view.page + 1 < view.total_pages {
+            data.controls.push(CandidateControl {
+                id: NEXT_PAGE,
+                label: "下一页".into(),
+            });
+        }
+    }
     // Cleared operations historically discard anchors; active views retain the supplied fallback.
     data.anchor = anchor;
     data.items = view
@@ -430,6 +505,7 @@ fn candidate_view(
         .iter()
         .enumerate()
         .map(|(i, item)| CandidateItem {
+            expression_kind: None,
             disabled: view.mode == InputMode::Menu && !item.hint.is_empty(),
             label: format!("{}. ", i + 1),
             text: item.text.clone(),
@@ -443,9 +519,113 @@ fn candidate_view(
     data
 }
 
+fn bind_selection(core: &Session, data: &mut CandidateData) {
+    static NEXT: std::sync::atomic::AtomicU64 = std::sync::atomic::AtomicU64::new(1);
+    let window = core.visible_candidate_window();
+    if data.visible
+        && window.candidates.len() == data.items.len()
+        && (!data.items.is_empty() || !data.controls.is_empty())
+    {
+        for (item, candidate) in data.items.iter_mut().zip(&window.candidates) {
+            item.expression_kind = candidate.expression_kind;
+        }
+        let ids: Vec<_> = window.candidates.into_iter().map(|c| c.id.0).collect();
+        if data.selection_query != Some(window.query_revision)
+            || data.selection_ids != ids
+            || data.selection_token.is_none()
+        {
+            data.selection_token = Some(NEXT.fetch_add(1, std::sync::atomic::Ordering::Relaxed));
+        }
+        data.selection_query = Some(window.query_revision);
+        data.selection_ids = ids;
+    } else {
+        data.selection_token = None;
+        data.selection_query = None;
+        data.selection_ids.clear();
+    }
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
+
+    #[test]
+    fn expression_menu_query_controls_and_results_share_versioned_clicks_without_host_preedit() {
+        use core_engine::expressions::*;
+        let library = ExpressionLibrary::parse(concat!("# MyWubi Expressions 1\n", r#"{
+            "kind":"emoji","name":"test","version":"1",
+            "sources":[{"id":"test","url":"local:test","revision":"1","license":"MIT","notice":"fixture"}],
+            "entries":[{"text":"🚳","name":"禁止自行车","triggers":["禁止自行车"],"order":0,"sources":["test"]}]
+        }"#), ExpressionKind::Emoji).unwrap();
+        let mut config = Config::default();
+        config.basic.auto_commit_unique = false;
+        config.expressions.emoji.search = true;
+        let runtime = RuntimeSnapshot {
+            dict: Dictionary::from_text("a\t禁止\nb\t车\n").unwrap(),
+            config,
+            revision: 1,
+            config_path: "config.toml".into(),
+            system_table_path: "main.dict".into(),
+            user_table_path: "user.dict".into(),
+            temporary: Arc::default(),
+            expressions: Arc::new(ExpressionResources {
+                emoji: ExpressionResource {
+                    library: Some(Arc::new(library)),
+                    ..Default::default()
+                },
+                ..Default::default()
+            }),
+        };
+        let data = Arc::new(ArcSwap::from_pointee(CandidateData::default()));
+        let session = InputSession::from_snapshot(&runtime, data.clone());
+        let mut editor = Editor::default();
+        assert!(session.action(Action::OpenModeChooser, None, |op| editor.apply(op)));
+        assert_eq!(data.load().items.len(), 4);
+        let token = data.load().selection_token.unwrap();
+        session.choose_candidate(token, 2, |_| -> Result<_, &str> {
+            panic!("menu selection must stay local")
+        });
+        assert_eq!(
+            data.load().expression.as_ref().unwrap().kind,
+            ExpressionKind::Emoji
+        );
+        assert!(data.load().selection_token.is_some()); // Empty query still has actionable controls.
+        for event in [
+            InputEvent::Char('a'),
+            InputEvent::Space,
+            InputEvent::Char('b'),
+        ] {
+            assert!(session.handle(event, false, None, |_| -> Result<_, &str> {
+                panic!("query must stay local")
+            }));
+        }
+        let editing = data.load_full();
+        session.choose_candidate(
+            editing.selection_token.unwrap(),
+            crate::candidate_data::FIND_EXPRESSIONS,
+            |_| -> Result<_, &str> { panic!("find must stay local") },
+        );
+        assert_eq!(data.load().items[0].text, "🚳");
+        assert_eq!(data.load().expression.as_ref().unwrap().text, "禁止车");
+        session.choose_candidate(
+            editing.selection_token.unwrap(),
+            0,
+            |_| -> Result<_, &str> { panic!("stale click must not commit") },
+        );
+        let results = data.load_full();
+        session.choose_candidate(
+            results.selection_token.unwrap(),
+            results.selection_ids[0],
+            |op| editor.apply(op),
+        );
+        assert_eq!(editor.committed, "🚳");
+        assert!(editor.spelling.is_empty());
+        session.choose_candidate(
+            results.selection_token.unwrap(),
+            results.selection_ids[0],
+            |_| -> Result<_, &str> { panic!("duplicate click must not commit") },
+        );
+    }
     use core_engine::Entry;
 
     #[test]
@@ -588,9 +768,15 @@ mod tests {
     #[test]
     fn frozen_legacy_driver_matches_shared_adapter_across_keys_controls_and_failures() {
         use crate::legacy_baseline as old;
-        // Only the intentionally removed UI labels differ from the frozen input behavior.
+        // Compare the original presentation and host behavior. New click bindings and
+        // separate status fields are covered by the versioned-click tests above.
         fn without_status_labels(data: &CandidateData) -> String {
             let mut data = data.clone();
+            data.selection_query = None;
+            data.selection_token = None;
+            data.selection_ids.clear();
+            data.mode_label.clear();
+            data.notices.clear();
             let menu = data.spelling.starts_with(InputMode::Menu.label());
             for mode in [InputMode::Menu, InputMode::Pinyin, InputMode::English] {
                 if let Some(spelling) = data.spelling.strip_prefix(mode.label()) {
@@ -670,7 +856,7 @@ mod tests {
                     assert_eq!(old_ops, new_ops);
                     assert_eq!(
                         without_status_labels(&old_view.load_full()),
-                        format!("{:?}", new_view.load_full()),
+                        without_status_labels(&new_view.load_full()),
                         "{seed} {failure} {event:?}"
                     );
                     let a = new.recover(|op| {
@@ -716,7 +902,7 @@ mod tests {
                     );
                     assert_eq!(
                         without_status_labels(&old_view.load_full()),
-                        format!("{:?}", new_view.load_full())
+                        without_status_labels(&new_view.load_full())
                     );
                 }
             }
@@ -836,7 +1022,7 @@ mod tests {
         let (session, candidates, mut editor) = temporary_setup();
         type_text(&session, &mut editor, "`");
         assert!(candidates.load().visible);
-        assert_eq!(candidates.load().items.len(), 2);
+        assert_eq!(candidates.load().items.len(), 4);
         assert!(editor.spelling.is_empty());
         type_text(&session, &mut editor, "1");
         assert!(candidates.load().spelling.is_empty());

@@ -1,0 +1,9 @@
+
+s_glBindAttribLocation: bind attrib 0 name position
+s_glBindAttribLocation: bind attrib 1 name color
+s_glBindAttribLocation: bind attrib 2 name localCoord
+org.mywubi.ExpressionLayoutTest:....
+
+Time: 99.428
+
+OK (4 tests)

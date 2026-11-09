@@ -169,6 +169,9 @@ pub fn translate_for_mode(
 ) -> Option<InputEvent> {
     let vk = wparam as u16;
     let shift_pressed = is_shift_pressed();
+    if expression_tab(vk, mode) {
+        return Some(InputEvent::FindExpressions);
+    }
     if mode != core_engine::InputMode::Main {
         match vk {
             v if v == VK_SPACE.0 => return Some(InputEvent::Space),
@@ -240,9 +243,29 @@ fn mode_character(
     protected.then_some(InputEvent::Char(c))
 }
 
+fn expression_tab(vk: u16, mode: core_engine::InputMode) -> bool {
+    vk == VK_TAB.0 && mode.expression_kind().is_some()
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
+
+    #[test]
+    fn expression_tab_is_reserved_before_custom_page_mapping_only_in_expression_modes() {
+        use core_engine::InputMode;
+        assert!(expression_tab(VK_TAB.0, InputMode::Emoji));
+        assert!(expression_tab(VK_TAB.0, InputMode::Kaomoji));
+        for mode in [
+            InputMode::Main,
+            InputMode::Menu,
+            InputMode::Pinyin,
+            InputMode::English,
+        ] {
+            assert!(!expression_tab(VK_TAB.0, mode));
+        }
+        assert!(!expression_tab(VK_NEXT.0, InputMode::Emoji));
+    }
 
     #[test]
     fn temporary_syntax_precedes_punctuation_and_shortcuts() {

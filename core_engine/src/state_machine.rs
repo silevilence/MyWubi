@@ -49,6 +49,8 @@ pub enum InputEvent {
     PageNext,
     /// 上一页候选。
     PagePrev,
+    /// Explicit lookup in a dedicated expression query; never a general Tab mapping.
+    FindExpressions,
 }
 
 /// 状态机推进后产出的对外行为。
@@ -97,6 +99,7 @@ const DEFAULT_PAGE_SIZE: usize = 5;
 #[derive(Clone)]
 pub struct StateMachine {
     mode: InputMode,
+    menu_return: InputMode,
     temporary: Arc<TemporaryTables>,
     expressions: Arc<ExpressionResources>,
     expression_config: ExpressionsConfig,
@@ -173,6 +176,7 @@ impl StateMachine {
         let page_size = page_size.clamp(1, 10);
         Self {
             mode: InputMode::Main,
+            menu_return: InputMode::Main,
             temporary: Arc::new(TemporaryTables::default()),
             expressions: Arc::default(),
             expression_config: ExpressionsConfig::default(),
@@ -258,6 +262,21 @@ impl StateMachine {
         self.total_candidates.div_ceil(self.page_size).max(1)
     }
 
+    pub fn candidate_offset(&self) -> usize {
+        if self.mode == InputMode::Menu {
+            return 0;
+        }
+        if let Some(appended) = &self.appended {
+            return appended.pages.get(self.page).map_or(0, |range| range.start);
+        }
+        self.page
+            * if self.expression_query.is_some() {
+                self.page_size.min(9)
+            } else {
+                self.page_size
+            }
+    }
+
     /// 判断字符能否作为当前码表编码输入。
     pub fn accepts_code_char(&self, character: char) -> bool {
         is_code_char(character) || self.dict.table_config().charset.contains(character)
@@ -300,6 +319,7 @@ impl StateMachine {
         self.expression_query = None;
         self.appended = None;
         self.mode = InputMode::Main;
+        self.menu_return = InputMode::Main;
         self.spelling.clear();
         self.page = 0;
         self.candidates.clear();
@@ -356,6 +376,7 @@ impl StateMachine {
             return self.refresh_temporary();
         }
         match event {
+            InputEvent::FindExpressions => Transition::Passthrough(InputEvent::FindExpressions),
             InputEvent::Char(c) => self.on_char(c),
             InputEvent::Symbol(c) if self.dict.table_config().charset.contains(c) => {
                 self.on_char(c)

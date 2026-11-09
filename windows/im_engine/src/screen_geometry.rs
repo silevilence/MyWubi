@@ -1,10 +1,12 @@
 // windows/im_engine/src/screen_geometry.rs
 
 use crate::candidate_data::ScreenPoint;
+use parking_lot::Mutex;
+use std::{mem::ManuallyDrop, sync::Arc};
 use windows::core::BOOL;
 use windows::Win32::Foundation::{HWND, POINT, RECT};
 use windows::Win32::Graphics::Gdi::{ClientToScreen, GetDC, GetDeviceCaps, ReleaseDC, LOGPIXELSY};
-use windows::Win32::UI::TextServices::{ITfContext, ITfContextView, ITfRange};
+use windows::Win32::UI::TextServices::*;
 use windows::Win32::UI::WindowsAndMessaging::{
     GetCaretPos, GetCursorPos, GetForegroundWindow, GetGUIThreadInfo, GUITHREADINFO,
 };
@@ -12,6 +14,57 @@ use windows::Win32::UI::WindowsAndMessaging::{
 /// 屏幕边缘 padding（像素）。
 const EDGE_PADDING: i32 = 8;
 const DEFAULT_DPI: i32 = 96;
+
+#[windows::core::implement(ITfEditSession)]
+struct ReadCaret {
+    context: ITfContext,
+    position: Arc<Mutex<Option<ScreenPoint>>>,
+}
+
+impl ITfEditSession_Impl for ReadCaret_Impl {
+    fn DoEditSession(&self, cookie: u32) -> windows::core::Result<()> {
+        let mut selection = [TF_SELECTION::default()];
+        let mut fetched = 0;
+        let status = unsafe {
+            self.context
+                .GetSelection(cookie, TF_DEFAULT_SELECTION, &mut selection, &mut fetched)
+        };
+        // The returned interface is owned even when the host reports an error.
+        let range = unsafe { ManuallyDrop::take(&mut selection[0].range) };
+        status?;
+        if let Some(range) = range.filter(|_| fetched == 1) {
+            let edge = if selection[0].style.ase == TF_AE_START {
+                TF_ANCHOR_START
+            } else {
+                TF_ANCHOR_END
+            };
+            // Collapsing the range object changes neither the host selection nor text.
+            unsafe { range.Collapse(cookie, edge)? };
+            *self.position.lock() = get_range_position(&self.context, cookie, &range);
+        }
+        Ok(())
+    }
+}
+
+/// Locates a local-only query at the TSF selection without creating host preedit.
+/// Browser editors often expose no usable Win32 caret. Failure leaves the fallback intact.
+pub fn get_selection_position(context: &ITfContext, tid: u32) -> Option<ScreenPoint> {
+    let position = Arc::new(Mutex::new(None));
+    let session: ITfEditSession = windows::core::ComObject::new(ReadCaret {
+        context: context.clone(),
+        position: Arc::clone(&position),
+    })
+    .to_interface();
+    unsafe {
+        context
+            .RequestEditSession(tid, &session, TF_ES_SYNC | TF_ES_READ)
+            .ok()?
+            .ok()
+            .ok()?
+    };
+    let point = *position.lock();
+    point
+}
 
 /// 使用带有效 edit cookie 的 TSF range 获取屏幕锚点。
 pub fn get_range_position(context: &ITfContext, ec: u32, range: &ITfRange) -> Option<ScreenPoint> {
@@ -36,6 +89,12 @@ pub fn get_range_position(context: &ITfContext, ec: u32, range: &ITfRange) -> Op
 
 fn get_window_dpi(hwnd: HWND) -> i32 {
     unsafe {
+        if !hwnd.is_invalid() {
+            let dpi = windows::Win32::UI::HiDpi::GetDpiForWindow(hwnd);
+            if dpi > 0 {
+                return dpi as i32;
+            }
+        }
         let (dc_target, release_target) = if hwnd.is_invalid() || hwnd.0.is_null() {
             (HWND::default(), None)
         } else {

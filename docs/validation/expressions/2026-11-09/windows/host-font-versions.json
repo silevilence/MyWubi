@@ -1,0 +1,430 @@
+{
+  "os": "Windows 10 Pro",
+  "release": "25H2",
+  "build": "26200.8655",
+  "dwrite": "10.0.26100.9949 (WinBuild.160101.0800)",
+  "d2d1": "10.0.26100.9949 (WinBuild.160101.0800)",
+  "families": [
+    "Ebrima",
+    "Gadugi",
+    "Javanese Text",
+    "Leelawadee UI",
+    "Malgun Gothic",
+    "Meiryo UI",
+    "Microsoft Himalaya",
+    "Microsoft JhengHei UI",
+    "Microsoft New Tai Lue",
+    "Microsoft Tai Le",
+    "Microsoft YaHei UI",
+    "Microsoft Yi Baiti",
+    "Mongolian Baiti",
+    "MV Boli",
+    "Myanmar Text",
+    "Nirmala UI",
+    "Sans Serif Collection",
+    "Segoe UI",
+    "Segoe UI Emoji",
+    "Segoe UI Historic",
+    "Segoe UI Symbol",
+    "Yu Gothic UI"
+  ],
+  "fonts": [
+    {
+      "family": "Ebrima",
+      "name": "Ebrima (TrueType)",
+      "path": "C:\\Windows\\Fonts\\ebrima.ttf",
+      "bytes": 949408,
+      "sha256": "1DCD304F0BA642DBC3C3F3CCB70C24E9FAD7ADA2E2D5D0061C7CACAB86E8DF92",
+      "versions": [
+        "Version 5.19"
+      ]
+    },
+    {
+      "family": "Ebrima",
+      "name": "Ebrima Bold (TrueType)",
+      "path": "C:\\Windows\\Fonts\\ebrimabd.ttf",
+      "bytes": 1026388,
+      "sha256": "A7BC75937950D0F217F79313631D81F5B92459C414A4099D6EA3C0C0262A716B",
+      "versions": [
+        "Version 5.19"
+      ]
+    },
+    {
+      "family": "Gadugi",
+      "name": "Gadugi (TrueType)",
+      "path": "C:\\Windows\\Fonts\\gadugi.ttf",
+      "bytes": 242684,
+      "sha256": "0EC2BDBFC2BA99D9FB05B6F7C511E7AB8B7C055E2D644570AD777455D6E9796D",
+      "versions": [
+        "Version 1.13"
+      ]
+    },
+    {
+      "family": "Gadugi",
+      "name": "Gadugi Bold (TrueType)",
+      "path": "C:\\Windows\\Fonts\\gadugib.ttf",
+      "bytes": 249236,
+      "sha256": "C96226CBA7F50E94B534A5F8ADE6A54F48A03BE7C73360524EDA5CBCE4DE34B6",
+      "versions": [
+        "Version 1.13"
+      ]
+    },
+    {
+      "family": "Javanese Text",
+      "name": "Javanese Text (TrueType)",
+      "path": "C:\\Windows\\Fonts\\javatext.ttf",
+      "bytes": 305448,
+      "sha256": "DF8D94382F73E6D2197B60653C3D55C28AB5CF127A82E65B8AF4ED1B52FDC412",
+      "versions": [
+        "Version 1.10"
+      ]
+    },
+    {
+      "family": "Leelawadee UI",
+      "name": "Leelawadee UI (TrueType)",
+      "path": "C:\\Windows\\Fonts\\leelawui.ttf",
+      "bytes": 390004,
+      "sha256": "CA9A670F12D0E47C20441012A22F78AB17C1B126818E0E887EF7DB6ECF5E76B4",
+      "versions": [
+        "Version 6.00"
+      ]
+    },
+    {
+      "family": "Leelawadee UI",
+      "name": "Leelawadee UI Bold (TrueType)",
+      "path": "C:\\Windows\\Fonts\\leelauib.ttf",
+      "bytes": 324708,
+      "sha256": "15F58CFF987DCE2CA1E7740CA6001B8E4E2589EA80898FDEDCA26D2726979F7E",
+      "versions": [
+        "Version 6.00"
+      ]
+    },
+    {
+      "family": "Leelawadee UI",
+      "name": "Leelawadee UI Semilight (TrueType)",
+      "path": "C:\\Windows\\Fonts\\leeluisl.ttf",
+      "bytes": 382988,
+      "sha256": "F7A9D979C27BAAD75EBCD41EA45113919576C2E56AF9FFD483DD9D0EF9272A25",
+      "versions": [
+        "Version 6.00"
+      ]
+    },
+    {
+      "family": "Malgun Gothic",
+      "name": "Malgun Gothic (TrueType)",
+      "path": "C:\\Windows\\Fonts\\malgun.ttf",
+      "bytes": 13459196,
+      "sha256": "7A183CF1C6C56B9609FCC16EDA8B5229FBC11758A21E669EC00343239B02192F",
+      "versions": [
+        "Version 6.69"
+      ]
+    },
+    {
+      "family": "Malgun Gothic",
+      "name": "Malgun Gothic Bold (TrueType)",
+      "path": "C:\\Windows\\Fonts\\malgunbd.ttf",
+      "bytes": 12600392,
+      "sha256": "E8CBC0B2AFCC14FB45DFB6086D5102C0B23A96E7B6E708F3122ACDE1B86C9082",
+      "versions": [
+        "Version 6.69"
+      ]
+    },
+    {
+      "family": "Malgun Gothic",
+      "name": "Malgun Gothic SemiLight (TrueType)",
+      "path": "C:\\Windows\\Fonts\\malgunsl.ttf",
+      "bytes": 5085196,
+      "sha256": "C0CA810A242C4482594182DB40F0F9D35A3D51BB2EEAC750E6E867B2110EB00E",
+      "versions": [
+        "Version 6.69"
+      ]
+    },
+    {
+      "family": "Microsoft Himalaya",
+      "name": "Microsoft Himalaya (TrueType)",
+      "path": "C:\\Windows\\Fonts\\himalaya.ttf",
+      "bytes": 572776,
+      "sha256": "FDEC3A7EFACD57913D3C14111837908CCBABEA5B0B44EC62527EB73ACF743AFB",
+      "versions": [
+        "Version 5.23"
+      ]
+    },
+    {
+      "family": "Microsoft New Tai Lue",
+      "name": "Microsoft New Tai Lue (TrueType)",
+      "path": "C:\\Windows\\Fonts\\ntailu.ttf",
+      "bytes": 74464,
+      "sha256": "DE0B632015447F28C2DB41C8E07C745CEDB05EAD5DBC2E73F19DA14D2E5F2151",
+      "versions": [
+        "Version 5.99"
+      ]
+    },
+    {
+      "family": "Microsoft New Tai Lue",
+      "name": "Microsoft New Tai Lue Bold (TrueType)",
+      "path": "C:\\Windows\\Fonts\\ntailub.ttf",
+      "bytes": 67168,
+      "sha256": "CFC2ACBF9AE0205A0A258E564BDBF5466A4E49A95281A1D2E72690F149EC837B",
+      "versions": [
+        "Version 5.99"
+      ]
+    },
+    {
+      "family": "Microsoft Tai Le",
+      "name": "Microsoft Tai Le (TrueType)",
+      "path": "C:\\Windows\\Fonts\\taile.ttf",
+      "bytes": 67568,
+      "sha256": "F5151D081F6AFEA4C26464E0CD5E695F57A99209CFEEA2F483C3108684660EB6",
+      "versions": [
+        "Version 6.00"
+      ]
+    },
+    {
+      "family": "Microsoft Tai Le",
+      "name": "Microsoft Tai Le Bold (TrueType)",
+      "path": "C:\\Windows\\Fonts\\taileb.ttf",
+      "bytes": 58532,
+      "sha256": "1878842D8DBDF8489794AF0BACE95A956DB270DFA506DDCAABF94FA827B769AC",
+      "versions": [
+        "Version 6.00"
+      ]
+    },
+    {
+      "family": "Microsoft Yi Baiti",
+      "name": "Microsoft Yi Baiti (TrueType)",
+      "path": "C:\\Windows\\Fonts\\msyi.ttf",
+      "bytes": 301180,
+      "sha256": "80AEF1C25135B945E9DE7D09E6445C386405EB2E0EA7032D4CD00A2FE3EEF0AE",
+      "versions": [
+        "Version 6.00"
+      ]
+    },
+    {
+      "family": "Mongolian Baiti",
+      "name": "Mongolian Baiti (TrueType)",
+      "path": "C:\\Windows\\Fonts\\monbaiti.ttf",
+      "bytes": 289052,
+      "sha256": "707585B9ACFC1507D9BD943BB5435F75768274B1A12B1F71DE76AD78BE4D7E7B",
+      "versions": [
+        "Version 5.53"
+      ]
+    },
+    {
+      "family": "MV Boli",
+      "name": "MV Boli (TrueType)",
+      "path": "C:\\Windows\\Fonts\\mvboli.ttf",
+      "bytes": 79320,
+      "sha256": "5DFD7A4C708CAEEFAE42CDB9540946DE042BEEB8C069DFDE0DBC14C2FA0705AE",
+      "versions": [
+        "Version 6.85"
+      ]
+    },
+    {
+      "family": "Myanmar Text",
+      "name": "Myanmar Text (TrueType)",
+      "path": "C:\\Windows\\Fonts\\mmrtext.ttf",
+      "bytes": 337800,
+      "sha256": "433A8E78745AA843B2CDDFF0E386C3A9FC34150CB8281E3D68DF68E0BEB52224",
+      "versions": [
+        "Version 1.22"
+      ]
+    },
+    {
+      "family": "Myanmar Text",
+      "name": "Myanmar Text Bold (TrueType)",
+      "path": "C:\\Windows\\Fonts\\mmrtextb.ttf",
+      "bytes": 319692,
+      "sha256": "F98B40961E5F8182E3DD9E62CF23CDC7C7B96CF6B0CB4EC05B73C6AB9AAF178A",
+      "versions": [
+        "Version 1.22"
+      ]
+    },
+    {
+      "family": "Nirmala UI",
+      "name": "Nirmala UI & Nirmala UI Bold & Nirmala UI Semilight & Nirmala Text & Nirmala Text Bold & Nirmala Text Semilight (TrueType)",
+      "path": "C:\\Windows\\Fonts\\Nirmala.ttc",
+      "bytes": 5304988,
+      "sha256": "AD02CDFC06E144AC45F318E8E5A64CBE04C7479D4BEB91D25F5A319A466B1767",
+      "versions": [
+        "Version 1.46",
+        "Version 1.00"
+      ]
+    },
+    {
+      "family": "Sans Serif Collection",
+      "name": "Sans Serif Collection (TrueType)",
+      "path": "C:\\Windows\\Fonts\\SansSerifCollection.ttf",
+      "bytes": 3775516,
+      "sha256": "EB78C210D380FCE7D3822B3A5CCFA808F1EB0390DE6237F5460970679F393CE0",
+      "versions": [
+        "Version 1.02"
+      ]
+    },
+    {
+      "family": "Segoe UI",
+      "name": "Segoe UI (TrueType)",
+      "path": "C:\\Windows\\Fonts\\segoeui.ttf",
+      "bytes": 959752,
+      "sha256": "8134DBCD09E7B123C9A7F229D49CFFBCB01352CC72EA5E1076B65D0DCA9F73CD",
+      "versions": [
+        "Version 5.71"
+      ]
+    },
+    {
+      "family": "Segoe UI",
+      "name": "Segoe UI Black (TrueType)",
+      "path": "C:\\Windows\\Fonts\\seguibl.ttf",
+      "bytes": 318708,
+      "sha256": "BE191C94A0C7172870C3C87A136BD5AA67CDCA7BC091DE89242FB64ECB0F8FAE",
+      "versions": [
+        "Version 5.71"
+      ]
+    },
+    {
+      "family": "Segoe UI",
+      "name": "Segoe UI Black Italic (TrueType)",
+      "path": "C:\\Windows\\Fonts\\seguibli.ttf",
+      "bytes": 350484,
+      "sha256": "51D300301197DFB0621A8D8B275274D408DD15A7EDDA4CC4A8F7666504D582CD",
+      "versions": [
+        "Version 5.71"
+      ]
+    },
+    {
+      "family": "Segoe UI",
+      "name": "Segoe UI Bold (TrueType)",
+      "path": "C:\\Windows\\Fonts\\segoeuib.ttf",
+      "bytes": 947092,
+      "sha256": "AEB9E4A6EC5CC59F4D72DF8189032D7DBB28F45161CF1552174818B5465DAC4E",
+      "versions": [
+        "Version 5.71"
+      ]
+    },
+    {
+      "family": "Segoe UI",
+      "name": "Segoe UI Bold Italic (TrueType)",
+      "path": "C:\\Windows\\Fonts\\segoeuiz.ttf",
+      "bytes": 542140,
+      "sha256": "C886161FA6D102090FF992519B6FDC73057A0E838E9D40B27E187E9E61300A92",
+      "versions": [
+        "Version 5.71"
+      ]
+    },
+    {
+      "family": "Segoe UI Emoji",
+      "name": "Segoe UI Emoji (TrueType)",
+      "path": "C:\\Windows\\Fonts\\seguiemj.ttf",
+      "bytes": 12450664,
+      "sha256": "F07CBD7886F4A1A5255A1BDF4CA5EA29DB3BE3357414003A92BEC5D1C3165578",
+      "versions": [
+        "Version 1.60"
+      ]
+    },
+    {
+      "family": "Segoe UI Historic",
+      "name": "Segoe UI Historic (TrueType)",
+      "path": "C:\\Windows\\Fonts\\seguihis.ttf",
+      "bytes": 1622060,
+      "sha256": "A162CEEAF701B55D11C542DAF1C39C52BFAF686496505BFF2EB75CA24814C136",
+      "versions": [
+        "Version 1.09"
+      ]
+    },
+    {
+      "family": "Segoe UI",
+      "name": "Segoe UI Italic (TrueType)",
+      "path": "C:\\Windows\\Fonts\\segoeuii.ttf",
+      "bytes": 530616,
+      "sha256": "BE525B9A6D307D73C23908CD269BE9BE754210A9D93C0C1EAAA126D2A174290A",
+      "versions": [
+        "Version 5.71"
+      ]
+    },
+    {
+      "family": "Segoe UI",
+      "name": "Segoe UI Light (TrueType)",
+      "path": "C:\\Windows\\Fonts\\segoeuil.ttf",
+      "bytes": 910144,
+      "sha256": "866557576DFC772395301B581ECCEF4C0DAF1DBB75F9667F26784B260BCE7DA1",
+      "versions": [
+        "Version 5.71"
+      ]
+    },
+    {
+      "family": "Segoe UI",
+      "name": "Segoe UI Light Italic (TrueType)",
+      "path": "C:\\Windows\\Fonts\\seguili.ttf",
+      "bytes": 458412,
+      "sha256": "3CB01ED58922781A62AF14E738CD96023957F60D8D6733920A8808614F477DD8",
+      "versions": [
+        "Version 5.71"
+      ]
+    },
+    {
+      "family": "Segoe UI",
+      "name": "Segoe UI Semibold (TrueType)",
+      "path": "C:\\Windows\\Fonts\\seguisb.ttf",
+      "bytes": 974500,
+      "sha256": "2D9B22D71F72DE2823FEE5D9C8BC1B0FC32B2577C4C27B9EC6ABDBB8DF0E1731",
+      "versions": [
+        "Version 5.71"
+      ]
+    },
+    {
+      "family": "Segoe UI",
+      "name": "Segoe UI Semibold Italic (TrueType)",
+      "path": "C:\\Windows\\Fonts\\seguisbi.ttf",
+      "bytes": 456140,
+      "sha256": "454295546B78810C95FFD7FC9D57890ED15A03B7CFD0D7E3485786400152B740",
+      "versions": [
+        "Version 5.71"
+      ]
+    },
+    {
+      "family": "Segoe UI",
+      "name": "Segoe UI Semilight (TrueType)",
+      "path": "C:\\Windows\\Fonts\\segoeuisl.ttf",
+      "bytes": 848220,
+      "sha256": "3432DE66F335C7E3058154F7CBB13EF051195653A544B49B1992267E558B33EF",
+      "versions": [
+        "Version 5.71"
+      ]
+    },
+    {
+      "family": "Segoe UI",
+      "name": "Segoe UI Semilight Italic (TrueType)",
+      "path": "C:\\Windows\\Fonts\\seguisli.ttf",
+      "bytes": 465660,
+      "sha256": "4DC2DB1870047663878DA07FA5F8217E518EF875C8AD33287FCBAD6ABA5A7E73",
+      "versions": [
+        "Version 5.71"
+      ]
+    },
+    {
+      "family": "Segoe UI Symbol",
+      "name": "Segoe UI Symbol (TrueType)",
+      "path": "C:\\Windows\\Fonts\\seguisym.ttf",
+      "bytes": 2514056,
+      "sha256": "A4A35DCC62CD30E1A6C97B695ECEF83E59D2B149E3AF834F6A49F11851D56B37",
+      "versions": [
+        "Version 6.24"
+      ]
+    },
+    {
+      "family": "Segoe UI",
+      "name": "Segoe UI Variable (TrueType)",
+      "path": "C:\\Windows\\Fonts\\SegUIVar.ttf",
+      "bytes": 1851000,
+      "sha256": "27CA1AB4BD5AD3B0404EE6A9A03B143408DBD7E5A4C9E4B2054639C03FC0F682",
+      "versions": [
+        "Version 2.03"
+      ]
+    }
+  ],
+  "unmapped_families": [
+    "Meiryo UI",
+    "Microsoft JhengHei UI",
+    "Microsoft YaHei UI",
+    "Yu Gothic UI"
+  ]
+}

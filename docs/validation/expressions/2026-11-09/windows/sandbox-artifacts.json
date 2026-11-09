@@ -1,0 +1,27 @@
+[
+    {
+        "Algorithm":  "SHA256",
+        "Hash":  "10582097F5C11A21E7F58766F30593046EEB0986C8A827015588253FE596233B",
+        "Path":  "C:\\EMApp\\im_engine.dll"
+    },
+    {
+        "Algorithm":  "SHA256",
+        "Hash":  "7C2CE9F3C3EB7D57671B473AF86E08B792DC7B4AA3AC1A00C903A6F033A15E20",
+        "Path":  "C:\\EMApp\\settings.exe"
+    },
+    {
+        "Algorithm":  "SHA256",
+        "Hash":  "F07CBD7886F4A1A5255A1BDF4CA5EA29DB3BE3357414003A92BEC5D1C3165578",
+        "Path":  "C:\\Windows\\Fonts\\seguiemj.ttf"
+    },
+    {
+        "Algorithm":  "SHA256",
+        "Hash":  "573DB3237770478FCD50F2B43B308FA39FCDC64636BC86BFBE6D148B90C41410",
+        "Path":  "C:\\Windows\\System32\\dwrite.dll"
+    },
+    {
+        "Algorithm":  "SHA256",
+        "Hash":  "78DEB0FC7C3195A691864EE0638912EA3EF46E72D2AD6AF258B7AC815798DCB1",
+        "Path":  "C:\\Windows\\System32\\d2d1.dll"
+    }
+]

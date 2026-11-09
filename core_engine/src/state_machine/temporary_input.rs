@@ -14,11 +14,23 @@ impl StateMachine {
                 InputEvent::Select(index) => index,
                 InputEvent::Char('1') => 1,
                 InputEvent::Char('2') => 2,
+                InputEvent::Char('3') => 3,
+                InputEvent::Char('4') => 4,
                 _ => return Transition::None,
             };
             match index {
                 1 if self.temporary.pinyin.is_some() => self.mode = InputMode::Pinyin,
                 2 if self.temporary.english_error.is_none() => self.mode = InputMode::English,
+                3 | 4 => {
+                    let kind = if index == 3 {
+                        crate::expressions::ExpressionKind::Emoji
+                    } else {
+                        crate::expressions::ExpressionKind::Kaomoji
+                    };
+                    return self
+                        .begin_expression(kind, None)
+                        .unwrap_or(Transition::None);
+                }
                 _ => return Transition::None,
             }
             self.reset_candidates();
@@ -91,7 +103,12 @@ impl StateMachine {
     pub(super) fn refresh_temporary(&mut self) -> Transition {
         if self.mode == InputMode::Menu {
             self.appended = None;
-            self.candidates = vec!["拼音".into(), "英文".into()];
+            self.candidates = vec![
+                "拼音".into(),
+                "英文".into(),
+                "Emoji".into(),
+                "颜文字".into(),
+            ];
             self.code_hints = vec![
                 self.temporary.pinyin_error.clone().unwrap_or_else(|| {
                     if self.temporary.pinyin.is_none() {
@@ -101,8 +118,14 @@ impl StateMachine {
                     }
                 }),
                 self.temporary.english_error.clone().unwrap_or_default(),
+                self.expression_capability(crate::expressions::ExpressionKind::Emoji)
+                    .reason
+                    .unwrap_or_default(),
+                self.expression_capability(crate::expressions::ExpressionKind::Kaomoji)
+                    .reason
+                    .unwrap_or_default(),
             ];
-            self.total_candidates = 2;
+            self.total_candidates = 4;
             self.state = InputState::Selecting;
         } else if !self.reuse_appended_page() {
             let dict = match self.mode {

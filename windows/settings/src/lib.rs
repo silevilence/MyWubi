@@ -8,6 +8,7 @@ pub mod color_picker;
 pub mod config_path;
 pub mod elevation;
 pub mod expression_catalog;
+mod expression_preview;
 pub mod fonts;
 pub mod log;
 pub mod model_catalog;

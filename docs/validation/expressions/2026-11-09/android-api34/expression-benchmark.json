@@ -1,0 +1,21 @@
+{
+  "sdk": 34,
+  "fingerprint": "google\/sdk_gphone64_x86_64\/emu64xa:14\/UE1A.230829.036.A1\/11228894:user\/release-keys",
+  "scope": "BuildRuntime; InputCode+Ack+Candidates through JNI, excludes UI and host",
+  "disabled": {
+    "runtime_build_ms": 20.0851,
+    "candidates": 1,
+    "samples": 100,
+    "warmup": 10,
+    "p50_us": 2811.8,
+    "p95_us": 6023.5
+  },
+  "enabled": {
+    "runtime_build_ms": 1084.8746,
+    "candidates": 858,
+    "samples": 100,
+    "warmup": 10,
+    "p50_us": 31623.9,
+    "p95_us": 73767.4
+  }
+}

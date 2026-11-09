@@ -1,0 +1,215 @@
+[
+  {
+    "artifact": "target/em-verified-release/MyWubi-win-Portable.zip",
+    "sha256": "dd76348e643a47d1cad42a05aaf1dbc96bcddb01e2582372e7dec98194dafc3a",
+    "files": [
+      {
+        "path": "current/expressions/emoji.mwe",
+        "bytes": 1328865,
+        "sha256": "16056f5599579db163fd06c5574756afcb39301d97e68bbea3956bf112323802"
+      },
+      {
+        "path": "current/expressions/kaomoji.mwe",
+        "bytes": 6948341,
+        "sha256": "b0b4f8f9fd1772d81896df85cce5b1197caae162cdbae81d6178029d65bd7814"
+      },
+      {
+        "path": "current/expressions/README.md",
+        "bytes": 3568,
+        "sha256": "bf8168952d83cd4c76abef1cfe6dd4be6f6858fe2cdb8b0dfe03962d32d75b8e"
+      },
+      {
+        "path": "current/expressions/KAOMOJI-SOURCES.md",
+        "bytes": 4338,
+        "sha256": "1edf7997dc53e127afe308f8136834efcb3d2feaf92025964047513cdddc15fc"
+      },
+      {
+        "path": "current/expressions/SEARCH-RELATIONS.md",
+        "bytes": 3283,
+        "sha256": "f6e3e5ffde3804cf9c6dcee9082179d5b742bb41b0222452926ab058b6fb2aab"
+      },
+      {
+        "path": "current/expressions/sources.json",
+        "bytes": 1874,
+        "sha256": "c8374fdbe1c45ff780606ed2270c3528d1a13b237b01f21b6acc9083dc73b45d"
+      },
+      {
+        "path": "current/expressions/kaomoji-sources.json",
+        "bytes": 2326,
+        "sha256": "2eefecebba9f0ea6c2450430206ecc411c696b35cbb87867cb2dd4c808075801"
+      },
+      {
+        "path": "current/expressions/emoji-coverage.json",
+        "bytes": 2187,
+        "sha256": "c05b7b328e82862719b21724614fed22c9d71e7926f2c81343b95feb7ee49c03"
+      },
+      {
+        "path": "current/expressions/kaomoji-coverage.json",
+        "bytes": 13333,
+        "sha256": "caf941f69434f94926d841c3606b2e889742fa822581ee70b85fcf4a90ed28b4"
+      },
+      {
+        "path": "current/expressions/licenses/Unicode.txt",
+        "bytes": 3193,
+        "sha256": "65eb33419e22a297550a811b5b535f5e532f9a7e0114b516c0ea18afd53c3804"
+      },
+      {
+        "path": "current/expressions/licenses/Kaomojiya.txt",
+        "bytes": 1094,
+        "sha256": "6caa0b409bc5bbbd06875c3b98ce4224da875e5d85409de2a3d3f12b25ecaae2"
+      },
+      {
+        "path": "current/expressions/licenses/Kaomojikan.txt",
+        "bytes": 1067,
+        "sha256": "08cb2c981c94a80ef0b80be68cdec72e54faa8d81c96e3476a23955eb9ba8a3b"
+      },
+      {
+        "path": "current/expressions/licenses/MyWubi-MIT.txt",
+        "bytes": 1076,
+        "sha256": "09eef473e015b73a9dee42e760441798d42fb7285b1c64015a695e5d03daf67b"
+      }
+    ]
+  },
+  {
+    "artifact": "target/em-verified-release/MyWubi-0.7.3-full.nupkg",
+    "sha256": "ac85a75c66e861b18f1c606e7bd4379a147f9d013cd37e15d65cc6d969dd0aa6",
+    "files": [
+      {
+        "path": "lib/app/expressions/emoji.mwe",
+        "bytes": 1328865,
+        "sha256": "16056f5599579db163fd06c5574756afcb39301d97e68bbea3956bf112323802"
+      },
+      {
+        "path": "lib/app/expressions/kaomoji.mwe",
+        "bytes": 6948341,
+        "sha256": "b0b4f8f9fd1772d81896df85cce5b1197caae162cdbae81d6178029d65bd7814"
+      },
+      {
+        "path": "lib/app/expressions/README.md",
+        "bytes": 3568,
+        "sha256": "bf8168952d83cd4c76abef1cfe6dd4be6f6858fe2cdb8b0dfe03962d32d75b8e"
+      },
+      {
+        "path": "lib/app/expressions/KAOMOJI-SOURCES.md",
+        "bytes": 4338,
+        "sha256": "1edf7997dc53e127afe308f8136834efcb3d2feaf92025964047513cdddc15fc"
+      },
+      {
+        "path": "lib/app/expressions/SEARCH-RELATIONS.md",
+        "bytes": 3283,
+        "sha256": "f6e3e5ffde3804cf9c6dcee9082179d5b742bb41b0222452926ab058b6fb2aab"
+      },
+      {
+        "path": "lib/app/expressions/sources.json",
+        "bytes": 1874,
+        "sha256": "c8374fdbe1c45ff780606ed2270c3528d1a13b237b01f21b6acc9083dc73b45d"
+      },
+      {
+        "path": "lib/app/expressions/kaomoji-sources.json",
+        "bytes": 2326,
+        "sha256": "2eefecebba9f0ea6c2450430206ecc411c696b35cbb87867cb2dd4c808075801"
+      },
+      {
+        "path": "lib/app/expressions/emoji-coverage.json",
+        "bytes": 2187,
+        "sha256": "c05b7b328e82862719b21724614fed22c9d71e7926f2c81343b95feb7ee49c03"
+      },
+      {
+        "path": "lib/app/expressions/kaomoji-coverage.json",
+        "bytes": 13333,
+        "sha256": "caf941f69434f94926d841c3606b2e889742fa822581ee70b85fcf4a90ed28b4"
+      },
+      {
+        "path": "lib/app/expressions/licenses/Unicode.txt",
+        "bytes": 3193,
+        "sha256": "65eb33419e22a297550a811b5b535f5e532f9a7e0114b516c0ea18afd53c3804"
+      },
+      {
+        "path": "lib/app/expressions/licenses/Kaomojiya.txt",
+        "bytes": 1094,
+        "sha256": "6caa0b409bc5bbbd06875c3b98ce4224da875e5d85409de2a3d3f12b25ecaae2"
+      },
+      {
+        "path": "lib/app/expressions/licenses/Kaomojikan.txt",
+        "bytes": 1067,
+        "sha256": "08cb2c981c94a80ef0b80be68cdec72e54faa8d81c96e3476a23955eb9ba8a3b"
+      },
+      {
+        "path": "lib/app/expressions/licenses/MyWubi-MIT.txt",
+        "bytes": 1076,
+        "sha256": "09eef473e015b73a9dee42e760441798d42fb7285b1c64015a695e5d03daf67b"
+      }
+    ]
+  },
+  {
+    "artifact": "android/app/build/outputs/apk/debug/app-debug.apk",
+    "sha256": "6790f1898a64091ffd5659bef4414cc7d7ef65df3a22bee93fba52a9ec3aca4d",
+    "files": [
+      {
+        "path": "assets/expressions/emoji.mwe",
+        "bytes": 1328865,
+        "sha256": "16056f5599579db163fd06c5574756afcb39301d97e68bbea3956bf112323802"
+      },
+      {
+        "path": "assets/expressions/kaomoji.mwe",
+        "bytes": 6948341,
+        "sha256": "b0b4f8f9fd1772d81896df85cce5b1197caae162cdbae81d6178029d65bd7814"
+      },
+      {
+        "path": "assets/expressions/README.md",
+        "bytes": 3568,
+        "sha256": "bf8168952d83cd4c76abef1cfe6dd4be6f6858fe2cdb8b0dfe03962d32d75b8e"
+      },
+      {
+        "path": "assets/expressions/KAOMOJI-SOURCES.md",
+        "bytes": 4338,
+        "sha256": "1edf7997dc53e127afe308f8136834efcb3d2feaf92025964047513cdddc15fc"
+      },
+      {
+        "path": "assets/expressions/SEARCH-RELATIONS.md",
+        "bytes": 3283,
+        "sha256": "f6e3e5ffde3804cf9c6dcee9082179d5b742bb41b0222452926ab058b6fb2aab"
+      },
+      {
+        "path": "assets/expressions/sources.json",
+        "bytes": 1874,
+        "sha256": "c8374fdbe1c45ff780606ed2270c3528d1a13b237b01f21b6acc9083dc73b45d"
+      },
+      {
+        "path": "assets/expressions/kaomoji-sources.json",
+        "bytes": 2326,
+        "sha256": "2eefecebba9f0ea6c2450430206ecc411c696b35cbb87867cb2dd4c808075801"
+      },
+      {
+        "path": "assets/expressions/emoji-coverage.json",
+        "bytes": 2187,
+        "sha256": "c05b7b328e82862719b21724614fed22c9d71e7926f2c81343b95feb7ee49c03"
+      },
+      {
+        "path": "assets/expressions/kaomoji-coverage.json",
+        "bytes": 13333,
+        "sha256": "caf941f69434f94926d841c3606b2e889742fa822581ee70b85fcf4a90ed28b4"
+      },
+      {
+        "path": "assets/expressions/licenses/Unicode.txt",
+        "bytes": 3193,
+        "sha256": "65eb33419e22a297550a811b5b535f5e532f9a7e0114b516c0ea18afd53c3804"
+      },
+      {
+        "path": "assets/expressions/licenses/Kaomojiya.txt",
+        "bytes": 1094,
+        "sha256": "6caa0b409bc5bbbd06875c3b98ce4224da875e5d85409de2a3d3f12b25ecaae2"
+      },
+      {
+        "path": "assets/expressions/licenses/Kaomojikan.txt",
+        "bytes": 1067,
+        "sha256": "08cb2c981c94a80ef0b80be68cdec72e54faa8d81c96e3476a23955eb9ba8a3b"
+      },
+      {
+        "path": "assets/expressions/licenses/MyWubi-MIT.txt",
+        "bytes": 1076,
+        "sha256": "09eef473e015b73a9dee42e760441798d42fb7285b1c64015a695e5d03daf67b"
+      }
+    ]
+  }
+]

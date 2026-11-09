@@ -22,6 +22,9 @@ pub enum CandidateHint {
 
 #[derive(Debug, Clone, PartialEq, Eq, serde::Serialize, serde::Deserialize)]
 pub struct Candidate {
+    /// Rendering metadata only; never inferred from the spelling or output characters.
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub expression_kind: Option<crate::expressions::ExpressionKind>,
     pub id: CandidateId,
     pub text: String,
     pub exact: bool,

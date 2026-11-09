@@ -43,6 +43,7 @@ impl ThemeSnapshot {
 /// 单个候选项。
 #[derive(Debug, Clone)]
 pub struct CandidateItem {
+    pub expression_kind: Option<core_engine::expressions::ExpressionKind>,
     /// Non-text state for unavailable mode choices; never append errors to words.
     pub disabled: bool,
     /// 显示用标签（如 "1.", "2."）。
@@ -54,11 +55,26 @@ pub struct CandidateItem {
 }
 
 /// 候选框共享数据——TSF 线程写入，渲染线程读取。
+pub(crate) const FIND_EXPRESSIONS: usize = usize::MAX - 1;
+pub(crate) const EDIT_EXPRESSION: usize = usize::MAX - 2;
+pub(crate) const CANCEL_EXPRESSION: usize = usize::MAX - 3;
+pub(crate) const PREVIOUS_PAGE: usize = usize::MAX - 4;
+pub(crate) const NEXT_PAGE: usize = usize::MAX - 5;
+#[derive(Debug, Clone)]
+pub struct CandidateControl {
+    pub id: usize,
+    pub label: String,
+}
+
 #[derive(Debug, Clone, Default)]
 pub struct CandidateData {
-    /// Immutable identities for prediction clicks; absent on ordinary coding views.
-    pub prediction_query: Option<u64>,
-    pub prediction_ids: Vec<usize>,
+    pub controls: Vec<CandidateControl>,
+    pub selection_query: Option<core_engine::candidates::QueryRevision>,
+    pub selection_token: Option<u64>,
+    pub selection_ids: Vec<usize>,
+    pub mode_label: String,
+    pub expression: Option<core_engine::candidates::ExpressionQueryView>,
+    pub notices: Vec<String>,
     /// 候选框是否可见。
     pub visible: bool,
     /// 当前编码字符串；不拼接模式名、预测状态或其它说明文字。
@@ -98,8 +114,13 @@ impl CandidateData {
         theme: ThemeSnapshot,
     ) -> Self {
         Self {
-            prediction_query: None,
-            prediction_ids: Vec::new(),
+            controls: Vec::new(),
+            selection_query: None,
+            selection_token: None,
+            selection_ids: Vec::new(),
+            mode_label: String::new(),
+            expression: None,
+            notices: Vec::new(),
             visible: true,
             spelling,
             items,

@@ -159,7 +159,7 @@ impl StateMachine {
             .map(|q| (q.return_mode, q.return_temporary))
             .unwrap_or((
                 if self.mode == InputMode::Menu {
-                    InputMode::Main
+                    self.menu_return
                 } else {
                     self.mode
                 },
@@ -260,6 +260,7 @@ impl StateMachine {
                 .entries
                 .get(result.index)?;
             Some(Candidate {
+                expression_kind: Some(query.kind),
                 id: CandidateId(index),
                 text: entry.text.clone(),
                 exact: result.quality == MatchQuality::Exact,
@@ -279,6 +280,7 @@ impl StateMachine {
         } else {
             let entry = query.word_candidates.get(index)?;
             Some(Candidate {
+                expression_kind: None,
                 id: CandidateId(index),
                 text: entry.word.clone(),
                 exact: entry.code == query.builder.spelling,
@@ -322,6 +324,9 @@ impl StateMachine {
     }
 
     pub(super) fn handle_expression(&mut self, event: InputEvent) -> Transition {
+        if event == InputEvent::FindExpressions {
+            return self.find_expressions();
+        }
         let Some(query) = self.expression_query.as_mut() else {
             return Transition::None;
         };
@@ -373,6 +378,7 @@ impl StateMachine {
                 InputEvent::Enter => {
                     query.message = Some("请使用查找操作查看表情，查询文字不会上屏。".into())
                 }
+                InputEvent::FindExpressions => return Transition::None,
             }
         }
         self.refresh_expression()

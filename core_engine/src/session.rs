@@ -273,6 +273,15 @@ impl Session {
         }
         self.published_engine.candidate_window(offset, count)
     }
+    /// IDs for the exact currently published desktop page, including mixed continuations.
+    pub fn visible_candidate_window(&self) -> CandidateWindow {
+        let offset = if self.has_prediction() {
+            0
+        } else {
+            self.published_engine.state_machine().candidate_offset()
+        };
+        self.candidate_window(offset, self.view.items.len())
+    }
     pub fn has_prediction(&self) -> bool {
         self.prediction.is_some() && self.prediction_wait.is_none()
     }
@@ -491,6 +500,7 @@ impl Session {
                         .into_iter()
                         .enumerate()
                         .map(|(i, text)| crate::candidates::Candidate {
+                            expression_kind: None,
                             id: crate::candidates::CandidateId(i),
                             text,
                             exact: true,

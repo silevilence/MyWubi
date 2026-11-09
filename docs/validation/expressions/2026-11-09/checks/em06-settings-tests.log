@@ -1,0 +1,39 @@
+   Compiling windows-numerics v0.3.1
+   Compiling core_engine v0.7.3 (C:\code\rust\MyWubi\core_engine)
+   Compiling windows v0.62.2
+   Compiling settings v0.7.3 (C:\code\rust\MyWubi\windows\settings)
+warning: settings@0.7.3: 已复制 4 个码表到 C:\code\rust\MyWubi\target\debug\tables
+   Compiling model_ipc v0.7.3 (C:\code\rust\MyWubi\windows\model_ipc)
+   Compiling tip_manager v0.7.3 (C:\code\rust\MyWubi\windows\tip_manager)
+   Compiling velopack v1.2.0
+   Compiling text_render v0.7.3 (C:\code\rust\MyWubi\windows\text_render)
+   Compiling model_input v0.7.3 (C:\code\rust\MyWubi\model_input)
+    Finished `test` profile [unoptimized + debuginfo] target(s) in 49.64s
+     Running unittests src\lib.rs (target\debug\deps\settings-ad2a4627d9576cf6.exe)
+
+running 23 tests
+test panels::appearance::tests::parse_invalid_rejected ... ok
+test expression_catalog::tests::completed_import_cannot_overwrite_a_reloaded_selection ... ok
+test panels::appearance::tests::parse_hex_format ... ok
+test panels::basic::tests::apply_hotkey_change_updates_value_and_marks_dirty ... ok
+test table_session::tests::scan_table_dir_hides_configured_user_dictionary ... ok
+test table_session::tests::table_editor_filters_by_code_or_word ... ok
+test table_session::tests::main_table_choices_exclude_renamed_expression_resources ... ok
+test fonts::tests::settings_labels_have_glyphs ... ok
+test table_session::tests::table_editor_ranks_code_exact_then_prefix_then_contains ... ok
+test table_session::tests::table_editor_ranks_word_exact_then_prefix_then_contains ... ok
+test table_session::tests::header_change_invalidates_validation_until_checked ... ok
+test table_session::tests::table_editor_rejects_multi_character_wildcard ... ok
+test table_session::tests::invalid_config_does_not_write_dirty_table ... ok
+test table_session::tests::initialization_loads_first_template_after_missing_table_and_empty_browse ... ok
+test table_session::tests::dirty_draft_blocks_directory_and_table_switch_but_survives_rescan ... ok
+test table_session::tests::failed_selection_preserves_current_path_and_draft ... ok
+test table_session::tests::type_switch_keeps_entries_and_invalid_references_keep_drafts ... ok
+test table_session::tests::invalid_table_preserves_both_files_and_draft ... ok
+test table_session::tests::pinyin_editor_preserves_apostrophes_and_new_header_preview ... ok
+test table_session::tests::display_names_survive_save_as_without_changing_table_identity ... ok
+test table_session::tests::save_as_then_rescan_preserves_selection_and_saves_config ... ok
+test table_session::tests::new_fields_survive_edit_save_reload_and_cross_directory_save ... ok
+test table_session::tests::config_write_failure_reports_partial_success_and_can_retry ... ok
+
+test result: ok. 23 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.11s

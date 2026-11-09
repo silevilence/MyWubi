@@ -1,0 +1,50 @@
+{
+  "colored_pixels": 2245,
+  "samples": [
+    {
+      "fallback": false,
+      "families": [
+        "Microsoft YaHei UI",
+        "Segoe UI",
+        "Segoe UI Emoji"
+      ],
+      "missing": 0,
+      "text": "禁止自行车 🚳   笑脸 😀   红心 ❤️   文本心 ♥︎",
+      "visible_glyphs": 16
+    },
+    {
+      "fallback": false,
+      "families": [
+        "Microsoft YaHei UI",
+        "Segoe UI",
+        "Segoe UI Emoji"
+      ],
+      "missing": 0,
+      "text": "家庭 👨‍👩‍👧‍👦   肤色/性别 👩🏽‍⚕️   旗帜 🇨🇳   键帽 1️⃣",
+      "visible_glyphs": 19
+    },
+    {
+      "fallback": false,
+      "families": [
+        "Malgun Gothic",
+        "Meiryo UI",
+        "Microsoft YaHei UI",
+        "Segoe UI",
+        "Yu Gothic UI"
+      ],
+      "missing": 0,
+      "text": "颜文字 (╯°□°）╯︵ ┻━┻    (๑•̀ㅂ•́)و✧    Ω∀∑∫∴∵",
+      "visible_glyphs": 30
+    },
+    {
+      "fallback": true,
+      "families": [
+        "Microsoft YaHei UI",
+        "Segoe UI"
+      ],
+      "missing": 2,
+      "text": "组合附加符 á ë̄   空格: [　][ ][ ]   新增 🫩 🫪",
+      "visible_glyphs": 22
+    }
+  ]
+}

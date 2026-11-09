@@ -1,0 +1,36 @@
+=== MyWubi Velopack 打包 (v0.7.3) ===
+暂存打包产物到 C:\code\rust\MyWubi\target\velopack-staging …
+已从 CHANGELOG 提取 V0.7.3 更新说明。
+执行 vpk pack …
+[12:56:57 INF] Velopack CLI 1.2.0, for distributing applications.
+[12:57:06 INF] Beginning to package Velopack release 0.7.3.
+[12:57:06 INF] Releases Directory: C:\code\rust\MyWubi\target\em-verified-release
+[12:57:06 INF] Starting: Pre-process steps
+[12:57:06 INF] Shortcuts: Desktop,StartMenuRoot
+[12:57:07 INF] Complete: Pre-process steps
+[12:57:07 INF] Starting: Code-sign application
+[12:57:07 WRN] No signing parameters provided, 4 file(s) will not be signed.
+[12:57:07 INF] Complete: Code-sign application
+[12:57:07 INF] Starting: Building portable package
+[12:57:07 INF] Starting: Building release 0.7.3
+[12:57:11 INF] Complete: Building portable package
+[12:57:11 INF] Complete: Building release 0.7.3
+[12:57:11 INF] Starting: Building setup package
+[12:57:12 INF] Setup bundle created 'MyWubi-win-Setup.exe'.
+[12:57:12 WRN] No signing parameters provided, 1 file(s) will not be signed.
+[12:57:12 INF] Complete: Building setup package
+[12:57:12 INF] Starting: Post-process steps
+[12:57:12 INF] Complete: Post-process steps
+[12:57:12 INF] Finished in 00:00:06.1627848.
+[12:57:13 WRN] There is a newer version of vpk available (1.2.161). Run 'dotnet tool update -g vpk'
+
+=== 打包完成 ===
+  assets.win.json  (0 MB)
+  MyWubi-0.7.3-full.nupkg  (20.9 MB)
+  MyWubi-win-Portable.zip  (20.83 MB)
+  MyWubi-win-Setup.exe  (25.22 MB)
+  RELEASES  (0 MB)
+  releases.win.json  (0 MB)
+
+输出目录: C:\code\rust\MyWubi\target\em-verified-release
+Setup.exe 用于标准安装；*-Portable.zip 为绿色便携版；*.nupkg 为增量更新包。
