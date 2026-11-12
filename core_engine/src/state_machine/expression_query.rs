@@ -116,10 +116,8 @@ impl StateMachine {
     }
 
     pub(super) fn expression_capability(&self, kind: ExpressionKind) -> Capability {
-        let (selection, resource) = match kind {
-            ExpressionKind::Emoji => (&self.expression_config.emoji, &self.expressions.emoji),
-            ExpressionKind::Kaomoji => (&self.expression_config.kaomoji, &self.expressions.kaomoji),
-        };
+        let selection = self.expression_config.selection(kind);
+        let resource = self.expressions.resource(kind);
         let reason = if !self.expressions_allowed {
             Some("当前输入范围不允许表情辅助输入".into())
         } else if !selection.search {
@@ -177,6 +175,10 @@ impl StateMachine {
         self.mode = match kind {
             ExpressionKind::Emoji => InputMode::Emoji,
             ExpressionKind::Kaomoji => InputMode::Kaomoji,
+            ExpressionKind::Kana => InputMode::Kana,
+            ExpressionKind::Math => InputMode::Math,
+            ExpressionKind::Punctuation => InputMode::Punctuation,
+            ExpressionKind::Symbols => InputMode::Symbols,
         };
         self.expression_query = Some(Box::new(ExpressionQuery {
             kind,

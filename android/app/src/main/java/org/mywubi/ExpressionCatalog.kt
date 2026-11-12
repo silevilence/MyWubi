@@ -10,7 +10,7 @@ import java.io.File
 class ExpressionCatalog(private val context: Context) {
     fun list(config: JSONObject): Map<String, List<JSONObject>> {
         val path = Resources.prepare(context)
-        return listOf("emoji", "kaomoji").associateWith { kind ->
+        return listOf("emoji", "kaomoji", "kana", "math", "punctuation", "symbols").associateWith { kind ->
             val selected = config.optJSONObject("expressions")?.optJSONObject(kind) ?: JSONObject()
             val rows = NativeBridge.call("ListExpressions", "path" to path.path, "kind" to kind,
                 "selected" to selected) as JSONArray
@@ -19,7 +19,7 @@ class ExpressionCatalog(private val context: Context) {
     }
 
     fun import(kind: String, uri: Uri): JSONObject {
-        require(kind == "emoji" || kind == "kaomoji")
+        require(kind in listOf("emoji", "kaomoji", "kana", "math", "punctuation", "symbols"))
         val staged = File.createTempFile("expression-", ".mwe", context.cacheDir)
         try {
             context.contentResolver.openInputStream(uri)?.use { input ->

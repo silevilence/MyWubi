@@ -301,7 +301,7 @@ impl Registry {
             }
             Request::State { session } => {
                 let s = self.session(session)?;
-                json!({"status":s.status(),"view":s.snapshot(),"base":s.base_mode(),"temporary":s.temporary_mode(),"revision":s.revision(),"pinyin":s.capability(TemporaryMode::Pinyin),"emoji":s.capability(TemporaryMode::Emoji),"kaomoji":s.capability(TemporaryMode::Kaomoji),"prediction_enabled":s.config().prediction.enabled,"personal_prediction_enabled":s.config().personal.predict,"prediction_waiting":s.waiting_for_prediction()})
+                json!({"status":s.status(),"view":s.snapshot(),"base":s.base_mode(),"temporary":s.temporary_mode(),"revision":s.revision(),"pinyin":s.capability(TemporaryMode::Pinyin),"emoji":s.capability(TemporaryMode::Emoji),"kaomoji":s.capability(TemporaryMode::Kaomoji),"kana":s.capability(TemporaryMode::Kana),"math":s.capability(TemporaryMode::Math),"punctuation":s.capability(TemporaryMode::Punctuation),"symbols":s.capability(TemporaryMode::Symbols),"prediction_enabled":s.config().prediction.enabled,"personal_prediction_enabled":s.config().personal.predict,"prediction_waiting":s.waiting_for_prediction()})
             }
             Request::PredictionContext {
                 session,

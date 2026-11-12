@@ -25,11 +25,7 @@ impl Files {
         self.0.join("config.toml")
     }
     fn source(&self, kind: ExpressionKind) -> PathBuf {
-        let path = self.0.join(if kind == ExpressionKind::Emoji {
-            "emoji.mwe"
-        } else {
-            "kaomoji.mwe"
-        });
+        let path = self.0.join(format!("{}.mwe", kind.slug()));
         let document = json!({
             "kind": kind, "name": "自定义合集", "version": "v1",
             "sources": [{"id":"fixture","url":"local:test","revision":"pinned","license":"MIT","notice":"Full test notice"}],
@@ -181,4 +177,30 @@ fn json_facade_returns_metadata_and_imports_with_shared_validation() {
     let invalid =
         call(json!({"op":"ImportExpression","path":f.config(),"kind":"kaomoji","source":source}));
     assert_eq!(invalid["ok"], false);
+}
+
+#[test]
+fn all_six_categories_import_through_the_shared_protocol_without_changing_selection() {
+    let f = Files::new();
+    let before = std::fs::read(f.config()).unwrap();
+    for kind in ExpressionKind::ALL {
+        let source = f.source(kind);
+        let imported = call(json!({"op":"ImportExpression", "path":f.config(),
+            "kind":kind, "source":source}));
+        assert_eq!(imported["ok"], true, "{imported}");
+        let path = Path::new(imported["value"]["path"].as_str().unwrap());
+        assert_eq!(
+            ExpressionLibrary::load(path, kind).unwrap().document().kind,
+            kind
+        );
+        let listed = call(json!({"op":"ListExpressions", "path":f.config(),
+            "kind":kind, "selected":{"resource":path}}));
+        assert_eq!(listed["ok"], true, "{listed}");
+        assert!(listed["value"]
+            .as_array()
+            .unwrap()
+            .iter()
+            .any(|row| row["path"] == path.to_str().unwrap()));
+        assert_eq!(std::fs::read(f.config()).unwrap(), before);
+    }
 }

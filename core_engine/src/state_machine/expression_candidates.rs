@@ -21,31 +21,24 @@ pub(super) struct AppendedCandidates {
 
 impl StateMachine {
     pub(super) fn expression_library(&self, kind: ExpressionKind) -> Option<&ExpressionLibrary> {
-        match kind {
-            ExpressionKind::Emoji => self.expressions.emoji.library.as_deref(),
-            ExpressionKind::Kaomoji => self.expressions.kaomoji.library.as_deref(),
-        }
+        self.expressions.resource(kind).library.as_deref()
     }
 
     pub(super) fn build_appended(&self, text: &[&Entry]) -> Option<AppendedCandidates> {
         if !self.expressions_allowed
-            || !(self.expression_config.emoji.append || self.expression_config.kaomoji.append)
+            || !ExpressionKind::ALL
+                .iter()
+                .any(|kind| self.expression_config.selection(*kind).append)
             || !matches!(self.mode, InputMode::Main | InputMode::Pinyin)
             || text.is_empty()
         {
             return None;
         }
-        let libraries = [
-            (ExpressionKind::Emoji, self.expression_config.emoji.append),
-            (
-                ExpressionKind::Kaomoji,
-                self.expression_config.kaomoji.append,
-            ),
-        ]
-        .into_iter()
-        .filter(|(_, enabled)| *enabled)
-        .filter_map(|(kind, _)| self.expression_library(kind).map(|library| (kind, library)))
-        .collect::<Vec<_>>();
+        let libraries = ExpressionKind::ALL
+            .into_iter()
+            .filter(|kind| self.expression_config.selection(*kind).append)
+            .filter_map(|kind| self.expression_library(kind).map(|library| (kind, library)))
+            .collect::<Vec<_>>();
         if libraries.is_empty() {
             return None;
         }

@@ -18,6 +18,10 @@ pub enum TemporaryMode {
     English,
     Emoji,
     Kaomoji,
+    Kana,
+    Math,
+    Punctuation,
+    Symbols,
 }
 
 impl TemporaryMode {
@@ -25,6 +29,11 @@ impl TemporaryMode {
         match self {
             Self::Emoji => Some(crate::expressions::ExpressionKind::Emoji),
             Self::Kaomoji => Some(crate::expressions::ExpressionKind::Kaomoji),
+            Self::Kana => Some(crate::expressions::ExpressionKind::Kana),
+            Self::Math => Some(crate::expressions::ExpressionKind::Math),
+            Self::Punctuation => Some(crate::expressions::ExpressionKind::Punctuation),
+            Self::Symbols => Some(crate::expressions::ExpressionKind::Symbols),
+
             _ => None,
         }
     }
@@ -263,7 +272,13 @@ impl SemanticEngine {
             InputMode::Main => Some(&self.sm.dict),
             InputMode::Pinyin => self.sm.temporary.pinyin.as_ref(),
             InputMode::English => self.sm.temporary.english.as_ref(),
-            InputMode::Menu | InputMode::Emoji | InputMode::Kaomoji => None,
+            InputMode::Menu
+            | InputMode::Emoji
+            | InputMode::Kaomoji
+            | InputMode::Kana
+            | InputMode::Math
+            | InputMode::Punctuation
+            | InputMode::Symbols => None,
         };
         let all = if let Some(dict) =
             dict.filter(|_| !self.sm.spelling.is_empty() && !self.sm.candidates.is_empty())
@@ -338,6 +353,11 @@ impl SemanticEngine {
                 InputMode::English => Some(TemporaryMode::English),
                 InputMode::Emoji => Some(TemporaryMode::Emoji),
                 InputMode::Kaomoji => Some(TemporaryMode::Kaomoji),
+                InputMode::Kana => Some(TemporaryMode::Kana),
+                InputMode::Math => Some(TemporaryMode::Math),
+                InputMode::Punctuation => Some(TemporaryMode::Punctuation),
+                InputMode::Symbols => Some(TemporaryMode::Symbols),
+
                 _ => None,
             }
         } else {
@@ -368,6 +388,18 @@ impl SemanticEngine {
             TemporaryMode::Kaomoji => self
                 .sm
                 .expression_capability(crate::expressions::ExpressionKind::Kaomoji),
+            TemporaryMode::Kana => self
+                .sm
+                .expression_capability(crate::expressions::ExpressionKind::Kana),
+            TemporaryMode::Math => self
+                .sm
+                .expression_capability(crate::expressions::ExpressionKind::Math),
+            TemporaryMode::Punctuation => self
+                .sm
+                .expression_capability(crate::expressions::ExpressionKind::Punctuation),
+            TemporaryMode::Symbols => self
+                .sm
+                .expression_capability(crate::expressions::ExpressionKind::Symbols),
         }
     }
 
@@ -460,6 +492,11 @@ impl SemanticEngine {
             Some(TemporaryMode::English) => InputMode::English,
             Some(TemporaryMode::Emoji) => InputMode::Emoji,
             Some(TemporaryMode::Kaomoji) => InputMode::Kaomoji,
+            Some(TemporaryMode::Kana) => InputMode::Kana,
+            Some(TemporaryMode::Math) => InputMode::Math,
+            Some(TemporaryMode::Punctuation) => InputMode::Punctuation,
+            Some(TemporaryMode::Symbols) => InputMode::Symbols,
+
             None if self.base == BaseMode::English => InputMode::English,
             None => InputMode::Main,
         };
@@ -486,9 +523,13 @@ impl SemanticEngine {
             | Action::EditExpressionQuery => true,
             Action::Legacy(e) => self.sm.would_consume(e),
             Action::InputCode(c) => match self.sm.mode {
-                InputMode::Main | InputMode::Emoji | InputMode::Kaomoji => {
-                    self.sm.accepts_code_char(*c)
-                }
+                InputMode::Main
+                | InputMode::Emoji
+                | InputMode::Kaomoji
+                | InputMode::Kana
+                | InputMode::Math
+                | InputMode::Punctuation
+                | InputMode::Symbols => self.sm.accepts_code_char(*c),
                 InputMode::Pinyin => c.is_ascii_lowercase() || *c == '\'',
                 InputMode::English => !c.is_control(),
                 InputMode::Menu => false,

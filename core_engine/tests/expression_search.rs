@@ -7,6 +7,7 @@ fn full(kind: ExpressionKind) -> &'static ExpressionLibrary {
     let (slot, name) = match kind {
         ExpressionKind::Emoji => (&EMOJI, "emoji.mwe"),
         ExpressionKind::Kaomoji => (&KAOMOJI, "kaomoji.mwe"),
+        _ => panic!("this regression fixture only covers the original full libraries"),
     };
     slot.get_or_init(|| {
         ExpressionLibrary::load(

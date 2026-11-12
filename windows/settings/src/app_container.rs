@@ -18,16 +18,8 @@ pub(crate) fn prepare(config_path: &Path, config: &core_engine::Config) -> Resul
             }
         }
     }
-    for (kind, selection) in [
-        (
-            core_engine::expressions::ExpressionKind::Emoji,
-            &config.expressions.emoji,
-        ),
-        (
-            core_engine::expressions::ExpressionKind::Kaomoji,
-            &config.expressions.kaomoji,
-        ),
-    ] {
+    for kind in core_engine::expressions::ExpressionKind::ALL {
+        let selection = config.expressions.selection(kind);
         if selection.needed() {
             let path = selection.path(config_path, kind);
             for target in path.parent().into_iter().chain(Some(path.as_path())) {

@@ -88,6 +88,103 @@ fn old_config_defaults_off_and_independent_selections_roundtrip() {
 }
 
 #[test]
+fn every_special_category_roundtrips_and_keeps_independent_resource_failures() {
+    let files = Files::new();
+    let mut config = files.config();
+    for kind in ExpressionKind::ALL {
+        let source = library(kind, "か\u{3099}　∫");
+        let filename = format!("{}.mwe", kind.slug());
+        std::fs::write(files.0.join(&filename), source.encode().unwrap()).unwrap();
+        let selection = config.expressions.selection_mut(kind);
+        selection.resource = Some(filename.into());
+        selection.search = true;
+        let encoded = serde_json::to_string(&kind).unwrap();
+        assert_eq!(
+            serde_json::from_str::<ExpressionKind>(&encoded).unwrap(),
+            kind
+        );
+    }
+    let path = files.0.join("config.toml");
+    config.save(&path).unwrap();
+    let saved = std::fs::read(&path).unwrap();
+    let restored = Config::from_str(&config.to_string_toml().unwrap()).unwrap();
+    assert_eq!(restored.expressions, config.expressions);
+    let resources = ExpressionResources::load(&path, &restored.expressions);
+    assert_eq!(resources.paths().count(), 6);
+    assert_eq!(resources.errors().count(), 0);
+    for kind in ExpressionKind::ALL {
+        let loaded = resources.resource(kind).library.as_ref().unwrap();
+        assert_eq!(loaded.document().kind, kind);
+        assert_eq!(loaded.document().entries[0].text, "か\u{3099}　∫");
+        // A file bearing a different category must not be silently accepted.
+        let other = if kind == ExpressionKind::Kana {
+            ExpressionKind::Math
+        } else {
+            ExpressionKind::Kana
+        };
+        assert!(ExpressionLibrary::parse(&loaded.encode().unwrap(), other).is_err());
+    }
+    std::fs::write(files.0.join("math.mwe"), "broken").unwrap();
+    for context in [
+        config::ValidationContext::DesktopSave,
+        config::ValidationContext::TouchSave,
+    ] {
+        assert!(config.save_for(&path, context).is_err());
+        assert_eq!(std::fs::read(&path).unwrap(), saved);
+    }
+    let resources = ExpressionResources::load(&path, &config.expressions);
+    assert_eq!(resources.errors().count(), 1);
+    assert!(resources.resource(ExpressionKind::Kana).library.is_some());
+    config.expressions.math.search = false;
+    config.save(&path).unwrap();
+}
+
+#[test]
+fn new_category_capabilities_and_candidate_sources_survive_both_profiles() {
+    let files = Files::new();
+    for (kind, mode, text) in [
+        (ExpressionKind::Kana, TemporaryMode::Kana, "し"),
+        (ExpressionKind::Math, TemporaryMode::Math, "∫"),
+        (
+            ExpressionKind::Punctuation,
+            TemporaryMode::Punctuation,
+            "「」",
+        ),
+        (ExpressionKind::Symbols, TemporaryMode::Symbols, "℃"),
+    ] {
+        let filename = format!("{}.mwe", kind.slug());
+        std::fs::write(
+            files.0.join(&filename),
+            library(kind, text).encode().unwrap(),
+        )
+        .unwrap();
+        let mut config = files.config();
+        let selection = config.expressions.selection_mut(kind);
+        selection.search = true;
+        selection.resource = Some(filename.into());
+        for profile in [BehaviorProfile::LegacyV1, BehaviorProfile::TouchV1] {
+            let runtime = files
+                .build(config.clone(), profile, LoadPolicy::Startup)
+                .unwrap();
+            let mut engine = SemanticEngine::new(runtime.state_machine(), profile);
+            assert!(engine.capability(mode).available);
+            assert_eq!(
+                engine.dispatch(Action::BeginTemporary(mode)).disposition,
+                Disposition::Handled
+            );
+            engine.dispatch(Action::InputCode('a'));
+            engine.dispatch(Action::FindExpressions);
+            let view = engine.candidate_window(0, 9);
+            assert_eq!(view.candidates[0].text, text);
+            assert_eq!(view.candidates[0].expression_kind, Some(kind));
+            let json = serde_json::to_value(&view).unwrap();
+            assert_eq!(json["candidates"][0]["expression_kind"], kind.slug());
+            assert_eq!(engine.state_machine().mode().label(), kind.label());
+        }
+    }
+}
+
+#[test]
 fn exact_triggers_preserve_outputs_and_do_not_match_substrings() {
     for text in ["👩🏽‍💻", "🏳️‍🌈", "  \\(≧▽≦)/\u{3000}e\u{301}  "] {
         let source = library(ExpressionKind::Kaomoji, text);

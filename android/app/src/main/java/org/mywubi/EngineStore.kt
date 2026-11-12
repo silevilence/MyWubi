@@ -103,7 +103,7 @@ class EngineStore(private val context: Context) {
             val user = trialConfig.getJSONObject("dictionary").getString("user_table")
             if (!File(user).isAbsolute) trialConfig.getJSONObject("dictionary").put("user_table", File(configFile.parentFile, user).path)
             val expressions = trialConfig.optJSONObject("expressions")
-            for (kind in listOf("emoji", "kaomoji")) {
+            for (kind in listOf("emoji", "kaomoji", "kana", "math", "punctuation", "symbols")) {
                 expressions?.optJSONObject(kind)?.let { selection ->
                     val resource = if (selection.isNull("resource")) "expressions/$kind.mwe" else selection.getString("resource")
                     if (!File(resource).isAbsolute) selection.put("resource", File(configFile.parentFile, resource).path)

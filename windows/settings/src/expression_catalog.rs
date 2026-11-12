@@ -10,9 +10,18 @@ use std::{
     time::Duration,
 };
 
-type Key = (PathBuf, Option<PathBuf>, Option<PathBuf>);
+type Key = (PathBuf, Vec<Option<PathBuf>>);
+fn key(path: &Path, config: &ExpressionsConfig) -> Key {
+    (
+        path.to_owned(),
+        ExpressionKind::ALL
+            .iter()
+            .map(|kind| config.selection(*kind).resource.clone())
+            .collect(),
+    )
+}
 struct Loaded {
-    entries: [Vec<ResourceInfo>; 2],
+    entries: [Vec<ResourceInfo>; 6],
     imported: Option<(ExpressionKind, PathBuf)>,
 }
 
@@ -25,7 +34,7 @@ mod tests {
         let path = Path::new("config.toml");
         let mut config = ExpressionsConfig::default();
         let mut catalog = ExpressionCatalog {
-            key: Some((path.into(), None, None)),
+            key: Some(key(path, &config)),
             ..Default::default()
         };
         config.emoji.resource = Some("newer-choice.mwe".into());
@@ -45,7 +54,7 @@ mod tests {
 #[derive(Default)]
 pub struct ExpressionCatalog {
     preview: crate::expression_preview::ExpressionPreview,
-    entries: [Vec<ResourceInfo>; 2],
+    entries: [Vec<ResourceInfo>; 6],
     key: Option<Key>,
     worker: Option<mpsc::Receiver<Result<Loaded, String>>>,
     message: Option<String>,
@@ -53,11 +62,7 @@ pub struct ExpressionCatalog {
 
 impl ExpressionCatalog {
     fn accept(&mut self, path: &Path, config: &mut ExpressionsConfig, loaded: Loaded) -> bool {
-        let current = (
-            path.to_owned(),
-            config.emoji.resource.clone(),
-            config.kaomoji.resource.clone(),
-        );
+        let current = key(path, config);
         if self.key.as_ref() != Some(&current) {
             self.key = None;
             self.message =
@@ -66,16 +71,9 @@ impl ExpressionCatalog {
         }
         self.entries = loaded.entries;
         if let Some((kind, resource)) = loaded.imported {
-            match kind {
-                ExpressionKind::Emoji => config.emoji.resource = Some(resource),
-                ExpressionKind::Kaomoji => config.kaomoji.resource = Some(resource),
-            }
+            config.selection_mut(kind).resource = Some(resource);
             self.message = Some("已导入并选中，点击底部“保存”生效。".into());
-            self.key = Some((
-                path.to_owned(),
-                config.emoji.resource.clone(),
-                config.kaomoji.resource.clone(),
-            ));
+            self.key = Some(key(path, config));
             true
         } else {
             false
@@ -87,11 +85,7 @@ impl ExpressionCatalog {
         }
         let path = path.to_owned();
         let mut config = config.clone();
-        self.key = Some((
-            path.clone(),
-            config.emoji.resource.clone(),
-            config.kaomoji.resource.clone(),
-        ));
+        self.key = Some(key(&path, &config));
         let (tx, rx) = mpsc::channel();
         self.worker = Some(rx);
         self.message = None;
@@ -108,14 +102,7 @@ impl ExpressionCatalog {
                             .strip_prefix(path.parent().unwrap_or(Path::new(".")))
                             .unwrap_or(&resource.path)
                             .to_owned();
-                        match kind {
-                            ExpressionKind::Emoji => {
-                                config.emoji.resource = Some(resource_path.clone())
-                            }
-                            ExpressionKind::Kaomoji => {
-                                config.kaomoji.resource = Some(resource_path.clone())
-                            }
-                        }
+                        config.selection_mut(kind).resource = Some(resource_path.clone());
                         Some((kind, resource_path))
                     } else {
                         None
@@ -127,6 +114,14 @@ impl ExpressionCatalog {
                     entries: [
                         expression_store::list(&path, ExpressionKind::Emoji, &config.emoji)?,
                         expression_store::list(&path, ExpressionKind::Kaomoji, &config.kaomoji)?,
+                        expression_store::list(&path, ExpressionKind::Kana, &config.kana)?,
+                        expression_store::list(&path, ExpressionKind::Math, &config.math)?,
+                        expression_store::list(
+                            &path,
+                            ExpressionKind::Punctuation,
+                            &config.punctuation,
+                        )?,
+                        expression_store::list(&path, ExpressionKind::Symbols, &config.symbols)?,
                     ],
                     imported,
                 })
@@ -154,11 +149,7 @@ impl ExpressionCatalog {
                 Err(error) => self.message = Some(format!("操作失败：{error}；原选择与配置保留。")),
             }
         }
-        let key = (
-            path.to_owned(),
-            config.emoji.resource.clone(),
-            config.kaomoji.resource.clone(),
-        );
+        let key = key(path, config);
         if self.key.as_ref() != Some(&key) && self.worker.is_none() {
             self.start(path, config, None);
         }
@@ -175,10 +166,8 @@ impl ExpressionCatalog {
         let mut import = None;
         let mut refresh = false;
         ui.add_enabled_ui(self.worker.is_none(), |ui| {
-            for (index, kind, selection) in [
-                (0, ExpressionKind::Emoji, &mut config.emoji),
-                (1, ExpressionKind::Kaomoji, &mut config.kaomoji),
-            ] {
+            for (index, kind) in ExpressionKind::ALL.into_iter().enumerate() {
+                let selection = config.selection_mut(kind);
                 ui.push_id(kind.label(), |ui| {
                     ui.strong(kind.label());
                     changed |= ui

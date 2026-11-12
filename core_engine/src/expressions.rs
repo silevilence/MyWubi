@@ -19,19 +19,53 @@ const MAX_BYTES: u64 = 64 * 1024 * 1024;
 pub enum ExpressionKind {
     Emoji,
     Kaomoji,
+    Kana,
+    Math,
+    Punctuation,
+    Symbols,
 }
 
 impl ExpressionKind {
+    /// Stable category order, shared by settings and candidate append.
+    pub const ALL: [Self; 6] = [
+        Self::Emoji,
+        Self::Kaomoji,
+        Self::Kana,
+        Self::Math,
+        Self::Punctuation,
+        Self::Symbols,
+    ];
+
+    /// Stable resource and protocol name.
+    pub fn slug(self) -> &'static str {
+        match self {
+            Self::Emoji => "emoji",
+            Self::Kaomoji => "kaomoji",
+            Self::Kana => "kana",
+            Self::Math => "math",
+            Self::Punctuation => "punctuation",
+            Self::Symbols => "symbols",
+        }
+    }
+
     pub fn label(self) -> &'static str {
         match self {
             Self::Emoji => "Emoji",
             Self::Kaomoji => "颜文字",
+            Self::Kana => "假名",
+            Self::Math => "数学符号",
+            Self::Punctuation => "标点",
+            Self::Symbols => "其他符号",
         }
     }
     pub fn default_path(self) -> PathBuf {
         PathBuf::from(match self {
             Self::Emoji => "expressions/emoji.mwe",
             Self::Kaomoji => "expressions/kaomoji.mwe",
+            Self::Kana => "expressions/kana.mwe",
+            Self::Math => "expressions/math.mwe",
+            Self::Punctuation => "expressions/punctuation.mwe",
+            Self::Symbols => "expressions/symbols.mwe",
         })
     }
 }
@@ -62,6 +96,33 @@ impl ExpressionSelection {
 pub struct ExpressionsConfig {
     pub emoji: ExpressionSelection,
     pub kaomoji: ExpressionSelection,
+    pub kana: ExpressionSelection,
+    pub math: ExpressionSelection,
+    pub punctuation: ExpressionSelection,
+    pub symbols: ExpressionSelection,
+}
+
+impl ExpressionsConfig {
+    pub fn selection(&self, kind: ExpressionKind) -> &ExpressionSelection {
+        match kind {
+            ExpressionKind::Emoji => &self.emoji,
+            ExpressionKind::Kaomoji => &self.kaomoji,
+            ExpressionKind::Kana => &self.kana,
+            ExpressionKind::Math => &self.math,
+            ExpressionKind::Punctuation => &self.punctuation,
+            ExpressionKind::Symbols => &self.symbols,
+        }
+    }
+    pub fn selection_mut(&mut self, kind: ExpressionKind) -> &mut ExpressionSelection {
+        match kind {
+            ExpressionKind::Emoji => &mut self.emoji,
+            ExpressionKind::Kaomoji => &mut self.kaomoji,
+            ExpressionKind::Kana => &mut self.kana,
+            ExpressionKind::Math => &mut self.math,
+            ExpressionKind::Punctuation => &mut self.punctuation,
+            ExpressionKind::Symbols => &mut self.symbols,
+        }
+    }
 }
 
 /// Source identifiers resolve to notices shipped with the resource; revisions are pinned.
@@ -268,8 +329,23 @@ pub struct ExpressionResource {
 pub struct ExpressionResources {
     pub emoji: ExpressionResource,
     pub kaomoji: ExpressionResource,
+    pub kana: ExpressionResource,
+    pub math: ExpressionResource,
+    pub punctuation: ExpressionResource,
+    pub symbols: ExpressionResource,
 }
 impl ExpressionResources {
+    pub fn resource(&self, kind: ExpressionKind) -> &ExpressionResource {
+        match kind {
+            ExpressionKind::Emoji => &self.emoji,
+            ExpressionKind::Kaomoji => &self.kaomoji,
+            ExpressionKind::Kana => &self.kana,
+            ExpressionKind::Math => &self.math,
+            ExpressionKind::Punctuation => &self.punctuation,
+            ExpressionKind::Symbols => &self.symbols,
+        }
+    }
+
     pub fn load(config_path: &Path, config: &ExpressionsConfig) -> Self {
         fn one(
             path: &Path,
@@ -296,16 +372,26 @@ impl ExpressionResources {
         Self {
             emoji: one(config_path, &config.emoji, ExpressionKind::Emoji),
             kaomoji: one(config_path, &config.kaomoji, ExpressionKind::Kaomoji),
+            kana: one(config_path, &config.kana, ExpressionKind::Kana),
+            math: one(config_path, &config.math, ExpressionKind::Math),
+            punctuation: one(
+                config_path,
+                &config.punctuation,
+                ExpressionKind::Punctuation,
+            ),
+            symbols: one(config_path, &config.symbols, ExpressionKind::Symbols),
         }
     }
     pub fn paths(&self) -> impl Iterator<Item = &PathBuf> {
-        [&self.emoji, &self.kaomoji]
+        ExpressionKind::ALL
             .into_iter()
+            .map(|kind| self.resource(kind))
             .filter_map(|resource| resource.path.as_ref())
     }
     pub fn errors(&self) -> impl Iterator<Item = &str> {
-        [&self.emoji, &self.kaomoji]
+        ExpressionKind::ALL
             .into_iter()
+            .map(|kind| self.resource(kind))
             .filter_map(|resource| resource.error.as_deref())
     }
 }

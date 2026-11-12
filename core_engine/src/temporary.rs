@@ -47,6 +47,10 @@ pub enum InputMode {
     English,
     Emoji,
     Kaomoji,
+    Kana,
+    Math,
+    Punctuation,
+    Symbols,
 }
 
 impl InputMode {
@@ -58,6 +62,10 @@ impl InputMode {
             Self::English => "临时英文",
             Self::Emoji => "Emoji",
             Self::Kaomoji => "颜文字",
+            Self::Kana => "假名",
+            Self::Math => "数学符号",
+            Self::Punctuation => "标点",
+            Self::Symbols => "其他符号",
         }
     }
 
@@ -66,6 +74,11 @@ impl InputMode {
         match self {
             Self::Emoji => Some(ExpressionKind::Emoji),
             Self::Kaomoji => Some(ExpressionKind::Kaomoji),
+            Self::Kana => Some(ExpressionKind::Kana),
+            Self::Math => Some(ExpressionKind::Math),
+            Self::Punctuation => Some(ExpressionKind::Punctuation),
+            Self::Symbols => Some(ExpressionKind::Symbols),
+
             _ => None,
         }
     }

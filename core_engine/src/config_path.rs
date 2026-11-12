@@ -94,10 +94,7 @@ pub fn resolve_config_path_from(
     }
     let bundle = exe_dir.join("expressions");
     if bundle.is_dir() {
-        for kind in [
-            crate::expressions::ExpressionKind::Emoji,
-            crate::expressions::ExpressionKind::Kaomoji,
-        ] {
+        for kind in crate::expressions::ExpressionKind::ALL {
             if let Err(error) =
                 crate::expression_store::prepare_builtin(&config_path, &bundle, kind)
             {

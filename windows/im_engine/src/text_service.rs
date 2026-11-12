@@ -1794,6 +1794,10 @@ impl ITfKeyEventSink_Impl for TextService_Impl {
             core_engine::InputMode::Menu
                 | core_engine::InputMode::Emoji
                 | core_engine::InputMode::Kaomoji
+                | core_engine::InputMode::Kana
+                | core_engine::InputMode::Math
+                | core_engine::InputMode::Punctuation
+                | core_engine::InputMode::Symbols
         );
         let anchor = pic
             .as_ref()

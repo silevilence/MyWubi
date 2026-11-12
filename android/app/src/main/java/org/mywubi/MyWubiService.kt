@@ -261,7 +261,7 @@ class MyWubiService : InputMethodService() {
         if (destroyed) return
         val items = candidates.optJSONArray("candidates") ?: JSONArray()
         val spelling = state.optJSONObject("view")?.optString("spelling") ?: ""
-        val temporary = state.optString("temporary").takeIf { it in listOf("Pinyin", "English", "Emoji", "Kaomoji") }
+        val temporary = state.optString("temporary").takeIf { it in listOf("Pinyin", "English", "Emoji", "Kaomoji", "Kana", "Math", "Punctuation", "Symbols") }
         val stableIdle = active && viewVisible && session != null && idle.isIdle(
             android.os.SystemClock.elapsedRealtime(), spelling, items.length() > 0 || state.optBoolean("prediction_waiting"), editor.ownsPreedit, temporary != null)
         keyboard = KeyboardModel(
@@ -305,7 +305,7 @@ class MyWubiService : InputMethodService() {
                     }
                 }
                 CandidateItem(item.getLong("id"),item.getString("text"),hint,
-                    item.optString("expression_kind").takeIf { it == "emoji" || it == "kaomoji" })
+                    item.optString("expression_kind").takeIf { it in listOf("emoji", "kaomoji", "kana", "math", "punctuation", "symbols") })
             },
             query = candidates.optJSONObject("query_revision")?.toString() ?: "{}",
             total = candidates.optInt("total"), offset = candidates.optInt("offset")

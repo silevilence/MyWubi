@@ -22,10 +22,7 @@ pub struct ResourceInfo {
 }
 
 fn slug(kind: ExpressionKind) -> &'static str {
-    match kind {
-        ExpressionKind::Emoji => "emoji",
-        ExpressionKind::Kaomoji => "kaomoji",
-    }
+    kind.slug()
 }
 
 pub fn inspect(path: &Path, kind: ExpressionKind, builtin: bool) -> ResourceInfo {

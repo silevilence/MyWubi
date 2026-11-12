@@ -126,7 +126,7 @@ fun Keyboard(model: KeyboardModel, dispatch: (Any) -> Unit, window: (Int) -> Uni
         val controls: @Composable () -> Unit = {
             model.expression?.let { query ->
                 val results = query.phase == "Results"
-                val name = if (query.kind == "emoji") "Emoji" else "颜文字"
+                val name = when(query.kind) { "emoji" -> "Emoji"; "kaomoji" -> "颜文字"; "kana" -> "假名"; "math" -> "数学符号"; "punctuation" -> "标点"; "symbols" -> "其他符号"; else -> "特殊输入" }
                 FlowRow(Modifier.fillMaxWidth().heightIn(min=48.dp).padding(horizontal=10.dp), horizontalArrangement=Arrangement.spacedBy(8.dp)) {
                     Text("$name · ${if(results) "选表情" else "组合关键词"}", Modifier.padding(vertical=14.dp), fontSize=14.sp)
                     TextButton(onClick={expanded=false; dispatch(if(results) "EditExpressionQuery" else "FindExpressions")}, enabled=model.enabled) {

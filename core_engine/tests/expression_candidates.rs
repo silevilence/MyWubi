@@ -66,6 +66,7 @@ fn resources() -> Arc<ExpressionResources> {
             )),
             ..Default::default()
         },
+        ..Default::default()
     })
 }
 
@@ -519,6 +520,7 @@ fn full_shipped_libraries_preserve_all_matching_outputs_and_report_query_cost() 
             library: Some(kaomoji),
             ..Default::default()
         },
+        ..Default::default()
     });
     // Same main table and input, with resident resources held constant: isolate
     // append dispatch overhead from disk loading and the frontend render path.

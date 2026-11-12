@@ -68,6 +68,7 @@ fn runtime() -> RuntimeSnapshot {
                 library: Some(library(ExpressionKind::Kaomoji, 2)),
                 ..Default::default()
             },
+            ..Default::default()
         }),
         config,
         revision: 1,
