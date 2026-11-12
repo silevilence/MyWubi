@@ -1,4 +1,6 @@
 //! Local personal input storage, exchange and learning. No network clients.
+pub mod capture;
+pub mod capture_endpoint;
 pub mod exchange;
 pub mod recorder;
 pub mod store;

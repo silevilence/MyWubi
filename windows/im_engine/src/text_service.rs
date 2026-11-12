@@ -635,7 +635,11 @@ impl TextService {
             .map(|u| u.as_raw() as usize as u64)
             .unwrap_or(0);
         let prediction = version == 0 || self.input.has_prediction();
-        let prefix = crate::prediction_context::read(&context, self.lifecycle.tid(), prediction);
+        let prefix = crate::prediction_context::read(
+            &context,
+            self.lifecycle.tid(),
+            prediction || self.config_snapshot().personal.collect,
+        );
         // After an external notification (or just before a click), an unreadable
         // range cannot prove that a previously displayed suggestion is still current.
         if prediction && prefix.allowed && prefix.text.is_none() {
@@ -1582,7 +1586,9 @@ impl ITfTextEditSink_Impl for TextService_Impl {
         // Some TSF bridges expose the pre-commit selection during OnEndEdit.
         // Re-read on the apartment after the host has completed the transaction.
         if !self.writing_host.load(Ordering::Acquire)
-            && self.config_snapshot().prediction.enabled
+            && (self.config_snapshot().prediction.enabled
+                || self.config_snapshot().personal.collect
+                || self.config_snapshot().personal.predict)
             && !self.prediction_check_queued.swap(true, Ordering::AcqRel)
         {
             let target = self.candidate_dispatch.lock().as_ref().map(|d| d.hwnd());
@@ -1758,6 +1764,8 @@ impl ITfKeyEventSink_Impl for TextService_Impl {
         };
         let config = self.config_snapshot();
         if config.prediction.enabled
+            || config.personal.collect
+            || config.personal.predict
             || config.expressions.emoji.needed()
             || config.expressions.kaomoji.needed()
         {
@@ -1769,7 +1777,10 @@ impl ITfKeyEventSink_Impl for TextService_Impl {
                 let prefix = crate::prediction_context::read(
                     context,
                     self.lifecycle.tid(),
-                    config.prediction.enabled && self.composition.lock().is_none(),
+                    (config.prediction.enabled
+                        || config.personal.collect
+                        || config.personal.predict)
+                        && self.composition.lock().is_none(),
                 );
                 self.input.sync_prediction_context(editor, prefix);
             } else {

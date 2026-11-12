@@ -37,6 +37,7 @@ impl EditFailure for SessionEditError {
 }
 
 pub(crate) struct InputSession {
+    personal: Mutex<Option<personal_input::capture::Capture>>,
     model: Mutex<Option<crate::model_client::Client>>,
     core: Mutex<Session>,
     candidates: Arc<ArcSwap<CandidateData>>,
@@ -47,6 +48,11 @@ impl InputSession {
         candidates: Arc<ArcSwap<CandidateData>>,
     ) -> Self {
         let session = Self {
+            personal: Mutex::new(if snapshot.config.personal.collect {
+                personal_input::capture::Capture::new(snapshot.config_path.clone()).ok()
+            } else {
+                None
+            }),
             model: Mutex::new(None),
             core: Mutex::new(Session::new(
                 snapshot,
@@ -191,6 +197,18 @@ impl InputSession {
     }
     pub fn sync_prediction_context(&self, editor: u64, prefix: crate::prediction_context::Prefix) {
         let mut core = self.core.lock();
+        if let Some(capture) = self.personal.lock().as_mut() {
+            capture.configure(&core.config().personal, prefix.allowed, &editor.to_string());
+            if capture.enabled() && (prefix.text.is_some() || core.snapshot().spelling.is_empty()) {
+                capture.context(
+                    core_engine::personal::Context {
+                        left: prefix.text.clone(),
+                        ..prefix.personal.clone()
+                    },
+                    core.snapshot().spelling.is_empty(),
+                );
+            }
+        }
         let visible = core.has_prediction();
         let policy_changed = core.context().allows_assistance != prefix.allowed;
 
@@ -339,6 +357,15 @@ impl InputSession {
         snapshot: &RuntimeSnapshot,
         edit: impl FnMut(&EditSessionOp) -> Result<Option<ScreenPoint>, E>,
     ) {
+        {
+            let mut personal = self.personal.lock();
+            if !snapshot.config.personal.collect {
+                *personal = None;
+            } else if personal.is_none() {
+                *personal =
+                    personal_input::capture::Capture::new(snapshot.config_path.clone()).ok();
+            }
+        }
         if self.core.lock().config().prediction != snapshot.config.prediction {
             if let Some(client) = self.model.lock().as_ref() {
                 client.release();
@@ -401,6 +428,14 @@ impl InputSession {
                 HostOutcome::OutcomeUnknown
             }
         };
+        if let Some(capture) = self.personal.lock().as_mut() {
+            let outcome = match outcome {
+                HostOutcome::Applied => core_engine::personal::Outcome::Confirmed,
+                HostOutcome::RejectedBeforeWrite => core_engine::personal::Outcome::Rejected,
+                _ => core_engine::personal::Outcome::Unknown,
+            };
+            capture.operation("windows", &plan.op, outcome, None, "key_or_candidate");
+        }
         let mut core = self.core.lock();
         let ack = core.acknowledge(plan.token, outcome);
         match ack.status {
@@ -426,6 +461,48 @@ impl InputSession {
                     }
                 }
                 bind_selection(&core, &mut next_view);
+                if let Some(capture) = self.personal.lock().as_mut().filter(|c| c.enabled()) {
+                    let window = core.candidate_window(
+                        core.snapshot().page * usize::from(core.config().basic.candidate_count),
+                        next_view.items.len(),
+                    );
+                    let source = if core.has_prediction() {
+                        if core.config().personal.predict {
+                            core_engine::personal::Source::PersonalPrediction
+                        } else if core.config().prediction.model.is_some() {
+                            core_engine::personal::Source::ModelPrediction
+                        } else {
+                            core_engine::personal::Source::DictionaryPrediction
+                        }
+                    } else {
+                        core_engine::personal::Source::Code
+                    };
+                    capture.display(
+                        core.snapshot().mode.label(),
+                        core_engine::personal::Display {
+                            request: format!(
+                                "{}:{}",
+                                window.query_revision.engine, window.query_revision.version
+                            ),
+                            model: core
+                                .config()
+                                .prediction
+                                .model
+                                .as_ref()
+                                .map(|m| format!("{}:{}", m.id, m.version)),
+                            policy: "v1".into(),
+                            candidates: window
+                                .candidates
+                                .into_iter()
+                                .map(|c| core_engine::personal::Candidate {
+                                    id: c.id.0.to_string(),
+                                    text: c.text,
+                                    source: source.clone(),
+                                })
+                                .collect(),
+                        },
+                    );
+                }
                 self.candidates.store(Arc::new(next_view));
             }
             AckStatus::NeedsCleanup => {

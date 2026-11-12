@@ -1818,6 +1818,7 @@ dependencies = [
  "model_ipc",
  "notify",
  "parking_lot",
+ "personal_input",
  "runtime_components",
  "serde_json",
  "text_render",
@@ -2238,6 +2239,7 @@ dependencies = [
  "core_engine",
  "jni",
  "model_input",
+ "personal_input",
 ]
 
 [[package]]
@@ -3317,6 +3319,7 @@ dependencies = [
  "log",
  "model_input",
  "model_ipc",
+ "personal_input",
  "rfd",
  "runtime_components",
  "semver",

@@ -8,6 +8,7 @@ use windows::Win32::{Foundation::E_FAIL, System::Com::CoTaskMemFree, UI::TextSer
 pub(crate) struct Prefix {
     pub allowed: bool,
     pub text: Option<String>,
+    pub personal: core_engine::personal::Context,
 }
 
 #[implement(ITfEditSession)]
@@ -30,9 +31,8 @@ impl ReadPrefix {
         let range = range
             .filter(|_| fetched == 1)
             .ok_or_else(|| windows::core::Error::from(E_FAIL))?;
-        if (self.collect && !unsafe { range.IsEmpty(cookie)? }.as_bool())
-            || unsafe { self.context.GetStatus()? }.dwDynamicFlags & TF_SD_READONLY != 0
-        {
+        let selected = !unsafe { range.IsEmpty(cookie)? }.as_bool();
+        if unsafe { self.context.GetStatus()? }.dwDynamicFlags & TF_SD_READONLY != 0 {
             return Ok(());
         }
         let property = unsafe { self.context.GetAppProperty(&GUID_PROP_INPUTSCOPE)? };
@@ -66,6 +66,35 @@ impl ReadPrefix {
         }
         self.result.lock().allowed = true;
         if self.collect {
+            // Keep both sides in the same read transaction. TSF offsets here are
+            // relative to the observed selection, not document-wide positions.
+            let right = unsafe { range.Clone()? };
+            unsafe { right.Collapse(cookie, TF_ANCHOR_END)? };
+            let mut moved = 0;
+            unsafe { right.ShiftEnd(cookie, 512, &mut moved, std::ptr::null())? };
+            let mut buffer = [0u16; 512];
+            let mut length = 0;
+            unsafe { right.GetText(cookie, 0, &mut buffer, &mut length)? };
+            let right_text = String::from_utf16(&buffer[..length as usize]).ok();
+            let selection = if selected {
+                length = 0;
+                unsafe { range.GetText(cookie, 0, &mut buffer, &mut length)? };
+                String::from_utf16(&buffer[..length as usize]).ok()
+            } else {
+                Some(String::new())
+            };
+            self.result.lock().personal = core_engine::personal::Context {
+                right: right_text,
+                selected: selection,
+                selection: Some(core_engine::personal::Selection {
+                    start: 0,
+                    end: if selected { i64::from(length) } else { 0 },
+                    unit: core_engine::personal::CoordinateUnit::Utf16,
+                    absolute: false,
+                }),
+                truncated: true,
+                ..Default::default()
+            };
             if let Some(hwnd) = classic {
                 self.result.lock().text = classic_edit_prefix(hwnd);
                 return Ok(());
