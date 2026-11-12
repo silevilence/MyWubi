@@ -22,6 +22,8 @@ struct Package {
     count: usize,
     sources: BTreeSet<String>,
     sha256: String,
+    #[serde(default)]
+    missing_references: BTreeSet<String>,
     events: Vec<Event>,
 }
 #[derive(Debug, Default, Clone, Serialize, Deserialize)]
@@ -58,11 +60,22 @@ pub fn export(store: &Store, password: Option<&str>) -> Result<Vec<u8>> {
     let state = store.snapshot()?;
     let events: Vec<_> = state.events.into_values().collect();
     let payload = serde_json::to_vec(&events)?;
+    let ids: BTreeSet<_> = events.iter().map(|e| e.id.as_str()).collect();
+    let missing_references = events
+        .iter()
+        .filter_map(|e| match &e.change {
+            crate::Change::Edit {
+                related: Some(id), ..
+            } if !ids.contains(id.as_str()) => Some(id.clone()),
+            _ => None,
+        })
+        .collect();
     let package = Package {
         version: 1,
         count: events.len(),
         sources: events.iter().map(|e| e.source.clone()).collect(),
         sha256: digest(&payload),
+        missing_references,
         events,
     };
     let mut data = serde_json::to_vec(&package)?;
@@ -138,7 +151,10 @@ pub fn decode(bytes: &[u8], password: Option<&str>) -> Result<Vec<Event>> {
         } = &event.change
         {
             // A pruned source event can be represented explicitly as missing.
-            if !ids.contains(id.as_str()) && !event.before.discontinuity {
+            if !ids.contains(id.as_str())
+                && !event.before.discontinuity
+                && !package.missing_references.contains(id)
+            {
                 return Err(Error::Invalid("编辑引用缺失且未声明断裂"));
             }
         }
