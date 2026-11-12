@@ -1,0 +1,4909 @@
+# MyWubi Expressions 1
+{
+  "kind": "kana",
+  "name": "MyWubi 假名字符",
+  "version": "1.0.0",
+  "sources": [
+    {
+      "id": "mywubi-curated",
+      "url": "local:scripts/build_special_tables.py",
+      "revision": "1.0.0",
+      "license": "MIT",
+      "notice": "MIT License\n\nCopyright (c) 2026 MyWubi contributors\n\nPermission is hereby granted, free of charge, to any person obtaining a copy\nof this software and associated documentation files (the \"Software\"), to deal\nin the Software without restriction, including without limitation the rights\nto use, copy, modify, merge, publish, distribute, sublicense, and/or sell\ncopies of the Software, and to permit persons to whom the Software is\nfurnished to do so, subject to the following conditions:\n\nThe above copyright notice and this permission notice shall be included in all\ncopies or substantial portions of the Software.\n\nTHE SOFTWARE IS PROVIDED \"AS IS\", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR\nIMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,\nFITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE\nAUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER\nLIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,\nOUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE\nSOFTWARE.\n"
+    }
+  ],
+  "entries": [
+    {
+      "text": "あ",
+      "name": "平假名 a",
+      "triggers": [
+        "平假名 a",
+        "假名",
+        "平假名"
+      ],
+      "tags": [
+        "假名",
+        "平假名"
+      ],
+      "aliases": [
+        "a"
+      ],
+      "order": 0,
+      "sources": [
+        "mywubi-curated"
+      ]
+    },
+    {
+      "text": "い",
+      "name": "平假名 i",
+      "triggers": [
+        "平假名 i",
+        "假名",
+        "平假名"
+      ],
+      "tags": [
+        "假名",
+        "平假名"
+      ],
+      "aliases": [
+        "i"
+      ],
+      "order": 1,
+      "sources": [
+        "mywubi-curated"
+      ]
+    },
+    {
+      "text": "う",
+      "name": "平假名 u",
+      "triggers": [
+        "平假名 u",
+        "假名",
+        "平假名"
+      ],
+      "tags": [
+        "假名",
+        "平假名"
+      ],
+      "aliases": [
+        "u"
+      ],
+      "order": 2,
+      "sources": [
+        "mywubi-curated"
+      ]
+    },
+    {
+      "text": "え",
+      "name": "平假名 e",
+      "triggers": [
+        "平假名 e",
+        "假名",
+        "平假名"
+      ],
+      "tags": [
+        "假名",
+        "平假名"
+      ],
+      "aliases": [
+        "e"
+      ],
+      "order": 3,
+      "sources": [
+        "mywubi-curated"
+      ]
+    },
+    {
+      "text": "お",
+      "name": "平假名 o",
+      "triggers": [
+        "平假名 o",
+        "假名",
+        "平假名"
+      ],
+      "tags": [
+        "假名",
+        "平假名"
+      ],
+      "aliases": [
+        "o"
+      ],
+      "order": 4,
+      "sources": [
+        "mywubi-curated"
+      ]
+    },
+    {
+      "text": "か",
+      "name": "平假名 ka",
+      "triggers": [
+        "平假名 ka",
+        "假名",
+        "平假名"
+      ],
+      "tags": [
+        "假名",
+        "平假名"
+      ],
+      "aliases": [
+        "ka"
+      ],
+      "order": 5,
+      "sources": [
+        "mywubi-curated"
+      ]
+    },
+    {
+      "text": "き",
+      "name": "平假名 ki",
+      "triggers": [
+        "平假名 ki",
+        "假名",
+        "平假名"
+      ],
+      "tags": [
+        "假名",
+        "平假名"
+      ],
+      "aliases": [
+        "ki"
+      ],
+      "order": 6,
+      "sources": [
+        "mywubi-curated"
+      ]
+    },
+    {
+      "text": "く",
+      "name": "平假名 ku",
+      "triggers": [
+        "平假名 ku",
+        "假名",
+        "平假名"
+      ],
+      "tags": [
+        "假名",
+        "平假名"
+      ],
+      "aliases": [
+        "ku"
+      ],
+      "order": 7,
+      "sources": [
+        "mywubi-curated"
+      ]
+    },
+    {
+      "text": "け",
+      "name": "平假名 ke",
+      "triggers": [
+        "平假名 ke",
+        "假名",
+        "平假名"
+      ],
+      "tags": [
+        "假名",
+        "平假名"
+      ],
+      "aliases": [
+        "ke"
+      ],
+      "order": 8,
+      "sources": [
+        "mywubi-curated"
+      ]
+    },
+    {
+      "text": "こ",
+      "name": "平假名 ko",
+      "triggers": [
+        "平假名 ko",
+        "假名",
+        "平假名"
+      ],
+      "tags": [
+        "假名",
+        "平假名"
+      ],
+      "aliases": [
+        "ko"
+      ],
+      "order": 9,
+      "sources": [
+        "mywubi-curated"
+      ]
+    },
+    {
+      "text": "さ",
+      "name": "平假名 sa",
+      "triggers": [
+        "平假名 sa",
+        "假名",
+        "平假名"
+      ],
+      "tags": [
+        "假名",
+        "平假名"
+      ],
+      "aliases": [
+        "sa"
+      ],
+      "order": 10,
+      "sources": [
+        "mywubi-curated"
+      ]
+    },
+    {
+      "text": "し",
+      "name": "平假名 shi",
+      "triggers": [
+        "平假名 shi",
+        "假名",
+        "平假名"
+      ],
+      "tags": [
+        "假名",
+        "平假名"
+      ],
+      "aliases": [
+        "shi",
+        "si"
+      ],
+      "order": 11,
+      "sources": [
+        "mywubi-curated"
+      ]
+    },
+    {
+      "text": "す",
+      "name": "平假名 su",
+      "triggers": [
+        "平假名 su",
+        "假名",
+        "平假名"
+      ],
+      "tags": [
+        "假名",
+        "平假名"
+      ],
+      "aliases": [
+        "su"
+      ],
+      "order": 12,
+      "sources": [
+        "mywubi-curated"
+      ]
+    },
+    {
+      "text": "せ",
+      "name": "平假名 se",
+      "triggers": [
+        "平假名 se",
+        "假名",
+        "平假名"
+      ],
+      "tags": [
+        "假名",
+        "平假名"
+      ],
+      "aliases": [
+        "se"
+      ],
+      "order": 13,
+      "sources": [
+        "mywubi-curated"
+      ]
+    },
+    {
+      "text": "そ",
+      "name": "平假名 so",
+      "triggers": [
+        "平假名 so",
+        "假名",
+        "平假名"
+      ],
+      "tags": [
+        "假名",
+        "平假名"
+      ],
+      "aliases": [
+        "so"
+      ],
+      "order": 14,
+      "sources": [
+        "mywubi-curated"
+      ]
+    },
+    {
+      "text": "た",
+      "name": "平假名 ta",
+      "triggers": [
+        "平假名 ta",
+        "假名",
+        "平假名"
+      ],
+      "tags": [
+        "假名",
+        "平假名"
+      ],
+      "aliases": [
+        "ta"
+      ],
+      "order": 15,
+      "sources": [
+        "mywubi-curated"
+      ]
+    },
+    {
+      "text": "ち",
+      "name": "平假名 chi",
+      "triggers": [
+        "平假名 chi",
+        "假名",
+        "平假名"
+      ],
+      "tags": [
+        "假名",
+        "平假名"
+      ],
+      "aliases": [
+        "chi",
+        "ti"
+      ],
+      "order": 16,
+      "sources": [
+        "mywubi-curated"
+      ]
+    },
+    {
+      "text": "つ",
+      "name": "平假名 tsu",
+      "triggers": [
+        "平假名 tsu",
+        "假名",
+        "平假名"
+      ],
+      "tags": [
+        "假名",
+        "平假名"
+      ],
+      "aliases": [
+        "tsu",
+        "tu"
+      ],
+      "order": 17,
+      "sources": [
+        "mywubi-curated"
+      ]
+    },
+    {
+      "text": "て",
+      "name": "平假名 te",
+      "triggers": [
+        "平假名 te",
+        "假名",
+        "平假名"
+      ],
+      "tags": [
+        "假名",
+        "平假名"
+      ],
+      "aliases": [
+        "te"
+      ],
+      "order": 18,
+      "sources": [
+        "mywubi-curated"
+      ]
+    },
+    {
+      "text": "と",
+      "name": "平假名 to",
+      "triggers": [
+        "平假名 to",
+        "假名",
+        "平假名"
+      ],
+      "tags": [
+        "假名",
+        "平假名"
+      ],
+      "aliases": [
+        "to"
+      ],
+      "order": 19,
+      "sources": [
+        "mywubi-curated"
+      ]
+    },
+    {
+      "text": "な",
+      "name": "平假名 na",
+      "triggers": [
+        "平假名 na",
+        "假名",
+        "平假名"
+      ],
+      "tags": [
+        "假名",
+        "平假名"
+      ],
+      "aliases": [
+        "na"
+      ],
+      "order": 20,
+      "sources": [
+        "mywubi-curated"
+      ]
+    },
+    {
+      "text": "に",
+      "name": "平假名 ni",
+      "triggers": [
+        "平假名 ni",
+        "假名",
+        "平假名"
+      ],
+      "tags": [
+        "假名",
+        "平假名"
+      ],
+      "aliases": [
+        "ni"
+      ],
+      "order": 21,
+      "sources": [
+        "mywubi-curated"
+      ]
+    },
+    {
+      "text": "ぬ",
+      "name": "平假名 nu",
+      "triggers": [
+        "平假名 nu",
+        "假名",
+        "平假名"
+      ],
+      "tags": [
+        "假名",
+        "平假名"
+      ],
+      "aliases": [
+        "nu"
+      ],
+      "order": 22,
+      "sources": [
+        "mywubi-curated"
+      ]
+    },
+    {
+      "text": "ね",
+      "name": "平假名 ne",
+      "triggers": [
+        "平假名 ne",
+        "假名",
+        "平假名"
+      ],
+      "tags": [
+        "假名",
+        "平假名"
+      ],
+      "aliases": [
+        "ne"
+      ],
+      "order": 23,
+      "sources": [
+        "mywubi-curated"
+      ]
+    },
+    {
+      "text": "の",
+      "name": "平假名 no",
+      "triggers": [
+        "平假名 no",
+        "假名",
+        "平假名"
+      ],
+      "tags": [
+        "假名",
+        "平假名"
+      ],
+      "aliases": [
+        "no"
+      ],
+      "order": 24,
+      "sources": [
+        "mywubi-curated"
+      ]
+    },
+    {
+      "text": "は",
+      "name": "平假名 ha",
+      "triggers": [
+        "平假名 ha",
+        "假名",
+        "平假名"
+      ],
+      "tags": [
+        "假名",
+        "平假名"
+      ],
+      "aliases": [
+        "ha"
+      ],
+      "order": 25,
+      "sources": [
+        "mywubi-curated"
+      ]
+    },
+    {
+      "text": "ひ",
+      "name": "平假名 hi",
+      "triggers": [
+        "平假名 hi",
+        "假名",
+        "平假名"
+      ],
+      "tags": [
+        "假名",
+        "平假名"
+      ],
+      "aliases": [
+        "hi"
+      ],
+      "order": 26,
+      "sources": [
+        "mywubi-curated"
+      ]
+    },
+    {
+      "text": "ふ",
+      "name": "平假名 fu",
+      "triggers": [
+        "平假名 fu",
+        "假名",
+        "平假名"
+      ],
+      "tags": [
+        "假名",
+        "平假名"
+      ],
+      "aliases": [
+        "fu",
+        "hu"
+      ],
+      "order": 27,
+      "sources": [
+        "mywubi-curated"
+      ]
+    },
+    {
+      "text": "へ",
+      "name": "平假名 he",
+      "triggers": [
+        "平假名 he",
+        "假名",
+        "平假名"
+      ],
+      "tags": [
+        "假名",
+        "平假名"
+      ],
+      "aliases": [
+        "he"
+      ],
+      "order": 28,
+      "sources": [
+        "mywubi-curated"
+      ]
+    },
+    {
+      "text": "ほ",
+      "name": "平假名 ho",
+      "triggers": [
+        "平假名 ho",
+        "假名",
+        "平假名"
+      ],
+      "tags": [
+        "假名",
+        "平假名"
+      ],
+      "aliases": [
+        "ho"
+      ],
+      "order": 29,
+      "sources": [
+        "mywubi-curated"
+      ]
+    },
+    {
+      "text": "ま",
+      "name": "平假名 ma",
+      "triggers": [
+        "平假名 ma",
+        "假名",
+        "平假名"
+      ],
+      "tags": [
+        "假名",
+        "平假名"
+      ],
+      "aliases": [
+        "ma"
+      ],
+      "order": 30,
+      "sources": [
+        "mywubi-curated"
+      ]
+    },
+    {
+      "text": "み",
+      "name": "平假名 mi",
+      "triggers": [
+        "平假名 mi",
+        "假名",
+        "平假名"
+      ],
+      "tags": [
+        "假名",
+        "平假名"
+      ],
+      "aliases": [
+        "mi"
+      ],
+      "order": 31,
+      "sources": [
+        "mywubi-curated"
+      ]
+    },
+    {
+      "text": "む",
+      "name": "平假名 mu",
+      "triggers": [
+        "平假名 mu",
+        "假名",
+        "平假名"
+      ],
+      "tags": [
+        "假名",
+        "平假名"
+      ],
+      "aliases": [
+        "mu"
+      ],
+      "order": 32,
+      "sources": [
+        "mywubi-curated"
+      ]
+    },
+    {
+      "text": "め",
+      "name": "平假名 me",
+      "triggers": [
+        "平假名 me",
+        "假名",
+        "平假名"
+      ],
+      "tags": [
+        "假名",
+        "平假名"
+      ],
+      "aliases": [
+        "me"
+      ],
+      "order": 33,
+      "sources": [
+        "mywubi-curated"
+      ]
+    },
+    {
+      "text": "も",
+      "name": "平假名 mo",
+      "triggers": [
+        "平假名 mo",
+        "假名",
+        "平假名"
+      ],
+      "tags": [
+        "假名",
+        "平假名"
+      ],
+      "aliases": [
+        "mo"
+      ],
+      "order": 34,
+      "sources": [
+        "mywubi-curated"
+      ]
+    },
+    {
+      "text": "や",
+      "name": "平假名 ya",
+      "triggers": [
+        "平假名 ya",
+        "假名",
+        "平假名"
+      ],
+      "tags": [
+        "假名",
+        "平假名"
+      ],
+      "aliases": [
+        "ya"
+      ],
+      "order": 35,
+      "sources": [
+        "mywubi-curated"
+      ]
+    },
+    {
+      "text": "ゆ",
+      "name": "平假名 yu",
+      "triggers": [
+        "平假名 yu",
+        "假名",
+        "平假名"
+      ],
+      "tags": [
+        "假名",
+        "平假名"
+      ],
+      "aliases": [
+        "yu"
+      ],
+      "order": 36,
+      "sources": [
+        "mywubi-curated"
+      ]
+    },
+    {
+      "text": "よ",
+      "name": "平假名 yo",
+      "triggers": [
+        "平假名 yo",
+        "假名",
+        "平假名"
+      ],
+      "tags": [
+        "假名",
+        "平假名"
+      ],
+      "aliases": [
+        "yo"
+      ],
+      "order": 37,
+      "sources": [
+        "mywubi-curated"
+      ]
+    },
+    {
+      "text": "ら",
+      "name": "平假名 ra",
+      "triggers": [
+        "平假名 ra",
+        "假名",
+        "平假名"
+      ],
+      "tags": [
+        "假名",
+        "平假名"
+      ],
+      "aliases": [
+        "ra"
+      ],
+      "order": 38,
+      "sources": [
+        "mywubi-curated"
+      ]
+    },
+    {
+      "text": "り",
+      "name": "平假名 ri",
+      "triggers": [
+        "平假名 ri",
+        "假名",
+        "平假名"
+      ],
+      "tags": [
+        "假名",
+        "平假名"
+      ],
+      "aliases": [
+        "ri"
+      ],
+      "order": 39,
+      "sources": [
+        "mywubi-curated"
+      ]
+    },
+    {
+      "text": "る",
+      "name": "平假名 ru",
+      "triggers": [
+        "平假名 ru",
+        "假名",
+        "平假名"
+      ],
+      "tags": [
+        "假名",
+        "平假名"
+      ],
+      "aliases": [
+        "ru"
+      ],
+      "order": 40,
+      "sources": [
+        "mywubi-curated"
+      ]
+    },
+    {
+      "text": "れ",
+      "name": "平假名 re",
+      "triggers": [
+        "平假名 re",
+        "假名",
+        "平假名"
+      ],
+      "tags": [
+        "假名",
+        "平假名"
+      ],
+      "aliases": [
+        "re"
+      ],
+      "order": 41,
+      "sources": [
+        "mywubi-curated"
+      ]
+    },
+    {
+      "text": "ろ",
+      "name": "平假名 ro",
+      "triggers": [
+        "平假名 ro",
+        "假名",
+        "平假名"
+      ],
+      "tags": [
+        "假名",
+        "平假名"
+      ],
+      "aliases": [
+        "ro"
+      ],
+      "order": 42,
+      "sources": [
+        "mywubi-curated"
+      ]
+    },
+    {
+      "text": "わ",
+      "name": "平假名 wa",
+      "triggers": [
+        "平假名 wa",
+        "假名",
+        "平假名"
+      ],
+      "tags": [
+        "假名",
+        "平假名"
+      ],
+      "aliases": [
+        "wa"
+      ],
+      "order": 43,
+      "sources": [
+        "mywubi-curated"
+      ]
+    },
+    {
+      "text": "を",
+      "name": "平假名 wo",
+      "triggers": [
+        "平假名 wo",
+        "假名",
+        "平假名"
+      ],
+      "tags": [
+        "假名",
+        "平假名"
+      ],
+      "aliases": [
+        "wo"
+      ],
+      "order": 44,
+      "sources": [
+        "mywubi-curated"
+      ]
+    },
+    {
+      "text": "ん",
+      "name": "平假名 n",
+      "triggers": [
+        "平假名 n",
+        "假名",
+        "平假名"
+      ],
+      "tags": [
+        "假名",
+        "平假名"
+      ],
+      "aliases": [
+        "n",
+        "nn"
+      ],
+      "order": 45,
+      "sources": [
+        "mywubi-curated"
+      ]
+    },
+    {
+      "text": "が",
+      "name": "平假名 ga",
+      "triggers": [
+        "平假名 ga",
+        "假名",
+        "平假名",
+        "浊音"
+      ],
+      "tags": [
+        "假名",
+        "平假名",
+        "浊音"
+      ],
+      "aliases": [
+        "ga"
+      ],
+      "order": 46,
+      "sources": [
+        "mywubi-curated"
+      ]
+    },
+    {
+      "text": "ぎ",
+      "name": "平假名 gi",
+      "triggers": [
+        "平假名 gi",
+        "假名",
+        "平假名",
+        "浊音"
+      ],
+      "tags": [
+        "假名",
+        "平假名",
+        "浊音"
+      ],
+      "aliases": [
+        "gi"
+      ],
+      "order": 47,
+      "sources": [
+        "mywubi-curated"
+      ]
+    },
+    {
+      "text": "ぐ",
+      "name": "平假名 gu",
+      "triggers": [
+        "平假名 gu",
+        "假名",
+        "平假名",
+        "浊音"
+      ],
+      "tags": [
+        "假名",
+        "平假名",
+        "浊音"
+      ],
+      "aliases": [
+        "gu"
+      ],
+      "order": 48,
+      "sources": [
+        "mywubi-curated"
+      ]
+    },
+    {
+      "text": "げ",
+      "name": "平假名 ge",
+      "triggers": [
+        "平假名 ge",
+        "假名",
+        "平假名",
+        "浊音"
+      ],
+      "tags": [
+        "假名",
+        "平假名",
+        "浊音"
+      ],
+      "aliases": [
+        "ge"
+      ],
+      "order": 49,
+      "sources": [
+        "mywubi-curated"
+      ]
+    },
+    {
+      "text": "ご",
+      "name": "平假名 go",
+      "triggers": [
+        "平假名 go",
+        "假名",
+        "平假名",
+        "浊音"
+      ],
+      "tags": [
+        "假名",
+        "平假名",
+        "浊音"
+      ],
+      "aliases": [
+        "go"
+      ],
+      "order": 50,
+      "sources": [
+        "mywubi-curated"
+      ]
+    },
+    {
+      "text": "ざ",
+      "name": "平假名 za",
+      "triggers": [
+        "平假名 za",
+        "假名",
+        "平假名",
+        "浊音"
+      ],
+      "tags": [
+        "假名",
+        "平假名",
+        "浊音"
+      ],
+      "aliases": [
+        "za"
+      ],
+      "order": 51,
+      "sources": [
+        "mywubi-curated"
+      ]
+    },
+    {
+      "text": "じ",
+      "name": "平假名 ji",
+      "triggers": [
+        "平假名 ji",
+        "假名",
+        "平假名",
+        "浊音"
+      ],
+      "tags": [
+        "假名",
+        "平假名",
+        "浊音"
+      ],
+      "aliases": [
+        "ji",
+        "zi"
+      ],
+      "order": 52,
+      "sources": [
+        "mywubi-curated"
+      ]
+    },
+    {
+      "text": "ず",
+      "name": "平假名 zu",
+      "triggers": [
+        "平假名 zu",
+        "假名",
+        "平假名",
+        "浊音"
+      ],
+      "tags": [
+        "假名",
+        "平假名",
+        "浊音"
+      ],
+      "aliases": [
+        "zu"
+      ],
+      "order": 53,
+      "sources": [
+        "mywubi-curated"
+      ]
+    },
+    {
+      "text": "ぜ",
+      "name": "平假名 ze",
+      "triggers": [
+        "平假名 ze",
+        "假名",
+        "平假名",
+        "浊音"
+      ],
+      "tags": [
+        "假名",
+        "平假名",
+        "浊音"
+      ],
+      "aliases": [
+        "ze"
+      ],
+      "order": 54,
+      "sources": [
+        "mywubi-curated"
+      ]
+    },
+    {
+      "text": "ぞ",
+      "name": "平假名 zo",
+      "triggers": [
+        "平假名 zo",
+        "假名",
+        "平假名",
+        "浊音"
+      ],
+      "tags": [
+        "假名",
+        "平假名",
+        "浊音"
+      ],
+      "aliases": [
+        "zo"
+      ],
+      "order": 55,
+      "sources": [
+        "mywubi-curated"
+      ]
+    },
+    {
+      "text": "だ",
+      "name": "平假名 da",
+      "triggers": [
+        "平假名 da",
+        "假名",
+        "平假名",
+        "浊音"
+      ],
+      "tags": [
+        "假名",
+        "平假名",
+        "浊音"
+      ],
+      "aliases": [
+        "da"
+      ],
+      "order": 56,
+      "sources": [
+        "mywubi-curated"
+      ]
+    },
+    {
+      "text": "ぢ",
+      "name": "平假名 di",
+      "triggers": [
+        "平假名 di",
+        "假名",
+        "平假名",
+        "浊音"
+      ],
+      "tags": [
+        "假名",
+        "平假名",
+        "浊音"
+      ],
+      "aliases": [
+        "di",
+        "ji"
+      ],
+      "order": 57,
+      "sources": [
+        "mywubi-curated"
+      ]
+    },
+    {
+      "text": "づ",
+      "name": "平假名 du",
+      "triggers": [
+        "平假名 du",
+        "假名",
+        "平假名",
+        "浊音"
+      ],
+      "tags": [
+        "假名",
+        "平假名",
+        "浊音"
+      ],
+      "aliases": [
+        "du",
+        "zu"
+      ],
+      "order": 58,
+      "sources": [
+        "mywubi-curated"
+      ]
+    },
+    {
+      "text": "で",
+      "name": "平假名 de",
+      "triggers": [
+        "平假名 de",
+        "假名",
+        "平假名",
+        "浊音"
+      ],
+      "tags": [
+        "假名",
+        "平假名",
+        "浊音"
+      ],
+      "aliases": [
+        "de"
+      ],
+      "order": 59,
+      "sources": [
+        "mywubi-curated"
+      ]
+    },
+    {
+      "text": "ど",
+      "name": "平假名 do",
+      "triggers": [
+        "平假名 do",
+        "假名",
+        "平假名",
+        "浊音"
+      ],
+      "tags": [
+        "假名",
+        "平假名",
+        "浊音"
+      ],
+      "aliases": [
+        "do"
+      ],
+      "order": 60,
+      "sources": [
+        "mywubi-curated"
+      ]
+    },
+    {
+      "text": "ば",
+      "name": "平假名 ba",
+      "triggers": [
+        "平假名 ba",
+        "假名",
+        "平假名",
+        "浊音"
+      ],
+      "tags": [
+        "假名",
+        "平假名",
+        "浊音"
+      ],
+      "aliases": [
+        "ba"
+      ],
+      "order": 61,
+      "sources": [
+        "mywubi-curated"
+      ]
+    },
+    {
+      "text": "び",
+      "name": "平假名 bi",
+      "triggers": [
+        "平假名 bi",
+        "假名",
+        "平假名",
+        "浊音"
+      ],
+      "tags": [
+        "假名",
+        "平假名",
+        "浊音"
+      ],
+      "aliases": [
+        "bi"
+      ],
+      "order": 62,
+      "sources": [
+        "mywubi-curated"
+      ]
+    },
+    {
+      "text": "ぶ",
+      "name": "平假名 bu",
+      "triggers": [
+        "平假名 bu",
+        "假名",
+        "平假名",
+        "浊音"
+      ],
+      "tags": [
+        "假名",
+        "平假名",
+        "浊音"
+      ],
+      "aliases": [
+        "bu"
+      ],
+      "order": 63,
+      "sources": [
+        "mywubi-curated"
+      ]
+    },
+    {
+      "text": "べ",
+      "name": "平假名 be",
+      "triggers": [
+        "平假名 be",
+        "假名",
+        "平假名",
+        "浊音"
+      ],
+      "tags": [
+        "假名",
+        "平假名",
+        "浊音"
+      ],
+      "aliases": [
+        "be"
+      ],
+      "order": 64,
+      "sources": [
+        "mywubi-curated"
+      ]
+    },
+    {
+      "text": "ぼ",
+      "name": "平假名 bo",
+      "triggers": [
+        "平假名 bo",
+        "假名",
+        "平假名",
+        "浊音"
+      ],
+      "tags": [
+        "假名",
+        "平假名",
+        "浊音"
+      ],
+      "aliases": [
+        "bo"
+      ],
+      "order": 65,
+      "sources": [
+        "mywubi-curated"
+      ]
+    },
+    {
+      "text": "ぱ",
+      "name": "平假名 pa",
+      "triggers": [
+        "平假名 pa",
+        "假名",
+        "平假名",
+        "半浊音"
+      ],
+      "tags": [
+        "假名",
+        "平假名",
+        "半浊音"
+      ],
+      "aliases": [
+        "pa"
+      ],
+      "order": 66,
+      "sources": [
+        "mywubi-curated"
+      ]
+    },
+    {
+      "text": "ぴ",
+      "name": "平假名 pi",
+      "triggers": [
+        "平假名 pi",
+        "假名",
+        "平假名",
+        "半浊音"
+      ],
+      "tags": [
+        "假名",
+        "平假名",
+        "半浊音"
+      ],
+      "aliases": [
+        "pi"
+      ],
+      "order": 67,
+      "sources": [
+        "mywubi-curated"
+      ]
+    },
+    {
+      "text": "ぷ",
+      "name": "平假名 pu",
+      "triggers": [
+        "平假名 pu",
+        "假名",
+        "平假名",
+        "半浊音"
+      ],
+      "tags": [
+        "假名",
+        "平假名",
+        "半浊音"
+      ],
+      "aliases": [
+        "pu"
+      ],
+      "order": 68,
+      "sources": [
+        "mywubi-curated"
+      ]
+    },
+    {
+      "text": "ぺ",
+      "name": "平假名 pe",
+      "triggers": [
+        "平假名 pe",
+        "假名",
+        "平假名",
+        "半浊音"
+      ],
+      "tags": [
+        "假名",
+        "平假名",
+        "半浊音"
+      ],
+      "aliases": [
+        "pe"
+      ],
+      "order": 69,
+      "sources": [
+        "mywubi-curated"
+      ]
+    },
+    {
+      "text": "ぽ",
+      "name": "平假名 po",
+      "triggers": [
+        "平假名 po",
+        "假名",
+        "平假名",
+        "半浊音"
+      ],
+      "tags": [
+        "假名",
+        "平假名",
+        "半浊音"
+      ],
+      "aliases": [
+        "po"
+      ],
+      "order": 70,
+      "sources": [
+        "mywubi-curated"
+      ]
+    },
+    {
+      "text": "ゔ",
+      "name": "平假名 vu",
+      "triggers": [
+        "平假名 vu",
+        "假名",
+        "平假名",
+        "浊音"
+      ],
+      "tags": [
+        "假名",
+        "平假名",
+        "浊音"
+      ],
+      "aliases": [
+        "vu"
+      ],
+      "order": 71,
+      "sources": [
+        "mywubi-curated"
+      ]
+    },
+    {
+      "text": "ぁ",
+      "name": "平假名 xa",
+      "triggers": [
+        "平假名 xa",
+        "假名",
+        "平假名",
+        "小写假名"
+      ],
+      "tags": [
+        "假名",
+        "平假名",
+        "小写假名"
+      ],
+      "aliases": [
+        "xa",
+        "la"
+      ],
+      "order": 72,
+      "sources": [
+        "mywubi-curated"
+      ]
+    },
+    {
+      "text": "ぃ",
+      "name": "平假名 xi",
+      "triggers": [
+        "平假名 xi",
+        "假名",
+        "平假名",
+        "小写假名"
+      ],
+      "tags": [
+        "假名",
+        "平假名",
+        "小写假名"
+      ],
+      "aliases": [
+        "xi",
+        "li"
+      ],
+      "order": 73,
+      "sources": [
+        "mywubi-curated"
+      ]
+    },
+    {
+      "text": "ぅ",
+      "name": "平假名 xu",
+      "triggers": [
+        "平假名 xu",
+        "假名",
+        "平假名",
+        "小写假名"
+      ],
+      "tags": [
+        "假名",
+        "平假名",
+        "小写假名"
+      ],
+      "aliases": [
+        "xu",
+        "lu"
+      ],
+      "order": 74,
+      "sources": [
+        "mywubi-curated"
+      ]
+    },
+    {
+      "text": "ぇ",
+      "name": "平假名 xe",
+      "triggers": [
+        "平假名 xe",
+        "假名",
+        "平假名",
+        "小写假名"
+      ],
+      "tags": [
+        "假名",
+        "平假名",
+        "小写假名"
+      ],
+      "aliases": [
+        "xe",
+        "le"
+      ],
+      "order": 75,
+      "sources": [
+        "mywubi-curated"
+      ]
+    },
+    {
+      "text": "ぉ",
+      "name": "平假名 xo",
+      "triggers": [
+        "平假名 xo",
+        "假名",
+        "平假名",
+        "小写假名"
+      ],
+      "tags": [
+        "假名",
+        "平假名",
+        "小写假名"
+      ],
+      "aliases": [
+        "xo",
+        "lo"
+      ],
+      "order": 76,
+      "sources": [
+        "mywubi-curated"
+      ]
+    },
+    {
+      "text": "っ",
+      "name": "平假名 xtsu",
+      "triggers": [
+        "平假名 xtsu",
+        "假名",
+        "平假名",
+        "小写假名"
+      ],
+      "tags": [
+        "假名",
+        "平假名",
+        "小写假名"
+      ],
+      "aliases": [
+        "xtsu",
+        "xtu",
+        "ltsu"
+      ],
+      "order": 77,
+      "sources": [
+        "mywubi-curated"
+      ]
+    },
+    {
+      "text": "ゃ",
+      "name": "平假名 xya",
+      "triggers": [
+        "平假名 xya",
+        "假名",
+        "平假名",
+        "小写假名"
+      ],
+      "tags": [
+        "假名",
+        "平假名",
+        "小写假名"
+      ],
+      "aliases": [
+        "xya",
+        "lya"
+      ],
+      "order": 78,
+      "sources": [
+        "mywubi-curated"
+      ]
+    },
+    {
+      "text": "ゅ",
+      "name": "平假名 xyu",
+      "triggers": [
+        "平假名 xyu",
+        "假名",
+        "平假名",
+        "小写假名"
+      ],
+      "tags": [
+        "假名",
+        "平假名",
+        "小写假名"
+      ],
+      "aliases": [
+        "xyu",
+        "lyu"
+      ],
+      "order": 79,
+      "sources": [
+        "mywubi-curated"
+      ]
+    },
+    {
+      "text": "ょ",
+      "name": "平假名 xyo",
+      "triggers": [
+        "平假名 xyo",
+        "假名",
+        "平假名",
+        "小写假名"
+      ],
+      "tags": [
+        "假名",
+        "平假名",
+        "小写假名"
+      ],
+      "aliases": [
+        "xyo",
+        "lyo"
+      ],
+      "order": 80,
+      "sources": [
+        "mywubi-curated"
+      ]
+    },
+    {
+      "text": "ゎ",
+      "name": "平假名 xwa",
+      "triggers": [
+        "平假名 xwa",
+        "假名",
+        "平假名",
+        "小写假名"
+      ],
+      "tags": [
+        "假名",
+        "平假名",
+        "小写假名"
+      ],
+      "aliases": [
+        "xwa",
+        "lwa"
+      ],
+      "order": 81,
+      "sources": [
+        "mywubi-curated"
+      ]
+    },
+    {
+      "text": "ゕ",
+      "name": "平假名 xka",
+      "triggers": [
+        "平假名 xka",
+        "假名",
+        "平假名",
+        "小写假名"
+      ],
+      "tags": [
+        "假名",
+        "平假名",
+        "小写假名"
+      ],
+      "aliases": [
+        "xka"
+      ],
+      "order": 82,
+      "sources": [
+        "mywubi-curated"
+      ]
+    },
+    {
+      "text": "ゖ",
+      "name": "平假名 xke",
+      "triggers": [
+        "平假名 xke",
+        "假名",
+        "平假名",
+        "小写假名"
+      ],
+      "tags": [
+        "假名",
+        "平假名",
+        "小写假名"
+      ],
+      "aliases": [
+        "xke"
+      ],
+      "order": 83,
+      "sources": [
+        "mywubi-curated"
+      ]
+    },
+    {
+      "text": "ゐ",
+      "name": "平假名 wi",
+      "triggers": [
+        "平假名 wi",
+        "假名",
+        "平假名",
+        "历史假名"
+      ],
+      "tags": [
+        "假名",
+        "平假名",
+        "历史假名"
+      ],
+      "aliases": [
+        "wi"
+      ],
+      "order": 84,
+      "sources": [
+        "mywubi-curated"
+      ]
+    },
+    {
+      "text": "ゑ",
+      "name": "平假名 we",
+      "triggers": [
+        "平假名 we",
+        "假名",
+        "平假名",
+        "历史假名"
+      ],
+      "tags": [
+        "假名",
+        "平假名",
+        "历史假名"
+      ],
+      "aliases": [
+        "we"
+      ],
+      "order": 85,
+      "sources": [
+        "mywubi-curated"
+      ]
+    },
+    {
+      "text": "が",
+      "name": "平假名 ga 组合形式",
+      "triggers": [
+        "平假名 ga 组合形式",
+        "假名",
+        "平假名",
+        "组合形式",
+        "浊音"
+      ],
+      "tags": [
+        "假名",
+        "平假名",
+        "组合形式",
+        "浊音"
+      ],
+      "aliases": [
+        "ga"
+      ],
+      "order": 86,
+      "sources": [
+        "mywubi-curated"
+      ]
+    },
+    {
+      "text": "ぎ",
+      "name": "平假名 gi 组合形式",
+      "triggers": [
+        "平假名 gi 组合形式",
+        "假名",
+        "平假名",
+        "组合形式",
+        "浊音"
+      ],
+      "tags": [
+        "假名",
+        "平假名",
+        "组合形式",
+        "浊音"
+      ],
+      "aliases": [
+        "gi"
+      ],
+      "order": 87,
+      "sources": [
+        "mywubi-curated"
+      ]
+    },
+    {
+      "text": "ぐ",
+      "name": "平假名 gu 组合形式",
+      "triggers": [
+        "平假名 gu 组合形式",
+        "假名",
+        "平假名",
+        "组合形式",
+        "浊音"
+      ],
+      "tags": [
+        "假名",
+        "平假名",
+        "组合形式",
+        "浊音"
+      ],
+      "aliases": [
+        "gu"
+      ],
+      "order": 88,
+      "sources": [
+        "mywubi-curated"
+      ]
+    },
+    {
+      "text": "げ",
+      "name": "平假名 ge 组合形式",
+      "triggers": [
+        "平假名 ge 组合形式",
+        "假名",
+        "平假名",
+        "组合形式",
+        "浊音"
+      ],
+      "tags": [
+        "假名",
+        "平假名",
+        "组合形式",
+        "浊音"
+      ],
+      "aliases": [
+        "ge"
+      ],
+      "order": 89,
+      "sources": [
+        "mywubi-curated"
+      ]
+    },
+    {
+      "text": "ご",
+      "name": "平假名 go 组合形式",
+      "triggers": [
+        "平假名 go 组合形式",
+        "假名",
+        "平假名",
+        "组合形式",
+        "浊音"
+      ],
+      "tags": [
+        "假名",
+        "平假名",
+        "组合形式",
+        "浊音"
+      ],
+      "aliases": [
+        "go"
+      ],
+      "order": 90,
+      "sources": [
+        "mywubi-curated"
+      ]
+    },
+    {
+      "text": "ざ",
+      "name": "平假名 za 组合形式",
+      "triggers": [
+        "平假名 za 组合形式",
+        "假名",
+        "平假名",
+        "组合形式",
+        "浊音"
+      ],
+      "tags": [
+        "假名",
+        "平假名",
+        "组合形式",
+        "浊音"
+      ],
+      "aliases": [
+        "za"
+      ],
+      "order": 91,
+      "sources": [
+        "mywubi-curated"
+      ]
+    },
+    {
+      "text": "じ",
+      "name": "平假名 ji 组合形式",
+      "triggers": [
+        "平假名 ji 组合形式",
+        "假名",
+        "平假名",
+        "组合形式",
+        "浊音"
+      ],
+      "tags": [
+        "假名",
+        "平假名",
+        "组合形式",
+        "浊音"
+      ],
+      "aliases": [
+        "ji",
+        "zi"
+      ],
+      "order": 92,
+      "sources": [
+        "mywubi-curated"
+      ]
+    },
+    {
+      "text": "ず",
+      "name": "平假名 zu 组合形式",
+      "triggers": [
+        "平假名 zu 组合形式",
+        "假名",
+        "平假名",
+        "组合形式",
+        "浊音"
+      ],
+      "tags": [
+        "假名",
+        "平假名",
+        "组合形式",
+        "浊音"
+      ],
+      "aliases": [
+        "zu"
+      ],
+      "order": 93,
+      "sources": [
+        "mywubi-curated"
+      ]
+    },
+    {
+      "text": "ぜ",
+      "name": "平假名 ze 组合形式",
+      "triggers": [
+        "平假名 ze 组合形式",
+        "假名",
+        "平假名",
+        "组合形式",
+        "浊音"
+      ],
+      "tags": [
+        "假名",
+        "平假名",
+        "组合形式",
+        "浊音"
+      ],
+      "aliases": [
+        "ze"
+      ],
+      "order": 94,
+      "sources": [
+        "mywubi-curated"
+      ]
+    },
+    {
+      "text": "ぞ",
+      "name": "平假名 zo 组合形式",
+      "triggers": [
+        "平假名 zo 组合形式",
+        "假名",
+        "平假名",
+        "组合形式",
+        "浊音"
+      ],
+      "tags": [
+        "假名",
+        "平假名",
+        "组合形式",
+        "浊音"
+      ],
+      "aliases": [
+        "zo"
+      ],
+      "order": 95,
+      "sources": [
+        "mywubi-curated"
+      ]
+    },
+    {
+      "text": "だ",
+      "name": "平假名 da 组合形式",
+      "triggers": [
+        "平假名 da 组合形式",
+        "假名",
+        "平假名",
+        "组合形式",
+        "浊音"
+      ],
+      "tags": [
+        "假名",
+        "平假名",
+        "组合形式",
+        "浊音"
+      ],
+      "aliases": [
+        "da"
+      ],
+      "order": 96,
+      "sources": [
+        "mywubi-curated"
+      ]
+    },
+    {
+      "text": "ぢ",
+      "name": "平假名 di 组合形式",
+      "triggers": [
+        "平假名 di 组合形式",
+        "假名",
+        "平假名",
+        "组合形式",
+        "浊音"
+      ],
+      "tags": [
+        "假名",
+        "平假名",
+        "组合形式",
+        "浊音"
+      ],
+      "aliases": [
+        "di",
+        "ji"
+      ],
+      "order": 97,
+      "sources": [
+        "mywubi-curated"
+      ]
+    },
+    {
+      "text": "づ",
+      "name": "平假名 du 组合形式",
+      "triggers": [
+        "平假名 du 组合形式",
+        "假名",
+        "平假名",
+        "组合形式",
+        "浊音"
+      ],
+      "tags": [
+        "假名",
+        "平假名",
+        "组合形式",
+        "浊音"
+      ],
+      "aliases": [
+        "du",
+        "zu"
+      ],
+      "order": 98,
+      "sources": [
+        "mywubi-curated"
+      ]
+    },
+    {
+      "text": "で",
+      "name": "平假名 de 组合形式",
+      "triggers": [
+        "平假名 de 组合形式",
+        "假名",
+        "平假名",
+        "组合形式",
+        "浊音"
+      ],
+      "tags": [
+        "假名",
+        "平假名",
+        "组合形式",
+        "浊音"
+      ],
+      "aliases": [
+        "de"
+      ],
+      "order": 99,
+      "sources": [
+        "mywubi-curated"
+      ]
+    },
+    {
+      "text": "ど",
+      "name": "平假名 do 组合形式",
+      "triggers": [
+        "平假名 do 组合形式",
+        "假名",
+        "平假名",
+        "组合形式",
+        "浊音"
+      ],
+      "tags": [
+        "假名",
+        "平假名",
+        "组合形式",
+        "浊音"
+      ],
+      "aliases": [
+        "do"
+      ],
+      "order": 100,
+      "sources": [
+        "mywubi-curated"
+      ]
+    },
+    {
+      "text": "ば",
+      "name": "平假名 ba 组合形式",
+      "triggers": [
+        "平假名 ba 组合形式",
+        "假名",
+        "平假名",
+        "组合形式",
+        "浊音"
+      ],
+      "tags": [
+        "假名",
+        "平假名",
+        "组合形式",
+        "浊音"
+      ],
+      "aliases": [
+        "ba"
+      ],
+      "order": 101,
+      "sources": [
+        "mywubi-curated"
+      ]
+    },
+    {
+      "text": "び",
+      "name": "平假名 bi 组合形式",
+      "triggers": [
+        "平假名 bi 组合形式",
+        "假名",
+        "平假名",
+        "组合形式",
+        "浊音"
+      ],
+      "tags": [
+        "假名",
+        "平假名",
+        "组合形式",
+        "浊音"
+      ],
+      "aliases": [
+        "bi"
+      ],
+      "order": 102,
+      "sources": [
+        "mywubi-curated"
+      ]
+    },
+    {
+      "text": "ぶ",
+      "name": "平假名 bu 组合形式",
+      "triggers": [
+        "平假名 bu 组合形式",
+        "假名",
+        "平假名",
+        "组合形式",
+        "浊音"
+      ],
+      "tags": [
+        "假名",
+        "平假名",
+        "组合形式",
+        "浊音"
+      ],
+      "aliases": [
+        "bu"
+      ],
+      "order": 103,
+      "sources": [
+        "mywubi-curated"
+      ]
+    },
+    {
+      "text": "べ",
+      "name": "平假名 be 组合形式",
+      "triggers": [
+        "平假名 be 组合形式",
+        "假名",
+        "平假名",
+        "组合形式",
+        "浊音"
+      ],
+      "tags": [
+        "假名",
+        "平假名",
+        "组合形式",
+        "浊音"
+      ],
+      "aliases": [
+        "be"
+      ],
+      "order": 104,
+      "sources": [
+        "mywubi-curated"
+      ]
+    },
+    {
+      "text": "ぼ",
+      "name": "平假名 bo 组合形式",
+      "triggers": [
+        "平假名 bo 组合形式",
+        "假名",
+        "平假名",
+        "组合形式",
+        "浊音"
+      ],
+      "tags": [
+        "假名",
+        "平假名",
+        "组合形式",
+        "浊音"
+      ],
+      "aliases": [
+        "bo"
+      ],
+      "order": 105,
+      "sources": [
+        "mywubi-curated"
+      ]
+    },
+    {
+      "text": "ぱ",
+      "name": "平假名 pa 组合形式",
+      "triggers": [
+        "平假名 pa 组合形式",
+        "假名",
+        "平假名",
+        "组合形式",
+        "半浊音"
+      ],
+      "tags": [
+        "假名",
+        "平假名",
+        "组合形式",
+        "半浊音"
+      ],
+      "aliases": [
+        "pa"
+      ],
+      "order": 106,
+      "sources": [
+        "mywubi-curated"
+      ]
+    },
+    {
+      "text": "ぴ",
+      "name": "平假名 pi 组合形式",
+      "triggers": [
+        "平假名 pi 组合形式",
+        "假名",
+        "平假名",
+        "组合形式",
+        "半浊音"
+      ],
+      "tags": [
+        "假名",
+        "平假名",
+        "组合形式",
+        "半浊音"
+      ],
+      "aliases": [
+        "pi"
+      ],
+      "order": 107,
+      "sources": [
+        "mywubi-curated"
+      ]
+    },
+    {
+      "text": "ぷ",
+      "name": "平假名 pu 组合形式",
+      "triggers": [
+        "平假名 pu 组合形式",
+        "假名",
+        "平假名",
+        "组合形式",
+        "半浊音"
+      ],
+      "tags": [
+        "假名",
+        "平假名",
+        "组合形式",
+        "半浊音"
+      ],
+      "aliases": [
+        "pu"
+      ],
+      "order": 108,
+      "sources": [
+        "mywubi-curated"
+      ]
+    },
+    {
+      "text": "ぺ",
+      "name": "平假名 pe 组合形式",
+      "triggers": [
+        "平假名 pe 组合形式",
+        "假名",
+        "平假名",
+        "组合形式",
+        "半浊音"
+      ],
+      "tags": [
+        "假名",
+        "平假名",
+        "组合形式",
+        "半浊音"
+      ],
+      "aliases": [
+        "pe"
+      ],
+      "order": 109,
+      "sources": [
+        "mywubi-curated"
+      ]
+    },
+    {
+      "text": "ぽ",
+      "name": "平假名 po 组合形式",
+      "triggers": [
+        "平假名 po 组合形式",
+        "假名",
+        "平假名",
+        "组合形式",
+        "半浊音"
+      ],
+      "tags": [
+        "假名",
+        "平假名",
+        "组合形式",
+        "半浊音"
+      ],
+      "aliases": [
+        "po"
+      ],
+      "order": 110,
+      "sources": [
+        "mywubi-curated"
+      ]
+    },
+    {
+      "text": "ゔ",
+      "name": "平假名 vu 组合形式",
+      "triggers": [
+        "平假名 vu 组合形式",
+        "假名",
+        "平假名",
+        "组合形式",
+        "浊音"
+      ],
+      "tags": [
+        "假名",
+        "平假名",
+        "组合形式",
+        "浊音"
+      ],
+      "aliases": [
+        "vu"
+      ],
+      "order": 111,
+      "sources": [
+        "mywubi-curated"
+      ]
+    },
+    {
+      "text": "ア",
+      "name": "片假名 a",
+      "triggers": [
+        "片假名 a",
+        "假名",
+        "片假名"
+      ],
+      "tags": [
+        "假名",
+        "片假名"
+      ],
+      "aliases": [
+        "a"
+      ],
+      "order": 112,
+      "sources": [
+        "mywubi-curated"
+      ]
+    },
+    {
+      "text": "イ",
+      "name": "片假名 i",
+      "triggers": [
+        "片假名 i",
+        "假名",
+        "片假名"
+      ],
+      "tags": [
+        "假名",
+        "片假名"
+      ],
+      "aliases": [
+        "i"
+      ],
+      "order": 113,
+      "sources": [
+        "mywubi-curated"
+      ]
+    },
+    {
+      "text": "ウ",
+      "name": "片假名 u",
+      "triggers": [
+        "片假名 u",
+        "假名",
+        "片假名"
+      ],
+      "tags": [
+        "假名",
+        "片假名"
+      ],
+      "aliases": [
+        "u"
+      ],
+      "order": 114,
+      "sources": [
+        "mywubi-curated"
+      ]
+    },
+    {
+      "text": "エ",
+      "name": "片假名 e",
+      "triggers": [
+        "片假名 e",
+        "假名",
+        "片假名"
+      ],
+      "tags": [
+        "假名",
+        "片假名"
+      ],
+      "aliases": [
+        "e"
+      ],
+      "order": 115,
+      "sources": [
+        "mywubi-curated"
+      ]
+    },
+    {
+      "text": "オ",
+      "name": "片假名 o",
+      "triggers": [
+        "片假名 o",
+        "假名",
+        "片假名"
+      ],
+      "tags": [
+        "假名",
+        "片假名"
+      ],
+      "aliases": [
+        "o"
+      ],
+      "order": 116,
+      "sources": [
+        "mywubi-curated"
+      ]
+    },
+    {
+      "text": "カ",
+      "name": "片假名 ka",
+      "triggers": [
+        "片假名 ka",
+        "假名",
+        "片假名"
+      ],
+      "tags": [
+        "假名",
+        "片假名"
+      ],
+      "aliases": [
+        "ka"
+      ],
+      "order": 117,
+      "sources": [
+        "mywubi-curated"
+      ]
+    },
+    {
+      "text": "キ",
+      "name": "片假名 ki",
+      "triggers": [
+        "片假名 ki",
+        "假名",
+        "片假名"
+      ],
+      "tags": [
+        "假名",
+        "片假名"
+      ],
+      "aliases": [
+        "ki"
+      ],
+      "order": 118,
+      "sources": [
+        "mywubi-curated"
+      ]
+    },
+    {
+      "text": "ク",
+      "name": "片假名 ku",
+      "triggers": [
+        "片假名 ku",
+        "假名",
+        "片假名"
+      ],
+      "tags": [
+        "假名",
+        "片假名"
+      ],
+      "aliases": [
+        "ku"
+      ],
+      "order": 119,
+      "sources": [
+        "mywubi-curated"
+      ]
+    },
+    {
+      "text": "ケ",
+      "name": "片假名 ke",
+      "triggers": [
+        "片假名 ke",
+        "假名",
+        "片假名"
+      ],
+      "tags": [
+        "假名",
+        "片假名"
+      ],
+      "aliases": [
+        "ke"
+      ],
+      "order": 120,
+      "sources": [
+        "mywubi-curated"
+      ]
+    },
+    {
+      "text": "コ",
+      "name": "片假名 ko",
+      "triggers": [
+        "片假名 ko",
+        "假名",
+        "片假名"
+      ],
+      "tags": [
+        "假名",
+        "片假名"
+      ],
+      "aliases": [
+        "ko"
+      ],
+      "order": 121,
+      "sources": [
+        "mywubi-curated"
+      ]
+    },
+    {
+      "text": "サ",
+      "name": "片假名 sa",
+      "triggers": [
+        "片假名 sa",
+        "假名",
+        "片假名"
+      ],
+      "tags": [
+        "假名",
+        "片假名"
+      ],
+      "aliases": [
+        "sa"
+      ],
+      "order": 122,
+      "sources": [
+        "mywubi-curated"
+      ]
+    },
+    {
+      "text": "シ",
+      "name": "片假名 shi",
+      "triggers": [
+        "片假名 shi",
+        "假名",
+        "片假名"
+      ],
+      "tags": [
+        "假名",
+        "片假名"
+      ],
+      "aliases": [
+        "shi",
+        "si"
+      ],
+      "order": 123,
+      "sources": [
+        "mywubi-curated"
+      ]
+    },
+    {
+      "text": "ス",
+      "name": "片假名 su",
+      "triggers": [
+        "片假名 su",
+        "假名",
+        "片假名"
+      ],
+      "tags": [
+        "假名",
+        "片假名"
+      ],
+      "aliases": [
+        "su"
+      ],
+      "order": 124,
+      "sources": [
+        "mywubi-curated"
+      ]
+    },
+    {
+      "text": "セ",
+      "name": "片假名 se",
+      "triggers": [
+        "片假名 se",
+        "假名",
+        "片假名"
+      ],
+      "tags": [
+        "假名",
+        "片假名"
+      ],
+      "aliases": [
+        "se"
+      ],
+      "order": 125,
+      "sources": [
+        "mywubi-curated"
+      ]
+    },
+    {
+      "text": "ソ",
+      "name": "片假名 so",
+      "triggers": [
+        "片假名 so",
+        "假名",
+        "片假名"
+      ],
+      "tags": [
+        "假名",
+        "片假名"
+      ],
+      "aliases": [
+        "so"
+      ],
+      "order": 126,
+      "sources": [
+        "mywubi-curated"
+      ]
+    },
+    {
+      "text": "タ",
+      "name": "片假名 ta",
+      "triggers": [
+        "片假名 ta",
+        "假名",
+        "片假名"
+      ],
+      "tags": [
+        "假名",
+        "片假名"
+      ],
+      "aliases": [
+        "ta"
+      ],
+      "order": 127,
+      "sources": [
+        "mywubi-curated"
+      ]
+    },
+    {
+      "text": "チ",
+      "name": "片假名 chi",
+      "triggers": [
+        "片假名 chi",
+        "假名",
+        "片假名"
+      ],
+      "tags": [
+        "假名",
+        "片假名"
+      ],
+      "aliases": [
+        "chi",
+        "ti"
+      ],
+      "order": 128,
+      "sources": [
+        "mywubi-curated"
+      ]
+    },
+    {
+      "text": "ツ",
+      "name": "片假名 tsu",
+      "triggers": [
+        "片假名 tsu",
+        "假名",
+        "片假名"
+      ],
+      "tags": [
+        "假名",
+        "片假名"
+      ],
+      "aliases": [
+        "tsu",
+        "tu"
+      ],
+      "order": 129,
+      "sources": [
+        "mywubi-curated"
+      ]
+    },
+    {
+      "text": "テ",
+      "name": "片假名 te",
+      "triggers": [
+        "片假名 te",
+        "假名",
+        "片假名"
+      ],
+      "tags": [
+        "假名",
+        "片假名"
+      ],
+      "aliases": [
+        "te"
+      ],
+      "order": 130,
+      "sources": [
+        "mywubi-curated"
+      ]
+    },
+    {
+      "text": "ト",
+      "name": "片假名 to",
+      "triggers": [
+        "片假名 to",
+        "假名",
+        "片假名"
+      ],
+      "tags": [
+        "假名",
+        "片假名"
+      ],
+      "aliases": [
+        "to"
+      ],
+      "order": 131,
+      "sources": [
+        "mywubi-curated"
+      ]
+    },
+    {
+      "text": "ナ",
+      "name": "片假名 na",
+      "triggers": [
+        "片假名 na",
+        "假名",
+        "片假名"
+      ],
+      "tags": [
+        "假名",
+        "片假名"
+      ],
+      "aliases": [
+        "na"
+      ],
+      "order": 132,
+      "sources": [
+        "mywubi-curated"
+      ]
+    },
+    {
+      "text": "ニ",
+      "name": "片假名 ni",
+      "triggers": [
+        "片假名 ni",
+        "假名",
+        "片假名"
+      ],
+      "tags": [
+        "假名",
+        "片假名"
+      ],
+      "aliases": [
+        "ni"
+      ],
+      "order": 133,
+      "sources": [
+        "mywubi-curated"
+      ]
+    },
+    {
+      "text": "ヌ",
+      "name": "片假名 nu",
+      "triggers": [
+        "片假名 nu",
+        "假名",
+        "片假名"
+      ],
+      "tags": [
+        "假名",
+        "片假名"
+      ],
+      "aliases": [
+        "nu"
+      ],
+      "order": 134,
+      "sources": [
+        "mywubi-curated"
+      ]
+    },
+    {
+      "text": "ネ",
+      "name": "片假名 ne",
+      "triggers": [
+        "片假名 ne",
+        "假名",
+        "片假名"
+      ],
+      "tags": [
+        "假名",
+        "片假名"
+      ],
+      "aliases": [
+        "ne"
+      ],
+      "order": 135,
+      "sources": [
+        "mywubi-curated"
+      ]
+    },
+    {
+      "text": "ノ",
+      "name": "片假名 no",
+      "triggers": [
+        "片假名 no",
+        "假名",
+        "片假名"
+      ],
+      "tags": [
+        "假名",
+        "片假名"
+      ],
+      "aliases": [
+        "no"
+      ],
+      "order": 136,
+      "sources": [
+        "mywubi-curated"
+      ]
+    },
+    {
+      "text": "ハ",
+      "name": "片假名 ha",
+      "triggers": [
+        "片假名 ha",
+        "假名",
+        "片假名"
+      ],
+      "tags": [
+        "假名",
+        "片假名"
+      ],
+      "aliases": [
+        "ha"
+      ],
+      "order": 137,
+      "sources": [
+        "mywubi-curated"
+      ]
+    },
+    {
+      "text": "ヒ",
+      "name": "片假名 hi",
+      "triggers": [
+        "片假名 hi",
+        "假名",
+        "片假名"
+      ],
+      "tags": [
+        "假名",
+        "片假名"
+      ],
+      "aliases": [
+        "hi"
+      ],
+      "order": 138,
+      "sources": [
+        "mywubi-curated"
+      ]
+    },
+    {
+      "text": "フ",
+      "name": "片假名 fu",
+      "triggers": [
+        "片假名 fu",
+        "假名",
+        "片假名"
+      ],
+      "tags": [
+        "假名",
+        "片假名"
+      ],
+      "aliases": [
+        "fu",
+        "hu"
+      ],
+      "order": 139,
+      "sources": [
+        "mywubi-curated"
+      ]
+    },
+    {
+      "text": "ヘ",
+      "name": "片假名 he",
+      "triggers": [
+        "片假名 he",
+        "假名",
+        "片假名"
+      ],
+      "tags": [
+        "假名",
+        "片假名"
+      ],
+      "aliases": [
+        "he"
+      ],
+      "order": 140,
+      "sources": [
+        "mywubi-curated"
+      ]
+    },
+    {
+      "text": "ホ",
+      "name": "片假名 ho",
+      "triggers": [
+        "片假名 ho",
+        "假名",
+        "片假名"
+      ],
+      "tags": [
+        "假名",
+        "片假名"
+      ],
+      "aliases": [
+        "ho"
+      ],
+      "order": 141,
+      "sources": [
+        "mywubi-curated"
+      ]
+    },
+    {
+      "text": "マ",
+      "name": "片假名 ma",
+      "triggers": [
+        "片假名 ma",
+        "假名",
+        "片假名"
+      ],
+      "tags": [
+        "假名",
+        "片假名"
+      ],
+      "aliases": [
+        "ma"
+      ],
+      "order": 142,
+      "sources": [
+        "mywubi-curated"
+      ]
+    },
+    {
+      "text": "ミ",
+      "name": "片假名 mi",
+      "triggers": [
+        "片假名 mi",
+        "假名",
+        "片假名"
+      ],
+      "tags": [
+        "假名",
+        "片假名"
+      ],
+      "aliases": [
+        "mi"
+      ],
+      "order": 143,
+      "sources": [
+        "mywubi-curated"
+      ]
+    },
+    {
+      "text": "ム",
+      "name": "片假名 mu",
+      "triggers": [
+        "片假名 mu",
+        "假名",
+        "片假名"
+      ],
+      "tags": [
+        "假名",
+        "片假名"
+      ],
+      "aliases": [
+        "mu"
+      ],
+      "order": 144,
+      "sources": [
+        "mywubi-curated"
+      ]
+    },
+    {
+      "text": "メ",
+      "name": "片假名 me",
+      "triggers": [
+        "片假名 me",
+        "假名",
+        "片假名"
+      ],
+      "tags": [
+        "假名",
+        "片假名"
+      ],
+      "aliases": [
+        "me"
+      ],
+      "order": 145,
+      "sources": [
+        "mywubi-curated"
+      ]
+    },
+    {
+      "text": "モ",
+      "name": "片假名 mo",
+      "triggers": [
+        "片假名 mo",
+        "假名",
+        "片假名"
+      ],
+      "tags": [
+        "假名",
+        "片假名"
+      ],
+      "aliases": [
+        "mo"
+      ],
+      "order": 146,
+      "sources": [
+        "mywubi-curated"
+      ]
+    },
+    {
+      "text": "ヤ",
+      "name": "片假名 ya",
+      "triggers": [
+        "片假名 ya",
+        "假名",
+        "片假名"
+      ],
+      "tags": [
+        "假名",
+        "片假名"
+      ],
+      "aliases": [
+        "ya"
+      ],
+      "order": 147,
+      "sources": [
+        "mywubi-curated"
+      ]
+    },
+    {
+      "text": "ユ",
+      "name": "片假名 yu",
+      "triggers": [
+        "片假名 yu",
+        "假名",
+        "片假名"
+      ],
+      "tags": [
+        "假名",
+        "片假名"
+      ],
+      "aliases": [
+        "yu"
+      ],
+      "order": 148,
+      "sources": [
+        "mywubi-curated"
+      ]
+    },
+    {
+      "text": "ヨ",
+      "name": "片假名 yo",
+      "triggers": [
+        "片假名 yo",
+        "假名",
+        "片假名"
+      ],
+      "tags": [
+        "假名",
+        "片假名"
+      ],
+      "aliases": [
+        "yo"
+      ],
+      "order": 149,
+      "sources": [
+        "mywubi-curated"
+      ]
+    },
+    {
+      "text": "ラ",
+      "name": "片假名 ra",
+      "triggers": [
+        "片假名 ra",
+        "假名",
+        "片假名"
+      ],
+      "tags": [
+        "假名",
+        "片假名"
+      ],
+      "aliases": [
+        "ra"
+      ],
+      "order": 150,
+      "sources": [
+        "mywubi-curated"
+      ]
+    },
+    {
+      "text": "リ",
+      "name": "片假名 ri",
+      "triggers": [
+        "片假名 ri",
+        "假名",
+        "片假名"
+      ],
+      "tags": [
+        "假名",
+        "片假名"
+      ],
+      "aliases": [
+        "ri"
+      ],
+      "order": 151,
+      "sources": [
+        "mywubi-curated"
+      ]
+    },
+    {
+      "text": "ル",
+      "name": "片假名 ru",
+      "triggers": [
+        "片假名 ru",
+        "假名",
+        "片假名"
+      ],
+      "tags": [
+        "假名",
+        "片假名"
+      ],
+      "aliases": [
+        "ru"
+      ],
+      "order": 152,
+      "sources": [
+        "mywubi-curated"
+      ]
+    },
+    {
+      "text": "レ",
+      "name": "片假名 re",
+      "triggers": [
+        "片假名 re",
+        "假名",
+        "片假名"
+      ],
+      "tags": [
+        "假名",
+        "片假名"
+      ],
+      "aliases": [
+        "re"
+      ],
+      "order": 153,
+      "sources": [
+        "mywubi-curated"
+      ]
+    },
+    {
+      "text": "ロ",
+      "name": "片假名 ro",
+      "triggers": [
+        "片假名 ro",
+        "假名",
+        "片假名"
+      ],
+      "tags": [
+        "假名",
+        "片假名"
+      ],
+      "aliases": [
+        "ro"
+      ],
+      "order": 154,
+      "sources": [
+        "mywubi-curated"
+      ]
+    },
+    {
+      "text": "ワ",
+      "name": "片假名 wa",
+      "triggers": [
+        "片假名 wa",
+        "假名",
+        "片假名"
+      ],
+      "tags": [
+        "假名",
+        "片假名"
+      ],
+      "aliases": [
+        "wa"
+      ],
+      "order": 155,
+      "sources": [
+        "mywubi-curated"
+      ]
+    },
+    {
+      "text": "ヲ",
+      "name": "片假名 wo",
+      "triggers": [
+        "片假名 wo",
+        "假名",
+        "片假名"
+      ],
+      "tags": [
+        "假名",
+        "片假名"
+      ],
+      "aliases": [
+        "wo"
+      ],
+      "order": 156,
+      "sources": [
+        "mywubi-curated"
+      ]
+    },
+    {
+      "text": "ン",
+      "name": "片假名 n",
+      "triggers": [
+        "片假名 n",
+        "假名",
+        "片假名"
+      ],
+      "tags": [
+        "假名",
+        "片假名"
+      ],
+      "aliases": [
+        "n",
+        "nn"
+      ],
+      "order": 157,
+      "sources": [
+        "mywubi-curated"
+      ]
+    },
+    {
+      "text": "ガ",
+      "name": "片假名 ga",
+      "triggers": [
+        "片假名 ga",
+        "假名",
+        "片假名",
+        "浊音"
+      ],
+      "tags": [
+        "假名",
+        "片假名",
+        "浊音"
+      ],
+      "aliases": [
+        "ga"
+      ],
+      "order": 158,
+      "sources": [
+        "mywubi-curated"
+      ]
+    },
+    {
+      "text": "ギ",
+      "name": "片假名 gi",
+      "triggers": [
+        "片假名 gi",
+        "假名",
+        "片假名",
+        "浊音"
+      ],
+      "tags": [
+        "假名",
+        "片假名",
+        "浊音"
+      ],
+      "aliases": [
+        "gi"
+      ],
+      "order": 159,
+      "sources": [
+        "mywubi-curated"
+      ]
+    },
+    {
+      "text": "グ",
+      "name": "片假名 gu",
+      "triggers": [
+        "片假名 gu",
+        "假名",
+        "片假名",
+        "浊音"
+      ],
+      "tags": [
+        "假名",
+        "片假名",
+        "浊音"
+      ],
+      "aliases": [
+        "gu"
+      ],
+      "order": 160,
+      "sources": [
+        "mywubi-curated"
+      ]
+    },
+    {
+      "text": "ゲ",
+      "name": "片假名 ge",
+      "triggers": [
+        "片假名 ge",
+        "假名",
+        "片假名",
+        "浊音"
+      ],
+      "tags": [
+        "假名",
+        "片假名",
+        "浊音"
+      ],
+      "aliases": [
+        "ge"
+      ],
+      "order": 161,
+      "sources": [
+        "mywubi-curated"
+      ]
+    },
+    {
+      "text": "ゴ",
+      "name": "片假名 go",
+      "triggers": [
+        "片假名 go",
+        "假名",
+        "片假名",
+        "浊音"
+      ],
+      "tags": [
+        "假名",
+        "片假名",
+        "浊音"
+      ],
+      "aliases": [
+        "go"
+      ],
+      "order": 162,
+      "sources": [
+        "mywubi-curated"
+      ]
+    },
+    {
+      "text": "ザ",
+      "name": "片假名 za",
+      "triggers": [
+        "片假名 za",
+        "假名",
+        "片假名",
+        "浊音"
+      ],
+      "tags": [
+        "假名",
+        "片假名",
+        "浊音"
+      ],
+      "aliases": [
+        "za"
+      ],
+      "order": 163,
+      "sources": [
+        "mywubi-curated"
+      ]
+    },
+    {
+      "text": "ジ",
+      "name": "片假名 ji",
+      "triggers": [
+        "片假名 ji",
+        "假名",
+        "片假名",
+        "浊音"
+      ],
+      "tags": [
+        "假名",
+        "片假名",
+        "浊音"
+      ],
+      "aliases": [
+        "ji",
+        "zi"
+      ],
+      "order": 164,
+      "sources": [
+        "mywubi-curated"
+      ]
+    },
+    {
+      "text": "ズ",
+      "name": "片假名 zu",
+      "triggers": [
+        "片假名 zu",
+        "假名",
+        "片假名",
+        "浊音"
+      ],
+      "tags": [
+        "假名",
+        "片假名",
+        "浊音"
+      ],
+      "aliases": [
+        "zu"
+      ],
+      "order": 165,
+      "sources": [
+        "mywubi-curated"
+      ]
+    },
+    {
+      "text": "ゼ",
+      "name": "片假名 ze",
+      "triggers": [
+        "片假名 ze",
+        "假名",
+        "片假名",
+        "浊音"
+      ],
+      "tags": [
+        "假名",
+        "片假名",
+        "浊音"
+      ],
+      "aliases": [
+        "ze"
+      ],
+      "order": 166,
+      "sources": [
+        "mywubi-curated"
+      ]
+    },
+    {
+      "text": "ゾ",
+      "name": "片假名 zo",
+      "triggers": [
+        "片假名 zo",
+        "假名",
+        "片假名",
+        "浊音"
+      ],
+      "tags": [
+        "假名",
+        "片假名",
+        "浊音"
+      ],
+      "aliases": [
+        "zo"
+      ],
+      "order": 167,
+      "sources": [
+        "mywubi-curated"
+      ]
+    },
+    {
+      "text": "ダ",
+      "name": "片假名 da",
+      "triggers": [
+        "片假名 da",
+        "假名",
+        "片假名",
+        "浊音"
+      ],
+      "tags": [
+        "假名",
+        "片假名",
+        "浊音"
+      ],
+      "aliases": [
+        "da"
+      ],
+      "order": 168,
+      "sources": [
+        "mywubi-curated"
+      ]
+    },
+    {
+      "text": "ヂ",
+      "name": "片假名 di",
+      "triggers": [
+        "片假名 di",
+        "假名",
+        "片假名",
+        "浊音"
+      ],
+      "tags": [
+        "假名",
+        "片假名",
+        "浊音"
+      ],
+      "aliases": [
+        "di",
+        "ji"
+      ],
+      "order": 169,
+      "sources": [
+        "mywubi-curated"
+      ]
+    },
+    {
+      "text": "ヅ",
+      "name": "片假名 du",
+      "triggers": [
+        "片假名 du",
+        "假名",
+        "片假名",
+        "浊音"
+      ],
+      "tags": [
+        "假名",
+        "片假名",
+        "浊音"
+      ],
+      "aliases": [
+        "du",
+        "zu"
+      ],
+      "order": 170,
+      "sources": [
+        "mywubi-curated"
+      ]
+    },
+    {
+      "text": "デ",
+      "name": "片假名 de",
+      "triggers": [
+        "片假名 de",
+        "假名",
+        "片假名",
+        "浊音"
+      ],
+      "tags": [
+        "假名",
+        "片假名",
+        "浊音"
+      ],
+      "aliases": [
+        "de"
+      ],
+      "order": 171,
+      "sources": [
+        "mywubi-curated"
+      ]
+    },
+    {
+      "text": "ド",
+      "name": "片假名 do",
+      "triggers": [
+        "片假名 do",
+        "假名",
+        "片假名",
+        "浊音"
+      ],
+      "tags": [
+        "假名",
+        "片假名",
+        "浊音"
+      ],
+      "aliases": [
+        "do"
+      ],
+      "order": 172,
+      "sources": [
+        "mywubi-curated"
+      ]
+    },
+    {
+      "text": "バ",
+      "name": "片假名 ba",
+      "triggers": [
+        "片假名 ba",
+        "假名",
+        "片假名",
+        "浊音"
+      ],
+      "tags": [
+        "假名",
+        "片假名",
+        "浊音"
+      ],
+      "aliases": [
+        "ba"
+      ],
+      "order": 173,
+      "sources": [
+        "mywubi-curated"
+      ]
+    },
+    {
+      "text": "ビ",
+      "name": "片假名 bi",
+      "triggers": [
+        "片假名 bi",
+        "假名",
+        "片假名",
+        "浊音"
+      ],
+      "tags": [
+        "假名",
+        "片假名",
+        "浊音"
+      ],
+      "aliases": [
+        "bi"
+      ],
+      "order": 174,
+      "sources": [
+        "mywubi-curated"
+      ]
+    },
+    {
+      "text": "ブ",
+      "name": "片假名 bu",
+      "triggers": [
+        "片假名 bu",
+        "假名",
+        "片假名",
+        "浊音"
+      ],
+      "tags": [
+        "假名",
+        "片假名",
+        "浊音"
+      ],
+      "aliases": [
+        "bu"
+      ],
+      "order": 175,
+      "sources": [
+        "mywubi-curated"
+      ]
+    },
+    {
+      "text": "ベ",
+      "name": "片假名 be",
+      "triggers": [
+        "片假名 be",
+        "假名",
+        "片假名",
+        "浊音"
+      ],
+      "tags": [
+        "假名",
+        "片假名",
+        "浊音"
+      ],
+      "aliases": [
+        "be"
+      ],
+      "order": 176,
+      "sources": [
+        "mywubi-curated"
+      ]
+    },
+    {
+      "text": "ボ",
+      "name": "片假名 bo",
+      "triggers": [
+        "片假名 bo",
+        "假名",
+        "片假名",
+        "浊音"
+      ],
+      "tags": [
+        "假名",
+        "片假名",
+        "浊音"
+      ],
+      "aliases": [
+        "bo"
+      ],
+      "order": 177,
+      "sources": [
+        "mywubi-curated"
+      ]
+    },
+    {
+      "text": "パ",
+      "name": "片假名 pa",
+      "triggers": [
+        "片假名 pa",
+        "假名",
+        "片假名",
+        "半浊音"
+      ],
+      "tags": [
+        "假名",
+        "片假名",
+        "半浊音"
+      ],
+      "aliases": [
+        "pa"
+      ],
+      "order": 178,
+      "sources": [
+        "mywubi-curated"
+      ]
+    },
+    {
+      "text": "ピ",
+      "name": "片假名 pi",
+      "triggers": [
+        "片假名 pi",
+        "假名",
+        "片假名",
+        "半浊音"
+      ],
+      "tags": [
+        "假名",
+        "片假名",
+        "半浊音"
+      ],
+      "aliases": [
+        "pi"
+      ],
+      "order": 179,
+      "sources": [
+        "mywubi-curated"
+      ]
+    },
+    {
+      "text": "プ",
+      "name": "片假名 pu",
+      "triggers": [
+        "片假名 pu",
+        "假名",
+        "片假名",
+        "半浊音"
+      ],
+      "tags": [
+        "假名",
+        "片假名",
+        "半浊音"
+      ],
+      "aliases": [
+        "pu"
+      ],
+      "order": 180,
+      "sources": [
+        "mywubi-curated"
+      ]
+    },
+    {
+      "text": "ペ",
+      "name": "片假名 pe",
+      "triggers": [
+        "片假名 pe",
+        "假名",
+        "片假名",
+        "半浊音"
+      ],
+      "tags": [
+        "假名",
+        "片假名",
+        "半浊音"
+      ],
+      "aliases": [
+        "pe"
+      ],
+      "order": 181,
+      "sources": [
+        "mywubi-curated"
+      ]
+    },
+    {
+      "text": "ポ",
+      "name": "片假名 po",
+      "triggers": [
+        "片假名 po",
+        "假名",
+        "片假名",
+        "半浊音"
+      ],
+      "tags": [
+        "假名",
+        "片假名",
+        "半浊音"
+      ],
+      "aliases": [
+        "po"
+      ],
+      "order": 182,
+      "sources": [
+        "mywubi-curated"
+      ]
+    },
+    {
+      "text": "ヴ",
+      "name": "片假名 vu",
+      "triggers": [
+        "片假名 vu",
+        "假名",
+        "片假名",
+        "浊音"
+      ],
+      "tags": [
+        "假名",
+        "片假名",
+        "浊音"
+      ],
+      "aliases": [
+        "vu"
+      ],
+      "order": 183,
+      "sources": [
+        "mywubi-curated"
+      ]
+    },
+    {
+      "text": "ァ",
+      "name": "片假名 xa",
+      "triggers": [
+        "片假名 xa",
+        "假名",
+        "片假名",
+        "小写假名"
+      ],
+      "tags": [
+        "假名",
+        "片假名",
+        "小写假名"
+      ],
+      "aliases": [
+        "xa",
+        "la"
+      ],
+      "order": 184,
+      "sources": [
+        "mywubi-curated"
+      ]
+    },
+    {
+      "text": "ィ",
+      "name": "片假名 xi",
+      "triggers": [
+        "片假名 xi",
+        "假名",
+        "片假名",
+        "小写假名"
+      ],
+      "tags": [
+        "假名",
+        "片假名",
+        "小写假名"
+      ],
+      "aliases": [
+        "xi",
+        "li"
+      ],
+      "order": 185,
+      "sources": [
+        "mywubi-curated"
+      ]
+    },
+    {
+      "text": "ゥ",
+      "name": "片假名 xu",
+      "triggers": [
+        "片假名 xu",
+        "假名",
+        "片假名",
+        "小写假名"
+      ],
+      "tags": [
+        "假名",
+        "片假名",
+        "小写假名"
+      ],
+      "aliases": [
+        "xu",
+        "lu"
+      ],
+      "order": 186,
+      "sources": [
+        "mywubi-curated"
+      ]
+    },
+    {
+      "text": "ェ",
+      "name": "片假名 xe",
+      "triggers": [
+        "片假名 xe",
+        "假名",
+        "片假名",
+        "小写假名"
+      ],
+      "tags": [
+        "假名",
+        "片假名",
+        "小写假名"
+      ],
+      "aliases": [
+        "xe",
+        "le"
+      ],
+      "order": 187,
+      "sources": [
+        "mywubi-curated"
+      ]
+    },
+    {
+      "text": "ォ",
+      "name": "片假名 xo",
+      "triggers": [
+        "片假名 xo",
+        "假名",
+        "片假名",
+        "小写假名"
+      ],
+      "tags": [
+        "假名",
+        "片假名",
+        "小写假名"
+      ],
+      "aliases": [
+        "xo",
+        "lo"
+      ],
+      "order": 188,
+      "sources": [
+        "mywubi-curated"
+      ]
+    },
+    {
+      "text": "ッ",
+      "name": "片假名 xtsu",
+      "triggers": [
+        "片假名 xtsu",
+        "假名",
+        "片假名",
+        "小写假名"
+      ],
+      "tags": [
+        "假名",
+        "片假名",
+        "小写假名"
+      ],
+      "aliases": [
+        "xtsu",
+        "xtu",
+        "ltsu"
+      ],
+      "order": 189,
+      "sources": [
+        "mywubi-curated"
+      ]
+    },
+    {
+      "text": "ャ",
+      "name": "片假名 xya",
+      "triggers": [
+        "片假名 xya",
+        "假名",
+        "片假名",
+        "小写假名"
+      ],
+      "tags": [
+        "假名",
+        "片假名",
+        "小写假名"
+      ],
+      "aliases": [
+        "xya",
+        "lya"
+      ],
+      "order": 190,
+      "sources": [
+        "mywubi-curated"
+      ]
+    },
+    {
+      "text": "ュ",
+      "name": "片假名 xyu",
+      "triggers": [
+        "片假名 xyu",
+        "假名",
+        "片假名",
+        "小写假名"
+      ],
+      "tags": [
+        "假名",
+        "片假名",
+        "小写假名"
+      ],
+      "aliases": [
+        "xyu",
+        "lyu"
+      ],
+      "order": 191,
+      "sources": [
+        "mywubi-curated"
+      ]
+    },
+    {
+      "text": "ョ",
+      "name": "片假名 xyo",
+      "triggers": [
+        "片假名 xyo",
+        "假名",
+        "片假名",
+        "小写假名"
+      ],
+      "tags": [
+        "假名",
+        "片假名",
+        "小写假名"
+      ],
+      "aliases": [
+        "xyo",
+        "lyo"
+      ],
+      "order": 192,
+      "sources": [
+        "mywubi-curated"
+      ]
+    },
+    {
+      "text": "ヮ",
+      "name": "片假名 xwa",
+      "triggers": [
+        "片假名 xwa",
+        "假名",
+        "片假名",
+        "小写假名"
+      ],
+      "tags": [
+        "假名",
+        "片假名",
+        "小写假名"
+      ],
+      "aliases": [
+        "xwa",
+        "lwa"
+      ],
+      "order": 193,
+      "sources": [
+        "mywubi-curated"
+      ]
+    },
+    {
+      "text": "ヵ",
+      "name": "片假名 xka",
+      "triggers": [
+        "片假名 xka",
+        "假名",
+        "片假名",
+        "小写假名"
+      ],
+      "tags": [
+        "假名",
+        "片假名",
+        "小写假名"
+      ],
+      "aliases": [
+        "xka"
+      ],
+      "order": 194,
+      "sources": [
+        "mywubi-curated"
+      ]
+    },
+    {
+      "text": "ヶ",
+      "name": "片假名 xke",
+      "triggers": [
+        "片假名 xke",
+        "假名",
+        "片假名",
+        "小写假名"
+      ],
+      "tags": [
+        "假名",
+        "片假名",
+        "小写假名"
+      ],
+      "aliases": [
+        "xke"
+      ],
+      "order": 195,
+      "sources": [
+        "mywubi-curated"
+      ]
+    },
+    {
+      "text": "ヰ",
+      "name": "片假名 wi",
+      "triggers": [
+        "片假名 wi",
+        "假名",
+        "片假名",
+        "历史假名"
+      ],
+      "tags": [
+        "假名",
+        "片假名",
+        "历史假名"
+      ],
+      "aliases": [
+        "wi"
+      ],
+      "order": 196,
+      "sources": [
+        "mywubi-curated"
+      ]
+    },
+    {
+      "text": "ヱ",
+      "name": "片假名 we",
+      "triggers": [
+        "片假名 we",
+        "假名",
+        "片假名",
+        "历史假名"
+      ],
+      "tags": [
+        "假名",
+        "片假名",
+        "历史假名"
+      ],
+      "aliases": [
+        "we"
+      ],
+      "order": 197,
+      "sources": [
+        "mywubi-curated"
+      ]
+    },
+    {
+      "text": "ガ",
+      "name": "片假名 ga 组合形式",
+      "triggers": [
+        "片假名 ga 组合形式",
+        "假名",
+        "片假名",
+        "组合形式",
+        "浊音"
+      ],
+      "tags": [
+        "假名",
+        "片假名",
+        "组合形式",
+        "浊音"
+      ],
+      "aliases": [
+        "ga"
+      ],
+      "order": 198,
+      "sources": [
+        "mywubi-curated"
+      ]
+    },
+    {
+      "text": "ギ",
+      "name": "片假名 gi 组合形式",
+      "triggers": [
+        "片假名 gi 组合形式",
+        "假名",
+        "片假名",
+        "组合形式",
+        "浊音"
+      ],
+      "tags": [
+        "假名",
+        "片假名",
+        "组合形式",
+        "浊音"
+      ],
+      "aliases": [
+        "gi"
+      ],
+      "order": 199,
+      "sources": [
+        "mywubi-curated"
+      ]
+    },
+    {
+      "text": "グ",
+      "name": "片假名 gu 组合形式",
+      "triggers": [
+        "片假名 gu 组合形式",
+        "假名",
+        "片假名",
+        "组合形式",
+        "浊音"
+      ],
+      "tags": [
+        "假名",
+        "片假名",
+        "组合形式",
+        "浊音"
+      ],
+      "aliases": [
+        "gu"
+      ],
+      "order": 200,
+      "sources": [
+        "mywubi-curated"
+      ]
+    },
+    {
+      "text": "ゲ",
+      "name": "片假名 ge 组合形式",
+      "triggers": [
+        "片假名 ge 组合形式",
+        "假名",
+        "片假名",
+        "组合形式",
+        "浊音"
+      ],
+      "tags": [
+        "假名",
+        "片假名",
+        "组合形式",
+        "浊音"
+      ],
+      "aliases": [
+        "ge"
+      ],
+      "order": 201,
+      "sources": [
+        "mywubi-curated"
+      ]
+    },
+    {
+      "text": "ゴ",
+      "name": "片假名 go 组合形式",
+      "triggers": [
+        "片假名 go 组合形式",
+        "假名",
+        "片假名",
+        "组合形式",
+        "浊音"
+      ],
+      "tags": [
+        "假名",
+        "片假名",
+        "组合形式",
+        "浊音"
+      ],
+      "aliases": [
+        "go"
+      ],
+      "order": 202,
+      "sources": [
+        "mywubi-curated"
+      ]
+    },
+    {
+      "text": "ザ",
+      "name": "片假名 za 组合形式",
+      "triggers": [
+        "片假名 za 组合形式",
+        "假名",
+        "片假名",
+        "组合形式",
+        "浊音"
+      ],
+      "tags": [
+        "假名",
+        "片假名",
+        "组合形式",
+        "浊音"
+      ],
+      "aliases": [
+        "za"
+      ],
+      "order": 203,
+      "sources": [
+        "mywubi-curated"
+      ]
+    },
+    {
+      "text": "ジ",
+      "name": "片假名 ji 组合形式",
+      "triggers": [
+        "片假名 ji 组合形式",
+        "假名",
+        "片假名",
+        "组合形式",
+        "浊音"
+      ],
+      "tags": [
+        "假名",
+        "片假名",
+        "组合形式",
+        "浊音"
+      ],
+      "aliases": [
+        "ji",
+        "zi"
+      ],
+      "order": 204,
+      "sources": [
+        "mywubi-curated"
+      ]
+    },
+    {
+      "text": "ズ",
+      "name": "片假名 zu 组合形式",
+      "triggers": [
+        "片假名 zu 组合形式",
+        "假名",
+        "片假名",
+        "组合形式",
+        "浊音"
+      ],
+      "tags": [
+        "假名",
+        "片假名",
+        "组合形式",
+        "浊音"
+      ],
+      "aliases": [
+        "zu"
+      ],
+      "order": 205,
+      "sources": [
+        "mywubi-curated"
+      ]
+    },
+    {
+      "text": "ゼ",
+      "name": "片假名 ze 组合形式",
+      "triggers": [
+        "片假名 ze 组合形式",
+        "假名",
+        "片假名",
+        "组合形式",
+        "浊音"
+      ],
+      "tags": [
+        "假名",
+        "片假名",
+        "组合形式",
+        "浊音"
+      ],
+      "aliases": [
+        "ze"
+      ],
+      "order": 206,
+      "sources": [
+        "mywubi-curated"
+      ]
+    },
+    {
+      "text": "ゾ",
+      "name": "片假名 zo 组合形式",
+      "triggers": [
+        "片假名 zo 组合形式",
+        "假名",
+        "片假名",
+        "组合形式",
+        "浊音"
+      ],
+      "tags": [
+        "假名",
+        "片假名",
+        "组合形式",
+        "浊音"
+      ],
+      "aliases": [
+        "zo"
+      ],
+      "order": 207,
+      "sources": [
+        "mywubi-curated"
+      ]
+    },
+    {
+      "text": "ダ",
+      "name": "片假名 da 组合形式",
+      "triggers": [
+        "片假名 da 组合形式",
+        "假名",
+        "片假名",
+        "组合形式",
+        "浊音"
+      ],
+      "tags": [
+        "假名",
+        "片假名",
+        "组合形式",
+        "浊音"
+      ],
+      "aliases": [
+        "da"
+      ],
+      "order": 208,
+      "sources": [
+        "mywubi-curated"
+      ]
+    },
+    {
+      "text": "ヂ",
+      "name": "片假名 di 组合形式",
+      "triggers": [
+        "片假名 di 组合形式",
+        "假名",
+        "片假名",
+        "组合形式",
+        "浊音"
+      ],
+      "tags": [
+        "假名",
+        "片假名",
+        "组合形式",
+        "浊音"
+      ],
+      "aliases": [
+        "di",
+        "ji"
+      ],
+      "order": 209,
+      "sources": [
+        "mywubi-curated"
+      ]
+    },
+    {
+      "text": "ヅ",
+      "name": "片假名 du 组合形式",
+      "triggers": [
+        "片假名 du 组合形式",
+        "假名",
+        "片假名",
+        "组合形式",
+        "浊音"
+      ],
+      "tags": [
+        "假名",
+        "片假名",
+        "组合形式",
+        "浊音"
+      ],
+      "aliases": [
+        "du",
+        "zu"
+      ],
+      "order": 210,
+      "sources": [
+        "mywubi-curated"
+      ]
+    },
+    {
+      "text": "デ",
+      "name": "片假名 de 组合形式",
+      "triggers": [
+        "片假名 de 组合形式",
+        "假名",
+        "片假名",
+        "组合形式",
+        "浊音"
+      ],
+      "tags": [
+        "假名",
+        "片假名",
+        "组合形式",
+        "浊音"
+      ],
+      "aliases": [
+        "de"
+      ],
+      "order": 211,
+      "sources": [
+        "mywubi-curated"
+      ]
+    },
+    {
+      "text": "ド",
+      "name": "片假名 do 组合形式",
+      "triggers": [
+        "片假名 do 组合形式",
+        "假名",
+        "片假名",
+        "组合形式",
+        "浊音"
+      ],
+      "tags": [
+        "假名",
+        "片假名",
+        "组合形式",
+        "浊音"
+      ],
+      "aliases": [
+        "do"
+      ],
+      "order": 212,
+      "sources": [
+        "mywubi-curated"
+      ]
+    },
+    {
+      "text": "バ",
+      "name": "片假名 ba 组合形式",
+      "triggers": [
+        "片假名 ba 组合形式",
+        "假名",
+        "片假名",
+        "组合形式",
+        "浊音"
+      ],
+      "tags": [
+        "假名",
+        "片假名",
+        "组合形式",
+        "浊音"
+      ],
+      "aliases": [
+        "ba"
+      ],
+      "order": 213,
+      "sources": [
+        "mywubi-curated"
+      ]
+    },
+    {
+      "text": "ビ",
+      "name": "片假名 bi 组合形式",
+      "triggers": [
+        "片假名 bi 组合形式",
+        "假名",
+        "片假名",
+        "组合形式",
+        "浊音"
+      ],
+      "tags": [
+        "假名",
+        "片假名",
+        "组合形式",
+        "浊音"
+      ],
+      "aliases": [
+        "bi"
+      ],
+      "order": 214,
+      "sources": [
+        "mywubi-curated"
+      ]
+    },
+    {
+      "text": "ブ",
+      "name": "片假名 bu 组合形式",
+      "triggers": [
+        "片假名 bu 组合形式",
+        "假名",
+        "片假名",
+        "组合形式",
+        "浊音"
+      ],
+      "tags": [
+        "假名",
+        "片假名",
+        "组合形式",
+        "浊音"
+      ],
+      "aliases": [
+        "bu"
+      ],
+      "order": 215,
+      "sources": [
+        "mywubi-curated"
+      ]
+    },
+    {
+      "text": "ベ",
+      "name": "片假名 be 组合形式",
+      "triggers": [
+        "片假名 be 组合形式",
+        "假名",
+        "片假名",
+        "组合形式",
+        "浊音"
+      ],
+      "tags": [
+        "假名",
+        "片假名",
+        "组合形式",
+        "浊音"
+      ],
+      "aliases": [
+        "be"
+      ],
+      "order": 216,
+      "sources": [
+        "mywubi-curated"
+      ]
+    },
+    {
+      "text": "ボ",
+      "name": "片假名 bo 组合形式",
+      "triggers": [
+        "片假名 bo 组合形式",
+        "假名",
+        "片假名",
+        "组合形式",
+        "浊音"
+      ],
+      "tags": [
+        "假名",
+        "片假名",
+        "组合形式",
+        "浊音"
+      ],
+      "aliases": [
+        "bo"
+      ],
+      "order": 217,
+      "sources": [
+        "mywubi-curated"
+      ]
+    },
+    {
+      "text": "パ",
+      "name": "片假名 pa 组合形式",
+      "triggers": [
+        "片假名 pa 组合形式",
+        "假名",
+        "片假名",
+        "组合形式",
+        "半浊音"
+      ],
+      "tags": [
+        "假名",
+        "片假名",
+        "组合形式",
+        "半浊音"
+      ],
+      "aliases": [
+        "pa"
+      ],
+      "order": 218,
+      "sources": [
+        "mywubi-curated"
+      ]
+    },
+    {
+      "text": "ピ",
+      "name": "片假名 pi 组合形式",
+      "triggers": [
+        "片假名 pi 组合形式",
+        "假名",
+        "片假名",
+        "组合形式",
+        "半浊音"
+      ],
+      "tags": [
+        "假名",
+        "片假名",
+        "组合形式",
+        "半浊音"
+      ],
+      "aliases": [
+        "pi"
+      ],
+      "order": 219,
+      "sources": [
+        "mywubi-curated"
+      ]
+    },
+    {
+      "text": "プ",
+      "name": "片假名 pu 组合形式",
+      "triggers": [
+        "片假名 pu 组合形式",
+        "假名",
+        "片假名",
+        "组合形式",
+        "半浊音"
+      ],
+      "tags": [
+        "假名",
+        "片假名",
+        "组合形式",
+        "半浊音"
+      ],
+      "aliases": [
+        "pu"
+      ],
+      "order": 220,
+      "sources": [
+        "mywubi-curated"
+      ]
+    },
+    {
+      "text": "ペ",
+      "name": "片假名 pe 组合形式",
+      "triggers": [
+        "片假名 pe 组合形式",
+        "假名",
+        "片假名",
+        "组合形式",
+        "半浊音"
+      ],
+      "tags": [
+        "假名",
+        "片假名",
+        "组合形式",
+        "半浊音"
+      ],
+      "aliases": [
+        "pe"
+      ],
+      "order": 221,
+      "sources": [
+        "mywubi-curated"
+      ]
+    },
+    {
+      "text": "ポ",
+      "name": "片假名 po 组合形式",
+      "triggers": [
+        "片假名 po 组合形式",
+        "假名",
+        "片假名",
+        "组合形式",
+        "半浊音"
+      ],
+      "tags": [
+        "假名",
+        "片假名",
+        "组合形式",
+        "半浊音"
+      ],
+      "aliases": [
+        "po"
+      ],
+      "order": 222,
+      "sources": [
+        "mywubi-curated"
+      ]
+    },
+    {
+      "text": "ヴ",
+      "name": "片假名 vu 组合形式",
+      "triggers": [
+        "片假名 vu 组合形式",
+        "假名",
+        "片假名",
+        "组合形式",
+        "浊音"
+      ],
+      "tags": [
+        "假名",
+        "片假名",
+        "组合形式",
+        "浊音"
+      ],
+      "aliases": [
+        "vu"
+      ],
+      "order": 223,
+      "sources": [
+        "mywubi-curated"
+      ]
+    }
+  ]
+}

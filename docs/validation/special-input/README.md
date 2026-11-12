@@ -15,3 +15,7 @@
 - Windows settings/im_engine 的全量严格 Clippy 仍有原有告警：app.rs 的 collapsible_if、model_catalog 类型复杂度、dictionary 面板旧风格及 factory.rs 原始指针接口。此次新增 needless_borrow 已修复；未修改无关代码或关闭 lint，不能称整个 Windows workspace 严格 Clippy 已通过。
 
 本阶段不宣称 SI-05 的字面检索和实际菜单、SI-10～SI-13 的统一管理界面、SI-16/17 的真实宿主验收已经完成。
+
+## 2026-11-12，SI-03
+
+`cargo test --offline -p core_engine --test special_datasets` 两项通过，覆盖 224 项清单、全部读音别名的大小写/稳定精确排序、组合形式往返及独立 `shi → し/シ` 样例。生成两次 SHA-256 相同。共享模糊查询允许明确标记的部分字符匹配，不能把“不是罗马字转写”误写成必须零结果；测试已据此核对不会合成日语词语。
