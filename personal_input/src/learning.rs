@@ -76,6 +76,7 @@ impl Model {
             if !left.ends_with(&phrase.left)
                 || phrase.left.is_empty()
                 || phrase.right != right
+                || !core_engine::assistance::prediction::valid_proposal(left, &phrase.text)
                 || (!right.is_empty()
                     && (phrase.text.starts_with(&right) || right.starts_with(&phrase.text)))
             {
@@ -322,7 +323,10 @@ pub fn train(store: &Store, cancel: &AtomicBool) -> Result<Model> {
     }
     let _lock = store.lock()?;
     let current = store.load_locked()?;
-    if current.data_epoch != model.data_epoch || cancel.load(Ordering::Acquire) {
+    if current.data_epoch != model.data_epoch
+        || current.generation != state.generation
+        || cancel.load(Ordering::Acquire)
+    {
         return Err(Error::Invalid("训练期间数据已替换或任务已暂停"));
     }
     if let Some(old) = old {

@@ -216,7 +216,7 @@ impl Store {
             }
             if let Some(event) = state.events.remove(&id) {
                 let bytes = serde_json::to_vec(&event)?;
-                size = size.saturating_sub(bytes.len() as u64);
+                size = size.saturating_sub(bytes.len() as u64).saturating_add(66);
                 state.retired.insert(id, digest(&bytes));
             }
         }

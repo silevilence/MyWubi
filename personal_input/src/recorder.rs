@@ -14,7 +14,8 @@ pub struct Recorder {
     source: String,
     sequence: u64,
     session: String,
-    tx: Option<SyncSender<Event>>,
+    tx: Option<SyncSender<(u64, Event)>>,
+    epoch: Arc<AtomicU64>,
     enabled: Arc<AtomicBool>,
     dropped: Arc<AtomicU64>,
     worker: Option<JoinHandle<()>>,
@@ -22,7 +23,9 @@ pub struct Recorder {
 impl Recorder {
     pub fn new(config_path: PathBuf) -> Result<Self> {
         let source = crate::identity()?;
-        let (tx, rx) = mpsc::sync_channel::<Event>(128);
+        let (tx, rx) = mpsc::sync_channel::<(u64, Event)>(128);
+        let epoch = Arc::new(AtomicU64::new(0));
+        let worker_epoch = epoch.clone();
         let enabled = Arc::new(AtomicBool::new(false));
         let dropped = Arc::new(AtomicU64::new(0));
         let gate = enabled.clone();
@@ -32,17 +35,29 @@ impl Recorder {
             .spawn(move || {
                 let store = crate::store::Store::beside_config(&config_path);
                 while let Ok(first) = rx.recv() {
-                    let mut batch = vec![first];
-                    batch.extend(rx.try_iter().take(63));
+                    let current = worker_epoch.load(Ordering::Acquire);
+                    let mut batch = Vec::new();
+                    for (generation, event) in std::iter::once(first).chain(rx.try_iter().take(63))
+                    {
+                        if generation == current {
+                            batch.push(event);
+                        }
+                    }
                     let config = core_engine::Config::load(&config_path)
                         .map(|c| c.personal)
                         .unwrap_or_default();
-                    if !gate.load(Ordering::Acquire) || !config.collect {
+                    if !gate.load(Ordering::Acquire) || !config.collect || batch.is_empty() {
                         continue;
                     }
                     let n = batch.len() as u64;
                     let missing = loss.swap(0, Ordering::AcqRel);
-                    if store.append(batch, missing, &config).is_err() {
+                    if store
+                        .append_if(batch, missing, &config, || {
+                            gate.load(Ordering::Acquire)
+                                && worker_epoch.load(Ordering::Acquire) == current
+                        })
+                        .is_err()
+                    {
                         loss.fetch_add(n + missing, Ordering::Relaxed);
                     }
                 }
@@ -53,11 +68,15 @@ impl Recorder {
             sequence: 0,
             tx: Some(tx),
             enabled,
+            epoch,
             dropped,
             worker: Some(worker),
         })
     }
     pub fn configure(&mut self, config: &PersonalConfig, allowed: bool, session: &str) {
+        if !config.collect || !allowed || self.session != session {
+            self.epoch.fetch_add(1, Ordering::AcqRel);
+        }
         self.enabled
             .store(config.collect && allowed, Ordering::Release);
         self.session = session.to_owned();
@@ -93,7 +112,16 @@ impl Recorder {
             change,
             extensions: Default::default(),
         };
-        if self.tx.as_ref()?.try_send(event).is_err() {
+        if event.validate().is_err() || serde_json::to_vec(&event).is_ok_and(|b| b.len() > 65536) {
+            self.dropped.fetch_add(1, Ordering::Relaxed);
+            return None;
+        }
+        if self
+            .tx
+            .as_ref()?
+            .try_send((self.epoch.load(Ordering::Acquire), event))
+            .is_err()
+        {
             self.dropped.fetch_add(1, Ordering::Relaxed);
         }
         Some(id)
@@ -101,10 +129,10 @@ impl Recorder {
 }
 impl Drop for Recorder {
     fn drop(&mut self) {
-        self.enabled.store(false, Ordering::Release);
         self.tx.take();
-        // DLL deactivation must not leave a thread executing unloaded code.
-        // Hot disable retains the recorder and revokes its gate instead.
+        // Drain authorized events on ordinary shutdown. Explicit privacy/consent
+        // changes have already revoked the gate and discard their queued data.
+        // Joining also keeps a DLL thread from executing unloaded code.
         if let Some(worker) = self.worker.take() {
             let _ = worker.join();
         }
