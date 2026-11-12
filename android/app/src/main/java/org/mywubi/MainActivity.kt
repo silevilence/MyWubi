@@ -442,5 +442,5 @@ private fun ExpressionSettings(model: SettingsModel, config: JSONObject) {
     }
     TextButton(onClick = model::refreshExpressions, enabled = !model.busy) { Text("重新检查词库") }
     ExpressionPreview()
-    Text("配置独立于主码表。导入会复制到应用私有目录，选择和开关需保存后生效。通过键盘工具进入 Emoji 或颜文字模式。", style = MaterialTheme.typography.bodySmall)
+    Text("配置独立于主码表。导入会复制到应用私有目录，选择和开关需保存后生效。点击键盘工具栏的表情图标进入 Emoji 或颜文字模式。", style = MaterialTheme.typography.bodySmall)
 }

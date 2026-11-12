@@ -57,6 +57,7 @@ class ExpandedCandidatesTest {
             assertFalse("Single-window candidates do not need disabled paging buttons", device.hasObject(By.text("下一组")))
             assertNotNull(node("收起"))
             assertNotNull(node("收起键盘"))
+            assertFalse("Expanded candidates must hide toolbar actions", device.hasObject(By.desc("拼音")))
             val minimum = (48 * instrumentation.targetContext.resources.displayMetrics.density).toInt()
             assertTrue("Expanded grid must leave the bottom keys fully visible",
                 node("退格").visibleBounds.height() >= minimum)

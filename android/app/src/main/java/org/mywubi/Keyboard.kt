@@ -47,7 +47,7 @@ data class CandidateItem(val id: Long, val text: String, val hint: String, val e
     val spokenHint: String get() = if(expressionKind == null && hint.isNotEmpty()) "编码提示 $hint" else hint
 }
 data class ExpressionQueryUi(val kind: String, val phase: String, val text: String, val message: String?)
-private data class ExpressionChoice(val mode: String, val title: String, val available: Boolean, val reason: String?)
+private data class ExpressionChoice(val mode: String, val title: String, val icon: Int, val available: Boolean, val reason: String?)
 
 private val LocalKeyboardKeyHeight = staticCompositionLocalOf { 54.dp }
 data class KeyboardModel(
@@ -104,7 +104,11 @@ fun Keyboard(model: KeyboardModel, dispatch: (Any) -> Unit, window: (Int) -> Uni
     var asciiSymbols by remember(model.epoch, model.base, model.privateInput, model.layout) {
         mutableStateOf(model.privateInput || model.base == "English" || model.layout != "letters")
     }
-    var tools by remember(model.epoch) { mutableStateOf(false) }
+    // Composition and predictions own the toolbar slot until the input is cleared.
+    val showCandidateBar = !model.privateInput && (model.spelling.isNotEmpty() || model.candidates.isNotEmpty())
+    val showToolbar = !showCandidateBar && model.expression == null
+    // Reserve scaled text space in both states, including an empty candidate list.
+    val barHeight = maxOf(48.dp, (28 * LocalDensity.current.fontScale + 16).dp)
     LaunchedEffect(model.spelling) { if (model.spelling.isEmpty()) expanded = false }
     val colors = myWubiColors()
     val baseEnabled = model.enabled && model.modesAvailable && !model.privateInput && model.expression == null
@@ -153,8 +157,7 @@ fun Keyboard(model: KeyboardModel, dispatch: (Any) -> Unit, window: (Int) -> Uni
                             overflow=androidx.compose.ui.text.style.TextOverflow.Ellipsis)
                         Text("${model.total} 个候选", color=colors.onSurfaceVariant, fontSize=12.sp, maxLines=1)
                     }
-                    TextButton(onClick={expanded=false}, modifier=Modifier.imeAction("收起", true) {expanded=false}) { Text("收起", maxLines=1) }
-                    pinyinControl()
+                    ToolbarIconButton(R.drawable.ic_collapse_candidates, "收起") { expanded=false }
                     IconButton(onClick=hideKeyboard,
                         modifier=Modifier.size(48.dp).imeAction("收起键盘", true, hideKeyboard)) {
                         Icon(androidx.compose.ui.res.painterResource(R.drawable.ic_hide_keyboard), null, Modifier.size(24.dp), tint=colors.onSurface)
@@ -166,70 +169,58 @@ fun Keyboard(model: KeyboardModel, dispatch: (Any) -> Unit, window: (Int) -> Uni
                         .then(if (showSpelling) Modifier else Modifier.clearAndSetSemantics {}),
                     color=colors.primary, fontSize=16.sp, lineHeight=20.sp, maxLines=1,
                     overflow=androidx.compose.ui.text.style.TextOverflow.Ellipsis)
-                Row(Modifier.fillMaxWidth().heightIn(min=48.dp), verticalAlignment=androidx.compose.ui.Alignment.CenterVertically) {
-                    Row(Modifier.weight(1f), verticalAlignment=androidx.compose.ui.Alignment.CenterVertically) {
-                        if (model.expression == null && model.candidates.isEmpty() && !showClipboard) IconButton(onClick={tools=!tools}, modifier=Modifier.imeAction("键盘工具", true) {tools=!tools}) {
-                            androidx.compose.foundation.Image(androidx.compose.ui.res.painterResource(R.drawable.mywubi_brand), null, Modifier.size(28.dp))
-                        }
+                Row(Modifier.fillMaxWidth().heightIn(min=barHeight), verticalAlignment=androidx.compose.ui.Alignment.CenterVertically) {
+                    Row(Modifier.weight(1f), horizontalArrangement=Arrangement.SpaceEvenly,
+                        verticalAlignment=androidx.compose.ui.Alignment.CenterVertically) {
                         if (showClipboard) {
                             TextButton(onClick = { dispatch("PasteClipboard") }, enabled = model.enabled,
                                 modifier = Modifier.weight(1f).heightIn(min = 48.dp).imeAction("粘贴剪贴板内容", model.enabled) { dispatch("PasteClipboard") }) {
                                 Text("粘贴：${model.clipboard}", maxLines = 1, overflow = androidx.compose.ui.text.style.TextOverflow.Ellipsis)
                             }
-                            IconButton(onClick = { dispatch("DismissClipboard") }, modifier = Modifier.size(48.dp)
-                                .imeAction("关闭剪贴板建议", true) { dispatch("DismissClipboard") }) { Text("×", fontSize = 24.sp) }
+                            ToolbarIconButton(R.drawable.ic_close, "关闭剪贴板建议") { dispatch("DismissClipboard") }
                         } else if (model.candidates.isNotEmpty() && !model.privateInput) {
                             if (model.prediction) Icon(androidx.compose.ui.res.painterResource(R.drawable.ic_prediction),
                                 "字词预测", Modifier.padding(start=8.dp).size(18.dp), tint=colors.primary)
                             LazyRow(Modifier.weight(1f).heightIn(min=48.dp)) {
                                 items(model.candidates, key={"${model.query}:${it.id}"}) { item -> CandidateButton(item, model.enabled) {choose(item)} }
                             }
-                            TextButton(onClick={expanded=!expanded}, modifier=Modifier.imeAction(if(expanded) "收起" else "展开", true) {expanded=!expanded}) {
-                                Text(if(expanded) "收起" else "展开")
-                            }
+                            ToolbarIconButton(R.drawable.ic_expand_candidates, "展开") { expanded=true }
                         } else {
-                            Box(Modifier.weight(1f).padding(horizontal=8.dp)) {
+                            if (model.privateInput || model.statusError || !model.enabled) Box(Modifier.width(24.dp),
+                                contentAlignment=androidx.compose.ui.Alignment.Center) {
                                 when {
                                     model.privateInput -> Icon(androidx.compose.ui.res.painterResource(R.drawable.ic_mode_lock),
                                         "安全输入", Modifier.size(18.dp), tint=colors.onSurface)
-                                    model.statusError -> IconButton(onClick=openSettings) {
-                                        Icon(androidx.compose.ui.res.painterResource(R.drawable.ic_input_error),
-                                            model.status, Modifier.size(20.dp), tint=MaterialTheme.colorScheme.error)
-                                    }
+                                    model.statusError -> Icon(androidx.compose.ui.res.painterResource(R.drawable.ic_input_error),
+                                        model.status, Modifier.size(20.dp), tint=MaterialTheme.colorScheme.error)
                                     !model.enabled -> CircularProgressIndicator(Modifier.size(18.dp)
                                         .clearAndSetSemantics { contentDescription = model.status }, strokeWidth=2.dp)
                                 }
                             }
-                            if (model.spelling.isEmpty() && model.temporary == null) {
+                            if (showToolbar) {
                                 val showUpdate = model.idle && model.updateAvailable
                                 val label = if (showUpdate) "设置，有可用更新" else "设置"
-                                TextButton(onClick=openSettings, modifier=Modifier.imeAction(label, true, openSettings)) {
-                                    BadgedBox(badge = { if (showUpdate) Badge() }) { Text("设置") }
+                                ToolbarIconButton(R.drawable.ic_settings, label,
+                                    badge={ if (showUpdate) Badge() }, action=openSettings)
+                                for ((mode, title, icon, available, reason) in listOf(
+                                    ExpressionChoice("Emoji", "Emoji 输入", R.drawable.ic_emoji, model.emojiAvailable, model.emojiReason),
+                                    ExpressionChoice("Kaomoji", "颜文字输入", R.drawable.ic_kaomoji, model.kaomojiAvailable, model.kaomojiReason))) {
+                                    val description = if (!available && !reason.isNullOrBlank()) "$title，$reason" else title
+                                    ToolbarIconButton(icon, description, enabled=baseEnabled && available) {
+                                        dispatch(JSONObject().put("BeginTemporary", mode))
+                                    }
                                 }
+                                ToolbarIconButton(R.drawable.ic_switch_ime, "切换输入法", action=switchIme)
+                                pinyinControl()
+                            } else {
+                                Spacer(Modifier.weight(1f))
                             }
                         }
-                        if (!showClipboard && model.expression == null) pinyinControl()
                     }
                     IconButton(onClick=hideKeyboard,
                         modifier=Modifier.size(48.dp).imeAction("收起键盘", true, hideKeyboard)) {
                         Icon(androidx.compose.ui.res.painterResource(R.drawable.ic_hide_keyboard), null,
                             Modifier.size(24.dp), tint=colors.onSurface)
-                    }
-                }
-                if (tools && model.expression == null && model.spelling.isEmpty() && model.candidates.isEmpty()) {
-                    Row(Modifier.fillMaxWidth(), horizontalArrangement=Arrangement.SpaceEvenly) {
-                        TextButton(onClick=openSettings) {Text("设置 / 码表")}
-                        TextButton(onClick=switchIme) {Text("切换输入法")}
-                        val enabled = baseEnabled && model.pinyinAvailable
-                        PinyinButton(pinyinMode, pinyinLabel, enabled) {cyclePinyin(); tools=false}
-                    }
-                    for ((mode, title, available, reason) in listOf(
-                        ExpressionChoice("Emoji", "Emoji 输入", model.emojiAvailable, model.emojiReason),
-                        ExpressionChoice("Kaomoji", "颜文字输入", model.kaomojiAvailable, model.kaomojiReason))) {
-                        Row(Modifier.fillMaxWidth().padding(horizontal=8.dp), verticalAlignment=androidx.compose.ui.Alignment.CenterVertically) {
-                            TextButton(onClick={tools=false; dispatch(JSONObject().put("BeginTemporary", mode))}, enabled=baseEnabled && available) { Text(title) }
-                            if(!available && !reason.isNullOrBlank()) Text(reason, Modifier.weight(1f), fontSize=12.sp, color=colors.onSurfaceVariant)
-                        }
                     }
                 }
             }
@@ -389,21 +380,31 @@ fun Keyboard(model: KeyboardModel, dispatch: (Any) -> Unit, window: (Int) -> Uni
 }
 
 @Composable
-private fun PinyinButton(mode: KeyMode, description: String, enabled: Boolean, action: () -> Unit) {
-    val selected = mode != KeyMode.Off
+private fun ToolbarIconButton(icon: Int, description: String, enabled: Boolean = true,
+                              selected: Boolean = false, badge: @Composable () -> Unit = {}, action: () -> Unit) {
     val colors = MaterialTheme.colorScheme
-    FilledTonalButton(onClick=action, enabled=enabled,
-        // Match TextButton's vertical padding so toolbar states stay equal at large font scales.
-        modifier=Modifier.imeAction(description, enabled, action), contentPadding=PaddingValues(horizontal=10.dp, vertical=8.dp),
-        colors=ButtonDefaults.filledTonalButtonColors(
-            containerColor=if(selected) colors.primary else colors.surface,
-            contentColor=if(selected) colors.onPrimary else colors.primary)) {
-        Text("拼音", maxLines=1)
-        if (mode == KeyMode.Locked) Icon(androidx.compose.ui.res.painterResource(R.drawable.ic_mode_lock), null,
-            Modifier.padding(start=4.dp).size(14.dp))
-        else if (mode == KeyMode.Once) Box(Modifier.padding(start=5.dp).size(5.dp)
-            .background(LocalContentColor.current, androidx.compose.foundation.shape.CircleShape))
+    IconButton(onClick=action, enabled=enabled,
+        modifier=Modifier.size(48.dp)
+            .background(if(selected) colors.secondaryContainer else androidx.compose.ui.graphics.Color.Transparent,
+                androidx.compose.foundation.shape.CircleShape)
+            .imeAction(description, enabled, action),
+        colors=IconButtonDefaults.iconButtonColors(contentColor=if(selected) colors.primary else colors.onSurfaceVariant)) {
+        BadgedBox(badge={ badge() }) {
+            Icon(androidx.compose.ui.res.painterResource(icon), null, Modifier.size(24.dp))
+        }
     }
+}
+
+@Composable
+private fun PinyinButton(mode: KeyMode, description: String, enabled: Boolean, action: () -> Unit) {
+    val colors = MaterialTheme.colorScheme
+    ToolbarIconButton(R.drawable.ic_pinyin, description, enabled, selected=mode != KeyMode.Off,
+        badge={
+            if (mode == KeyMode.Locked) Icon(androidx.compose.ui.res.painterResource(R.drawable.ic_mode_lock), null,
+                Modifier.size(10.dp), tint=colors.primary)
+            else if (mode == KeyMode.Once) Box(Modifier.size(5.dp)
+                .background(colors.primary, androidx.compose.foundation.shape.CircleShape))
+        }, action=action)
 }
 
 @Composable

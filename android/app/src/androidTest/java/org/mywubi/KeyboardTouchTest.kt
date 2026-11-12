@@ -204,12 +204,26 @@ class KeyboardTouchTest {
                     { if(it == "CyclePinyin") mode=mode.next() else events.add(it) }, {}, switchIme={})
             } }
             for (label in listOf("拼音", "拼音 · 本次", "拼音 · 锁定")) {
+                val target = (48 * instrumentation.targetContext.resources.displayMetrics.density).toInt()
+                assertTrue(kotlin.math.abs(key(label).visibleBounds.width() - target) <= 1)
+                assertFalse("Toolbar actions use icons, not visible labels", device.hasObject(By.text("拼音")))
                 key(label).click(); settled()
                 assertEquals(1, device.findObjects(By.descStartsWith("拼音")).size)
                 assertFalse("视觉状态不使用文字后缀", device.hasObject(By.textContains("· 本次")))
                 assertFalse(device.hasObject(By.textContains("锁定")))
                 device.takeScreenshot(File(instrumentation.targetContext.filesDir,"keyboard-mode-${mode.name}.png"))
             }
+            assertFalse("Toolbar must not have an expandable second row", device.hasObject(By.desc("键盘工具")))
+            assertEquals("Settings must have only one entry", 1,
+                device.findObjects(By.descStartsWith("设置").pkg("org.mywubi")).size)
+            assertEquals("Pinyin must have only one entry", 1,
+                device.findObjects(By.descStartsWith("拼音").pkg("org.mywubi")).size)
+            val toolbarY = key("设置").visibleBounds.centerY()
+            for (label in listOf("切换输入法", "Emoji 输入", "颜文字输入", "拼音", "收起键盘")) {
+                assertEquals("All toolbar actions must share one row", toolbarY, key(label).visibleBounds.centerY())
+                assertFalse("Tool panel actions use icons", device.hasObject(By.text(label)))
+            }
+            device.takeScreenshot(File(instrumentation.targetContext.filesDir,"keyboard-tool-icons.png"))
             key("小写").click(); settled()
             val upper = key("Q").visibleCenter
             touch(MotionEvent.ACTION_DOWN, upper.x, upper.y)

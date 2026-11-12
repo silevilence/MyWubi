@@ -22,6 +22,7 @@ class UpdateToolbarTest {
             } }
             fun badge() = By.desc("设置，有可用更新")
             assertTrue(device.wait(Until.hasObject(badge()), 5000))
+            assertFalse("Settings uses a gear icon", device.hasObject(By.text("设置")))
             device.findObject(badge()).click()
             instrumentation.waitForIdleSync()
             assertEquals("Hiding the dot on touch must not remove the settings button", 1, opened)

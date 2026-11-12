@@ -8,6 +8,8 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.layout.onSizeChanged
 import androidx.compose.ui.platform.LocalDensity
+import androidx.compose.ui.semantics.contentDescription
+import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.unit.Density
 import androidx.test.core.app.ActivityScenario
 import androidx.test.platform.app.InstrumentationRegistry
@@ -33,6 +35,7 @@ class KeyboardLayoutTest {
         val height = java.util.concurrent.atomic.AtomicInteger()
         val ready = KeyboardModel(enabled=true, modesAvailable=true, pinyinAvailable=true)
         var model by mutableStateOf(ready)
+        var layoutState by mutableStateOf("idle")
         ActivityScenario.launch(MainActivity::class.java).use { scenario ->
             if (landscape) {
                 scenario.onActivity { it.requestedOrientation = android.content.pm.ActivityInfo.SCREEN_ORIENTATION_LANDSCAPE }
@@ -47,7 +50,8 @@ class KeyboardLayoutTest {
                 val density = LocalDensity.current
                 CompositionLocalProvider(LocalDensity provides Density(density.density, fontScale ?: density.fontScale)) {
                     Box(Modifier.fillMaxSize(), contentAlignment=Alignment.BottomCenter) {
-                        Box(Modifier.onSizeChanged { height.set(it.height) }) {
+                        Box(Modifier.onSizeChanged { height.set(it.height) }
+                            .semantics { contentDescription = "layout:$layoutState" }) {
                             Keyboard(model, {}, {}, switchIme={})
                         }
                     }
@@ -76,13 +80,27 @@ class KeyboardLayoutTest {
                 "idle again" to ready
             )
             for ((label, next) in states) {
-                scenario.onActivity { model = next }
+                scenario.onActivity { model = next; layoutState = label }
+                assertTrue("State was not rendered: $label",
+                    device.wait(Until.hasObject(By.desc("layout:$label")), 5000))
                 val bounds = keyBounds()
-                if (label == "composing" && fontScale == null) {
+                if (label == "composing") {
+                    assertTrue(device.wait(Until.hasObject(By.desc("候选 是，编码提示 j")), 5000))
                     device.takeScreenshot(File(instrumentation.targetContext.filesDir, "keyboard-height-composing.png"))
                 }
                 assertEquals("Keyboard height changed in $label", idleHeight, height.get())
                 assertEquals("Letter keys moved in $label", idleKey, bounds)
+                val composing = !next.privateInput && (next.spelling.isNotEmpty() || next.candidates.isNotEmpty())
+                assertEquals("Toolbar visibility in $label", !composing && next.clipboard == null,
+                    device.hasObject(By.desc("切换输入法").pkg("org.mywubi")))
+                for (action in listOf("Emoji 输入", "颜文字输入")) {
+                    assertEquals("Toolbar action $action visibility in $label", !composing && next.clipboard == null,
+                        device.hasObject(By.descStartsWith(action).pkg("org.mywubi")))
+                }
+                assertEquals("Pinyin toolbar action visibility in $label", !composing && next.clipboard == null,
+                    device.hasObject(By.desc("拼音").pkg("org.mywubi")))
+                assertTrue("Hide keyboard must remain available in $label",
+                    device.hasObject(By.desc("收起键盘").pkg("org.mywubi")))
                 if (next.candidates.isNotEmpty()) {
                     val candidate = device.wait(Until.findObject(By.desc("候选 是，编码提示 j").pkg("org.mywubi")), 5000)
                         ?: error("Missing candidate in $label")

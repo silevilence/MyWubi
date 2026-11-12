@@ -69,7 +69,7 @@ class ExpressionHostTest {
         fun save(value: JSONObject, version: Long) {
             NativeHandle(version).use { NativeHandle(store.saveConfig(value, it.value).getLong("version")).close() }
         }
-        fun enter() { key("键盘工具"); button("Emoji 输入") }
+        fun enter() { key("Emoji 输入") }
         val automation = instrumentation.uiAutomation
         val originalFlags = automation.serviceInfo.flags
         val retainedNodes = mutableListOf<android.view.accessibility.AccessibilityNodeInfo>()
@@ -162,7 +162,7 @@ class ExpressionHostTest {
         fun save(value: JSONObject, version: Long) {
             NativeHandle(version).use { NativeHandle(store.saveConfig(value, it.value).getLong("version")).close() }
         }
-        fun enter(label: String) { key("键盘工具"); button(label) }
+        fun enter(label: String) { key(label) }
         try {
             save(config, loaded.getLong("version"))
             // Obtain the full-library ordering from an independent JNI session.
@@ -253,7 +253,7 @@ class ExpressionHostTest {
         config.put("expressions",JSONObject().put("emoji",JSONObject().put("append",false).put("search",true))
             .put("kaomoji",JSONObject().put("append",false).put("search",true).put("resource",kaomoji.path)))
         fun save(value:JSONObject,version:Long) { NativeHandle(version).use { NativeHandle(store.saveConfig(value,it.value).getLong("version")).close() } }
-        fun enter(mode:String) { key("键盘工具");button(if(mode=="Emoji") "Emoji 输入" else "颜文字输入") }
+        fun enter(mode:String) { key(if(mode=="Emoji") "Emoji 输入" else "颜文字输入") }
         try {
             save(config,loaded.getLong("version"))
             device.executeShellCommand("ime enable org.mywubi/.MyWubiService")
