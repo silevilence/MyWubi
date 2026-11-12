@@ -65,3 +65,10 @@ search = false
 [expressions.kaomoji]
 append = false
 search = false
+[personal]
+collect = false
+learn = false
+predict = false
+max_mb = 64
+retention_days = 90
+

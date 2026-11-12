@@ -33,6 +33,8 @@ pub struct Config {
     pub prediction: PredictionConfig,
     #[serde(default)]
     pub expressions: crate::expressions::ExpressionsConfig,
+    #[serde(default)]
+    pub personal: crate::personal::PersonalConfig,
 }
 
 /// Word predictions are independent of code-candidate sorting and disabled by default.
@@ -455,6 +457,14 @@ impl Config {
 
     /// 语义校验。
     fn validate(&self) -> Result<(), Error> {
+        if !(1..=128).contains(&self.personal.max_mb)
+            || !(1..=3650).contains(&self.personal.retention_days)
+        {
+            return Err(Error::Invalid(
+                "personal".into(),
+                "容量应为 1～128 MB，保留期限应为 1～3650 天".into(),
+            ));
+        }
         let p = &self.prediction;
         if !(50..=1000).contains(&p.wait_ms)
             || !(1..=4).contains(&p.threads)

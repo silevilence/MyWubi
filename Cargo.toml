@@ -1,6 +1,7 @@
 [workspace]
 resolver = "2"
 members = [
+    "personal_input",
     "model_input",
     "core_engine",
     "android/native",
