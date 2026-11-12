@@ -1,0 +1,2476 @@
+# MyWubi Expressions 1
+{
+  "kind": "math",
+  "name": "MyWubi 数学符号",
+  "version": "1.0.0",
+  "sources": [
+    {
+      "id": "mywubi-curated",
+      "url": "local:scripts/build_special_tables.py",
+      "revision": "1.0.0",
+      "license": "MIT",
+      "notice": "MIT License\n\nCopyright (c) 2026 MyWubi contributors\n\nPermission is hereby granted, free of charge, to any person obtaining a copy\nof this software and associated documentation files (the \"Software\"), to deal\nin the Software without restriction, including without limitation the rights\nto use, copy, modify, merge, publish, distribute, sublicense, and/or sell\ncopies of the Software, and to permit persons to whom the Software is\nfurnished to do so, subject to the following conditions:\n\nThe above copyright notice and this permission notice shall be included in all\ncopies or substantial portions of the Software.\n\nTHE SOFTWARE IS PROVIDED \"AS IS\", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR\nIMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,\nFITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE\nAUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER\nLIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,\nOUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE\nSOFTWARE.\n"
+    }
+  ],
+  "entries": [
+    {
+      "text": "+",
+      "name": "加号",
+      "triggers": [
+        "加号",
+        "数学符号",
+        "加"
+      ],
+      "tags": [
+        "数学符号"
+      ],
+      "aliases": [
+        "plus",
+        "加"
+      ],
+      "order": 0,
+      "sources": [
+        "mywubi-curated"
+      ]
+    },
+    {
+      "text": "−",
+      "name": "减号",
+      "triggers": [
+        "减号",
+        "数学符号",
+        "减"
+      ],
+      "tags": [
+        "数学符号"
+      ],
+      "aliases": [
+        "minus",
+        "减"
+      ],
+      "order": 1,
+      "sources": [
+        "mywubi-curated"
+      ]
+    },
+    {
+      "text": "±",
+      "name": "正负号",
+      "triggers": [
+        "正负号",
+        "数学符号",
+        "正负"
+      ],
+      "tags": [
+        "数学符号"
+      ],
+      "aliases": [
+        "plusminus",
+        "正负"
+      ],
+      "order": 2,
+      "sources": [
+        "mywubi-curated"
+      ]
+    },
+    {
+      "text": "∓",
+      "name": "负正号",
+      "triggers": [
+        "负正号",
+        "数学符号",
+        "负正"
+      ],
+      "tags": [
+        "数学符号"
+      ],
+      "aliases": [
+        "minusplus",
+        "负正"
+      ],
+      "order": 3,
+      "sources": [
+        "mywubi-curated"
+      ]
+    },
+    {
+      "text": "×",
+      "name": "乘号",
+      "triggers": [
+        "乘号",
+        "数学符号",
+        "乘"
+      ],
+      "tags": [
+        "数学符号"
+      ],
+      "aliases": [
+        "times",
+        "乘"
+      ],
+      "order": 4,
+      "sources": [
+        "mywubi-curated"
+      ]
+    },
+    {
+      "text": "÷",
+      "name": "除号",
+      "triggers": [
+        "除号",
+        "数学符号",
+        "除"
+      ],
+      "tags": [
+        "数学符号"
+      ],
+      "aliases": [
+        "divide",
+        "除"
+      ],
+      "order": 5,
+      "sources": [
+        "mywubi-curated"
+      ]
+    },
+    {
+      "text": "·",
+      "name": "点乘",
+      "triggers": [
+        "点乘",
+        "数学符号"
+      ],
+      "tags": [
+        "数学符号"
+      ],
+      "aliases": [
+        "dot",
+        "点乘"
+      ],
+      "order": 6,
+      "sources": [
+        "mywubi-curated"
+      ]
+    },
+    {
+      "text": "＝",
+      "name": "全角等号",
+      "triggers": [
+        "全角等号",
+        "数学符号"
+      ],
+      "tags": [
+        "数学符号"
+      ],
+      "aliases": [
+        "fullwidth equal"
+      ],
+      "order": 7,
+      "sources": [
+        "mywubi-curated"
+      ]
+    },
+    {
+      "text": "=",
+      "name": "等号",
+      "triggers": [
+        "等号",
+        "数学符号",
+        "等于"
+      ],
+      "tags": [
+        "数学符号"
+      ],
+      "aliases": [
+        "equal",
+        "等于"
+      ],
+      "order": 8,
+      "sources": [
+        "mywubi-curated"
+      ]
+    },
+    {
+      "text": "≠",
+      "name": "不等号",
+      "triggers": [
+        "不等号",
+        "数学符号",
+        "不等于"
+      ],
+      "tags": [
+        "数学符号"
+      ],
+      "aliases": [
+        "not equal",
+        "不等于"
+      ],
+      "order": 9,
+      "sources": [
+        "mywubi-curated"
+      ]
+    },
+    {
+      "text": "≈",
+      "name": "约等号",
+      "triggers": [
+        "约等号",
+        "数学符号",
+        "约等于"
+      ],
+      "tags": [
+        "数学符号"
+      ],
+      "aliases": [
+        "approximately",
+        "约等于"
+      ],
+      "order": 10,
+      "sources": [
+        "mywubi-curated"
+      ]
+    },
+    {
+      "text": "≡",
+      "name": "恒等号",
+      "triggers": [
+        "恒等号",
+        "数学符号",
+        "恒等"
+      ],
+      "tags": [
+        "数学符号"
+      ],
+      "aliases": [
+        "identical",
+        "恒等"
+      ],
+      "order": 11,
+      "sources": [
+        "mywubi-curated"
+      ]
+    },
+    {
+      "text": "≤",
+      "name": "小于等于",
+      "triggers": [
+        "小于等于",
+        "数学符号"
+      ],
+      "tags": [
+        "数学符号"
+      ],
+      "aliases": [
+        "less equal"
+      ],
+      "order": 12,
+      "sources": [
+        "mywubi-curated"
+      ]
+    },
+    {
+      "text": "≥",
+      "name": "大于等于",
+      "triggers": [
+        "大于等于",
+        "数学符号"
+      ],
+      "tags": [
+        "数学符号"
+      ],
+      "aliases": [
+        "greater equal"
+      ],
+      "order": 13,
+      "sources": [
+        "mywubi-curated"
+      ]
+    },
+    {
+      "text": "≪",
+      "name": "远小于",
+      "triggers": [
+        "远小于",
+        "数学符号"
+      ],
+      "tags": [
+        "数学符号"
+      ],
+      "aliases": [
+        "much less"
+      ],
+      "order": 14,
+      "sources": [
+        "mywubi-curated"
+      ]
+    },
+    {
+      "text": "≫",
+      "name": "远大于",
+      "triggers": [
+        "远大于",
+        "数学符号"
+      ],
+      "tags": [
+        "数学符号"
+      ],
+      "aliases": [
+        "much greater"
+      ],
+      "order": 15,
+      "sources": [
+        "mywubi-curated"
+      ]
+    },
+    {
+      "text": "<",
+      "name": "小于号",
+      "triggers": [
+        "小于号",
+        "数学符号"
+      ],
+      "tags": [
+        "数学符号"
+      ],
+      "aliases": [
+        "less"
+      ],
+      "order": 16,
+      "sources": [
+        "mywubi-curated"
+      ]
+    },
+    {
+      "text": ">",
+      "name": "大于号",
+      "triggers": [
+        "大于号",
+        "数学符号"
+      ],
+      "tags": [
+        "数学符号"
+      ],
+      "aliases": [
+        "greater"
+      ],
+      "order": 17,
+      "sources": [
+        "mywubi-curated"
+      ]
+    },
+    {
+      "text": "∞",
+      "name": "无穷大",
+      "triggers": [
+        "无穷大",
+        "数学符号",
+        "无穷"
+      ],
+      "tags": [
+        "数学符号"
+      ],
+      "aliases": [
+        "infinity",
+        "无穷"
+      ],
+      "order": 18,
+      "sources": [
+        "mywubi-curated"
+      ]
+    },
+    {
+      "text": "∑",
+      "name": "求和",
+      "triggers": [
+        "求和",
+        "数学符号"
+      ],
+      "tags": [
+        "数学符号"
+      ],
+      "aliases": [
+        "sum",
+        "summation"
+      ],
+      "order": 19,
+      "sources": [
+        "mywubi-curated"
+      ]
+    },
+    {
+      "text": "∏",
+      "name": "连乘",
+      "triggers": [
+        "连乘",
+        "数学符号"
+      ],
+      "tags": [
+        "数学符号"
+      ],
+      "aliases": [
+        "product"
+      ],
+      "order": 20,
+      "sources": [
+        "mywubi-curated"
+      ]
+    },
+    {
+      "text": "∫",
+      "name": "积分",
+      "triggers": [
+        "积分",
+        "数学符号"
+      ],
+      "tags": [
+        "数学符号"
+      ],
+      "aliases": [
+        "integral"
+      ],
+      "order": 21,
+      "sources": [
+        "mywubi-curated"
+      ]
+    },
+    {
+      "text": "∬",
+      "name": "二重积分",
+      "triggers": [
+        "二重积分",
+        "数学符号"
+      ],
+      "tags": [
+        "数学符号"
+      ],
+      "aliases": [
+        "double integral"
+      ],
+      "order": 22,
+      "sources": [
+        "mywubi-curated"
+      ]
+    },
+    {
+      "text": "∭",
+      "name": "三重积分",
+      "triggers": [
+        "三重积分",
+        "数学符号"
+      ],
+      "tags": [
+        "数学符号"
+      ],
+      "aliases": [
+        "triple integral"
+      ],
+      "order": 23,
+      "sources": [
+        "mywubi-curated"
+      ]
+    },
+    {
+      "text": "∮",
+      "name": "围道积分",
+      "triggers": [
+        "围道积分",
+        "数学符号"
+      ],
+      "tags": [
+        "数学符号"
+      ],
+      "aliases": [
+        "contour integral"
+      ],
+      "order": 24,
+      "sources": [
+        "mywubi-curated"
+      ]
+    },
+    {
+      "text": "√",
+      "name": "平方根",
+      "triggers": [
+        "平方根",
+        "数学符号",
+        "根号"
+      ],
+      "tags": [
+        "数学符号"
+      ],
+      "aliases": [
+        "sqrt",
+        "根号"
+      ],
+      "order": 25,
+      "sources": [
+        "mywubi-curated"
+      ]
+    },
+    {
+      "text": "∛",
+      "name": "立方根",
+      "triggers": [
+        "立方根",
+        "数学符号"
+      ],
+      "tags": [
+        "数学符号"
+      ],
+      "aliases": [
+        "cube root"
+      ],
+      "order": 26,
+      "sources": [
+        "mywubi-curated"
+      ]
+    },
+    {
+      "text": "∜",
+      "name": "四次方根",
+      "triggers": [
+        "四次方根",
+        "数学符号"
+      ],
+      "tags": [
+        "数学符号"
+      ],
+      "aliases": [
+        "fourth root"
+      ],
+      "order": 27,
+      "sources": [
+        "mywubi-curated"
+      ]
+    },
+    {
+      "text": "∂",
+      "name": "偏导数",
+      "triggers": [
+        "偏导数",
+        "数学符号"
+      ],
+      "tags": [
+        "数学符号"
+      ],
+      "aliases": [
+        "partial"
+      ],
+      "order": 28,
+      "sources": [
+        "mywubi-curated"
+      ]
+    },
+    {
+      "text": "∇",
+      "name": "梯度",
+      "triggers": [
+        "梯度",
+        "数学符号"
+      ],
+      "tags": [
+        "数学符号"
+      ],
+      "aliases": [
+        "nabla",
+        "gradient"
+      ],
+      "order": 29,
+      "sources": [
+        "mywubi-curated"
+      ]
+    },
+    {
+      "text": "∆",
+      "name": "增量",
+      "triggers": [
+        "增量",
+        "数学符号"
+      ],
+      "tags": [
+        "数学符号"
+      ],
+      "aliases": [
+        "increment"
+      ],
+      "order": 30,
+      "sources": [
+        "mywubi-curated"
+      ]
+    },
+    {
+      "text": "∈",
+      "name": "属于",
+      "triggers": [
+        "属于",
+        "数学符号",
+        "属于集合"
+      ],
+      "tags": [
+        "数学符号"
+      ],
+      "aliases": [
+        "element",
+        "属于集合"
+      ],
+      "order": 31,
+      "sources": [
+        "mywubi-curated"
+      ]
+    },
+    {
+      "text": "∉",
+      "name": "不属于",
+      "triggers": [
+        "不属于",
+        "数学符号"
+      ],
+      "tags": [
+        "数学符号"
+      ],
+      "aliases": [
+        "not element"
+      ],
+      "order": 32,
+      "sources": [
+        "mywubi-curated"
+      ]
+    },
+    {
+      "text": "∋",
+      "name": "包含元素",
+      "triggers": [
+        "包含元素",
+        "数学符号"
+      ],
+      "tags": [
+        "数学符号"
+      ],
+      "aliases": [
+        "contains element"
+      ],
+      "order": 33,
+      "sources": [
+        "mywubi-curated"
+      ]
+    },
+    {
+      "text": "∅",
+      "name": "空集",
+      "triggers": [
+        "空集",
+        "数学符号"
+      ],
+      "tags": [
+        "数学符号"
+      ],
+      "aliases": [
+        "empty set"
+      ],
+      "order": 34,
+      "sources": [
+        "mywubi-curated"
+      ]
+    },
+    {
+      "text": "∩",
+      "name": "交集",
+      "triggers": [
+        "交集",
+        "数学符号"
+      ],
+      "tags": [
+        "数学符号"
+      ],
+      "aliases": [
+        "intersection"
+      ],
+      "order": 35,
+      "sources": [
+        "mywubi-curated"
+      ]
+    },
+    {
+      "text": "∪",
+      "name": "并集",
+      "triggers": [
+        "并集",
+        "数学符号"
+      ],
+      "tags": [
+        "数学符号"
+      ],
+      "aliases": [
+        "union"
+      ],
+      "order": 36,
+      "sources": [
+        "mywubi-curated"
+      ]
+    },
+    {
+      "text": "⊂",
+      "name": "真子集",
+      "triggers": [
+        "真子集",
+        "数学符号"
+      ],
+      "tags": [
+        "数学符号"
+      ],
+      "aliases": [
+        "subset"
+      ],
+      "order": 37,
+      "sources": [
+        "mywubi-curated"
+      ]
+    },
+    {
+      "text": "⊃",
+      "name": "真超集",
+      "triggers": [
+        "真超集",
+        "数学符号"
+      ],
+      "tags": [
+        "数学符号"
+      ],
+      "aliases": [
+        "superset"
+      ],
+      "order": 38,
+      "sources": [
+        "mywubi-curated"
+      ]
+    },
+    {
+      "text": "⊆",
+      "name": "子集或相等",
+      "triggers": [
+        "子集或相等",
+        "数学符号"
+      ],
+      "tags": [
+        "数学符号"
+      ],
+      "aliases": [
+        "subset equal"
+      ],
+      "order": 39,
+      "sources": [
+        "mywubi-curated"
+      ]
+    },
+    {
+      "text": "⊇",
+      "name": "超集或相等",
+      "triggers": [
+        "超集或相等",
+        "数学符号"
+      ],
+      "tags": [
+        "数学符号"
+      ],
+      "aliases": [
+        "superset equal"
+      ],
+      "order": 40,
+      "sources": [
+        "mywubi-curated"
+      ]
+    },
+    {
+      "text": "∀",
+      "name": "任意",
+      "triggers": [
+        "任意",
+        "数学符号",
+        "全称量词"
+      ],
+      "tags": [
+        "数学符号"
+      ],
+      "aliases": [
+        "forall",
+        "全称量词"
+      ],
+      "order": 41,
+      "sources": [
+        "mywubi-curated"
+      ]
+    },
+    {
+      "text": "∃",
+      "name": "存在",
+      "triggers": [
+        "存在",
+        "数学符号",
+        "存在量词"
+      ],
+      "tags": [
+        "数学符号"
+      ],
+      "aliases": [
+        "exists",
+        "存在量词"
+      ],
+      "order": 42,
+      "sources": [
+        "mywubi-curated"
+      ]
+    },
+    {
+      "text": "∄",
+      "name": "不存在",
+      "triggers": [
+        "不存在",
+        "数学符号"
+      ],
+      "tags": [
+        "数学符号"
+      ],
+      "aliases": [
+        "not exists"
+      ],
+      "order": 43,
+      "sources": [
+        "mywubi-curated"
+      ]
+    },
+    {
+      "text": "¬",
+      "name": "逻辑非",
+      "triggers": [
+        "逻辑非",
+        "数学符号"
+      ],
+      "tags": [
+        "数学符号"
+      ],
+      "aliases": [
+        "not"
+      ],
+      "order": 44,
+      "sources": [
+        "mywubi-curated"
+      ]
+    },
+    {
+      "text": "∧",
+      "name": "逻辑与",
+      "triggers": [
+        "逻辑与",
+        "数学符号"
+      ],
+      "tags": [
+        "数学符号"
+      ],
+      "aliases": [
+        "and"
+      ],
+      "order": 45,
+      "sources": [
+        "mywubi-curated"
+      ]
+    },
+    {
+      "text": "∨",
+      "name": "逻辑或",
+      "triggers": [
+        "逻辑或",
+        "数学符号"
+      ],
+      "tags": [
+        "数学符号"
+      ],
+      "aliases": [
+        "or"
+      ],
+      "order": 46,
+      "sources": [
+        "mywubi-curated"
+      ]
+    },
+    {
+      "text": "⊕",
+      "name": "直和",
+      "triggers": [
+        "直和",
+        "数学符号"
+      ],
+      "tags": [
+        "数学符号"
+      ],
+      "aliases": [
+        "direct sum"
+      ],
+      "order": 47,
+      "sources": [
+        "mywubi-curated"
+      ]
+    },
+    {
+      "text": "⊗",
+      "name": "张量积",
+      "triggers": [
+        "张量积",
+        "数学符号"
+      ],
+      "tags": [
+        "数学符号"
+      ],
+      "aliases": [
+        "tensor product"
+      ],
+      "order": 48,
+      "sources": [
+        "mywubi-curated"
+      ]
+    },
+    {
+      "text": "⇒",
+      "name": "推出",
+      "triggers": [
+        "推出",
+        "数学符号"
+      ],
+      "tags": [
+        "数学符号"
+      ],
+      "aliases": [
+        "implies"
+      ],
+      "order": 49,
+      "sources": [
+        "mywubi-curated"
+      ]
+    },
+    {
+      "text": "⇔",
+      "name": "当且仅当",
+      "triggers": [
+        "当且仅当",
+        "数学符号"
+      ],
+      "tags": [
+        "数学符号"
+      ],
+      "aliases": [
+        "iff"
+      ],
+      "order": 50,
+      "sources": [
+        "mywubi-curated"
+      ]
+    },
+    {
+      "text": "∴",
+      "name": "所以",
+      "triggers": [
+        "所以",
+        "数学符号"
+      ],
+      "tags": [
+        "数学符号"
+      ],
+      "aliases": [
+        "therefore"
+      ],
+      "order": 51,
+      "sources": [
+        "mywubi-curated"
+      ]
+    },
+    {
+      "text": "∵",
+      "name": "因为",
+      "triggers": [
+        "因为",
+        "数学符号"
+      ],
+      "tags": [
+        "数学符号"
+      ],
+      "aliases": [
+        "because"
+      ],
+      "order": 52,
+      "sources": [
+        "mywubi-curated"
+      ]
+    },
+    {
+      "text": "∝",
+      "name": "正比于",
+      "triggers": [
+        "正比于",
+        "数学符号"
+      ],
+      "tags": [
+        "数学符号"
+      ],
+      "aliases": [
+        "proportional"
+      ],
+      "order": 53,
+      "sources": [
+        "mywubi-curated"
+      ]
+    },
+    {
+      "text": "⊥",
+      "name": "垂直",
+      "triggers": [
+        "垂直",
+        "数学符号"
+      ],
+      "tags": [
+        "数学符号"
+      ],
+      "aliases": [
+        "perpendicular"
+      ],
+      "order": 54,
+      "sources": [
+        "mywubi-curated"
+      ]
+    },
+    {
+      "text": "∥",
+      "name": "平行",
+      "triggers": [
+        "平行",
+        "数学符号"
+      ],
+      "tags": [
+        "数学符号"
+      ],
+      "aliases": [
+        "parallel"
+      ],
+      "order": 55,
+      "sources": [
+        "mywubi-curated"
+      ]
+    },
+    {
+      "text": "∠",
+      "name": "角",
+      "triggers": [
+        "角",
+        "数学符号"
+      ],
+      "tags": [
+        "数学符号"
+      ],
+      "aliases": [
+        "angle"
+      ],
+      "order": 56,
+      "sources": [
+        "mywubi-curated"
+      ]
+    },
+    {
+      "text": "°",
+      "name": "度数",
+      "triggers": [
+        "度数",
+        "数学符号"
+      ],
+      "tags": [
+        "数学符号"
+      ],
+      "aliases": [
+        "degree"
+      ],
+      "order": 57,
+      "sources": [
+        "mywubi-curated"
+      ]
+    },
+    {
+      "text": "′",
+      "name": "角分",
+      "triggers": [
+        "角分",
+        "数学符号"
+      ],
+      "tags": [
+        "数学符号"
+      ],
+      "aliases": [
+        "prime"
+      ],
+      "order": 58,
+      "sources": [
+        "mywubi-curated"
+      ]
+    },
+    {
+      "text": "″",
+      "name": "角秒",
+      "triggers": [
+        "角秒",
+        "数学符号"
+      ],
+      "tags": [
+        "数学符号"
+      ],
+      "aliases": [
+        "double prime"
+      ],
+      "order": 59,
+      "sources": [
+        "mywubi-curated"
+      ]
+    },
+    {
+      "text": "‰",
+      "name": "千分号",
+      "triggers": [
+        "千分号",
+        "数学符号"
+      ],
+      "tags": [
+        "数学符号"
+      ],
+      "aliases": [
+        "permille"
+      ],
+      "order": 60,
+      "sources": [
+        "mywubi-curated"
+      ]
+    },
+    {
+      "text": "‱",
+      "name": "万分号",
+      "triggers": [
+        "万分号",
+        "数学符号"
+      ],
+      "tags": [
+        "数学符号"
+      ],
+      "aliases": [
+        "basis point"
+      ],
+      "order": 61,
+      "sources": [
+        "mywubi-curated"
+      ]
+    },
+    {
+      "text": "¹",
+      "name": "上标一",
+      "triggers": [
+        "上标一",
+        "数学符号"
+      ],
+      "tags": [
+        "数学符号"
+      ],
+      "aliases": [
+        "superscript1"
+      ],
+      "order": 62,
+      "sources": [
+        "mywubi-curated"
+      ]
+    },
+    {
+      "text": "²",
+      "name": "平方上标",
+      "triggers": [
+        "平方上标",
+        "数学符号"
+      ],
+      "tags": [
+        "数学符号"
+      ],
+      "aliases": [
+        "superscript2"
+      ],
+      "order": 63,
+      "sources": [
+        "mywubi-curated"
+      ]
+    },
+    {
+      "text": "³",
+      "name": "立方上标",
+      "triggers": [
+        "立方上标",
+        "数学符号"
+      ],
+      "tags": [
+        "数学符号"
+      ],
+      "aliases": [
+        "superscript3"
+      ],
+      "order": 64,
+      "sources": [
+        "mywubi-curated"
+      ]
+    },
+    {
+      "text": "⁰",
+      "name": "上标零",
+      "triggers": [
+        "上标零",
+        "数学符号"
+      ],
+      "tags": [
+        "数学符号"
+      ],
+      "aliases": [
+        "superscript0"
+      ],
+      "order": 65,
+      "sources": [
+        "mywubi-curated"
+      ]
+    },
+    {
+      "text": "₀",
+      "name": "下标零",
+      "triggers": [
+        "下标零",
+        "数学符号"
+      ],
+      "tags": [
+        "数学符号"
+      ],
+      "aliases": [
+        "subscript0"
+      ],
+      "order": 66,
+      "sources": [
+        "mywubi-curated"
+      ]
+    },
+    {
+      "text": "₁",
+      "name": "下标一",
+      "triggers": [
+        "下标一",
+        "数学符号"
+      ],
+      "tags": [
+        "数学符号"
+      ],
+      "aliases": [
+        "subscript1"
+      ],
+      "order": 67,
+      "sources": [
+        "mywubi-curated"
+      ]
+    },
+    {
+      "text": "₂",
+      "name": "下标二",
+      "triggers": [
+        "下标二",
+        "数学符号"
+      ],
+      "tags": [
+        "数学符号"
+      ],
+      "aliases": [
+        "subscript2"
+      ],
+      "order": 68,
+      "sources": [
+        "mywubi-curated"
+      ]
+    },
+    {
+      "text": "₃",
+      "name": "下标三",
+      "triggers": [
+        "下标三",
+        "数学符号"
+      ],
+      "tags": [
+        "数学符号"
+      ],
+      "aliases": [
+        "subscript3"
+      ],
+      "order": 69,
+      "sources": [
+        "mywubi-curated"
+      ]
+    },
+    {
+      "text": "ℕ",
+      "name": "自然数集",
+      "triggers": [
+        "自然数集",
+        "数学符号"
+      ],
+      "tags": [
+        "数学符号"
+      ],
+      "aliases": [
+        "naturals"
+      ],
+      "order": 70,
+      "sources": [
+        "mywubi-curated"
+      ]
+    },
+    {
+      "text": "ℤ",
+      "name": "整数集",
+      "triggers": [
+        "整数集",
+        "数学符号"
+      ],
+      "tags": [
+        "数学符号"
+      ],
+      "aliases": [
+        "integers"
+      ],
+      "order": 71,
+      "sources": [
+        "mywubi-curated"
+      ]
+    },
+    {
+      "text": "ℚ",
+      "name": "有理数集",
+      "triggers": [
+        "有理数集",
+        "数学符号"
+      ],
+      "tags": [
+        "数学符号"
+      ],
+      "aliases": [
+        "rationals"
+      ],
+      "order": 72,
+      "sources": [
+        "mywubi-curated"
+      ]
+    },
+    {
+      "text": "ℝ",
+      "name": "实数集",
+      "triggers": [
+        "实数集",
+        "数学符号"
+      ],
+      "tags": [
+        "数学符号"
+      ],
+      "aliases": [
+        "reals"
+      ],
+      "order": 73,
+      "sources": [
+        "mywubi-curated"
+      ]
+    },
+    {
+      "text": "ℂ",
+      "name": "复数集",
+      "triggers": [
+        "复数集",
+        "数学符号"
+      ],
+      "tags": [
+        "数学符号"
+      ],
+      "aliases": [
+        "complex"
+      ],
+      "order": 74,
+      "sources": [
+        "mywubi-curated"
+      ]
+    },
+    {
+      "text": "Α",
+      "name": "大写希腊字母 alpha",
+      "triggers": [
+        "大写希腊字母 alpha",
+        "数学符号",
+        "希腊字母",
+        "大写希腊字母"
+      ],
+      "tags": [
+        "数学符号",
+        "希腊字母",
+        "大写希腊字母"
+      ],
+      "aliases": [
+        "alpha"
+      ],
+      "order": 75,
+      "sources": [
+        "mywubi-curated"
+      ]
+    },
+    {
+      "text": "α",
+      "name": "小写希腊字母 alpha",
+      "triggers": [
+        "小写希腊字母 alpha",
+        "数学符号",
+        "希腊字母",
+        "小写希腊字母"
+      ],
+      "tags": [
+        "数学符号",
+        "希腊字母",
+        "小写希腊字母"
+      ],
+      "aliases": [
+        "alpha"
+      ],
+      "order": 76,
+      "sources": [
+        "mywubi-curated"
+      ]
+    },
+    {
+      "text": "Β",
+      "name": "大写希腊字母 beta",
+      "triggers": [
+        "大写希腊字母 beta",
+        "数学符号",
+        "希腊字母",
+        "大写希腊字母"
+      ],
+      "tags": [
+        "数学符号",
+        "希腊字母",
+        "大写希腊字母"
+      ],
+      "aliases": [
+        "beta"
+      ],
+      "order": 77,
+      "sources": [
+        "mywubi-curated"
+      ]
+    },
+    {
+      "text": "β",
+      "name": "小写希腊字母 beta",
+      "triggers": [
+        "小写希腊字母 beta",
+        "数学符号",
+        "希腊字母",
+        "小写希腊字母"
+      ],
+      "tags": [
+        "数学符号",
+        "希腊字母",
+        "小写希腊字母"
+      ],
+      "aliases": [
+        "beta"
+      ],
+      "order": 78,
+      "sources": [
+        "mywubi-curated"
+      ]
+    },
+    {
+      "text": "Γ",
+      "name": "大写希腊字母 gamma",
+      "triggers": [
+        "大写希腊字母 gamma",
+        "数学符号",
+        "希腊字母",
+        "大写希腊字母"
+      ],
+      "tags": [
+        "数学符号",
+        "希腊字母",
+        "大写希腊字母"
+      ],
+      "aliases": [
+        "gamma"
+      ],
+      "order": 79,
+      "sources": [
+        "mywubi-curated"
+      ]
+    },
+    {
+      "text": "γ",
+      "name": "小写希腊字母 gamma",
+      "triggers": [
+        "小写希腊字母 gamma",
+        "数学符号",
+        "希腊字母",
+        "小写希腊字母"
+      ],
+      "tags": [
+        "数学符号",
+        "希腊字母",
+        "小写希腊字母"
+      ],
+      "aliases": [
+        "gamma"
+      ],
+      "order": 80,
+      "sources": [
+        "mywubi-curated"
+      ]
+    },
+    {
+      "text": "Δ",
+      "name": "大写希腊字母 delta",
+      "triggers": [
+        "大写希腊字母 delta",
+        "数学符号",
+        "希腊字母",
+        "大写希腊字母"
+      ],
+      "tags": [
+        "数学符号",
+        "希腊字母",
+        "大写希腊字母"
+      ],
+      "aliases": [
+        "delta"
+      ],
+      "order": 81,
+      "sources": [
+        "mywubi-curated"
+      ]
+    },
+    {
+      "text": "δ",
+      "name": "小写希腊字母 delta",
+      "triggers": [
+        "小写希腊字母 delta",
+        "数学符号",
+        "希腊字母",
+        "小写希腊字母"
+      ],
+      "tags": [
+        "数学符号",
+        "希腊字母",
+        "小写希腊字母"
+      ],
+      "aliases": [
+        "delta"
+      ],
+      "order": 82,
+      "sources": [
+        "mywubi-curated"
+      ]
+    },
+    {
+      "text": "Ε",
+      "name": "大写希腊字母 epsilon",
+      "triggers": [
+        "大写希腊字母 epsilon",
+        "数学符号",
+        "希腊字母",
+        "大写希腊字母"
+      ],
+      "tags": [
+        "数学符号",
+        "希腊字母",
+        "大写希腊字母"
+      ],
+      "aliases": [
+        "epsilon"
+      ],
+      "order": 83,
+      "sources": [
+        "mywubi-curated"
+      ]
+    },
+    {
+      "text": "ε",
+      "name": "小写希腊字母 epsilon",
+      "triggers": [
+        "小写希腊字母 epsilon",
+        "数学符号",
+        "希腊字母",
+        "小写希腊字母"
+      ],
+      "tags": [
+        "数学符号",
+        "希腊字母",
+        "小写希腊字母"
+      ],
+      "aliases": [
+        "epsilon"
+      ],
+      "order": 84,
+      "sources": [
+        "mywubi-curated"
+      ]
+    },
+    {
+      "text": "Ζ",
+      "name": "大写希腊字母 zeta",
+      "triggers": [
+        "大写希腊字母 zeta",
+        "数学符号",
+        "希腊字母",
+        "大写希腊字母"
+      ],
+      "tags": [
+        "数学符号",
+        "希腊字母",
+        "大写希腊字母"
+      ],
+      "aliases": [
+        "zeta"
+      ],
+      "order": 85,
+      "sources": [
+        "mywubi-curated"
+      ]
+    },
+    {
+      "text": "ζ",
+      "name": "小写希腊字母 zeta",
+      "triggers": [
+        "小写希腊字母 zeta",
+        "数学符号",
+        "希腊字母",
+        "小写希腊字母"
+      ],
+      "tags": [
+        "数学符号",
+        "希腊字母",
+        "小写希腊字母"
+      ],
+      "aliases": [
+        "zeta"
+      ],
+      "order": 86,
+      "sources": [
+        "mywubi-curated"
+      ]
+    },
+    {
+      "text": "Η",
+      "name": "大写希腊字母 eta",
+      "triggers": [
+        "大写希腊字母 eta",
+        "数学符号",
+        "希腊字母",
+        "大写希腊字母"
+      ],
+      "tags": [
+        "数学符号",
+        "希腊字母",
+        "大写希腊字母"
+      ],
+      "aliases": [
+        "eta"
+      ],
+      "order": 87,
+      "sources": [
+        "mywubi-curated"
+      ]
+    },
+    {
+      "text": "η",
+      "name": "小写希腊字母 eta",
+      "triggers": [
+        "小写希腊字母 eta",
+        "数学符号",
+        "希腊字母",
+        "小写希腊字母"
+      ],
+      "tags": [
+        "数学符号",
+        "希腊字母",
+        "小写希腊字母"
+      ],
+      "aliases": [
+        "eta"
+      ],
+      "order": 88,
+      "sources": [
+        "mywubi-curated"
+      ]
+    },
+    {
+      "text": "Θ",
+      "name": "大写希腊字母 theta",
+      "triggers": [
+        "大写希腊字母 theta",
+        "数学符号",
+        "希腊字母",
+        "大写希腊字母"
+      ],
+      "tags": [
+        "数学符号",
+        "希腊字母",
+        "大写希腊字母"
+      ],
+      "aliases": [
+        "theta"
+      ],
+      "order": 89,
+      "sources": [
+        "mywubi-curated"
+      ]
+    },
+    {
+      "text": "θ",
+      "name": "小写希腊字母 theta",
+      "triggers": [
+        "小写希腊字母 theta",
+        "数学符号",
+        "希腊字母",
+        "小写希腊字母"
+      ],
+      "tags": [
+        "数学符号",
+        "希腊字母",
+        "小写希腊字母"
+      ],
+      "aliases": [
+        "theta"
+      ],
+      "order": 90,
+      "sources": [
+        "mywubi-curated"
+      ]
+    },
+    {
+      "text": "Ι",
+      "name": "大写希腊字母 iota",
+      "triggers": [
+        "大写希腊字母 iota",
+        "数学符号",
+        "希腊字母",
+        "大写希腊字母"
+      ],
+      "tags": [
+        "数学符号",
+        "希腊字母",
+        "大写希腊字母"
+      ],
+      "aliases": [
+        "iota"
+      ],
+      "order": 91,
+      "sources": [
+        "mywubi-curated"
+      ]
+    },
+    {
+      "text": "ι",
+      "name": "小写希腊字母 iota",
+      "triggers": [
+        "小写希腊字母 iota",
+        "数学符号",
+        "希腊字母",
+        "小写希腊字母"
+      ],
+      "tags": [
+        "数学符号",
+        "希腊字母",
+        "小写希腊字母"
+      ],
+      "aliases": [
+        "iota"
+      ],
+      "order": 92,
+      "sources": [
+        "mywubi-curated"
+      ]
+    },
+    {
+      "text": "Κ",
+      "name": "大写希腊字母 kappa",
+      "triggers": [
+        "大写希腊字母 kappa",
+        "数学符号",
+        "希腊字母",
+        "大写希腊字母"
+      ],
+      "tags": [
+        "数学符号",
+        "希腊字母",
+        "大写希腊字母"
+      ],
+      "aliases": [
+        "kappa"
+      ],
+      "order": 93,
+      "sources": [
+        "mywubi-curated"
+      ]
+    },
+    {
+      "text": "κ",
+      "name": "小写希腊字母 kappa",
+      "triggers": [
+        "小写希腊字母 kappa",
+        "数学符号",
+        "希腊字母",
+        "小写希腊字母"
+      ],
+      "tags": [
+        "数学符号",
+        "希腊字母",
+        "小写希腊字母"
+      ],
+      "aliases": [
+        "kappa"
+      ],
+      "order": 94,
+      "sources": [
+        "mywubi-curated"
+      ]
+    },
+    {
+      "text": "Λ",
+      "name": "大写希腊字母 lambda",
+      "triggers": [
+        "大写希腊字母 lambda",
+        "数学符号",
+        "希腊字母",
+        "大写希腊字母"
+      ],
+      "tags": [
+        "数学符号",
+        "希腊字母",
+        "大写希腊字母"
+      ],
+      "aliases": [
+        "lambda"
+      ],
+      "order": 95,
+      "sources": [
+        "mywubi-curated"
+      ]
+    },
+    {
+      "text": "λ",
+      "name": "小写希腊字母 lambda",
+      "triggers": [
+        "小写希腊字母 lambda",
+        "数学符号",
+        "希腊字母",
+        "小写希腊字母"
+      ],
+      "tags": [
+        "数学符号",
+        "希腊字母",
+        "小写希腊字母"
+      ],
+      "aliases": [
+        "lambda"
+      ],
+      "order": 96,
+      "sources": [
+        "mywubi-curated"
+      ]
+    },
+    {
+      "text": "Μ",
+      "name": "大写希腊字母 mu",
+      "triggers": [
+        "大写希腊字母 mu",
+        "数学符号",
+        "希腊字母",
+        "大写希腊字母"
+      ],
+      "tags": [
+        "数学符号",
+        "希腊字母",
+        "大写希腊字母"
+      ],
+      "aliases": [
+        "mu"
+      ],
+      "order": 97,
+      "sources": [
+        "mywubi-curated"
+      ]
+    },
+    {
+      "text": "μ",
+      "name": "小写希腊字母 mu",
+      "triggers": [
+        "小写希腊字母 mu",
+        "数学符号",
+        "希腊字母",
+        "小写希腊字母"
+      ],
+      "tags": [
+        "数学符号",
+        "希腊字母",
+        "小写希腊字母"
+      ],
+      "aliases": [
+        "mu"
+      ],
+      "order": 98,
+      "sources": [
+        "mywubi-curated"
+      ]
+    },
+    {
+      "text": "Ν",
+      "name": "大写希腊字母 nu",
+      "triggers": [
+        "大写希腊字母 nu",
+        "数学符号",
+        "希腊字母",
+        "大写希腊字母"
+      ],
+      "tags": [
+        "数学符号",
+        "希腊字母",
+        "大写希腊字母"
+      ],
+      "aliases": [
+        "nu"
+      ],
+      "order": 99,
+      "sources": [
+        "mywubi-curated"
+      ]
+    },
+    {
+      "text": "ν",
+      "name": "小写希腊字母 nu",
+      "triggers": [
+        "小写希腊字母 nu",
+        "数学符号",
+        "希腊字母",
+        "小写希腊字母"
+      ],
+      "tags": [
+        "数学符号",
+        "希腊字母",
+        "小写希腊字母"
+      ],
+      "aliases": [
+        "nu"
+      ],
+      "order": 100,
+      "sources": [
+        "mywubi-curated"
+      ]
+    },
+    {
+      "text": "Ξ",
+      "name": "大写希腊字母 xi",
+      "triggers": [
+        "大写希腊字母 xi",
+        "数学符号",
+        "希腊字母",
+        "大写希腊字母"
+      ],
+      "tags": [
+        "数学符号",
+        "希腊字母",
+        "大写希腊字母"
+      ],
+      "aliases": [
+        "xi"
+      ],
+      "order": 101,
+      "sources": [
+        "mywubi-curated"
+      ]
+    },
+    {
+      "text": "ξ",
+      "name": "小写希腊字母 xi",
+      "triggers": [
+        "小写希腊字母 xi",
+        "数学符号",
+        "希腊字母",
+        "小写希腊字母"
+      ],
+      "tags": [
+        "数学符号",
+        "希腊字母",
+        "小写希腊字母"
+      ],
+      "aliases": [
+        "xi"
+      ],
+      "order": 102,
+      "sources": [
+        "mywubi-curated"
+      ]
+    },
+    {
+      "text": "Ο",
+      "name": "大写希腊字母 omicron",
+      "triggers": [
+        "大写希腊字母 omicron",
+        "数学符号",
+        "希腊字母",
+        "大写希腊字母"
+      ],
+      "tags": [
+        "数学符号",
+        "希腊字母",
+        "大写希腊字母"
+      ],
+      "aliases": [
+        "omicron"
+      ],
+      "order": 103,
+      "sources": [
+        "mywubi-curated"
+      ]
+    },
+    {
+      "text": "ο",
+      "name": "小写希腊字母 omicron",
+      "triggers": [
+        "小写希腊字母 omicron",
+        "数学符号",
+        "希腊字母",
+        "小写希腊字母"
+      ],
+      "tags": [
+        "数学符号",
+        "希腊字母",
+        "小写希腊字母"
+      ],
+      "aliases": [
+        "omicron"
+      ],
+      "order": 104,
+      "sources": [
+        "mywubi-curated"
+      ]
+    },
+    {
+      "text": "Π",
+      "name": "大写希腊字母 pi",
+      "triggers": [
+        "大写希腊字母 pi",
+        "数学符号",
+        "希腊字母",
+        "大写希腊字母"
+      ],
+      "tags": [
+        "数学符号",
+        "希腊字母",
+        "大写希腊字母"
+      ],
+      "aliases": [
+        "pi"
+      ],
+      "order": 105,
+      "sources": [
+        "mywubi-curated"
+      ]
+    },
+    {
+      "text": "π",
+      "name": "小写希腊字母 pi",
+      "triggers": [
+        "小写希腊字母 pi",
+        "数学符号",
+        "希腊字母",
+        "小写希腊字母"
+      ],
+      "tags": [
+        "数学符号",
+        "希腊字母",
+        "小写希腊字母"
+      ],
+      "aliases": [
+        "pi"
+      ],
+      "order": 106,
+      "sources": [
+        "mywubi-curated"
+      ]
+    },
+    {
+      "text": "Ρ",
+      "name": "大写希腊字母 rho",
+      "triggers": [
+        "大写希腊字母 rho",
+        "数学符号",
+        "希腊字母",
+        "大写希腊字母"
+      ],
+      "tags": [
+        "数学符号",
+        "希腊字母",
+        "大写希腊字母"
+      ],
+      "aliases": [
+        "rho"
+      ],
+      "order": 107,
+      "sources": [
+        "mywubi-curated"
+      ]
+    },
+    {
+      "text": "ρ",
+      "name": "小写希腊字母 rho",
+      "triggers": [
+        "小写希腊字母 rho",
+        "数学符号",
+        "希腊字母",
+        "小写希腊字母"
+      ],
+      "tags": [
+        "数学符号",
+        "希腊字母",
+        "小写希腊字母"
+      ],
+      "aliases": [
+        "rho"
+      ],
+      "order": 108,
+      "sources": [
+        "mywubi-curated"
+      ]
+    },
+    {
+      "text": "Σ",
+      "name": "大写希腊字母 sigma",
+      "triggers": [
+        "大写希腊字母 sigma",
+        "数学符号",
+        "希腊字母",
+        "大写希腊字母"
+      ],
+      "tags": [
+        "数学符号",
+        "希腊字母",
+        "大写希腊字母"
+      ],
+      "aliases": [
+        "sigma"
+      ],
+      "order": 109,
+      "sources": [
+        "mywubi-curated"
+      ]
+    },
+    {
+      "text": "σ",
+      "name": "小写希腊字母 sigma",
+      "triggers": [
+        "小写希腊字母 sigma",
+        "数学符号",
+        "希腊字母",
+        "小写希腊字母"
+      ],
+      "tags": [
+        "数学符号",
+        "希腊字母",
+        "小写希腊字母"
+      ],
+      "aliases": [
+        "sigma"
+      ],
+      "order": 110,
+      "sources": [
+        "mywubi-curated"
+      ]
+    },
+    {
+      "text": "Τ",
+      "name": "大写希腊字母 tau",
+      "triggers": [
+        "大写希腊字母 tau",
+        "数学符号",
+        "希腊字母",
+        "大写希腊字母"
+      ],
+      "tags": [
+        "数学符号",
+        "希腊字母",
+        "大写希腊字母"
+      ],
+      "aliases": [
+        "tau"
+      ],
+      "order": 111,
+      "sources": [
+        "mywubi-curated"
+      ]
+    },
+    {
+      "text": "τ",
+      "name": "小写希腊字母 tau",
+      "triggers": [
+        "小写希腊字母 tau",
+        "数学符号",
+        "希腊字母",
+        "小写希腊字母"
+      ],
+      "tags": [
+        "数学符号",
+        "希腊字母",
+        "小写希腊字母"
+      ],
+      "aliases": [
+        "tau"
+      ],
+      "order": 112,
+      "sources": [
+        "mywubi-curated"
+      ]
+    },
+    {
+      "text": "Υ",
+      "name": "大写希腊字母 upsilon",
+      "triggers": [
+        "大写希腊字母 upsilon",
+        "数学符号",
+        "希腊字母",
+        "大写希腊字母"
+      ],
+      "tags": [
+        "数学符号",
+        "希腊字母",
+        "大写希腊字母"
+      ],
+      "aliases": [
+        "upsilon"
+      ],
+      "order": 113,
+      "sources": [
+        "mywubi-curated"
+      ]
+    },
+    {
+      "text": "υ",
+      "name": "小写希腊字母 upsilon",
+      "triggers": [
+        "小写希腊字母 upsilon",
+        "数学符号",
+        "希腊字母",
+        "小写希腊字母"
+      ],
+      "tags": [
+        "数学符号",
+        "希腊字母",
+        "小写希腊字母"
+      ],
+      "aliases": [
+        "upsilon"
+      ],
+      "order": 114,
+      "sources": [
+        "mywubi-curated"
+      ]
+    },
+    {
+      "text": "Φ",
+      "name": "大写希腊字母 phi",
+      "triggers": [
+        "大写希腊字母 phi",
+        "数学符号",
+        "希腊字母",
+        "大写希腊字母"
+      ],
+      "tags": [
+        "数学符号",
+        "希腊字母",
+        "大写希腊字母"
+      ],
+      "aliases": [
+        "phi"
+      ],
+      "order": 115,
+      "sources": [
+        "mywubi-curated"
+      ]
+    },
+    {
+      "text": "φ",
+      "name": "小写希腊字母 phi",
+      "triggers": [
+        "小写希腊字母 phi",
+        "数学符号",
+        "希腊字母",
+        "小写希腊字母"
+      ],
+      "tags": [
+        "数学符号",
+        "希腊字母",
+        "小写希腊字母"
+      ],
+      "aliases": [
+        "phi"
+      ],
+      "order": 116,
+      "sources": [
+        "mywubi-curated"
+      ]
+    },
+    {
+      "text": "Χ",
+      "name": "大写希腊字母 chi",
+      "triggers": [
+        "大写希腊字母 chi",
+        "数学符号",
+        "希腊字母",
+        "大写希腊字母"
+      ],
+      "tags": [
+        "数学符号",
+        "希腊字母",
+        "大写希腊字母"
+      ],
+      "aliases": [
+        "chi"
+      ],
+      "order": 117,
+      "sources": [
+        "mywubi-curated"
+      ]
+    },
+    {
+      "text": "χ",
+      "name": "小写希腊字母 chi",
+      "triggers": [
+        "小写希腊字母 chi",
+        "数学符号",
+        "希腊字母",
+        "小写希腊字母"
+      ],
+      "tags": [
+        "数学符号",
+        "希腊字母",
+        "小写希腊字母"
+      ],
+      "aliases": [
+        "chi"
+      ],
+      "order": 118,
+      "sources": [
+        "mywubi-curated"
+      ]
+    },
+    {
+      "text": "Ψ",
+      "name": "大写希腊字母 psi",
+      "triggers": [
+        "大写希腊字母 psi",
+        "数学符号",
+        "希腊字母",
+        "大写希腊字母"
+      ],
+      "tags": [
+        "数学符号",
+        "希腊字母",
+        "大写希腊字母"
+      ],
+      "aliases": [
+        "psi"
+      ],
+      "order": 119,
+      "sources": [
+        "mywubi-curated"
+      ]
+    },
+    {
+      "text": "ψ",
+      "name": "小写希腊字母 psi",
+      "triggers": [
+        "小写希腊字母 psi",
+        "数学符号",
+        "希腊字母",
+        "小写希腊字母"
+      ],
+      "tags": [
+        "数学符号",
+        "希腊字母",
+        "小写希腊字母"
+      ],
+      "aliases": [
+        "psi"
+      ],
+      "order": 120,
+      "sources": [
+        "mywubi-curated"
+      ]
+    },
+    {
+      "text": "Ω",
+      "name": "大写希腊字母 omega",
+      "triggers": [
+        "大写希腊字母 omega",
+        "数学符号",
+        "希腊字母",
+        "大写希腊字母"
+      ],
+      "tags": [
+        "数学符号",
+        "希腊字母",
+        "大写希腊字母"
+      ],
+      "aliases": [
+        "omega"
+      ],
+      "order": 121,
+      "sources": [
+        "mywubi-curated"
+      ]
+    },
+    {
+      "text": "ω",
+      "name": "小写希腊字母 omega",
+      "triggers": [
+        "小写希腊字母 omega",
+        "数学符号",
+        "希腊字母",
+        "小写希腊字母"
+      ],
+      "tags": [
+        "数学符号",
+        "希腊字母",
+        "小写希腊字母"
+      ],
+      "aliases": [
+        "omega"
+      ],
+      "order": 122,
+      "sources": [
+        "mywubi-curated"
+      ]
+    },
+    {
+      "text": "ς",
+      "name": "词尾西格马",
+      "triggers": [
+        "词尾西格马",
+        "数学符号",
+        "希腊字母"
+      ],
+      "tags": [
+        "数学符号",
+        "希腊字母"
+      ],
+      "aliases": [
+        "final sigma"
+      ],
+      "order": 123,
+      "sources": [
+        "mywubi-curated"
+      ]
+    }
+  ]
+}

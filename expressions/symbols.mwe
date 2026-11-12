@@ -1,0 +1,2171 @@
+# MyWubi Expressions 1
+{
+  "kind": "symbols",
+  "name": "MyWubi 特殊符号",
+  "version": "1.0.0",
+  "sources": [
+    {
+      "id": "mywubi-curated",
+      "url": "local:scripts/build_special_tables.py",
+      "revision": "1.0.0",
+      "license": "MIT",
+      "notice": "MIT License\n\nCopyright (c) 2026 MyWubi contributors\n\nPermission is hereby granted, free of charge, to any person obtaining a copy\nof this software and associated documentation files (the \"Software\"), to deal\nin the Software without restriction, including without limitation the rights\nto use, copy, modify, merge, publish, distribute, sublicense, and/or sell\ncopies of the Software, and to permit persons to whom the Software is\nfurnished to do so, subject to the following conditions:\n\nThe above copyright notice and this permission notice shall be included in all\ncopies or substantial portions of the Software.\n\nTHE SOFTWARE IS PROVIDED \"AS IS\", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR\nIMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,\nFITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE\nAUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER\nLIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,\nOUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE\nSOFTWARE.\n"
+    }
+  ],
+  "entries": [
+    {
+      "text": "←",
+      "name": "左箭头",
+      "triggers": [
+        "左箭头",
+        "特殊符号",
+        "箭头"
+      ],
+      "tags": [
+        "特殊符号"
+      ],
+      "aliases": [
+        "left arrow",
+        "箭头"
+      ],
+      "order": 0,
+      "sources": [
+        "mywubi-curated"
+      ]
+    },
+    {
+      "text": "→",
+      "name": "右箭头",
+      "triggers": [
+        "右箭头",
+        "特殊符号",
+        "箭头"
+      ],
+      "tags": [
+        "特殊符号"
+      ],
+      "aliases": [
+        "right arrow",
+        "箭头"
+      ],
+      "order": 1,
+      "sources": [
+        "mywubi-curated"
+      ]
+    },
+    {
+      "text": "↑",
+      "name": "上箭头",
+      "triggers": [
+        "上箭头",
+        "特殊符号",
+        "箭头"
+      ],
+      "tags": [
+        "特殊符号"
+      ],
+      "aliases": [
+        "up arrow",
+        "箭头"
+      ],
+      "order": 2,
+      "sources": [
+        "mywubi-curated"
+      ]
+    },
+    {
+      "text": "↓",
+      "name": "下箭头",
+      "triggers": [
+        "下箭头",
+        "特殊符号",
+        "箭头"
+      ],
+      "tags": [
+        "特殊符号"
+      ],
+      "aliases": [
+        "down arrow",
+        "箭头"
+      ],
+      "order": 3,
+      "sources": [
+        "mywubi-curated"
+      ]
+    },
+    {
+      "text": "↔",
+      "name": "左右箭头",
+      "triggers": [
+        "左右箭头",
+        "特殊符号"
+      ],
+      "tags": [
+        "特殊符号"
+      ],
+      "aliases": [
+        "left right arrow"
+      ],
+      "order": 4,
+      "sources": [
+        "mywubi-curated"
+      ]
+    },
+    {
+      "text": "↕",
+      "name": "上下箭头",
+      "triggers": [
+        "上下箭头",
+        "特殊符号"
+      ],
+      "tags": [
+        "特殊符号"
+      ],
+      "aliases": [
+        "up down arrow"
+      ],
+      "order": 5,
+      "sources": [
+        "mywubi-curated"
+      ]
+    },
+    {
+      "text": "↖",
+      "name": "左上箭头",
+      "triggers": [
+        "左上箭头",
+        "特殊符号"
+      ],
+      "tags": [
+        "特殊符号"
+      ],
+      "aliases": [
+        "north west arrow"
+      ],
+      "order": 6,
+      "sources": [
+        "mywubi-curated"
+      ]
+    },
+    {
+      "text": "↗",
+      "name": "右上箭头",
+      "triggers": [
+        "右上箭头",
+        "特殊符号"
+      ],
+      "tags": [
+        "特殊符号"
+      ],
+      "aliases": [
+        "north east arrow"
+      ],
+      "order": 7,
+      "sources": [
+        "mywubi-curated"
+      ]
+    },
+    {
+      "text": "↘",
+      "name": "右下箭头",
+      "triggers": [
+        "右下箭头",
+        "特殊符号"
+      ],
+      "tags": [
+        "特殊符号"
+      ],
+      "aliases": [
+        "south east arrow"
+      ],
+      "order": 8,
+      "sources": [
+        "mywubi-curated"
+      ]
+    },
+    {
+      "text": "↙",
+      "name": "左下箭头",
+      "triggers": [
+        "左下箭头",
+        "特殊符号"
+      ],
+      "tags": [
+        "特殊符号"
+      ],
+      "aliases": [
+        "south west arrow"
+      ],
+      "order": 9,
+      "sources": [
+        "mywubi-curated"
+      ]
+    },
+    {
+      "text": "⇐",
+      "name": "左双箭头",
+      "triggers": [
+        "左双箭头",
+        "特殊符号"
+      ],
+      "tags": [
+        "特殊符号"
+      ],
+      "aliases": [
+        "left double arrow"
+      ],
+      "order": 10,
+      "sources": [
+        "mywubi-curated"
+      ]
+    },
+    {
+      "text": "⇒",
+      "name": "右双箭头",
+      "triggers": [
+        "右双箭头",
+        "特殊符号"
+      ],
+      "tags": [
+        "特殊符号"
+      ],
+      "aliases": [
+        "right double arrow"
+      ],
+      "order": 11,
+      "sources": [
+        "mywubi-curated"
+      ]
+    },
+    {
+      "text": "⇑",
+      "name": "上双箭头",
+      "triggers": [
+        "上双箭头",
+        "特殊符号"
+      ],
+      "tags": [
+        "特殊符号"
+      ],
+      "aliases": [
+        "up double arrow"
+      ],
+      "order": 12,
+      "sources": [
+        "mywubi-curated"
+      ]
+    },
+    {
+      "text": "⇓",
+      "name": "下双箭头",
+      "triggers": [
+        "下双箭头",
+        "特殊符号"
+      ],
+      "tags": [
+        "特殊符号"
+      ],
+      "aliases": [
+        "down double arrow"
+      ],
+      "order": 13,
+      "sources": [
+        "mywubi-curated"
+      ]
+    },
+    {
+      "text": "⇔",
+      "name": "左右双箭头",
+      "triggers": [
+        "左右双箭头",
+        "特殊符号"
+      ],
+      "tags": [
+        "特殊符号"
+      ],
+      "aliases": [
+        "left right double arrow"
+      ],
+      "order": 14,
+      "sources": [
+        "mywubi-curated"
+      ]
+    },
+    {
+      "text": "↩",
+      "name": "左回转箭头",
+      "triggers": [
+        "左回转箭头",
+        "特殊符号"
+      ],
+      "tags": [
+        "特殊符号"
+      ],
+      "aliases": [
+        "return arrow"
+      ],
+      "order": 15,
+      "sources": [
+        "mywubi-curated"
+      ]
+    },
+    {
+      "text": "↪",
+      "name": "右回转箭头",
+      "triggers": [
+        "右回转箭头",
+        "特殊符号"
+      ],
+      "tags": [
+        "特殊符号"
+      ],
+      "aliases": [
+        "right return arrow"
+      ],
+      "order": 16,
+      "sources": [
+        "mywubi-curated"
+      ]
+    },
+    {
+      "text": "℃",
+      "name": "摄氏度",
+      "triggers": [
+        "摄氏度",
+        "特殊符号",
+        "温度"
+      ],
+      "tags": [
+        "特殊符号"
+      ],
+      "aliases": [
+        "celsius",
+        "温度"
+      ],
+      "order": 17,
+      "sources": [
+        "mywubi-curated"
+      ]
+    },
+    {
+      "text": "℉",
+      "name": "华氏度",
+      "triggers": [
+        "华氏度",
+        "特殊符号",
+        "温度"
+      ],
+      "tags": [
+        "特殊符号"
+      ],
+      "aliases": [
+        "fahrenheit",
+        "温度"
+      ],
+      "order": 18,
+      "sources": [
+        "mywubi-curated"
+      ]
+    },
+    {
+      "text": "°C",
+      "name": "摄氏温标字母形式",
+      "triggers": [
+        "摄氏温标字母形式",
+        "特殊符号"
+      ],
+      "tags": [
+        "特殊符号"
+      ],
+      "aliases": [
+        "celsius letters"
+      ],
+      "order": 19,
+      "sources": [
+        "mywubi-curated"
+      ]
+    },
+    {
+      "text": "°F",
+      "name": "华氏温标字母形式",
+      "triggers": [
+        "华氏温标字母形式",
+        "特殊符号"
+      ],
+      "tags": [
+        "特殊符号"
+      ],
+      "aliases": [
+        "fahrenheit letters"
+      ],
+      "order": 20,
+      "sources": [
+        "mywubi-curated"
+      ]
+    },
+    {
+      "text": "㎜",
+      "name": "毫米单位符号",
+      "triggers": [
+        "毫米单位符号",
+        "特殊符号"
+      ],
+      "tags": [
+        "特殊符号"
+      ],
+      "aliases": [
+        "millimetre"
+      ],
+      "order": 21,
+      "sources": [
+        "mywubi-curated"
+      ]
+    },
+    {
+      "text": "㎝",
+      "name": "厘米单位符号",
+      "triggers": [
+        "厘米单位符号",
+        "特殊符号"
+      ],
+      "tags": [
+        "特殊符号"
+      ],
+      "aliases": [
+        "centimetre"
+      ],
+      "order": 22,
+      "sources": [
+        "mywubi-curated"
+      ]
+    },
+    {
+      "text": "㎞",
+      "name": "千米单位符号",
+      "triggers": [
+        "千米单位符号",
+        "特殊符号"
+      ],
+      "tags": [
+        "特殊符号"
+      ],
+      "aliases": [
+        "kilometre"
+      ],
+      "order": 23,
+      "sources": [
+        "mywubi-curated"
+      ]
+    },
+    {
+      "text": "㎡",
+      "name": "平方米单位符号",
+      "triggers": [
+        "平方米单位符号",
+        "特殊符号"
+      ],
+      "tags": [
+        "特殊符号"
+      ],
+      "aliases": [
+        "square metre"
+      ],
+      "order": 24,
+      "sources": [
+        "mywubi-curated"
+      ]
+    },
+    {
+      "text": "㎥",
+      "name": "立方米单位符号",
+      "triggers": [
+        "立方米单位符号",
+        "特殊符号"
+      ],
+      "tags": [
+        "特殊符号"
+      ],
+      "aliases": [
+        "cubic metre"
+      ],
+      "order": 25,
+      "sources": [
+        "mywubi-curated"
+      ]
+    },
+    {
+      "text": "㎎",
+      "name": "毫克单位符号",
+      "triggers": [
+        "毫克单位符号",
+        "特殊符号"
+      ],
+      "tags": [
+        "特殊符号"
+      ],
+      "aliases": [
+        "milligram"
+      ],
+      "order": 26,
+      "sources": [
+        "mywubi-curated"
+      ]
+    },
+    {
+      "text": "㎏",
+      "name": "千克单位符号",
+      "triggers": [
+        "千克单位符号",
+        "特殊符号"
+      ],
+      "tags": [
+        "特殊符号"
+      ],
+      "aliases": [
+        "kilogram"
+      ],
+      "order": 27,
+      "sources": [
+        "mywubi-curated"
+      ]
+    },
+    {
+      "text": "㏄",
+      "name": "立方厘米单位符号",
+      "triggers": [
+        "立方厘米单位符号",
+        "特殊符号"
+      ],
+      "tags": [
+        "特殊符号"
+      ],
+      "aliases": [
+        "cubic centimetre"
+      ],
+      "order": 28,
+      "sources": [
+        "mywubi-curated"
+      ]
+    },
+    {
+      "text": "㏑",
+      "name": "自然对数符号",
+      "triggers": [
+        "自然对数符号",
+        "特殊符号"
+      ],
+      "tags": [
+        "特殊符号"
+      ],
+      "aliases": [
+        "ln"
+      ],
+      "order": 29,
+      "sources": [
+        "mywubi-curated"
+      ]
+    },
+    {
+      "text": "㏒",
+      "name": "对数符号",
+      "triggers": [
+        "对数符号",
+        "特殊符号"
+      ],
+      "tags": [
+        "特殊符号"
+      ],
+      "aliases": [
+        "log"
+      ],
+      "order": 30,
+      "sources": [
+        "mywubi-curated"
+      ]
+    },
+    {
+      "text": "￥",
+      "name": "全角人民币符号",
+      "triggers": [
+        "全角人民币符号",
+        "特殊符号",
+        "人民币"
+      ],
+      "tags": [
+        "特殊符号"
+      ],
+      "aliases": [
+        "人民币",
+        "yuan"
+      ],
+      "order": 31,
+      "sources": [
+        "mywubi-curated"
+      ]
+    },
+    {
+      "text": "¥",
+      "name": "日元符号",
+      "triggers": [
+        "日元符号",
+        "特殊符号"
+      ],
+      "tags": [
+        "特殊符号"
+      ],
+      "aliases": [
+        "yen"
+      ],
+      "order": 32,
+      "sources": [
+        "mywubi-curated"
+      ]
+    },
+    {
+      "text": "€",
+      "name": "欧元符号",
+      "triggers": [
+        "欧元符号",
+        "特殊符号"
+      ],
+      "tags": [
+        "特殊符号"
+      ],
+      "aliases": [
+        "euro"
+      ],
+      "order": 33,
+      "sources": [
+        "mywubi-curated"
+      ]
+    },
+    {
+      "text": "£",
+      "name": "英镑符号",
+      "triggers": [
+        "英镑符号",
+        "特殊符号"
+      ],
+      "tags": [
+        "特殊符号"
+      ],
+      "aliases": [
+        "pound"
+      ],
+      "order": 34,
+      "sources": [
+        "mywubi-curated"
+      ]
+    },
+    {
+      "text": "¢",
+      "name": "分币符号",
+      "triggers": [
+        "分币符号",
+        "特殊符号"
+      ],
+      "tags": [
+        "特殊符号"
+      ],
+      "aliases": [
+        "cent"
+      ],
+      "order": 35,
+      "sources": [
+        "mywubi-curated"
+      ]
+    },
+    {
+      "text": "$",
+      "name": "美元符号",
+      "triggers": [
+        "美元符号",
+        "特殊符号"
+      ],
+      "tags": [
+        "特殊符号"
+      ],
+      "aliases": [
+        "dollar"
+      ],
+      "order": 36,
+      "sources": [
+        "mywubi-curated"
+      ]
+    },
+    {
+      "text": "©",
+      "name": "版权符号",
+      "triggers": [
+        "版权符号",
+        "特殊符号"
+      ],
+      "tags": [
+        "特殊符号"
+      ],
+      "aliases": [
+        "copyright"
+      ],
+      "order": 37,
+      "sources": [
+        "mywubi-curated"
+      ]
+    },
+    {
+      "text": "®",
+      "name": "注册商标",
+      "triggers": [
+        "注册商标",
+        "特殊符号"
+      ],
+      "tags": [
+        "特殊符号"
+      ],
+      "aliases": [
+        "registered"
+      ],
+      "order": 38,
+      "sources": [
+        "mywubi-curated"
+      ]
+    },
+    {
+      "text": "™",
+      "name": "商标符号",
+      "triggers": [
+        "商标符号",
+        "特殊符号"
+      ],
+      "tags": [
+        "特殊符号"
+      ],
+      "aliases": [
+        "trademark"
+      ],
+      "order": 39,
+      "sources": [
+        "mywubi-curated"
+      ]
+    },
+    {
+      "text": "№",
+      "name": "编号符号",
+      "triggers": [
+        "编号符号",
+        "特殊符号"
+      ],
+      "tags": [
+        "特殊符号"
+      ],
+      "aliases": [
+        "number"
+      ],
+      "order": 40,
+      "sources": [
+        "mywubi-curated"
+      ]
+    },
+    {
+      "text": "§",
+      "name": "章节符号",
+      "triggers": [
+        "章节符号",
+        "特殊符号"
+      ],
+      "tags": [
+        "特殊符号"
+      ],
+      "aliases": [
+        "section"
+      ],
+      "order": 41,
+      "sources": [
+        "mywubi-curated"
+      ]
+    },
+    {
+      "text": "¶",
+      "name": "段落符号",
+      "triggers": [
+        "段落符号",
+        "特殊符号"
+      ],
+      "tags": [
+        "特殊符号"
+      ],
+      "aliases": [
+        "paragraph"
+      ],
+      "order": 42,
+      "sources": [
+        "mywubi-curated"
+      ]
+    },
+    {
+      "text": "※",
+      "name": "参考标记",
+      "triggers": [
+        "参考标记",
+        "特殊符号"
+      ],
+      "tags": [
+        "特殊符号"
+      ],
+      "aliases": [
+        "reference"
+      ],
+      "order": 43,
+      "sources": [
+        "mywubi-curated"
+      ]
+    },
+    {
+      "text": "★",
+      "name": "实心五角星",
+      "triggers": [
+        "实心五角星",
+        "特殊符号",
+        "星号"
+      ],
+      "tags": [
+        "特殊符号"
+      ],
+      "aliases": [
+        "星号",
+        "star"
+      ],
+      "order": 44,
+      "sources": [
+        "mywubi-curated"
+      ]
+    },
+    {
+      "text": "☆",
+      "name": "空心五角星",
+      "triggers": [
+        "空心五角星",
+        "特殊符号"
+      ],
+      "tags": [
+        "特殊符号"
+      ],
+      "aliases": [
+        "outline star"
+      ],
+      "order": 45,
+      "sources": [
+        "mywubi-curated"
+      ]
+    },
+    {
+      "text": "●",
+      "name": "实心圆",
+      "triggers": [
+        "实心圆",
+        "特殊符号"
+      ],
+      "tags": [
+        "特殊符号"
+      ],
+      "aliases": [
+        "circle"
+      ],
+      "order": 46,
+      "sources": [
+        "mywubi-curated"
+      ]
+    },
+    {
+      "text": "○",
+      "name": "空心圆",
+      "triggers": [
+        "空心圆",
+        "特殊符号"
+      ],
+      "tags": [
+        "特殊符号"
+      ],
+      "aliases": [
+        "outline circle"
+      ],
+      "order": 47,
+      "sources": [
+        "mywubi-curated"
+      ]
+    },
+    {
+      "text": "■",
+      "name": "实心方块",
+      "triggers": [
+        "实心方块",
+        "特殊符号"
+      ],
+      "tags": [
+        "特殊符号"
+      ],
+      "aliases": [
+        "square"
+      ],
+      "order": 48,
+      "sources": [
+        "mywubi-curated"
+      ]
+    },
+    {
+      "text": "□",
+      "name": "空心方块",
+      "triggers": [
+        "空心方块",
+        "特殊符号"
+      ],
+      "tags": [
+        "特殊符号"
+      ],
+      "aliases": [
+        "outline square"
+      ],
+      "order": 49,
+      "sources": [
+        "mywubi-curated"
+      ]
+    },
+    {
+      "text": "▲",
+      "name": "实心上三角",
+      "triggers": [
+        "实心上三角",
+        "特殊符号"
+      ],
+      "tags": [
+        "特殊符号"
+      ],
+      "aliases": [
+        "triangle"
+      ],
+      "order": 50,
+      "sources": [
+        "mywubi-curated"
+      ]
+    },
+    {
+      "text": "△",
+      "name": "空心上三角",
+      "triggers": [
+        "空心上三角",
+        "特殊符号"
+      ],
+      "tags": [
+        "特殊符号"
+      ],
+      "aliases": [
+        "outline triangle"
+      ],
+      "order": 51,
+      "sources": [
+        "mywubi-curated"
+      ]
+    },
+    {
+      "text": "◆",
+      "name": "实心菱形",
+      "triggers": [
+        "实心菱形",
+        "特殊符号"
+      ],
+      "tags": [
+        "特殊符号"
+      ],
+      "aliases": [
+        "diamond"
+      ],
+      "order": 52,
+      "sources": [
+        "mywubi-curated"
+      ]
+    },
+    {
+      "text": "◇",
+      "name": "空心菱形",
+      "triggers": [
+        "空心菱形",
+        "特殊符号"
+      ],
+      "tags": [
+        "特殊符号"
+      ],
+      "aliases": [
+        "outline diamond"
+      ],
+      "order": 53,
+      "sources": [
+        "mywubi-curated"
+      ]
+    },
+    {
+      "text": "✓",
+      "name": "勾号",
+      "triggers": [
+        "勾号",
+        "特殊符号"
+      ],
+      "tags": [
+        "特殊符号"
+      ],
+      "aliases": [
+        "check"
+      ],
+      "order": 54,
+      "sources": [
+        "mywubi-curated"
+      ]
+    },
+    {
+      "text": "✗",
+      "name": "叉号",
+      "triggers": [
+        "叉号",
+        "特殊符号"
+      ],
+      "tags": [
+        "特殊符号"
+      ],
+      "aliases": [
+        "cross"
+      ],
+      "order": 55,
+      "sources": [
+        "mywubi-curated"
+      ]
+    },
+    {
+      "text": "♂",
+      "name": "雄性符号",
+      "triggers": [
+        "雄性符号",
+        "特殊符号"
+      ],
+      "tags": [
+        "特殊符号"
+      ],
+      "aliases": [
+        "male"
+      ],
+      "order": 56,
+      "sources": [
+        "mywubi-curated"
+      ]
+    },
+    {
+      "text": "♀",
+      "name": "雌性符号",
+      "triggers": [
+        "雌性符号",
+        "特殊符号"
+      ],
+      "tags": [
+        "特殊符号"
+      ],
+      "aliases": [
+        "female"
+      ],
+      "order": 57,
+      "sources": [
+        "mywubi-curated"
+      ]
+    },
+    {
+      "text": "♠",
+      "name": "黑桃",
+      "triggers": [
+        "黑桃",
+        "特殊符号"
+      ],
+      "tags": [
+        "特殊符号"
+      ],
+      "aliases": [
+        "spade"
+      ],
+      "order": 58,
+      "sources": [
+        "mywubi-curated"
+      ]
+    },
+    {
+      "text": "♥",
+      "name": "红桃",
+      "triggers": [
+        "红桃",
+        "特殊符号"
+      ],
+      "tags": [
+        "特殊符号"
+      ],
+      "aliases": [
+        "heart"
+      ],
+      "order": 59,
+      "sources": [
+        "mywubi-curated"
+      ]
+    },
+    {
+      "text": "♣",
+      "name": "梅花",
+      "triggers": [
+        "梅花",
+        "特殊符号"
+      ],
+      "tags": [
+        "特殊符号"
+      ],
+      "aliases": [
+        "club"
+      ],
+      "order": 60,
+      "sources": [
+        "mywubi-curated"
+      ]
+    },
+    {
+      "text": "♦",
+      "name": "方块花色",
+      "triggers": [
+        "方块花色",
+        "特殊符号"
+      ],
+      "tags": [
+        "特殊符号"
+      ],
+      "aliases": [
+        "diamond suit"
+      ],
+      "order": 61,
+      "sources": [
+        "mywubi-curated"
+      ]
+    },
+    {
+      "text": "♩",
+      "name": "四分音符",
+      "triggers": [
+        "四分音符",
+        "特殊符号"
+      ],
+      "tags": [
+        "特殊符号"
+      ],
+      "aliases": [
+        "quarter note"
+      ],
+      "order": 62,
+      "sources": [
+        "mywubi-curated"
+      ]
+    },
+    {
+      "text": "♪",
+      "name": "八分音符",
+      "triggers": [
+        "八分音符",
+        "特殊符号"
+      ],
+      "tags": [
+        "特殊符号"
+      ],
+      "aliases": [
+        "eighth note"
+      ],
+      "order": 63,
+      "sources": [
+        "mywubi-curated"
+      ]
+    },
+    {
+      "text": "♫",
+      "name": "双音符",
+      "triggers": [
+        "双音符",
+        "特殊符号"
+      ],
+      "tags": [
+        "特殊符号"
+      ],
+      "aliases": [
+        "music"
+      ],
+      "order": 64,
+      "sources": [
+        "mywubi-curated"
+      ]
+    },
+    {
+      "text": "①",
+      "name": "带圈数字1",
+      "triggers": [
+        "带圈数字1",
+        "特殊符号",
+        "序号",
+        "带圈数字"
+      ],
+      "tags": [
+        "特殊符号",
+        "序号",
+        "带圈数字"
+      ],
+      "aliases": [
+        "circled1"
+      ],
+      "order": 65,
+      "sources": [
+        "mywubi-curated"
+      ]
+    },
+    {
+      "text": "②",
+      "name": "带圈数字2",
+      "triggers": [
+        "带圈数字2",
+        "特殊符号",
+        "序号",
+        "带圈数字"
+      ],
+      "tags": [
+        "特殊符号",
+        "序号",
+        "带圈数字"
+      ],
+      "aliases": [
+        "circled2"
+      ],
+      "order": 66,
+      "sources": [
+        "mywubi-curated"
+      ]
+    },
+    {
+      "text": "③",
+      "name": "带圈数字3",
+      "triggers": [
+        "带圈数字3",
+        "特殊符号",
+        "序号",
+        "带圈数字"
+      ],
+      "tags": [
+        "特殊符号",
+        "序号",
+        "带圈数字"
+      ],
+      "aliases": [
+        "circled3"
+      ],
+      "order": 67,
+      "sources": [
+        "mywubi-curated"
+      ]
+    },
+    {
+      "text": "④",
+      "name": "带圈数字4",
+      "triggers": [
+        "带圈数字4",
+        "特殊符号",
+        "序号",
+        "带圈数字"
+      ],
+      "tags": [
+        "特殊符号",
+        "序号",
+        "带圈数字"
+      ],
+      "aliases": [
+        "circled4"
+      ],
+      "order": 68,
+      "sources": [
+        "mywubi-curated"
+      ]
+    },
+    {
+      "text": "⑤",
+      "name": "带圈数字5",
+      "triggers": [
+        "带圈数字5",
+        "特殊符号",
+        "序号",
+        "带圈数字"
+      ],
+      "tags": [
+        "特殊符号",
+        "序号",
+        "带圈数字"
+      ],
+      "aliases": [
+        "circled5"
+      ],
+      "order": 69,
+      "sources": [
+        "mywubi-curated"
+      ]
+    },
+    {
+      "text": "⑥",
+      "name": "带圈数字6",
+      "triggers": [
+        "带圈数字6",
+        "特殊符号",
+        "序号",
+        "带圈数字"
+      ],
+      "tags": [
+        "特殊符号",
+        "序号",
+        "带圈数字"
+      ],
+      "aliases": [
+        "circled6"
+      ],
+      "order": 70,
+      "sources": [
+        "mywubi-curated"
+      ]
+    },
+    {
+      "text": "⑦",
+      "name": "带圈数字7",
+      "triggers": [
+        "带圈数字7",
+        "特殊符号",
+        "序号",
+        "带圈数字"
+      ],
+      "tags": [
+        "特殊符号",
+        "序号",
+        "带圈数字"
+      ],
+      "aliases": [
+        "circled7"
+      ],
+      "order": 71,
+      "sources": [
+        "mywubi-curated"
+      ]
+    },
+    {
+      "text": "⑧",
+      "name": "带圈数字8",
+      "triggers": [
+        "带圈数字8",
+        "特殊符号",
+        "序号",
+        "带圈数字"
+      ],
+      "tags": [
+        "特殊符号",
+        "序号",
+        "带圈数字"
+      ],
+      "aliases": [
+        "circled8"
+      ],
+      "order": 72,
+      "sources": [
+        "mywubi-curated"
+      ]
+    },
+    {
+      "text": "⑨",
+      "name": "带圈数字9",
+      "triggers": [
+        "带圈数字9",
+        "特殊符号",
+        "序号",
+        "带圈数字"
+      ],
+      "tags": [
+        "特殊符号",
+        "序号",
+        "带圈数字"
+      ],
+      "aliases": [
+        "circled9"
+      ],
+      "order": 73,
+      "sources": [
+        "mywubi-curated"
+      ]
+    },
+    {
+      "text": "⑩",
+      "name": "带圈数字10",
+      "triggers": [
+        "带圈数字10",
+        "特殊符号",
+        "序号",
+        "带圈数字"
+      ],
+      "tags": [
+        "特殊符号",
+        "序号",
+        "带圈数字"
+      ],
+      "aliases": [
+        "circled10"
+      ],
+      "order": 74,
+      "sources": [
+        "mywubi-curated"
+      ]
+    },
+    {
+      "text": "⑪",
+      "name": "带圈数字11",
+      "triggers": [
+        "带圈数字11",
+        "特殊符号",
+        "序号",
+        "带圈数字"
+      ],
+      "tags": [
+        "特殊符号",
+        "序号",
+        "带圈数字"
+      ],
+      "aliases": [
+        "circled11"
+      ],
+      "order": 75,
+      "sources": [
+        "mywubi-curated"
+      ]
+    },
+    {
+      "text": "⑫",
+      "name": "带圈数字12",
+      "triggers": [
+        "带圈数字12",
+        "特殊符号",
+        "序号",
+        "带圈数字"
+      ],
+      "tags": [
+        "特殊符号",
+        "序号",
+        "带圈数字"
+      ],
+      "aliases": [
+        "circled12"
+      ],
+      "order": 76,
+      "sources": [
+        "mywubi-curated"
+      ]
+    },
+    {
+      "text": "⑬",
+      "name": "带圈数字13",
+      "triggers": [
+        "带圈数字13",
+        "特殊符号",
+        "序号",
+        "带圈数字"
+      ],
+      "tags": [
+        "特殊符号",
+        "序号",
+        "带圈数字"
+      ],
+      "aliases": [
+        "circled13"
+      ],
+      "order": 77,
+      "sources": [
+        "mywubi-curated"
+      ]
+    },
+    {
+      "text": "⑭",
+      "name": "带圈数字14",
+      "triggers": [
+        "带圈数字14",
+        "特殊符号",
+        "序号",
+        "带圈数字"
+      ],
+      "tags": [
+        "特殊符号",
+        "序号",
+        "带圈数字"
+      ],
+      "aliases": [
+        "circled14"
+      ],
+      "order": 78,
+      "sources": [
+        "mywubi-curated"
+      ]
+    },
+    {
+      "text": "⑮",
+      "name": "带圈数字15",
+      "triggers": [
+        "带圈数字15",
+        "特殊符号",
+        "序号",
+        "带圈数字"
+      ],
+      "tags": [
+        "特殊符号",
+        "序号",
+        "带圈数字"
+      ],
+      "aliases": [
+        "circled15"
+      ],
+      "order": 79,
+      "sources": [
+        "mywubi-curated"
+      ]
+    },
+    {
+      "text": "⑯",
+      "name": "带圈数字16",
+      "triggers": [
+        "带圈数字16",
+        "特殊符号",
+        "序号",
+        "带圈数字"
+      ],
+      "tags": [
+        "特殊符号",
+        "序号",
+        "带圈数字"
+      ],
+      "aliases": [
+        "circled16"
+      ],
+      "order": 80,
+      "sources": [
+        "mywubi-curated"
+      ]
+    },
+    {
+      "text": "⑰",
+      "name": "带圈数字17",
+      "triggers": [
+        "带圈数字17",
+        "特殊符号",
+        "序号",
+        "带圈数字"
+      ],
+      "tags": [
+        "特殊符号",
+        "序号",
+        "带圈数字"
+      ],
+      "aliases": [
+        "circled17"
+      ],
+      "order": 81,
+      "sources": [
+        "mywubi-curated"
+      ]
+    },
+    {
+      "text": "⑱",
+      "name": "带圈数字18",
+      "triggers": [
+        "带圈数字18",
+        "特殊符号",
+        "序号",
+        "带圈数字"
+      ],
+      "tags": [
+        "特殊符号",
+        "序号",
+        "带圈数字"
+      ],
+      "aliases": [
+        "circled18"
+      ],
+      "order": 82,
+      "sources": [
+        "mywubi-curated"
+      ]
+    },
+    {
+      "text": "⑲",
+      "name": "带圈数字19",
+      "triggers": [
+        "带圈数字19",
+        "特殊符号",
+        "序号",
+        "带圈数字"
+      ],
+      "tags": [
+        "特殊符号",
+        "序号",
+        "带圈数字"
+      ],
+      "aliases": [
+        "circled19"
+      ],
+      "order": 83,
+      "sources": [
+        "mywubi-curated"
+      ]
+    },
+    {
+      "text": "⑳",
+      "name": "带圈数字20",
+      "triggers": [
+        "带圈数字20",
+        "特殊符号",
+        "序号",
+        "带圈数字"
+      ],
+      "tags": [
+        "特殊符号",
+        "序号",
+        "带圈数字"
+      ],
+      "aliases": [
+        "circled20"
+      ],
+      "order": 84,
+      "sources": [
+        "mywubi-curated"
+      ]
+    },
+    {
+      "text": "Ⅰ",
+      "name": "大写罗马数字1",
+      "triggers": [
+        "大写罗马数字1",
+        "特殊符号",
+        "序号",
+        "罗马数字"
+      ],
+      "tags": [
+        "特殊符号",
+        "序号",
+        "罗马数字"
+      ],
+      "aliases": [
+        "roman1"
+      ],
+      "order": 85,
+      "sources": [
+        "mywubi-curated"
+      ]
+    },
+    {
+      "text": "ⅰ",
+      "name": "小写罗马数字1",
+      "triggers": [
+        "小写罗马数字1",
+        "特殊符号",
+        "序号",
+        "罗马数字"
+      ],
+      "tags": [
+        "特殊符号",
+        "序号",
+        "罗马数字"
+      ],
+      "aliases": [
+        "roman1"
+      ],
+      "order": 86,
+      "sources": [
+        "mywubi-curated"
+      ]
+    },
+    {
+      "text": "Ⅱ",
+      "name": "大写罗马数字2",
+      "triggers": [
+        "大写罗马数字2",
+        "特殊符号",
+        "序号",
+        "罗马数字"
+      ],
+      "tags": [
+        "特殊符号",
+        "序号",
+        "罗马数字"
+      ],
+      "aliases": [
+        "roman2"
+      ],
+      "order": 87,
+      "sources": [
+        "mywubi-curated"
+      ]
+    },
+    {
+      "text": "ⅱ",
+      "name": "小写罗马数字2",
+      "triggers": [
+        "小写罗马数字2",
+        "特殊符号",
+        "序号",
+        "罗马数字"
+      ],
+      "tags": [
+        "特殊符号",
+        "序号",
+        "罗马数字"
+      ],
+      "aliases": [
+        "roman2"
+      ],
+      "order": 88,
+      "sources": [
+        "mywubi-curated"
+      ]
+    },
+    {
+      "text": "Ⅲ",
+      "name": "大写罗马数字3",
+      "triggers": [
+        "大写罗马数字3",
+        "特殊符号",
+        "序号",
+        "罗马数字"
+      ],
+      "tags": [
+        "特殊符号",
+        "序号",
+        "罗马数字"
+      ],
+      "aliases": [
+        "roman3"
+      ],
+      "order": 89,
+      "sources": [
+        "mywubi-curated"
+      ]
+    },
+    {
+      "text": "ⅲ",
+      "name": "小写罗马数字3",
+      "triggers": [
+        "小写罗马数字3",
+        "特殊符号",
+        "序号",
+        "罗马数字"
+      ],
+      "tags": [
+        "特殊符号",
+        "序号",
+        "罗马数字"
+      ],
+      "aliases": [
+        "roman3"
+      ],
+      "order": 90,
+      "sources": [
+        "mywubi-curated"
+      ]
+    },
+    {
+      "text": "Ⅳ",
+      "name": "大写罗马数字4",
+      "triggers": [
+        "大写罗马数字4",
+        "特殊符号",
+        "序号",
+        "罗马数字"
+      ],
+      "tags": [
+        "特殊符号",
+        "序号",
+        "罗马数字"
+      ],
+      "aliases": [
+        "roman4"
+      ],
+      "order": 91,
+      "sources": [
+        "mywubi-curated"
+      ]
+    },
+    {
+      "text": "ⅳ",
+      "name": "小写罗马数字4",
+      "triggers": [
+        "小写罗马数字4",
+        "特殊符号",
+        "序号",
+        "罗马数字"
+      ],
+      "tags": [
+        "特殊符号",
+        "序号",
+        "罗马数字"
+      ],
+      "aliases": [
+        "roman4"
+      ],
+      "order": 92,
+      "sources": [
+        "mywubi-curated"
+      ]
+    },
+    {
+      "text": "Ⅴ",
+      "name": "大写罗马数字5",
+      "triggers": [
+        "大写罗马数字5",
+        "特殊符号",
+        "序号",
+        "罗马数字"
+      ],
+      "tags": [
+        "特殊符号",
+        "序号",
+        "罗马数字"
+      ],
+      "aliases": [
+        "roman5"
+      ],
+      "order": 93,
+      "sources": [
+        "mywubi-curated"
+      ]
+    },
+    {
+      "text": "ⅴ",
+      "name": "小写罗马数字5",
+      "triggers": [
+        "小写罗马数字5",
+        "特殊符号",
+        "序号",
+        "罗马数字"
+      ],
+      "tags": [
+        "特殊符号",
+        "序号",
+        "罗马数字"
+      ],
+      "aliases": [
+        "roman5"
+      ],
+      "order": 94,
+      "sources": [
+        "mywubi-curated"
+      ]
+    },
+    {
+      "text": "Ⅵ",
+      "name": "大写罗马数字6",
+      "triggers": [
+        "大写罗马数字6",
+        "特殊符号",
+        "序号",
+        "罗马数字"
+      ],
+      "tags": [
+        "特殊符号",
+        "序号",
+        "罗马数字"
+      ],
+      "aliases": [
+        "roman6"
+      ],
+      "order": 95,
+      "sources": [
+        "mywubi-curated"
+      ]
+    },
+    {
+      "text": "ⅵ",
+      "name": "小写罗马数字6",
+      "triggers": [
+        "小写罗马数字6",
+        "特殊符号",
+        "序号",
+        "罗马数字"
+      ],
+      "tags": [
+        "特殊符号",
+        "序号",
+        "罗马数字"
+      ],
+      "aliases": [
+        "roman6"
+      ],
+      "order": 96,
+      "sources": [
+        "mywubi-curated"
+      ]
+    },
+    {
+      "text": "Ⅶ",
+      "name": "大写罗马数字7",
+      "triggers": [
+        "大写罗马数字7",
+        "特殊符号",
+        "序号",
+        "罗马数字"
+      ],
+      "tags": [
+        "特殊符号",
+        "序号",
+        "罗马数字"
+      ],
+      "aliases": [
+        "roman7"
+      ],
+      "order": 97,
+      "sources": [
+        "mywubi-curated"
+      ]
+    },
+    {
+      "text": "ⅶ",
+      "name": "小写罗马数字7",
+      "triggers": [
+        "小写罗马数字7",
+        "特殊符号",
+        "序号",
+        "罗马数字"
+      ],
+      "tags": [
+        "特殊符号",
+        "序号",
+        "罗马数字"
+      ],
+      "aliases": [
+        "roman7"
+      ],
+      "order": 98,
+      "sources": [
+        "mywubi-curated"
+      ]
+    },
+    {
+      "text": "Ⅷ",
+      "name": "大写罗马数字8",
+      "triggers": [
+        "大写罗马数字8",
+        "特殊符号",
+        "序号",
+        "罗马数字"
+      ],
+      "tags": [
+        "特殊符号",
+        "序号",
+        "罗马数字"
+      ],
+      "aliases": [
+        "roman8"
+      ],
+      "order": 99,
+      "sources": [
+        "mywubi-curated"
+      ]
+    },
+    {
+      "text": "ⅷ",
+      "name": "小写罗马数字8",
+      "triggers": [
+        "小写罗马数字8",
+        "特殊符号",
+        "序号",
+        "罗马数字"
+      ],
+      "tags": [
+        "特殊符号",
+        "序号",
+        "罗马数字"
+      ],
+      "aliases": [
+        "roman8"
+      ],
+      "order": 100,
+      "sources": [
+        "mywubi-curated"
+      ]
+    },
+    {
+      "text": "Ⅸ",
+      "name": "大写罗马数字9",
+      "triggers": [
+        "大写罗马数字9",
+        "特殊符号",
+        "序号",
+        "罗马数字"
+      ],
+      "tags": [
+        "特殊符号",
+        "序号",
+        "罗马数字"
+      ],
+      "aliases": [
+        "roman9"
+      ],
+      "order": 101,
+      "sources": [
+        "mywubi-curated"
+      ]
+    },
+    {
+      "text": "ⅸ",
+      "name": "小写罗马数字9",
+      "triggers": [
+        "小写罗马数字9",
+        "特殊符号",
+        "序号",
+        "罗马数字"
+      ],
+      "tags": [
+        "特殊符号",
+        "序号",
+        "罗马数字"
+      ],
+      "aliases": [
+        "roman9"
+      ],
+      "order": 102,
+      "sources": [
+        "mywubi-curated"
+      ]
+    },
+    {
+      "text": "Ⅹ",
+      "name": "大写罗马数字10",
+      "triggers": [
+        "大写罗马数字10",
+        "特殊符号",
+        "序号",
+        "罗马数字"
+      ],
+      "tags": [
+        "特殊符号",
+        "序号",
+        "罗马数字"
+      ],
+      "aliases": [
+        "roman10"
+      ],
+      "order": 103,
+      "sources": [
+        "mywubi-curated"
+      ]
+    },
+    {
+      "text": "ⅹ",
+      "name": "小写罗马数字10",
+      "triggers": [
+        "小写罗马数字10",
+        "特殊符号",
+        "序号",
+        "罗马数字"
+      ],
+      "tags": [
+        "特殊符号",
+        "序号",
+        "罗马数字"
+      ],
+      "aliases": [
+        "roman10"
+      ],
+      "order": 104,
+      "sources": [
+        "mywubi-curated"
+      ]
+    },
+    {
+      "text": "Ⅺ",
+      "name": "大写罗马数字11",
+      "triggers": [
+        "大写罗马数字11",
+        "特殊符号",
+        "序号",
+        "罗马数字"
+      ],
+      "tags": [
+        "特殊符号",
+        "序号",
+        "罗马数字"
+      ],
+      "aliases": [
+        "roman11"
+      ],
+      "order": 105,
+      "sources": [
+        "mywubi-curated"
+      ]
+    },
+    {
+      "text": "ⅺ",
+      "name": "小写罗马数字11",
+      "triggers": [
+        "小写罗马数字11",
+        "特殊符号",
+        "序号",
+        "罗马数字"
+      ],
+      "tags": [
+        "特殊符号",
+        "序号",
+        "罗马数字"
+      ],
+      "aliases": [
+        "roman11"
+      ],
+      "order": 106,
+      "sources": [
+        "mywubi-curated"
+      ]
+    },
+    {
+      "text": "Ⅻ",
+      "name": "大写罗马数字12",
+      "triggers": [
+        "大写罗马数字12",
+        "特殊符号",
+        "序号",
+        "罗马数字"
+      ],
+      "tags": [
+        "特殊符号",
+        "序号",
+        "罗马数字"
+      ],
+      "aliases": [
+        "roman12"
+      ],
+      "order": 107,
+      "sources": [
+        "mywubi-curated"
+      ]
+    },
+    {
+      "text": "ⅻ",
+      "name": "小写罗马数字12",
+      "triggers": [
+        "小写罗马数字12",
+        "特殊符号",
+        "序号",
+        "罗马数字"
+      ],
+      "tags": [
+        "特殊符号",
+        "序号",
+        "罗马数字"
+      ],
+      "aliases": [
+        "roman12"
+      ],
+      "order": 108,
+      "sources": [
+        "mywubi-curated"
+      ]
+    }
+  ]
+}

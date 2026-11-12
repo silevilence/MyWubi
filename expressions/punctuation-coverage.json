@@ -1,0 +1,261 @@
+{
+  "kind": "punctuation",
+  "version": "1.0.0",
+  "count": 49,
+  "sha256": "644b0f28962dbd703e1c1afb6738e7600eeb2271156c8ae6190419cefe98fbbc",
+  "outputs": [
+    "，",
+    "。",
+    "、",
+    "；",
+    "：",
+    "？",
+    "！",
+    "……",
+    "——",
+    "…",
+    "—",
+    "–",
+    "「",
+    "」",
+    "「」",
+    "『",
+    "』",
+    "『』",
+    "“",
+    "”",
+    "“”",
+    "‘",
+    "’",
+    "‘’",
+    "（",
+    "）",
+    "（）",
+    "【",
+    "】",
+    "【】",
+    "《",
+    "》",
+    "《》",
+    "〈",
+    "〉",
+    "〈〉",
+    "〔",
+    "〕",
+    "〔〕",
+    ",",
+    ".",
+    ";",
+    ":",
+    "?",
+    "!",
+    "...",
+    "()",
+    "[]",
+    "{}"
+  ],
+  "queries": {
+    "angle brackets": [
+      "〈〉"
+    ],
+    "ascii braces": [
+      "{}"
+    ],
+    "ascii brackets": [
+      "[]"
+    ],
+    "ascii colon": [
+      ":"
+    ],
+    "ascii comma": [
+      ","
+    ],
+    "ascii ellipsis": [
+      "..."
+    ],
+    "ascii exclamation": [
+      "!"
+    ],
+    "ascii parentheses": [
+      "()"
+    ],
+    "ascii period": [
+      "."
+    ],
+    "ascii question": [
+      "?"
+    ],
+    "ascii semicolon": [
+      ";"
+    ],
+    "brackets": [
+      "【】"
+    ],
+    "colon": [
+      "："
+    ],
+    "comma": [
+      "，"
+    ],
+    "corner quotes": [
+      "「」"
+    ],
+    "dash": [
+      "——"
+    ],
+    "double corner quotes": [
+      "『』"
+    ],
+    "double quotes": [
+      "“”"
+    ],
+    "ellipsis": [
+      "……"
+    ],
+    "em dash": [
+      "—"
+    ],
+    "en dash": [
+      "–"
+    ],
+    "enumeration comma": [
+      "、"
+    ],
+    "exclamation": [
+      "！"
+    ],
+    "left angle bracket": [
+      "〈"
+    ],
+    "left bracket": [
+      "【"
+    ],
+    "left corner quote": [
+      "「"
+    ],
+    "left double corner quote": [
+      "『"
+    ],
+    "left double quote": [
+      "“"
+    ],
+    "left parenthesis": [
+      "（"
+    ],
+    "left single quote": [
+      "‘"
+    ],
+    "left title mark": [
+      "《"
+    ],
+    "left tortoise bracket": [
+      "〔"
+    ],
+    "parentheses": [
+      "（）"
+    ],
+    "period": [
+      "。"
+    ],
+    "question": [
+      "？"
+    ],
+    "right angle bracket": [
+      "〉"
+    ],
+    "right bracket": [
+      "】"
+    ],
+    "right corner quote": [
+      "」"
+    ],
+    "right double corner quote": [
+      "』"
+    ],
+    "right double quote": [
+      "”"
+    ],
+    "right parenthesis": [
+      "）"
+    ],
+    "right single quote": [
+      "’"
+    ],
+    "right title mark": [
+      "》"
+    ],
+    "right tortoise bracket": [
+      "〕"
+    ],
+    "semicolon": [
+      "；"
+    ],
+    "single ellipsis": [
+      "…"
+    ],
+    "single quotes": [
+      "‘’"
+    ],
+    "title marks": [
+      "《》"
+    ],
+    "tortoise brackets": [
+      "〔〕"
+    ],
+    "书名号": [
+      "《》"
+    ],
+    "六角括号": [
+      "〔〕"
+    ],
+    "冒号": [
+      "："
+    ],
+    "分号": [
+      "；"
+    ],
+    "单书名号": [
+      "〈〉"
+    ],
+    "单引号": [
+      "‘’"
+    ],
+    "双引号": [
+      "『』",
+      "“”"
+    ],
+    "句号": [
+      "。"
+    ],
+    "右引号": [
+      "」"
+    ],
+    "圆括号": [
+      "（）"
+    ],
+    "左引号": [
+      "「"
+    ],
+    "引号": [
+      "「」"
+    ],
+    "感叹号": [
+      "！"
+    ],
+    "方括号": [
+      "【】"
+    ],
+    "省略号": [
+      "……"
+    ],
+    "破折号": [
+      "——"
+    ],
+    "逗号": [
+      "，"
+    ],
+    "问号": [
+      "？"
+    ]
+  }
+}

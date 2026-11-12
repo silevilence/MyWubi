@@ -1,0 +1,937 @@
+# MyWubi Expressions 1
+{
+  "kind": "punctuation",
+  "name": "MyWubi 标点",
+  "version": "1.0.0",
+  "sources": [
+    {
+      "id": "mywubi-curated",
+      "url": "local:scripts/build_special_tables.py",
+      "revision": "1.0.0",
+      "license": "MIT",
+      "notice": "MIT License\n\nCopyright (c) 2026 MyWubi contributors\n\nPermission is hereby granted, free of charge, to any person obtaining a copy\nof this software and associated documentation files (the \"Software\"), to deal\nin the Software without restriction, including without limitation the rights\nto use, copy, modify, merge, publish, distribute, sublicense, and/or sell\ncopies of the Software, and to permit persons to whom the Software is\nfurnished to do so, subject to the following conditions:\n\nThe above copyright notice and this permission notice shall be included in all\ncopies or substantial portions of the Software.\n\nTHE SOFTWARE IS PROVIDED \"AS IS\", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR\nIMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,\nFITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE\nAUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER\nLIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,\nOUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE\nSOFTWARE.\n"
+    }
+  ],
+  "entries": [
+    {
+      "text": "，",
+      "name": "中文逗号",
+      "triggers": [
+        "中文逗号",
+        "标点",
+        "逗号"
+      ],
+      "tags": [
+        "标点"
+      ],
+      "aliases": [
+        "逗号",
+        "comma"
+      ],
+      "order": 0,
+      "sources": [
+        "mywubi-curated"
+      ]
+    },
+    {
+      "text": "。",
+      "name": "中文句号",
+      "triggers": [
+        "中文句号",
+        "标点",
+        "句号"
+      ],
+      "tags": [
+        "标点"
+      ],
+      "aliases": [
+        "句号",
+        "period"
+      ],
+      "order": 1,
+      "sources": [
+        "mywubi-curated"
+      ]
+    },
+    {
+      "text": "、",
+      "name": "顿号",
+      "triggers": [
+        "顿号",
+        "标点"
+      ],
+      "tags": [
+        "标点"
+      ],
+      "aliases": [
+        "enumeration comma"
+      ],
+      "order": 2,
+      "sources": [
+        "mywubi-curated"
+      ]
+    },
+    {
+      "text": "；",
+      "name": "中文分号",
+      "triggers": [
+        "中文分号",
+        "标点",
+        "分号"
+      ],
+      "tags": [
+        "标点"
+      ],
+      "aliases": [
+        "分号",
+        "semicolon"
+      ],
+      "order": 3,
+      "sources": [
+        "mywubi-curated"
+      ]
+    },
+    {
+      "text": "：",
+      "name": "中文冒号",
+      "triggers": [
+        "中文冒号",
+        "标点",
+        "冒号"
+      ],
+      "tags": [
+        "标点"
+      ],
+      "aliases": [
+        "冒号",
+        "colon"
+      ],
+      "order": 4,
+      "sources": [
+        "mywubi-curated"
+      ]
+    },
+    {
+      "text": "？",
+      "name": "中文问号",
+      "triggers": [
+        "中文问号",
+        "标点",
+        "问号"
+      ],
+      "tags": [
+        "标点"
+      ],
+      "aliases": [
+        "问号",
+        "question"
+      ],
+      "order": 5,
+      "sources": [
+        "mywubi-curated"
+      ]
+    },
+    {
+      "text": "！",
+      "name": "中文感叹号",
+      "triggers": [
+        "中文感叹号",
+        "标点",
+        "感叹号"
+      ],
+      "tags": [
+        "标点"
+      ],
+      "aliases": [
+        "感叹号",
+        "exclamation"
+      ],
+      "order": 6,
+      "sources": [
+        "mywubi-curated"
+      ]
+    },
+    {
+      "text": "……",
+      "name": "中文省略号",
+      "triggers": [
+        "中文省略号",
+        "标点",
+        "省略号"
+      ],
+      "tags": [
+        "标点"
+      ],
+      "aliases": [
+        "省略号",
+        "ellipsis"
+      ],
+      "order": 7,
+      "sources": [
+        "mywubi-curated"
+      ]
+    },
+    {
+      "text": "——",
+      "name": "中文破折号",
+      "triggers": [
+        "中文破折号",
+        "标点",
+        "破折号"
+      ],
+      "tags": [
+        "标点"
+      ],
+      "aliases": [
+        "破折号",
+        "dash"
+      ],
+      "order": 8,
+      "sources": [
+        "mywubi-curated"
+      ]
+    },
+    {
+      "text": "…",
+      "name": "单省略号",
+      "triggers": [
+        "单省略号",
+        "标点"
+      ],
+      "tags": [
+        "标点"
+      ],
+      "aliases": [
+        "single ellipsis"
+      ],
+      "order": 9,
+      "sources": [
+        "mywubi-curated"
+      ]
+    },
+    {
+      "text": "—",
+      "name": "长破折号",
+      "triggers": [
+        "长破折号",
+        "标点"
+      ],
+      "tags": [
+        "标点"
+      ],
+      "aliases": [
+        "em dash"
+      ],
+      "order": 10,
+      "sources": [
+        "mywubi-curated"
+      ]
+    },
+    {
+      "text": "–",
+      "name": "短破折号",
+      "triggers": [
+        "短破折号",
+        "标点"
+      ],
+      "tags": [
+        "标点"
+      ],
+      "aliases": [
+        "en dash"
+      ],
+      "order": 11,
+      "sources": [
+        "mywubi-curated"
+      ]
+    },
+    {
+      "text": "「",
+      "name": "左直角引号",
+      "triggers": [
+        "左直角引号",
+        "标点",
+        "左引号"
+      ],
+      "tags": [
+        "标点"
+      ],
+      "aliases": [
+        "左引号",
+        "left corner quote"
+      ],
+      "order": 12,
+      "sources": [
+        "mywubi-curated"
+      ]
+    },
+    {
+      "text": "」",
+      "name": "右直角引号",
+      "triggers": [
+        "右直角引号",
+        "标点",
+        "右引号"
+      ],
+      "tags": [
+        "标点"
+      ],
+      "aliases": [
+        "右引号",
+        "right corner quote"
+      ],
+      "order": 13,
+      "sources": [
+        "mywubi-curated"
+      ]
+    },
+    {
+      "text": "「」",
+      "name": "成对直角引号",
+      "triggers": [
+        "成对直角引号",
+        "标点",
+        "引号"
+      ],
+      "tags": [
+        "标点"
+      ],
+      "aliases": [
+        "引号",
+        "corner quotes"
+      ],
+      "order": 14,
+      "sources": [
+        "mywubi-curated"
+      ]
+    },
+    {
+      "text": "『",
+      "name": "左双直角引号",
+      "triggers": [
+        "左双直角引号",
+        "标点"
+      ],
+      "tags": [
+        "标点"
+      ],
+      "aliases": [
+        "left double corner quote"
+      ],
+      "order": 15,
+      "sources": [
+        "mywubi-curated"
+      ]
+    },
+    {
+      "text": "』",
+      "name": "右双直角引号",
+      "triggers": [
+        "右双直角引号",
+        "标点"
+      ],
+      "tags": [
+        "标点"
+      ],
+      "aliases": [
+        "right double corner quote"
+      ],
+      "order": 16,
+      "sources": [
+        "mywubi-curated"
+      ]
+    },
+    {
+      "text": "『』",
+      "name": "成对双直角引号",
+      "triggers": [
+        "成对双直角引号",
+        "标点",
+        "双引号"
+      ],
+      "tags": [
+        "标点"
+      ],
+      "aliases": [
+        "双引号",
+        "double corner quotes"
+      ],
+      "order": 17,
+      "sources": [
+        "mywubi-curated"
+      ]
+    },
+    {
+      "text": "“",
+      "name": "左双引号",
+      "triggers": [
+        "左双引号",
+        "标点"
+      ],
+      "tags": [
+        "标点"
+      ],
+      "aliases": [
+        "left double quote"
+      ],
+      "order": 18,
+      "sources": [
+        "mywubi-curated"
+      ]
+    },
+    {
+      "text": "”",
+      "name": "右双引号",
+      "triggers": [
+        "右双引号",
+        "标点"
+      ],
+      "tags": [
+        "标点"
+      ],
+      "aliases": [
+        "right double quote"
+      ],
+      "order": 19,
+      "sources": [
+        "mywubi-curated"
+      ]
+    },
+    {
+      "text": "“”",
+      "name": "成对双引号",
+      "triggers": [
+        "成对双引号",
+        "标点",
+        "双引号"
+      ],
+      "tags": [
+        "标点"
+      ],
+      "aliases": [
+        "双引号",
+        "double quotes"
+      ],
+      "order": 20,
+      "sources": [
+        "mywubi-curated"
+      ]
+    },
+    {
+      "text": "‘",
+      "name": "左单引号",
+      "triggers": [
+        "左单引号",
+        "标点"
+      ],
+      "tags": [
+        "标点"
+      ],
+      "aliases": [
+        "left single quote"
+      ],
+      "order": 21,
+      "sources": [
+        "mywubi-curated"
+      ]
+    },
+    {
+      "text": "’",
+      "name": "右单引号",
+      "triggers": [
+        "右单引号",
+        "标点"
+      ],
+      "tags": [
+        "标点"
+      ],
+      "aliases": [
+        "right single quote"
+      ],
+      "order": 22,
+      "sources": [
+        "mywubi-curated"
+      ]
+    },
+    {
+      "text": "‘’",
+      "name": "成对单引号",
+      "triggers": [
+        "成对单引号",
+        "标点",
+        "单引号"
+      ],
+      "tags": [
+        "标点"
+      ],
+      "aliases": [
+        "单引号",
+        "single quotes"
+      ],
+      "order": 23,
+      "sources": [
+        "mywubi-curated"
+      ]
+    },
+    {
+      "text": "（",
+      "name": "左圆括号",
+      "triggers": [
+        "左圆括号",
+        "标点"
+      ],
+      "tags": [
+        "标点"
+      ],
+      "aliases": [
+        "left parenthesis"
+      ],
+      "order": 24,
+      "sources": [
+        "mywubi-curated"
+      ]
+    },
+    {
+      "text": "）",
+      "name": "右圆括号",
+      "triggers": [
+        "右圆括号",
+        "标点"
+      ],
+      "tags": [
+        "标点"
+      ],
+      "aliases": [
+        "right parenthesis"
+      ],
+      "order": 25,
+      "sources": [
+        "mywubi-curated"
+      ]
+    },
+    {
+      "text": "（）",
+      "name": "成对圆括号",
+      "triggers": [
+        "成对圆括号",
+        "标点",
+        "圆括号"
+      ],
+      "tags": [
+        "标点"
+      ],
+      "aliases": [
+        "圆括号",
+        "parentheses"
+      ],
+      "order": 26,
+      "sources": [
+        "mywubi-curated"
+      ]
+    },
+    {
+      "text": "【",
+      "name": "左方头括号",
+      "triggers": [
+        "左方头括号",
+        "标点"
+      ],
+      "tags": [
+        "标点"
+      ],
+      "aliases": [
+        "left bracket"
+      ],
+      "order": 27,
+      "sources": [
+        "mywubi-curated"
+      ]
+    },
+    {
+      "text": "】",
+      "name": "右方头括号",
+      "triggers": [
+        "右方头括号",
+        "标点"
+      ],
+      "tags": [
+        "标点"
+      ],
+      "aliases": [
+        "right bracket"
+      ],
+      "order": 28,
+      "sources": [
+        "mywubi-curated"
+      ]
+    },
+    {
+      "text": "【】",
+      "name": "成对方头括号",
+      "triggers": [
+        "成对方头括号",
+        "标点",
+        "方括号"
+      ],
+      "tags": [
+        "标点"
+      ],
+      "aliases": [
+        "方括号",
+        "brackets"
+      ],
+      "order": 29,
+      "sources": [
+        "mywubi-curated"
+      ]
+    },
+    {
+      "text": "《",
+      "name": "左书名号",
+      "triggers": [
+        "左书名号",
+        "标点"
+      ],
+      "tags": [
+        "标点"
+      ],
+      "aliases": [
+        "left title mark"
+      ],
+      "order": 30,
+      "sources": [
+        "mywubi-curated"
+      ]
+    },
+    {
+      "text": "》",
+      "name": "右书名号",
+      "triggers": [
+        "右书名号",
+        "标点"
+      ],
+      "tags": [
+        "标点"
+      ],
+      "aliases": [
+        "right title mark"
+      ],
+      "order": 31,
+      "sources": [
+        "mywubi-curated"
+      ]
+    },
+    {
+      "text": "《》",
+      "name": "成对书名号",
+      "triggers": [
+        "成对书名号",
+        "标点",
+        "书名号"
+      ],
+      "tags": [
+        "标点"
+      ],
+      "aliases": [
+        "书名号",
+        "title marks"
+      ],
+      "order": 32,
+      "sources": [
+        "mywubi-curated"
+      ]
+    },
+    {
+      "text": "〈",
+      "name": "左单书名号",
+      "triggers": [
+        "左单书名号",
+        "标点"
+      ],
+      "tags": [
+        "标点"
+      ],
+      "aliases": [
+        "left angle bracket"
+      ],
+      "order": 33,
+      "sources": [
+        "mywubi-curated"
+      ]
+    },
+    {
+      "text": "〉",
+      "name": "右单书名号",
+      "triggers": [
+        "右单书名号",
+        "标点"
+      ],
+      "tags": [
+        "标点"
+      ],
+      "aliases": [
+        "right angle bracket"
+      ],
+      "order": 34,
+      "sources": [
+        "mywubi-curated"
+      ]
+    },
+    {
+      "text": "〈〉",
+      "name": "成对单书名号",
+      "triggers": [
+        "成对单书名号",
+        "标点",
+        "单书名号"
+      ],
+      "tags": [
+        "标点"
+      ],
+      "aliases": [
+        "单书名号",
+        "angle brackets"
+      ],
+      "order": 35,
+      "sources": [
+        "mywubi-curated"
+      ]
+    },
+    {
+      "text": "〔",
+      "name": "左六角括号",
+      "triggers": [
+        "左六角括号",
+        "标点"
+      ],
+      "tags": [
+        "标点"
+      ],
+      "aliases": [
+        "left tortoise bracket"
+      ],
+      "order": 36,
+      "sources": [
+        "mywubi-curated"
+      ]
+    },
+    {
+      "text": "〕",
+      "name": "右六角括号",
+      "triggers": [
+        "右六角括号",
+        "标点"
+      ],
+      "tags": [
+        "标点"
+      ],
+      "aliases": [
+        "right tortoise bracket"
+      ],
+      "order": 37,
+      "sources": [
+        "mywubi-curated"
+      ]
+    },
+    {
+      "text": "〔〕",
+      "name": "成对六角括号",
+      "triggers": [
+        "成对六角括号",
+        "标点",
+        "六角括号"
+      ],
+      "tags": [
+        "标点"
+      ],
+      "aliases": [
+        "六角括号",
+        "tortoise brackets"
+      ],
+      "order": 38,
+      "sources": [
+        "mywubi-curated"
+      ]
+    },
+    {
+      "text": ",",
+      "name": "半角逗号",
+      "triggers": [
+        "半角逗号",
+        "标点"
+      ],
+      "tags": [
+        "标点"
+      ],
+      "aliases": [
+        "ascii comma"
+      ],
+      "order": 39,
+      "sources": [
+        "mywubi-curated"
+      ]
+    },
+    {
+      "text": ".",
+      "name": "半角句点",
+      "triggers": [
+        "半角句点",
+        "标点"
+      ],
+      "tags": [
+        "标点"
+      ],
+      "aliases": [
+        "ascii period"
+      ],
+      "order": 40,
+      "sources": [
+        "mywubi-curated"
+      ]
+    },
+    {
+      "text": ";",
+      "name": "半角分号",
+      "triggers": [
+        "半角分号",
+        "标点"
+      ],
+      "tags": [
+        "标点"
+      ],
+      "aliases": [
+        "ascii semicolon"
+      ],
+      "order": 41,
+      "sources": [
+        "mywubi-curated"
+      ]
+    },
+    {
+      "text": ":",
+      "name": "半角冒号",
+      "triggers": [
+        "半角冒号",
+        "标点"
+      ],
+      "tags": [
+        "标点"
+      ],
+      "aliases": [
+        "ascii colon"
+      ],
+      "order": 42,
+      "sources": [
+        "mywubi-curated"
+      ]
+    },
+    {
+      "text": "?",
+      "name": "半角问号",
+      "triggers": [
+        "半角问号",
+        "标点"
+      ],
+      "tags": [
+        "标点"
+      ],
+      "aliases": [
+        "ascii question"
+      ],
+      "order": 43,
+      "sources": [
+        "mywubi-curated"
+      ]
+    },
+    {
+      "text": "!",
+      "name": "半角感叹号",
+      "triggers": [
+        "半角感叹号",
+        "标点"
+      ],
+      "tags": [
+        "标点"
+      ],
+      "aliases": [
+        "ascii exclamation"
+      ],
+      "order": 44,
+      "sources": [
+        "mywubi-curated"
+      ]
+    },
+    {
+      "text": "...",
+      "name": "半角省略号",
+      "triggers": [
+        "半角省略号",
+        "标点"
+      ],
+      "tags": [
+        "标点"
+      ],
+      "aliases": [
+        "ascii ellipsis"
+      ],
+      "order": 45,
+      "sources": [
+        "mywubi-curated"
+      ]
+    },
+    {
+      "text": "()",
+      "name": "半角圆括号",
+      "triggers": [
+        "半角圆括号",
+        "标点"
+      ],
+      "tags": [
+        "标点"
+      ],
+      "aliases": [
+        "ascii parentheses"
+      ],
+      "order": 46,
+      "sources": [
+        "mywubi-curated"
+      ]
+    },
+    {
+      "text": "[]",
+      "name": "半角方括号",
+      "triggers": [
+        "半角方括号",
+        "标点"
+      ],
+      "tags": [
+        "标点"
+      ],
+      "aliases": [
+        "ascii brackets"
+      ],
+      "order": 47,
+      "sources": [
+        "mywubi-curated"
+      ]
+    },
+    {
+      "text": "{}",
+      "name": "半角花括号",
+      "triggers": [
+        "半角花括号",
+        "标点"
+      ],
+      "tags": [
+        "标点"
+      ],
+      "aliases": [
+        "ascii braces"
+      ],
+      "order": 48,
+      "sources": [
+        "mywubi-curated"
+      ]
+    }
+  ]
+}

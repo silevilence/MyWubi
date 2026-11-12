@@ -76,3 +76,76 @@ fn shi_has_deterministic_hiragana_then_katakana_results_without_transliteration(
         assert_ne!(library.document().entries[row.index].text, "こんにちは");
     }
 }
+
+#[test]
+fn symbol_resources_have_declared_coverage_and_stable_representative_queries() {
+    for (kind, count, samples) in [
+        (
+            ExpressionKind::Math,
+            124,
+            vec![
+                ("求和", "∑"),
+                ("积分", "∫"),
+                ("根号", "√"),
+                ("不等于", "≠"),
+                ("无穷", "∞"),
+            ],
+        ),
+        (
+            ExpressionKind::Punctuation,
+            49,
+            vec![
+                ("corner quotes", "「」"),
+                ("省略号", "……"),
+                ("破折号", "——"),
+                ("ascii ellipsis", "..."),
+            ],
+        ),
+        (
+            ExpressionKind::Symbols,
+            109,
+            vec![
+                ("right arrow", "→"),
+                ("摄氏度", "℃"),
+                ("circled1", "①"),
+                ("star", "★"),
+            ],
+        ),
+    ] {
+        let library = load(kind);
+        assert_eq!(library.document().entries.len(), count);
+        assert_eq!(
+            library
+                .document()
+                .entries
+                .iter()
+                .map(|e| &e.text)
+                .collect::<BTreeSet<_>>()
+                .len(),
+            count
+        );
+        for (query, expected) in samples {
+            let result = library.search(query, &[]);
+            assert_eq!(
+                library.document().entries[result.matches[0].index].text,
+                expected,
+                "{kind:?}: {query}"
+            );
+            assert_eq!(result, library.search(query, &[]));
+        }
+        let encoded = library.encode().unwrap();
+        assert_eq!(
+            ExpressionLibrary::parse(&encoded, kind).unwrap().document(),
+            library.document()
+        );
+        for entry in &library.document().entries {
+            assert!(library
+                .exact(&entry.name)
+                .any(|candidate| candidate.text == entry.text));
+            assert_eq!(entry.sources, ["mywubi-curated"]);
+        }
+    }
+    let library = load(ExpressionKind::Symbols);
+    assert!(library.document().entries.iter().any(|e| e.text == "℃"));
+    assert!(library.document().entries.iter().any(|e| e.text == "°C"));
+}

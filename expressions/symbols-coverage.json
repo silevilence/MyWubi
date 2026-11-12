@@ -1,0 +1,438 @@
+{
+  "kind": "symbols",
+  "version": "1.0.0",
+  "count": 109,
+  "sha256": "112abc9beb1bca46a1281b31b3575f3691636057c5a54557190976838e98c1e9",
+  "outputs": [
+    "←",
+    "→",
+    "↑",
+    "↓",
+    "↔",
+    "↕",
+    "↖",
+    "↗",
+    "↘",
+    "↙",
+    "⇐",
+    "⇒",
+    "⇑",
+    "⇓",
+    "⇔",
+    "↩",
+    "↪",
+    "℃",
+    "℉",
+    "°C",
+    "°F",
+    "㎜",
+    "㎝",
+    "㎞",
+    "㎡",
+    "㎥",
+    "㎎",
+    "㎏",
+    "㏄",
+    "㏑",
+    "㏒",
+    "￥",
+    "¥",
+    "€",
+    "£",
+    "¢",
+    "$",
+    "©",
+    "®",
+    "™",
+    "№",
+    "§",
+    "¶",
+    "※",
+    "★",
+    "☆",
+    "●",
+    "○",
+    "■",
+    "□",
+    "▲",
+    "△",
+    "◆",
+    "◇",
+    "✓",
+    "✗",
+    "♂",
+    "♀",
+    "♠",
+    "♥",
+    "♣",
+    "♦",
+    "♩",
+    "♪",
+    "♫",
+    "①",
+    "②",
+    "③",
+    "④",
+    "⑤",
+    "⑥",
+    "⑦",
+    "⑧",
+    "⑨",
+    "⑩",
+    "⑪",
+    "⑫",
+    "⑬",
+    "⑭",
+    "⑮",
+    "⑯",
+    "⑰",
+    "⑱",
+    "⑲",
+    "⑳",
+    "Ⅰ",
+    "ⅰ",
+    "Ⅱ",
+    "ⅱ",
+    "Ⅲ",
+    "ⅲ",
+    "Ⅳ",
+    "ⅳ",
+    "Ⅴ",
+    "ⅴ",
+    "Ⅵ",
+    "ⅵ",
+    "Ⅶ",
+    "ⅶ",
+    "Ⅷ",
+    "ⅷ",
+    "Ⅸ",
+    "ⅸ",
+    "Ⅹ",
+    "ⅹ",
+    "Ⅺ",
+    "ⅺ",
+    "Ⅻ",
+    "ⅻ"
+  ],
+  "queries": {
+    "celsius": [
+      "℃"
+    ],
+    "celsius letters": [
+      "°C"
+    ],
+    "cent": [
+      "¢"
+    ],
+    "centimetre": [
+      "㎝"
+    ],
+    "check": [
+      "✓"
+    ],
+    "circle": [
+      "●"
+    ],
+    "circled1": [
+      "①"
+    ],
+    "circled10": [
+      "⑩"
+    ],
+    "circled11": [
+      "⑪"
+    ],
+    "circled12": [
+      "⑫"
+    ],
+    "circled13": [
+      "⑬"
+    ],
+    "circled14": [
+      "⑭"
+    ],
+    "circled15": [
+      "⑮"
+    ],
+    "circled16": [
+      "⑯"
+    ],
+    "circled17": [
+      "⑰"
+    ],
+    "circled18": [
+      "⑱"
+    ],
+    "circled19": [
+      "⑲"
+    ],
+    "circled2": [
+      "②"
+    ],
+    "circled20": [
+      "⑳"
+    ],
+    "circled3": [
+      "③"
+    ],
+    "circled4": [
+      "④"
+    ],
+    "circled5": [
+      "⑤"
+    ],
+    "circled6": [
+      "⑥"
+    ],
+    "circled7": [
+      "⑦"
+    ],
+    "circled8": [
+      "⑧"
+    ],
+    "circled9": [
+      "⑨"
+    ],
+    "club": [
+      "♣"
+    ],
+    "copyright": [
+      "©"
+    ],
+    "cross": [
+      "✗"
+    ],
+    "cubic centimetre": [
+      "㏄"
+    ],
+    "cubic metre": [
+      "㎥"
+    ],
+    "diamond": [
+      "◆"
+    ],
+    "diamond suit": [
+      "♦"
+    ],
+    "dollar": [
+      "$"
+    ],
+    "down arrow": [
+      "↓"
+    ],
+    "down double arrow": [
+      "⇓"
+    ],
+    "eighth note": [
+      "♪"
+    ],
+    "euro": [
+      "€"
+    ],
+    "fahrenheit": [
+      "℉"
+    ],
+    "fahrenheit letters": [
+      "°F"
+    ],
+    "female": [
+      "♀"
+    ],
+    "heart": [
+      "♥"
+    ],
+    "kilogram": [
+      "㎏"
+    ],
+    "kilometre": [
+      "㎞"
+    ],
+    "left arrow": [
+      "←"
+    ],
+    "left double arrow": [
+      "⇐"
+    ],
+    "left right arrow": [
+      "↔"
+    ],
+    "left right double arrow": [
+      "⇔"
+    ],
+    "ln": [
+      "㏑"
+    ],
+    "log": [
+      "㏒"
+    ],
+    "male": [
+      "♂"
+    ],
+    "milligram": [
+      "㎎"
+    ],
+    "millimetre": [
+      "㎜"
+    ],
+    "music": [
+      "♫"
+    ],
+    "north east arrow": [
+      "↗"
+    ],
+    "north west arrow": [
+      "↖"
+    ],
+    "number": [
+      "№"
+    ],
+    "outline circle": [
+      "○"
+    ],
+    "outline diamond": [
+      "◇"
+    ],
+    "outline square": [
+      "□"
+    ],
+    "outline star": [
+      "☆"
+    ],
+    "outline triangle": [
+      "△"
+    ],
+    "paragraph": [
+      "¶"
+    ],
+    "pound": [
+      "£"
+    ],
+    "quarter note": [
+      "♩"
+    ],
+    "reference": [
+      "※"
+    ],
+    "registered": [
+      "®"
+    ],
+    "return arrow": [
+      "↩"
+    ],
+    "right arrow": [
+      "→"
+    ],
+    "right double arrow": [
+      "⇒"
+    ],
+    "right return arrow": [
+      "↪"
+    ],
+    "roman1": [
+      "Ⅰ",
+      "ⅰ"
+    ],
+    "roman10": [
+      "Ⅹ",
+      "ⅹ"
+    ],
+    "roman11": [
+      "Ⅺ",
+      "ⅺ"
+    ],
+    "roman12": [
+      "Ⅻ",
+      "ⅻ"
+    ],
+    "roman2": [
+      "Ⅱ",
+      "ⅱ"
+    ],
+    "roman3": [
+      "Ⅲ",
+      "ⅲ"
+    ],
+    "roman4": [
+      "Ⅳ",
+      "ⅳ"
+    ],
+    "roman5": [
+      "Ⅴ",
+      "ⅴ"
+    ],
+    "roman6": [
+      "Ⅵ",
+      "ⅵ"
+    ],
+    "roman7": [
+      "Ⅶ",
+      "ⅶ"
+    ],
+    "roman8": [
+      "Ⅷ",
+      "ⅷ"
+    ],
+    "roman9": [
+      "Ⅸ",
+      "ⅸ"
+    ],
+    "section": [
+      "§"
+    ],
+    "south east arrow": [
+      "↘"
+    ],
+    "south west arrow": [
+      "↙"
+    ],
+    "spade": [
+      "♠"
+    ],
+    "square": [
+      "■"
+    ],
+    "square metre": [
+      "㎡"
+    ],
+    "star": [
+      "★"
+    ],
+    "trademark": [
+      "™"
+    ],
+    "triangle": [
+      "▲"
+    ],
+    "up arrow": [
+      "↑"
+    ],
+    "up double arrow": [
+      "⇑"
+    ],
+    "up down arrow": [
+      "↕"
+    ],
+    "yen": [
+      "¥"
+    ],
+    "yuan": [
+      "￥"
+    ],
+    "人民币": [
+      "￥"
+    ],
+    "星号": [
+      "★"
+    ],
+    "温度": [
+      "℃",
+      "℉"
+    ],
+    "箭头": [
+      "←",
+      "→",
+      "↑",
+      "↓"
+    ]
+  }
+}
