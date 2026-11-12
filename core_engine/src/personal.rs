@@ -68,6 +68,8 @@ pub struct Display {
 #[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
 #[serde(tag = "kind")]
 pub enum Change {
+    /// A shared context snapshot; lightweight events refer to its revision.
+    Context,
     Preedit {
         text: String,
     },

@@ -42,6 +42,63 @@ fn north(s: &mut Session) {
 }
 
 #[test]
+fn personal_prediction_is_independent_of_collection_and_preserves_candidate_identity() {
+    use core_engine::assistance::*;
+    for profile in [BehaviorProfile::LegacyV1, BehaviorProfile::TouchV1] {
+        let mut runtime = runtime(false, 1);
+        runtime.config.personal.predict = true;
+        let mut s = Session::new(&runtime, profile, HostContext::default());
+        s.observe_personal_right(Some(""));
+        apply(&mut s, Action::InsertLiteral("明天去".into()));
+        let work = s
+            .prediction_request()
+            .expect("personal prediction without general model");
+        assert!(!s.config().personal.collect);
+        assert!(!s.config().personal.learn);
+        let response = PredictionResponse::Proposed(ProposalResponse {
+            protocol: 1,
+            key: work.key,
+            words: vec!["图书馆".into()],
+        });
+        assert!(s.complete_model_prediction(work.key, Ok(response)));
+        let old = choose(&s, "图书馆");
+        assert!(
+            matches!(apply(&mut s,old.clone()),EditSessionOp::CommitAndReplace{text,..} if text=="图书馆")
+        );
+        assert!(s.prepare(old).is_err());
+        s.clear_prediction_context();
+        apply(&mut s, Action::InputCode('b'));
+        let mut next = runtime.clone();
+        next.revision = 2;
+        next.config.personal.predict = false;
+        next.config.personal.collect = true;
+        assert!(s.apply_runtime(Arc::new(next)).unwrap().is_none());
+        assert_eq!(s.snapshot().spelling, "b");
+    }
+}
+
+#[test]
+fn a_changed_right_context_invalidates_personal_results_before_publication() {
+    use core_engine::assistance::*;
+    let mut r = runtime(false, 1);
+    r.config.personal.predict = true;
+    let mut s = Session::new(&r, BehaviorProfile::TouchV1, HostContext::default());
+    s.observe_personal_right(Some("出差"));
+    apply(&mut s, Action::InsertLiteral("明天去".into()));
+    let request = s.prediction_request().unwrap();
+    s.observe_personal_right(Some("旅游"));
+    assert!(!s.complete_model_prediction(
+        request.key,
+        Ok(PredictionResponse::Proposed(ProposalResponse {
+            protocol: 1,
+            key: request.key,
+            words: vec!["北京".into()]
+        }))
+    ));
+    assert!(!s.has_prediction());
+}
+
+#[test]
 fn model_and_loading_hot_switches_preserve_pending_code_in_both_profiles() {
     for profile in [BehaviorProfile::LegacyV1, BehaviorProfile::TouchV1] {
         let mut s = session(profile);

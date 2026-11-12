@@ -66,6 +66,14 @@ impl ReadPrefix {
         }
         self.result.lock().allowed = true;
         if self.collect {
+            if let Some(hwnd) = classic {
+                if let Some(context) = classic_edit_context(hwnd) {
+                    let mut result = self.result.lock();
+                    result.text = context.left.clone();
+                    result.personal = context;
+                }
+                return Ok(());
+            }
             // Keep both sides in the same read transaction. TSF offsets here are
             // relative to the observed selection, not document-wide positions.
             let right = unsafe { range.Clone()? };
@@ -95,10 +103,6 @@ impl ReadPrefix {
                 truncated: true,
                 ..Default::default()
             };
-            if let Some(hwnd) = classic {
-                self.result.lock().text = classic_edit_prefix(hwnd);
-                return Ok(());
-            }
             // Never include composition or text after the caret.
             unsafe { range.Collapse(cookie, TF_ANCHOR_START)? };
             let mut moved = 0;
@@ -128,13 +132,15 @@ fn classic_edit() -> Option<windows::Win32::Foundation::HWND> {
             .then_some(hwnd)
     }
 }
-fn classic_edit_prefix(hwnd: windows::Win32::Foundation::HWND) -> Option<String> {
+fn classic_edit_context(
+    hwnd: windows::Win32::Foundation::HWND,
+) -> Option<core_engine::personal::Context> {
+    use core_engine::personal::{Context, CoordinateUnit, Selection};
     use windows::Win32::{
         Foundation::{LPARAM, WPARAM},
         UI::WindowsAndMessaging::*,
     };
     unsafe {
-        // EM_GETSEL / EM_LINEFROMCHAR / EM_LINEINDEX / EM_GETLINE.
         let mut start = 0u32;
         let mut end = 0u32;
         SendMessageW(
@@ -143,20 +149,17 @@ fn classic_edit_prefix(hwnd: windows::Win32::Foundation::HWND) -> Option<String>
             Some(WPARAM((&mut start as *mut u32) as usize)),
             Some(LPARAM((&mut end as *mut u32) as isize)),
         );
-        if start != end {
-            return None;
-        }
         let line = SendMessageW(hwnd, 0x00C9, Some(WPARAM(start as usize)), Some(LPARAM(0))).0;
         let index = SendMessageW(hwnd, 0x00BB, Some(WPARAM(line as usize)), Some(LPARAM(0))).0;
-        let count = (start as i64).checked_sub(index as i64)?;
-        if !(0..=512).contains(&count) {
+        let offset = (start as i64).checked_sub(index as i64)?;
+        let selected = end.checked_sub(start)? as usize;
+        // EDIT has no bounded arbitrary-range read. Long/multiline selections
+        // therefore remain unknown rather than reading the entire document.
+        if !(0..=512).contains(&offset) || selected > 512 {
             return None;
         }
-        if count == 0 {
-            return Some(String::new());
-        }
-        let mut buffer = [0u16; 512];
-        buffer[0] = count as u16;
+        let mut buffer = [0u16; 1536];
+        buffer[0] = buffer.len() as u16;
         let read = SendMessageW(
             hwnd,
             0x00C4,
@@ -164,10 +167,25 @@ fn classic_edit_prefix(hwnd: windows::Win32::Foundation::HWND) -> Option<String>
             Some(LPARAM(buffer.as_mut_ptr() as isize)),
         )
         .0;
-        if read != count as isize {
+        let begin = offset as usize;
+        let finish = begin + selected;
+        if read < finish as isize || read > buffer.len() as isize {
             return None;
         }
-        core_engine::assistance::context::decode_utf16_prefix(&buffer[..read as usize]).ok()
+        let right_end = (finish + 512).min(read as usize);
+        Some(Context {
+            left: core_engine::assistance::context::decode_utf16_prefix(&buffer[..begin]).ok(),
+            right: String::from_utf16(&buffer[finish..right_end]).ok(),
+            selected: String::from_utf16(&buffer[begin..finish]).ok(),
+            selection: Some(Selection {
+                start: i64::from(start),
+                end: i64::from(end),
+                unit: CoordinateUnit::Utf16,
+                absolute: true,
+            }),
+            truncated: true,
+            ..Default::default()
+        })
     }
 }
 impl ITfEditSession_Impl for ReadPrefix_Impl {

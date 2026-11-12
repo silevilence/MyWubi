@@ -2,6 +2,96 @@
 pub use core_engine::ffi::PROTOCOL_VERSION;
 static PERSONAL_CAPTURE: std::sync::OnceLock<personal_input::capture_endpoint::Endpoint> =
     std::sync::OnceLock::new();
+static PERSONAL_PREDICTOR: std::sync::OnceLock<Option<personal_input::predictor::Predictor>> =
+    std::sync::OnceLock::new();
+static PERSONAL_LEARNING: std::sync::OnceLock<Option<personal_input::background::Worker>> =
+    std::sync::OnceLock::new();
+
+#[no_mangle]
+pub extern "system" fn Java_org_mywubi_NativeBridge_personalRuntime(
+    env: JNIEnv,
+    _class: JClass,
+    request: JByteArray,
+) -> jbyteArray {
+    let result = std::panic::catch_unwind(std::panic::AssertUnwindSafe(|| {
+        if env.get_array_length(&request).ok()? > 65536 {
+            return None;
+        }
+        let bytes = env.convert_byte_array(&request).ok()?;
+        let request: serde_json::Value = serde_json::from_slice(&bytes).ok()?;
+        let value = match request["op"].as_str()? {
+            "Learning" => {
+                let worker = PERSONAL_LEARNING
+                    .get_or_init(|| personal_input::background::Worker::new().ok())
+                    .as_ref()?;
+                worker.update(
+                    std::path::PathBuf::from(request["config"].as_str()?),
+                    request["allowed"].as_bool()?,
+                    request["busy"].as_bool()?,
+                );
+                serde_json::to_value(worker.status()).ok()?
+            }
+            "Submit" => {
+                let worker = PERSONAL_PREDICTOR
+                    .get_or_init(|| personal_input::predictor::Predictor::new().ok())
+                    .as_ref()?;
+                worker.submit(
+                    std::path::PathBuf::from(request["root"].as_str()?),
+                    serde_json::from_value(request["request"].clone()).ok()?,
+                    request["right"].as_str().map(str::to_owned),
+                );
+                serde_json::Value::Null
+            }
+            "Poll" => {
+                let worker = PERSONAL_PREDICTOR
+                    .get_or_init(|| personal_input::predictor::Predictor::new().ok())
+                    .as_ref()?;
+                serde_json::to_value(
+                    worker.take(serde_json::from_value(request["key"].clone()).ok()?),
+                )
+                .ok()?
+            }
+            "Invalidate" => {
+                if let Some(Some(worker)) = PERSONAL_PREDICTOR.get() {
+                    worker.invalidate();
+                }
+                serde_json::Value::Null
+            }
+            _ => return None,
+        };
+        let version = PERSONAL_PREDICTOR
+            .get()
+            .and_then(|p| p.as_ref())
+            .and_then(|p| p.version());
+        env.byte_array_from_slice(
+            &serde_json::to_vec(
+                &serde_json::json!({"ok":true,"value":value,"model_version":version}),
+            )
+            .ok()?,
+        )
+        .ok()
+        .map(|a| a.into_raw())
+    }));
+    result.ok().flatten().unwrap_or(std::ptr::null_mut())
+}
+
+#[no_mangle]
+pub extern "system" fn Java_org_mywubi_NativeBridge_personalManage(
+    env: JNIEnv,
+    _class: JClass,
+    request: JByteArray,
+) -> jbyteArray {
+    let result = std::panic::catch_unwind(std::panic::AssertUnwindSafe(|| {
+        if env.get_array_length(&request).ok()? > 65536 {
+            return None;
+        }
+        let bytes = env.convert_byte_array(&request).ok()?;
+        env.byte_array_from_slice(&personal_input::api::exchange(&bytes))
+            .ok()
+            .map(|a| a.into_raw())
+    }));
+    result.ok().flatten().unwrap_or(std::ptr::null_mut())
+}
 
 #[no_mangle]
 pub extern "system" fn Java_org_mywubi_NativeBridge_personalCapture(

@@ -173,6 +173,7 @@ struct PlanParts {
 /// A caller serializes access, releases its lock for host calls, then acknowledges.
 /// Legacy permits nested prepares; only the newest generation may publish.
 pub struct Session {
+    personal_right: Option<String>,
     prediction_wait: Option<(crate::assistance::ScoreRequest, std::time::Instant)>,
     resources: Arc<RuntimeSnapshot>,
     prediction_dict: Arc<Dictionary>,
@@ -204,12 +205,13 @@ impl Session {
         prefix.bind(
             context.editor,
             context.epoch,
-            runtime.config.prediction.enabled
+            (runtime.config.prediction.enabled || runtime.config.personal.predict)
                 && context.purpose == InputPurpose::Text
                 && context.allows_assistance,
         );
         Self {
             prediction_wait: None,
+            personal_right: None,
             resources: Arc::new(runtime.clone()),
             prediction_dict: Arc::clone(&runtime.dict),
             prediction: None,
@@ -327,7 +329,7 @@ impl Session {
             self.prefix.bind(
                 self.context.editor,
                 self.context.epoch,
-                self.config.prediction.enabled
+                (self.config.prediction.enabled || self.config.personal.predict)
                     && allowed
                     && self.context.purpose == InputPurpose::Text,
             );
@@ -335,6 +337,7 @@ impl Session {
     }
     /// Call for external edits, cursor movement or keys handled outside this session.
     pub fn clear_prediction_context(&mut self) {
+        self.personal_right = None;
         self.prediction_wait = None;
         self.prefix.invalidate();
         self.prediction = None;
@@ -344,7 +347,7 @@ impl Session {
     }
     /// Only authoritative text before the caret, excluding preedit, is accepted.
     pub fn observe_prefix(&mut self, editor: u64, epoch: u64, text: Option<&str>) {
-        if self.config.prediction.enabled
+        if (self.config.prediction.enabled || self.config.personal.predict)
             && self.context.purpose == InputPurpose::Text
             && self.context.allows_assistance
         {
@@ -358,7 +361,7 @@ impl Session {
         }
     }
     fn publish_predictions(&mut self) {
-        if !self.config.prediction.enabled
+        if !(self.config.prediction.enabled || self.config.personal.predict)
             || !self.gate
             || self.context.purpose != InputPurpose::Text
             || !self.context.allows_assistance
@@ -371,17 +374,20 @@ impl Session {
         }
         let items = self.prediction_dict.prediction_lexicon().recall(
             self.prefix.prefix(),
-            usize::from(if self.config.prediction.model.is_some() {
-                self.config.prediction.max_candidates
-            } else {
-                self.config.basic.candidate_count
-            }),
+            usize::from(
+                if self.config.prediction.model.is_some() || self.config.personal.predict {
+                    self.config.prediction.max_candidates
+                } else {
+                    self.config.basic.candidate_count
+                },
+            ),
         );
         if !items.is_empty()
-            || (self.config.prediction.model.is_some() && !self.prefix.prefix().trim().is_empty())
+            || ((self.config.prediction.model.is_some() || self.config.personal.predict)
+                && !self.prefix.prefix().trim().is_empty())
         {
             let prediction = crate::assistance::prediction::Prediction::new(items);
-            if self.config.prediction.model.is_some() {
+            if self.config.prediction.model.is_some() || self.config.personal.predict {
                 use crate::assistance::*;
                 let request = ScoreRequest {
                     protocol: PROTOCOL_VERSION,
@@ -429,6 +435,22 @@ impl Session {
     }
     pub fn model_store_path(&self) -> std::path::PathBuf {
         crate::config_path::model_store_path(&self.resources.config_path)
+    }
+    pub fn personal_store_path(&self) -> std::path::PathBuf {
+        self.resources
+            .config_path
+            .parent()
+            .unwrap_or(std::path::Path::new("."))
+            .join("personal")
+    }
+    pub fn personal_right(&self) -> Option<&str> {
+        self.personal_right.as_deref()
+    }
+    pub fn observe_personal_right(&mut self, right: Option<&str>) {
+        if self.config.personal.predict && self.personal_right.as_deref() != right {
+            self.clear_prediction_context();
+        }
+        self.personal_right = right.map(str::to_owned);
     }
     pub fn expire_prediction(&mut self) -> bool {
         if self
@@ -1126,7 +1148,7 @@ impl Session {
         self.prefix.bind(
             context.editor,
             context.epoch,
-            self.config.prediction.enabled
+            (self.config.prediction.enabled || self.config.personal.predict)
                 && context.purpose == InputPurpose::Text
                 && context.allows_assistance,
         );
@@ -1161,7 +1183,7 @@ impl Session {
         self.prefix.bind(
             context.editor,
             context.epoch,
-            self.config.prediction.enabled
+            (self.config.prediction.enabled || self.config.personal.predict)
                 && context.purpose == InputPurpose::Text
                 && context.allows_assistance,
         );
@@ -1210,7 +1232,7 @@ impl Session {
             self.prefix.bind(
                 self.context.editor,
                 self.context.epoch,
-                self.config.prediction.enabled
+                (self.config.prediction.enabled || self.config.personal.predict)
                     && self.context.allows_assistance
                     && self.context.purpose == InputPurpose::Text,
             );
@@ -1236,7 +1258,7 @@ impl Session {
         self.prefix.bind(
             self.context.editor,
             self.context.epoch,
-            self.config.prediction.enabled
+            (self.config.prediction.enabled || self.config.personal.predict)
                 && self.context.purpose == InputPurpose::Text
                 && self.context.allows_assistance,
         );
@@ -1246,11 +1268,14 @@ impl Session {
         self.cleared(next, op, false).map(Some)
     }
     fn only_prediction_changed(&self, runtime: &RuntimeSnapshot) -> bool {
-        if self.config.prediction == runtime.config.prediction {
+        if self.config.prediction == runtime.config.prediction
+            && self.config.personal == runtime.config.personal
+        {
             return false;
         }
         let mut previous = self.config.clone();
         previous.prediction = runtime.config.prediction.clone();
+        previous.personal = runtime.config.personal.clone();
         let dictionaries_equal = |a: &Option<Arc<Dictionary>>, b: &Option<Arc<Dictionary>>| {
             a.as_ref().map(|d| (d.entries(), d.table_config()))
                 == b.as_ref().map(|d| (d.entries(), d.table_config()))

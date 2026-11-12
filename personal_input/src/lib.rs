@@ -1,8 +1,13 @@
 //! Local personal input storage, exchange and learning. No network clients.
+pub mod api;
+pub mod background;
 pub mod capture;
 pub mod capture_endpoint;
 pub mod exchange;
+pub mod learning;
+pub mod predictor;
 pub mod recorder;
+pub mod samples;
 pub mod store;
 pub use core_engine::personal::*;
 
@@ -30,7 +35,3 @@ pub fn identity() -> Result<String> {
         .map_err(|_| Error::Invalid("系统随机数不可用"))?;
     Ok(bytes.iter().map(|b| format!("{b:02x}")).collect())
 }
-pub mod samples;
-pub mod learning;
-pub mod api;
-pub mod background;

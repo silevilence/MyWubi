@@ -48,7 +48,9 @@ impl Endpoint {
                     session,
                 } => {
                     if !settings.collect {
-                        *slot = None;
+                        if let Some(capture) = slot.as_mut() {
+                            capture.configure(&settings, false, &session);
+                        }
                     } else {
                         if slot.is_none() {
                             *slot = Some(Capture::new(config)?);

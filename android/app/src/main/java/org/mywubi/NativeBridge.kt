@@ -7,6 +7,8 @@ object NativeBridge {
     init { System.loadLibrary("mywubi_android"); check(version() == 1) }
     @JvmStatic external fun version(): Int
     @JvmStatic external fun personalCapture(request: ByteArray): ByteArray
+    @JvmStatic external fun personalManage(request: ByteArray): ByteArray
+    @JvmStatic external fun personalRuntime(request: ByteArray): ByteArray
     @JvmStatic external fun exchange(request: ByteArray): ByteArray
     @JvmStatic external fun modelPackages(request: ByteArray): ByteArray
     @JvmStatic external fun modelDownloads(request: ByteArray): ByteArray

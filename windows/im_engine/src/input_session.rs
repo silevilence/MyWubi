@@ -37,6 +37,7 @@ impl EditFailure for SessionEditError {
 }
 
 pub(crate) struct InputSession {
+    personal_predictor: Mutex<Option<personal_input::predictor::Predictor>>,
     personal: Mutex<Option<personal_input::capture::Capture>>,
     model: Mutex<Option<crate::model_client::Client>>,
     core: Mutex<Session>,
@@ -48,6 +49,7 @@ impl InputSession {
         candidates: Arc<ArcSwap<CandidateData>>,
     ) -> Self {
         let session = Self {
+            personal_predictor: Mutex::new(None),
             personal: Mutex::new(if snapshot.config.personal.collect {
                 personal_input::capture::Capture::new(snapshot.config_path.clone()).ok()
             } else {
@@ -62,11 +64,23 @@ impl InputSession {
             candidates,
         };
         session.prepare_model();
+        session.start_personal_learning(snapshot);
         session
+    }
+    fn start_personal_learning(&self, snapshot: &RuntimeSnapshot) {
+        if snapshot.config.personal.learn {
+            if let Some(directory) = crate::dll_directory() {
+                let _ = personal_input::background::start_desktop(
+                    &std::path::Path::new(&directory).join("settings.exe"),
+                    &snapshot.config_path,
+                );
+            }
+        }
     }
     fn prepare_model(&self) {
         let core = self.core.lock();
-        if core.config().prediction.enabled
+        if !core.config().personal.predict
+            && core.config().prediction.enabled
             && core.config().prediction.model.is_some()
             && core.config().prediction.loading == core_engine::config::ModelLoading::PreloadKeep
         {
@@ -128,6 +142,9 @@ impl InputSession {
         handled
     }
     pub fn clear_prediction_context(&self) {
+        if let Some(predictor) = self.personal_predictor.lock().as_ref() {
+            predictor.invalidate();
+        }
         if let Some(client) = self.model.lock().as_ref() {
             client.invalidate();
         }
@@ -158,24 +175,46 @@ impl InputSession {
         let mut core = self.core.lock();
         let mut changed = core.expire_prediction();
         if let Some(request) = core.prediction_request() {
-            let mut client = self.model.lock();
-            if client.is_none() {
-                *client = crate::model_client::Client::new().ok();
-            }
-            if let Some(client) = client.as_ref() {
-                client.submit(
-                    core.model_store_path(),
-                    core.config().prediction.clone(),
-                    request.clone(),
-                );
-                if let Some(result) = client.take(request.key) {
-                    changed |= core.complete_model_prediction(request.key, result);
+            if core.config().personal.predict {
+                let mut personal = self.personal_predictor.lock();
+                if personal.is_none() {
+                    *personal = personal_input::predictor::Predictor::new().ok();
+                }
+                if let Some(predictor) = personal.as_ref() {
+                    predictor.submit(
+                        core.personal_store_path(),
+                        request.clone(),
+                        core.personal_right().map(str::to_owned),
+                    );
+                    if let Some(result) = predictor.take(request.key) {
+                        changed |= core.complete_model_prediction(request.key, result);
+                    }
+                } else {
+                    changed |= core.complete_model_prediction(
+                        request.key,
+                        Err(core_engine::assistance::Unavailable::Load),
+                    );
                 }
             } else {
-                changed |= core.complete_prediction(
-                    request.key,
-                    Err(core_engine::assistance::Unavailable::Load),
-                );
+                let mut client = self.model.lock();
+                if client.is_none() {
+                    *client = crate::model_client::Client::new().ok();
+                }
+                if let Some(client) = client.as_ref() {
+                    client.submit(
+                        core.model_store_path(),
+                        core.config().prediction.clone(),
+                        request.clone(),
+                    );
+                    if let Some(result) = client.take(request.key) {
+                        changed |= core.complete_model_prediction(request.key, result);
+                    }
+                } else {
+                    changed |= core.complete_prediction(
+                        request.key,
+                        Err(core_engine::assistance::Unavailable::Load),
+                    );
+                }
             }
         } else if let Some(client) = self.model.lock().as_ref() {
             if !core.config().prediction.enabled || core.config().prediction.model.is_none() {
@@ -191,9 +230,60 @@ impl InputSession {
                 self.candidates.load().anchor,
             );
             bind_selection(&core, &mut data);
+            self.observe_display(&core, &data);
             self.candidates.store(Arc::new(data));
         }
         core.prediction_request().is_some()
+    }
+    fn observe_display(&self, core: &Session, data: &CandidateData) {
+        if let Some(capture) = self.personal.lock().as_mut().filter(|c| c.enabled()) {
+            let window = core.candidate_window(
+                core.snapshot().page * usize::from(core.config().basic.candidate_count),
+                data.items.len(),
+            );
+            let source = if core.has_prediction() {
+                if core.config().personal.predict {
+                    core_engine::personal::Source::PersonalPrediction
+                } else if core.config().prediction.model.is_some() {
+                    core_engine::personal::Source::ModelPrediction
+                } else {
+                    core_engine::personal::Source::DictionaryPrediction
+                }
+            } else {
+                core_engine::personal::Source::Code
+            };
+            capture.display(
+                core.snapshot().mode.label(),
+                core_engine::personal::Display {
+                    request: format!(
+                        "{}:{}",
+                        window.query_revision.engine, window.query_revision.version
+                    ),
+                    model: if core.has_prediction() && core.config().personal.predict {
+                        self.personal_predictor
+                            .lock()
+                            .as_ref()
+                            .and_then(|p| p.version())
+                    } else {
+                        core.config()
+                            .prediction
+                            .model
+                            .as_ref()
+                            .map(|m| format!("{}:{}", m.id, m.version))
+                    },
+                    policy: "v1".into(),
+                    candidates: window
+                        .candidates
+                        .into_iter()
+                        .map(|c| core_engine::personal::Candidate {
+                            id: c.id.0.to_string(),
+                            text: c.text,
+                            source: source.clone(),
+                        })
+                        .collect(),
+                },
+            );
+        }
     }
     pub fn sync_prediction_context(&self, editor: u64, prefix: crate::prediction_context::Prefix) {
         let mut core = self.core.lock();
@@ -220,6 +310,9 @@ impl InputSession {
         }
         core.set_assistance_allowed(prefix.allowed);
         let context = core.context();
+        if prefix.text.is_some() {
+            core.observe_personal_right(prefix.personal.right.as_deref());
+        }
         core.observe_prefix(context.editor, context.epoch, prefix.text.as_deref());
         if policy_changed {
             let mut data = candidate_view(
@@ -228,6 +321,7 @@ impl InputSession {
                 self.candidates.load().anchor,
             );
             bind_selection(&core, &mut data);
+            self.observe_display(&core, &data);
             self.candidates.store(Arc::new(data));
         } else if visible && !core.has_prediction() {
             self.candidates
@@ -244,6 +338,12 @@ impl InputSession {
         anchor: Option<ScreenPoint>,
         edit: impl FnMut(&EditSessionOp) -> Result<Option<ScreenPoint>, E>,
     ) -> bool {
+        let method = match &event {
+            InputEvent::Space => "space",
+            InputEvent::Enter => "enter",
+            InputEvent::Select(_) | InputEvent::Char('1'..='9') => "numeric_selection",
+            _ => "key",
+        };
         let plan = {
             let mut core = self.core.lock();
             if !core.would_handle_legacy(&event, system_modifier) {
@@ -252,7 +352,7 @@ impl InputSession {
             core.prepare(Action::Legacy(event))
         };
         match plan {
-            Ok(plan) => self.execute(plan, anchor, edit),
+            Ok(plan) => self.execute(plan, anchor, edit, method),
             Err(_) => false,
         }
     }
@@ -262,9 +362,14 @@ impl InputSession {
         anchor: Option<ScreenPoint>,
         edit: impl FnMut(&EditSessionOp) -> Result<Option<ScreenPoint>, E>,
     ) -> bool {
+        let method = match &action {
+            Action::SelectCandidate(..) => "candidate_selection",
+            Action::Space => "space",
+            _ => "action",
+        };
         let plan = self.core.lock().prepare(action);
         match plan {
-            Ok(plan) => self.execute(plan, anchor, edit),
+            Ok(plan) => self.execute(plan, anchor, edit, method),
             Err(_) => false,
         }
     }
@@ -304,7 +409,7 @@ impl InputSession {
             core.prepare(action)
         };
         if let Ok(plan) = plan {
-            self.execute(plan, view.anchor, edit);
+            self.execute(plan, view.anchor, edit, "candidate_click");
         }
     }
     pub fn has_prediction(&self) -> bool {
@@ -316,7 +421,7 @@ impl InputSession {
     ) -> bool {
         let plan = self.core.lock().recover();
         if let Ok(Some(plan)) = plan {
-            self.execute(plan, None, edit);
+            self.execute(plan, None, edit, "lifecycle");
         }
         self.core.lock().status() != SessionStatus::NeedsCleanup
     }
@@ -330,17 +435,21 @@ impl InputSession {
         }
         let plan = self.core.lock().set_input_gate(chinese);
         if let Ok(Some(plan)) = plan {
-            self.execute(plan, None, edit);
+            self.execute(plan, None, edit, "lifecycle");
         }
     }
     pub fn lose_focus<E: EditFailure>(
         &self,
         edit: impl FnMut(&EditSessionOp) -> Result<Option<ScreenPoint>, E>,
     ) {
+        let personal_config = self.config().personal;
+        if let Some(capture) = self.personal.lock().as_mut() {
+            capture.configure(&personal_config, false, "focus_lost");
+        }
         self.clear_prediction_context();
         let plan = self.core.lock().lose_focus();
         if let Ok(plan) = plan {
-            self.execute(plan, None, edit);
+            self.execute(plan, None, edit, "lifecycle");
         }
     }
     pub fn terminated(&self) {
@@ -357,6 +466,7 @@ impl InputSession {
         snapshot: &RuntimeSnapshot,
         edit: impl FnMut(&EditSessionOp) -> Result<Option<ScreenPoint>, E>,
     ) {
+        self.start_personal_learning(snapshot);
         {
             let mut personal = self.personal.lock();
             if !snapshot.config.personal.collect {
@@ -368,7 +478,9 @@ impl InputSession {
                     personal_input::capture::Capture::new(snapshot.config_path.clone()).ok();
             }
         }
-        if self.core.lock().config().prediction != snapshot.config.prediction {
+        if self.core.lock().config().prediction != snapshot.config.prediction
+            || self.core.lock().config().personal.predict != snapshot.config.personal.predict
+        {
             if let Some(client) = self.model.lock().as_ref() {
                 client.release();
             }
@@ -387,7 +499,7 @@ impl InputSession {
             plan
         };
         if let Ok(Some(plan)) = plan {
-            self.execute(plan, None, edit);
+            self.execute(plan, None, edit, "lifecycle");
         }
     }
 
@@ -396,6 +508,7 @@ impl InputSession {
         plan: PreparedEdit,
         anchor: Option<ScreenPoint>,
         mut edit: impl FnMut(&EditSessionOp) -> Result<Option<ScreenPoint>, E>,
+        method: &str,
     ) -> bool {
         let consumed = plan.consumed();
         let mut next_view = {
@@ -436,7 +549,7 @@ impl InputSession {
                 HostOutcome::RejectedBeforeWrite => core_engine::personal::Outcome::Rejected,
                 _ => core_engine::personal::Outcome::Unknown,
             };
-            capture.operation("windows", &plan.op, outcome, None, "key_or_candidate");
+            capture.operation("windows", &plan.op, outcome, None, method);
         }
         let mut core = self.core.lock();
         let ack = core.acknowledge(plan.token, outcome);
@@ -463,48 +576,7 @@ impl InputSession {
                     }
                 }
                 bind_selection(&core, &mut next_view);
-                if let Some(capture) = self.personal.lock().as_mut().filter(|c| c.enabled()) {
-                    let window = core.candidate_window(
-                        core.snapshot().page * usize::from(core.config().basic.candidate_count),
-                        next_view.items.len(),
-                    );
-                    let source = if core.has_prediction() {
-                        if core.config().personal.predict {
-                            core_engine::personal::Source::PersonalPrediction
-                        } else if core.config().prediction.model.is_some() {
-                            core_engine::personal::Source::ModelPrediction
-                        } else {
-                            core_engine::personal::Source::DictionaryPrediction
-                        }
-                    } else {
-                        core_engine::personal::Source::Code
-                    };
-                    capture.display(
-                        core.snapshot().mode.label(),
-                        core_engine::personal::Display {
-                            request: format!(
-                                "{}:{}",
-                                window.query_revision.engine, window.query_revision.version
-                            ),
-                            model: core
-                                .config()
-                                .prediction
-                                .model
-                                .as_ref()
-                                .map(|m| format!("{}:{}", m.id, m.version)),
-                            policy: "v1".into(),
-                            candidates: window
-                                .candidates
-                                .into_iter()
-                                .map(|c| core_engine::personal::Candidate {
-                                    id: c.id.0.to_string(),
-                                    text: c.text,
-                                    source: source.clone(),
-                                })
-                                .collect(),
-                        },
-                    );
-                }
+                self.observe_display(&core, &next_view);
                 self.candidates.store(Arc::new(next_view));
             }
             AckStatus::NeedsCleanup => {
@@ -797,6 +869,7 @@ mod tests {
                 crate::prediction_context::Prefix {
                     allowed: false,
                     text: None,
+                    ..Default::default()
                 },
             );
             assert!(!view.load().visible);
@@ -809,6 +882,7 @@ mod tests {
             crate::prediction_context::Prefix {
                 allowed: true,
                 text: None,
+                ..Default::default()
             },
         );
         assert_eq!(view.load().items.len(), 2);

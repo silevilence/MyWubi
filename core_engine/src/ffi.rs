@@ -70,6 +70,8 @@ enum Request {
         editor: u64,
         epoch: u64,
         prefix: Option<String>,
+        #[serde(default)]
+        right: Option<String>,
         invalidate: bool,
     },
     PredictionWork {
@@ -299,16 +301,19 @@ impl Registry {
             }
             Request::State { session } => {
                 let s = self.session(session)?;
-                json!({"status":s.status(),"view":s.snapshot(),"base":s.base_mode(),"temporary":s.temporary_mode(),"revision":s.revision(),"pinyin":s.capability(TemporaryMode::Pinyin),"emoji":s.capability(TemporaryMode::Emoji),"kaomoji":s.capability(TemporaryMode::Kaomoji),"prediction_enabled":s.config().prediction.enabled,"prediction_waiting":s.waiting_for_prediction()})
+                json!({"status":s.status(),"view":s.snapshot(),"base":s.base_mode(),"temporary":s.temporary_mode(),"revision":s.revision(),"pinyin":s.capability(TemporaryMode::Pinyin),"emoji":s.capability(TemporaryMode::Emoji),"kaomoji":s.capability(TemporaryMode::Kaomoji),"prediction_enabled":s.config().prediction.enabled,"personal_prediction_enabled":s.config().personal.predict,"prediction_waiting":s.waiting_for_prediction()})
             }
             Request::PredictionContext {
                 session,
                 editor,
                 epoch,
                 prefix,
+                right,
                 invalidate,
             } => {
-                if prefix.as_ref().is_some_and(|p| p.chars().count() > 512) {
+                if prefix.as_ref().is_some_and(|p| p.chars().count() > 512)
+                    || right.as_ref().is_some_and(|p| p.chars().count() > 512)
+                {
                     return Err(err(2, "context exceeds limit"));
                 }
                 let s = self.session(session)?;
@@ -316,6 +321,7 @@ impl Registry {
                     if invalidate {
                         s.clear_prediction_context();
                     }
+                    s.observe_personal_right(right.as_deref());
                     s.observe_prefix(editor, epoch, prefix.as_deref());
                 }
                 json!(null)
@@ -323,7 +329,7 @@ impl Registry {
             Request::PredictionWork { session } => {
                 let s = self.session(session)?;
                 s.expire_prediction();
-                json!({"request":s.prediction_request(),"config":s.config().prediction,"root":s.model_store_path()})
+                json!({"request":s.prediction_request(),"config":s.config().prediction,"root":s.model_store_path(),"personal":s.config().personal,"personal_root":s.personal_store_path(),"right":s.personal_right()})
             }
             Request::PredictionResult {
                 session,

@@ -2240,6 +2240,7 @@ dependencies = [
  "jni",
  "model_input",
  "personal_input",
+ "serde_json",
 ]
 
 [[package]]

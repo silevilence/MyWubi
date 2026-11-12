@@ -37,6 +37,7 @@ class MyWubiService : InputMethodService() {
     private var editorInfo: EditorInfo? = null
     private var supportsPreedit = true
     private var projectedSelection = 0
+    private var projectedSelectionEnd = 0
     private var projectedPreedit: Int? = null
     private val ownSelections = ArrayDeque<Int>()
     private var writingHost = false
@@ -45,7 +46,7 @@ class MyWubiService : InputMethodService() {
     private val updateScope = CoroutineScope(SupervisorJob() + Dispatchers.Main.immediate)
     private val idle = KeyboardIdle()
     private var updateAvailable = false
-    private val idleRefresh = Runnable { render() }
+    private val idleRefresh = Runnable { render(); predictionController.learning(false,viewVisible) }
     private var candidateOffset = 0
     private var keyboard by mutableStateOf(KeyboardModel())
     private var error: String? = null
@@ -86,7 +87,8 @@ class MyWubiService : InputMethodService() {
                 val result = loaded
                 main.post {
                     if (destroyed || !loads.accepts(ticket)) result.close() else {
-                        personalCapture.configure(path, config.getJSONObject("config").optJSONObject("personal") ?: JSONObject())
+                        personalCapture.configure(path, config.getJSONObject("config").optJSONObject("personal") ?: JSONObject(),config.getJSONObject("config").optJSONObject("prediction") ?: JSONObject())
+                        predictionController.configurePersonal(path)
                         val previous = runtime
                         runtime = result
                         try {
@@ -154,6 +156,7 @@ class MyWubiService : InputMethodService() {
         inputPolicy = InputPolicy.from(attribute?.inputType ?: 0, attribute?.imeOptions ?: 0)
         hasSelection = attribute != null && attribute.initialSelStart >= 0 && attribute.initialSelStart != attribute.initialSelEnd
         projectedSelection = minOf(attribute?.initialSelStart ?: 0, attribute?.initialSelEnd ?: 0).coerceAtLeast(0)
+        projectedSelectionEnd = maxOf(attribute?.initialSelStart ?: -1, attribute?.initialSelEnd ?: -1)
         editorEpoch++; active = true
         keyboardActivity()
         attachEditor(); refresh()
@@ -180,6 +183,7 @@ class MyWubiService : InputMethodService() {
         if (active && !own && (oldSelStart != newSelStart || oldSelEnd != newSelEnd)) {
             personalCapture.observe(connection, newSelStart, newSelEnd, true)
             ownSelections.clear(); projectedSelection = minOf(newSelStart,newSelEnd).coerceAtLeast(0)
+            projectedSelectionEnd = maxOf(newSelStart,newSelEnd)
             projectedPreedit = candidatesStart.takeIf { it >= 0 }
             invalidatePrediction(); refresh()
         }
@@ -235,6 +239,7 @@ class MyWubiService : InputMethodService() {
     }
 
     override fun onFinishInputView(finishingInput: Boolean) {
+        predictionController.learning(true,false)
         clipboardSuggestion.dismiss()
         predictionController.pause()
         invalidatePrediction()
@@ -322,6 +327,7 @@ class MyWubiService : InputMethodService() {
     }
 
     private fun keyboardActivity() {
+        if(::predictionController.isInitialized) predictionController.learning(true,viewVisible)
         idle.activity(android.os.SystemClock.elapsedRealtime())
         main.removeCallbacks(idleRefresh)
         main.postDelayed(idleRefresh, 1800)
@@ -335,6 +341,7 @@ class MyWubiService : InputMethodService() {
     }
 
     private fun dispatchSerial(request: Any) {
+        personalCapture.method=if(request is JSONObject) request.keys().asSequence().firstOrNull() ?: "unknown" else if(request is String) request else "external"
         predictionController.cancel()
         val s = session ?: return
         val host = connection ?: run { error = "输入连接暂不可用"; render(); return }
@@ -420,7 +427,7 @@ class MyWubiService : InputMethodService() {
                 NativeBridge.call("IsCurrent", "session" to s.value, "token" to token) == true
             if (!current()) return false
             val operation = plan.optJSONObject("op")
-            if (!editor.ownsPreedit) personalCapture.observe(host, projectedSelection, projectedSelection)
+            if (!editor.ownsPreedit) personalCapture.observe(host, projectedSelection, projectedSelectionEnd)
             val start = projectedPreedit ?: projectedSelection
             val expected = when {
                 operation?.has("CompositionUpdate") == true -> (start + operation.getJSONObject("CompositionUpdate").getString("spelling").length).also { projectedPreedit = start }
@@ -434,6 +441,7 @@ class MyWubiService : InputMethodService() {
             }
             if (expected != null) {
                 projectedSelection = expected; ownSelections.addLast(expected)
+                projectedSelectionEnd = expected
                 while (ownSelections.size > 32) ownSelections.removeFirst()
             }
             writingHost = true
@@ -456,7 +464,7 @@ class MyWubiService : InputMethodService() {
             candidates = NativeBridge.objectCall("Candidates", "session" to it.value, "offset" to candidateOffset, "count" to 256)
         }
         render()
-        personalCapture.display(state, candidates)
+        personalCapture.display(state, candidates, predictionController.personalVersion)
         session?.let { predictionController.update(it.value,active && viewVisible && inputPolicy.purpose=="Text") }
     }
     private fun invalidatePrediction() {
@@ -467,13 +475,14 @@ class MyWubiService : InputMethodService() {
     }
     private fun syncPredictionPrefix() {
         val s = session ?: return
-        if (!state.optBoolean("prediction_enabled") || editor.ownsPreedit) return
+        if ((!state.optBoolean("prediction_enabled") && !state.optBoolean("personal_prediction_enabled")) || editor.ownsPreedit) return
         val private = inputPolicy.purpose != "Text" ||
             (editorInfo?.imeOptions ?: 0) and EditorInfo.IME_FLAG_NO_PERSONALIZED_LEARNING != 0
         if (private || hasSelection) { invalidatePrediction(); return }
         val before = try { connection?.getTextBeforeCursor(512, 0)?.toString()?.let(PredictionPrefix::bounded) } catch (_: RuntimeException) { null }
+        val right = if(state.optBoolean("personal_prediction_enabled")) try {connection?.getTextAfterCursor(512,0)?.toString()}catch(_:RuntimeException){null} else null
         NativeBridge.call("PredictionContext", "session" to s.value, "editor" to editorEpoch,
-            "epoch" to editorEpoch, "prefix" to before, "invalidate" to false)
+            "epoch" to editorEpoch, "prefix" to before, "right" to right, "invalidate" to false)
     }
 
     override fun onDestroy() {

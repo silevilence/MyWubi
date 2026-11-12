@@ -10,6 +10,7 @@ pub struct Capture {
     context: Context,
     display: Option<Display>,
     editor: String,
+    last_commit: Option<(String, String, String, Option<String>, bool)>,
 }
 impl Capture {
     pub fn new(config: PathBuf) -> Result<Self> {
@@ -18,6 +19,7 @@ impl Capture {
             context: Context::default(),
             display: None,
             editor: String::new(),
+            last_commit: None,
         })
     }
     pub fn configure(&mut self, config: &PersonalConfig, allowed: bool, editor: &str) {
@@ -29,6 +31,7 @@ impl Capture {
                 ..Default::default()
             };
             self.display = None;
+            self.last_commit = None;
             self.editor = editor.to_owned();
             self.recorder.record(
                 "unknown",
@@ -44,23 +47,70 @@ impl Capture {
     pub fn enabled(&self) -> bool {
         self.recorder.enabled()
     }
-    pub fn context(&mut self, context: Context, external: bool) {
+    pub fn context(&mut self, mut context: Context, external: bool) {
         if !self.enabled() {
             return;
         }
+        context.revision = self.context.revision;
+        if context == self.context {
+            return;
+        }
+        context.revision = context.revision.saturating_add(1);
         if external && context != self.context {
+            let corrected = self
+                .last_commit
+                .as_ref()
+                .filter(|(_, text, left, right, observed)| {
+                    *observed
+                        && context.left.as_deref() == Some(left.as_str())
+                        && context.right == *right
+                        && !text.is_empty()
+                })
+                .map(|(id, _, _, _, _)| id.clone());
             self.recorder.record(
                 "host",
                 self.context.clone(),
                 Some(context.clone()),
                 Change::Edit {
-                    operation: crate::EditKind::Unknown,
-                    related: None,
+                    operation: if corrected.is_some() {
+                        crate::EditKind::Delete
+                    } else {
+                        crate::EditKind::Unknown
+                    },
+                    related: corrected.clone(),
                 },
-                Evidence::Unknown,
+                if corrected.is_some() {
+                    Evidence::Observed
+                } else {
+                    Evidence::Unknown
+                },
             );
+            if corrected.is_some() {
+                self.last_commit = None;
+            }
         }
+        if let Some((_, text, left, right, observed)) = self.last_commit.as_mut() {
+            if context.left.as_deref() == Some(format!("{left}{text}").as_str())
+                && context.right == *right
+            {
+                *observed = true;
+            }
+        }
+        self.recorder.record(
+            "host",
+            context.clone(),
+            None,
+            Change::Context,
+            Evidence::Observed,
+        );
         self.context = context;
+    }
+    fn context_reference(&self) -> Context {
+        Context {
+            revision: self.context.revision,
+            discontinuity: self.context.discontinuity,
+            ..Default::default()
+        }
     }
     pub fn display(&mut self, mode: &str, display: Display) {
         if !self.enabled() || self.display.as_ref() == Some(&display) {
@@ -68,7 +118,7 @@ impl Capture {
         }
         self.recorder.record(
             mode,
-            self.context.clone(),
+            self.context_reference(),
             None,
             Change::Display {
                 display: display.clone(),
@@ -98,7 +148,7 @@ impl Capture {
                 let source = candidate
                     .map(|c| c.source.clone())
                     .unwrap_or(Source::Literal);
-                self.recorder.record(
+                let id = self.recorder.record(
                     mode,
                     self.context.clone(),
                     after.clone(),
@@ -112,11 +162,17 @@ impl Capture {
                     },
                     Evidence::Observed,
                 );
+                if outcome == Outcome::Confirmed {
+                    if let (Some(id), Some(left)) = (id, self.context.left.clone()) {
+                        self.last_commit =
+                            Some((id, text.clone(), left, self.context.right.clone(), false));
+                    }
+                }
             }
             EditSessionOp::CompositionUpdate { spelling, .. } => {
                 self.recorder.record(
                     mode,
-                    self.context.clone(),
+                    self.context_reference(),
                     None,
                     Change::Preedit {
                         text: spelling.clone(),
@@ -127,7 +183,7 @@ impl Capture {
             EditSessionOp::EndComposition { delete_text: true } => {
                 self.recorder.record(
                     mode,
-                    self.context.clone(),
+                    self.context_reference(),
                     None,
                     Change::Preedit {
                         text: String::new(),

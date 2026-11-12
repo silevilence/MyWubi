@@ -14,8 +14,10 @@ class PersonalCapture {
     private var revision = 0L
     private var lastDisplay = ""
     private var context = JSONObject()
+    private var modelId: String? = null
+    var method = "touch_or_key"
     val enabled get() = allowed && settings.optBoolean("collect")
-    fun configure(file: File, personal: JSONObject) { config = file; settings = personal; gate(allowed, session) }
+    fun configure(file: File, personal: JSONObject, prediction:JSONObject = JSONObject()) { config = file; settings = personal; modelId=prediction.optJSONObject("model")?.let{it.optString("id")+":"+it.optString("version")}; gate(allowed, session) }
     fun gate(value: Boolean, editor: String) {
         if (editor != session || !value) { lastDisplay = ""; context = JSONObject() }
         allowed = value; session = editor
@@ -28,11 +30,19 @@ class PersonalCapture {
     }
     fun observe(connection: InputConnection?, start: Int, end: Int, external: Boolean = false): JSONObject? {
         if (!enabled) return null
-        fun read(block: () -> CharSequence?): Any = try { block()?.toString()?.take(512) ?: JSONObject.NULL } catch (_: RuntimeException) { JSONObject.NULL }
+        fun read(block: () -> CharSequence?): Any = try {
+            val text = block()?.toString()
+            if (text == null) JSONObject.NULL else {
+                var end = minOf(text.length,512)
+                if(end>0 && text[end-1].isHighSurrogate())end--
+                val start = if(end>0 && text[0].isLowSurrogate()) 1 else 0
+                text.substring(start,end)
+            }
+        } catch (_: RuntimeException) { JSONObject.NULL }
         val next = JSONObject().put("revision", ++revision)
             .put("left", read { connection?.getTextBeforeCursor(512, 0) })
             .put("right", read { connection?.getTextAfterCursor(512, 0) })
-            .put("selected", if(start == end) "" else read { connection?.getSelectedText(0) })
+            .put("selected", if(start >= 0 && start == end) "" else read { connection?.getSelectedText(0) })
             .put("selection", if(start >= 0 && end >= 0) JSONObject().put("start",start).put("end",end).put("unit","Utf16").put("absolute",true) else JSONObject.NULL)
             .put("truncated",true).put("discontinuity",false)
         context = next
@@ -56,21 +66,21 @@ class PersonalCapture {
             }
         } else if (outcome == "RejectedBeforeWrite") confirmed = "Rejected"
         send(JSONObject().put("op","Operation").put("operation",operation).put("outcome",confirmed)
-            .put("after",after ?: JSONObject.NULL).put("method","touch_or_key"))
+            .put("after",after ?: JSONObject.NULL).put("method",method))
     }
-    fun display(state: JSONObject, window: JSONObject) {
+    fun display(state: JSONObject, window: JSONObject, personalVersion: String? = null) {
         if (!enabled) return
         val list = window.optJSONArray("candidates") ?: return
         val source = if(state.optJSONObject("view")?.optBoolean("prediction") == true) {
-            if(settings.optBoolean("predict")) "PersonalPrediction" else "ModelPrediction"
+            if(settings.optBoolean("predict")) "PersonalPrediction" else if(modelId!=null) "ModelPrediction" else "DictionaryPrediction"
         } else "Code"
         val candidates = JSONArray()
         for(i in 0 until list.length()) {
             val item = list.getJSONObject(i)
             candidates.put(JSONObject().put("id",item.get("id").toString()).put("text",item.getString("text")).put("source",source))
         }
-        val display = JSONObject().put("request",window.optJSONObject("query_revision").toString())
-            .put("model",JSONObject.NULL).put("policy","v1").put("candidates",candidates)
+        val display = JSONObject().put("request",window.optJSONObject("query_revision")?.toString() ?: "unknown")
+            .put("model",(if(source=="PersonalPrediction")personalVersion else modelId) ?: JSONObject.NULL).put("policy","v1").put("candidates",candidates)
         if(display.toString() == lastDisplay) return
         lastDisplay = display.toString()
         send(JSONObject().put("op","Display").put("mode",state.optJSONObject("view")?.optString("mode") ?: "android").put("display",display))
