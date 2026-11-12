@@ -22,6 +22,12 @@ pub fn show(ui: &mut Ui, state: &mut AppState) {
     ui.heading("常规设置");
     ui.separator();
     expressions(ui, state);
+    if state
+        .personal
+        .show(ui, &state.config_path, &mut state.config.personal)
+    {
+        state.mark_dirty();
+    }
     let mut prediction = state.config.prediction.enabled;
     if ui
         .checkbox(&mut prediction, "上屏后显示字词预测（实验性）")

@@ -8,6 +8,11 @@ pub fn save(state: &mut AppState) -> bool {
             state.status_msg = Some("[OK] 已保存".into());
             log::info!("配置已保存到 {}", state.config_path.display());
             state.prepare_app_container_access();
+            if state.config.personal.learn {
+                if let Ok(exe) = std::env::current_exe() {
+                    let _ = personal_input::background::start_desktop(&exe, &state.config_path);
+                }
+            }
             if let Err(error) = crate::model_catalog::prepare_saved_model(&state.config_path) {
                 log::warn!("{error}");
                 if state.config.prediction.model.is_some() {

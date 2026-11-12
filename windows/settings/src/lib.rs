@@ -15,6 +15,7 @@ pub mod model_catalog;
 mod model_components;
 mod model_downloads;
 pub mod panels;
+pub mod personal_panel;
 pub mod save;
 pub mod state;
 pub mod vpk;

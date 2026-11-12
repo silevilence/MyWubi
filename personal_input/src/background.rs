@@ -75,10 +75,10 @@ impl Worker {
         let thread = std::thread::Builder::new()
             .name("personal-learning".into())
             .spawn(move || loop {
-                let config = {
+                // File I/O stays outside the lock touched by the input thread.
+                let (config, status) = {
                     let Ok(guard) = state.0.lock() else { return };
-                    let Ok((mut guard, _)) = state.1.wait_timeout(guard, Duration::from_secs(1))
-                    else {
+                    let Ok((guard, _)) = state.1.wait_timeout(guard, Duration::from_secs(1)) else {
                         return;
                     };
                     if guard.closed {
@@ -87,15 +87,39 @@ impl Worker {
                     let Some(config) = guard.config.clone() else {
                         continue;
                     };
-                    let enabled =
-                        core_engine::Config::load(&config).is_ok_and(|c| c.personal.learn);
+                    (config, guard.status.clone())
+                };
+                let store = Store::beside_config(&config);
+                if let Ok(mut value) = serde_json::to_value(status) {
+                    value["observed_ms"] = crate::now_ms().into();
+                    if let Ok(bytes) = serde_json::to_vec(&value) {
+                        let _ = core_engine::data::atomic_write(
+                            &store.root.join("learning-status.json"),
+                            &bytes,
+                        );
+                    }
+                }
+                let enabled = core_engine::Config::load(&config).is_ok_and(|c| c.personal.learn);
+                let request = store.root.join("update-request");
+                let requested = request.exists();
+                {
+                    let Ok(mut guard) = state.0.lock() else {
+                        return;
+                    };
+                    if guard.closed {
+                        return;
+                    }
+                    if guard.config.as_ref() != Some(&config) {
+                        continue;
+                    }
                     let reason = if !enabled {
                         "后台学习已暂停"
                     } else if !guard.allowed {
                         "等待电量、温度、内存或后台条件"
                     } else if guard.last_activity.elapsed() < Duration::from_secs(30) {
                         "等待输入空闲 30 秒"
-                    } else if guard.last_attempt.elapsed() < Duration::from_secs(300) {
+                    } else if !requested && guard.last_attempt.elapsed() < Duration::from_secs(300)
+                    {
                         "等待学习间隔 5 分钟"
                     } else {
                         ""
@@ -109,8 +133,10 @@ impl Worker {
                     guard.status.reason = "".into();
                     guard.last_attempt = Instant::now();
                     signal.store(false, Ordering::Release);
-                    config
-                };
+                }
+                if requested {
+                    let _ = std::fs::remove_file(request);
+                }
                 let start = Instant::now();
                 let result = learning::train(&Store::beside_config(&config), &signal);
                 if let Ok(mut guard) = state.0.lock() {

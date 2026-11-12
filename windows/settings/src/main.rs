@@ -7,6 +7,11 @@
 use settings::{app::SettingsApp, config_path, log as log_mod, state::AppState};
 
 fn main() {
+    let personal_args: Vec<_> = std::env::args_os().skip(1).collect();
+    if personal_args.len() == 2 && personal_args[0] == "--personal-worker" {
+        settings::personal_panel::run_background(std::path::Path::new(&personal_args[1]));
+        return;
+    }
     if std::env::args().any(|arg| arg == "--component-catalog") {
         use std::io::Write;
         if let Ok(catalog) = runtime_components::catalog() {

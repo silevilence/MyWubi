@@ -31,6 +31,7 @@ model_ipc = { version = "0.8.0", path = "../model_ipc" }
 serde_json.workspace = true
 runtime_components = { version = "0.8.0", path = "../runtime_components" }
 text_render = { version = "0.8.0", path = "../text_render" }
+personal_input = { version = "0.8.0", path = "../../personal_input" }
 
 [build-dependencies]
 winres = "0.1"
@@ -43,6 +44,8 @@ windows = { workspace = true, features = [
     "Win32_System_Com",
     "Win32_UI_Shell",
     "Win32_UI_WindowsAndMessaging",
+    "Win32_UI_Input_KeyboardAndMouse",
+    "Win32_System_SystemInformation",
     "Win32_UI_ColorSystem",
     "Win32_UI_Controls_Dialogs",
     "Win32_Graphics_Gdi",

@@ -33,6 +33,7 @@ pub enum Command {
         models: bool,
     },
     Train,
+    Schedule,
     Rollback,
 }
 fn read_package(path: &Path) -> Result<Vec<u8>> {
@@ -51,8 +52,25 @@ pub fn execute(config: &Path, command: Command) -> Result<serde_json::Value> {
     match command {
         Command::Status => {
             let model = learning::load(&store).ok();
+            let learning = std::fs::read(store.root.join("learning-status.json"))
+                .ok()
+                .and_then(|bytes| serde_json::from_slice::<serde_json::Value>(&bytes).ok());
             Ok(
-                serde_json::json!({"data":store.stats()?,"model":model.as_ref().map(|m| serde_json::json!({"version":m.version,"samples":m.sample_count,"updated":m.created_ms,"algorithm":m.algorithm})),"quality":"experimental"}),
+                serde_json::json!({"data":store.stats()?,"learning":learning,"model":model.as_ref().map(|m| serde_json::json!({"version":m.version,"samples":m.sample_count,"updated":m.created_ms,"algorithm":m.algorithm})),"quality":"experimental"}),
+            )
+        }
+        Command::Schedule => {
+            if !core_engine::Config::load(config)
+                .map_err(|_| Error::Invalid("配置读取失败"))?
+                .personal
+                .learn
+            {
+                return Err(Error::Invalid("请开启并保存后台学习后更新"));
+            }
+            std::fs::create_dir_all(&store.root)?;
+            core_engine::data::atomic_write(&store.root.join("update-request"), b"1")?;
+            Ok(
+                serde_json::json!({"message":"已请求更新；输入空闲且资源允许时执行，Android 请保持输入法可见"}),
             )
         }
         Command::Export { path, password } => {

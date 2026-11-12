@@ -35,6 +35,64 @@ class SettingsModel(application: Application) : AndroidViewModel(application) {
     var tables by mutableStateOf<List<TableCatalog.Table>>(emptyList()); private set
     var expressionResources by mutableStateOf<Map<String, List<JSONObject>>>(emptyMap()); private set
     var expressionError by mutableStateOf(""); private set
+    var personalStatus by mutableStateOf(""); private set
+    var personalPreview by mutableStateOf<JSONObject?>(null); private set
+    private var personalImport: File? = null
+    private var personalImportPassword: String? = null
+    private var personalImportMode = "Merge"
+
+    private fun personalRequest(op: String, vararg fields: Pair<String,Any?>): JSONObject {
+        val request=JSONObject().put("op",op).put("config",store.configFile.absolutePath)
+        fields.forEach { (key,value)->request.put(key,value ?: JSONObject.NULL) }
+        val reply=JSONObject(NativeBridge.personalManage(request.toString().toByteArray(Charsets.UTF_8)).toString(Charsets.UTF_8))
+        check(reply.getBoolean("ok")) { reply.optString("error","个人数据操作失败") }
+        return reply.getJSONObject("value")
+    }
+    fun personalAction(op: String, models: Boolean = false) = work {
+        val result=personalRequest(op,"models" to models)
+        val text=if(op=="Status") {
+            val data=result.getJSONObject("data")
+            val model=result.optJSONObject("model")
+            val learning=result.optJSONObject("learning")
+            "记录 ${data.optInt("records")} 条，占用 ${data.optLong("bytes")} 字节，缺失 ${data.optLong("gaps")} 条；" +
+                (if(model==null) "个人模型待积累/未就绪" else "版本 ${model.optString("version")}，样本 ${model.optInt("samples")}，更新时间 ${model.optLong("updated")}") +
+                (if(learning==null) "；等待输入法启动" else "；学习：${learning.optString("phase")} ${learning.optString("reason")}，上一批 ${learning.optLong("elapsed_ms")} ms；1 线程 / 2 秒批次 / 8 MB 模型")
+        } else result.optString("message","操作完成")
+        val publish:()->Unit={personalStatus=text;personalPreview=null};publish
+    }
+    fun exportPersonal(uri: Uri, password: String?) = work {
+        val temporary=File.createTempFile("personal-export-",".mwp",app.cacheDir)
+        try {
+            personalRequest("Export","path" to temporary.absolutePath,"password" to password)
+            app.contentResolver.openOutputStream(uri,"wt")?.use { out->temporary.inputStream().use { it.copyTo(out) } } ?: error("无法写入目标文件")
+        } finally { temporary.delete() }
+        val publish:()->Unit={personalStatus="个人数据已导出"};publish
+    }
+    fun previewPersonal(uri: Uri, password: String?, replace: Boolean) = work {
+        val temporary=File.createTempFile("personal-import-",".mwp",app.cacheDir)
+        try {
+            app.contentResolver.openInputStream(uri)?.use { input -> temporary.outputStream().use { out ->
+                val buffer=ByteArray(8192);var total=0L
+                while(true){val n=input.read(buffer);if(n<0)break;total+=n;require(total<=128L*1024*1024+53){"个人数据包超过 128 MB"};out.write(buffer,0,n)}
+            } } ?: error("无法读取数据包")
+            val mode=if(replace)"Replace" else "Merge"
+            val preview=personalRequest("Preview","path" to temporary.absolutePath,"password" to password,"mode" to mode)
+            val publish:()->Unit={
+                personalImport?.delete();personalImport=temporary;personalImportPassword=password;personalImportMode=mode
+                personalPreview=preview;personalStatus="请核对导入影响后确认"
+            };publish
+        } catch(e:Exception){temporary.delete();throw e}
+    }
+    fun confirmPersonalImport() {
+        val file=personalImport ?: return
+        val revision=personalPreview?.optString("revision") ?: return
+        val password=personalImportPassword;val mode=personalImportMode
+        work {
+            personalRequest("Import","path" to file.absolutePath,"password" to password,"mode" to mode,"revision" to revision)
+            file.delete()
+            val publish:()->Unit={personalPreview=null;personalImport=null;personalImportPassword=null;personalStatus="个人数据已导入"};publish
+        }
+    }
 
     fun refreshExpressions() {
         val draft = JSONObject(config?.toString() ?: return)
