@@ -103,8 +103,10 @@ impl Drop for Recorder {
     fn drop(&mut self) {
         self.enabled.store(false, Ordering::Release);
         self.tx.take();
-        // Closing an IME must never wait for disk IO. The bounded worker drains
-        // revoked messages and exits after the sender closes.
-        self.worker.take();
+        // DLL deactivation must not leave a thread executing unloaded code.
+        // Hot disable retains the recorder and revokes its gate instead.
+        if let Some(worker) = self.worker.take() {
+            let _ = worker.join();
+        }
     }
 }

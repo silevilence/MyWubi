@@ -30,6 +30,7 @@ class MyWubiService : InputMethodService() {
     private var inputPolicy = InputPolicy.from(0, 0)
     private var hasSelection = false
     private val editor = EditorAdapter()
+    private val personalCapture = PersonalCapture()
     private val inputQueue = InputQueue()
     private val clipboardSuggestion = ClipboardSuggestion()
     private var connection: android.view.inputmethod.InputConnection? = null
@@ -85,6 +86,7 @@ class MyWubiService : InputMethodService() {
                 val result = loaded
                 main.post {
                     if (destroyed || !loads.accepts(ticket)) result.close() else {
+                        personalCapture.configure(path, config.getJSONObject("config").optJSONObject("personal") ?: JSONObject())
                         val previous = runtime
                         runtime = result
                         try {
@@ -125,6 +127,7 @@ class MyWubiService : InputMethodService() {
         .put("enter_action", inputPolicy.action)
 
     private fun attachEditor() {
+        personalCapture.gate(active && hostContext().optBoolean("allows_assistance"), editorEpoch.toString())
         pinyinMode = KeyMode.Off
         val r = runtime ?: return
         if (!active) return
@@ -157,6 +160,7 @@ class MyWubiService : InputMethodService() {
     }
 
     override fun onFinishInput() {
+        personalCapture.gate(false, "inactive")
         clipboardSuggestion.dismiss()
         inputQueue.invalidate(); connection = null; editorInfo = null
         active = false; editorEpoch++; editor.abandon()
@@ -174,6 +178,7 @@ class MyWubiService : InputMethodService() {
         val own = writingHost || ownIndex >= 0
         if (ownIndex >= 0) repeat(ownIndex + 1) { ownSelections.removeFirst() }
         if (active && !own && (oldSelStart != newSelStart || oldSelEnd != newSelEnd)) {
+            personalCapture.observe(connection, newSelStart, newSelEnd, true)
             ownSelections.clear(); projectedSelection = minOf(newSelStart,newSelEnd).coerceAtLeast(0)
             projectedPreedit = candidatesStart.takeIf { it >= 0 }
             invalidatePrediction(); refresh()
@@ -415,6 +420,7 @@ class MyWubiService : InputMethodService() {
                 NativeBridge.call("IsCurrent", "session" to s.value, "token" to token) == true
             if (!current()) return false
             val operation = plan.optJSONObject("op")
+            if (!editor.ownsPreedit) personalCapture.observe(host, projectedSelection, projectedSelection)
             val start = projectedPreedit ?: projectedSelection
             val expected = when {
                 operation?.has("CompositionUpdate") == true -> (start + operation.getJSONObject("CompositionUpdate").getString("spelling").length).also { projectedPreedit = start }
@@ -432,6 +438,7 @@ class MyWubiService : InputMethodService() {
             }
             writingHost = true
             val outcome = try { editor.execute(host, plan, ::current) } finally { writingHost = false }
+            personalCapture.operation(host, operation, outcome, projectedSelection, projectedSelection)
             if (outcome != "Applied") { ownSelections.clear(); projectedPreedit = null }
             if (!current()) return false
             val ack = NativeBridge.objectCall("Ack", "session" to s.value, "token" to token, "outcome" to outcome, "owns_preedit" to editor.ownsPreedit)
@@ -449,6 +456,7 @@ class MyWubiService : InputMethodService() {
             candidates = NativeBridge.objectCall("Candidates", "session" to it.value, "offset" to candidateOffset, "count" to 256)
         }
         render()
+        personalCapture.display(state, candidates)
         session?.let { predictionController.update(it.value,active && viewVisible && inputPolicy.purpose=="Text") }
     }
     private fun invalidatePrediction() {
@@ -469,6 +477,7 @@ class MyWubiService : InputMethodService() {
     }
 
     override fun onDestroy() {
+        personalCapture.close()
         if(::predictionController.isInitialized) predictionController.close()
         destroyed = true; active = false; connection = null; inputQueue.invalidate()
         main.removeCallbacks(idleRefresh); updateScope.cancel()

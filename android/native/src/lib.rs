@@ -1,5 +1,26 @@
 //! Android native module; protocol rules remain in core_engine.
 pub use core_engine::ffi::PROTOCOL_VERSION;
+static PERSONAL_CAPTURE: std::sync::OnceLock<personal_input::capture_endpoint::Endpoint> =
+    std::sync::OnceLock::new();
+
+#[no_mangle]
+pub extern "system" fn Java_org_mywubi_NativeBridge_personalCapture(
+    env: JNIEnv,
+    _class: JClass,
+    request: JByteArray,
+) -> jbyteArray {
+    let result = std::panic::catch_unwind(std::panic::AssertUnwindSafe(|| {
+        if env.get_array_length(&request).ok()? > 65536 {
+            return None;
+        }
+        let bytes = env.convert_byte_array(&request).ok()?;
+        let reply = PERSONAL_CAPTURE
+            .get_or_init(Default::default)
+            .exchange(&bytes);
+        env.byte_array_from_slice(&reply).ok().map(|a| a.into_raw())
+    }));
+    result.ok().flatten().unwrap_or(std::ptr::null_mut())
+}
 static INFERENCE: std::sync::OnceLock<model_input::service::Endpoint> = std::sync::OnceLock::new();
 static DOWNLOADS: std::sync::OnceLock<model_input::download_manager::DownloadManager> =
     std::sync::OnceLock::new();

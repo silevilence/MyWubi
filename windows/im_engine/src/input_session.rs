@@ -360,7 +360,9 @@ impl InputSession {
         {
             let mut personal = self.personal.lock();
             if !snapshot.config.personal.collect {
-                *personal = None;
+                if let Some(capture) = personal.as_mut() {
+                    capture.configure(&snapshot.config.personal, false, "disabled");
+                }
             } else if personal.is_none() {
                 *personal =
                     personal_input::capture::Capture::new(snapshot.config_path.clone()).ok();
