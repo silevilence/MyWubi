@@ -32,3 +32,11 @@
 - `cargo test --offline -p im_engine --lib input_session::tests` 27 项通过；这是适配层模拟编辑器验证，不是实际 TSF 宿主证据。
 - 核心严格 Clippy 通过。Android `:app:compileDebugKotlin` 与 `:app:compileDebugAndroidTestKotlin` 离线通过（均 `-x cargoBuild`）；已有界面用例同步新菜单，新增 `ExpressionHostTest.kanaLiteralAliasUsesVisibleCategoryEntryAndCommitsOnlyTheResult` 待设备运行。
 - 四个新资源、说明和覆盖清单加入共用 bundle 清单及 Android 首次复制流程；完整升级、便携与 APK 分发验收未执行。未连接 Android 设备，未执行本次真实 UI 验收，不能把以上编译/模拟证据记作 SI-16/17 通过。
+
+## 2026-11-12，SI-06（规则基础，尚未接入配置）
+
+- `shortcuts` 定义规则、类型、全局位置和共享上限；验证成功才返回小写规范副本，失败不修改草稿，错误包含原始行号和字段。停用项参与总数、同码数量和重复位置检查。
+- `shortcut_format` 编译六种固定格式标记和单引号字面量，拒绝未知 ASCII 字母标记/未闭合引号。此处只有语法树，尚无取时、日期渲染或时区实现，不属于 SI-07 完成证据。
+- `ShortcutEnvironment` 可从主表配置投影；冲突状态与启用意图区分，字母不区分 ASCII 大小写。未要求对应词条或主表码长满足快捷编码。
+- `cargo test --offline -p core_engine --test shortcut_rules` 最终 7 项通过，覆盖所有约定结构边界、停用重复项、原草稿保留、规范化、Unicode 标量长度、格式语法、冲突暂停与恢复及真实主表配置投影。
+- **接续工作**：先把规则接入 `Config` 的反序列化、规范化读写和保存校验，同时更新 Windows/Android 草稿编辑与协议。再完成有效规则集合及错误展示；格式语法已准备好，但 SI-07 的平台时间提供者、冻结快照和格式化输出仍未开始。当前不向用户暴露尚不能生效的日期规则开关。

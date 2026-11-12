@@ -19,6 +19,8 @@ pub mod personal;
 mod pinyin;
 pub mod runtime;
 pub mod session;
+pub mod shortcut_format;
+pub mod shortcuts;
 pub mod state_machine;
 pub mod table_options;
 pub mod temporary;
