@@ -45,6 +45,46 @@ class ExpressionHostTest {
         assertEquals(expected,host().text.orEmpty())
     }
 
+    @Test fun kanaLiteralAliasUsesVisibleCategoryEntryAndCommitsOnlyTheResult() {
+        val store = EngineStore(context)
+        val loaded = store.readConfig()
+        val original = JSONObject(loaded.getJSONObject("config").toString())
+        val config = JSONObject(original.toString())
+        val table = File(context.filesDir, "si-host-kana.dict").apply { writeText("a\t普通\n") }
+        config.getJSONObject("dictionary").put("system_table", table.path).put("enable_user_dict", false)
+        config.getJSONObject("basic").put("auto_commit_unique", false)
+        config.put("prediction", JSONObject().put("enabled", false))
+        config.put("expressions", JSONObject().put("kana", JSONObject().put("append", false).put("search", true)))
+        fun save(value: JSONObject, version: Long) {
+            NativeHandle(version).use { NativeHandle(store.saveConfig(value, it.value).getLong("version")).close() }
+        }
+        try {
+            save(config, loaded.getLong("version"))
+            device.executeShellCommand("ime enable org.mywubi/.MyWubiService")
+            device.executeShellCommand("ime set org.mywubi/.MyWubiService")
+            device.executeShellCommand("am force-stop org.mywubi.acceptancehost")
+            device.executeShellCommand("am start -W -n org.mywubi.acceptancehost/.EditorActivity")
+            device.waitForIdle(); host().click(); fresh(By.desc("a").pkg("org.mywubi").enabled(true))
+            if (device.hasObject(By.desc("英 → 中"))) key("英 → 中")
+            val before = journal()
+            key("特殊输入"); button("假名"); button("切换为字面别名")
+            key("123"); key("1")
+            fresh(By.text("关键词：1").pkg("org.mywubi")); assertHost(""); assertEquals(before, journal())
+            assertFalse(fresh(By.text("切换为主码表组词").pkg("org.mywubi")).isEnabled)
+            button("清空"); key("ABC")
+            key("s"); key("h"); key("i"); button("查找")
+            fresh(By.descStartsWith("候选 し").pkg("org.mywubi"))
+            fresh(By.descStartsWith("候选 シ").pkg("org.mywubi"))
+            assertHost(""); assertEquals(before, journal()); shot("si-c10-kana-local")
+            key("123"); key("1"); assertHost("し")
+            File(evidence, "si-c10-kana-journal.jsonl").writeText(journal())
+            shot("si-c10-kana-committed")
+        } finally {
+            save(original, store.readConfig().getLong("version"))
+            device.pressBack(); device.pressBack()
+        }
+    }
+
     @Test fun numericChoicesStayLocalAndResourceReloadRejectsAnOldAccessibilityClick() {
         val store = EngineStore(context)
         val loaded = store.readConfig()
@@ -69,7 +109,7 @@ class ExpressionHostTest {
         fun save(value: JSONObject, version: Long) {
             NativeHandle(version).use { NativeHandle(store.saveConfig(value, it.value).getLong("version")).close() }
         }
-        fun enter() { key("Emoji 输入") }
+        fun enter() { key("特殊输入"); button("Emoji") }
         val automation = instrumentation.uiAutomation
         val originalFlags = automation.serviceInfo.flags
         val retainedNodes = mutableListOf<android.view.accessibility.AccessibilityNodeInfo>()
@@ -100,7 +140,7 @@ class ExpressionHostTest {
             enter(); key("a"); key("123"); key("1")
             fresh(By.text("关键词：禁止").pkg("org.mywubi"))
             assertHost(""); assertEquals(before, journal()); shot("numeric-word-local")
-            key("ABC"); key("c"); key("空格"); button("查找表情")
+            key("ABC"); key("c"); key("空格"); button("查找")
             fresh(By.descStartsWith("候选 🚳").pkg("org.mywubi"))
             assertEquals(before, journal())
             key("123"); key("1"); assertHost("🚳")
@@ -110,7 +150,7 @@ class ExpressionHostTest {
             key("ABC")
 
             val beforeReload = journal()
-            enter(); key("a"); key("空格"); key("c"); button("查找表情")
+            enter(); key("a"); key("空格"); key("c"); button("查找")
             fresh(By.descStartsWith("候选 🚳").pkg("org.mywubi"))
             val oldCandidate = automation.windows.asSequence().mapNotNull { it.root }
                 .mapNotNull(::findOldCandidate).firstOrNull() ?: error("No actual accessibility candidate node")
@@ -124,7 +164,7 @@ class ExpressionHostTest {
             device.waitForIdle(); assertHost(""); assertEquals(beforeReload, journal())
             shot("resource-reload-old-action")
 
-            enter(); key("a"); key("空格"); key("c"); button("查找表情")
+            enter(); key("a"); key("空格"); key("c"); button("查找")
             fresh(By.descStartsWith("候选 🙂").pkg("org.mywubi"))
             assertFalse(device.hasObject(By.descStartsWith("候选 🚳").pkg("org.mywubi")))
             assertEquals(beforeReload, journal()); shot("resource-reload-new-result")
@@ -162,7 +202,7 @@ class ExpressionHostTest {
         fun save(value: JSONObject, version: Long) {
             NativeHandle(version).use { NativeHandle(store.saveConfig(value, it.value).getLong("version")).close() }
         }
-        fun enter(label: String) { key(label) }
+        fun enter(label: String) { key("特殊输入"); button(label.removeSuffix(" 输入").replace("颜文字输入", "颜文字")) }
         try {
             save(config, loaded.getLong("version"))
             // Obtain the full-library ordering from an independent JNI session.
@@ -193,7 +233,7 @@ class ExpressionHostTest {
             if (device.hasObject(By.desc("中 → 英"))) key("中 → 英")
             val before = journal()
 
-            enter("Emoji 输入"); key("a"); key("空格"); key("x"); button("查找表情")
+            enter("Emoji 输入"); key("a"); key("空格"); key("x"); button("查找")
             fresh(By.text("没有满足全部关键词的结果；以下仅为部分匹配。").pkg("org.mywubi"))
             fresh(By.desc(Pattern.compile("候选 .*部分匹配.*")).pkg("org.mywubi"))
             assertHost(""); assertEquals(before, journal()); shot("partial-query-local")
@@ -202,7 +242,7 @@ class ExpressionHostTest {
             assertEquals(before, journal())
 
             // Cancel returns to English; entering the other mode still uses the main table.
-            enter("颜文字输入"); key("d"); button("查找表情"); key("展开")
+            enter("颜文字输入"); key("d"); button("查找"); key("展开")
             val total = expected.getInt("total")
             val lastOffset = expected.getInt("offset")
             for (offset in 256..lastOffset step 256) {
@@ -222,7 +262,7 @@ class ExpressionHostTest {
             device.pressKeyCode(KeyEvent.KEYCODE_Z, KeyEvent.META_CTRL_ON)
             assertHost("")
             // Re-entering Emoji after a tail commit must not retain the previous query/window.
-            enter("Emoji 输入"); key("a"); key("空格"); key("c"); button("查找表情")
+            enter("Emoji 输入"); key("a"); key("空格"); key("c"); button("查找")
             candidate("🚳"); assertHost("🚳")
             fresh(By.desc("英 → 中").pkg("org.mywubi").enabled(true))
             shot("mode-return-committed")
@@ -253,7 +293,7 @@ class ExpressionHostTest {
         config.put("expressions",JSONObject().put("emoji",JSONObject().put("append",false).put("search",true))
             .put("kaomoji",JSONObject().put("append",false).put("search",true).put("resource",kaomoji.path)))
         fun save(value:JSONObject,version:Long) { NativeHandle(version).use { NativeHandle(store.saveConfig(value,it.value).getLong("version")).close() } }
-        fun enter(mode:String) { key(if(mode=="Emoji") "Emoji 输入" else "颜文字输入") }
+        fun enter(mode:String) { key("特殊输入"); button(if(mode=="Emoji") "Emoji" else "颜文字") }
         try {
             save(config,loaded.getLong("version"))
             device.executeShellCommand("ime enable org.mywubi/.MyWubiService")
@@ -267,11 +307,11 @@ class ExpressionHostTest {
                 val before=journal()
                 enter("Emoji");key("a");key("空格");key(second)
                 assertEquals("",host().text.orEmpty());assertEquals(before,journal())
-                button("查找表情")
+                button("查找")
                 fresh(By.descStartsWith("候选 🚳").pkg("org.mywubi"))
                 assertEquals(before,journal());shot("emoji-$second-results")
                 button("修改关键词");assertEquals(before,journal())
-                button("查找表情");candidate("🚳")
+                button("查找");candidate("🚳")
                 assertEquals("🚳",host().text.orEmpty())
                 File(evidence,"emoji-$second-journal.jsonl").writeText(journal())
                 shot("emoji-$second-committed")
@@ -279,7 +319,7 @@ class ExpressionHostTest {
                 assertEquals("",host().text.orEmpty())
             }
             val before=journal()
-            enter("Emoji");key("x");button("查找表情")
+            enter("Emoji");key("x");button("查找")
             fresh(By.text("没有匹配结果，可返回修改关键词。").pkg("org.mywubi"))
             assertFalse(device.hasObject(By.descStartsWith("候选 ").pkg("org.mywubi")))
             shot("no-result")
@@ -291,10 +331,10 @@ class ExpressionHostTest {
             assertTrue(device.wait(Until.gone(By.desc("q").pkg("org.mywubi")),5000))
             device.executeShellCommand("am start --activity-single-top -n org.mywubi.acceptancehost/.EditorActivity")
             host().click();fresh(By.desc("a").pkg("org.mywubi").enabled(true))
-            assertTrue(device.wait(Until.gone(By.text("Emoji · 组合关键词").pkg("org.mywubi")),5000))
+            assertTrue(device.wait(Until.gone(By.text("Emoji · 主码表组词").pkg("org.mywubi")),5000))
             assertEquals(before,journal());assertHost("")
             // A real config update cancels a displayed result; no old output may be committed.
-            enter("Emoji");key("a");key("空格");key("c");button("查找表情")
+            enter("Emoji");key("a");key("空格");key("c");button("查找")
             fresh(By.descStartsWith("候选 🚳").pkg("org.mywubi"))
             config.getJSONObject("appearance").put("font_size",15)
             save(config,store.readConfig().getLong("version"))
@@ -308,11 +348,11 @@ class ExpressionHostTest {
             config.getJSONObject("basic").put("auto_commit_unique",true)
             save(config,store.readConfig().getLong("version"))
             device.waitForIdle();SystemClock.sleep(500)
-            enter("Emoji");key("a");key("c");button("查找表情")
+            enter("Emoji");key("a");key("c");button("查找")
             fresh(By.descStartsWith("候选 🚳").pkg("org.mywubi"))
             assertEquals(before,journal());shot("automatic-local-results");button("取消")
             assertEquals(before,journal())
-            enter("颜文字");key("d");button("查找表情");key("展开")
+            enter("颜文字");key("d");button("查找");key("展开")
             val longCandidate=fresh(By.descStartsWith("候选 $long").pkg("org.mywubi"))
             val bounds=longCandidate.visibleBounds
             device.swipe(bounds.right-12,bounds.centerY(),bounds.left+12,bounds.centerY(),100)

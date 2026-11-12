@@ -93,7 +93,7 @@ class KeyboardLayoutTest {
                 val composing = !next.privateInput && (next.spelling.isNotEmpty() || next.candidates.isNotEmpty())
                 assertEquals("Toolbar visibility in $label", !composing && next.clipboard == null,
                     device.hasObject(By.desc("切换输入法").pkg("org.mywubi")))
-                for (action in listOf("Emoji 输入", "颜文字输入")) {
+                for (action in listOf("特殊输入")) {
                     assertEquals("Toolbar action $action visibility in $label", !composing && next.clipboard == null,
                         device.hasObject(By.descStartsWith(action).pkg("org.mywubi")))
                 }

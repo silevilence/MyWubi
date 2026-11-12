@@ -78,9 +78,18 @@ pub enum ExpressionPhase {
     Results,
 }
 
+#[derive(Debug, Clone, Copy, Default, PartialEq, Eq, serde::Serialize, serde::Deserialize)]
+pub enum ExpressionInput {
+    #[default]
+    Words,
+    Literal,
+}
+
 #[derive(Debug, Clone, PartialEq, Eq, serde::Serialize, serde::Deserialize)]
 pub struct ExpressionQueryView {
     pub kind: crate::expressions::ExpressionKind,
+    #[serde(default)]
+    pub input: ExpressionInput,
     pub phase: ExpressionPhase,
     pub text: String,
     pub words: Vec<String>,

@@ -46,14 +46,14 @@ import org.json.JSONObject
 data class CandidateItem(val id: Long, val text: String, val hint: String, val expressionKind: String? = null) {
     val spokenHint: String get() = if(expressionKind == null && hint.isNotEmpty()) "编码提示 $hint" else hint
 }
-data class ExpressionQueryUi(val kind: String, val phase: String, val text: String, val message: String?)
-private data class ExpressionChoice(val mode: String, val title: String, val icon: Int, val available: Boolean, val reason: String?)
+data class ExpressionQueryUi(val kind: String, val phase: String, val text: String, val message: String?, val input: String = "Words")
 
 private val LocalKeyboardKeyHeight = staticCompositionLocalOf { 54.dp }
 data class KeyboardModel(
     val expression: ExpressionQueryUi? = null,
     val emojiAvailable: Boolean = false, val kaomojiAvailable: Boolean = false,
     val emojiReason: String? = null, val kaomojiReason: String? = null,
+    val specialCapabilities: Map<String, Pair<Boolean, String?>> = emptyMap(),
     val clipboard: String? = null,
     val prediction: Boolean = false,
     val epoch: Long = 0, val enabled: Boolean = false, val spelling: String = "",
@@ -100,6 +100,7 @@ fun Keyboard(model: KeyboardModel, dispatch: (Any) -> Unit, window: (Int) -> Uni
         mutableStateOf(if (model.layout in listOf("number", "phone")) "numbers" else "letters")
     }
     var expanded by remember(model.epoch) { mutableStateOf(false) }
+    var specialMenu by remember(model.epoch) { mutableStateOf(false) }
     val showExpanded = expanded && model.candidates.isNotEmpty() && !model.privateInput
     var asciiSymbols by remember(model.epoch, model.base, model.privateInput, model.layout) {
         mutableStateOf(model.privateInput || model.base == "English" || model.layout != "letters")
@@ -128,13 +129,20 @@ fun Keyboard(model: KeyboardModel, dispatch: (Any) -> Unit, window: (Int) -> Uni
                 val results = query.phase == "Results"
                 val name = when(query.kind) { "emoji" -> "Emoji"; "kaomoji" -> "颜文字"; "kana" -> "假名"; "math" -> "数学符号"; "punctuation" -> "标点"; "symbols" -> "其他符号"; else -> "特殊输入" }
                 FlowRow(Modifier.fillMaxWidth().heightIn(min=48.dp).padding(horizontal=10.dp), horizontalArrangement=Arrangement.spacedBy(8.dp)) {
-                    Text("$name · ${if(results) "选表情" else "组合关键词"}", Modifier.padding(vertical=14.dp), fontSize=14.sp)
+                    Text("$name · ${if(results) "选择结果" else if(query.input == "Literal") "字面别名" else "主码表组词"}", Modifier.padding(vertical=14.dp), fontSize=14.sp)
                     TextButton(onClick={expanded=false; dispatch(if(results) "EditExpressionQuery" else "FindExpressions")}, enabled=model.enabled) {
-                        Text(if(results) "修改关键词" else "查找表情")
+                        Text(if(results) "修改关键词" else "查找")
+                    }
+                    TextButton(onClick={expanded=false; dispatch("ClearExpressionQuery")}, enabled=model.enabled) { Text("清空") }
+                    if(!results) TextButton(onClick={
+                        dispatch(JSONObject().put("SetExpressionInput", if(query.input == "Literal") "Words" else "Literal"))
+                    }, enabled=model.enabled && query.text.isEmpty() && model.spelling.isEmpty()) {
+                        Text(if(query.input == "Literal") "切换为主码表组词" else "切换为字面别名")
                     }
                     TextButton(onClick={expanded=false; dispatch("EndTemporary")}, enabled=model.enabled) { Text("取消") }
                 }
-                Text("关键词：${query.text.ifEmpty { "尚未选词" }}" + if(model.spelling.isEmpty()) "" else "　编码：${model.spelling}",
+                if(!results && (query.text.isNotEmpty() || model.spelling.isNotEmpty())) Text("切换输入方式前请先清空查询", Modifier.padding(horizontal=10.dp), fontSize=12.sp)
+                Text("关键词：${query.text.ifEmpty { "尚未输入" }}" + if(model.spelling.isEmpty()) "" else "　编码：${model.spelling}",
                     Modifier.fillMaxWidth().horizontalScroll(rememberScrollState()).padding(horizontal=10.dp, vertical=4.dp),
                     color=colors.primary, fontSize=16.sp, maxLines=1)
                 val notice = if(model.statusError) model.status else query.message
@@ -202,12 +210,23 @@ fun Keyboard(model: KeyboardModel, dispatch: (Any) -> Unit, window: (Int) -> Uni
                                 val label = if (showUpdate) "设置，有可用更新" else "设置"
                                 ToolbarIconButton(R.drawable.ic_settings, label,
                                     badge={ if (showUpdate) Badge() }, action=openSettings)
-                                for ((mode, title, icon, available, reason) in listOf(
-                                    ExpressionChoice("Emoji", "Emoji 输入", R.drawable.ic_emoji, model.emojiAvailable, model.emojiReason),
-                                    ExpressionChoice("Kaomoji", "颜文字输入", R.drawable.ic_kaomoji, model.kaomojiAvailable, model.kaomojiReason))) {
-                                    val description = if (!available && !reason.isNullOrBlank()) "$title，$reason" else title
-                                    ToolbarIconButton(icon, description, enabled=baseEnabled && available) {
-                                        dispatch(JSONObject().put("BeginTemporary", mode))
+                                Box {
+                                    ToolbarIconButton(R.drawable.ic_emoji, "特殊输入", enabled=baseEnabled) { specialMenu=true }
+                                    DropdownMenu(expanded=specialMenu && baseEnabled, onDismissRequest={specialMenu=false}) {
+                                        for((mode, title) in listOf("Emoji" to "Emoji", "Kaomoji" to "颜文字", "Kana" to "假名", "Math" to "数学符号", "Punctuation" to "标点", "Symbols" to "其他符号")) {
+                                            val capability = model.specialCapabilities[mode] ?: when(mode) {
+                                                "Emoji" -> model.emojiAvailable to model.emojiReason
+                                                "Kaomoji" -> model.kaomojiAvailable to model.kaomojiReason
+                                                else -> false to "词库未加载"
+                                            }
+                                            DropdownMenuItem(text={Column {
+                                                Text(title)
+                                                if(!capability.first) Text(capability.second ?: "不可用", fontSize=12.sp)
+                                            }}, enabled=capability.first, onClick={
+                                                specialMenu=false
+                                                dispatch(JSONObject().put("BeginTemporary", mode))
+                                            })
+                                        }
                                     }
                                 }
                                 ToolbarIconButton(R.drawable.ic_switch_ime, "切换输入法", action=switchIme)

@@ -253,6 +253,9 @@ impl StateMachine {
 
     /// 总页数。
     pub fn total_pages(&self) -> usize {
+        if self.mode == InputMode::Menu {
+            return 1;
+        }
         if self.expression_query.is_some() {
             return self.total_candidates.div_ceil(self.page_size.min(9)).max(1);
         }

@@ -112,6 +112,62 @@ fn input(engine: &mut SemanticEngine, text: &str) -> ActionResult {
 }
 
 #[test]
+fn all_six_categories_append_in_order_and_deduplicate_across_the_whole_round() {
+    let mut r = runtime("a\t开心\n", 9);
+    for kind in ExpressionKind::ALL {
+        r.config.expressions.selection_mut(kind).append = true;
+    }
+    let resources = Arc::get_mut(&mut r.expressions).unwrap();
+    resources.kana.library = Some(library(
+        ExpressionKind::Kana,
+        &[("か", &["开心"]), ("😀", &["开心"])],
+    ));
+    resources.math.library = Some(library(
+        ExpressionKind::Math,
+        &[("∑", &["开心"]), ("か", &["开心"])],
+    ));
+    resources.punctuation.library = Some(library(
+        ExpressionKind::Punctuation,
+        &[("……", &["开心"]), ("∑", &["开心"])],
+    ));
+    resources.symbols.library = Some(library(
+        ExpressionKind::Symbols,
+        &[("→", &["开心"]), ("……", &["开心"]), ("Ω", &["→"])],
+    ));
+    for profile in [BehaviorProfile::LegacyV1, BehaviorProfile::TouchV1] {
+        let mut e = SemanticEngine::new(r.state_machine(), profile);
+        input(&mut e, "a");
+        let rows = e.candidate_window(0, MAX_WINDOW).candidates;
+        assert_eq!(
+            rows.iter().map(|c| c.text.as_str()).collect::<Vec<_>>(),
+            [
+                "开心",
+                "😀",
+                "👩🏽‍💻",
+                "(^_^)",
+                "o\u{308}　\\_/",
+                "か",
+                "∑",
+                "……",
+                "→"
+            ]
+        );
+        assert_eq!(
+            rows.iter()
+                .skip(5)
+                .map(|c| c.expression_kind.unwrap())
+                .collect::<Vec<_>>(),
+            [
+                ExpressionKind::Kana,
+                ExpressionKind::Math,
+                ExpressionKind::Punctuation,
+                ExpressionKind::Symbols
+            ]
+        );
+    }
+}
+
+#[test]
 fn full_text_pages_have_expression_continuations_with_one_shared_order() {
     let mut e = engine(
         "a\t开心\t100\nab\t快乐\t90\nac\t其他\t80\nad\t不开心\t70\n",

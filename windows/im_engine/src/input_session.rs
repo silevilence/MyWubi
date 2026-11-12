@@ -394,6 +394,13 @@ impl InputSession {
                 crate::candidate_data::FIND_EXPRESSIONS => Action::FindExpressions,
                 crate::candidate_data::EDIT_EXPRESSION => Action::EditExpressionQuery,
                 crate::candidate_data::CANCEL_EXPRESSION => Action::EndTemporary,
+                crate::candidate_data::CLEAR_EXPRESSION => Action::ClearExpressionQuery,
+                crate::candidate_data::WORDS_EXPRESSION => {
+                    Action::SetExpressionInput(core_engine::candidates::ExpressionInput::Words)
+                }
+                crate::candidate_data::LITERAL_EXPRESSION => {
+                    Action::SetExpressionInput(core_engine::candidates::ExpressionInput::Literal)
+                }
                 crate::candidate_data::PREVIOUS_PAGE => Action::Legacy(InputEvent::PagePrev),
                 crate::candidate_data::NEXT_PAGE => Action::Legacy(InputEvent::PageNext),
                 _ => return,
@@ -613,7 +620,7 @@ fn candidate_view(
                 label: if results {
                     "修改关键词"
                 } else {
-                    "查找表情 (Tab)"
+                    "查找 (Tab)"
                 }
                 .into(),
             },
@@ -622,6 +629,29 @@ fn candidate_view(
                 label: "取消".into(),
             },
         ];
+        data.controls.push(CandidateControl {
+            id: CLEAR_EXPRESSION,
+            label: "清空查询".into(),
+        });
+        if !results {
+            let literal = query.input == core_engine::candidates::ExpressionInput::Literal;
+            data.controls.push(CandidateControl {
+                id: if literal {
+                    WORDS_EXPRESSION
+                } else {
+                    LITERAL_EXPRESSION
+                },
+                label: if literal {
+                    "切换为主码表组词"
+                } else {
+                    "切换为字面别名"
+                }
+                .into(),
+            });
+            if !query.text.is_empty() || !view.spelling.is_empty() {
+                data.notices.push("切换输入方式前请先清空查询".into());
+            }
+        }
     }
     if view.mode == InputMode::Menu {
         data.notices = view
@@ -701,6 +731,77 @@ mod tests {
     use super::*;
 
     #[test]
+    fn kana_menu_and_literal_controls_keep_query_local_until_numeric_selection() {
+        use crate::candidate_data::{
+            CLEAR_EXPRESSION, FIND_EXPRESSIONS, LITERAL_EXPRESSION, WORDS_EXPRESSION,
+        };
+        use core_engine::expressions::*;
+        let mut config = Config::default();
+        config.expressions.kana.search = true;
+        let runtime = RuntimeSnapshot {
+            dict: Dictionary::from_text("a\t普通\n").unwrap(),
+            config,
+            revision: 1,
+            config_path: "config.toml".into(),
+            system_table_path: "main.dict".into(),
+            user_table_path: "user.dict".into(),
+            temporary: Arc::default(),
+            expressions: Arc::new(ExpressionResources {
+                kana: ExpressionResource {
+                    library: Some(Arc::new(
+                        ExpressionLibrary::load(
+                            &std::path::Path::new(env!("CARGO_MANIFEST_DIR"))
+                                .join("../../expressions/kana.mwe"),
+                            ExpressionKind::Kana,
+                        )
+                        .unwrap(),
+                    )),
+                    ..Default::default()
+                },
+                ..Default::default()
+            }),
+        };
+        let data = Arc::new(ArcSwap::from_pointee(CandidateData::default()));
+        let session = InputSession::from_snapshot(&runtime, data.clone());
+        let mut editor = Editor::default();
+        assert!(session.action(Action::OpenModeChooser, None, |op| editor.apply(op)));
+        assert!(data.load().items[5].disabled);
+        assert_eq!(data.load().items[4].text, "假名");
+        session.choose_candidate(data.load().selection_token.unwrap(), 4, |op| {
+            editor.apply(op)
+        });
+        let click = |id| {
+            session.choose_candidate(
+                data.load().selection_token.unwrap(),
+                id,
+                |_| -> Result<_, &str> { panic!("query controls must stay local") },
+            )
+        };
+        click(LITERAL_EXPRESSION);
+        type_text(&session, &mut editor, "1+");
+        assert_eq!(data.load().expression.as_ref().unwrap().text, "1+");
+        click(WORDS_EXPRESSION);
+        assert_eq!(
+            data.load().expression.as_ref().unwrap().input,
+            core_engine::candidates::ExpressionInput::Literal
+        );
+        click(CLEAR_EXPRESSION);
+        type_text(&session, &mut editor, "shi");
+        assert!(editor.committed.is_empty());
+        assert!(editor.spelling.is_empty());
+        click(FIND_EXPRESSIONS);
+        assert_eq!(data.load().items[0].text, "し");
+        assert_eq!(
+            data.load().items[0].expression_kind,
+            Some(ExpressionKind::Kana)
+        );
+        type_text(&session, &mut editor, "1");
+        assert_eq!(editor.committed, "し");
+        assert!(editor.spelling.is_empty());
+        assert!(data.load().expression.is_none());
+    }
+
+    #[test]
     fn expression_menu_query_controls_and_results_share_versioned_clicks_without_host_preedit() {
         use core_engine::expressions::*;
         let library = ExpressionLibrary::parse(concat!("# MyWubi Expressions 1\n", r#"{
@@ -731,7 +832,7 @@ mod tests {
         let session = InputSession::from_snapshot(&runtime, data.clone());
         let mut editor = Editor::default();
         assert!(session.action(Action::OpenModeChooser, None, |op| editor.apply(op)));
-        assert_eq!(data.load().items.len(), 4);
+        assert_eq!(data.load().items.len(), 8);
         let token = data.load().selection_token.unwrap();
         session.choose_candidate(token, 2, |_| -> Result<_, &str> {
             panic!("menu selection must stay local")
@@ -1175,7 +1276,7 @@ mod tests {
         let (session, candidates, mut editor) = temporary_setup();
         type_text(&session, &mut editor, "`");
         assert!(candidates.load().visible);
-        assert_eq!(candidates.load().items.len(), 4);
+        assert_eq!(candidates.load().items.len(), 8);
         assert!(editor.spelling.is_empty());
         type_text(&session, &mut editor, "1");
         assert!(candidates.load().spelling.is_empty());

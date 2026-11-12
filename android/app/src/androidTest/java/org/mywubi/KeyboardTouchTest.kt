@@ -219,7 +219,7 @@ class KeyboardTouchTest {
             assertEquals("Pinyin must have only one entry", 1,
                 device.findObjects(By.descStartsWith("拼音").pkg("org.mywubi")).size)
             val toolbarY = key("设置").visibleBounds.centerY()
-            for (label in listOf("切换输入法", "Emoji 输入", "颜文字输入", "拼音", "收起键盘")) {
+            for (label in listOf("切换输入法", "特殊输入", "拼音", "收起键盘")) {
                 assertEquals("All toolbar actions must share one row", toolbarY, key(label).visibleBounds.centerY())
                 assertFalse("Tool panel actions use icons", device.hasObject(By.text(label)))
             }

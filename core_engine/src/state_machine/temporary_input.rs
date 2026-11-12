@@ -12,21 +12,14 @@ impl StateMachine {
         if self.mode == InputMode::Menu {
             let index = match event {
                 InputEvent::Select(index) => index,
-                InputEvent::Char('1') => 1,
-                InputEvent::Char('2') => 2,
-                InputEvent::Char('3') => 3,
-                InputEvent::Char('4') => 4,
+                InputEvent::Char(c @ '1'..='8') => c as usize - '0' as usize,
                 _ => return Transition::None,
             };
             match index {
                 1 if self.temporary.pinyin.is_some() => self.mode = InputMode::Pinyin,
                 2 if self.temporary.english_error.is_none() => self.mode = InputMode::English,
-                3 | 4 => {
-                    let kind = if index == 3 {
-                        crate::expressions::ExpressionKind::Emoji
-                    } else {
-                        crate::expressions::ExpressionKind::Kaomoji
-                    };
+                3..=8 => {
+                    let kind = crate::expressions::ExpressionKind::ALL[index - 3];
                     return self
                         .begin_expression(kind, None)
                         .unwrap_or(Transition::None);
@@ -125,7 +118,12 @@ impl StateMachine {
                     .reason
                     .unwrap_or_default(),
             ];
-            self.total_candidates = 4;
+            for kind in crate::expressions::ExpressionKind::ALL.into_iter().skip(2) {
+                self.candidates.push(kind.label().into());
+                self.code_hints
+                    .push(self.expression_capability(kind).reason.unwrap_or_default());
+            }
+            self.total_candidates = self.candidates.len();
             self.state = InputState::Selecting;
         } else if !self.reuse_appended_page() {
             let dict = match self.mode {

@@ -84,6 +84,8 @@ pub enum Action {
     CloseModeChooser,
     FindExpressions,
     EditExpressionQuery,
+    SetExpressionInput(crate::candidates::ExpressionInput),
+    ClearExpressionQuery,
     SelectCandidate(QueryRevision, CandidateId),
 }
 
@@ -520,7 +522,9 @@ impl SemanticEngine {
             | Action::ChooseMode(_)
             | Action::CloseModeChooser
             | Action::FindExpressions
-            | Action::EditExpressionQuery => true,
+            | Action::EditExpressionQuery
+            | Action::SetExpressionInput(_)
+            | Action::ClearExpressionQuery => true,
             Action::Legacy(e) => self.sm.would_consume(e),
             Action::InputCode(c) => match self.sm.mode {
                 InputMode::Main
@@ -610,7 +614,10 @@ impl SemanticEngine {
         }
         let legacy = matches!(action, Action::Legacy(_));
         let transition = match action {
-            Action::FindExpressions | Action::EditExpressionQuery => Transition::None,
+            Action::FindExpressions
+            | Action::EditExpressionQuery
+            | Action::SetExpressionInput(_)
+            | Action::ClearExpressionQuery => Transition::None,
             Action::SelectCandidate(revision, id) => {
                 if revision != self.query_revision {
                     return ActionResult::rejected(Rejection::StaleCandidate);
@@ -621,6 +628,10 @@ impl SemanticEngine {
                         TemporaryMode::English,
                         TemporaryMode::Emoji,
                         TemporaryMode::Kaomoji,
+                        TemporaryMode::Kana,
+                        TemporaryMode::Math,
+                        TemporaryMode::Punctuation,
+                        TemporaryMode::Symbols,
                     ]
                     .get(id.0) else {
                         return ActionResult::rejected(Rejection::StaleCandidate);
@@ -776,6 +787,11 @@ impl SemanticEngine {
             Action::EndTemporary | Action::CloseModeChooser => self.sm.exit_expression(),
             Action::FindExpressions => self.sm.find_expressions(),
             Action::EditExpressionQuery => self.sm.edit_expression(),
+            Action::ClearExpressionQuery => self.sm.clear_expression_query(),
+            Action::SetExpressionInput(input) => match self.sm.set_expression_input(*input) {
+                Ok(transition) => transition,
+                Err(reason) => return Some(ActionResult::rejected(Rejection::Unavailable(reason))),
+            },
             Action::SelectCandidate(revision, id) => {
                 if *revision != self.query_revision || id.0 >= self.sm.total_candidates {
                     return Some(ActionResult::rejected(Rejection::StaleCandidate));
@@ -786,12 +802,35 @@ impl SemanticEngine {
             Action::InputText(c, TextIntent::Normal) => {
                 self.sm.handle_expression(InputEvent::Char(*c))
             }
-            Action::InputText(_, TextIntent::Literal)
-            | Action::InsertLiteral(_)
-            | Action::InputSymbol(_) => {
+            Action::InputText(c, TextIntent::Literal) | Action::InputSymbol(c) => {
+                if self
+                    .sm
+                    .expression_view()
+                    .is_some_and(|view| view.input == crate::candidates::ExpressionInput::Literal)
+                {
+                    return Some(ActionResult::from_transition(
+                        self.sm.handle_expression(InputEvent::Char(*c)),
+                    ));
+                }
                 return Some(ActionResult::rejected(Rejection::Unavailable(
                     "查询模式请使用主码表选词；字面文本不会写入宿主".into(),
                 )));
+            }
+            Action::InsertLiteral(text) => {
+                let view = self.sm.expression_view()?;
+                if view.input != crate::candidates::ExpressionInput::Literal
+                    || view.phase != crate::candidates::ExpressionPhase::Editing
+                    || text.chars().any(char::is_control)
+                    || view.text.chars().count() + text.chars().count() > 512
+                {
+                    return Some(ActionResult::rejected(Rejection::Unavailable(
+                        "请在字面别名编辑阶段输入不含控制字符、总长不超过 512 字符的查询。".into(),
+                    )));
+                }
+                for c in text.chars() {
+                    self.sm.handle_expression_code(c);
+                }
+                self.sm.refresh_expression()
             }
             Action::Legacy(event) => self.sm.handle_expression(event.clone()),
             Action::CommitPreferred | Action::Space => self.sm.handle_expression(InputEvent::Space),

@@ -100,7 +100,7 @@ class ExpressionLayoutTest {
                 spelling="a",candidates=listOf(CandidateItem(20,"车","")),total=1) }
             shot("$name-editing")
             if(landscape) { val pane=node(By.desc("表情查询与操作"));pane.setGestureMargin(20);pane.scroll(Direction.UP,1f) }
-            reveal(By.text("查找表情"),By.desc("表情查询与操作")).click();settled();assertEquals("FindExpressions",events.last())
+            reveal(By.text("查找"),By.desc("表情查询与操作")).click();settled();assertEquals("FindExpressions",events.last())
             reveal(By.text("取消"),By.desc("表情查询与操作")).click();settled();assertEquals("EndTemporary",events.last())
             scenario.onActivity { activity -> activity.setContent { ExpressionPreview() } }
             node(By.text("表情显示预览")).click();settled()

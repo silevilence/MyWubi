@@ -267,7 +267,11 @@ class MyWubiService : InputMethodService() {
         keyboard = KeyboardModel(
             expression = state.optJSONObject("view")?.optJSONObject("expression")?.let { query ->
                 ExpressionQueryUi(query.getString("kind"), query.getString("phase"), query.getString("text"),
-                    query.optString("message").takeIf { it.isNotBlank() && it != "null" })
+                    query.optString("message").takeIf { it.isNotBlank() && it != "null" }, query.optString("input", "Words"))
+            },
+            specialCapabilities = listOf("Emoji", "Kaomoji", "Kana", "Math", "Punctuation", "Symbols").associateWith { mode ->
+                val capability = state.optJSONObject(mode.lowercase(java.util.Locale.ROOT))
+                (capability?.optBoolean("available") == true) to capability?.optString("reason")?.takeIf { it != "null" }
             },
             emojiAvailable = state.optJSONObject("emoji")?.optBoolean("available") == true,
             kaomojiAvailable = state.optJSONObject("kaomoji")?.optBoolean("available") == true,

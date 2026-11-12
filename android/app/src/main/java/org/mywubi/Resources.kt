@@ -9,7 +9,7 @@ object Resources {
         val root = File(context.filesDir, "engine").apply { mkdirs() }
         val tables = File(root, "tables").apply { mkdirs() }
         val expressions = File(root, "expressions").apply { mkdirs() }
-        for (name in listOf("emoji.mwe", "kaomoji.mwe")) {
+        for (name in listOf("emoji.mwe", "kaomoji.mwe", "kana.mwe", "math.mwe", "punctuation.mwe", "symbols.mwe")) {
             val target = File(expressions, name)
             if (!target.exists()) {
                 // Keep existing files on upgrades, including user-maintained resources.

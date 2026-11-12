@@ -102,9 +102,13 @@ impl Scene {
                 "{} · {}",
                 data.mode_label,
                 if query.phase == ExpressionPhase::Editing {
-                    "组合关键词"
+                    if query.input == core_engine::candidates::ExpressionInput::Literal {
+                        "字面别名"
+                    } else {
+                        "主码表组词"
+                    }
                 } else {
-                    "选择表情"
+                    "选择结果"
                 }
             ));
             header.push(format!(

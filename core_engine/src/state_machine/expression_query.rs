@@ -8,6 +8,8 @@ use unicode_segmentation::UnicodeSegmentation;
 #[derive(Clone)]
 pub(super) struct ExpressionQuery {
     kind: ExpressionKind,
+    input: ExpressionInput,
+    literal: String,
     words: Vec<String>,
     builder: Box<StateMachine>,
     word_code: String,
@@ -20,11 +22,15 @@ pub(super) struct ExpressionQuery {
 
 impl ExpressionQuery {
     fn text(&self) -> String {
-        self.words.concat()
+        if self.input == ExpressionInput::Literal {
+            self.literal.clone()
+        } else {
+            self.words.concat()
+        }
     }
 
     fn nonempty(&self) -> bool {
-        !self.words.is_empty() || !self.builder.spelling.is_empty()
+        !self.literal.is_empty() || !self.words.is_empty() || !self.builder.spelling.is_empty()
     }
 
     fn accept_word(&mut self, text: String) -> bool {
@@ -53,6 +59,17 @@ impl ExpressionQuery {
     }
 
     fn input_code(&mut self, c: char) {
+        if self.input == ExpressionInput::Literal {
+            if c.is_control() {
+                self.message = Some("查询不接受控制字符。".into());
+            } else if self.literal.chars().count() >= 512 {
+                self.message = Some("查询最多 512 个字符，请先删减关键词。".into());
+            } else {
+                self.literal.push(c);
+                self.message = None;
+            }
+            return;
+        }
         if !self.builder.accepts_code_char(c) {
             self.message = Some("请使用当前主码表输入查询文字。".into());
             return;
@@ -80,7 +97,11 @@ impl ExpressionQuery {
     }
 
     fn backspace(&mut self) {
-        if !self.builder.spelling.is_empty() {
+        if self.input == ExpressionInput::Literal {
+            if let Some((start, _)) = self.literal.grapheme_indices(true).next_back() {
+                self.literal.truncate(start);
+            }
+        } else if !self.builder.spelling.is_empty() {
             self.builder.on_backspace();
         } else {
             // Segment the whole query: a combining mark may cross a selected-word boundary.
@@ -104,6 +125,7 @@ impl StateMachine {
         let query = self.expression_query.as_ref()?;
         Some(ExpressionQueryView {
             kind: query.kind,
+            input: query.input,
             phase: if query.results.is_some() {
                 ExpressionPhase::Results
             } else {
@@ -182,6 +204,8 @@ impl StateMachine {
         };
         self.expression_query = Some(Box::new(ExpressionQuery {
             kind,
+            input: ExpressionInput::Words,
+            literal: String::new(),
             words: Vec::new(),
             builder: Box::new(builder),
             word_code: String::new(),
@@ -217,7 +241,7 @@ impl StateMachine {
                 query.select_word(1);
             }
             if query.builder.spelling.is_empty() {
-                if query.words.is_empty() {
+                if query.text().trim().is_empty() {
                     query.message = Some("请先输入并确认查询文字。".into());
                 } else if let Some(library) = self.expression_library(query.kind) {
                     let text = query.text();
@@ -249,6 +273,36 @@ impl StateMachine {
         query.results = None;
         query.message = None;
         self.page = 0;
+        self.refresh_expression()
+    }
+
+    pub(super) fn set_expression_input(
+        &mut self,
+        input: ExpressionInput,
+    ) -> Result<Transition, String> {
+        let Some(query) = &mut self.expression_query else {
+            return Ok(Transition::None);
+        };
+        if query.input == input {
+            return Ok(self.refresh_expression());
+        }
+        if query.nonempty() || query.results.is_some() {
+            return Err("请先清空查询，再切换输入方式。".into());
+        }
+        query.input = input;
+        query.message = None;
+        Ok(self.refresh_expression())
+    }
+
+    pub(super) fn clear_expression_query(&mut self) -> Transition {
+        if let Some(query) = &mut self.expression_query {
+            query.words.clear();
+            query.literal.clear();
+            query.builder.reset();
+            query.results = None;
+            query.message = None;
+            self.page = 0;
+        }
         self.refresh_expression()
     }
 
@@ -353,6 +407,19 @@ impl StateMachine {
                 _ => {}
             }
         } else {
+            if query.input == ExpressionInput::Literal {
+                match event {
+                    InputEvent::Char(c) | InputEvent::Symbol(c) => query.input_code(c),
+                    InputEvent::Space => query.input_code(' '),
+                    InputEvent::Backspace => query.backspace(),
+                    InputEvent::Esc => return self.exit_expression(),
+                    InputEvent::Enter => {
+                        query.message = Some("请使用查找操作；查询文字不会上屏。".into());
+                    }
+                    _ => {}
+                }
+                return self.refresh_expression();
+            }
             match event {
                 InputEvent::Esc if query.builder.spelling.is_empty() => {
                     return self.exit_expression()

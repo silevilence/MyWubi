@@ -60,6 +60,9 @@ pub(crate) const EDIT_EXPRESSION: usize = usize::MAX - 2;
 pub(crate) const CANCEL_EXPRESSION: usize = usize::MAX - 3;
 pub(crate) const PREVIOUS_PAGE: usize = usize::MAX - 4;
 pub(crate) const NEXT_PAGE: usize = usize::MAX - 5;
+pub(crate) const WORDS_EXPRESSION: usize = usize::MAX - 6;
+pub(crate) const LITERAL_EXPRESSION: usize = usize::MAX - 7;
+pub(crate) const CLEAR_EXPRESSION: usize = usize::MAX - 8;
 #[derive(Debug, Clone)]
 pub struct CandidateControl {
     pub id: usize,

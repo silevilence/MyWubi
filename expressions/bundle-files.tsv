@@ -1,6 +1,15 @@
 # Source relative to expressions/; packaged path relative to expressions/.
 emoji.mwe	emoji.mwe
 kaomoji.mwe	kaomoji.mwe
+kana.mwe	kana.mwe
+math.mwe	math.mwe
+punctuation.mwe	punctuation.mwe
+symbols.mwe	symbols.mwe
+SPECIAL-TABLES.md	SPECIAL-TABLES.md
+kana-coverage.json	kana-coverage.json
+math-coverage.json	math-coverage.json
+punctuation-coverage.json	punctuation-coverage.json
+symbols-coverage.json	symbols-coverage.json
 README.md	README.md
 KAOMOJI-SOURCES.md	KAOMOJI-SOURCES.md
 SEARCH-RELATIONS.md	SEARCH-RELATIONS.md

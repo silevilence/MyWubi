@@ -103,6 +103,108 @@ fn profiles() -> [BehaviorProfile; 2] {
 }
 
 #[test]
+fn literal_kana_alias_round_is_local_and_commits_only_selected_result() {
+    for profile in profiles() {
+        let mut r = runtime();
+        r.config.expressions.kana.search = true;
+        Arc::get_mut(&mut r.expressions).unwrap().kana = ExpressionResource {
+            library: Some(Arc::new(
+                ExpressionLibrary::load(
+                    &std::path::Path::new(env!("CARGO_MANIFEST_DIR"))
+                        .join("../expressions/kana.mwe"),
+                    ExpressionKind::Kana,
+                )
+                .unwrap(),
+            )),
+            ..Default::default()
+        };
+        let mut s = Session::new(&r, profile, HostContext::default());
+        apply(&mut s, Action::OpenModeChooser);
+        let menu = s.candidate_window(0, 20);
+        assert_eq!(menu.total, 8);
+        local(
+            &mut s,
+            Action::SelectCandidate(menu.query_revision, menu.candidates[4].id),
+        );
+        assert_eq!(
+            s.snapshot().expression.as_ref().unwrap().kind,
+            ExpressionKind::Kana
+        );
+        local(&mut s, Action::SetExpressionInput(ExpressionInput::Literal));
+        for c in "shi".chars() {
+            local(&mut s, Action::InputText(c, TextIntent::Normal));
+        }
+        assert_eq!(s.snapshot().expression.as_ref().unwrap().text, "shi");
+        assert!(matches!(
+            s.prepare(Action::SetExpressionInput(ExpressionInput::Words)),
+            Err(SessionError::Rejected(_))
+        ));
+        local(&mut s, Action::FindExpressions);
+        let results = s.candidate_window(0, 10);
+        assert_eq!(
+            &results.candidates[..2]
+                .iter()
+                .map(|c| c.text.as_str())
+                .collect::<Vec<_>>(),
+            &["し", "シ"]
+        );
+        let edit = apply(&mut s, Action::InputText('1', TextIntent::Normal));
+        assert_eq!(
+            edit.op,
+            EditSessionOp::CommitAndReplace {
+                text: "し".into(),
+                replace_len: 0
+            }
+        );
+        assert!(s.snapshot().expression.is_none());
+        assert_eq!(s.state_machine().mode(), InputMode::Main);
+    }
+}
+
+#[test]
+fn literal_editing_keeps_digits_symbols_graphemes_and_requires_clear_before_switch() {
+    for profile in profiles() {
+        let mut s = Session::new(&runtime(), profile, HostContext::default());
+        begin(&mut s);
+        local(&mut s, Action::SetExpressionInput(ExpressionInput::Literal));
+        for c in "1+".chars() {
+            local(&mut s, Action::InputText(c, TextIntent::Normal));
+        }
+        local(&mut s, Action::InsertLiteral("👩🏽‍💻".into()));
+        local(&mut s, Action::Backspace);
+        assert_eq!(s.snapshot().expression.as_ref().unwrap().text, "1+");
+        local(&mut s, Action::Enter);
+        assert_eq!(s.snapshot().expression.as_ref().unwrap().text, "1+");
+        local(&mut s, Action::FindExpressions);
+        assert_eq!(
+            s.snapshot().expression.as_ref().unwrap().phase,
+            ExpressionPhase::Results
+        );
+        assert_eq!(s.candidate_window(0, 9).total, 0);
+        local(&mut s, Action::EditExpressionQuery);
+        assert_eq!(s.snapshot().expression.as_ref().unwrap().text, "1+");
+        local(&mut s, Action::ClearExpressionQuery);
+        local(&mut s, Action::SetExpressionInput(ExpressionInput::Words));
+        word(&mut s, 'a');
+        assert_eq!(s.snapshot().expression.as_ref().unwrap().text, "禁止");
+        assert!(matches!(
+            s.prepare(Action::SetExpressionInput(ExpressionInput::Literal)),
+            Err(SessionError::Rejected(_))
+        ));
+        local(&mut s, Action::ClearExpressionQuery);
+        local(&mut s, Action::SetExpressionInput(ExpressionInput::Literal));
+        local(&mut s, Action::InsertLiteral("x".repeat(512)));
+        assert!(matches!(
+            s.prepare(Action::InsertLiteral("x".into())),
+            Err(SessionError::Rejected(_))
+        ));
+        assert_eq!(s.snapshot().expression.as_ref().unwrap().text.len(), 512);
+        local(&mut s, Action::EndTemporary);
+        assert!(s.snapshot().expression.is_none());
+    }
+}
+
+#[test]
 fn multiword_lookup_never_edits_host_until_result_confirmation() {
     for profile in profiles() {
         let mut r = runtime();
@@ -490,7 +592,16 @@ fn mode_chooser_uses_versioned_clicks_without_a_main_table_trigger() {
                 .iter()
                 .map(|c| c.text.as_str())
                 .collect::<Vec<_>>(),
-            ["拼音", "英文", "Emoji", "颜文字"]
+            [
+                "拼音",
+                "英文",
+                "Emoji",
+                "颜文字",
+                "假名",
+                "数学符号",
+                "标点",
+                "其他符号"
+            ]
         );
         local(
             &mut s,

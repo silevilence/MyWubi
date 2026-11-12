@@ -23,3 +23,12 @@
 ## 2026-11-12，SI-04
 
 数学 124 项、标点 49 项、其他符号 109 项；`special_datasets` 最终 3 项通过。检查所有条目的完整名称触发和唯一输出，代表查询命中及排序正确，多字符输出和形近/单位形式原样往返。四个新库重复生成均逐字节一致，SHA-256 与清单匹配，未下载第三方资源。
+
+## 2026-11-12，SI-05（部分完成）
+
+- 新增 `ExpressionInput::{Words,Literal}`、切换/清空动作及本地字面查询缓冲。512 字符上限、按字素退格、非空拒绝切换、结果数字选词均由核心负责；查询不作为宿主预编辑或上屏文本。
+- Windows 辅助菜单包含拼音、英文及六类特殊输入；操作区提供切换、清空、查找、修改和取消。Android 使用单个“特殊输入”菜单列出六类及禁用原因，避免继续扩大工具栏。
+- `expression_query` 15 项、`expression_candidates` 18 项、`temporary_input` 9 项、`special_datasets` 3 项通过；覆盖 SI-C10 的核心轨迹、六类顺序和跨类别去重，旧分组分页保持不变。
+- `cargo test --offline -p im_engine --lib input_session::tests` 27 项通过；这是适配层模拟编辑器验证，不是实际 TSF 宿主证据。
+- 核心严格 Clippy 通过。Android `:app:compileDebugKotlin` 与 `:app:compileDebugAndroidTestKotlin` 离线通过（均 `-x cargoBuild`）；已有界面用例同步新菜单，新增 `ExpressionHostTest.kanaLiteralAliasUsesVisibleCategoryEntryAndCommitsOnlyTheResult` 待设备运行。
+- 四个新资源、说明和覆盖清单加入共用 bundle 清单及 Android 首次复制流程；完整升级、便携与 APK 分发验收未执行。未连接 Android 设备，未执行本次真实 UI 验收，不能把以上编译/模拟证据记作 SI-16/17 通过。
