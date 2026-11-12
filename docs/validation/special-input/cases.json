@@ -1,0 +1,441 @@
+{
+  "schema": 1,
+  "purpose": "Normative expected values; this file is not proof of implemented behavior",
+  "cases": [
+    {
+      "id": "SI-C01",
+      "kind": "merge",
+      "capacity": 3,
+      "base_pages": [
+        [
+          "甲",
+          "乙",
+          "丙"
+        ],
+        [
+          "表"
+        ],
+        [
+          "丁",
+          "戊",
+          "己"
+        ]
+      ],
+      "rules": [
+        {
+          "position": 2,
+          "text": "日期"
+        }
+      ],
+      "expected_pages": [
+        [
+          "甲",
+          "日期",
+          "乙"
+        ],
+        [
+          "丙",
+          "表",
+          "丁"
+        ],
+        [
+          "戊",
+          "己"
+        ]
+      ],
+      "without_match_pages": [
+        [
+          "甲",
+          "乙",
+          "丙"
+        ],
+        [
+          "表"
+        ],
+        [
+          "丁",
+          "戊",
+          "己"
+        ]
+      ]
+    },
+    {
+      "id": "SI-C02",
+      "kind": "merge_boundaries",
+      "capacity": 3,
+      "base": [
+        "甲",
+        "乙",
+        "丙",
+        "表",
+        "丁",
+        "戊",
+        "己"
+      ],
+      "variants": [
+        {
+          "position": 1,
+          "expected_pages": [
+            [
+              "日期",
+              "甲",
+              "乙"
+            ],
+            [
+              "丙",
+              "表",
+              "丁"
+            ],
+            [
+              "戊",
+              "己"
+            ]
+          ]
+        },
+        {
+          "position": 3,
+          "expected_pages": [
+            [
+              "甲",
+              "乙",
+              "日期"
+            ],
+            [
+              "丙",
+              "表",
+              "丁"
+            ],
+            [
+              "戊",
+              "己"
+            ]
+          ]
+        },
+        {
+          "position": 4,
+          "expected_pages": [
+            [
+              "甲",
+              "乙",
+              "丙"
+            ],
+            [
+              "日期",
+              "表",
+              "丁"
+            ],
+            [
+              "戊",
+              "己"
+            ]
+          ]
+        },
+        {
+          "position": 5,
+          "expected_pages": [
+            [
+              "甲",
+              "乙",
+              "丙"
+            ],
+            [
+              "表",
+              "日期",
+              "丁"
+            ],
+            [
+              "戊",
+              "己"
+            ]
+          ]
+        }
+      ]
+    },
+    {
+      "id": "SI-C03",
+      "kind": "sparse",
+      "variants": [
+        {
+          "base": [],
+          "positions": [
+            2,
+            3
+          ],
+          "actual_positions": [
+            1,
+            2
+          ],
+          "expected": [
+            "日期甲",
+            "日期乙"
+          ]
+        },
+        {
+          "base": [
+            "甲",
+            "乙"
+          ],
+          "positions": [
+            2,
+            8
+          ],
+          "actual_positions": [
+            2,
+            4
+          ],
+          "expected": [
+            "甲",
+            "日期甲",
+            "乙",
+            "日期乙"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "SI-C04",
+      "kind": "duplicate",
+      "base": [
+        {
+          "text": "2026-11-12",
+          "source": "ordinary"
+        },
+        {
+          "text": "甲",
+          "source": "ordinary"
+        },
+        {
+          "text": "乙",
+          "source": "ordinary"
+        }
+      ],
+      "rules": [
+        {
+          "id": "date",
+          "position": 3,
+          "text": "2026-11-12"
+        }
+      ],
+      "expected_texts": [
+        "2026-11-12",
+        "甲",
+        "2026-11-12",
+        "乙"
+      ],
+      "expected_sources": [
+        "ordinary",
+        "ordinary",
+        "dynamic:date",
+        "ordinary"
+      ],
+      "ordinary_learning_preserved": true,
+      "dynamic_learning": false
+    },
+    {
+      "id": "SI-C05",
+      "kind": "duplicate",
+      "base": [
+        {
+          "text": "甲",
+          "source": "ordinary"
+        },
+        {
+          "text": "X",
+          "source": "special"
+        }
+      ],
+      "rules": [
+        {
+          "id": "one",
+          "position": 3,
+          "text": "X"
+        },
+        {
+          "id": "two",
+          "position": 4,
+          "text": "X"
+        }
+      ],
+      "expected_texts": [
+        "甲",
+        "X",
+        "X"
+      ],
+      "expected_sources": [
+        "ordinary",
+        "dynamic:one",
+        "dynamic:two"
+      ],
+      "actual_positions": [
+        2,
+        3
+      ]
+    },
+    {
+      "id": "SI-C06",
+      "kind": "selection",
+      "global_positions": [
+        9,
+        10,
+        11
+      ],
+      "expected_page_slot": {
+        "1": [
+          [
+            9,
+            1
+          ],
+          [
+            10,
+            1
+          ],
+          [
+            11,
+            1
+          ]
+        ],
+        "9": [
+          [
+            1,
+            9
+          ],
+          [
+            2,
+            1
+          ],
+          [
+            2,
+            2
+          ]
+        ],
+        "10": [
+          [
+            1,
+            9
+          ],
+          [
+            2,
+            1
+          ],
+          [
+            2,
+            2
+          ]
+        ]
+      },
+      "zero_selects_tenth": false,
+      "keyboard_equals_click": true
+    },
+    {
+      "id": "SI-C07",
+      "kind": "validation",
+      "normalize": {
+        "JJAD": "jjad"
+      },
+      "invalid_codes": [
+        "",
+        "jj1",
+        "jj;",
+        "日期",
+        "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+      ],
+      "valid_lengths": [
+        1,
+        32
+      ],
+      "position_bounds": [
+        1,
+        10000
+      ],
+      "duplicate_after_normalization_rejected": true,
+      "disabled_duplicates_rejected": true,
+      "conflict_keys": [
+        "j",
+        "J"
+      ],
+      "conflict_effect": "pause_only_affected_rules",
+      "switch_back": "restore_user_enabled_intent"
+    },
+    {
+      "id": "SI-C08",
+      "kind": "clock",
+      "actions": [
+        {
+          "at": "2026-11-12T23:59:59+08:00",
+          "input": "jja"
+        },
+        {
+          "at": "2026-11-13T00:00:01+08:00",
+          "input": "d"
+        }
+      ],
+      "expected": [
+        "2026年11月13日",
+        "2026-11-13 00:00:01"
+      ],
+      "clock_calls": 1,
+      "read_page_probe_extra_calls": 0
+    },
+    {
+      "id": "SI-C09",
+      "kind": "lifecycle",
+      "initial": "2026-11-13T00:00:01+08:00",
+      "edited_time": "2026-11-13T00:00:09+08:00",
+      "variants": [
+        {
+          "action": "backspace_then_d",
+          "clock_calls": 2,
+          "expected_seconds": "09",
+          "old_id_valid": false
+        },
+        {
+          "action": "confirmed_not_written_retry_same_query",
+          "clock_calls": 1,
+          "expected_seconds": "01"
+        },
+        {
+          "action": "reload",
+          "old_id_valid": false
+        },
+        {
+          "action": "unknown_commit",
+          "automatic_replay": false
+        }
+      ]
+    },
+    {
+      "id": "SI-C10",
+      "kind": "literal_query",
+      "dictionary_has_shi": false,
+      "mode": "literal_alias",
+      "queries": [
+        "shi",
+        "SHI"
+      ],
+      "expected_contains": [
+        "し",
+        "シ"
+      ],
+      "during_query_host_writes": [],
+      "select": "し",
+      "host_commit": "し",
+      "editing_digits": "literal",
+      "result_digits": "selection"
+    },
+    {
+      "id": "SI-C11",
+      "kind": "prefix",
+      "table_max_length": 4,
+      "ordinary_unique_code": "jjaa",
+      "shortcut": "jjaad",
+      "overlap": [
+        "jjad",
+        "jjadx"
+      ],
+      "auto_commit_on_prefix": false,
+      "auto_commit_on_exact": false,
+      "overflow_on_reachable_extension": false,
+      "disabled_rule_changes_input": false
+    }
+  ]
+}

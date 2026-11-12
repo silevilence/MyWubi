@@ -1,0 +1,38 @@
+{
+  "input_jjaad": {
+    "p50_us": 1.7,
+    "p95_us": 1.7999999999999998,
+    "p99_us": 1.9,
+    "samples": 1000
+  },
+  "scope": "old core path only; excludes JNI/UI/host; first load uses OS file cache",
+  "searches": [
+    {
+      "entries": 3972,
+      "load_ms": 47.2443,
+      "query": "禁止车",
+      "resource": "emoji.mwe",
+      "results": 1,
+      "search": {
+        "p50_us": 894.0,
+        "p95_us": 1514.8,
+        "p99_us": 1743.5,
+        "samples": 200
+      }
+    },
+    {
+      "entries": 34354,
+      "load_ms": 147.5888,
+      "query": "开心",
+      "resource": "kaomoji.mwe",
+      "results": 2979,
+      "search": {
+        "p50_us": 476.5,
+        "p95_us": 984.6,
+        "p99_us": 1193.0,
+        "samples": 200
+      }
+    }
+  ],
+  "warmup": 20
+}

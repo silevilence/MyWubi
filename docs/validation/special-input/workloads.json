@@ -1,0 +1,5308 @@
+{
+  "schema": 1,
+  "disabled": {
+    "enabled": false
+  },
+  "misses": {
+    "input": "jjad",
+    "rules": [
+      {
+        "code": "siaaa",
+        "position": 1,
+        "format": "yyyy-MM-dd"
+      },
+      {
+        "code": "siaab",
+        "position": 1,
+        "format": "yyyy-MM-dd"
+      },
+      {
+        "code": "siaac",
+        "position": 1,
+        "format": "yyyy-MM-dd"
+      },
+      {
+        "code": "siaad",
+        "position": 1,
+        "format": "yyyy-MM-dd"
+      },
+      {
+        "code": "siaae",
+        "position": 1,
+        "format": "yyyy-MM-dd"
+      },
+      {
+        "code": "siaaf",
+        "position": 1,
+        "format": "yyyy-MM-dd"
+      },
+      {
+        "code": "siaag",
+        "position": 1,
+        "format": "yyyy-MM-dd"
+      },
+      {
+        "code": "siaah",
+        "position": 1,
+        "format": "yyyy-MM-dd"
+      },
+      {
+        "code": "siaai",
+        "position": 1,
+        "format": "yyyy-MM-dd"
+      },
+      {
+        "code": "siaaj",
+        "position": 1,
+        "format": "yyyy-MM-dd"
+      },
+      {
+        "code": "siaak",
+        "position": 1,
+        "format": "yyyy-MM-dd"
+      },
+      {
+        "code": "siaal",
+        "position": 1,
+        "format": "yyyy-MM-dd"
+      },
+      {
+        "code": "siaam",
+        "position": 1,
+        "format": "yyyy-MM-dd"
+      },
+      {
+        "code": "siaan",
+        "position": 1,
+        "format": "yyyy-MM-dd"
+      },
+      {
+        "code": "siaao",
+        "position": 1,
+        "format": "yyyy-MM-dd"
+      },
+      {
+        "code": "siaap",
+        "position": 1,
+        "format": "yyyy-MM-dd"
+      },
+      {
+        "code": "siaaq",
+        "position": 1,
+        "format": "yyyy-MM-dd"
+      },
+      {
+        "code": "siaar",
+        "position": 1,
+        "format": "yyyy-MM-dd"
+      },
+      {
+        "code": "siaas",
+        "position": 1,
+        "format": "yyyy-MM-dd"
+      },
+      {
+        "code": "siaat",
+        "position": 1,
+        "format": "yyyy-MM-dd"
+      },
+      {
+        "code": "siaau",
+        "position": 1,
+        "format": "yyyy-MM-dd"
+      },
+      {
+        "code": "siaav",
+        "position": 1,
+        "format": "yyyy-MM-dd"
+      },
+      {
+        "code": "siaaw",
+        "position": 1,
+        "format": "yyyy-MM-dd"
+      },
+      {
+        "code": "siaax",
+        "position": 1,
+        "format": "yyyy-MM-dd"
+      },
+      {
+        "code": "siaay",
+        "position": 1,
+        "format": "yyyy-MM-dd"
+      },
+      {
+        "code": "siaaz",
+        "position": 1,
+        "format": "yyyy-MM-dd"
+      },
+      {
+        "code": "siaba",
+        "position": 1,
+        "format": "yyyy-MM-dd"
+      },
+      {
+        "code": "siabb",
+        "position": 1,
+        "format": "yyyy-MM-dd"
+      },
+      {
+        "code": "siabc",
+        "position": 1,
+        "format": "yyyy-MM-dd"
+      },
+      {
+        "code": "siabd",
+        "position": 1,
+        "format": "yyyy-MM-dd"
+      },
+      {
+        "code": "siabe",
+        "position": 1,
+        "format": "yyyy-MM-dd"
+      },
+      {
+        "code": "siabf",
+        "position": 1,
+        "format": "yyyy-MM-dd"
+      },
+      {
+        "code": "siabg",
+        "position": 1,
+        "format": "yyyy-MM-dd"
+      },
+      {
+        "code": "siabh",
+        "position": 1,
+        "format": "yyyy-MM-dd"
+      },
+      {
+        "code": "siabi",
+        "position": 1,
+        "format": "yyyy-MM-dd"
+      },
+      {
+        "code": "siabj",
+        "position": 1,
+        "format": "yyyy-MM-dd"
+      },
+      {
+        "code": "siabk",
+        "position": 1,
+        "format": "yyyy-MM-dd"
+      },
+      {
+        "code": "siabl",
+        "position": 1,
+        "format": "yyyy-MM-dd"
+      },
+      {
+        "code": "siabm",
+        "position": 1,
+        "format": "yyyy-MM-dd"
+      },
+      {
+        "code": "siabn",
+        "position": 1,
+        "format": "yyyy-MM-dd"
+      },
+      {
+        "code": "siabo",
+        "position": 1,
+        "format": "yyyy-MM-dd"
+      },
+      {
+        "code": "siabp",
+        "position": 1,
+        "format": "yyyy-MM-dd"
+      },
+      {
+        "code": "siabq",
+        "position": 1,
+        "format": "yyyy-MM-dd"
+      },
+      {
+        "code": "siabr",
+        "position": 1,
+        "format": "yyyy-MM-dd"
+      },
+      {
+        "code": "siabs",
+        "position": 1,
+        "format": "yyyy-MM-dd"
+      },
+      {
+        "code": "siabt",
+        "position": 1,
+        "format": "yyyy-MM-dd"
+      },
+      {
+        "code": "siabu",
+        "position": 1,
+        "format": "yyyy-MM-dd"
+      },
+      {
+        "code": "siabv",
+        "position": 1,
+        "format": "yyyy-MM-dd"
+      },
+      {
+        "code": "siabw",
+        "position": 1,
+        "format": "yyyy-MM-dd"
+      },
+      {
+        "code": "siabx",
+        "position": 1,
+        "format": "yyyy-MM-dd"
+      },
+      {
+        "code": "siaby",
+        "position": 1,
+        "format": "yyyy-MM-dd"
+      },
+      {
+        "code": "siabz",
+        "position": 1,
+        "format": "yyyy-MM-dd"
+      },
+      {
+        "code": "siaca",
+        "position": 1,
+        "format": "yyyy-MM-dd"
+      },
+      {
+        "code": "siacb",
+        "position": 1,
+        "format": "yyyy-MM-dd"
+      },
+      {
+        "code": "siacc",
+        "position": 1,
+        "format": "yyyy-MM-dd"
+      },
+      {
+        "code": "siacd",
+        "position": 1,
+        "format": "yyyy-MM-dd"
+      },
+      {
+        "code": "siace",
+        "position": 1,
+        "format": "yyyy-MM-dd"
+      },
+      {
+        "code": "siacf",
+        "position": 1,
+        "format": "yyyy-MM-dd"
+      },
+      {
+        "code": "siacg",
+        "position": 1,
+        "format": "yyyy-MM-dd"
+      },
+      {
+        "code": "siach",
+        "position": 1,
+        "format": "yyyy-MM-dd"
+      },
+      {
+        "code": "siaci",
+        "position": 1,
+        "format": "yyyy-MM-dd"
+      },
+      {
+        "code": "siacj",
+        "position": 1,
+        "format": "yyyy-MM-dd"
+      },
+      {
+        "code": "siack",
+        "position": 1,
+        "format": "yyyy-MM-dd"
+      },
+      {
+        "code": "siacl",
+        "position": 1,
+        "format": "yyyy-MM-dd"
+      },
+      {
+        "code": "siacm",
+        "position": 1,
+        "format": "yyyy-MM-dd"
+      },
+      {
+        "code": "siacn",
+        "position": 1,
+        "format": "yyyy-MM-dd"
+      },
+      {
+        "code": "siaco",
+        "position": 1,
+        "format": "yyyy-MM-dd"
+      },
+      {
+        "code": "siacp",
+        "position": 1,
+        "format": "yyyy-MM-dd"
+      },
+      {
+        "code": "siacq",
+        "position": 1,
+        "format": "yyyy-MM-dd"
+      },
+      {
+        "code": "siacr",
+        "position": 1,
+        "format": "yyyy-MM-dd"
+      },
+      {
+        "code": "siacs",
+        "position": 1,
+        "format": "yyyy-MM-dd"
+      },
+      {
+        "code": "siact",
+        "position": 1,
+        "format": "yyyy-MM-dd"
+      },
+      {
+        "code": "siacu",
+        "position": 1,
+        "format": "yyyy-MM-dd"
+      },
+      {
+        "code": "siacv",
+        "position": 1,
+        "format": "yyyy-MM-dd"
+      },
+      {
+        "code": "siacw",
+        "position": 1,
+        "format": "yyyy-MM-dd"
+      },
+      {
+        "code": "siacx",
+        "position": 1,
+        "format": "yyyy-MM-dd"
+      },
+      {
+        "code": "siacy",
+        "position": 1,
+        "format": "yyyy-MM-dd"
+      },
+      {
+        "code": "siacz",
+        "position": 1,
+        "format": "yyyy-MM-dd"
+      },
+      {
+        "code": "siada",
+        "position": 1,
+        "format": "yyyy-MM-dd"
+      },
+      {
+        "code": "siadb",
+        "position": 1,
+        "format": "yyyy-MM-dd"
+      },
+      {
+        "code": "siadc",
+        "position": 1,
+        "format": "yyyy-MM-dd"
+      },
+      {
+        "code": "siadd",
+        "position": 1,
+        "format": "yyyy-MM-dd"
+      },
+      {
+        "code": "siade",
+        "position": 1,
+        "format": "yyyy-MM-dd"
+      },
+      {
+        "code": "siadf",
+        "position": 1,
+        "format": "yyyy-MM-dd"
+      },
+      {
+        "code": "siadg",
+        "position": 1,
+        "format": "yyyy-MM-dd"
+      },
+      {
+        "code": "siadh",
+        "position": 1,
+        "format": "yyyy-MM-dd"
+      },
+      {
+        "code": "siadi",
+        "position": 1,
+        "format": "yyyy-MM-dd"
+      },
+      {
+        "code": "siadj",
+        "position": 1,
+        "format": "yyyy-MM-dd"
+      },
+      {
+        "code": "siadk",
+        "position": 1,
+        "format": "yyyy-MM-dd"
+      },
+      {
+        "code": "siadl",
+        "position": 1,
+        "format": "yyyy-MM-dd"
+      },
+      {
+        "code": "siadm",
+        "position": 1,
+        "format": "yyyy-MM-dd"
+      },
+      {
+        "code": "siadn",
+        "position": 1,
+        "format": "yyyy-MM-dd"
+      },
+      {
+        "code": "siado",
+        "position": 1,
+        "format": "yyyy-MM-dd"
+      },
+      {
+        "code": "siadp",
+        "position": 1,
+        "format": "yyyy-MM-dd"
+      },
+      {
+        "code": "siadq",
+        "position": 1,
+        "format": "yyyy-MM-dd"
+      },
+      {
+        "code": "siadr",
+        "position": 1,
+        "format": "yyyy-MM-dd"
+      },
+      {
+        "code": "siads",
+        "position": 1,
+        "format": "yyyy-MM-dd"
+      },
+      {
+        "code": "siadt",
+        "position": 1,
+        "format": "yyyy-MM-dd"
+      },
+      {
+        "code": "siadu",
+        "position": 1,
+        "format": "yyyy-MM-dd"
+      },
+      {
+        "code": "siadv",
+        "position": 1,
+        "format": "yyyy-MM-dd"
+      },
+      {
+        "code": "siadw",
+        "position": 1,
+        "format": "yyyy-MM-dd"
+      },
+      {
+        "code": "siadx",
+        "position": 1,
+        "format": "yyyy-MM-dd"
+      },
+      {
+        "code": "siady",
+        "position": 1,
+        "format": "yyyy-MM-dd"
+      },
+      {
+        "code": "siadz",
+        "position": 1,
+        "format": "yyyy-MM-dd"
+      },
+      {
+        "code": "siaea",
+        "position": 1,
+        "format": "yyyy-MM-dd"
+      },
+      {
+        "code": "siaeb",
+        "position": 1,
+        "format": "yyyy-MM-dd"
+      },
+      {
+        "code": "siaec",
+        "position": 1,
+        "format": "yyyy-MM-dd"
+      },
+      {
+        "code": "siaed",
+        "position": 1,
+        "format": "yyyy-MM-dd"
+      },
+      {
+        "code": "siaee",
+        "position": 1,
+        "format": "yyyy-MM-dd"
+      },
+      {
+        "code": "siaef",
+        "position": 1,
+        "format": "yyyy-MM-dd"
+      },
+      {
+        "code": "siaeg",
+        "position": 1,
+        "format": "yyyy-MM-dd"
+      },
+      {
+        "code": "siaeh",
+        "position": 1,
+        "format": "yyyy-MM-dd"
+      },
+      {
+        "code": "siaei",
+        "position": 1,
+        "format": "yyyy-MM-dd"
+      },
+      {
+        "code": "siaej",
+        "position": 1,
+        "format": "yyyy-MM-dd"
+      },
+      {
+        "code": "siaek",
+        "position": 1,
+        "format": "yyyy-MM-dd"
+      },
+      {
+        "code": "siael",
+        "position": 1,
+        "format": "yyyy-MM-dd"
+      },
+      {
+        "code": "siaem",
+        "position": 1,
+        "format": "yyyy-MM-dd"
+      },
+      {
+        "code": "siaen",
+        "position": 1,
+        "format": "yyyy-MM-dd"
+      },
+      {
+        "code": "siaeo",
+        "position": 1,
+        "format": "yyyy-MM-dd"
+      },
+      {
+        "code": "siaep",
+        "position": 1,
+        "format": "yyyy-MM-dd"
+      },
+      {
+        "code": "siaeq",
+        "position": 1,
+        "format": "yyyy-MM-dd"
+      },
+      {
+        "code": "siaer",
+        "position": 1,
+        "format": "yyyy-MM-dd"
+      },
+      {
+        "code": "siaes",
+        "position": 1,
+        "format": "yyyy-MM-dd"
+      },
+      {
+        "code": "siaet",
+        "position": 1,
+        "format": "yyyy-MM-dd"
+      },
+      {
+        "code": "siaeu",
+        "position": 1,
+        "format": "yyyy-MM-dd"
+      },
+      {
+        "code": "siaev",
+        "position": 1,
+        "format": "yyyy-MM-dd"
+      },
+      {
+        "code": "siaew",
+        "position": 1,
+        "format": "yyyy-MM-dd"
+      },
+      {
+        "code": "siaex",
+        "position": 1,
+        "format": "yyyy-MM-dd"
+      },
+      {
+        "code": "siaey",
+        "position": 1,
+        "format": "yyyy-MM-dd"
+      },
+      {
+        "code": "siaez",
+        "position": 1,
+        "format": "yyyy-MM-dd"
+      },
+      {
+        "code": "siafa",
+        "position": 1,
+        "format": "yyyy-MM-dd"
+      },
+      {
+        "code": "siafb",
+        "position": 1,
+        "format": "yyyy-MM-dd"
+      },
+      {
+        "code": "siafc",
+        "position": 1,
+        "format": "yyyy-MM-dd"
+      },
+      {
+        "code": "siafd",
+        "position": 1,
+        "format": "yyyy-MM-dd"
+      },
+      {
+        "code": "siafe",
+        "position": 1,
+        "format": "yyyy-MM-dd"
+      },
+      {
+        "code": "siaff",
+        "position": 1,
+        "format": "yyyy-MM-dd"
+      },
+      {
+        "code": "siafg",
+        "position": 1,
+        "format": "yyyy-MM-dd"
+      },
+      {
+        "code": "siafh",
+        "position": 1,
+        "format": "yyyy-MM-dd"
+      },
+      {
+        "code": "siafi",
+        "position": 1,
+        "format": "yyyy-MM-dd"
+      },
+      {
+        "code": "siafj",
+        "position": 1,
+        "format": "yyyy-MM-dd"
+      },
+      {
+        "code": "siafk",
+        "position": 1,
+        "format": "yyyy-MM-dd"
+      },
+      {
+        "code": "siafl",
+        "position": 1,
+        "format": "yyyy-MM-dd"
+      },
+      {
+        "code": "siafm",
+        "position": 1,
+        "format": "yyyy-MM-dd"
+      },
+      {
+        "code": "siafn",
+        "position": 1,
+        "format": "yyyy-MM-dd"
+      },
+      {
+        "code": "siafo",
+        "position": 1,
+        "format": "yyyy-MM-dd"
+      },
+      {
+        "code": "siafp",
+        "position": 1,
+        "format": "yyyy-MM-dd"
+      },
+      {
+        "code": "siafq",
+        "position": 1,
+        "format": "yyyy-MM-dd"
+      },
+      {
+        "code": "siafr",
+        "position": 1,
+        "format": "yyyy-MM-dd"
+      },
+      {
+        "code": "siafs",
+        "position": 1,
+        "format": "yyyy-MM-dd"
+      },
+      {
+        "code": "siaft",
+        "position": 1,
+        "format": "yyyy-MM-dd"
+      },
+      {
+        "code": "siafu",
+        "position": 1,
+        "format": "yyyy-MM-dd"
+      },
+      {
+        "code": "siafv",
+        "position": 1,
+        "format": "yyyy-MM-dd"
+      },
+      {
+        "code": "siafw",
+        "position": 1,
+        "format": "yyyy-MM-dd"
+      },
+      {
+        "code": "siafx",
+        "position": 1,
+        "format": "yyyy-MM-dd"
+      },
+      {
+        "code": "siafy",
+        "position": 1,
+        "format": "yyyy-MM-dd"
+      },
+      {
+        "code": "siafz",
+        "position": 1,
+        "format": "yyyy-MM-dd"
+      },
+      {
+        "code": "siaga",
+        "position": 1,
+        "format": "yyyy-MM-dd"
+      },
+      {
+        "code": "siagb",
+        "position": 1,
+        "format": "yyyy-MM-dd"
+      },
+      {
+        "code": "siagc",
+        "position": 1,
+        "format": "yyyy-MM-dd"
+      },
+      {
+        "code": "siagd",
+        "position": 1,
+        "format": "yyyy-MM-dd"
+      },
+      {
+        "code": "siage",
+        "position": 1,
+        "format": "yyyy-MM-dd"
+      },
+      {
+        "code": "siagf",
+        "position": 1,
+        "format": "yyyy-MM-dd"
+      },
+      {
+        "code": "siagg",
+        "position": 1,
+        "format": "yyyy-MM-dd"
+      },
+      {
+        "code": "siagh",
+        "position": 1,
+        "format": "yyyy-MM-dd"
+      },
+      {
+        "code": "siagi",
+        "position": 1,
+        "format": "yyyy-MM-dd"
+      },
+      {
+        "code": "siagj",
+        "position": 1,
+        "format": "yyyy-MM-dd"
+      },
+      {
+        "code": "siagk",
+        "position": 1,
+        "format": "yyyy-MM-dd"
+      },
+      {
+        "code": "siagl",
+        "position": 1,
+        "format": "yyyy-MM-dd"
+      },
+      {
+        "code": "siagm",
+        "position": 1,
+        "format": "yyyy-MM-dd"
+      },
+      {
+        "code": "siagn",
+        "position": 1,
+        "format": "yyyy-MM-dd"
+      },
+      {
+        "code": "siago",
+        "position": 1,
+        "format": "yyyy-MM-dd"
+      },
+      {
+        "code": "siagp",
+        "position": 1,
+        "format": "yyyy-MM-dd"
+      },
+      {
+        "code": "siagq",
+        "position": 1,
+        "format": "yyyy-MM-dd"
+      },
+      {
+        "code": "siagr",
+        "position": 1,
+        "format": "yyyy-MM-dd"
+      },
+      {
+        "code": "siags",
+        "position": 1,
+        "format": "yyyy-MM-dd"
+      },
+      {
+        "code": "siagt",
+        "position": 1,
+        "format": "yyyy-MM-dd"
+      },
+      {
+        "code": "siagu",
+        "position": 1,
+        "format": "yyyy-MM-dd"
+      },
+      {
+        "code": "siagv",
+        "position": 1,
+        "format": "yyyy-MM-dd"
+      },
+      {
+        "code": "siagw",
+        "position": 1,
+        "format": "yyyy-MM-dd"
+      },
+      {
+        "code": "siagx",
+        "position": 1,
+        "format": "yyyy-MM-dd"
+      },
+      {
+        "code": "siagy",
+        "position": 1,
+        "format": "yyyy-MM-dd"
+      },
+      {
+        "code": "siagz",
+        "position": 1,
+        "format": "yyyy-MM-dd"
+      },
+      {
+        "code": "siaha",
+        "position": 1,
+        "format": "yyyy-MM-dd"
+      },
+      {
+        "code": "siahb",
+        "position": 1,
+        "format": "yyyy-MM-dd"
+      },
+      {
+        "code": "siahc",
+        "position": 1,
+        "format": "yyyy-MM-dd"
+      },
+      {
+        "code": "siahd",
+        "position": 1,
+        "format": "yyyy-MM-dd"
+      },
+      {
+        "code": "siahe",
+        "position": 1,
+        "format": "yyyy-MM-dd"
+      },
+      {
+        "code": "siahf",
+        "position": 1,
+        "format": "yyyy-MM-dd"
+      },
+      {
+        "code": "siahg",
+        "position": 1,
+        "format": "yyyy-MM-dd"
+      },
+      {
+        "code": "siahh",
+        "position": 1,
+        "format": "yyyy-MM-dd"
+      },
+      {
+        "code": "siahi",
+        "position": 1,
+        "format": "yyyy-MM-dd"
+      },
+      {
+        "code": "siahj",
+        "position": 1,
+        "format": "yyyy-MM-dd"
+      },
+      {
+        "code": "siahk",
+        "position": 1,
+        "format": "yyyy-MM-dd"
+      },
+      {
+        "code": "siahl",
+        "position": 1,
+        "format": "yyyy-MM-dd"
+      },
+      {
+        "code": "siahm",
+        "position": 1,
+        "format": "yyyy-MM-dd"
+      },
+      {
+        "code": "siahn",
+        "position": 1,
+        "format": "yyyy-MM-dd"
+      },
+      {
+        "code": "siaho",
+        "position": 1,
+        "format": "yyyy-MM-dd"
+      },
+      {
+        "code": "siahp",
+        "position": 1,
+        "format": "yyyy-MM-dd"
+      },
+      {
+        "code": "siahq",
+        "position": 1,
+        "format": "yyyy-MM-dd"
+      },
+      {
+        "code": "siahr",
+        "position": 1,
+        "format": "yyyy-MM-dd"
+      },
+      {
+        "code": "siahs",
+        "position": 1,
+        "format": "yyyy-MM-dd"
+      },
+      {
+        "code": "siaht",
+        "position": 1,
+        "format": "yyyy-MM-dd"
+      },
+      {
+        "code": "siahu",
+        "position": 1,
+        "format": "yyyy-MM-dd"
+      },
+      {
+        "code": "siahv",
+        "position": 1,
+        "format": "yyyy-MM-dd"
+      },
+      {
+        "code": "siahw",
+        "position": 1,
+        "format": "yyyy-MM-dd"
+      },
+      {
+        "code": "siahx",
+        "position": 1,
+        "format": "yyyy-MM-dd"
+      },
+      {
+        "code": "siahy",
+        "position": 1,
+        "format": "yyyy-MM-dd"
+      },
+      {
+        "code": "siahz",
+        "position": 1,
+        "format": "yyyy-MM-dd"
+      },
+      {
+        "code": "siaia",
+        "position": 1,
+        "format": "yyyy-MM-dd"
+      },
+      {
+        "code": "siaib",
+        "position": 1,
+        "format": "yyyy-MM-dd"
+      },
+      {
+        "code": "siaic",
+        "position": 1,
+        "format": "yyyy-MM-dd"
+      },
+      {
+        "code": "siaid",
+        "position": 1,
+        "format": "yyyy-MM-dd"
+      },
+      {
+        "code": "siaie",
+        "position": 1,
+        "format": "yyyy-MM-dd"
+      },
+      {
+        "code": "siaif",
+        "position": 1,
+        "format": "yyyy-MM-dd"
+      },
+      {
+        "code": "siaig",
+        "position": 1,
+        "format": "yyyy-MM-dd"
+      },
+      {
+        "code": "siaih",
+        "position": 1,
+        "format": "yyyy-MM-dd"
+      },
+      {
+        "code": "siaii",
+        "position": 1,
+        "format": "yyyy-MM-dd"
+      },
+      {
+        "code": "siaij",
+        "position": 1,
+        "format": "yyyy-MM-dd"
+      },
+      {
+        "code": "siaik",
+        "position": 1,
+        "format": "yyyy-MM-dd"
+      },
+      {
+        "code": "siail",
+        "position": 1,
+        "format": "yyyy-MM-dd"
+      },
+      {
+        "code": "siaim",
+        "position": 1,
+        "format": "yyyy-MM-dd"
+      },
+      {
+        "code": "siain",
+        "position": 1,
+        "format": "yyyy-MM-dd"
+      },
+      {
+        "code": "siaio",
+        "position": 1,
+        "format": "yyyy-MM-dd"
+      },
+      {
+        "code": "siaip",
+        "position": 1,
+        "format": "yyyy-MM-dd"
+      },
+      {
+        "code": "siaiq",
+        "position": 1,
+        "format": "yyyy-MM-dd"
+      },
+      {
+        "code": "siair",
+        "position": 1,
+        "format": "yyyy-MM-dd"
+      },
+      {
+        "code": "siais",
+        "position": 1,
+        "format": "yyyy-MM-dd"
+      },
+      {
+        "code": "siait",
+        "position": 1,
+        "format": "yyyy-MM-dd"
+      },
+      {
+        "code": "siaiu",
+        "position": 1,
+        "format": "yyyy-MM-dd"
+      },
+      {
+        "code": "siaiv",
+        "position": 1,
+        "format": "yyyy-MM-dd"
+      },
+      {
+        "code": "siaiw",
+        "position": 1,
+        "format": "yyyy-MM-dd"
+      },
+      {
+        "code": "siaix",
+        "position": 1,
+        "format": "yyyy-MM-dd"
+      },
+      {
+        "code": "siaiy",
+        "position": 1,
+        "format": "yyyy-MM-dd"
+      },
+      {
+        "code": "siaiz",
+        "position": 1,
+        "format": "yyyy-MM-dd"
+      },
+      {
+        "code": "siaja",
+        "position": 1,
+        "format": "yyyy-MM-dd"
+      },
+      {
+        "code": "siajb",
+        "position": 1,
+        "format": "yyyy-MM-dd"
+      },
+      {
+        "code": "siajc",
+        "position": 1,
+        "format": "yyyy-MM-dd"
+      },
+      {
+        "code": "siajd",
+        "position": 1,
+        "format": "yyyy-MM-dd"
+      },
+      {
+        "code": "siaje",
+        "position": 1,
+        "format": "yyyy-MM-dd"
+      },
+      {
+        "code": "siajf",
+        "position": 1,
+        "format": "yyyy-MM-dd"
+      },
+      {
+        "code": "siajg",
+        "position": 1,
+        "format": "yyyy-MM-dd"
+      },
+      {
+        "code": "siajh",
+        "position": 1,
+        "format": "yyyy-MM-dd"
+      },
+      {
+        "code": "siaji",
+        "position": 1,
+        "format": "yyyy-MM-dd"
+      },
+      {
+        "code": "siajj",
+        "position": 1,
+        "format": "yyyy-MM-dd"
+      },
+      {
+        "code": "siajk",
+        "position": 1,
+        "format": "yyyy-MM-dd"
+      },
+      {
+        "code": "siajl",
+        "position": 1,
+        "format": "yyyy-MM-dd"
+      },
+      {
+        "code": "siajm",
+        "position": 1,
+        "format": "yyyy-MM-dd"
+      },
+      {
+        "code": "siajn",
+        "position": 1,
+        "format": "yyyy-MM-dd"
+      },
+      {
+        "code": "siajo",
+        "position": 1,
+        "format": "yyyy-MM-dd"
+      },
+      {
+        "code": "siajp",
+        "position": 1,
+        "format": "yyyy-MM-dd"
+      },
+      {
+        "code": "siajq",
+        "position": 1,
+        "format": "yyyy-MM-dd"
+      },
+      {
+        "code": "siajr",
+        "position": 1,
+        "format": "yyyy-MM-dd"
+      },
+      {
+        "code": "siajs",
+        "position": 1,
+        "format": "yyyy-MM-dd"
+      },
+      {
+        "code": "siajt",
+        "position": 1,
+        "format": "yyyy-MM-dd"
+      },
+      {
+        "code": "siaju",
+        "position": 1,
+        "format": "yyyy-MM-dd"
+      },
+      {
+        "code": "siajv",
+        "position": 1,
+        "format": "yyyy-MM-dd"
+      },
+      {
+        "code": "siajw",
+        "position": 1,
+        "format": "yyyy-MM-dd"
+      },
+      {
+        "code": "siajx",
+        "position": 1,
+        "format": "yyyy-MM-dd"
+      },
+      {
+        "code": "siajy",
+        "position": 1,
+        "format": "yyyy-MM-dd"
+      },
+      {
+        "code": "siajz",
+        "position": 1,
+        "format": "yyyy-MM-dd"
+      },
+      {
+        "code": "siaka",
+        "position": 1,
+        "format": "yyyy-MM-dd"
+      },
+      {
+        "code": "siakb",
+        "position": 1,
+        "format": "yyyy-MM-dd"
+      },
+      {
+        "code": "siakc",
+        "position": 1,
+        "format": "yyyy-MM-dd"
+      },
+      {
+        "code": "siakd",
+        "position": 1,
+        "format": "yyyy-MM-dd"
+      },
+      {
+        "code": "siake",
+        "position": 1,
+        "format": "yyyy-MM-dd"
+      },
+      {
+        "code": "siakf",
+        "position": 1,
+        "format": "yyyy-MM-dd"
+      },
+      {
+        "code": "siakg",
+        "position": 1,
+        "format": "yyyy-MM-dd"
+      },
+      {
+        "code": "siakh",
+        "position": 1,
+        "format": "yyyy-MM-dd"
+      },
+      {
+        "code": "siaki",
+        "position": 1,
+        "format": "yyyy-MM-dd"
+      },
+      {
+        "code": "siakj",
+        "position": 1,
+        "format": "yyyy-MM-dd"
+      },
+      {
+        "code": "siakk",
+        "position": 1,
+        "format": "yyyy-MM-dd"
+      },
+      {
+        "code": "siakl",
+        "position": 1,
+        "format": "yyyy-MM-dd"
+      },
+      {
+        "code": "siakm",
+        "position": 1,
+        "format": "yyyy-MM-dd"
+      },
+      {
+        "code": "siakn",
+        "position": 1,
+        "format": "yyyy-MM-dd"
+      },
+      {
+        "code": "siako",
+        "position": 1,
+        "format": "yyyy-MM-dd"
+      },
+      {
+        "code": "siakp",
+        "position": 1,
+        "format": "yyyy-MM-dd"
+      },
+      {
+        "code": "siakq",
+        "position": 1,
+        "format": "yyyy-MM-dd"
+      },
+      {
+        "code": "siakr",
+        "position": 1,
+        "format": "yyyy-MM-dd"
+      },
+      {
+        "code": "siaks",
+        "position": 1,
+        "format": "yyyy-MM-dd"
+      },
+      {
+        "code": "siakt",
+        "position": 1,
+        "format": "yyyy-MM-dd"
+      },
+      {
+        "code": "siaku",
+        "position": 1,
+        "format": "yyyy-MM-dd"
+      },
+      {
+        "code": "siakv",
+        "position": 1,
+        "format": "yyyy-MM-dd"
+      },
+      {
+        "code": "siakw",
+        "position": 1,
+        "format": "yyyy-MM-dd"
+      },
+      {
+        "code": "siakx",
+        "position": 1,
+        "format": "yyyy-MM-dd"
+      },
+      {
+        "code": "siaky",
+        "position": 1,
+        "format": "yyyy-MM-dd"
+      },
+      {
+        "code": "siakz",
+        "position": 1,
+        "format": "yyyy-MM-dd"
+      },
+      {
+        "code": "siala",
+        "position": 1,
+        "format": "yyyy-MM-dd"
+      },
+      {
+        "code": "sialb",
+        "position": 1,
+        "format": "yyyy-MM-dd"
+      },
+      {
+        "code": "sialc",
+        "position": 1,
+        "format": "yyyy-MM-dd"
+      },
+      {
+        "code": "siald",
+        "position": 1,
+        "format": "yyyy-MM-dd"
+      },
+      {
+        "code": "siale",
+        "position": 1,
+        "format": "yyyy-MM-dd"
+      },
+      {
+        "code": "sialf",
+        "position": 1,
+        "format": "yyyy-MM-dd"
+      },
+      {
+        "code": "sialg",
+        "position": 1,
+        "format": "yyyy-MM-dd"
+      },
+      {
+        "code": "sialh",
+        "position": 1,
+        "format": "yyyy-MM-dd"
+      },
+      {
+        "code": "siali",
+        "position": 1,
+        "format": "yyyy-MM-dd"
+      },
+      {
+        "code": "sialj",
+        "position": 1,
+        "format": "yyyy-MM-dd"
+      },
+      {
+        "code": "sialk",
+        "position": 1,
+        "format": "yyyy-MM-dd"
+      },
+      {
+        "code": "siall",
+        "position": 1,
+        "format": "yyyy-MM-dd"
+      },
+      {
+        "code": "sialm",
+        "position": 1,
+        "format": "yyyy-MM-dd"
+      },
+      {
+        "code": "sialn",
+        "position": 1,
+        "format": "yyyy-MM-dd"
+      },
+      {
+        "code": "sialo",
+        "position": 1,
+        "format": "yyyy-MM-dd"
+      },
+      {
+        "code": "sialp",
+        "position": 1,
+        "format": "yyyy-MM-dd"
+      },
+      {
+        "code": "sialq",
+        "position": 1,
+        "format": "yyyy-MM-dd"
+      },
+      {
+        "code": "sialr",
+        "position": 1,
+        "format": "yyyy-MM-dd"
+      },
+      {
+        "code": "sials",
+        "position": 1,
+        "format": "yyyy-MM-dd"
+      },
+      {
+        "code": "sialt",
+        "position": 1,
+        "format": "yyyy-MM-dd"
+      },
+      {
+        "code": "sialu",
+        "position": 1,
+        "format": "yyyy-MM-dd"
+      },
+      {
+        "code": "sialv",
+        "position": 1,
+        "format": "yyyy-MM-dd"
+      },
+      {
+        "code": "sialw",
+        "position": 1,
+        "format": "yyyy-MM-dd"
+      },
+      {
+        "code": "sialx",
+        "position": 1,
+        "format": "yyyy-MM-dd"
+      },
+      {
+        "code": "sialy",
+        "position": 1,
+        "format": "yyyy-MM-dd"
+      },
+      {
+        "code": "sialz",
+        "position": 1,
+        "format": "yyyy-MM-dd"
+      },
+      {
+        "code": "siama",
+        "position": 1,
+        "format": "yyyy-MM-dd"
+      },
+      {
+        "code": "siamb",
+        "position": 1,
+        "format": "yyyy-MM-dd"
+      },
+      {
+        "code": "siamc",
+        "position": 1,
+        "format": "yyyy-MM-dd"
+      },
+      {
+        "code": "siamd",
+        "position": 1,
+        "format": "yyyy-MM-dd"
+      },
+      {
+        "code": "siame",
+        "position": 1,
+        "format": "yyyy-MM-dd"
+      },
+      {
+        "code": "siamf",
+        "position": 1,
+        "format": "yyyy-MM-dd"
+      },
+      {
+        "code": "siamg",
+        "position": 1,
+        "format": "yyyy-MM-dd"
+      },
+      {
+        "code": "siamh",
+        "position": 1,
+        "format": "yyyy-MM-dd"
+      },
+      {
+        "code": "siami",
+        "position": 1,
+        "format": "yyyy-MM-dd"
+      },
+      {
+        "code": "siamj",
+        "position": 1,
+        "format": "yyyy-MM-dd"
+      },
+      {
+        "code": "siamk",
+        "position": 1,
+        "format": "yyyy-MM-dd"
+      },
+      {
+        "code": "siaml",
+        "position": 1,
+        "format": "yyyy-MM-dd"
+      },
+      {
+        "code": "siamm",
+        "position": 1,
+        "format": "yyyy-MM-dd"
+      },
+      {
+        "code": "siamn",
+        "position": 1,
+        "format": "yyyy-MM-dd"
+      },
+      {
+        "code": "siamo",
+        "position": 1,
+        "format": "yyyy-MM-dd"
+      },
+      {
+        "code": "siamp",
+        "position": 1,
+        "format": "yyyy-MM-dd"
+      },
+      {
+        "code": "siamq",
+        "position": 1,
+        "format": "yyyy-MM-dd"
+      },
+      {
+        "code": "siamr",
+        "position": 1,
+        "format": "yyyy-MM-dd"
+      },
+      {
+        "code": "siams",
+        "position": 1,
+        "format": "yyyy-MM-dd"
+      },
+      {
+        "code": "siamt",
+        "position": 1,
+        "format": "yyyy-MM-dd"
+      },
+      {
+        "code": "siamu",
+        "position": 1,
+        "format": "yyyy-MM-dd"
+      },
+      {
+        "code": "siamv",
+        "position": 1,
+        "format": "yyyy-MM-dd"
+      },
+      {
+        "code": "siamw",
+        "position": 1,
+        "format": "yyyy-MM-dd"
+      },
+      {
+        "code": "siamx",
+        "position": 1,
+        "format": "yyyy-MM-dd"
+      },
+      {
+        "code": "siamy",
+        "position": 1,
+        "format": "yyyy-MM-dd"
+      },
+      {
+        "code": "siamz",
+        "position": 1,
+        "format": "yyyy-MM-dd"
+      },
+      {
+        "code": "siana",
+        "position": 1,
+        "format": "yyyy-MM-dd"
+      },
+      {
+        "code": "sianb",
+        "position": 1,
+        "format": "yyyy-MM-dd"
+      },
+      {
+        "code": "sianc",
+        "position": 1,
+        "format": "yyyy-MM-dd"
+      },
+      {
+        "code": "siand",
+        "position": 1,
+        "format": "yyyy-MM-dd"
+      },
+      {
+        "code": "siane",
+        "position": 1,
+        "format": "yyyy-MM-dd"
+      },
+      {
+        "code": "sianf",
+        "position": 1,
+        "format": "yyyy-MM-dd"
+      },
+      {
+        "code": "siang",
+        "position": 1,
+        "format": "yyyy-MM-dd"
+      },
+      {
+        "code": "sianh",
+        "position": 1,
+        "format": "yyyy-MM-dd"
+      },
+      {
+        "code": "siani",
+        "position": 1,
+        "format": "yyyy-MM-dd"
+      },
+      {
+        "code": "sianj",
+        "position": 1,
+        "format": "yyyy-MM-dd"
+      },
+      {
+        "code": "siank",
+        "position": 1,
+        "format": "yyyy-MM-dd"
+      },
+      {
+        "code": "sianl",
+        "position": 1,
+        "format": "yyyy-MM-dd"
+      },
+      {
+        "code": "sianm",
+        "position": 1,
+        "format": "yyyy-MM-dd"
+      },
+      {
+        "code": "siann",
+        "position": 1,
+        "format": "yyyy-MM-dd"
+      },
+      {
+        "code": "siano",
+        "position": 1,
+        "format": "yyyy-MM-dd"
+      },
+      {
+        "code": "sianp",
+        "position": 1,
+        "format": "yyyy-MM-dd"
+      },
+      {
+        "code": "sianq",
+        "position": 1,
+        "format": "yyyy-MM-dd"
+      },
+      {
+        "code": "sianr",
+        "position": 1,
+        "format": "yyyy-MM-dd"
+      },
+      {
+        "code": "sians",
+        "position": 1,
+        "format": "yyyy-MM-dd"
+      },
+      {
+        "code": "siant",
+        "position": 1,
+        "format": "yyyy-MM-dd"
+      },
+      {
+        "code": "sianu",
+        "position": 1,
+        "format": "yyyy-MM-dd"
+      },
+      {
+        "code": "sianv",
+        "position": 1,
+        "format": "yyyy-MM-dd"
+      },
+      {
+        "code": "sianw",
+        "position": 1,
+        "format": "yyyy-MM-dd"
+      },
+      {
+        "code": "sianx",
+        "position": 1,
+        "format": "yyyy-MM-dd"
+      },
+      {
+        "code": "siany",
+        "position": 1,
+        "format": "yyyy-MM-dd"
+      },
+      {
+        "code": "sianz",
+        "position": 1,
+        "format": "yyyy-MM-dd"
+      },
+      {
+        "code": "siaoa",
+        "position": 1,
+        "format": "yyyy-MM-dd"
+      },
+      {
+        "code": "siaob",
+        "position": 1,
+        "format": "yyyy-MM-dd"
+      },
+      {
+        "code": "siaoc",
+        "position": 1,
+        "format": "yyyy-MM-dd"
+      },
+      {
+        "code": "siaod",
+        "position": 1,
+        "format": "yyyy-MM-dd"
+      },
+      {
+        "code": "siaoe",
+        "position": 1,
+        "format": "yyyy-MM-dd"
+      },
+      {
+        "code": "siaof",
+        "position": 1,
+        "format": "yyyy-MM-dd"
+      },
+      {
+        "code": "siaog",
+        "position": 1,
+        "format": "yyyy-MM-dd"
+      },
+      {
+        "code": "siaoh",
+        "position": 1,
+        "format": "yyyy-MM-dd"
+      },
+      {
+        "code": "siaoi",
+        "position": 1,
+        "format": "yyyy-MM-dd"
+      },
+      {
+        "code": "siaoj",
+        "position": 1,
+        "format": "yyyy-MM-dd"
+      },
+      {
+        "code": "siaok",
+        "position": 1,
+        "format": "yyyy-MM-dd"
+      },
+      {
+        "code": "siaol",
+        "position": 1,
+        "format": "yyyy-MM-dd"
+      },
+      {
+        "code": "siaom",
+        "position": 1,
+        "format": "yyyy-MM-dd"
+      },
+      {
+        "code": "siaon",
+        "position": 1,
+        "format": "yyyy-MM-dd"
+      },
+      {
+        "code": "siaoo",
+        "position": 1,
+        "format": "yyyy-MM-dd"
+      },
+      {
+        "code": "siaop",
+        "position": 1,
+        "format": "yyyy-MM-dd"
+      },
+      {
+        "code": "siaoq",
+        "position": 1,
+        "format": "yyyy-MM-dd"
+      },
+      {
+        "code": "siaor",
+        "position": 1,
+        "format": "yyyy-MM-dd"
+      },
+      {
+        "code": "siaos",
+        "position": 1,
+        "format": "yyyy-MM-dd"
+      },
+      {
+        "code": "siaot",
+        "position": 1,
+        "format": "yyyy-MM-dd"
+      },
+      {
+        "code": "siaou",
+        "position": 1,
+        "format": "yyyy-MM-dd"
+      },
+      {
+        "code": "siaov",
+        "position": 1,
+        "format": "yyyy-MM-dd"
+      },
+      {
+        "code": "siaow",
+        "position": 1,
+        "format": "yyyy-MM-dd"
+      },
+      {
+        "code": "siaox",
+        "position": 1,
+        "format": "yyyy-MM-dd"
+      },
+      {
+        "code": "siaoy",
+        "position": 1,
+        "format": "yyyy-MM-dd"
+      },
+      {
+        "code": "siaoz",
+        "position": 1,
+        "format": "yyyy-MM-dd"
+      },
+      {
+        "code": "siapa",
+        "position": 1,
+        "format": "yyyy-MM-dd"
+      },
+      {
+        "code": "siapb",
+        "position": 1,
+        "format": "yyyy-MM-dd"
+      },
+      {
+        "code": "siapc",
+        "position": 1,
+        "format": "yyyy-MM-dd"
+      },
+      {
+        "code": "siapd",
+        "position": 1,
+        "format": "yyyy-MM-dd"
+      },
+      {
+        "code": "siape",
+        "position": 1,
+        "format": "yyyy-MM-dd"
+      },
+      {
+        "code": "siapf",
+        "position": 1,
+        "format": "yyyy-MM-dd"
+      },
+      {
+        "code": "siapg",
+        "position": 1,
+        "format": "yyyy-MM-dd"
+      },
+      {
+        "code": "siaph",
+        "position": 1,
+        "format": "yyyy-MM-dd"
+      },
+      {
+        "code": "siapi",
+        "position": 1,
+        "format": "yyyy-MM-dd"
+      },
+      {
+        "code": "siapj",
+        "position": 1,
+        "format": "yyyy-MM-dd"
+      },
+      {
+        "code": "siapk",
+        "position": 1,
+        "format": "yyyy-MM-dd"
+      },
+      {
+        "code": "siapl",
+        "position": 1,
+        "format": "yyyy-MM-dd"
+      },
+      {
+        "code": "siapm",
+        "position": 1,
+        "format": "yyyy-MM-dd"
+      },
+      {
+        "code": "siapn",
+        "position": 1,
+        "format": "yyyy-MM-dd"
+      },
+      {
+        "code": "siapo",
+        "position": 1,
+        "format": "yyyy-MM-dd"
+      },
+      {
+        "code": "siapp",
+        "position": 1,
+        "format": "yyyy-MM-dd"
+      },
+      {
+        "code": "siapq",
+        "position": 1,
+        "format": "yyyy-MM-dd"
+      },
+      {
+        "code": "siapr",
+        "position": 1,
+        "format": "yyyy-MM-dd"
+      },
+      {
+        "code": "siaps",
+        "position": 1,
+        "format": "yyyy-MM-dd"
+      },
+      {
+        "code": "siapt",
+        "position": 1,
+        "format": "yyyy-MM-dd"
+      },
+      {
+        "code": "siapu",
+        "position": 1,
+        "format": "yyyy-MM-dd"
+      },
+      {
+        "code": "siapv",
+        "position": 1,
+        "format": "yyyy-MM-dd"
+      },
+      {
+        "code": "siapw",
+        "position": 1,
+        "format": "yyyy-MM-dd"
+      },
+      {
+        "code": "siapx",
+        "position": 1,
+        "format": "yyyy-MM-dd"
+      },
+      {
+        "code": "siapy",
+        "position": 1,
+        "format": "yyyy-MM-dd"
+      },
+      {
+        "code": "siapz",
+        "position": 1,
+        "format": "yyyy-MM-dd"
+      },
+      {
+        "code": "siaqa",
+        "position": 1,
+        "format": "yyyy-MM-dd"
+      },
+      {
+        "code": "siaqb",
+        "position": 1,
+        "format": "yyyy-MM-dd"
+      },
+      {
+        "code": "siaqc",
+        "position": 1,
+        "format": "yyyy-MM-dd"
+      },
+      {
+        "code": "siaqd",
+        "position": 1,
+        "format": "yyyy-MM-dd"
+      },
+      {
+        "code": "siaqe",
+        "position": 1,
+        "format": "yyyy-MM-dd"
+      },
+      {
+        "code": "siaqf",
+        "position": 1,
+        "format": "yyyy-MM-dd"
+      },
+      {
+        "code": "siaqg",
+        "position": 1,
+        "format": "yyyy-MM-dd"
+      },
+      {
+        "code": "siaqh",
+        "position": 1,
+        "format": "yyyy-MM-dd"
+      },
+      {
+        "code": "siaqi",
+        "position": 1,
+        "format": "yyyy-MM-dd"
+      },
+      {
+        "code": "siaqj",
+        "position": 1,
+        "format": "yyyy-MM-dd"
+      },
+      {
+        "code": "siaqk",
+        "position": 1,
+        "format": "yyyy-MM-dd"
+      },
+      {
+        "code": "siaql",
+        "position": 1,
+        "format": "yyyy-MM-dd"
+      },
+      {
+        "code": "siaqm",
+        "position": 1,
+        "format": "yyyy-MM-dd"
+      },
+      {
+        "code": "siaqn",
+        "position": 1,
+        "format": "yyyy-MM-dd"
+      },
+      {
+        "code": "siaqo",
+        "position": 1,
+        "format": "yyyy-MM-dd"
+      },
+      {
+        "code": "siaqp",
+        "position": 1,
+        "format": "yyyy-MM-dd"
+      },
+      {
+        "code": "siaqq",
+        "position": 1,
+        "format": "yyyy-MM-dd"
+      },
+      {
+        "code": "siaqr",
+        "position": 1,
+        "format": "yyyy-MM-dd"
+      },
+      {
+        "code": "siaqs",
+        "position": 1,
+        "format": "yyyy-MM-dd"
+      },
+      {
+        "code": "siaqt",
+        "position": 1,
+        "format": "yyyy-MM-dd"
+      },
+      {
+        "code": "siaqu",
+        "position": 1,
+        "format": "yyyy-MM-dd"
+      },
+      {
+        "code": "siaqv",
+        "position": 1,
+        "format": "yyyy-MM-dd"
+      },
+      {
+        "code": "siaqw",
+        "position": 1,
+        "format": "yyyy-MM-dd"
+      },
+      {
+        "code": "siaqx",
+        "position": 1,
+        "format": "yyyy-MM-dd"
+      },
+      {
+        "code": "siaqy",
+        "position": 1,
+        "format": "yyyy-MM-dd"
+      },
+      {
+        "code": "siaqz",
+        "position": 1,
+        "format": "yyyy-MM-dd"
+      },
+      {
+        "code": "siara",
+        "position": 1,
+        "format": "yyyy-MM-dd"
+      },
+      {
+        "code": "siarb",
+        "position": 1,
+        "format": "yyyy-MM-dd"
+      },
+      {
+        "code": "siarc",
+        "position": 1,
+        "format": "yyyy-MM-dd"
+      },
+      {
+        "code": "siard",
+        "position": 1,
+        "format": "yyyy-MM-dd"
+      },
+      {
+        "code": "siare",
+        "position": 1,
+        "format": "yyyy-MM-dd"
+      },
+      {
+        "code": "siarf",
+        "position": 1,
+        "format": "yyyy-MM-dd"
+      },
+      {
+        "code": "siarg",
+        "position": 1,
+        "format": "yyyy-MM-dd"
+      },
+      {
+        "code": "siarh",
+        "position": 1,
+        "format": "yyyy-MM-dd"
+      },
+      {
+        "code": "siari",
+        "position": 1,
+        "format": "yyyy-MM-dd"
+      },
+      {
+        "code": "siarj",
+        "position": 1,
+        "format": "yyyy-MM-dd"
+      },
+      {
+        "code": "siark",
+        "position": 1,
+        "format": "yyyy-MM-dd"
+      },
+      {
+        "code": "siarl",
+        "position": 1,
+        "format": "yyyy-MM-dd"
+      },
+      {
+        "code": "siarm",
+        "position": 1,
+        "format": "yyyy-MM-dd"
+      },
+      {
+        "code": "siarn",
+        "position": 1,
+        "format": "yyyy-MM-dd"
+      },
+      {
+        "code": "siaro",
+        "position": 1,
+        "format": "yyyy-MM-dd"
+      },
+      {
+        "code": "siarp",
+        "position": 1,
+        "format": "yyyy-MM-dd"
+      },
+      {
+        "code": "siarq",
+        "position": 1,
+        "format": "yyyy-MM-dd"
+      },
+      {
+        "code": "siarr",
+        "position": 1,
+        "format": "yyyy-MM-dd"
+      },
+      {
+        "code": "siars",
+        "position": 1,
+        "format": "yyyy-MM-dd"
+      },
+      {
+        "code": "siart",
+        "position": 1,
+        "format": "yyyy-MM-dd"
+      },
+      {
+        "code": "siaru",
+        "position": 1,
+        "format": "yyyy-MM-dd"
+      },
+      {
+        "code": "siarv",
+        "position": 1,
+        "format": "yyyy-MM-dd"
+      },
+      {
+        "code": "siarw",
+        "position": 1,
+        "format": "yyyy-MM-dd"
+      },
+      {
+        "code": "siarx",
+        "position": 1,
+        "format": "yyyy-MM-dd"
+      },
+      {
+        "code": "siary",
+        "position": 1,
+        "format": "yyyy-MM-dd"
+      },
+      {
+        "code": "siarz",
+        "position": 1,
+        "format": "yyyy-MM-dd"
+      },
+      {
+        "code": "siasa",
+        "position": 1,
+        "format": "yyyy-MM-dd"
+      },
+      {
+        "code": "siasb",
+        "position": 1,
+        "format": "yyyy-MM-dd"
+      },
+      {
+        "code": "siasc",
+        "position": 1,
+        "format": "yyyy-MM-dd"
+      },
+      {
+        "code": "siasd",
+        "position": 1,
+        "format": "yyyy-MM-dd"
+      },
+      {
+        "code": "siase",
+        "position": 1,
+        "format": "yyyy-MM-dd"
+      },
+      {
+        "code": "siasf",
+        "position": 1,
+        "format": "yyyy-MM-dd"
+      },
+      {
+        "code": "siasg",
+        "position": 1,
+        "format": "yyyy-MM-dd"
+      },
+      {
+        "code": "siash",
+        "position": 1,
+        "format": "yyyy-MM-dd"
+      },
+      {
+        "code": "siasi",
+        "position": 1,
+        "format": "yyyy-MM-dd"
+      },
+      {
+        "code": "siasj",
+        "position": 1,
+        "format": "yyyy-MM-dd"
+      },
+      {
+        "code": "siask",
+        "position": 1,
+        "format": "yyyy-MM-dd"
+      },
+      {
+        "code": "siasl",
+        "position": 1,
+        "format": "yyyy-MM-dd"
+      },
+      {
+        "code": "siasm",
+        "position": 1,
+        "format": "yyyy-MM-dd"
+      },
+      {
+        "code": "siasn",
+        "position": 1,
+        "format": "yyyy-MM-dd"
+      },
+      {
+        "code": "siaso",
+        "position": 1,
+        "format": "yyyy-MM-dd"
+      },
+      {
+        "code": "siasp",
+        "position": 1,
+        "format": "yyyy-MM-dd"
+      },
+      {
+        "code": "siasq",
+        "position": 1,
+        "format": "yyyy-MM-dd"
+      },
+      {
+        "code": "siasr",
+        "position": 1,
+        "format": "yyyy-MM-dd"
+      },
+      {
+        "code": "siass",
+        "position": 1,
+        "format": "yyyy-MM-dd"
+      },
+      {
+        "code": "siast",
+        "position": 1,
+        "format": "yyyy-MM-dd"
+      },
+      {
+        "code": "siasu",
+        "position": 1,
+        "format": "yyyy-MM-dd"
+      },
+      {
+        "code": "siasv",
+        "position": 1,
+        "format": "yyyy-MM-dd"
+      },
+      {
+        "code": "siasw",
+        "position": 1,
+        "format": "yyyy-MM-dd"
+      },
+      {
+        "code": "siasx",
+        "position": 1,
+        "format": "yyyy-MM-dd"
+      },
+      {
+        "code": "siasy",
+        "position": 1,
+        "format": "yyyy-MM-dd"
+      },
+      {
+        "code": "siasz",
+        "position": 1,
+        "format": "yyyy-MM-dd"
+      },
+      {
+        "code": "siata",
+        "position": 1,
+        "format": "yyyy-MM-dd"
+      },
+      {
+        "code": "siatb",
+        "position": 1,
+        "format": "yyyy-MM-dd"
+      },
+      {
+        "code": "siatc",
+        "position": 1,
+        "format": "yyyy-MM-dd"
+      },
+      {
+        "code": "siatd",
+        "position": 1,
+        "format": "yyyy-MM-dd"
+      },
+      {
+        "code": "siate",
+        "position": 1,
+        "format": "yyyy-MM-dd"
+      },
+      {
+        "code": "siatf",
+        "position": 1,
+        "format": "yyyy-MM-dd"
+      },
+      {
+        "code": "siatg",
+        "position": 1,
+        "format": "yyyy-MM-dd"
+      },
+      {
+        "code": "siath",
+        "position": 1,
+        "format": "yyyy-MM-dd"
+      },
+      {
+        "code": "siati",
+        "position": 1,
+        "format": "yyyy-MM-dd"
+      },
+      {
+        "code": "siatj",
+        "position": 1,
+        "format": "yyyy-MM-dd"
+      },
+      {
+        "code": "siatk",
+        "position": 1,
+        "format": "yyyy-MM-dd"
+      },
+      {
+        "code": "siatl",
+        "position": 1,
+        "format": "yyyy-MM-dd"
+      },
+      {
+        "code": "siatm",
+        "position": 1,
+        "format": "yyyy-MM-dd"
+      },
+      {
+        "code": "siatn",
+        "position": 1,
+        "format": "yyyy-MM-dd"
+      },
+      {
+        "code": "siato",
+        "position": 1,
+        "format": "yyyy-MM-dd"
+      },
+      {
+        "code": "siatp",
+        "position": 1,
+        "format": "yyyy-MM-dd"
+      },
+      {
+        "code": "siatq",
+        "position": 1,
+        "format": "yyyy-MM-dd"
+      },
+      {
+        "code": "siatr",
+        "position": 1,
+        "format": "yyyy-MM-dd"
+      },
+      {
+        "code": "siats",
+        "position": 1,
+        "format": "yyyy-MM-dd"
+      },
+      {
+        "code": "siatt",
+        "position": 1,
+        "format": "yyyy-MM-dd"
+      },
+      {
+        "code": "siatu",
+        "position": 1,
+        "format": "yyyy-MM-dd"
+      },
+      {
+        "code": "siatv",
+        "position": 1,
+        "format": "yyyy-MM-dd"
+      },
+      {
+        "code": "siatw",
+        "position": 1,
+        "format": "yyyy-MM-dd"
+      },
+      {
+        "code": "siatx",
+        "position": 1,
+        "format": "yyyy-MM-dd"
+      },
+      {
+        "code": "siaty",
+        "position": 1,
+        "format": "yyyy-MM-dd"
+      },
+      {
+        "code": "siatz",
+        "position": 1,
+        "format": "yyyy-MM-dd"
+      },
+      {
+        "code": "siaua",
+        "position": 1,
+        "format": "yyyy-MM-dd"
+      },
+      {
+        "code": "siaub",
+        "position": 1,
+        "format": "yyyy-MM-dd"
+      },
+      {
+        "code": "siauc",
+        "position": 1,
+        "format": "yyyy-MM-dd"
+      },
+      {
+        "code": "siaud",
+        "position": 1,
+        "format": "yyyy-MM-dd"
+      },
+      {
+        "code": "siaue",
+        "position": 1,
+        "format": "yyyy-MM-dd"
+      },
+      {
+        "code": "siauf",
+        "position": 1,
+        "format": "yyyy-MM-dd"
+      },
+      {
+        "code": "siaug",
+        "position": 1,
+        "format": "yyyy-MM-dd"
+      },
+      {
+        "code": "siauh",
+        "position": 1,
+        "format": "yyyy-MM-dd"
+      },
+      {
+        "code": "siaui",
+        "position": 1,
+        "format": "yyyy-MM-dd"
+      },
+      {
+        "code": "siauj",
+        "position": 1,
+        "format": "yyyy-MM-dd"
+      },
+      {
+        "code": "siauk",
+        "position": 1,
+        "format": "yyyy-MM-dd"
+      },
+      {
+        "code": "siaul",
+        "position": 1,
+        "format": "yyyy-MM-dd"
+      },
+      {
+        "code": "siaum",
+        "position": 1,
+        "format": "yyyy-MM-dd"
+      },
+      {
+        "code": "siaun",
+        "position": 1,
+        "format": "yyyy-MM-dd"
+      },
+      {
+        "code": "siauo",
+        "position": 1,
+        "format": "yyyy-MM-dd"
+      },
+      {
+        "code": "siaup",
+        "position": 1,
+        "format": "yyyy-MM-dd"
+      },
+      {
+        "code": "siauq",
+        "position": 1,
+        "format": "yyyy-MM-dd"
+      },
+      {
+        "code": "siaur",
+        "position": 1,
+        "format": "yyyy-MM-dd"
+      },
+      {
+        "code": "siaus",
+        "position": 1,
+        "format": "yyyy-MM-dd"
+      },
+      {
+        "code": "siaut",
+        "position": 1,
+        "format": "yyyy-MM-dd"
+      },
+      {
+        "code": "siauu",
+        "position": 1,
+        "format": "yyyy-MM-dd"
+      },
+      {
+        "code": "siauv",
+        "position": 1,
+        "format": "yyyy-MM-dd"
+      },
+      {
+        "code": "siauw",
+        "position": 1,
+        "format": "yyyy-MM-dd"
+      },
+      {
+        "code": "siaux",
+        "position": 1,
+        "format": "yyyy-MM-dd"
+      },
+      {
+        "code": "siauy",
+        "position": 1,
+        "format": "yyyy-MM-dd"
+      },
+      {
+        "code": "siauz",
+        "position": 1,
+        "format": "yyyy-MM-dd"
+      },
+      {
+        "code": "siava",
+        "position": 1,
+        "format": "yyyy-MM-dd"
+      },
+      {
+        "code": "siavb",
+        "position": 1,
+        "format": "yyyy-MM-dd"
+      },
+      {
+        "code": "siavc",
+        "position": 1,
+        "format": "yyyy-MM-dd"
+      },
+      {
+        "code": "siavd",
+        "position": 1,
+        "format": "yyyy-MM-dd"
+      },
+      {
+        "code": "siave",
+        "position": 1,
+        "format": "yyyy-MM-dd"
+      },
+      {
+        "code": "siavf",
+        "position": 1,
+        "format": "yyyy-MM-dd"
+      },
+      {
+        "code": "siavg",
+        "position": 1,
+        "format": "yyyy-MM-dd"
+      },
+      {
+        "code": "siavh",
+        "position": 1,
+        "format": "yyyy-MM-dd"
+      },
+      {
+        "code": "siavi",
+        "position": 1,
+        "format": "yyyy-MM-dd"
+      },
+      {
+        "code": "siavj",
+        "position": 1,
+        "format": "yyyy-MM-dd"
+      },
+      {
+        "code": "siavk",
+        "position": 1,
+        "format": "yyyy-MM-dd"
+      },
+      {
+        "code": "siavl",
+        "position": 1,
+        "format": "yyyy-MM-dd"
+      },
+      {
+        "code": "siavm",
+        "position": 1,
+        "format": "yyyy-MM-dd"
+      },
+      {
+        "code": "siavn",
+        "position": 1,
+        "format": "yyyy-MM-dd"
+      },
+      {
+        "code": "siavo",
+        "position": 1,
+        "format": "yyyy-MM-dd"
+      },
+      {
+        "code": "siavp",
+        "position": 1,
+        "format": "yyyy-MM-dd"
+      },
+      {
+        "code": "siavq",
+        "position": 1,
+        "format": "yyyy-MM-dd"
+      },
+      {
+        "code": "siavr",
+        "position": 1,
+        "format": "yyyy-MM-dd"
+      },
+      {
+        "code": "siavs",
+        "position": 1,
+        "format": "yyyy-MM-dd"
+      },
+      {
+        "code": "siavt",
+        "position": 1,
+        "format": "yyyy-MM-dd"
+      },
+      {
+        "code": "siavu",
+        "position": 1,
+        "format": "yyyy-MM-dd"
+      },
+      {
+        "code": "siavv",
+        "position": 1,
+        "format": "yyyy-MM-dd"
+      },
+      {
+        "code": "siavw",
+        "position": 1,
+        "format": "yyyy-MM-dd"
+      },
+      {
+        "code": "siavx",
+        "position": 1,
+        "format": "yyyy-MM-dd"
+      },
+      {
+        "code": "siavy",
+        "position": 1,
+        "format": "yyyy-MM-dd"
+      },
+      {
+        "code": "siavz",
+        "position": 1,
+        "format": "yyyy-MM-dd"
+      },
+      {
+        "code": "siawa",
+        "position": 1,
+        "format": "yyyy-MM-dd"
+      },
+      {
+        "code": "siawb",
+        "position": 1,
+        "format": "yyyy-MM-dd"
+      },
+      {
+        "code": "siawc",
+        "position": 1,
+        "format": "yyyy-MM-dd"
+      },
+      {
+        "code": "siawd",
+        "position": 1,
+        "format": "yyyy-MM-dd"
+      },
+      {
+        "code": "siawe",
+        "position": 1,
+        "format": "yyyy-MM-dd"
+      },
+      {
+        "code": "siawf",
+        "position": 1,
+        "format": "yyyy-MM-dd"
+      },
+      {
+        "code": "siawg",
+        "position": 1,
+        "format": "yyyy-MM-dd"
+      },
+      {
+        "code": "siawh",
+        "position": 1,
+        "format": "yyyy-MM-dd"
+      },
+      {
+        "code": "siawi",
+        "position": 1,
+        "format": "yyyy-MM-dd"
+      },
+      {
+        "code": "siawj",
+        "position": 1,
+        "format": "yyyy-MM-dd"
+      },
+      {
+        "code": "siawk",
+        "position": 1,
+        "format": "yyyy-MM-dd"
+      },
+      {
+        "code": "siawl",
+        "position": 1,
+        "format": "yyyy-MM-dd"
+      },
+      {
+        "code": "siawm",
+        "position": 1,
+        "format": "yyyy-MM-dd"
+      },
+      {
+        "code": "siawn",
+        "position": 1,
+        "format": "yyyy-MM-dd"
+      },
+      {
+        "code": "siawo",
+        "position": 1,
+        "format": "yyyy-MM-dd"
+      },
+      {
+        "code": "siawp",
+        "position": 1,
+        "format": "yyyy-MM-dd"
+      },
+      {
+        "code": "siawq",
+        "position": 1,
+        "format": "yyyy-MM-dd"
+      },
+      {
+        "code": "siawr",
+        "position": 1,
+        "format": "yyyy-MM-dd"
+      },
+      {
+        "code": "siaws",
+        "position": 1,
+        "format": "yyyy-MM-dd"
+      },
+      {
+        "code": "siawt",
+        "position": 1,
+        "format": "yyyy-MM-dd"
+      },
+      {
+        "code": "siawu",
+        "position": 1,
+        "format": "yyyy-MM-dd"
+      },
+      {
+        "code": "siawv",
+        "position": 1,
+        "format": "yyyy-MM-dd"
+      },
+      {
+        "code": "siaww",
+        "position": 1,
+        "format": "yyyy-MM-dd"
+      },
+      {
+        "code": "siawx",
+        "position": 1,
+        "format": "yyyy-MM-dd"
+      },
+      {
+        "code": "siawy",
+        "position": 1,
+        "format": "yyyy-MM-dd"
+      },
+      {
+        "code": "siawz",
+        "position": 1,
+        "format": "yyyy-MM-dd"
+      },
+      {
+        "code": "siaxa",
+        "position": 1,
+        "format": "yyyy-MM-dd"
+      },
+      {
+        "code": "siaxb",
+        "position": 1,
+        "format": "yyyy-MM-dd"
+      },
+      {
+        "code": "siaxc",
+        "position": 1,
+        "format": "yyyy-MM-dd"
+      },
+      {
+        "code": "siaxd",
+        "position": 1,
+        "format": "yyyy-MM-dd"
+      },
+      {
+        "code": "siaxe",
+        "position": 1,
+        "format": "yyyy-MM-dd"
+      },
+      {
+        "code": "siaxf",
+        "position": 1,
+        "format": "yyyy-MM-dd"
+      },
+      {
+        "code": "siaxg",
+        "position": 1,
+        "format": "yyyy-MM-dd"
+      },
+      {
+        "code": "siaxh",
+        "position": 1,
+        "format": "yyyy-MM-dd"
+      },
+      {
+        "code": "siaxi",
+        "position": 1,
+        "format": "yyyy-MM-dd"
+      },
+      {
+        "code": "siaxj",
+        "position": 1,
+        "format": "yyyy-MM-dd"
+      },
+      {
+        "code": "siaxk",
+        "position": 1,
+        "format": "yyyy-MM-dd"
+      },
+      {
+        "code": "siaxl",
+        "position": 1,
+        "format": "yyyy-MM-dd"
+      },
+      {
+        "code": "siaxm",
+        "position": 1,
+        "format": "yyyy-MM-dd"
+      },
+      {
+        "code": "siaxn",
+        "position": 1,
+        "format": "yyyy-MM-dd"
+      },
+      {
+        "code": "siaxo",
+        "position": 1,
+        "format": "yyyy-MM-dd"
+      },
+      {
+        "code": "siaxp",
+        "position": 1,
+        "format": "yyyy-MM-dd"
+      },
+      {
+        "code": "siaxq",
+        "position": 1,
+        "format": "yyyy-MM-dd"
+      },
+      {
+        "code": "siaxr",
+        "position": 1,
+        "format": "yyyy-MM-dd"
+      },
+      {
+        "code": "siaxs",
+        "position": 1,
+        "format": "yyyy-MM-dd"
+      },
+      {
+        "code": "siaxt",
+        "position": 1,
+        "format": "yyyy-MM-dd"
+      },
+      {
+        "code": "siaxu",
+        "position": 1,
+        "format": "yyyy-MM-dd"
+      },
+      {
+        "code": "siaxv",
+        "position": 1,
+        "format": "yyyy-MM-dd"
+      },
+      {
+        "code": "siaxw",
+        "position": 1,
+        "format": "yyyy-MM-dd"
+      },
+      {
+        "code": "siaxx",
+        "position": 1,
+        "format": "yyyy-MM-dd"
+      },
+      {
+        "code": "siaxy",
+        "position": 1,
+        "format": "yyyy-MM-dd"
+      },
+      {
+        "code": "siaxz",
+        "position": 1,
+        "format": "yyyy-MM-dd"
+      },
+      {
+        "code": "siaya",
+        "position": 1,
+        "format": "yyyy-MM-dd"
+      },
+      {
+        "code": "siayb",
+        "position": 1,
+        "format": "yyyy-MM-dd"
+      },
+      {
+        "code": "siayc",
+        "position": 1,
+        "format": "yyyy-MM-dd"
+      },
+      {
+        "code": "siayd",
+        "position": 1,
+        "format": "yyyy-MM-dd"
+      },
+      {
+        "code": "siaye",
+        "position": 1,
+        "format": "yyyy-MM-dd"
+      },
+      {
+        "code": "siayf",
+        "position": 1,
+        "format": "yyyy-MM-dd"
+      },
+      {
+        "code": "siayg",
+        "position": 1,
+        "format": "yyyy-MM-dd"
+      },
+      {
+        "code": "siayh",
+        "position": 1,
+        "format": "yyyy-MM-dd"
+      },
+      {
+        "code": "siayi",
+        "position": 1,
+        "format": "yyyy-MM-dd"
+      },
+      {
+        "code": "siayj",
+        "position": 1,
+        "format": "yyyy-MM-dd"
+      },
+      {
+        "code": "siayk",
+        "position": 1,
+        "format": "yyyy-MM-dd"
+      },
+      {
+        "code": "siayl",
+        "position": 1,
+        "format": "yyyy-MM-dd"
+      },
+      {
+        "code": "siaym",
+        "position": 1,
+        "format": "yyyy-MM-dd"
+      },
+      {
+        "code": "siayn",
+        "position": 1,
+        "format": "yyyy-MM-dd"
+      },
+      {
+        "code": "siayo",
+        "position": 1,
+        "format": "yyyy-MM-dd"
+      },
+      {
+        "code": "siayp",
+        "position": 1,
+        "format": "yyyy-MM-dd"
+      },
+      {
+        "code": "siayq",
+        "position": 1,
+        "format": "yyyy-MM-dd"
+      },
+      {
+        "code": "siayr",
+        "position": 1,
+        "format": "yyyy-MM-dd"
+      },
+      {
+        "code": "siays",
+        "position": 1,
+        "format": "yyyy-MM-dd"
+      },
+      {
+        "code": "siayt",
+        "position": 1,
+        "format": "yyyy-MM-dd"
+      },
+      {
+        "code": "siayu",
+        "position": 1,
+        "format": "yyyy-MM-dd"
+      },
+      {
+        "code": "siayv",
+        "position": 1,
+        "format": "yyyy-MM-dd"
+      },
+      {
+        "code": "siayw",
+        "position": 1,
+        "format": "yyyy-MM-dd"
+      },
+      {
+        "code": "siayx",
+        "position": 1,
+        "format": "yyyy-MM-dd"
+      },
+      {
+        "code": "siayy",
+        "position": 1,
+        "format": "yyyy-MM-dd"
+      },
+      {
+        "code": "siayz",
+        "position": 1,
+        "format": "yyyy-MM-dd"
+      },
+      {
+        "code": "siaza",
+        "position": 1,
+        "format": "yyyy-MM-dd"
+      },
+      {
+        "code": "siazb",
+        "position": 1,
+        "format": "yyyy-MM-dd"
+      },
+      {
+        "code": "siazc",
+        "position": 1,
+        "format": "yyyy-MM-dd"
+      },
+      {
+        "code": "siazd",
+        "position": 1,
+        "format": "yyyy-MM-dd"
+      },
+      {
+        "code": "siaze",
+        "position": 1,
+        "format": "yyyy-MM-dd"
+      },
+      {
+        "code": "siazf",
+        "position": 1,
+        "format": "yyyy-MM-dd"
+      },
+      {
+        "code": "siazg",
+        "position": 1,
+        "format": "yyyy-MM-dd"
+      },
+      {
+        "code": "siazh",
+        "position": 1,
+        "format": "yyyy-MM-dd"
+      },
+      {
+        "code": "siazi",
+        "position": 1,
+        "format": "yyyy-MM-dd"
+      },
+      {
+        "code": "siazj",
+        "position": 1,
+        "format": "yyyy-MM-dd"
+      },
+      {
+        "code": "siazk",
+        "position": 1,
+        "format": "yyyy-MM-dd"
+      },
+      {
+        "code": "siazl",
+        "position": 1,
+        "format": "yyyy-MM-dd"
+      },
+      {
+        "code": "siazm",
+        "position": 1,
+        "format": "yyyy-MM-dd"
+      },
+      {
+        "code": "siazn",
+        "position": 1,
+        "format": "yyyy-MM-dd"
+      },
+      {
+        "code": "siazo",
+        "position": 1,
+        "format": "yyyy-MM-dd"
+      },
+      {
+        "code": "siazp",
+        "position": 1,
+        "format": "yyyy-MM-dd"
+      },
+      {
+        "code": "siazq",
+        "position": 1,
+        "format": "yyyy-MM-dd"
+      },
+      {
+        "code": "siazr",
+        "position": 1,
+        "format": "yyyy-MM-dd"
+      },
+      {
+        "code": "siazs",
+        "position": 1,
+        "format": "yyyy-MM-dd"
+      },
+      {
+        "code": "siazt",
+        "position": 1,
+        "format": "yyyy-MM-dd"
+      },
+      {
+        "code": "siazu",
+        "position": 1,
+        "format": "yyyy-MM-dd"
+      },
+      {
+        "code": "siazv",
+        "position": 1,
+        "format": "yyyy-MM-dd"
+      },
+      {
+        "code": "siazw",
+        "position": 1,
+        "format": "yyyy-MM-dd"
+      },
+      {
+        "code": "siazx",
+        "position": 1,
+        "format": "yyyy-MM-dd"
+      },
+      {
+        "code": "siazy",
+        "position": 1,
+        "format": "yyyy-MM-dd"
+      },
+      {
+        "code": "siazz",
+        "position": 1,
+        "format": "yyyy-MM-dd"
+      },
+      {
+        "code": "sibaa",
+        "position": 1,
+        "format": "yyyy-MM-dd"
+      },
+      {
+        "code": "sibab",
+        "position": 1,
+        "format": "yyyy-MM-dd"
+      },
+      {
+        "code": "sibac",
+        "position": 1,
+        "format": "yyyy-MM-dd"
+      },
+      {
+        "code": "sibad",
+        "position": 1,
+        "format": "yyyy-MM-dd"
+      },
+      {
+        "code": "sibae",
+        "position": 1,
+        "format": "yyyy-MM-dd"
+      },
+      {
+        "code": "sibaf",
+        "position": 1,
+        "format": "yyyy-MM-dd"
+      },
+      {
+        "code": "sibag",
+        "position": 1,
+        "format": "yyyy-MM-dd"
+      },
+      {
+        "code": "sibah",
+        "position": 1,
+        "format": "yyyy-MM-dd"
+      },
+      {
+        "code": "sibai",
+        "position": 1,
+        "format": "yyyy-MM-dd"
+      },
+      {
+        "code": "sibaj",
+        "position": 1,
+        "format": "yyyy-MM-dd"
+      },
+      {
+        "code": "sibak",
+        "position": 1,
+        "format": "yyyy-MM-dd"
+      },
+      {
+        "code": "sibal",
+        "position": 1,
+        "format": "yyyy-MM-dd"
+      },
+      {
+        "code": "sibam",
+        "position": 1,
+        "format": "yyyy-MM-dd"
+      },
+      {
+        "code": "siban",
+        "position": 1,
+        "format": "yyyy-MM-dd"
+      },
+      {
+        "code": "sibao",
+        "position": 1,
+        "format": "yyyy-MM-dd"
+      },
+      {
+        "code": "sibap",
+        "position": 1,
+        "format": "yyyy-MM-dd"
+      },
+      {
+        "code": "sibaq",
+        "position": 1,
+        "format": "yyyy-MM-dd"
+      },
+      {
+        "code": "sibar",
+        "position": 1,
+        "format": "yyyy-MM-dd"
+      },
+      {
+        "code": "sibas",
+        "position": 1,
+        "format": "yyyy-MM-dd"
+      },
+      {
+        "code": "sibat",
+        "position": 1,
+        "format": "yyyy-MM-dd"
+      },
+      {
+        "code": "sibau",
+        "position": 1,
+        "format": "yyyy-MM-dd"
+      },
+      {
+        "code": "sibav",
+        "position": 1,
+        "format": "yyyy-MM-dd"
+      },
+      {
+        "code": "sibaw",
+        "position": 1,
+        "format": "yyyy-MM-dd"
+      },
+      {
+        "code": "sibax",
+        "position": 1,
+        "format": "yyyy-MM-dd"
+      },
+      {
+        "code": "sibay",
+        "position": 1,
+        "format": "yyyy-MM-dd"
+      },
+      {
+        "code": "sibaz",
+        "position": 1,
+        "format": "yyyy-MM-dd"
+      },
+      {
+        "code": "sibba",
+        "position": 1,
+        "format": "yyyy-MM-dd"
+      },
+      {
+        "code": "sibbb",
+        "position": 1,
+        "format": "yyyy-MM-dd"
+      },
+      {
+        "code": "sibbc",
+        "position": 1,
+        "format": "yyyy-MM-dd"
+      },
+      {
+        "code": "sibbd",
+        "position": 1,
+        "format": "yyyy-MM-dd"
+      },
+      {
+        "code": "sibbe",
+        "position": 1,
+        "format": "yyyy-MM-dd"
+      },
+      {
+        "code": "sibbf",
+        "position": 1,
+        "format": "yyyy-MM-dd"
+      },
+      {
+        "code": "sibbg",
+        "position": 1,
+        "format": "yyyy-MM-dd"
+      },
+      {
+        "code": "sibbh",
+        "position": 1,
+        "format": "yyyy-MM-dd"
+      },
+      {
+        "code": "sibbi",
+        "position": 1,
+        "format": "yyyy-MM-dd"
+      },
+      {
+        "code": "sibbj",
+        "position": 1,
+        "format": "yyyy-MM-dd"
+      },
+      {
+        "code": "sibbk",
+        "position": 1,
+        "format": "yyyy-MM-dd"
+      },
+      {
+        "code": "sibbl",
+        "position": 1,
+        "format": "yyyy-MM-dd"
+      },
+      {
+        "code": "sibbm",
+        "position": 1,
+        "format": "yyyy-MM-dd"
+      },
+      {
+        "code": "sibbn",
+        "position": 1,
+        "format": "yyyy-MM-dd"
+      },
+      {
+        "code": "sibbo",
+        "position": 1,
+        "format": "yyyy-MM-dd"
+      },
+      {
+        "code": "sibbp",
+        "position": 1,
+        "format": "yyyy-MM-dd"
+      },
+      {
+        "code": "sibbq",
+        "position": 1,
+        "format": "yyyy-MM-dd"
+      },
+      {
+        "code": "sibbr",
+        "position": 1,
+        "format": "yyyy-MM-dd"
+      },
+      {
+        "code": "sibbs",
+        "position": 1,
+        "format": "yyyy-MM-dd"
+      },
+      {
+        "code": "sibbt",
+        "position": 1,
+        "format": "yyyy-MM-dd"
+      },
+      {
+        "code": "sibbu",
+        "position": 1,
+        "format": "yyyy-MM-dd"
+      },
+      {
+        "code": "sibbv",
+        "position": 1,
+        "format": "yyyy-MM-dd"
+      },
+      {
+        "code": "sibbw",
+        "position": 1,
+        "format": "yyyy-MM-dd"
+      },
+      {
+        "code": "sibbx",
+        "position": 1,
+        "format": "yyyy-MM-dd"
+      },
+      {
+        "code": "sibby",
+        "position": 1,
+        "format": "yyyy-MM-dd"
+      },
+      {
+        "code": "sibbz",
+        "position": 1,
+        "format": "yyyy-MM-dd"
+      },
+      {
+        "code": "sibca",
+        "position": 1,
+        "format": "yyyy-MM-dd"
+      },
+      {
+        "code": "sibcb",
+        "position": 1,
+        "format": "yyyy-MM-dd"
+      },
+      {
+        "code": "sibcc",
+        "position": 1,
+        "format": "yyyy-MM-dd"
+      },
+      {
+        "code": "sibcd",
+        "position": 1,
+        "format": "yyyy-MM-dd"
+      },
+      {
+        "code": "sibce",
+        "position": 1,
+        "format": "yyyy-MM-dd"
+      },
+      {
+        "code": "sibcf",
+        "position": 1,
+        "format": "yyyy-MM-dd"
+      },
+      {
+        "code": "sibcg",
+        "position": 1,
+        "format": "yyyy-MM-dd"
+      },
+      {
+        "code": "sibch",
+        "position": 1,
+        "format": "yyyy-MM-dd"
+      },
+      {
+        "code": "sibci",
+        "position": 1,
+        "format": "yyyy-MM-dd"
+      },
+      {
+        "code": "sibcj",
+        "position": 1,
+        "format": "yyyy-MM-dd"
+      },
+      {
+        "code": "sibck",
+        "position": 1,
+        "format": "yyyy-MM-dd"
+      },
+      {
+        "code": "sibcl",
+        "position": 1,
+        "format": "yyyy-MM-dd"
+      },
+      {
+        "code": "sibcm",
+        "position": 1,
+        "format": "yyyy-MM-dd"
+      },
+      {
+        "code": "sibcn",
+        "position": 1,
+        "format": "yyyy-MM-dd"
+      },
+      {
+        "code": "sibco",
+        "position": 1,
+        "format": "yyyy-MM-dd"
+      },
+      {
+        "code": "sibcp",
+        "position": 1,
+        "format": "yyyy-MM-dd"
+      },
+      {
+        "code": "sibcq",
+        "position": 1,
+        "format": "yyyy-MM-dd"
+      },
+      {
+        "code": "sibcr",
+        "position": 1,
+        "format": "yyyy-MM-dd"
+      },
+      {
+        "code": "sibcs",
+        "position": 1,
+        "format": "yyyy-MM-dd"
+      },
+      {
+        "code": "sibct",
+        "position": 1,
+        "format": "yyyy-MM-dd"
+      },
+      {
+        "code": "sibcu",
+        "position": 1,
+        "format": "yyyy-MM-dd"
+      },
+      {
+        "code": "sibcv",
+        "position": 1,
+        "format": "yyyy-MM-dd"
+      },
+      {
+        "code": "sibcw",
+        "position": 1,
+        "format": "yyyy-MM-dd"
+      },
+      {
+        "code": "sibcx",
+        "position": 1,
+        "format": "yyyy-MM-dd"
+      },
+      {
+        "code": "sibcy",
+        "position": 1,
+        "format": "yyyy-MM-dd"
+      },
+      {
+        "code": "sibcz",
+        "position": 1,
+        "format": "yyyy-MM-dd"
+      },
+      {
+        "code": "sibda",
+        "position": 1,
+        "format": "yyyy-MM-dd"
+      },
+      {
+        "code": "sibdb",
+        "position": 1,
+        "format": "yyyy-MM-dd"
+      },
+      {
+        "code": "sibdc",
+        "position": 1,
+        "format": "yyyy-MM-dd"
+      },
+      {
+        "code": "sibdd",
+        "position": 1,
+        "format": "yyyy-MM-dd"
+      },
+      {
+        "code": "sibde",
+        "position": 1,
+        "format": "yyyy-MM-dd"
+      },
+      {
+        "code": "sibdf",
+        "position": 1,
+        "format": "yyyy-MM-dd"
+      },
+      {
+        "code": "sibdg",
+        "position": 1,
+        "format": "yyyy-MM-dd"
+      },
+      {
+        "code": "sibdh",
+        "position": 1,
+        "format": "yyyy-MM-dd"
+      },
+      {
+        "code": "sibdi",
+        "position": 1,
+        "format": "yyyy-MM-dd"
+      },
+      {
+        "code": "sibdj",
+        "position": 1,
+        "format": "yyyy-MM-dd"
+      },
+      {
+        "code": "sibdk",
+        "position": 1,
+        "format": "yyyy-MM-dd"
+      },
+      {
+        "code": "sibdl",
+        "position": 1,
+        "format": "yyyy-MM-dd"
+      },
+      {
+        "code": "sibdm",
+        "position": 1,
+        "format": "yyyy-MM-dd"
+      },
+      {
+        "code": "sibdn",
+        "position": 1,
+        "format": "yyyy-MM-dd"
+      },
+      {
+        "code": "sibdo",
+        "position": 1,
+        "format": "yyyy-MM-dd"
+      },
+      {
+        "code": "sibdp",
+        "position": 1,
+        "format": "yyyy-MM-dd"
+      },
+      {
+        "code": "sibdq",
+        "position": 1,
+        "format": "yyyy-MM-dd"
+      },
+      {
+        "code": "sibdr",
+        "position": 1,
+        "format": "yyyy-MM-dd"
+      },
+      {
+        "code": "sibds",
+        "position": 1,
+        "format": "yyyy-MM-dd"
+      },
+      {
+        "code": "sibdt",
+        "position": 1,
+        "format": "yyyy-MM-dd"
+      },
+      {
+        "code": "sibdu",
+        "position": 1,
+        "format": "yyyy-MM-dd"
+      },
+      {
+        "code": "sibdv",
+        "position": 1,
+        "format": "yyyy-MM-dd"
+      },
+      {
+        "code": "sibdw",
+        "position": 1,
+        "format": "yyyy-MM-dd"
+      },
+      {
+        "code": "sibdx",
+        "position": 1,
+        "format": "yyyy-MM-dd"
+      },
+      {
+        "code": "sibdy",
+        "position": 1,
+        "format": "yyyy-MM-dd"
+      },
+      {
+        "code": "sibdz",
+        "position": 1,
+        "format": "yyyy-MM-dd"
+      },
+      {
+        "code": "sibea",
+        "position": 1,
+        "format": "yyyy-MM-dd"
+      },
+      {
+        "code": "sibeb",
+        "position": 1,
+        "format": "yyyy-MM-dd"
+      },
+      {
+        "code": "sibec",
+        "position": 1,
+        "format": "yyyy-MM-dd"
+      },
+      {
+        "code": "sibed",
+        "position": 1,
+        "format": "yyyy-MM-dd"
+      },
+      {
+        "code": "sibee",
+        "position": 1,
+        "format": "yyyy-MM-dd"
+      },
+      {
+        "code": "sibef",
+        "position": 1,
+        "format": "yyyy-MM-dd"
+      },
+      {
+        "code": "sibeg",
+        "position": 1,
+        "format": "yyyy-MM-dd"
+      },
+      {
+        "code": "sibeh",
+        "position": 1,
+        "format": "yyyy-MM-dd"
+      },
+      {
+        "code": "sibei",
+        "position": 1,
+        "format": "yyyy-MM-dd"
+      },
+      {
+        "code": "sibej",
+        "position": 1,
+        "format": "yyyy-MM-dd"
+      },
+      {
+        "code": "sibek",
+        "position": 1,
+        "format": "yyyy-MM-dd"
+      },
+      {
+        "code": "sibel",
+        "position": 1,
+        "format": "yyyy-MM-dd"
+      },
+      {
+        "code": "sibem",
+        "position": 1,
+        "format": "yyyy-MM-dd"
+      },
+      {
+        "code": "siben",
+        "position": 1,
+        "format": "yyyy-MM-dd"
+      },
+      {
+        "code": "sibeo",
+        "position": 1,
+        "format": "yyyy-MM-dd"
+      },
+      {
+        "code": "sibep",
+        "position": 1,
+        "format": "yyyy-MM-dd"
+      },
+      {
+        "code": "sibeq",
+        "position": 1,
+        "format": "yyyy-MM-dd"
+      },
+      {
+        "code": "siber",
+        "position": 1,
+        "format": "yyyy-MM-dd"
+      },
+      {
+        "code": "sibes",
+        "position": 1,
+        "format": "yyyy-MM-dd"
+      },
+      {
+        "code": "sibet",
+        "position": 1,
+        "format": "yyyy-MM-dd"
+      },
+      {
+        "code": "sibeu",
+        "position": 1,
+        "format": "yyyy-MM-dd"
+      },
+      {
+        "code": "sibev",
+        "position": 1,
+        "format": "yyyy-MM-dd"
+      },
+      {
+        "code": "sibew",
+        "position": 1,
+        "format": "yyyy-MM-dd"
+      },
+      {
+        "code": "sibex",
+        "position": 1,
+        "format": "yyyy-MM-dd"
+      },
+      {
+        "code": "sibey",
+        "position": 1,
+        "format": "yyyy-MM-dd"
+      },
+      {
+        "code": "sibez",
+        "position": 1,
+        "format": "yyyy-MM-dd"
+      },
+      {
+        "code": "sibfa",
+        "position": 1,
+        "format": "yyyy-MM-dd"
+      },
+      {
+        "code": "sibfb",
+        "position": 1,
+        "format": "yyyy-MM-dd"
+      },
+      {
+        "code": "sibfc",
+        "position": 1,
+        "format": "yyyy-MM-dd"
+      },
+      {
+        "code": "sibfd",
+        "position": 1,
+        "format": "yyyy-MM-dd"
+      },
+      {
+        "code": "sibfe",
+        "position": 1,
+        "format": "yyyy-MM-dd"
+      },
+      {
+        "code": "sibff",
+        "position": 1,
+        "format": "yyyy-MM-dd"
+      },
+      {
+        "code": "sibfg",
+        "position": 1,
+        "format": "yyyy-MM-dd"
+      },
+      {
+        "code": "sibfh",
+        "position": 1,
+        "format": "yyyy-MM-dd"
+      },
+      {
+        "code": "sibfi",
+        "position": 1,
+        "format": "yyyy-MM-dd"
+      },
+      {
+        "code": "sibfj",
+        "position": 1,
+        "format": "yyyy-MM-dd"
+      },
+      {
+        "code": "sibfk",
+        "position": 1,
+        "format": "yyyy-MM-dd"
+      },
+      {
+        "code": "sibfl",
+        "position": 1,
+        "format": "yyyy-MM-dd"
+      },
+      {
+        "code": "sibfm",
+        "position": 1,
+        "format": "yyyy-MM-dd"
+      },
+      {
+        "code": "sibfn",
+        "position": 1,
+        "format": "yyyy-MM-dd"
+      },
+      {
+        "code": "sibfo",
+        "position": 1,
+        "format": "yyyy-MM-dd"
+      },
+      {
+        "code": "sibfp",
+        "position": 1,
+        "format": "yyyy-MM-dd"
+      },
+      {
+        "code": "sibfq",
+        "position": 1,
+        "format": "yyyy-MM-dd"
+      },
+      {
+        "code": "sibfr",
+        "position": 1,
+        "format": "yyyy-MM-dd"
+      },
+      {
+        "code": "sibfs",
+        "position": 1,
+        "format": "yyyy-MM-dd"
+      },
+      {
+        "code": "sibft",
+        "position": 1,
+        "format": "yyyy-MM-dd"
+      },
+      {
+        "code": "sibfu",
+        "position": 1,
+        "format": "yyyy-MM-dd"
+      },
+      {
+        "code": "sibfv",
+        "position": 1,
+        "format": "yyyy-MM-dd"
+      },
+      {
+        "code": "sibfw",
+        "position": 1,
+        "format": "yyyy-MM-dd"
+      },
+      {
+        "code": "sibfx",
+        "position": 1,
+        "format": "yyyy-MM-dd"
+      },
+      {
+        "code": "sibfy",
+        "position": 1,
+        "format": "yyyy-MM-dd"
+      },
+      {
+        "code": "sibfz",
+        "position": 1,
+        "format": "yyyy-MM-dd"
+      },
+      {
+        "code": "sibga",
+        "position": 1,
+        "format": "yyyy-MM-dd"
+      },
+      {
+        "code": "sibgb",
+        "position": 1,
+        "format": "yyyy-MM-dd"
+      },
+      {
+        "code": "sibgc",
+        "position": 1,
+        "format": "yyyy-MM-dd"
+      },
+      {
+        "code": "sibgd",
+        "position": 1,
+        "format": "yyyy-MM-dd"
+      },
+      {
+        "code": "sibge",
+        "position": 1,
+        "format": "yyyy-MM-dd"
+      },
+      {
+        "code": "sibgf",
+        "position": 1,
+        "format": "yyyy-MM-dd"
+      },
+      {
+        "code": "sibgg",
+        "position": 1,
+        "format": "yyyy-MM-dd"
+      },
+      {
+        "code": "sibgh",
+        "position": 1,
+        "format": "yyyy-MM-dd"
+      },
+      {
+        "code": "sibgi",
+        "position": 1,
+        "format": "yyyy-MM-dd"
+      },
+      {
+        "code": "sibgj",
+        "position": 1,
+        "format": "yyyy-MM-dd"
+      },
+      {
+        "code": "sibgk",
+        "position": 1,
+        "format": "yyyy-MM-dd"
+      },
+      {
+        "code": "sibgl",
+        "position": 1,
+        "format": "yyyy-MM-dd"
+      },
+      {
+        "code": "sibgm",
+        "position": 1,
+        "format": "yyyy-MM-dd"
+      },
+      {
+        "code": "sibgn",
+        "position": 1,
+        "format": "yyyy-MM-dd"
+      },
+      {
+        "code": "sibgo",
+        "position": 1,
+        "format": "yyyy-MM-dd"
+      },
+      {
+        "code": "sibgp",
+        "position": 1,
+        "format": "yyyy-MM-dd"
+      },
+      {
+        "code": "sibgq",
+        "position": 1,
+        "format": "yyyy-MM-dd"
+      },
+      {
+        "code": "sibgr",
+        "position": 1,
+        "format": "yyyy-MM-dd"
+      },
+      {
+        "code": "sibgs",
+        "position": 1,
+        "format": "yyyy-MM-dd"
+      },
+      {
+        "code": "sibgt",
+        "position": 1,
+        "format": "yyyy-MM-dd"
+      },
+      {
+        "code": "sibgu",
+        "position": 1,
+        "format": "yyyy-MM-dd"
+      },
+      {
+        "code": "sibgv",
+        "position": 1,
+        "format": "yyyy-MM-dd"
+      },
+      {
+        "code": "sibgw",
+        "position": 1,
+        "format": "yyyy-MM-dd"
+      },
+      {
+        "code": "sibgx",
+        "position": 1,
+        "format": "yyyy-MM-dd"
+      },
+      {
+        "code": "sibgy",
+        "position": 1,
+        "format": "yyyy-MM-dd"
+      },
+      {
+        "code": "sibgz",
+        "position": 1,
+        "format": "yyyy-MM-dd"
+      },
+      {
+        "code": "sibha",
+        "position": 1,
+        "format": "yyyy-MM-dd"
+      },
+      {
+        "code": "sibhb",
+        "position": 1,
+        "format": "yyyy-MM-dd"
+      },
+      {
+        "code": "sibhc",
+        "position": 1,
+        "format": "yyyy-MM-dd"
+      },
+      {
+        "code": "sibhd",
+        "position": 1,
+        "format": "yyyy-MM-dd"
+      },
+      {
+        "code": "sibhe",
+        "position": 1,
+        "format": "yyyy-MM-dd"
+      },
+      {
+        "code": "sibhf",
+        "position": 1,
+        "format": "yyyy-MM-dd"
+      },
+      {
+        "code": "sibhg",
+        "position": 1,
+        "format": "yyyy-MM-dd"
+      },
+      {
+        "code": "sibhh",
+        "position": 1,
+        "format": "yyyy-MM-dd"
+      },
+      {
+        "code": "sibhi",
+        "position": 1,
+        "format": "yyyy-MM-dd"
+      },
+      {
+        "code": "sibhj",
+        "position": 1,
+        "format": "yyyy-MM-dd"
+      },
+      {
+        "code": "sibhk",
+        "position": 1,
+        "format": "yyyy-MM-dd"
+      },
+      {
+        "code": "sibhl",
+        "position": 1,
+        "format": "yyyy-MM-dd"
+      },
+      {
+        "code": "sibhm",
+        "position": 1,
+        "format": "yyyy-MM-dd"
+      },
+      {
+        "code": "sibhn",
+        "position": 1,
+        "format": "yyyy-MM-dd"
+      },
+      {
+        "code": "sibho",
+        "position": 1,
+        "format": "yyyy-MM-dd"
+      },
+      {
+        "code": "sibhp",
+        "position": 1,
+        "format": "yyyy-MM-dd"
+      },
+      {
+        "code": "sibhq",
+        "position": 1,
+        "format": "yyyy-MM-dd"
+      },
+      {
+        "code": "sibhr",
+        "position": 1,
+        "format": "yyyy-MM-dd"
+      },
+      {
+        "code": "sibhs",
+        "position": 1,
+        "format": "yyyy-MM-dd"
+      },
+      {
+        "code": "sibht",
+        "position": 1,
+        "format": "yyyy-MM-dd"
+      },
+      {
+        "code": "sibhu",
+        "position": 1,
+        "format": "yyyy-MM-dd"
+      },
+      {
+        "code": "sibhv",
+        "position": 1,
+        "format": "yyyy-MM-dd"
+      },
+      {
+        "code": "sibhw",
+        "position": 1,
+        "format": "yyyy-MM-dd"
+      },
+      {
+        "code": "sibhx",
+        "position": 1,
+        "format": "yyyy-MM-dd"
+      },
+      {
+        "code": "sibhy",
+        "position": 1,
+        "format": "yyyy-MM-dd"
+      },
+      {
+        "code": "sibhz",
+        "position": 1,
+        "format": "yyyy-MM-dd"
+      },
+      {
+        "code": "sibia",
+        "position": 1,
+        "format": "yyyy-MM-dd"
+      },
+      {
+        "code": "sibib",
+        "position": 1,
+        "format": "yyyy-MM-dd"
+      },
+      {
+        "code": "sibic",
+        "position": 1,
+        "format": "yyyy-MM-dd"
+      },
+      {
+        "code": "sibid",
+        "position": 1,
+        "format": "yyyy-MM-dd"
+      },
+      {
+        "code": "sibie",
+        "position": 1,
+        "format": "yyyy-MM-dd"
+      },
+      {
+        "code": "sibif",
+        "position": 1,
+        "format": "yyyy-MM-dd"
+      },
+      {
+        "code": "sibig",
+        "position": 1,
+        "format": "yyyy-MM-dd"
+      },
+      {
+        "code": "sibih",
+        "position": 1,
+        "format": "yyyy-MM-dd"
+      },
+      {
+        "code": "sibii",
+        "position": 1,
+        "format": "yyyy-MM-dd"
+      },
+      {
+        "code": "sibij",
+        "position": 1,
+        "format": "yyyy-MM-dd"
+      },
+      {
+        "code": "sibik",
+        "position": 1,
+        "format": "yyyy-MM-dd"
+      },
+      {
+        "code": "sibil",
+        "position": 1,
+        "format": "yyyy-MM-dd"
+      },
+      {
+        "code": "sibim",
+        "position": 1,
+        "format": "yyyy-MM-dd"
+      },
+      {
+        "code": "sibin",
+        "position": 1,
+        "format": "yyyy-MM-dd"
+      },
+      {
+        "code": "sibio",
+        "position": 1,
+        "format": "yyyy-MM-dd"
+      },
+      {
+        "code": "sibip",
+        "position": 1,
+        "format": "yyyy-MM-dd"
+      },
+      {
+        "code": "sibiq",
+        "position": 1,
+        "format": "yyyy-MM-dd"
+      },
+      {
+        "code": "sibir",
+        "position": 1,
+        "format": "yyyy-MM-dd"
+      },
+      {
+        "code": "sibis",
+        "position": 1,
+        "format": "yyyy-MM-dd"
+      },
+      {
+        "code": "sibit",
+        "position": 1,
+        "format": "yyyy-MM-dd"
+      },
+      {
+        "code": "sibiu",
+        "position": 1,
+        "format": "yyyy-MM-dd"
+      },
+      {
+        "code": "sibiv",
+        "position": 1,
+        "format": "yyyy-MM-dd"
+      },
+      {
+        "code": "sibiw",
+        "position": 1,
+        "format": "yyyy-MM-dd"
+      },
+      {
+        "code": "sibix",
+        "position": 1,
+        "format": "yyyy-MM-dd"
+      },
+      {
+        "code": "sibiy",
+        "position": 1,
+        "format": "yyyy-MM-dd"
+      },
+      {
+        "code": "sibiz",
+        "position": 1,
+        "format": "yyyy-MM-dd"
+      },
+      {
+        "code": "sibja",
+        "position": 1,
+        "format": "yyyy-MM-dd"
+      },
+      {
+        "code": "sibjb",
+        "position": 1,
+        "format": "yyyy-MM-dd"
+      },
+      {
+        "code": "sibjc",
+        "position": 1,
+        "format": "yyyy-MM-dd"
+      },
+      {
+        "code": "sibjd",
+        "position": 1,
+        "format": "yyyy-MM-dd"
+      },
+      {
+        "code": "sibje",
+        "position": 1,
+        "format": "yyyy-MM-dd"
+      },
+      {
+        "code": "sibjf",
+        "position": 1,
+        "format": "yyyy-MM-dd"
+      },
+      {
+        "code": "sibjg",
+        "position": 1,
+        "format": "yyyy-MM-dd"
+      },
+      {
+        "code": "sibjh",
+        "position": 1,
+        "format": "yyyy-MM-dd"
+      },
+      {
+        "code": "sibji",
+        "position": 1,
+        "format": "yyyy-MM-dd"
+      },
+      {
+        "code": "sibjj",
+        "position": 1,
+        "format": "yyyy-MM-dd"
+      },
+      {
+        "code": "sibjk",
+        "position": 1,
+        "format": "yyyy-MM-dd"
+      },
+      {
+        "code": "sibjl",
+        "position": 1,
+        "format": "yyyy-MM-dd"
+      },
+      {
+        "code": "sibjm",
+        "position": 1,
+        "format": "yyyy-MM-dd"
+      },
+      {
+        "code": "sibjn",
+        "position": 1,
+        "format": "yyyy-MM-dd"
+      },
+      {
+        "code": "sibjo",
+        "position": 1,
+        "format": "yyyy-MM-dd"
+      },
+      {
+        "code": "sibjp",
+        "position": 1,
+        "format": "yyyy-MM-dd"
+      },
+      {
+        "code": "sibjq",
+        "position": 1,
+        "format": "yyyy-MM-dd"
+      },
+      {
+        "code": "sibjr",
+        "position": 1,
+        "format": "yyyy-MM-dd"
+      },
+      {
+        "code": "sibjs",
+        "position": 1,
+        "format": "yyyy-MM-dd"
+      },
+      {
+        "code": "sibjt",
+        "position": 1,
+        "format": "yyyy-MM-dd"
+      },
+      {
+        "code": "sibju",
+        "position": 1,
+        "format": "yyyy-MM-dd"
+      },
+      {
+        "code": "sibjv",
+        "position": 1,
+        "format": "yyyy-MM-dd"
+      },
+      {
+        "code": "sibjw",
+        "position": 1,
+        "format": "yyyy-MM-dd"
+      },
+      {
+        "code": "sibjx",
+        "position": 1,
+        "format": "yyyy-MM-dd"
+      },
+      {
+        "code": "sibjy",
+        "position": 1,
+        "format": "yyyy-MM-dd"
+      },
+      {
+        "code": "sibjz",
+        "position": 1,
+        "format": "yyyy-MM-dd"
+      },
+      {
+        "code": "sibka",
+        "position": 1,
+        "format": "yyyy-MM-dd"
+      },
+      {
+        "code": "sibkb",
+        "position": 1,
+        "format": "yyyy-MM-dd"
+      },
+      {
+        "code": "sibkc",
+        "position": 1,
+        "format": "yyyy-MM-dd"
+      },
+      {
+        "code": "sibkd",
+        "position": 1,
+        "format": "yyyy-MM-dd"
+      },
+      {
+        "code": "sibke",
+        "position": 1,
+        "format": "yyyy-MM-dd"
+      },
+      {
+        "code": "sibkf",
+        "position": 1,
+        "format": "yyyy-MM-dd"
+      },
+      {
+        "code": "sibkg",
+        "position": 1,
+        "format": "yyyy-MM-dd"
+      },
+      {
+        "code": "sibkh",
+        "position": 1,
+        "format": "yyyy-MM-dd"
+      },
+      {
+        "code": "sibki",
+        "position": 1,
+        "format": "yyyy-MM-dd"
+      },
+      {
+        "code": "sibkj",
+        "position": 1,
+        "format": "yyyy-MM-dd"
+      },
+      {
+        "code": "sibkk",
+        "position": 1,
+        "format": "yyyy-MM-dd"
+      },
+      {
+        "code": "sibkl",
+        "position": 1,
+        "format": "yyyy-MM-dd"
+      },
+      {
+        "code": "sibkm",
+        "position": 1,
+        "format": "yyyy-MM-dd"
+      },
+      {
+        "code": "sibkn",
+        "position": 1,
+        "format": "yyyy-MM-dd"
+      },
+      {
+        "code": "sibko",
+        "position": 1,
+        "format": "yyyy-MM-dd"
+      },
+      {
+        "code": "sibkp",
+        "position": 1,
+        "format": "yyyy-MM-dd"
+      },
+      {
+        "code": "sibkq",
+        "position": 1,
+        "format": "yyyy-MM-dd"
+      },
+      {
+        "code": "sibkr",
+        "position": 1,
+        "format": "yyyy-MM-dd"
+      },
+      {
+        "code": "sibks",
+        "position": 1,
+        "format": "yyyy-MM-dd"
+      },
+      {
+        "code": "sibkt",
+        "position": 1,
+        "format": "yyyy-MM-dd"
+      },
+      {
+        "code": "sibku",
+        "position": 1,
+        "format": "yyyy-MM-dd"
+      },
+      {
+        "code": "sibkv",
+        "position": 1,
+        "format": "yyyy-MM-dd"
+      },
+      {
+        "code": "sibkw",
+        "position": 1,
+        "format": "yyyy-MM-dd"
+      },
+      {
+        "code": "sibkx",
+        "position": 1,
+        "format": "yyyy-MM-dd"
+      },
+      {
+        "code": "sibky",
+        "position": 1,
+        "format": "yyyy-MM-dd"
+      },
+      {
+        "code": "sibkz",
+        "position": 1,
+        "format": "yyyy-MM-dd"
+      },
+      {
+        "code": "sibla",
+        "position": 1,
+        "format": "yyyy-MM-dd"
+      },
+      {
+        "code": "siblb",
+        "position": 1,
+        "format": "yyyy-MM-dd"
+      },
+      {
+        "code": "siblc",
+        "position": 1,
+        "format": "yyyy-MM-dd"
+      },
+      {
+        "code": "sibld",
+        "position": 1,
+        "format": "yyyy-MM-dd"
+      },
+      {
+        "code": "sible",
+        "position": 1,
+        "format": "yyyy-MM-dd"
+      },
+      {
+        "code": "siblf",
+        "position": 1,
+        "format": "yyyy-MM-dd"
+      },
+      {
+        "code": "siblg",
+        "position": 1,
+        "format": "yyyy-MM-dd"
+      },
+      {
+        "code": "siblh",
+        "position": 1,
+        "format": "yyyy-MM-dd"
+      },
+      {
+        "code": "sibli",
+        "position": 1,
+        "format": "yyyy-MM-dd"
+      },
+      {
+        "code": "siblj",
+        "position": 1,
+        "format": "yyyy-MM-dd"
+      },
+      {
+        "code": "siblk",
+        "position": 1,
+        "format": "yyyy-MM-dd"
+      },
+      {
+        "code": "sibll",
+        "position": 1,
+        "format": "yyyy-MM-dd"
+      },
+      {
+        "code": "siblm",
+        "position": 1,
+        "format": "yyyy-MM-dd"
+      },
+      {
+        "code": "sibln",
+        "position": 1,
+        "format": "yyyy-MM-dd"
+      },
+      {
+        "code": "siblo",
+        "position": 1,
+        "format": "yyyy-MM-dd"
+      },
+      {
+        "code": "siblp",
+        "position": 1,
+        "format": "yyyy-MM-dd"
+      },
+      {
+        "code": "siblq",
+        "position": 1,
+        "format": "yyyy-MM-dd"
+      },
+      {
+        "code": "siblr",
+        "position": 1,
+        "format": "yyyy-MM-dd"
+      },
+      {
+        "code": "sibls",
+        "position": 1,
+        "format": "yyyy-MM-dd"
+      },
+      {
+        "code": "siblt",
+        "position": 1,
+        "format": "yyyy-MM-dd"
+      },
+      {
+        "code": "siblu",
+        "position": 1,
+        "format": "yyyy-MM-dd"
+      },
+      {
+        "code": "siblv",
+        "position": 1,
+        "format": "yyyy-MM-dd"
+      },
+      {
+        "code": "siblw",
+        "position": 1,
+        "format": "yyyy-MM-dd"
+      },
+      {
+        "code": "siblx",
+        "position": 1,
+        "format": "yyyy-MM-dd"
+      },
+      {
+        "code": "sibly",
+        "position": 1,
+        "format": "yyyy-MM-dd"
+      },
+      {
+        "code": "siblz",
+        "position": 1,
+        "format": "yyyy-MM-dd"
+      },
+      {
+        "code": "sibma",
+        "position": 1,
+        "format": "yyyy-MM-dd"
+      },
+      {
+        "code": "sibmb",
+        "position": 1,
+        "format": "yyyy-MM-dd"
+      },
+      {
+        "code": "sibmc",
+        "position": 1,
+        "format": "yyyy-MM-dd"
+      },
+      {
+        "code": "sibmd",
+        "position": 1,
+        "format": "yyyy-MM-dd"
+      },
+      {
+        "code": "sibme",
+        "position": 1,
+        "format": "yyyy-MM-dd"
+      },
+      {
+        "code": "sibmf",
+        "position": 1,
+        "format": "yyyy-MM-dd"
+      },
+      {
+        "code": "sibmg",
+        "position": 1,
+        "format": "yyyy-MM-dd"
+      },
+      {
+        "code": "sibmh",
+        "position": 1,
+        "format": "yyyy-MM-dd"
+      },
+      {
+        "code": "sibmi",
+        "position": 1,
+        "format": "yyyy-MM-dd"
+      },
+      {
+        "code": "sibmj",
+        "position": 1,
+        "format": "yyyy-MM-dd"
+      },
+      {
+        "code": "sibmk",
+        "position": 1,
+        "format": "yyyy-MM-dd"
+      },
+      {
+        "code": "sibml",
+        "position": 1,
+        "format": "yyyy-MM-dd"
+      },
+      {
+        "code": "sibmm",
+        "position": 1,
+        "format": "yyyy-MM-dd"
+      },
+      {
+        "code": "sibmn",
+        "position": 1,
+        "format": "yyyy-MM-dd"
+      },
+      {
+        "code": "sibmo",
+        "position": 1,
+        "format": "yyyy-MM-dd"
+      },
+      {
+        "code": "sibmp",
+        "position": 1,
+        "format": "yyyy-MM-dd"
+      },
+      {
+        "code": "sibmq",
+        "position": 1,
+        "format": "yyyy-MM-dd"
+      },
+      {
+        "code": "sibmr",
+        "position": 1,
+        "format": "yyyy-MM-dd"
+      },
+      {
+        "code": "sibms",
+        "position": 1,
+        "format": "yyyy-MM-dd"
+      },
+      {
+        "code": "sibmt",
+        "position": 1,
+        "format": "yyyy-MM-dd"
+      },
+      {
+        "code": "sibmu",
+        "position": 1,
+        "format": "yyyy-MM-dd"
+      },
+      {
+        "code": "sibmv",
+        "position": 1,
+        "format": "yyyy-MM-dd"
+      },
+      {
+        "code": "sibmw",
+        "position": 1,
+        "format": "yyyy-MM-dd"
+      },
+      {
+        "code": "sibmx",
+        "position": 1,
+        "format": "yyyy-MM-dd"
+      },
+      {
+        "code": "sibmy",
+        "position": 1,
+        "format": "yyyy-MM-dd"
+      },
+      {
+        "code": "sibmz",
+        "position": 1,
+        "format": "yyyy-MM-dd"
+      },
+      {
+        "code": "sibna",
+        "position": 1,
+        "format": "yyyy-MM-dd"
+      },
+      {
+        "code": "sibnb",
+        "position": 1,
+        "format": "yyyy-MM-dd"
+      },
+      {
+        "code": "sibnc",
+        "position": 1,
+        "format": "yyyy-MM-dd"
+      },
+      {
+        "code": "sibnd",
+        "position": 1,
+        "format": "yyyy-MM-dd"
+      },
+      {
+        "code": "sibne",
+        "position": 1,
+        "format": "yyyy-MM-dd"
+      },
+      {
+        "code": "sibnf",
+        "position": 1,
+        "format": "yyyy-MM-dd"
+      },
+      {
+        "code": "sibng",
+        "position": 1,
+        "format": "yyyy-MM-dd"
+      },
+      {
+        "code": "sibnh",
+        "position": 1,
+        "format": "yyyy-MM-dd"
+      },
+      {
+        "code": "sibni",
+        "position": 1,
+        "format": "yyyy-MM-dd"
+      },
+      {
+        "code": "sibnj",
+        "position": 1,
+        "format": "yyyy-MM-dd"
+      }
+    ]
+  },
+  "same_code": {
+    "rules": [
+      {
+        "code": "jjad",
+        "position": 1,
+        "format": "yyyy-MM-dd '0'"
+      },
+      {
+        "code": "jjad",
+        "position": 2,
+        "format": "yyyy-MM-dd '1'"
+      },
+      {
+        "code": "jjad",
+        "position": 3,
+        "format": "yyyy-MM-dd '2'"
+      },
+      {
+        "code": "jjad",
+        "position": 4,
+        "format": "yyyy-MM-dd '3'"
+      },
+      {
+        "code": "jjad",
+        "position": 5,
+        "format": "yyyy-MM-dd '4'"
+      },
+      {
+        "code": "jjad",
+        "position": 6,
+        "format": "yyyy-MM-dd '5'"
+      },
+      {
+        "code": "jjad",
+        "position": 7,
+        "format": "yyyy-MM-dd '6'"
+      },
+      {
+        "code": "jjad",
+        "position": 8,
+        "format": "yyyy-MM-dd '7'"
+      },
+      {
+        "code": "jjad",
+        "position": 9,
+        "format": "yyyy-MM-dd '8'"
+      },
+      {
+        "code": "jjad",
+        "position": 10,
+        "format": "yyyy-MM-dd '9'"
+      },
+      {
+        "code": "jjad",
+        "position": 11,
+        "format": "yyyy-MM-dd '10'"
+      },
+      {
+        "code": "jjad",
+        "position": 12,
+        "format": "yyyy-MM-dd '11'"
+      },
+      {
+        "code": "jjad",
+        "position": 13,
+        "format": "yyyy-MM-dd '12'"
+      },
+      {
+        "code": "jjad",
+        "position": 14,
+        "format": "yyyy-MM-dd '13'"
+      },
+      {
+        "code": "jjad",
+        "position": 15,
+        "format": "yyyy-MM-dd '14'"
+      },
+      {
+        "code": "jjad",
+        "position": 16,
+        "format": "yyyy-MM-dd '15'"
+      },
+      {
+        "code": "jjad",
+        "position": 17,
+        "format": "yyyy-MM-dd '16'"
+      },
+      {
+        "code": "jjad",
+        "position": 18,
+        "format": "yyyy-MM-dd '17'"
+      },
+      {
+        "code": "jjad",
+        "position": 19,
+        "format": "yyyy-MM-dd '18'"
+      },
+      {
+        "code": "jjad",
+        "position": 20,
+        "format": "yyyy-MM-dd '19'"
+      },
+      {
+        "code": "jjad",
+        "position": 21,
+        "format": "yyyy-MM-dd '20'"
+      },
+      {
+        "code": "jjad",
+        "position": 22,
+        "format": "yyyy-MM-dd '21'"
+      },
+      {
+        "code": "jjad",
+        "position": 23,
+        "format": "yyyy-MM-dd '22'"
+      },
+      {
+        "code": "jjad",
+        "position": 24,
+        "format": "yyyy-MM-dd '23'"
+      },
+      {
+        "code": "jjad",
+        "position": 25,
+        "format": "yyyy-MM-dd '24'"
+      },
+      {
+        "code": "jjad",
+        "position": 26,
+        "format": "yyyy-MM-dd '25'"
+      },
+      {
+        "code": "jjad",
+        "position": 27,
+        "format": "yyyy-MM-dd '26'"
+      },
+      {
+        "code": "jjad",
+        "position": 28,
+        "format": "yyyy-MM-dd '27'"
+      },
+      {
+        "code": "jjad",
+        "position": 29,
+        "format": "yyyy-MM-dd '28'"
+      },
+      {
+        "code": "jjad",
+        "position": 30,
+        "format": "yyyy-MM-dd '29'"
+      },
+      {
+        "code": "jjad",
+        "position": 31,
+        "format": "yyyy-MM-dd '30'"
+      },
+      {
+        "code": "jjad",
+        "position": 32,
+        "format": "yyyy-MM-dd '31'"
+      }
+    ]
+  },
+  "multi_category": {
+    "kinds": [
+      "emoji",
+      "kaomoji",
+      "kana",
+      "math",
+      "punctuation",
+      "symbols"
+    ],
+    "entries_per_kind": 1024,
+    "trigger": "基线",
+    "text_recipe": "kind + decimal entry index; all unique within and across kinds"
+  }
+}

@@ -1,0 +1,130 @@
+{
+  "baseline_commit": "f556b636e5ec380a439547a5b8ca1cf025affe20",
+  "host": "Windows-11-10.0.26200-SP0",
+  "cpu": "Intel Core Ultra 7 165U",
+  "rustc": "rustc 1.99.1 (58cf8f9c3 2026-10-13)",
+  "profile": "release, offline, default features",
+  "resource_source": "existing local files; no download",
+  "hashes": {
+    "expressions/emoji.mwe": "16056f5599579db163fd06c5574756afcb39301d97e68bbea3956bf112323802",
+    "expressions/kaomoji.mwe": "b0b4f8f9fd1772d81896df85cce5b1197caae162cdbae81d6178029d65bd7814",
+    "docs/validation/special-input/cases.json": "21b716b38b28bbcbb8507fdb9247f91a008ebf2c7ff00e9971c1f191e40e72bd",
+    "target/release/examples/special_input_baseline.exe": "e0ababa84f86ab9ba93c9716af0e693be37d0c4b317ef1ae129b970f2923df34"
+  },
+  "runs": [
+    {
+      "input_jjaad": {
+        "p50_us": 1.7,
+        "p95_us": 1.7999999999999998,
+        "p99_us": 1.9,
+        "samples": 1000
+      },
+      "scope": "old core path only; excludes JNI/UI/host; first load uses OS file cache",
+      "searches": [
+        {
+          "entries": 3972,
+          "load_ms": 53.3889,
+          "query": "禁止车",
+          "resource": "emoji.mwe",
+          "results": 1,
+          "search": {
+            "p50_us": 892.8000000000001,
+            "p95_us": 2200.5,
+            "p99_us": 3272.1,
+            "samples": 200
+          }
+        },
+        {
+          "entries": 34354,
+          "load_ms": 144.2713,
+          "query": "开心",
+          "resource": "kaomoji.mwe",
+          "results": 2979,
+          "search": {
+            "p50_us": 464.3,
+            "p95_us": 785.6999999999999,
+            "p99_us": 1132.3,
+            "samples": 200
+          }
+        }
+      ],
+      "warmup": 20
+    },
+    {
+      "input_jjaad": {
+        "p50_us": 1.7,
+        "p95_us": 1.7999999999999998,
+        "p99_us": 2.2,
+        "samples": 1000
+      },
+      "scope": "old core path only; excludes JNI/UI/host; first load uses OS file cache",
+      "searches": [
+        {
+          "entries": 3972,
+          "load_ms": 50.5911,
+          "query": "禁止车",
+          "resource": "emoji.mwe",
+          "results": 1,
+          "search": {
+            "p50_us": 908.8,
+            "p95_us": 1808.3999999999999,
+            "p99_us": 2251.8999999999996,
+            "samples": 200
+          }
+        },
+        {
+          "entries": 34354,
+          "load_ms": 149.3379,
+          "query": "开心",
+          "resource": "kaomoji.mwe",
+          "results": 2979,
+          "search": {
+            "p50_us": 471.1,
+            "p95_us": 869.5,
+            "p99_us": 1181.4,
+            "samples": 200
+          }
+        }
+      ],
+      "warmup": 20
+    },
+    {
+      "input_jjaad": {
+        "p50_us": 4.300000000000001,
+        "p95_us": 4.8999999999999995,
+        "p99_us": 7.700000000000001,
+        "samples": 1000
+      },
+      "scope": "old core path only; excludes JNI/UI/host; first load uses OS file cache",
+      "searches": [
+        {
+          "entries": 3972,
+          "load_ms": 54.379400000000004,
+          "query": "禁止车",
+          "resource": "emoji.mwe",
+          "results": 1,
+          "search": {
+            "p50_us": 889.9,
+            "p95_us": 2120.6,
+            "p99_us": 3012.2999999999997,
+            "samples": 200
+          }
+        },
+        {
+          "entries": 34354,
+          "load_ms": 143.2835,
+          "query": "开心",
+          "resource": "kaomoji.mwe",
+          "results": 2979,
+          "search": {
+            "p50_us": 469.9,
+            "p95_us": 933.3,
+            "p99_us": 1178.4,
+            "samples": 200
+          }
+        }
+      ],
+      "warmup": 20
+    }
+  ]
+}
