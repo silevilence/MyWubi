@@ -30,3 +30,4 @@ pub fn identity() -> Result<String> {
         .map_err(|_| Error::Invalid("系统随机数不可用"))?;
     Ok(bytes.iter().map(|b| format!("{b:02x}")).collect())
 }
+pub mod samples;
