@@ -15,6 +15,7 @@ pub mod expression_search;
 pub mod expression_store;
 pub mod expressions;
 pub mod ffi;
+pub mod personal;
 mod pinyin;
 pub mod runtime;
 pub mod session;
