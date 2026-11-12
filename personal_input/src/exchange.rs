@@ -196,6 +196,7 @@ pub fn import(
     }
     let changed = matches!(mode, ImportMode::Replace) || preview.added > 0;
     if matches!(mode, ImportMode::Replace) {
+        state.data_epoch += 1;
         state.events = BTreeMap::new();
         state.retired.clear();
     }

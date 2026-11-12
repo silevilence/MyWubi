@@ -17,6 +17,8 @@ pub struct Store {
 }
 #[derive(Default, Clone, Serialize, Deserialize)]
 pub struct Snapshot {
+    #[serde(default)]
+    pub data_epoch: u64,
     pub generation: u64,
     pub events: BTreeMap<String, Event>,
     /// Bounded tombstones retain identities of evicted events, never plaintext.
@@ -60,6 +62,14 @@ impl Store {
         Ok(file)
     }
     pub(crate) fn load_locked(&self) -> Result<Snapshot> {
+        if self
+            .root
+            .join("snapshot.json")
+            .metadata()
+            .is_ok_and(|m| m.len() > MAX_BYTES)
+        {
+            return Err(Error::Invalid("个人数据快照超过上限"));
+        }
         let mut state: Snapshot = match fs::read(self.root.join("snapshot.json")) {
             Ok(bytes) => serde_json::from_slice(&bytes)?,
             Err(e) if e.kind() == std::io::ErrorKind::NotFound => Snapshot::default(),
@@ -121,6 +131,15 @@ impl Store {
         Ok(())
     }
     pub fn append(&self, events: Vec<Event>, dropped: u64, config: &PersonalConfig) -> Result<()> {
+        self.append_if(events, dropped, config, || true)
+    }
+    pub(crate) fn append_if(
+        &self,
+        events: Vec<Event>,
+        dropped: u64,
+        config: &PersonalConfig,
+        permitted: impl Fn() -> bool,
+    ) -> Result<()> {
         if !config.collect {
             return Ok(());
         }
@@ -129,6 +148,9 @@ impl Store {
         }
         let _lock = self.lock()?;
         let mut state = self.load_locked()?;
+        if !permitted() {
+            return Ok(());
+        }
         let events: Vec<_> = events
             .into_iter()
             .filter(|e| !state.events.contains_key(&e.id) && !state.retired.contains_key(&e.id))
@@ -198,7 +220,7 @@ impl Store {
                 state.retired.insert(id, digest(&bytes));
             }
         }
-        while state.retired.len() > 100_000 {
+        while state.retired.len() > 100_000.min((limit / 1024) as usize) {
             state.retired.pop_first();
         }
         Ok(())
@@ -209,6 +231,7 @@ impl Store {
         let old = self.load_locked()?;
         self.replace_locked(Snapshot {
             generation: old.generation,
+            data_epoch: old.data_epoch + u64::from(models),
             ..Default::default()
         })?;
         for name in if models {

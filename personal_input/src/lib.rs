@@ -31,3 +31,4 @@ pub fn identity() -> Result<String> {
     Ok(bytes.iter().map(|b| format!("{b:02x}")).collect())
 }
 pub mod samples;
+pub mod learning;
