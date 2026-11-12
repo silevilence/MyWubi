@@ -88,8 +88,8 @@ impl PersonalPanel {
                             value.get("model").filter(|m| !m.is_null()).map_or(
                                 "待积累/未就绪".into(),
                                 |m| format!(
-                                    "版本 {}，样本 {}，更新时间 {}",
-                                    m["version"], m["samples"], m["updated"]
+                                    "版本 {}，样本 {}，模型 {} 字节，更新时间 {}",
+                                    m["version"], m["samples"], m["bytes"], m["updated"]
                                 )
                             ),
                             value.get("learning").filter(|v| !v.is_null()).map_or(

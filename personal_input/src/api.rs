@@ -56,7 +56,7 @@ pub fn execute(config: &Path, command: Command) -> Result<serde_json::Value> {
                 .ok()
                 .and_then(|bytes| serde_json::from_slice::<serde_json::Value>(&bytes).ok());
             Ok(
-                serde_json::json!({"data":store.stats()?,"learning":learning,"model":model.as_ref().map(|m| serde_json::json!({"version":m.version,"samples":m.sample_count,"updated":m.created_ms,"algorithm":m.algorithm})),"quality":"experimental"}),
+                serde_json::json!({"data":store.stats()?,"learning":learning,"model":model.as_ref().map(|m| serde_json::json!({"version":m.version,"samples":m.sample_count,"updated":m.created_ms,"algorithm":m.algorithm,"bytes":std::fs::metadata(store.root.join("model.json")).ok().map(|f|f.len())})),"quality":"experimental"}),
             )
         }
         Command::Schedule => {

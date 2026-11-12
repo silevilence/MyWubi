@@ -99,6 +99,7 @@ impl Model {
         self.format == 1
             && self.tokenizer == "unicode-scalar-v1"
             && self.sample_count >= MIN_SAMPLES
+            && !self.entries.is_empty()
             && self.entries.len() <= MAX_SAMPLES * 4
             && self.entries.iter().all(|p| {
                 p.count > 0
@@ -281,6 +282,17 @@ pub fn train(store: &Store, cancel: &AtomicBool) -> Result<Model> {
         }
     }
     let mut samples = samples::build(state.events.into_values());
+    samples.kept.retain(|sample| {
+        let supported = !sample.left.is_empty()
+            && core_engine::assistance::prediction::valid_proposal(&sample.left, &sample.target);
+        if !supported {
+            samples.excluded.push(samples::Excluded {
+                event: sample.event.clone(),
+                reason: "unsupported_personal_prediction".into(),
+            });
+        }
+        supported
+    });
     if samples.kept.len() < MIN_SAMPLES {
         return Err(Error::Invalid(
             "待积累：至少需要 20 条已确认且上下文完整的输入",

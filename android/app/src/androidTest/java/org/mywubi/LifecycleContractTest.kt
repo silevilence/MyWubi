@@ -8,7 +8,11 @@ import org.junit.Test
 class LifecycleContractTest {
     @Test fun localPreeditBusyAndUnknownCommitRecoverWithoutReplay() {
         val context = androidx.test.platform.app.InstrumentationRegistry.getInstrumentation().targetContext
-        val config = Resources.prepare(context)
+        Resources.prepare(context)
+        val table = java.io.File(context.cacheDir, "lifecycle-fixture.dict").apply { writeText("g\t王\n") }
+        val config = java.io.File(context.cacheDir, "lifecycle-fixture.toml").apply {
+            writeText("[basic]\nauto_commit_unique=false\n[dictionary]\nsystem_table='${table.absolutePath}'\nenable_user_dict=false\n")
+        }
         NativeHandle(NativeBridge.objectCall("BuildRuntime", "path" to config.path).getLong("handle")).use { runtime ->
             val host = JSONObject("""{"editor":1,"epoch":1,"supports_preedit":false,"supports_insert":true,"owns_preedit":false,"purpose":"Text","selection_available":true,"surrounding_available":true,"enter_action":"Newline"}""")
             NativeHandle(NativeBridge.objectCall("CreateSession", "runtime" to runtime.value, "context" to host).getLong("handle")).use { session ->

@@ -313,3 +313,18 @@ fn normal_shutdown_drains_authorized_events() {
     drop(recorder);
     assert_eq!(Store::beside_config(&path).stats().unwrap().records, 1);
 }
+#[test]
+fn records_without_usable_prefix_do_not_publish_a_ready_model() {
+    let dir = tempfile::tempdir().unwrap();
+    let store = Store::new(dir.path());
+    let events = (1..=30)
+        .map(|n| {
+            let mut e = event(n);
+            e.before.left = Some(String::new());
+            e
+        })
+        .collect();
+    store.append(events, 0, &config()).unwrap();
+    assert!(learning::train(&store, &AtomicBool::new(false)).is_err());
+    assert!(!store.root.join("model.json").exists());
+}

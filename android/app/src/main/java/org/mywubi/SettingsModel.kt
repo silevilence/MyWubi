@@ -55,7 +55,7 @@ class SettingsModel(application: Application) : AndroidViewModel(application) {
             val model=result.optJSONObject("model")
             val learning=result.optJSONObject("learning")
             "记录 ${data.optInt("records")} 条，占用 ${data.optLong("bytes")} 字节，缺失 ${data.optLong("gaps")} 条；" +
-                (if(model==null) "个人模型待积累/未就绪" else "版本 ${model.optString("version")}，样本 ${model.optInt("samples")}，更新时间 ${model.optLong("updated")}") +
+                (if(model==null) "个人模型待积累/未就绪" else "版本 ${model.optString("version")}，样本 ${model.optInt("samples")}，模型 ${model.optLong("bytes")} 字节，更新时间 ${model.optLong("updated")}") +
                 (if(learning==null) "；等待输入法启动" else "；学习：${learning.optString("phase")} ${learning.optString("reason")}，上一批 ${learning.optLong("elapsed_ms")} ms；1 线程 / 2 秒批次 / 8 MB 模型")
         } else result.optString("message","操作完成")
         val publish:()->Unit={personalStatus=text;personalPreview=null};publish
