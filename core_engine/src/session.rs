@@ -1297,10 +1297,11 @@ fn expression_resources_equal(
     previous: &crate::expressions::ExpressionResources,
     next: &crate::expressions::ExpressionResources,
 ) -> bool {
-    [&previous.emoji, &previous.kaomoji]
+    crate::expressions::ExpressionKind::ALL
         .into_iter()
-        .zip([&next.emoji, &next.kaomoji])
-        .all(|(a, b)| {
+        .all(|kind| {
+            let a = previous.resource(kind);
+            let b = next.resource(kind);
             a.path == b.path
                 && a.error == b.error
                 && a.library.as_ref().map(|library| library.document())

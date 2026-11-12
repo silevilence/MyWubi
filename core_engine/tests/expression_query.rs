@@ -168,7 +168,8 @@ fn literal_editing_keeps_digits_symbols_graphemes_and_requires_clear_before_swit
         begin(&mut s);
         local(&mut s, Action::SetExpressionInput(ExpressionInput::Literal));
         for c in "1+".chars() {
-            local(&mut s, Action::InputText(c, TextIntent::Normal));
+            assert!(s.would_handle(&Action::InputCode(c)));
+            local(&mut s, Action::InputCode(c));
         }
         local(&mut s, Action::InsertLiteral("👩🏽‍💻".into()));
         local(&mut s, Action::Backspace);

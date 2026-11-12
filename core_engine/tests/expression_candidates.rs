@@ -464,6 +464,52 @@ fn resource_change_cancels_old_query_even_when_prediction_settings_change_too() 
 }
 
 #[test]
+fn every_new_category_resource_reload_invalidates_old_candidate_identity() {
+    fn resources_for(kind: ExpressionKind, text: &str) -> Arc<ExpressionResources> {
+        let mut resources = ExpressionResources::default();
+        let target = match kind {
+            ExpressionKind::Kana => &mut resources.kana,
+            ExpressionKind::Math => &mut resources.math,
+            ExpressionKind::Punctuation => &mut resources.punctuation,
+            ExpressionKind::Symbols => &mut resources.symbols,
+            _ => unreachable!(),
+        };
+        target.library = Some(library(kind, &[(text, &["开心"])]));
+        Arc::new(resources)
+    }
+    for kind in ExpressionKind::ALL.into_iter().skip(2) {
+        for profile in [BehaviorProfile::TouchV1, BehaviorProfile::LegacyV1] {
+            let mut r = runtime("a\t开心\n", 5);
+            r.config.expressions = ExpressionsConfig::default();
+            r.config.expressions.selection_mut(kind).append = true;
+            r.expressions = resources_for(kind, "旧");
+            let mut s = Session::new(&r, profile, HostContext::default());
+            apply(&mut s, Action::InputCode('a'));
+            let old = s.candidate_window(1, 1);
+            assert_eq!(old.candidates[0].text, "旧");
+            let mut next = r.clone();
+            next.revision += 1;
+            next.config.prediction.enabled = true;
+            next.expressions = resources_for(kind, "新");
+            let cleanup = s
+                .apply_runtime(Arc::new(next))
+                .unwrap()
+                .expect("changed category must end the old query");
+            s.acknowledge(cleanup.token, HostOutcome::Applied);
+            assert!(matches!(
+                s.prepare(Action::SelectCandidate(
+                    old.query_revision,
+                    old.candidates[0].id
+                )),
+                Err(SessionError::Rejected(Rejection::StaleCandidate))
+            ));
+            apply(&mut s, Action::InputCode('a'));
+            assert_eq!(s.candidate_window(1, 1).candidates[0].text, "新");
+        }
+    }
+}
+
+#[test]
 fn password_context_never_appends_and_returning_to_text_restores_resources() {
     for profile in [BehaviorProfile::TouchV1, BehaviorProfile::LegacyV1] {
         let mut s = Session::new(

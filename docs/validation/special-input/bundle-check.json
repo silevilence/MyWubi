@@ -1,0 +1,139 @@
+{
+  "date": "2026-11-12",
+  "scope": "local staging only; not Setup/Portable/APK acceptance",
+  "network_downloads": 0,
+  "files": [
+    {
+      "path": "emoji.mwe",
+      "sha256": "16056f5599579db163fd06c5574756afcb39301d97e68bbea3956bf112323802",
+      "desktop_copy_matches": true,
+      "android_generated_asset_matches": true
+    },
+    {
+      "path": "kaomoji.mwe",
+      "sha256": "b0b4f8f9fd1772d81896df85cce5b1197caae162cdbae81d6178029d65bd7814",
+      "desktop_copy_matches": true,
+      "android_generated_asset_matches": true
+    },
+    {
+      "path": "kana.mwe",
+      "sha256": "49789256814ef73664b9897755f79f84104368a1b60666557345c7bd03c64371",
+      "desktop_copy_matches": true,
+      "android_generated_asset_matches": true
+    },
+    {
+      "path": "math.mwe",
+      "sha256": "53d207aae68e8d9ed416b1283050ed164dc4c23c3792265b96e224b3acc2c0da",
+      "desktop_copy_matches": true,
+      "android_generated_asset_matches": true
+    },
+    {
+      "path": "punctuation.mwe",
+      "sha256": "644b0f28962dbd703e1c1afb6738e7600eeb2271156c8ae6190419cefe98fbbc",
+      "desktop_copy_matches": true,
+      "android_generated_asset_matches": true
+    },
+    {
+      "path": "symbols.mwe",
+      "sha256": "112abc9beb1bca46a1281b31b3575f3691636057c5a54557190976838e98c1e9",
+      "desktop_copy_matches": true,
+      "android_generated_asset_matches": true
+    },
+    {
+      "path": "SPECIAL-TABLES.md",
+      "sha256": "1a7952cbc97b187a986c3705d582592d5e85baca4099b990d3098c30f27606c7",
+      "desktop_copy_matches": true,
+      "android_generated_asset_matches": true
+    },
+    {
+      "path": "kana-coverage.json",
+      "sha256": "2fe8a33e26845e249dece775dd70b5509c9f4bca50a9724eb7367e26b530dc4a",
+      "desktop_copy_matches": true,
+      "android_generated_asset_matches": true
+    },
+    {
+      "path": "math-coverage.json",
+      "sha256": "2ca3f362e2553a11829fecf93f65f4fa53efc6cab91ace632b8165affbdf7642",
+      "desktop_copy_matches": true,
+      "android_generated_asset_matches": true
+    },
+    {
+      "path": "punctuation-coverage.json",
+      "sha256": "1bc04dbfb9aaacaeb4c0be1d045aceb46b97209b448a7c605135a0e546d4b7ea",
+      "desktop_copy_matches": true,
+      "android_generated_asset_matches": true
+    },
+    {
+      "path": "symbols-coverage.json",
+      "sha256": "16f041a866a273aebdeafd0402ec3cc0a7b25071ec15e8a5ddf8f3119aba32e5",
+      "desktop_copy_matches": true,
+      "android_generated_asset_matches": true
+    },
+    {
+      "path": "README.md",
+      "sha256": "bf8168952d83cd4c76abef1cfe6dd4be6f6858fe2cdb8b0dfe03962d32d75b8e",
+      "desktop_copy_matches": true,
+      "android_generated_asset_matches": true
+    },
+    {
+      "path": "KAOMOJI-SOURCES.md",
+      "sha256": "1edf7997dc53e127afe308f8136834efcb3d2feaf92025964047513cdddc15fc",
+      "desktop_copy_matches": true,
+      "android_generated_asset_matches": true
+    },
+    {
+      "path": "SEARCH-RELATIONS.md",
+      "sha256": "f6e3e5ffde3804cf9c6dcee9082179d5b742bb41b0222452926ab058b6fb2aab",
+      "desktop_copy_matches": true,
+      "android_generated_asset_matches": true
+    },
+    {
+      "path": "sources.json",
+      "sha256": "c8374fdbe1c45ff780606ed2270c3528d1a13b237b01f21b6acc9083dc73b45d",
+      "desktop_copy_matches": true,
+      "android_generated_asset_matches": true
+    },
+    {
+      "path": "kaomoji-sources.json",
+      "sha256": "2eefecebba9f0ea6c2450430206ecc411c696b35cbb87867cb2dd4c808075801",
+      "desktop_copy_matches": true,
+      "android_generated_asset_matches": true
+    },
+    {
+      "path": "emoji-coverage.json",
+      "sha256": "c05b7b328e82862719b21724614fed22c9d71e7926f2c81343b95feb7ee49c03",
+      "desktop_copy_matches": true,
+      "android_generated_asset_matches": true
+    },
+    {
+      "path": "kaomoji-coverage.json",
+      "sha256": "caf941f69434f94926d841c3606b2e889742fa822581ee70b85fcf4a90ed28b4",
+      "desktop_copy_matches": true,
+      "android_generated_asset_matches": true
+    },
+    {
+      "path": "licenses/Unicode.txt",
+      "sha256": "65eb33419e22a297550a811b5b535f5e532f9a7e0114b516c0ea18afd53c3804",
+      "desktop_copy_matches": true,
+      "android_generated_asset_matches": true
+    },
+    {
+      "path": "licenses/Kaomojiya.txt",
+      "sha256": "6caa0b409bc5bbbd06875c3b98ce4224da875e5d85409de2a3d3f12b25ecaae2",
+      "desktop_copy_matches": true,
+      "android_generated_asset_matches": true
+    },
+    {
+      "path": "licenses/Kaomojikan.txt",
+      "sha256": "08cb2c981c94a80ef0b80be68cdec72e54faa8d81c96e3476a23955eb9ba8a3b",
+      "desktop_copy_matches": true,
+      "android_generated_asset_matches": true
+    },
+    {
+      "path": "licenses/MyWubi-MIT.txt",
+      "sha256": "09eef473e015b73a9dee42e760441798d42fb7285b1c64015a695e5d03daf67b",
+      "desktop_copy_matches": true,
+      "android_generated_asset_matches": true
+    }
+  ]
+}

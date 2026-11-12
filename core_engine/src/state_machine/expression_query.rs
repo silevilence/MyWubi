@@ -121,6 +121,16 @@ impl ExpressionQuery {
 }
 
 impl StateMachine {
+    pub(super) fn expression_accepts_code(&self, c: char) -> bool {
+        self.expression_query.as_ref().is_some_and(|query| {
+            if query.input == ExpressionInput::Literal {
+                !c.is_control()
+            } else {
+                query.builder.accepts_code_char(c)
+            }
+        })
+    }
+
     pub fn expression_view(&self) -> Option<ExpressionQueryView> {
         let query = self.expression_query.as_ref()?;
         Some(ExpressionQueryView {

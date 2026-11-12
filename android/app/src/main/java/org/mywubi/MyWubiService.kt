@@ -402,7 +402,8 @@ class MyWubiService : InputMethodService() {
                 if (cycling) pinyinMode = nextPinyin
                 if (action is JSONObject && action.has("SetBaseMode")) pinyinMode = KeyMode.Off
                 val current = NativeBridge.objectCall("State", "session" to s.value)
-                if (current.optString("temporary") !in listOf("Pinyin", "Emoji", "Kaomoji")) {
+                if (current.optString("temporary") != "Pinyin" &&
+                    current.optJSONObject("view")?.optJSONObject("expression") == null) {
                     if (pinyinMode == KeyMode.Locked && current.optJSONObject("pinyin")?.optBoolean("available") == true) {
                         val resume = NativeBridge.objectCall("Prepare", "session" to s.value,
                             "action" to JSONObject().put("BeginTemporary", "Pinyin"))

@@ -390,7 +390,7 @@ private fun ExpressionSettings(model: SettingsModel, config: JSONObject) {
     val picker = rememberLauncherForActivityResult(ActivityResultContracts.OpenDocument()) { uri ->
         uri?.let { model.importExpression(importing, it) }
     }
-    Text("Emoji 与颜文字", style = MaterialTheme.typography.titleMedium)
+    Text("特殊码表", style = MaterialTheme.typography.titleMedium)
     if (model.expressionError.isNotEmpty()) Text(model.expressionError, color = MaterialTheme.colorScheme.error)
     for ((kind, label) in listOf("emoji" to "Emoji", "kaomoji" to "颜文字", "kana" to "假名", "math" to "数学符号", "punctuation" to "标点", "symbols" to "其他符号")) {
         val selection = config.optJSONObject("expressions")?.optJSONObject(kind) ?: JSONObject()
@@ -442,5 +442,5 @@ private fun ExpressionSettings(model: SettingsModel, config: JSONObject) {
     }
     TextButton(onClick = model::refreshExpressions, enabled = !model.busy) { Text("重新检查词库") }
     ExpressionPreview()
-    Text("配置独立于主码表。导入会复制到应用私有目录，选择和开关需保存后生效。点击键盘工具栏的表情图标进入 Emoji 或颜文字模式。", style = MaterialTheme.typography.bodySmall)
+    Text("配置独立于主码表。导入会复制到应用私有目录，选择和开关需保存后生效。点击键盘工具栏的“特殊输入”，选择类别后可用主码表组词或直接输入别名查找。", style = MaterialTheme.typography.bodySmall)
 }

@@ -40,3 +40,11 @@
 - `ShortcutEnvironment` 可从主表配置投影；冲突状态与启用意图区分，字母不区分 ASCII 大小写。未要求对应词条或主表码长满足快捷编码。
 - `cargo test --offline -p core_engine --test shortcut_rules` 最终 7 项通过，覆盖所有约定结构边界、停用重复项、原草稿保留、规范化、Unicode 标量长度、格式语法、冲突暂停与恢复及真实主表配置投影。
 - **接续工作**：先把规则接入 `Config` 的反序列化、规范化读写和保存校验，同时更新 Windows/Android 草稿编辑与协议。再完成有效规则集合及错误展示；格式语法已准备好，但 SI-07 的平台时间提供者、冻结快照和格式化输出仍未开始。当前不向用户暴露尚不能生效的日期规则开关。
+
+## 16:00 截止的阶段收尾
+
+- SI-01～SI-04 已完成各自实现、定向检查并分别本地提交；SI-05 的入口/查询/追加已实现，但整体验收仍待真实宿主及 SI-08；SI-06 只完成共享规则与语法基础。SI-07～SI-17 未完成，日期候选和统一设置界面尚未交付。
+- 集中执行 `cargo test --offline -p core_engine -p im_engine --lib --tests` 通过；Windows 输入层 78 项通过、1 项既有真实模型服务测试按原条件忽略，候选数据集成 3 项通过。`cargo test --offline -p settings --lib` 23 项通过。
+- 集中审核修正了六类资源热重载等价比较遗漏、字面 `InputCode` 的预判不一致，以及 Android 拼音锁定在新类别查询中错误尝试恢复的问题；设置文案同步新入口。最后定向重跑 `expression_candidates` 19 项、`expression_query` 15 项、`shortcut_rules` 7 项及核心严格 Clippy 全部通过。Android 主程序/设备测试 Kotlin 再编译通过；未把 Kotlin 编译写成 JNI 真机验证。
+- [bundle-check.json](bundle-check.json) 记录 22 项本地资源/许可文件：Windows 分发复制脚本输出与 Android 生成 assets 均与源文件 SHA-256 相同。复用本地资源，零下载；这不是 Setup/Portable/APK 的最终交付验收。固定验收样例和压力样本摘要再次核对未改变。
+- 尚无本轮真实 TSF/Android 宿主、可访问性、最终制品和新功能性能证据；不勾选 SI-16/17，不推送、不发布。下一轮从 SI-06 的配置及双端保存衔接继续，随后 SI-07～SI-09；统一设置按 SI-10～SI-13 的已定设计实施，最终集中完成真实环境验收。

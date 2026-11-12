@@ -526,6 +526,9 @@ impl SemanticEngine {
             | Action::SetExpressionInput(_)
             | Action::ClearExpressionQuery => true,
             Action::Legacy(e) => self.sm.would_consume(e),
+            Action::InputCode(c) if self.sm.expression_query.is_some() => {
+                self.sm.expression_accepts_code(*c)
+            }
             Action::InputCode(c) => match self.sm.mode {
                 InputMode::Main
                 | InputMode::Emoji

@@ -211,7 +211,7 @@ pub fn show(ui: &mut Ui, state: &mut AppState) {
 }
 
 fn expressions(ui: &mut Ui, state: &mut AppState) {
-    ui.collapsing("Emoji 与颜文字", |ui| {
+    ui.collapsing("特殊码表", |ui| {
         if state
             .expressions
             .show(ui, &state.config_path, &mut state.config.expressions)
