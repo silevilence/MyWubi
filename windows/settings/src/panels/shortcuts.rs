@@ -37,6 +37,7 @@ impl PreviewUi {
             self.key = key;
             self.changed_at = Instant::now();
             self.result = None;
+            self.done_key = None;
         }
         if let Some(result) = self.worker.as_ref().and_then(|rx| match rx.try_recv() {
             Ok(result) => Some(result),
@@ -173,6 +174,30 @@ fn next_position(rules: &[ShortcutRule], code: &str) -> u32 {
 mod tests {
     use super::*;
     #[test]
+    fn returning_to_a_completed_draft_schedules_a_new_preview() {
+        let mut preview = PreviewUi::default();
+        let ctx = egui::Context::default();
+        let frame = |preview: &mut PreviewUi, code: &str| {
+            let _ = ctx.run(Default::default(), |ctx| {
+                egui::CentralPanel::default().show(ctx, |ui| {
+                    preview.update(ui, Path::new("missing.toml"), &Config::default(), code);
+                });
+            });
+        };
+        frame(&mut preview, "jjad");
+        preview.done_key = Some(preview.key.clone());
+        preview.result = Some(Err("previous result".into()));
+        frame(&mut preview, "jjadx");
+        frame(&mut preview, "jjad");
+        preview.changed_at = Instant::now() - Duration::from_secs(1);
+        frame(&mut preview, "jjad");
+        assert!(
+            preview.worker.is_some(),
+            "the discarded result must be recomputed"
+        );
+    }
+
+    #[test]
     fn copied_format_follows_existing_global_positions_before_using_a_gap() {
         let mut rules = vec![ShortcutRule {
             code: "JJAD".into(),
@@ -208,6 +233,7 @@ pub fn show(
     state: &mut AppState,
     selected: usize,
     preview: &mut PreviewUi,
+    focus: &mut Option<(usize, &'static str)>,
 ) -> Option<usize> {
     let mut code = state.config.shortcuts.rules[selected].code.clone();
     let indices: Vec<_> = state
@@ -224,7 +250,13 @@ pub fn show(
     let mut copy = None;
     ui.heading("日期时间快捷输入");
     ui.label("编码（1～32 个英文字母）");
-    if ui.text_edit_singleline(&mut code).changed() {
+    let response = ui.text_edit_singleline(&mut code);
+    if focus.is_some_and(|(index, field)| field == "code" && indices.contains(&index)) {
+        response.request_focus();
+        response.scroll_to_me(Some(egui::Align::Center));
+        *focus = None;
+    }
+    if response.changed() {
         for &index in &indices {
             state.config.shortcuts.rules[index].code = code.clone();
         }
@@ -244,14 +276,15 @@ pub fn show(
                 });
                 ui.horizontal_wrapped(|ui| {
                     ui.label("全局候选位置");
-                    changed |= ui
-                        .add(egui::DragValue::new(&mut rule.position).speed(1))
-                        .changed();
+                    let response = ui.add(egui::DragValue::new(&mut rule.position).speed(1));
+                    focus_error(&response, focus, index, "position");
+                    changed |= response.changed();
                 });
                 ui.label("日期时间格式");
-                changed |= ui
-                    .add(egui::TextEdit::singleline(&mut rule.format).desired_width(f32::INFINITY))
-                    .changed();
+                let response = ui
+                    .add(egui::TextEdit::singleline(&mut rule.format).desired_width(f32::INFINITY));
+                focus_error(&response, focus, index, "format");
+                changed |= response.changed();
                 if let Ok(parts) = core_engine::shortcut_format::compile(&rule.format) {
                     if let Ok(text) = core_engine::shortcut_time::render(
                         &parts,
@@ -327,4 +360,17 @@ pub fn show(
         .rules
         .iter()
         .position(|r| r.code.eq_ignore_ascii_case(&code))
+}
+
+fn focus_error(
+    response: &egui::Response,
+    focus: &mut Option<(usize, &'static str)>,
+    index: usize,
+    field: &str,
+) {
+    if focus.is_some_and(|target| target == (index, field)) {
+        response.request_focus();
+        response.scroll_to_me(Some(egui::Align::Center));
+        *focus = None;
+    }
 }

@@ -67,6 +67,16 @@ fn settings_trial_replays_word_building_and_literal_queries_without_a_host() {
             ExpressionPhase::Results
         );
         assert_eq!(result.window.candidates[0].text, "🚳");
+        // Settings must be able to edit previously confirmed query text, rather
+        // than only the new, still-unsubmitted text field.
+        let mut edit = actions.clone();
+        edit.extend([A::Edit, A::Backspace]);
+        let edited = expression_trial::run(&r, ExpressionKind::Emoji, input, &edit).unwrap();
+        assert_eq!(edited.view.expression.as_ref().unwrap().text, "禁止自行");
+        assert!(edited.selected.is_none());
+        edit.extend([A::Backspace, A::Backspace, A::Backspace, A::Backspace]);
+        let empty = expression_trial::run(&r, ExpressionKind::Emoji, input, &edit).unwrap();
+        assert!(empty.view.expression.unwrap().text.is_empty());
         actions.push(A::Select(0));
         let result = expression_trial::run(&r, ExpressionKind::Emoji, input, &actions).unwrap();
         assert_eq!(result.selected.as_deref(), Some("🚳"));

@@ -38,6 +38,7 @@ class SettingsModel(application: Application) : AndroidViewModel(application) {
     var specialSearch by mutableStateOf("")
     var specialSelection by mutableStateOf("emoji")
     var specialDetail by mutableStateOf(false)
+    var shortcutError by mutableStateOf<Pair<Int, String>?>(null); private set
     val specialListScroll = androidx.compose.foundation.ScrollState(0)
     val specialDetailScroll = androidx.compose.foundation.ScrollState(0)
     val specialTrials = specialCategories.associate {it.first to ExpressionTrialDraft()}
@@ -266,7 +267,7 @@ class SettingsModel(application: Application) : AndroidViewModel(application) {
 
     private fun fingerprint() = MessageDigest.getInstance("SHA-256").digest(store.configFile.readBytes()).joinToString("") { "%02x".format(it) }
 
-    fun work(operation: () -> (() -> Unit)) {
+    fun work(onError: (Exception) -> Unit = {}, operation: () -> (() -> Unit)) {
         if (busy) return
         busy = true
         worker.execute {
@@ -274,7 +275,7 @@ class SettingsModel(application: Application) : AndroidViewModel(application) {
                 val publish = operation()
                 main.post { publish(); busy = false; trialRunning = false; if (closed) expected?.close() }
             } catch (e: Exception) {
-                main.post { if (!closed) { message = e.message ?: "操作失败，草稿已保留"; busy = false; trialRunning = false } }
+                main.post { if (!closed) { message = e.message ?: "操作失败，草稿已保留"; busy = false; trialRunning = false; onError(e) } }
             }
         }
     }
@@ -318,6 +319,7 @@ class SettingsModel(application: Application) : AndroidViewModel(application) {
         val target = copy.optJSONObject(section) ?: JSONObject().also { copy.put(section, it) }
         target.put(key, value)
         config = copy; dirty = true
+        shortcutError = null
         persistDraft()
     }
 
@@ -334,9 +336,22 @@ class SettingsModel(application: Application) : AndroidViewModel(application) {
     }
 
     fun save() {
+        if (busy) return
         val draft = JSONObject(config?.toString() ?: return)
         val version = expected ?: return
-        work {
+        shortcutError = null
+        // Text fields may contain an unfinished integer that cannot deserialize
+        // into Rust's u32 yet. Locate that field before crossing the typed bridge.
+        val rules = draft.optJSONObject("shortcuts")?.optJSONArray("rules")
+        val invalidPosition = rules?.let { rows -> (0 until rows.length()).firstOrNull {
+            rows.getJSONObject(it).optString("position").toLongOrNull()?.let { p -> p in 1L..10000L } != true
+        } }
+        if (invalidPosition != null) {
+            message = "shortcuts.rules[$invalidPosition].position：全局候选位置须为 1～10000 的整数"
+            locateShortcutError(message)
+            return
+        }
+        work(onError = { locateShortcutError(it.message.orEmpty()) }) {
             check(baseline == fingerprint()) { "版本冲突：磁盘配置已修改，草稿仍保留" }
             val result = store.activateConfig(draft, version.value)
             val next = NativeHandle(result.getLong("version"))
@@ -349,6 +364,14 @@ class SettingsModel(application: Application) : AndroidViewModel(application) {
             }
             publish
         }
+    }
+
+    private fun locateShortcutError(message: String) {
+        val match = Regex("shortcuts\\.rules\\[(\\d+)]\\.(code|position|format)").find(message) ?: return
+        val index = match.groupValues[1].toIntOrNull() ?: return
+        shortcutError = index to match.groupValues[2]
+        specialSelection = "rule:$index"
+        specialDetail = true
     }
 
     fun stage(uris: List<Uri>) {

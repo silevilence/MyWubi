@@ -1283,7 +1283,14 @@ impl Session {
             self.deferred_runtime = Some(runtime);
             return Ok(None);
         }
-        if self.pending.is_none() && self.only_prediction_changed(&runtime) {
+        // Ordinary composition may survive a prediction-only switch. A completed
+        // date lookup (including a failed or retryable one) belongs to its runtime
+        // version and must follow the normal reload cleanup instead.
+        if self.pending.is_none()
+            && self.state_machine().shortcut_attempt().is_none()
+            && self.retry_time.is_none()
+            && self.only_prediction_changed(&runtime)
+        {
             self.config = runtime.config.clone();
             self.revision = runtime.revision;
             self.resources = Arc::clone(&runtime);

@@ -44,13 +44,15 @@ fun ExpressionTrial(model:SettingsModel,config:JSONObject,kind:String) {
     }
     HorizontalDivider();Text("检索试用",style=MaterialTheme.typography.titleMedium)
     Text("使用当前草稿及所选资源，只在设置中预览，不写入宿主。",style=MaterialTheme.typography.bodySmall)
-    val empty=draft.text.isEmpty() && draft.actions=="[]"
+    val query=preview?.optJSONObject("view")?.optJSONObject("expression")
+    val spelling=preview?.optJSONObject("view")?.optString("spelling").orEmpty()
+    val empty=draft.text.isEmpty() && (draft.actions=="[]" ||
+        (query?.optString("phase")=="Editing" && query.optString("text").isEmpty() && spelling.isEmpty()))
     Column {
-        FilterChip(selected=draft.input=="Words",onClick={draft.input="Words"},label={Text("主码表组词")},enabled=empty)
-        FilterChip(selected=draft.input=="Literal",onClick={draft.input="Literal"},label={Text("直接输入别名")},enabled=empty)
+        FilterChip(selected=draft.input=="Words",onClick={draft.clear();draft.input="Words"},label={Text("主码表组词")},enabled=empty)
+        FilterChip(selected=draft.input=="Literal",onClick={draft.clear();draft.input="Literal"},label={Text("直接输入别名")},enabled=empty)
     }
     if(!empty)Text("切换查询方式前请先清空。",style=MaterialTheme.typography.bodySmall)
-    val query=preview?.optJSONObject("view")?.optJSONObject("expression")
     val selected=preview?.optString("selected")?.takeUnless {it=="null" || it.isEmpty()}
     val editing=selected==null && query?.optString("phase")!="Results"
     OutlinedTextField(draft.text,{draft.text=it},label={Text(if(draft.input=="Literal")"别名（如 shi，数字也是查询文本）" else "主码表编码（选择下方候选组成查询）")},
@@ -74,6 +76,8 @@ fun ExpressionTrial(model:SettingsModel,config:JSONObject,kind:String) {
         Button(onClick={draft.append("Find")},enabled=editing && preview!=null,modifier=Modifier.weight(1f)) {Text("查找")}
         OutlinedButton(onClick={draft.append("Edit")},enabled=!editing && selected==null && preview!=null,modifier=Modifier.weight(1f)) {Text("修改查询")}
     }
+    OutlinedButton(onClick={draft.append("Backspace")},enabled=editing && preview!=null &&
+        (spelling.isNotEmpty() || query?.optString("text")?.isNotEmpty()==true)) {Text("查询退格")}
     OutlinedButton(onClick=draft::clear) {Text("清空试用")}
     preview?.let {p->SettingsDisclosure("试用资源") {
         val resources=p.getJSONArray("resources")

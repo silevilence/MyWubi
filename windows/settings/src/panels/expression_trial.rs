@@ -45,13 +45,28 @@ impl TrialUi {
         ui.separator();
         ui.strong("检索试用");
         ui.small("使用当前草稿及所选资源，只在设置中预览，不写入宿主。");
-        ui.add_enabled_ui(self.actions.is_empty() && self.text.is_empty(), |ui| {
+        let empty_query = self.text.is_empty()
+            && (self.actions.is_empty()
+                || self.result.as_ref().is_some_and(|result| {
+                    result.as_ref().is_ok_and(|result| {
+                        result.view.spelling.is_empty()
+                            && result.view.expression.as_ref().is_some_and(|query| {
+                                query.phase == ExpressionPhase::Editing && query.text.is_empty()
+                            })
+                    })
+                }));
+        let previous_input = self.input;
+        ui.add_enabled_ui(empty_query, |ui| {
             ui.horizontal_wrapped(|ui| {
                 ui.selectable_value(&mut self.input, ExpressionInput::Words, "主码表组词");
                 ui.selectable_value(&mut self.input, ExpressionInput::Literal, "直接输入别名");
             });
         });
-        if !self.actions.is_empty() || !self.text.is_empty() {
+        if self.input != previous_input {
+            // A fully erased query may still have a replay history in the old mode.
+            self.actions.clear();
+        }
+        if !empty_query {
             ui.small("切换查询方式前请先清空。");
         }
         let editing = self
@@ -83,6 +98,7 @@ impl TrialUi {
         if self.key != key {
             self.key = key;
             self.result = None;
+            self.started = None;
             self.changed = Instant::now();
         }
         if let Some((key, result)) = self.worker.as_ref().and_then(|rx| match rx.try_recv() {
@@ -94,6 +110,7 @@ impl TrialUi {
         }) {
             self.worker = None;
             if key == self.key {
+                self.started = Some(key);
                 self.result = Some(result);
             }
         }
@@ -157,6 +174,26 @@ impl TrialUi {
             self.accept_text();
             self.actions.push(TrialAction::Select(index));
         }
+        if ui
+            .add_enabled(
+                editing
+                    && self.result.as_ref().is_some_and(|result| {
+                        result.as_ref().is_ok_and(|result| {
+                            !result.view.spelling.is_empty()
+                                || result
+                                    .view
+                                    .expression
+                                    .as_ref()
+                                    .is_some_and(|query| !query.text.is_empty())
+                        })
+                    }),
+                egui::Button::new("查询退格"),
+            )
+            .clicked()
+        {
+            self.accept_text();
+            self.actions.push(TrialAction::Backspace);
+        }
         ui.horizontal_wrapped(|ui| {
             if ui
                 .add_enabled(
@@ -188,5 +225,42 @@ impl TrialUi {
                 self.result = None;
             }
         });
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn returning_to_completed_input_schedules_a_new_trial() {
+        let mut trial = TrialUi::default();
+        let ctx = egui::Context::default();
+        let frame = |trial: &mut TrialUi| {
+            let _ = ctx.run(Default::default(), |ctx| {
+                egui::CentralPanel::default().show(ctx, |ui| {
+                    trial.show(
+                        ui,
+                        Path::new("missing.toml"),
+                        &Config::default(),
+                        ExpressionKind::Kana,
+                    );
+                });
+            });
+        };
+        trial.text = "shi".into();
+        frame(&mut trial);
+        trial.started = Some(trial.key.clone());
+        trial.result = Some(Err("previous result".into()));
+        trial.text.push('x');
+        frame(&mut trial);
+        trial.text.pop();
+        frame(&mut trial);
+        trial.changed = Instant::now() - Duration::from_secs(1);
+        frame(&mut trial);
+        assert!(
+            trial.worker.is_some(),
+            "the discarded result must be recomputed"
+        );
     }
 }

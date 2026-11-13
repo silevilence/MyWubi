@@ -2,6 +2,13 @@
 use crate::state::AppState;
 
 pub fn save(state: &mut AppState) -> bool {
+    if let Err(error) = core_engine::shortcuts::validate_structure(&state.config.shortcuts.rules) {
+        state.active_panel = crate::state::Panel::SpecialInput;
+        state.special_input.locate_rule_error(&error);
+        state.dirty = true;
+        state.status_msg = Some(format!("[ERR] {error}"));
+        return false;
+    }
     match state.tables.save(&state.config, &state.config_path) {
         Ok(()) => {
             if let Ok(canonical) = state.config.canonicalized() {

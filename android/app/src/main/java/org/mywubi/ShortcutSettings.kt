@@ -1,10 +1,15 @@
 package org.mywubi
 
 import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.ExperimentalFoundationApi
+import androidx.compose.foundation.relocation.BringIntoViewRequester
+import androidx.compose.foundation.relocation.bringIntoViewRequester
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.focus.FocusRequester
+import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.semantics.*
 import androidx.compose.ui.unit.dp
@@ -53,7 +58,7 @@ fun ShortcutSettings(model: SettingsModel, config: JSONObject, selected: Int) {
     OutlinedTextField(code,{value->
         val next=JSONArray(serialized);indices.forEach {next.getJSONObject(it).put("code",value)}
         model.change("shortcuts","rules",next)
-    },label={Text("编码（1～32 个英文字母）")},singleLine=true,enabled=!model.busy,modifier=Modifier.fillMaxWidth(),
+    },label={Text("编码（1～32 个英文字母）")},singleLine=true,enabled=!model.busy,modifier=Modifier.fillMaxWidth().shortcutFieldFocus(model,selected,"code"),
         isError=indices.any {error?.contains("rules[$it].code")==true})
     Text("保存后的规范编码：${code.lowercase(java.util.Locale.ROOT)}",style=MaterialTheme.typography.bodySmall)
     Text("全局候选位置从 1 开始，下一页接着编号。候选不足时靠后排列，不留空项。",style=MaterialTheme.typography.bodySmall)
@@ -68,9 +73,9 @@ fun ShortcutSettings(model: SettingsModel, config: JSONObject, selected: Int) {
                 OutlinedTextField(position,{update(index,"position",it.toLongOrNull() ?: it)},label={Text("全局候选位置")},
                     isError=invalidPosition || error?.contains("rules[$index].position")==true,
                     supportingText={if(invalidPosition)Text("请输入 1～10000 的整数") else if(error?.contains("rules[$index].position")==true)Text(error.orEmpty())},
-                    keyboardOptions=KeyboardOptions(keyboardType=KeyboardType.Number),singleLine=true,enabled=!model.busy,modifier=Modifier.fillMaxWidth())
+                    keyboardOptions=KeyboardOptions(keyboardType=KeyboardType.Number),singleLine=true,enabled=!model.busy,modifier=Modifier.fillMaxWidth().shortcutFieldFocus(model,index,"position"))
                 OutlinedTextField(rule.optString("format"),{update(index,"format",it)},label={Text("日期时间格式")},
-                    enabled=!model.busy,modifier=Modifier.fillMaxWidth(),isError=error?.contains("rules[$index].format")==true,
+                    enabled=!model.busy,modifier=Modifier.fillMaxWidth().shortcutFieldFocus(model,index,"format"),isError=error?.contains("rules[$index].format")==true,
                     supportingText={if(error?.contains("rules[$index].format")==true)Text(error.orEmpty())})
                 preview?.optJSONArray("states")?.optJSONObject(index)?.let {status->
                     Text(if(!status.optBoolean("compatible"))status.optString("reason") else if(status.optBoolean("effective"))"当前可用" else "用户未启用",style=MaterialTheme.typography.bodySmall)
@@ -113,4 +118,19 @@ fun ShortcutSettings(model: SettingsModel, config: JSONObject, selected: Int) {
         }
     }
     OutlinedButton(onClick={refresh++}) {Text("重新读取资源并预览")}
+}
+
+@OptIn(ExperimentalFoundationApi::class)
+@Composable
+private fun Modifier.shortcutFieldFocus(model: SettingsModel, index: Int, field: String): Modifier {
+    val focus = remember { FocusRequester() }
+    val visible = remember { BringIntoViewRequester() }
+    LaunchedEffect(model.shortcutError, index, field) {
+        if (model.shortcutError == (index to field)) {
+            withFrameNanos { }
+            focus.requestFocus()
+            visible.bringIntoView()
+        }
+    }
+    return this.focusRequester(focus).bringIntoViewRequester(visible)
 }

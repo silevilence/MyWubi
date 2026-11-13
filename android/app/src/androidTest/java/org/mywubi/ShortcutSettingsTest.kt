@@ -41,10 +41,22 @@ class ShortcutSettingsTest {
                 .put("kind", "date_time").put("format", "yyyy-MM-dd").put("enabled", false))
         try {
             create(); main { model.reload(true) }; ready()
+            main {
+                val invalid = rules(3)
+                invalid.getJSONObject(0).put("position", "")
+                model.change("shortcuts", "rules", invalid); model.save()
+                assertEquals(0 to "position", model.shortcutError)
+                assertEquals("rule:0", model.specialSelection)
+                assertTrue(model.specialDetail)
+                assertTrue(model.dirty)
+            }
+            assertArrayEquals(original, store.configFile.readBytes())
             main { model.change("shortcuts", "rules", rules(2)); model.save() }; ready()
             main {
                 assertTrue(model.dirty)
                 assertTrue(model.message, model.message.contains("position"))
+                assertEquals(1 to "position", model.shortcutError)
+                assertEquals("rule:1", model.specialSelection)
                 assertEquals("JJAD", model.config!!.getJSONObject("shortcuts").getJSONArray("rules").getJSONObject(0).getString("code"))
                 owner.clear()
             }

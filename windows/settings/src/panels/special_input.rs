@@ -17,6 +17,7 @@ pub struct SpecialInputUi {
     pub preview: super::shortcuts::PreviewUi,
     trials: [super::expression_trial::TrialUi; 6],
     backup: super::special_backup::BackupUi,
+    focus_rule: Option<(usize, &'static str)>,
 }
 impl Default for SpecialInputUi {
     fn default() -> Self {
@@ -27,6 +28,16 @@ impl Default for SpecialInputUi {
             preview: Default::default(),
             trials: Default::default(),
             backup: Default::default(),
+            focus_rule: None,
+        }
+    }
+}
+impl SpecialInputUi {
+    pub fn locate_rule_error(&mut self, error: &core_engine::shortcuts::RuleError) {
+        if let Some(index) = error.rule {
+            self.selected = Item::Shortcut(index);
+            self.detail = true;
+            self.focus_rule = Some((index, error.field));
         }
     }
 }
@@ -41,8 +52,10 @@ pub fn show(ui: &mut Ui, state: &mut AppState) {
     }
     let mut view = std::mem::take(&mut state.special_input);
     view.backup.show(ui, state);
+    let narrow = ui.available_width() < 760.0;
+    let popup_was_open = ui.memory(|memory| memory.any_popup_open());
     let detail_id = format!("special-detail-{:?}", view.selected);
-    if ui.available_width() >= 760.0 {
+    if !narrow {
         ui.horizontal_top(|ui| {
             ui.vertical(|ui| {
                 ui.set_width(220.0);
@@ -69,6 +82,14 @@ pub fn show(ui: &mut Ui, state: &mut AppState) {
         egui::ScrollArea::vertical()
             .id_source("special-list")
             .show(ui, |ui| list(ui, state, &mut view));
+    }
+    if narrow
+        && view.detail
+        && !popup_was_open
+        && !ui.memory(|memory| memory.any_popup_open())
+        && ui.input_mut(|input| input.consume_key(egui::Modifiers::NONE, egui::Key::Escape))
+    {
+        view.detail = false;
     }
     state.special_input = view;
 }
@@ -179,7 +200,9 @@ fn detail(ui: &mut Ui, state: &mut AppState, view: &mut SpecialInputUi) {
                 view.detail = false;
                 return;
             }
-            if let Some(next) = super::shortcuts::show(ui, state, index, &mut view.preview) {
+            if let Some(next) =
+                super::shortcuts::show(ui, state, index, &mut view.preview, &mut view.focus_rule)
+            {
                 view.selected = Item::Shortcut(next);
             } else {
                 view.detail = false;
@@ -191,6 +214,50 @@ fn detail(ui: &mut Ui, state: &mut AppState, view: &mut SpecialInputUi) {
 #[cfg(test)]
 mod tests {
     use super::*;
+    #[test]
+    fn invalid_save_opens_the_rule_and_focuses_its_field_without_writing() {
+        for field in ["code", "position", "format"] {
+            let directory = tempfile::tempdir().unwrap();
+            let path = directory.path().join("missing.toml");
+            let mut state = AppState::load(path.clone(), true);
+            let mut rule = ShortcutRule {
+                code: "jjad".into(),
+                position: 2,
+                format: "yyyy".into(),
+                kind: ShortcutKind::DateTime,
+                enabled: true,
+            };
+            match field {
+                "code" => rule.code = "jj1".into(),
+                "position" => rule.position = 0,
+                _ => rule.format = "QQ".into(),
+            }
+            state.config.shortcuts.rules = vec![rule.clone()];
+            assert!(!crate::save::save(&mut state));
+            assert!(!path.exists());
+            assert_eq!(state.active_panel, crate::state::Panel::SpecialInput);
+            assert_eq!(state.special_input.selected, Item::Shortcut(0));
+            assert!(state.special_input.detail);
+            assert_eq!(state.special_input.focus_rule, Some((0, field)));
+            let ctx = egui::Context::default();
+            let _ = ctx.run(
+                egui::RawInput {
+                    screen_rect: Some(egui::Rect::from_min_size(
+                        egui::Pos2::ZERO,
+                        egui::vec2(480.0, 400.0),
+                    )),
+                    ..Default::default()
+                },
+                |ctx| {
+                    egui::CentralPanel::default().show(ctx, |ui| show(ui, &mut state));
+                },
+            );
+            assert!(state.special_input.focus_rule.is_none());
+            assert!(ctx.memory(|memory| memory.focused().is_some()));
+            assert_eq!(state.config.shortcuts.rules, vec![rule]);
+        }
+    }
+
     #[test]
     fn desktop_and_narrow_frames_keep_the_same_invalid_rule_draft_and_selection() {
         // Missing config deliberately skips AppContainer ACL preparation. No window is created.
@@ -227,6 +294,38 @@ mod tests {
             assert_eq!(state.config.shortcuts.rules, original);
             assert_eq!(state.special_input.selected, Item::Shortcut(0));
             assert_eq!(state.special_input.filter, "jj");
+        }
+        // Escape closes an existing popup first, then returns from narrow detail
+        // without saving or discarding the draft.
+        for popup in [true, false] {
+            ctx.memory_mut(|memory| {
+                if popup {
+                    memory.open_popup(egui::Id::new("test-popup"));
+                } else {
+                    memory.close_popup();
+                }
+            });
+            let _ = ctx.run(
+                egui::RawInput {
+                    screen_rect: Some(egui::Rect::from_min_size(
+                        egui::Pos2::ZERO,
+                        egui::vec2(480.0, 700.0),
+                    )),
+                    events: vec![egui::Event::Key {
+                        key: egui::Key::Escape,
+                        physical_key: None,
+                        pressed: true,
+                        repeat: false,
+                        modifiers: egui::Modifiers::NONE,
+                    }],
+                    ..Default::default()
+                },
+                |ctx| {
+                    egui::CentralPanel::default().show(ctx, |ui| show(ui, &mut state));
+                },
+            );
+            assert_eq!(state.special_input.detail, popup);
+            assert_eq!(state.config.shortcuts.rules, original);
         }
     }
 }

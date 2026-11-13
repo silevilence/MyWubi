@@ -80,6 +80,94 @@ fn rule(code: &str, position: u32, format: &str) -> ShortcutRule {
         enabled: true,
     }
 }
+
+#[test]
+fn prediction_only_reload_ends_a_frozen_shortcut_query() {
+    for profile in [BehaviorProfile::LegacyV1, BehaviorProfile::TouchV1] {
+        let clock = TestClock::new();
+        let r = runtime(&["普通"], 3, vec![rule("jjad", 1, "yyyy-MM-dd")], None);
+        let mut session =
+            Session::new_with_clock(&r, profile, HostContext::default(), clock.clone());
+        for c in "jjad".chars() {
+            let plan = session.prepare(Action::InputCode(c)).unwrap();
+            session.acknowledge(plan.token, HostOutcome::Applied);
+        }
+        let old = session.candidate_window(0, 10);
+        assert_eq!(old.candidates[0].text, "2026-11-12");
+        let mut next = r.clone();
+        next.revision += 1;
+        next.config.prediction.enabled = !next.config.prediction.enabled;
+        *clock.value.lock().unwrap() = Ok(time(13, 0, 0, 1));
+        let cleanup = session
+            .apply_runtime(Arc::new(next))
+            .unwrap()
+            .expect("a frozen date query must follow the normal reload cleanup");
+        session.acknowledge(cleanup.token, HostOutcome::Applied);
+        assert!(session.candidate_window(0, 10).candidates.is_empty());
+        assert!(session
+            .prepare(Action::SelectCandidate(
+                old.query_revision,
+                old.candidates[0].id
+            ))
+            .is_err());
+        for c in "jjad".chars() {
+            let plan = session.prepare(Action::InputCode(c)).unwrap();
+            session.acknowledge(plan.token, HostOutcome::Applied);
+        }
+        assert_eq!(
+            session.candidate_window(0, 10).candidates[0].text,
+            "2026-11-13"
+        );
+        assert_eq!(clock.count(), 2);
+    }
+}
+
+#[test]
+fn prediction_reload_drops_failed_or_unpublished_clock_attempts() {
+    for (failed, rejected) in [(true, false), (false, true), (true, true)] {
+        for profile in [BehaviorProfile::LegacyV1, BehaviorProfile::TouchV1] {
+            let clock = TestClock::new();
+            if failed {
+                *clock.value.lock().unwrap() = Err("clock unavailable".into());
+            }
+            let r = runtime(&["普通"], 3, vec![rule("jjad", 1, "yyyy-MM-dd")], None);
+            let mut s = Session::new_with_clock(&r, profile, HostContext::default(), clock.clone());
+            input(&mut s, "jja");
+            let plan = s.prepare(Action::InputCode('d')).unwrap();
+            s.acknowledge(
+                plan.token,
+                if rejected {
+                    HostOutcome::RejectedBeforeWrite
+                } else {
+                    HostOutcome::Applied
+                },
+            );
+            assert_eq!(clock.count(), 1);
+            let mut next = r.clone();
+            next.revision += 1;
+            next.config.personal.predict = !next.config.personal.predict;
+            if rejected && profile == BehaviorProfile::LegacyV1 {
+                // Legacy main-input failures already terminate the query. Do not
+                // revive it merely to keep a retry snapshot.
+                let cleanup = s.recover().unwrap().unwrap();
+                s.acknowledge(cleanup.token, HostOutcome::Applied);
+            }
+            let cleanup = s.apply_runtime(Arc::new(next)).unwrap();
+            if rejected && profile == BehaviorProfile::LegacyV1 {
+                assert!(cleanup.is_none());
+            } else {
+                let cleanup = cleanup.expect("must discard the clock attempt");
+                s.acknowledge(cleanup.token, HostOutcome::Applied);
+            }
+            assert!(s.state_machine().spelling().is_empty());
+            assert!(s.snapshot().shortcut_error.is_none());
+            *clock.value.lock().unwrap() = Ok(time(13, 0, 0, 1));
+            input(&mut s, "jjad");
+            assert_eq!(words(&s)[0], "2026-11-13");
+            assert_eq!(clock.count(), 2);
+        }
+    }
+}
 fn runtime(
     words: &[&str],
     capacity: u8,

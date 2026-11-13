@@ -52,6 +52,9 @@ private fun SettingsScreen(model: SettingsModel, enable: () -> Unit, choose: () 
     var localPreedit by remember { mutableStateOf(model.ui.getBoolean("local_preedit", false)) }
     var clipboard by remember { mutableStateOf(model.ui.getBoolean("clipboard_suggestion", true)) }
     var section by rememberSaveable { mutableIntStateOf(0) }
+    LaunchedEffect(model.shortcutError) {
+        if (model.shortcutError != null) section = 4
+    }
     val snackbar = remember { SnackbarHostState() }
     LaunchedEffect(model.message) {
         if (model.message.isNotEmpty()) snackbar.showSnackbar(model.message)
