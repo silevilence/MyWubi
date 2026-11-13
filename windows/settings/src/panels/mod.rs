@@ -4,7 +4,9 @@ pub mod about;
 pub mod appearance;
 pub mod basic;
 pub mod dictionary;
+pub mod expression_trial;
 pub mod shortcuts;
+pub mod special_input;
 pub mod tip_manager;
 
 use crate::state::{AppState, Panel};
@@ -16,6 +18,7 @@ pub fn show_active(ui: &mut Ui, state: &mut AppState) {
         Panel::Basic => basic::show(ui, state),
         Panel::Appearance => appearance::show(ui, state),
         Panel::Dictionary => dictionary::show(ui, state),
+        Panel::SpecialInput => special_input::show(ui, state),
         Panel::TipManager => tip_manager::show(ui, state),
         Panel::About => about::show(ui, state),
     }

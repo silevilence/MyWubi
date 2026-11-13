@@ -110,6 +110,13 @@ enum Request {
         code: String,
         time: crate::shortcut_time::LocalTime,
     },
+    PreviewExpression {
+        path: PathBuf,
+        config: Config,
+        kind: expressions::ExpressionKind,
+        input: candidates::ExpressionInput,
+        actions: Vec<expression_trial::TrialAction>,
+    },
     SaveConfig {
         path: PathBuf,
         config: Config,
@@ -418,7 +425,7 @@ impl Registry {
                     .collect();
                 json!({"rules":rules,"states":states})
             }
-            Request::PreviewShortcuts { .. } => {
+            Request::PreviewShortcuts { .. } | Request::PreviewExpression { .. } => {
                 return Err(err(8, "preview must run outside session registry"))
             }
             Request::SaveConfig {
@@ -584,6 +591,16 @@ pub fn call_with_clock(bytes: &[u8], clock: Arc<dyn crate::shortcut_time::Clock>
                 &code,
                 time,
                 BehaviorProfile::TouchV1
+            )
+            .map_err(|e| err(5, e))?)),
+            Request::PreviewExpression {
+                path,
+                config,
+                kind,
+                input,
+                actions,
+            } => Ok(json!(expression_trial::build(
+                path, config, kind, input, &actions
             )
             .map_err(|e| err(5, e))?)),
             request => REGISTRY.lock().execute(request, clock),

@@ -49,6 +49,7 @@ impl SettingsApp {
                 nav_item(ui, &mut self.state, Panel::Basic, "常规设置");
                 nav_item(ui, &mut self.state, Panel::Appearance, "外观样式");
                 nav_item(ui, &mut self.state, Panel::Dictionary, "码表与词库");
+                nav_item(ui, &mut self.state, Panel::SpecialInput, "特殊输入");
                 nav_item(ui, &mut self.state, Panel::TipManager, "输入法管理");
                 nav_item(ui, &mut self.state, Panel::About, "关于");
             });
@@ -72,9 +73,13 @@ impl SettingsApp {
             });
         });
         egui::CentralPanel::default().show(ctx, |ui| {
-            egui::ScrollArea::vertical().show(ui, |ui| {
+            if self.state.active_panel == Panel::SpecialInput {
                 crate::panels::show_active(ui, &mut self.state);
-            });
+            } else {
+                egui::ScrollArea::vertical().show(ui, |ui| {
+                    crate::panels::show_active(ui, &mut self.state);
+                });
+            }
         });
     }
 

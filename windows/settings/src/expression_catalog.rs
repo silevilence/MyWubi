@@ -130,7 +130,7 @@ impl ExpressionCatalog {
         });
     }
 
-    pub fn show(&mut self, ui: &mut egui::Ui, path: &Path, config: &mut ExpressionsConfig) -> bool {
+    pub fn poll(&mut self, ui: &mut egui::Ui, path: &Path, config: &mut ExpressionsConfig) -> bool {
         let mut changed = false;
         let result = self
             .worker
@@ -163,10 +163,42 @@ impl ExpressionCatalog {
         if let Some(message) = &self.message {
             ui.label(message);
         }
+        changed
+    }
+    pub fn summary(&self, path: &Path, config: &ExpressionsConfig, kind: ExpressionKind) -> String {
+        let selection = config.selection(kind);
+        let index = ExpressionKind::ALL.iter().position(|k| *k == kind).unwrap();
+        let selected = selection.path(path, kind);
+        let current = self.entries[index]
+            .iter()
+            .find(|info| info.path == selected);
+        let status = match (selection.append, selection.search) {
+            (true, true) => "追加候选 · 可检索",
+            (true, false) => "追加候选",
+            (false, true) => "可检索",
+            (false, false) => "未启用",
+        };
+        match current {
+            Some(info) if info.error.is_some() => format!("{status} · 资源不可用"),
+            None => format!("{status} · 待检查"),
+            _ => status.into(),
+        }
+    }
+    pub fn show(
+        &mut self,
+        ui: &mut egui::Ui,
+        path: &Path,
+        config: &mut ExpressionsConfig,
+        selected_kind: ExpressionKind,
+    ) -> bool {
+        let mut changed = false;
         let mut import = None;
         let mut refresh = false;
         ui.add_enabled_ui(self.worker.is_none(), |ui| {
             for (index, kind) in ExpressionKind::ALL.into_iter().enumerate() {
+                if kind != selected_kind {
+                    continue;
+                }
                 let selection = config.selection_mut(kind);
                 ui.push_id(kind.label(), |ui| {
                     ui.strong(kind.label());

@@ -13,6 +13,7 @@ pub mod data;
 pub mod dictionary;
 pub mod expression_search;
 pub mod expression_store;
+pub mod expression_trial;
 pub mod expressions;
 pub mod ffi;
 pub mod personal;

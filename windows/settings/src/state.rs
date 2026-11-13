@@ -12,6 +12,7 @@ pub enum Panel {
     Basic,
     Appearance,
     Dictionary,
+    SpecialInput,
     TipManager,
     About,
 }
@@ -72,6 +73,7 @@ pub(crate) fn set_dirty(dirty: &mut bool, status_msg: &mut Option<String>) {
 
 /// 应用状态。所有面板通过 `&mut AppState` 读写。
 pub struct AppState {
+    pub special_input: crate::panels::special_input::SpecialInputUi,
     pub personal: crate::personal_panel::PersonalPanel,
     pub expressions: crate::expression_catalog::ExpressionCatalog,
     pub models: crate::model_catalog::ModelCatalog,
@@ -150,6 +152,7 @@ impl AppState {
         }
         Self {
             expressions: crate::expression_catalog::ExpressionCatalog::default(),
+            special_input: Default::default(),
             personal: crate::personal_panel::PersonalPanel::default(),
             models: crate::model_catalog::ModelCatalog::default(),
             config,

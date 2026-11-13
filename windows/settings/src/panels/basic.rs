@@ -21,10 +21,6 @@ const HOTKEY_OPTIONS: [(&str, &str); 11] = [
 pub fn show(ui: &mut Ui, state: &mut AppState) {
     ui.heading("常规设置");
     ui.separator();
-    expressions(ui, state);
-    ui.collapsing("日期时间快捷输入", |ui| {
-        super::shortcuts::show(ui, state)
-    });
     if state
         .personal
         .show(ui, &state.config_path, &mut state.config.personal)
@@ -210,17 +206,6 @@ pub fn show(ui: &mut Ui, state: &mut AppState) {
             &mut state.dirty,
             &mut state.status_msg,
         );
-    });
-}
-
-fn expressions(ui: &mut Ui, state: &mut AppState) {
-    ui.collapsing("特殊码表", |ui| {
-        if state
-            .expressions
-            .show(ui, &state.config_path, &mut state.config.expressions)
-        {
-            state.mark_dirty();
-        }
     });
 }
 

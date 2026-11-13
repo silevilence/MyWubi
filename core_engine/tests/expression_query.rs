@@ -37,6 +37,59 @@ fn library(kind: ExpressionKind, count: usize) -> Arc<ExpressionLibrary> {
     )
 }
 
+#[test]
+fn settings_trial_replays_word_building_and_literal_queries_without_a_host() {
+    use core_engine::expression_trial::{self, TrialAction as A};
+    let r = runtime();
+    let paths = [
+        (
+            ExpressionInput::Words,
+            vec![
+                A::Input("a".into()),
+                A::Select(0),
+                A::Input("b".into()),
+                A::Select(0),
+            ],
+        ),
+        (
+            ExpressionInput::Literal,
+            vec![A::Input("禁止自行车".into())],
+        ),
+    ];
+    for (input, mut actions) in paths {
+        let result = expression_trial::run(&r, ExpressionKind::Emoji, input, &actions).unwrap();
+        assert_eq!(result.view.expression.unwrap().text, "禁止自行车");
+        assert!(result.selected.is_none());
+        actions.push(A::Find);
+        let result = expression_trial::run(&r, ExpressionKind::Emoji, input, &actions).unwrap();
+        assert_eq!(
+            result.view.expression.unwrap().phase,
+            ExpressionPhase::Results
+        );
+        assert_eq!(result.window.candidates[0].text, "🚳");
+        actions.push(A::Select(0));
+        let result = expression_trial::run(&r, ExpressionKind::Emoji, input, &actions).unwrap();
+        assert_eq!(result.selected.as_deref(), Some("🚳"));
+        assert!(result.view.expression.is_none());
+    }
+    let mut disabled = r.clone();
+    disabled.config.expressions.emoji.search = false;
+    assert!(expression_trial::run(
+        &disabled,
+        ExpressionKind::Emoji,
+        ExpressionInput::Literal,
+        &[]
+    )
+    .is_err());
+    assert!(expression_trial::run(
+        &r,
+        ExpressionKind::Emoji,
+        ExpressionInput::Literal,
+        &vec![A::Backspace; 257]
+    )
+    .is_err());
+}
+
 fn runtime() -> RuntimeSnapshot {
     let mut config = Config::default();
     config.basic.auto_commit_unique = false;
