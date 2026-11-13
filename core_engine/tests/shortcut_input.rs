@@ -568,6 +568,64 @@ fn timezone_and_year_changes_only_affect_a_new_query() {
 }
 
 #[test]
+fn wrong_prefix_follows_original_overflow_and_auxiliary_entry_keeps_priority() {
+    let clock = TestClock::new();
+    for profile in [BehaviorProfile::LegacyV1, BehaviorProfile::TouchV1] {
+        for overflow in [false, true] {
+            for auto in [false, true] {
+                let mut r = runtime(&[], 3, vec![rule("jjaad", 1, "日期")], None);
+                r.dict = Dictionary::from_text("jjaa\t普通\n").unwrap();
+                r.config.basic.auto_commit_unique = auto;
+                r.config.basic.commit_on_max_code_overflow = overflow;
+                let mut s =
+                    Session::new_with_clock(&r, profile, HostContext::default(), clock.clone());
+                input(&mut s, "jjaa");
+                assert_eq!(s.state_machine().spelling(), "jjaa");
+                let p = apply(&mut s, Action::InputCode('b'));
+                if overflow {
+                    assert!(
+                        matches!(p.op,EditSessionOp::CommitThenUpdate {ref text,ref spelling,..} if text=="普通" && spelling=="b")
+                    );
+                    assert!(p.learnable);
+                } else {
+                    assert_eq!(s.state_machine().spelling(), "jjaab");
+                }
+            }
+        }
+    }
+    assert_eq!(clock.count(), 0);
+    let mut r = runtime(&[], 3, vec![rule("jjad", 1, "日期")], None);
+    r.dict =
+        Dictionary::from_text("---\ncharset: a\ntemporary:\n  key: j\n---\na\t普通\n").unwrap();
+    let mut baseline = r.clone();
+    baseline.config.shortcuts.rules.clear();
+    let mut s = Session::new_with_clock(
+        &r,
+        BehaviorProfile::LegacyV1,
+        HostContext::default(),
+        clock.clone(),
+    );
+    let mut old = Session::new_with_clock(
+        &baseline,
+        BehaviorProfile::LegacyV1,
+        HostContext::default(),
+        clock.clone(),
+    );
+    for event in [
+        InputEvent::Char('j'),
+        InputEvent::Esc,
+        InputEvent::Char('a'),
+        InputEvent::Space,
+    ] {
+        let a = apply(&mut s, Action::Legacy(event.clone()));
+        let b = apply(&mut old, Action::Legacy(event));
+        assert_eq!(a.op, b.op);
+        assert_eq!(s.snapshot(), old.snapshot());
+    }
+    assert_eq!(clock.count(), 0);
+}
+
+#[test]
 fn c11_long_and_overlapping_codes_only_suppress_automatic_commits_while_reachable() {
     for auto in [false, true] {
         for overflow in [false, true] {
