@@ -1,0 +1,18 @@
+{
+  "command": "cargo test --offline --workspace --lib --tests",
+  "exit_code": 0,
+  "source_commit": "72d410d",
+  "test_binaries": 60,
+  "passed": 498,
+  "failed": 0,
+  "ignored": 6,
+  "ignored_tests": [
+    "test model_client::lifecycle_tests::active_client_recovers_from_service_crash_and_reactivation_shares_weights ... ignored, real isolated service; set MYWUBI_TEST_MODEL_STORE; compile catalog and install trusted components first",
+    "test published_component_download_and_both_native_backends_work_in_an_empty_store ... ignored, downloads published components; requires release catalog, MI_GGUF_PACKAGE and MI_ONNX_PACKAGE",
+    "test published_components_and_model_download_into_an_empty_store ... ignored, downloads published components and a 491MB model; requires release catalog and MI_ONNX_PACKAGE",
+    "test release_component_cache_install_and_both_native_backends_work_without_developer_path ... ignored, requires compiled release catalog, MI_COMPONENT_ARCHIVE, MI_GGUF_PACKAGE and MI_ONNX_PACKAGE",
+    "test real_local_package_import_and_trial_preserve_config ... ignored, requires explicitly prepared real local GGUF and llama backend",
+    "test saved_preload_outlives_prepare_helper_exit ... ignored, real per-user service; set MYWUBI_TEST_CONFIG and MYWUBI_TEST_SETTINGS; install trusted components first"
+  ],
+  "log_sha256": "ca61261af78462b91043c4cc5480558dd920554870a35ce1697b39b96bdf018f"
+}

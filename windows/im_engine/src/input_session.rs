@@ -1687,4 +1687,81 @@ mod tests {
         assert_eq!(second.spelling, "a");
         assert_eq!(candidates.load().spelling, "a");
     }
+
+    #[test]
+    fn date_global_positions_publish_matching_keyboard_and_gdi_click_identities() {
+        use core_engine::shortcuts::{ShortcutKind, ShortcutRule};
+        let fixture: serde_json::Value = serde_json::from_str(include_str!(
+            "../../../docs/validation/special-input/cases.json"
+        ))
+        .unwrap();
+        let case = fixture["cases"]
+            .as_array()
+            .unwrap()
+            .iter()
+            .find(|c| c["id"] == "SI-C06")
+            .unwrap();
+        let text = (0..12)
+            .map(|i| format!("jjad\t普通{i}\t{}\n", 100 - i))
+            .collect::<String>();
+        for capacity in [1, 9, 10] {
+            for (index, position) in [9, 10, 11].into_iter().enumerate() {
+                let pair = &case["expected_page_slot"][capacity.to_string()][index];
+                let page = pair[0].as_u64().unwrap() as usize;
+                let slot = pair[1].as_u64().unwrap() as usize;
+                for click in [false, true] {
+                    let mut config = Config::default();
+                    config.basic.candidate_count = capacity;
+                    config.basic.auto_commit_unique = false;
+                    config.basic.show_code_hints = false;
+                    config.shortcuts.rules = vec![ShortcutRule {
+                        code: "jjad".into(),
+                        position,
+                        kind: ShortcutKind::DateTime,
+                        format: "日期".into(),
+                        enabled: true,
+                    }];
+                    let data = Arc::new(ArcSwap::from_pointee(CandidateData::default()));
+                    let session = InputSession::new(
+                        Dictionary::from_text(&text).unwrap(),
+                        config,
+                        1,
+                        data.clone(),
+                    );
+                    let mut editor = Editor::default();
+                    type_text(&session, &mut editor, "jjad");
+                    assert!(editor.committed.is_empty());
+                    for _ in 1..page {
+                        assert!(session.test_key(&InputEvent::PageNext, false));
+                        session.handle(InputEvent::PageNext, false, None, |op| editor.apply(op));
+                    }
+                    let shown = data.load_full();
+                    assert!(shown.items.len() <= usize::from(capacity.min(9)));
+                    assert_eq!(shown.items[slot - 1].text, "日期");
+                    assert_eq!(shown.items[slot - 1].hint, "日期时间");
+                    assert_eq!(shown.items[slot - 1].label, format!("{slot}. "));
+                    assert_eq!(shown.selection_ids[slot - 1], position as usize - 1);
+                    if click {
+                        session.choose_candidate(
+                            shown.selection_token.unwrap(),
+                            shown.selection_ids[slot - 1],
+                            |op| editor.apply(op),
+                        );
+                    } else {
+                        let event = InputEvent::Char(char::from(b'0' + slot as u8));
+                        assert!(session.test_key(&event, false));
+                        session.handle(event, false, None, |op| editor.apply(op));
+                    }
+                    assert_eq!(editor.committed, "日期");
+                    assert!(editor.spelling.is_empty());
+                    assert!(!data.load().visible);
+                    session.choose_candidate(
+                        shown.selection_token.unwrap(),
+                        shown.selection_ids[slot - 1],
+                        |_| -> Result<_, &str> { panic!("old click must not commit again") },
+                    );
+                }
+            }
+        }
+    }
 }

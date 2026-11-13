@@ -55,6 +55,8 @@ Intel Core Ultra 7 165U，Rust 1.99.1，系统版本见环境记录。与 SI-01 
 
 ## 最终构建与制品核对
 
+统一执行 `cargo test --offline --workspace --lib --tests`：60 个测试程序、498 项通过、6 项既有真实模型/下载条件测试忽略，零失败，见 [workspace-tests.json](workspace-tests.json)。随后补充 Windows `input_session::tests::date_global_positions_publish_matching_keyboard_and_gdi_click_identities`，定向运行通过：18 种容量 1/9/10、位置 9/10/11、数字或点击路径组合，核对冻结 C06 页/槽、GDI 数据标签和日期提示、提交及旧点击拒绝。它使用真实 Windows 时间提供者和模拟 Editor，不是真实 TSF 或窗口点击；没有为此宣称整套测试重新执行。可在后台完成的检查已结束，后续真实环境按[集中清单](../host-checklist.md)执行。
+
 生产代码基点 `72d410d`，之后只补充测试和验收记录。Windows 使用缓存的 `target/v080-published/components.json` 设置 `MYWUBI_COMPONENT_CATALOG`，运行 `cargo build --offline --release --locked --jobs 2 -p settings -p im_engine` 成功。三份普通码表及六类特殊资源按共享清单复制；`settings.exe --component-catalog` 仅执行启动前的命令行分支并以隐藏窗口运行，输出与缓存的发布目录一致。
 
 本地 Velopack 1.2.0 生成 `target/si-validation-20261113/packages/` 中的 Setup、Portable 和 nupkg，验收包版本 `0.8.0-si.20261113`，项目版本未更改。使用 `--skipVeloAppCheck true` 跳过需要启动应用的集成探测；该项和安装、升级行为仍待实机验证。没有执行安装器，没有签名或发布。可选模型组件不在此次特殊输入包内，也未重新下载组件归档；只复用已有组件目录元数据，不能据此宣称模型组件交付已验证。
