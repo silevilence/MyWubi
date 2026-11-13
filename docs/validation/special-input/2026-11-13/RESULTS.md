@@ -52,3 +52,13 @@ Intel Core Ultra 7 165U，Rust 1.99.1，系统版本见环境记录。与 SI-01 
 ## 实机验收限制
 
 只调用一次 cua `getState()` 核查能力；返回文档明确“Windows input activates the selected window”。当前接口不能不抢焦点地执行真实 TSF 按键，故按用户“不占用电脑”的要求跳过输入操作。没有打开测试应用、截图、输入、改变焦点或注册 TIP。Android 未连接设备，未启动模拟器；设置/宿主设备测试仅编译准备。SI-16/17 保持待验。
+
+## 最终构建与制品核对
+
+生产代码基点 `72d410d`，之后只补充测试和验收记录。Windows 使用缓存的 `target/v080-published/components.json` 设置 `MYWUBI_COMPONENT_CATALOG`，运行 `cargo build --offline --release --locked --jobs 2 -p settings -p im_engine` 成功。三份普通码表及六类特殊资源按共享清单复制；`settings.exe --component-catalog` 仅执行启动前的命令行分支并以隐藏窗口运行，输出与缓存的发布目录一致。
+
+本地 Velopack 1.2.0 生成 `target/si-validation-20261113/packages/` 中的 Setup、Portable 和 nupkg，验收包版本 `0.8.0-si.20261113`，项目版本未更改。使用 `--skipVeloAppCheck true` 跳过需要启动应用的集成探测；该项和安装、升级行为仍待实机验证。没有执行安装器，没有签名或发布。可选模型组件不在此次特殊输入包内，也未重新下载组件归档；只复用已有组件目录元数据，不能据此宣称模型组件交付已验证。
+
+Android 使用本地 JDK 21.0.8、SDK/NDK 和 Gradle/Cargo 缓存，`CARGO_NET_OFFLINE=true`、`CARGO_BUILD_JOBS=2`，执行 `gradlew.bat --offline --max-workers=2 :app:assembleDebug :app:assembleDebugAndroidTest --console=plain` 成功。主 APK 含 ARM64/x86_64 的 Release Rust 库，外壳为 Debug，设备测试 APK 仅编译，未安装执行。既有 SDK package.xml、Gradle 弃用和 Windows 导出链接提示未阻断构建。
+
+`scripts/validation/check-special-input-artifacts.py` 对 Portable、nupkg、APK 内各 22 项资源/许可与源文件逐字节比较；Windows exe/DLL 对照本次 Release 产物。Android 打包会执行符号剥离，直接与 Cargo 输出比较的首次检查失败；确认两种 ABI 的合并输入均等于 Cargo 输出，并用本地 NDK `llvm-strip --strip-unneeded` 独立重放后，与 APK 内文件逐字节一致。此转换链已写入校验工具，不忽略差异。最终检查通过，完整路径、大小及 SHA-256 见 [artifacts.json](artifacts.json)。Setup 只记录容器摘要，不将生成成功写成已安装通过。
