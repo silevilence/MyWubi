@@ -35,6 +35,12 @@ class SettingsModel(application: Application) : AndroidViewModel(application) {
     var tables by mutableStateOf<List<TableCatalog.Table>>(emptyList()); private set
     var expressionResources by mutableStateOf<Map<String, List<JSONObject>>>(emptyMap()); private set
     var expressionError by mutableStateOf(""); private set
+    var specialSearch by mutableStateOf("")
+    var specialSelection by mutableStateOf("emoji")
+    var specialDetail by mutableStateOf(false)
+    val specialListScroll = androidx.compose.foundation.ScrollState(0)
+    val specialDetailScroll = androidx.compose.foundation.ScrollState(0)
+    val specialTrials = specialCategories.associate {it.first to ExpressionTrialDraft()}
     var personalStatus by mutableStateOf(""); private set
     var personalPreview by mutableStateOf<JSONObject?>(null); private set
     private var personalImport: File? = null

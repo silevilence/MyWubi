@@ -74,7 +74,7 @@ private fun SettingsScreen(model: SettingsModel, enable: () -> Unit, choose: () 
                     Text("MyWubi 设置", style = MaterialTheme.typography.titleLarge)
                 }
                 ScrollableTabRow(selectedTabIndex = section, edgePadding = 12.dp) {
-                    listOf("常用", "键盘", "码表", "预测").forEachIndexed { index, label ->
+                    listOf("常用", "键盘", "码表", "预测", "特殊输入").forEachIndexed { index, label ->
                         Tab(selected = section == index, onClick = { section = index }, text = { Text(label) })
                     }
                 }
@@ -97,13 +97,14 @@ private fun SettingsScreen(model: SettingsModel, enable: () -> Unit, choose: () 
             }
         }) { padding ->
         // Each category keeps its position; changing tabs never discards the ViewModel draft.
-        val scrollStates = List(4) { rememberScrollState() }
-        Column(Modifier.fillMaxSize().padding(padding).verticalScroll(scrollStates[section])
+        val scrollStates = List(5) { rememberScrollState() }
+        Column(Modifier.fillMaxSize().padding(padding).then(if(section == 4) Modifier else Modifier.verticalScroll(scrollStates[section]))
             .semantics { contentDescription = "设置内容" }.padding(20.dp), verticalArrangement = Arrangement.spacedBy(12.dp)) {
             if (model.busy && !model.trialRunning) LinearProgressIndicator(Modifier.fillMaxWidth())
             if (model.message.isNotEmpty()) Text(model.message, color = MaterialTheme.colorScheme.primary,
                 modifier = Modifier.semantics { liveRegion = LiveRegionMode.Polite })
             val config = model.config
+            if (section == 4 && config != null) SpecialInputSettings(model, config, Modifier.weight(1f))
             if (section == 0) {
                 Text("形码 · 拼音 · 英文", style = MaterialTheme.typography.titleMedium)
                 ImeSetup(enable, choose)
@@ -118,8 +119,6 @@ private fun SettingsScreen(model: SettingsModel, enable: () -> Unit, choose: () 
                     }
                     SettingToggle("启用用户词库", dict.getBoolean("enable_user_dict"), !model.busy) { model.change("dictionary", "enable_user_dict", it) }
                     HorizontalDivider()
-                    ExpressionSettings(model, config)
-                    ShortcutSettings(model, config)
                     PersonalSettings(model, config)
                 }
                 OutlinedButton(onClick = { model.getApplication<android.app.Application>().startActivity(Intent(model.getApplication(), UpdateActivity::class.java).addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)) }) { Text("应用更新") }
@@ -386,7 +385,7 @@ private data class Budget(val key:String,val label:String,val range:IntRange,val
 
 
 @Composable
-private fun ExpressionSettings(model: SettingsModel, config: JSONObject) {
+fun ExpressionSettings(model: SettingsModel, config: JSONObject, selectedKind: String) {
     var importing by rememberSaveable { mutableStateOf("emoji") }
     val picker = rememberLauncherForActivityResult(ActivityResultContracts.OpenDocument()) { uri ->
         uri?.let { model.importExpression(importing, it) }
@@ -394,6 +393,7 @@ private fun ExpressionSettings(model: SettingsModel, config: JSONObject) {
     Text("特殊码表", style = MaterialTheme.typography.titleMedium)
     if (model.expressionError.isNotEmpty()) Text(model.expressionError, color = MaterialTheme.colorScheme.error)
     for ((kind, label) in listOf("emoji" to "Emoji", "kaomoji" to "颜文字", "kana" to "假名", "math" to "数学符号", "punctuation" to "标点", "symbols" to "其他符号")) {
+        if(kind != selectedKind) continue
         val selection = config.optJSONObject("expressions")?.optJSONObject(kind) ?: JSONObject()
         fun change(key: String, value: Any) {
             model.change("expressions", kind, JSONObject(selection.toString()).put(key, value))
