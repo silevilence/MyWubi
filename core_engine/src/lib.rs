@@ -24,6 +24,7 @@ pub mod shortcut_format;
 pub mod shortcut_preview;
 pub mod shortcut_time;
 pub mod shortcuts;
+pub mod special_backup;
 pub mod state_machine;
 pub mod table_options;
 pub mod temporary;

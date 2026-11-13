@@ -102,6 +102,14 @@ pub fn list(
 /// resource or change configuration: the caller separately saves the user's selection.
 pub fn import(config: &Path, kind: ExpressionKind, source: &Path) -> Result<ResourceInfo, String> {
     let library = ExpressionLibrary::load(source, kind).map_err(|error| error.to_string())?;
+    import_library(config, kind, &library)
+}
+
+pub(crate) fn import_library(
+    config: &Path,
+    kind: ExpressionKind,
+    library: &ExpressionLibrary,
+) -> Result<ResourceInfo, String> {
     let encoded = library.encode().map_err(|error| error.to_string())?;
     let root = crate::config_path::resolve_resource_path(config, Path::new("expressions/imports"));
     std::fs::create_dir_all(&root).map_err(|error| error.to_string())?;

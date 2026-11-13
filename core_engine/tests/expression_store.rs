@@ -104,13 +104,16 @@ fn missing_builtins_are_prepared_for_existing_config_and_upgrades_preserve_user_
     let application = f.0.join("app");
     let bundle = application.join("expressions");
     std::fs::create_dir_all(&bundle).unwrap();
-    for kind in [ExpressionKind::Emoji, ExpressionKind::Kaomoji] {
+    for kind in ExpressionKind::ALL {
         let source = f.source(kind);
         std::fs::copy(&source, bundle.join(source.file_name().unwrap())).unwrap();
     }
     let before = std::fs::read(f.config()).unwrap();
     let resolved = core_engine::config_path::resolve_config_path_from(&application, &f.0).unwrap();
     assert_eq!(resolved.path, f.config());
+    for kind in ExpressionKind::ALL {
+        ExpressionLibrary::load(&f.0.join(kind.default_path()), kind).unwrap();
+    }
     let installed = f.0.join("expressions/emoji.mwe");
     assert_eq!(
         ExpressionLibrary::load(&installed, ExpressionKind::Emoji)

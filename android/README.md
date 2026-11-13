@@ -1,5 +1,7 @@
 # Android 开发
 
+特殊码表的两种查询方式、日期时间规则、全局候选位置和跨端备份见 [特殊输入使用说明](../docs/special-input-guide.md)，设备覆盖与待验项见 [SI 验收记录](../docs/validation/special-input/README.md)。
+
 V0.7.0 的字词预测、模型管理、下载与试运行、预加载均为**实验性功能**，预测默认关闭。标准发布 APK 不内置模型运行库或权重，本地模型需按[双端接入说明](../docs/model-input-integration.md)构建模型版；当前没有通过质量验收的推荐模型，ARM64 真机的耗电、温度与持续运行仍待验收。
 
 最低 Android 8.0 / API 26，编译/目标 API 35。固定 Gradle 8.9（Wrapper 校验 SHA-256）、

@@ -117,6 +117,16 @@ enum Request {
         input: candidates::ExpressionInput,
         actions: Vec<expression_trial::TrialAction>,
     },
+    ExportSpecialInput {
+        path: PathBuf,
+        config: Config,
+        target: PathBuf,
+    },
+    RestoreSpecialInput {
+        path: PathBuf,
+        config: Config,
+        source: PathBuf,
+    },
     SaveConfig {
         path: PathBuf,
         config: Config,
@@ -425,8 +435,11 @@ impl Registry {
                     .collect();
                 json!({"rules":rules,"states":states})
             }
-            Request::PreviewShortcuts { .. } | Request::PreviewExpression { .. } => {
-                return Err(err(8, "preview must run outside session registry"))
+            Request::PreviewShortcuts { .. }
+            | Request::PreviewExpression { .. }
+            | Request::ExportSpecialInput { .. }
+            | Request::RestoreSpecialInput { .. } => {
+                return Err(err(8, "settings I/O must run outside session registry"))
             }
             Request::SaveConfig {
                 path,
@@ -603,6 +616,13 @@ pub fn call_with_clock(bytes: &[u8], clock: Arc<dyn crate::shortcut_time::Clock>
                 path, config, kind, input, &actions
             )
             .map_err(|e| err(5, e))?)),
+            Request::ExportSpecialInput {path,config,target} => {
+                special_backup::export(&path,&config,&target).map_err(|e|err(5,e))?;
+                Ok(json!({"exported":true}))
+            }
+            Request::RestoreSpecialInput {path,config,source} => {
+                Ok(json!({"config":special_backup::restore(&path,&config,&source).map_err(|e|err(5,e))?}))
+            }
             request => REGISTRY.lock().execute(request, clock),
         }
     }))

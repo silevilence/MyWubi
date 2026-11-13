@@ -1,7 +1,7 @@
 # 输入会话与资源协议 v1
 
 CP-11。C 头文件为 `core_engine/include/mywubi.h`；Rust 与 JNI 共同调用
-`core_engine::ffi::call`，不复制状态机。旧 `mywubi_user_dict_*` 裸指针导出保持原契约，
+`core_engine::ffi::call`，不复制状态机；JNI 通过 `call_with_clock` 为新会话注入平台时钟。旧 `mywubi_user_dict_*` 裸指针导出保持原契约，
 必须传有效指针且仅销毁一次，不能与新整数句柄互换。
 
 请求为标准 UTF-8 JSON：`{"version":1,"request":{"op":"State","session":6}}`。
@@ -26,7 +26,7 @@ CP-11。C 头文件为 `core_engine/include/mywubi.h`；Rust 与 JNI 共同调�
 | --- | --- | --- |
 | BuildRuntime | path（配置文件） | handle（严格加载的 TouchV1 快照） |
 | CreateSession | runtime, context | handle |
-| Prepare | session, action | token/op/target/preview/disposition |
+| Prepare | session, action | token/op/target/preview/disposition/learnable |
 | Ack | session, token, outcome, owns_preedit | status, follow_up |
 | Recover / LoseFocus | session | 可选或必选编辑计划 |
 | Close / Destroy | session / handle | null |
@@ -92,3 +92,20 @@ clang core_engine/tests/abi_smoke.c target/debug/core_engine.dll.lib -o target/d
 2026-10-30：Rust/C 传输等价、编辑确认、Busy、跨会话 token、候选身份、未知结果恢复、
 关闭/销毁、资源冲突、非 BMP/NUL/组合字符测试通过；独立 C 程序成功链接调用。
 JNI 使用同一 facade，设备等价验收记录归 CP-13。
+
+
+## 特殊输入设置操作（SI）
+
+这些操作在设置工作线程调用。预览、备份和恢复的文件读取在会话注册表锁外执行，不占用活动会话锁。
+
+| op | 输入字段 | value / 行为 |
+| --- | --- | --- |
+| InspectShortcuts | rules, table | 规范化 rules、逐条 states（用户启用与环境可用分开） |
+| PreviewShortcuts | path, config（草稿）, code, time（LocalTime） | rows、total、effective_capacity、states、warnings、resources；固定时间由调用者标明 |
+| PreviewExpression | path, config（草稿）, kind, input（Words/Literal）, actions | view、window、selected、resources；仅试用，不写宿主 |
+| ExportSpecialInput | path, config（草稿）, target | exported:true；原子生成 `.mwsi`，不保存配置 |
+| RestoreSpecialInput | path, config（当前草稿）, source | config（替换特殊输入后的新草稿）；资源写入新导入目录，不保存配置 |
+
+`.mwsi` 版本 1 包含六类所选资源原文、开关和快捷规则，不包含主码表/个人数据或环境暂停状态。缺失/重复类别、损坏资源和非法规则在创建导入资源前拒绝；保存草稿仍须调用带版本检查的 SaveConfig。调用方应防止异步恢复覆盖更新的草稿。备份文件通过路径传递，上限 512 MiB，不放入 16 MiB 协议请求；每个资源仍受 64 MiB 限制。
+
+日期候选的提示为 `DateTime(rule_index)`，保留来源身份；`PreparedEdit.learnable=false` 的提交须隔离个人采集/预测上下文，不得当普通词训练。`SessionView.shortcut_error` 为可选的本轮取时错误。每页/连续窗口仍使用 QueryRevision 和 CandidateId，不能用显示文本作为候选身份。

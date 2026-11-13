@@ -111,6 +111,55 @@ class SettingsModel(application: Application) : AndroidViewModel(application) {
         }
     }
 
+    fun exportSpecialInput(uri: Uri) {
+        val draft = JSONObject(config?.toString() ?: return)
+        work {
+            val file = File.createTempFile("special-backup-", ".mwsi", app.cacheDir)
+            try {
+                NativeBridge.objectCall("ExportSpecialInput", "path" to store.configFile.path,
+                    "config" to draft, "target" to file.path)
+                app.contentResolver.openOutputStream(uri, "wt")?.use { out ->
+                    file.inputStream().use { it.copyTo(out) }
+                } ?: error("无法写入备份目标")
+            } finally { file.delete() }
+            val publish: () -> Unit = { message = "特殊输入草稿与资源已导出；当前设置未改变" }; publish
+        }
+    }
+
+    fun restoreSpecialInput(uri: Uri) {
+        val draft = JSONObject(config?.toString() ?: return)
+        val before = draft.toString()
+        work {
+            val file = File.createTempFile("special-restore-", ".mwsi", app.cacheDir)
+            val restored = try {
+                app.contentResolver.openInputStream(uri)?.use { input ->
+                    file.outputStream().use { out ->
+                        val bytes = ByteArray(8192); var total = 0L
+                        while (true) {
+                            val count = input.read(bytes); if (count < 0) break
+                            total += count; require(total <= 512L * 1024 * 1024) { "特殊输入备份超过 512 MiB" }
+                            out.write(bytes, 0, count)
+                        }
+                        out.fd.sync()
+                    }
+                } ?: error("无法读取特殊输入备份")
+                NativeBridge.objectCall("RestoreSpecialInput", "path" to store.configFile.path,
+                    "config" to draft, "source" to file.path).getJSONObject("config")
+            } finally { file.delete() }
+            val resources = ExpressionCatalog(app).list(restored)
+            val publish: () -> Unit = {
+                if (config.toString() != before) {
+                    message = "草稿已变化，保留当前编辑；请重新恢复备份"
+                } else {
+                    config = restored; dirty = true; persistDraft()
+                    expressionResources = resources; expressionError = ""
+                    specialSelection = "emoji"; specialDetail = false
+                    message = "备份已恢复到草稿；检查后保存，输入法重载后应用"
+                }
+            }; publish
+        }
+    }
+
     fun selectExpression(kind: String, resource: JSONObject?) {
         val selection = JSONObject(config?.optJSONObject("expressions")?.optJSONObject(kind)?.toString() ?: "{}")
         val path = if (resource == null || resource.optBoolean("builtin")) JSONObject.NULL

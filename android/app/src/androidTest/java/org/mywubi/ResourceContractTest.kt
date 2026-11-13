@@ -10,6 +10,58 @@ import java.io.File
 import java.util.UUID
 
 class ResourceContractTest {
+    @Test fun specialInputUpgradeAndPortableRestorePreserveSelectionsAndRules() {
+        val sourceContext = isolated()
+        val targetContext = isolated()
+        try {
+            val source = EngineStore(sourceContext)
+            val read = source.readConfig()
+            val config = read.getJSONObject("config")
+            NativeHandle(read.getLong("version")).use { version ->
+                config.getJSONObject("expressions").getJSONObject("kana").put("search", true)
+                config.getJSONObject("expressions").getJSONObject("math").put("append", true)
+                config.getJSONObject("shortcuts").put("rules", org.json.JSONArray().put(JSONObject()
+                    .put("code", "JJAD").put("position", 2).put("kind", "date_time")
+                    .put("format", "yyyy年MM月dd日").put("enabled", true)))
+                NativeHandle(source.saveConfig(config, version.value).getLong("version")).close()
+            }
+            val saved = source.configFile.readBytes()
+            val resources = specialCategories.associate { (kind, _) ->
+                kind to File(source.configFile.parentFile, "expressions/$kind.mwe").readBytes()
+            }
+            Resources.prepare(sourceContext)
+            assertArrayEquals(saved, source.configFile.readBytes())
+            resources.forEach { (kind, bytes) ->
+                assertArrayEquals(bytes, File(source.configFile.parentFile, "expressions/$kind.mwe").readBytes())
+            }
+            val archive = File(sourceContext.filesDir, "special-input.mwsi")
+            NativeBridge.objectCall("ExportSpecialInput", "path" to source.configFile.path,
+                "config" to config, "target" to archive.path)
+            val target = EngineStore(targetContext)
+            val before = target.configFile.readBytes()
+            val targetRead = target.readConfig()
+            NativeHandle(targetRead.getLong("version")).use { version ->
+                val restored = NativeBridge.objectCall("RestoreSpecialInput", "path" to target.configFile.path,
+                    "config" to targetRead.getJSONObject("config"), "source" to archive.path).getJSONObject("config")
+                assertArrayEquals(before, target.configFile.readBytes())
+                assertEquals("jjad", restored.getJSONObject("shortcuts").getJSONArray("rules").getJSONObject(0).getString("code"))
+                assertTrue(restored.getJSONObject("expressions").getJSONObject("kana").getBoolean("search"))
+                assertTrue(restored.getJSONObject("expressions").getJSONObject("math").getBoolean("append"))
+                for ((kind, _) in specialCategories) {
+                    val selected = restored.getJSONObject("expressions").getJSONObject(kind)
+                    val imported = File(target.configFile.parentFile, selected.getString("resource"))
+                    assertTrue(imported.isFile)
+                    assertEquals("original selected contents and notices", org.json.JSONObject(resources.getValue(kind).toString(Charsets.UTF_8).substringAfter('\n')).toString(),
+                        org.json.JSONObject(imported.readText().substringAfter('\n')).toString())
+                }
+                NativeHandle(target.activateConfig(restored, version.value).getLong("version")).close()
+            }
+        } finally {
+            sourceContext.filesDir.deleteRecursively()
+            targetContext.filesDir.deleteRecursively()
+        }
+    }
+
     private fun isolated(): Context {
         val target = InstrumentationRegistry.getInstrumentation().targetContext
         val root = File(target.cacheDir, "resources-${UUID.randomUUID()}").apply { mkdirs() }

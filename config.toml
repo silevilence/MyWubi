@@ -72,3 +72,19 @@ predict = false
 max_mb = 64
 retention_days = 90
 
+# 日期时间快捷输入示例（默认没有规则；推荐在“特殊输入”设置页配置）
+# 全局位置跨页连续计数，候选不足时追加到末尾。完整说明见 docs/special-input-guide.md。
+# [[shortcuts.rules]]
+# code = "jjad"
+# position = 2
+# kind = "date_time"
+# format = "yyyy年MM月dd日"
+# enabled = true
+#
+# [[shortcuts.rules]]
+# code = "jjad"
+# position = 3
+# kind = "date_time"
+# format = "yyyy-MM-dd"
+# enabled = true
+

@@ -1,6 +1,8 @@
 package org.mywubi
 
 import androidx.activity.compose.BackHandler
+import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.*
@@ -35,6 +37,7 @@ fun SpecialInputSettings(model: SettingsModel, config: JSONObject, modifier: Mod
 private fun SpecialInputList(model: SettingsModel, config: JSONObject, modifier: Modifier) {
     Column(modifier.verticalScroll(model.specialListScroll).semantics {contentDescription="特殊输入项目列表"},verticalArrangement=Arrangement.spacedBy(8.dp)) {
         Text("特殊输入",style=MaterialTheme.typography.titleLarge)
+        SpecialInputBackup(model)
         OutlinedTextField(model.specialSearch,{model.specialSearch=it},label={Text("搜索类别或编码")},singleLine=true,modifier=Modifier.fillMaxWidth())
         Text("特殊码表",style=MaterialTheme.typography.titleMedium)
         for((kind,label) in specialCategories) {
@@ -69,6 +72,21 @@ private fun SpecialInputList(model: SettingsModel, config: JSONObject, modifier:
             next.put(JSONObject().put("code",code).put("position",2).put("kind","date_time").put("format","yyyy年MM月dd日").put("enabled",true))
             model.change("shortcuts","rules",next)
         },enabled=!model.busy && rules.length()<1024) {Text("新增快捷编码")}
+    }
+}
+
+@Composable
+private fun SpecialInputBackup(model: SettingsModel) {
+    val export = rememberLauncherForActivityResult(ActivityResultContracts.CreateDocument("application/octet-stream")) { uri ->
+        uri?.let(model::exportSpecialInput)
+    }
+    val restore = rememberLauncherForActivityResult(ActivityResultContracts.OpenDocument()) { uri ->
+        uri?.let(model::restoreSpecialInput)
+    }
+    SettingsDisclosure("特殊输入备份与恢复") {
+        Text("包含当前草稿的六类所选资源、开关和日期规则；不包含主码表、个人词库或其他设置。恢复会替换特殊输入草稿，检查后再保存。")
+        OutlinedButton(onClick={export.launch("MyWubi-special-input.mwsi")},enabled=!model.busy) {Text("导出特殊输入备份")}
+        OutlinedButton(onClick={restore.launch(arrayOf("*/*"))},enabled=!model.busy) {Text("恢复备份到草稿")}
     }
 }
 @Composable

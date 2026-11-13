@@ -16,6 +16,7 @@ pub struct SpecialInputUi {
     detail: bool,
     pub preview: super::shortcuts::PreviewUi,
     trials: [super::expression_trial::TrialUi; 6],
+    backup: super::special_backup::BackupUi,
 }
 impl Default for SpecialInputUi {
     fn default() -> Self {
@@ -25,6 +26,7 @@ impl Default for SpecialInputUi {
             detail: false,
             preview: Default::default(),
             trials: Default::default(),
+            backup: Default::default(),
         }
     }
 }
@@ -38,6 +40,7 @@ pub fn show(ui: &mut Ui, state: &mut AppState) {
         state.mark_dirty();
     }
     let mut view = std::mem::take(&mut state.special_input);
+    view.backup.show(ui, state);
     let detail_id = format!("special-detail-{:?}", view.selected);
     if ui.available_width() >= 760.0 {
         ui.horizontal_top(|ui| {
