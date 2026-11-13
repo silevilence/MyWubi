@@ -7,6 +7,7 @@ use std::{collections::HashSet, ops::Range};
 enum Row {
     Text(Entry),
     Expression(ExpressionKind, usize),
+    Shortcut { rule_index: usize, text: String },
 }
 
 /// Text pages retain their original grouping. Expressions fill any free slots, then
@@ -20,26 +21,29 @@ pub(super) struct AppendedCandidates {
 }
 
 impl StateMachine {
+    pub(super) fn has_shortcut_candidates(&self) -> bool {
+        self.appended.as_ref().is_some_and(|view| {
+            view.rows
+                .iter()
+                .any(|row| matches!(row, Row::Shortcut { .. }))
+        })
+    }
     pub(super) fn expression_library(&self, kind: ExpressionKind) -> Option<&ExpressionLibrary> {
         self.expressions.resource(kind).library.as_deref()
     }
 
     pub(super) fn build_appended(&self, text: &[&Entry]) -> Option<AppendedCandidates> {
-        if !self.expressions_allowed
-            || !ExpressionKind::ALL
-                .iter()
-                .any(|kind| self.expression_config.selection(*kind).append)
-            || !matches!(self.mode, InputMode::Main | InputMode::Pinyin)
-            || text.is_empty()
-        {
-            return None;
-        }
+        let dynamic = self.shortcut_outputs();
         let libraries = ExpressionKind::ALL
             .into_iter()
-            .filter(|kind| self.expression_config.selection(*kind).append)
+            .filter(|kind| {
+                self.expressions_allowed
+                    && matches!(self.mode, InputMode::Main | InputMode::Pinyin)
+                    && self.expression_config.selection(*kind).append
+            })
             .filter_map(|kind| self.expression_library(kind).map(|library| (kind, library)))
             .collect::<Vec<_>>();
-        if libraries.is_empty() {
+        if libraries.is_empty() && dynamic.is_empty() {
             return None;
         }
         let mut rows = Vec::with_capacity(text.len());
@@ -69,7 +73,35 @@ impl StateMachine {
                 pages.push(offset..(offset + capacity).min(rows.len()));
             }
         }
-        has_expressions.then(|| AppendedCandidates {
+        let has_dynamic = !dynamic.is_empty();
+        if has_dynamic {
+            rows.retain(|row| match row {
+                Row::Expression(kind, index) => {
+                    self.expression_library(*kind).is_some_and(|library| {
+                        !dynamic
+                            .iter()
+                            .any(|(_, text)| *text == library.document().entries[*index].text)
+                    })
+                }
+                _ => true,
+            });
+            for (rule, text) in dynamic {
+                let position = (rule.position as usize - 1).min(rows.len());
+                rows.insert(
+                    position,
+                    Row::Shortcut {
+                        rule_index: rule.rule_index,
+                        text,
+                    },
+                );
+            }
+            let capacity = self.page_size.min(9);
+            pages = (0..rows.len())
+                .step_by(capacity)
+                .map(|start| start..(start + capacity).min(rows.len()))
+                .collect();
+        }
+        (has_expressions || has_dynamic).then(|| AppendedCandidates {
             spelling: self.spelling.clone(),
             mode: self.mode,
             rows,
@@ -127,11 +159,16 @@ impl StateMachine {
                     vec![CandidateHint::ExpressionName(entry.name.clone())],
                 )
             }
+            Row::Shortcut { rule_index, text } => (
+                text.clone(),
+                true,
+                vec![CandidateHint::DateTime(*rule_index)],
+            ),
         };
         Some(Candidate {
             expression_kind: match row {
                 Row::Expression(kind, _) => Some(*kind),
-                Row::Text(_) => None,
+                Row::Text(_) | Row::Shortcut { .. } => None,
             },
             id: CandidateId(index),
             text,
@@ -165,6 +202,7 @@ impl StateMachine {
                         | CandidateHint::ExpressionName(text)
                         | CandidateHint::ExpressionMatch(text) => text,
                         CandidateHint::ReverseCodes(codes) => codes.join(" / "),
+                        CandidateHint::DateTime(_) => "日期时间".into(),
                     })
                     .collect::<Vec<_>>()
                     .join(" ")

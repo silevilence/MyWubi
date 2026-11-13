@@ -20,6 +20,8 @@ mod pinyin;
 pub mod runtime;
 pub mod session;
 pub mod shortcut_format;
+pub mod shortcut_preview;
+pub mod shortcut_time;
 pub mod shortcuts;
 pub mod state_machine;
 pub mod table_options;

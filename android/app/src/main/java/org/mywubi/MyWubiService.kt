@@ -261,6 +261,7 @@ class MyWubiService : InputMethodService() {
         if (destroyed) return
         val items = candidates.optJSONArray("candidates") ?: JSONArray()
         val spelling = state.optJSONObject("view")?.optString("spelling") ?: ""
+        val shortcutError = state.optJSONObject("view")?.optString("shortcut_error")?.takeIf { it.isNotBlank() && it != "null" }?.let { "日期时间不可用：$it" }
         val temporary = state.optString("temporary").takeIf { it in listOf("Pinyin", "English", "Emoji", "Kaomoji", "Kana", "Math", "Punctuation", "Symbols") }
         val stableIdle = active && viewVisible && session != null && idle.isIdle(
             android.os.SystemClock.elapsedRealtime(), spelling, items.length() > 0 || state.optBoolean("prediction_waiting"), editor.ownsPreedit, temporary != null)
@@ -281,8 +282,8 @@ class MyWubiService : InputMethodService() {
             epoch = editorEpoch, enabled = active && viewVisible && session != null,
             spelling = spelling,
             idle = stableIdle, updateAvailable = updateAvailable,
-            status = error ?: if(session == null) "正在加载码表…" else tableLabel,
-            statusError = error != null,
+            status = error ?: shortcutError ?: if(session == null) "正在加载码表…" else tableLabel,
+            statusError = error != null || shortcutError != null,
             pinyinMode = pinyinMode,
             base = state.optString("base", "Main"),
             temporary = temporary,
@@ -301,6 +302,7 @@ class MyWubiService : InputMethodService() {
                         h.has("CodeSuffix") -> h.getString("CodeSuffix")
                         h.has("ExpressionName") -> h.getString("ExpressionName")
                         h.has("ExpressionMatch") -> h.getString("ExpressionMatch")
+                        h.has("DateTime") -> "日期时间"
                         h.has("ReverseCodes") -> {
                             val codes = h.getJSONArray("ReverseCodes")
                             (0 until codes.length()).joinToString("/") { codes.getString(it) }
@@ -309,7 +311,8 @@ class MyWubiService : InputMethodService() {
                     }
                 }
                 CandidateItem(item.getLong("id"),item.getString("text"),hint,
-                    item.optString("expression_kind").takeIf { it in listOf("emoji", "kaomoji", "kana", "math", "punctuation", "symbols") })
+                    item.optString("expression_kind").takeIf { it in listOf("emoji", "kaomoji", "kana", "math", "punctuation", "symbols") },
+                    (0 until hints.length()).any { hints.getJSONObject(it).has("DateTime") })
             },
             query = candidates.optJSONObject("query_revision")?.toString() ?: "{}",
             total = candidates.optInt("total"), offset = candidates.optInt("offset")
@@ -451,7 +454,7 @@ class MyWubiService : InputMethodService() {
             }
             writingHost = true
             val outcome = try { editor.execute(host, plan, ::current) } finally { writingHost = false }
-            personalCapture.operation(host, operation, outcome, projectedSelection, projectedSelection)
+            if (plan.optBoolean("learnable", true)) personalCapture.operation(host, operation, outcome, projectedSelection, projectedSelection)
             if (outcome != "Applied") { ownSelections.clear(); projectedPreedit = null }
             if (!current()) return false
             val ack = NativeBridge.objectCall("Ack", "session" to s.value, "token" to token, "outcome" to outcome, "owns_preedit" to editor.ownsPreedit)

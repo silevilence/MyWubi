@@ -104,6 +104,12 @@ enum Request {
         rules: Vec<crate::shortcuts::ShortcutRule>,
         table: TableConfig,
     },
+    PreviewShortcuts {
+        path: PathBuf,
+        config: Config,
+        code: String,
+        time: crate::shortcut_time::LocalTime,
+    },
     SaveConfig {
         path: PathBuf,
         config: Config,
@@ -264,13 +270,17 @@ impl Registry {
     fn version(&mut self, path: PathBuf, version: FileVersion) -> Result<u64, ProtocolError> {
         self.insert(Object::Version(path, version))
     }
-    fn execute(&mut self, request: Request) -> Result<Value, ProtocolError> {
+    fn execute(
+        &mut self,
+        request: Request,
+        clock: Arc<dyn crate::shortcut_time::Clock>,
+    ) -> Result<Value, ProtocolError> {
         Ok(match request {
             // Resource construction is dispatched before taking the registry lock.
             Request::BuildRuntime { .. } => return Err(err(8, "invalid build dispatch")),
             Request::CreateSession { runtime, context } => {
                 let runtime = self.runtime(runtime)?;
-                json!({"handle":self.insert(Object::Session(Box::new(Session::new(&runtime,BehaviorProfile::TouchV1,context))))?})
+                json!({"handle":self.insert(Object::Session(Box::new(Session::new_with_clock(&runtime,BehaviorProfile::TouchV1,context,clock))))?})
             }
             Request::Destroy { handle } => {
                 self.objects.remove(&handle).ok_or_else(invalid)?;
@@ -408,6 +418,9 @@ impl Registry {
                     .collect();
                 json!({"rules":rules,"states":states})
             }
+            Request::PreviewShortcuts { .. } => {
+                return Err(err(8, "preview must run outside session registry"))
+            }
             Request::SaveConfig {
                 path,
                 config,
@@ -533,7 +546,12 @@ static REGISTRY: LazyLock<Mutex<Registry>> = LazyLock::new(|| Mutex::new(Registr
 /// Session calls are serialized; runtime construction and host editor callbacks
 /// run outside the registry lock so background loading cannot stall active input.
 pub fn call(bytes: &[u8]) -> Vec<u8> {
-    let result = std::panic::catch_unwind(|| {
+    call_with_clock(bytes, Arc::new(crate::shortcut_time::UnavailableClock))
+}
+
+/// Platform entry point: the provider is retained by new sessions and read only on full matches.
+pub fn call_with_clock(bytes: &[u8], clock: Arc<dyn crate::shortcut_time::Clock>) -> Vec<u8> {
+    let result = std::panic::catch_unwind(std::panic::AssertUnwindSafe(|| {
         if bytes.len() > MAX_REQUEST {
             return Err(err(2, "request too large"));
         }
@@ -555,9 +573,22 @@ pub fn call(bytes: &[u8]) -> Vec<u8> {
                 let handle = REGISTRY.lock().insert(Object::Runtime(Arc::new(runtime)))?;
                 Ok(json!({"handle": handle}))
             }
-            request => REGISTRY.lock().execute(request),
+            Request::PreviewShortcuts {
+                path,
+                config,
+                code,
+                time,
+            } => Ok(json!(crate::shortcut_preview::build(
+                path,
+                config,
+                &code,
+                time,
+                BehaviorProfile::TouchV1
+            )
+            .map_err(|e| err(5, e))?)),
+            request => REGISTRY.lock().execute(request, clock),
         }
-    })
+    }))
     .unwrap_or_else(|_| Err(err(8, "internal panic")));
     match result {
         Ok(value) => json!({"version":PROTOCOL_VERSION,"ok":true,"value":value}),

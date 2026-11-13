@@ -139,8 +139,12 @@ pub fn validate_structure(rules: &[ShortcutRule]) -> Result<Vec<ShortcutRule>, R
         if !(1..=MAX_POSITION).contains(&rule.position) {
             return Err(error(Some(index), "position", "全局位置须为 1～10000"));
         }
-        if rule.format.chars().count() > MAX_FORMAT_SCALARS {
-            return Err(error(Some(index), "format", "格式最多 256 个 Unicode 字符"));
+        if rule.format.is_empty() || rule.format.chars().count() > MAX_FORMAT_SCALARS {
+            return Err(error(
+                Some(index),
+                "format",
+                "格式须为 1～256 个 Unicode 字符",
+            ));
         }
         if let Err(offset) = crate::shortcut_format::compile(&rule.format) {
             return Err(RuleError {

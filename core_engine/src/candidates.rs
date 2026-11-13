@@ -18,6 +18,8 @@ pub enum CandidateHint {
     ExpressionName(String),
     /// Search quality, including partial matches; display only.
     ExpressionMatch(String),
+    /// Stable source row within the runtime; display metadata, never committed text.
+    DateTime(usize),
 }
 
 #[derive(Debug, Clone, PartialEq, Eq, serde::Serialize, serde::Deserialize)]
@@ -58,6 +60,8 @@ pub struct PresentationItem {
 
 #[derive(Debug, Clone, Default, PartialEq, Eq, serde::Serialize, serde::Deserialize)]
 pub struct SessionView {
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub shortcut_error: Option<String>,
     /// Internal query only: this text must never become host preedit.
     #[serde(default)]
     pub expression: Option<ExpressionQueryView>,

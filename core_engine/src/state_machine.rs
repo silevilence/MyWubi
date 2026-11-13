@@ -14,6 +14,7 @@ use std::sync::Arc;
 mod expression_candidates;
 mod expression_query;
 pub mod semantic;
+mod shortcut_input;
 mod temporary_input;
 
 /// 当前所处的输入阶段。
@@ -98,6 +99,10 @@ const DEFAULT_PAGE_SIZE: usize = 5;
 /// 跨平台输入核心状态机。
 #[derive(Clone)]
 pub struct StateMachine {
+    shortcut_committed: bool,
+    shortcut_rules: Arc<crate::shortcuts::RuleSet>,
+    clock: Arc<dyn crate::shortcut_time::Clock>,
+    shortcut_time: Option<Arc<shortcut_input::FrozenTime>>,
     mode: InputMode,
     menu_return: InputMode,
     temporary: Arc<TemporaryTables>,
@@ -175,6 +180,10 @@ impl StateMachine {
     ) -> Self {
         let page_size = page_size.clamp(1, 10);
         Self {
+            shortcut_rules: Arc::default(),
+            shortcut_committed: false,
+            clock: Arc::new(crate::shortcut_time::UnavailableClock),
+            shortcut_time: None,
             mode: InputMode::Main,
             menu_return: InputMode::Main,
             temporary: Arc::new(TemporaryTables::default()),
@@ -319,6 +328,8 @@ impl StateMachine {
 
     /// 重置全部状态（不释放码表绑定）。
     pub fn reset(&mut self) {
+        self.shortcut_committed = false;
+        self.shortcut_time = None;
         self.expression_query = None;
         self.appended = None;
         self.mode = InputMode::Main;
@@ -341,12 +352,14 @@ impl StateMachine {
             return None;
         }
         let replace_len = self.spelling.chars().count();
+        let dynamic = self.is_shortcut_candidate(self.candidate_offset());
         let text = if self.has_buffered_punctuation() || self.candidates.is_empty() {
             self.spelling.clone()
         } else {
             self.candidates[0].clone()
         };
         self.reset();
+        self.shortcut_committed = dynamic;
         Some((text, replace_len))
     }
 
@@ -367,6 +380,7 @@ impl StateMachine {
 
     /// 处理一个输入事件并返回对外行为。
     pub fn handle(&mut self, event: InputEvent) -> Transition {
+        self.shortcut_committed = false;
         if self.expression_query.is_some() {
             return self.handle_expression(event);
         }
@@ -397,7 +411,7 @@ impl StateMachine {
 
     fn on_char(&mut self, c: char) -> Transition {
         if c.is_ascii_digit()
-            && !self.dict.table_config().charset.contains(c)
+            && (!self.dict.table_config().charset.contains(c) || self.has_shortcut_candidates())
             && self.can_select_with_digit(c)
         {
             return self.on_select(c.to_digit(10).unwrap() as usize);
@@ -422,14 +436,23 @@ impl StateMachine {
         }
 
         // 若处于选词状态且继续输入，则视为放弃当前候选，进入新一轮。
+        let next_reaches = self.shortcut_active()
+            && self
+                .shortcut_rules
+                .reaches(&format!("{}{c}", self.spelling));
+        self.shortcut_time = None;
         if self.state == InputState::Selecting && !self.has_buffered_punctuation() {
             if self.commit_on_max_code_overflow
+                && !next_reaches
                 && self.lookup_key().chars().count() >= self.max_code_len
                 && !self.candidates.is_empty()
             {
                 let word = self.candidates[0].clone();
                 let replace_len = self.spelling.chars().count();
-                return self.commit_and_start_next(word, replace_len, c);
+                let dynamic = self.is_shortcut_candidate(self.candidate_offset());
+                let transition = self.commit_and_start_next(word, replace_len, c);
+                self.shortcut_committed = dynamic;
+                return transition;
             }
             self.reset_candidates();
         }
@@ -446,6 +469,7 @@ impl StateMachine {
 
         // 四码唯一自动上屏。
         if self.auto_commit_unique
+            && !self.shortcut_reaches(&self.spelling)
             && self.lookup_key().chars().count() >= self.max_code_len
             && self.total_candidates == 1
         {
@@ -479,9 +503,11 @@ impl StateMachine {
         }
 
         if !self.has_buffered_punctuation() && !self.candidates.is_empty() {
+            let dynamic = self.is_shortcut_candidate(self.candidate_offset());
             let mut text = self.candidates[0].clone();
             text.push(c);
             self.reset();
+            self.shortcut_committed = dynamic;
             return Transition::Commit(text);
         }
 
@@ -504,6 +530,7 @@ impl StateMachine {
 
         // 空格首选上屏：提交当前第 0 个候选并补齐原编码字符（如四码不足时上屏首选）。
         if !self.candidates.is_empty() {
+            let dynamic = self.is_shortcut_candidate(self.candidate_offset());
             let word = self.candidates[0].clone();
             let extra: String = self
                 .spelling
@@ -511,6 +538,7 @@ impl StateMachine {
                 .skip(self.candidates_first_code_len())
                 .collect();
             self.reset();
+            self.shortcut_committed = dynamic;
             if extra.is_empty() {
                 return Transition::Commit(word);
             }
@@ -533,6 +561,7 @@ impl StateMachine {
     }
 
     fn on_backspace(&mut self) -> Transition {
+        self.shortcut_time = None;
         if self.spelling.is_empty() {
             return Transition::Passthrough(InputEvent::Backspace);
         }
@@ -574,8 +603,10 @@ impl StateMachine {
 
     fn on_select(&mut self, idx: usize) -> Transition {
         if idx >= 1 && idx <= self.candidates.len() {
+            let dynamic = self.is_shortcut_candidate(self.candidate_offset() + idx - 1);
             let word = self.candidates[idx - 1].clone();
             self.reset();
+            self.shortcut_committed = dynamic;
             return Transition::Commit(word);
         }
         // 越界：透传数字键给应用。
@@ -617,6 +648,7 @@ impl StateMachine {
 
     /// 重新扫一遍码表，刷新候选总数与当前页可见候选快照。
     fn candidates_snapshot(&mut self) {
+        self.capture_shortcut_time();
         if self.reuse_appended_page() {
             return;
         }

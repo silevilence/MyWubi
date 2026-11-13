@@ -43,8 +43,8 @@ import androidx.savedstate.SavedStateRegistryOwner
 import org.json.JSONArray
 import org.json.JSONObject
 
-data class CandidateItem(val id: Long, val text: String, val hint: String, val expressionKind: String? = null) {
-    val spokenHint: String get() = if(expressionKind == null && hint.isNotEmpty()) "编码提示 $hint" else hint
+data class CandidateItem(val id: Long, val text: String, val hint: String, val expressionKind: String? = null, val dateTime: Boolean = false) {
+    val spokenHint: String get() = if(expressionKind == null && !dateTime && hint.isNotEmpty()) "编码提示 $hint" else hint
 }
 data class ExpressionQueryUi(val kind: String, val phase: String, val text: String, val message: String?, val input: String = "Words")
 

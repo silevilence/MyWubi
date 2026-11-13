@@ -56,10 +56,11 @@ impl InputSession {
                 None
             }),
             model: Mutex::new(None),
-            core: Mutex::new(Session::new(
+            core: Mutex::new(Session::new_with_clock(
                 snapshot,
                 BehaviorProfile::LegacyV1,
                 HostContext::default(),
+                Arc::new(crate::shortcut_clock::WindowsClock),
             )),
             candidates,
         };
@@ -556,7 +557,9 @@ impl InputSession {
                 HostOutcome::RejectedBeforeWrite => core_engine::personal::Outcome::Rejected,
                 _ => core_engine::personal::Outcome::Unknown,
             };
-            capture.operation("windows", &plan.op, outcome, None, method);
+            if plan.learnable {
+                capture.operation("windows", &plan.op, outcome, None, method);
+            }
         }
         let mut core = self.core.lock();
         let ack = core.acknowledge(plan.token, outcome);
@@ -607,6 +610,9 @@ fn candidate_view(
     data.visible = view.visible;
     data.mode_label = view.mode.label().into();
     data.expression = view.expression.clone();
+    if let Some(error) = &view.shortcut_error {
+        data.notices.push(format!("日期时间不可用：{error}"));
+    }
     if let Some(query) = &view.expression {
         use crate::candidate_data::*;
         let results = query.phase == core_engine::candidates::ExpressionPhase::Results;

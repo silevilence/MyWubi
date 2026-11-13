@@ -47,6 +47,7 @@ mod model_client;
 mod prediction_context;
 pub mod reload;
 pub mod screen_geometry;
+mod shortcut_clock;
 pub mod text_service;
 
 /// 内部引擎单例，对应早期 ROADMAP 阶段“工作空间骨架”：保持 C-ABI 入口

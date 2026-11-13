@@ -101,6 +101,8 @@ pub struct EditToken {
 
 #[derive(Debug, Clone, PartialEq, Eq, serde::Serialize, serde::Deserialize)]
 pub struct PreparedEdit {
+    /// Dynamic outputs must not enter personal learning or candidate statistics.
+    pub learnable: bool,
     pub token: EditToken,
     pub op: EditSessionOp,
     pub target: EditTarget,
@@ -173,6 +175,7 @@ struct PlanParts {
 /// A caller serializes access, releases its lock for host calls, then acknowledges.
 /// Legacy permits nested prepares; only the newest generation may publish.
 pub struct Session {
+    clock: Arc<dyn crate::shortcut_time::Clock>,
     personal_right: Option<String>,
     prediction_wait: Option<(crate::assistance::ScoreRequest, std::time::Instant)>,
     resources: Arc<RuntimeSnapshot>,
@@ -197,7 +200,22 @@ pub struct Session {
 
 impl Session {
     pub fn new(runtime: &RuntimeSnapshot, profile: BehaviorProfile, context: HostContext) -> Self {
-        let mut engine = SemanticEngine::new(runtime.state_machine(), profile);
+        Self::new_with_clock(
+            runtime,
+            profile,
+            context,
+            Arc::new(crate::shortcut_time::UnavailableClock),
+        )
+    }
+    pub fn new_with_clock(
+        runtime: &RuntimeSnapshot,
+        profile: BehaviorProfile,
+        context: HostContext,
+        clock: Arc<dyn crate::shortcut_time::Clock>,
+    ) -> Self {
+        let mut sm = runtime.state_machine();
+        sm.set_clock(Arc::clone(&clock));
+        let mut engine = SemanticEngine::new(sm, profile);
         let _ = engine.set_expression_context(
             context.purpose == InputPurpose::Text && context.allows_assistance,
         );
@@ -210,6 +228,7 @@ impl Session {
                 && context.allows_assistance,
         );
         Self {
+            clock,
             prediction_wait: None,
             personal_right: None,
             resources: Arc::new(runtime.clone()),
@@ -834,7 +853,7 @@ impl Session {
         }
         let prepared = self.stage(next, rollback, parts, false)?;
         if let Some(pending) = &mut self.pending {
-            pending.predict_after = predict_after;
+            pending.predict_after = predict_after && pending.plan.learnable;
         }
         Ok(prepared)
     }
@@ -905,6 +924,7 @@ impl Session {
             self.engine = next.clone();
         }
         let plan = PreparedEdit {
+            learnable: !next.state_machine().committed_shortcut(),
             token: self.token(),
             op: parts.op,
             target,
@@ -978,7 +998,11 @@ impl Session {
                 _ => {}
             }
         }
-        self.prefix.acknowledged(token, &confirmed, outcome);
+        if pending.plan.learnable {
+            self.prefix.acknowledged(token, &confirmed, outcome);
+        } else if outcome != HostOutcome::RejectedBeforeWrite {
+            self.prefix.invalidate();
+        }
         let committed = pending.predict_after
             && matches!(&pending.plan.op, EditSessionOp::CommitAndReplace { text, .. } | EditSessionOp::CommitThenUpdate { text, .. } if !text.is_empty());
         let status = match outcome {
@@ -1166,7 +1190,9 @@ impl Session {
         self.engine.invalidate_query();
         if let Some(runtime) = self.deferred_runtime.take() {
             let base = self.engine.base_mode();
-            self.engine = SemanticEngine::new(runtime.state_machine(), self.engine.profile);
+            let mut sm = runtime.state_machine();
+            sm.set_clock(Arc::clone(&self.clock));
+            self.engine = SemanticEngine::new(sm, self.engine.profile);
             if preserve_base && base == BaseMode::English {
                 self.engine.dispatch(Action::SetBaseMode(BaseMode::English));
             }
@@ -1244,7 +1270,9 @@ impl Session {
         let temporary = self.engine.temporary_mode().is_some()
             || self.state_machine().mode() == InputMode::Menu;
         let op = self.finish_operation(temporary);
-        let mut next = SemanticEngine::new(runtime.state_machine(), self.engine.profile);
+        let mut sm = runtime.state_machine();
+        sm.set_clock(Arc::clone(&self.clock));
+        let mut next = SemanticEngine::new(sm, self.engine.profile);
         let _ = next.set_expression_context(
             self.context.purpose == InputPurpose::Text && self.context.allows_assistance,
         );
@@ -1314,7 +1342,10 @@ fn plan(
     transition: Transition,
     current: &SessionView,
 ) -> PlanParts {
-    let mut view = SessionView::default();
+    let mut view = SessionView {
+        shortcut_error: sm.shortcut_error().map(str::to_owned),
+        ..SessionView::default()
+    };
     let mut unchanged = false;
     let mut consumed = true;
     let mut op = match transition {
@@ -1436,6 +1467,11 @@ fn plan(
         view.spelling = sm.spelling().to_owned();
     }
     view.mode = sm.mode();
+    for (index, item) in view.items.iter_mut().enumerate() {
+        if sm.is_shortcut_candidate(sm.candidate_offset() + index) {
+            item.hint = "日期时间".into();
+        }
+    }
     view.expression = sm.expression_view();
     if view.expression.is_some()
         || (current.expression.is_some()

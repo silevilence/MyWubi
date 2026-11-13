@@ -556,6 +556,7 @@ impl SemanticEngine {
     }
 
     pub fn dispatch(&mut self, action: Action) -> ActionResult {
+        self.sm.shortcut_committed = false;
         let restores_entry_mode = !matches!(
             action,
             Action::SetBaseMode(_) | Action::BeginTemporary(_) | Action::ChooseMode(_)
@@ -646,7 +647,12 @@ impl SemanticEngine {
                     return ActionResult::rejected(Rejection::StaleCandidate);
                 };
                 let text = candidate.text.clone();
+                let dynamic = candidate
+                    .hints
+                    .iter()
+                    .any(|hint| matches!(hint, CandidateHint::DateTime(_)));
                 self.end_temporary();
+                self.sm.shortcut_committed = dynamic;
                 Transition::Commit(text)
             }
             Action::SetBaseMode(base) => return self.change_mode(Some(base), None),
@@ -687,6 +693,11 @@ impl SemanticEngine {
                     return ActionResult::rejected(Rejection::InvalidCode);
                 }
                 self.sm.on_code_char(c)
+            }
+            Action::InputText(c, TextIntent::Normal)
+                if self.sm.has_shortcut_candidates() && ('1'..='9').contains(&c) =>
+            {
+                self.sm.on_select(c as usize - '0' as usize)
             }
             Action::InputText(c, TextIntent::Normal)
                 if self.sm.mode == InputMode::Main

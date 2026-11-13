@@ -42,6 +42,9 @@ impl RuntimeSnapshot {
             Arc::clone(&self.expressions),
             self.config.expressions.clone(),
         );
+        if let Err(error) = sm.set_shortcut_rules(&self.config.shortcuts.rules) {
+            log::warn!("[shortcuts] {error}");
+        }
         sm
     }
     pub fn dependencies(&self) -> Vec<PathBuf> {

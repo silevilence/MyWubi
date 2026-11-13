@@ -1,5 +1,6 @@
 //! Android native module; protocol rules remain in core_engine.
 pub use core_engine::ffi::PROTOCOL_VERSION;
+mod shortcut_clock;
 static PERSONAL_CAPTURE: std::sync::OnceLock<personal_input::capture_endpoint::Endpoint> =
     std::sync::OnceLock::new();
 static PERSONAL_PREDICTOR: std::sync::OnceLock<Option<personal_input::predictor::Predictor>> =
@@ -247,7 +248,10 @@ pub extern "system" fn Java_org_mywubi_NativeBridge_exchange(
         let bytes = env
             .convert_byte_array(&request)
             .map_err(|e| e.to_string())?;
-        env.byte_array_from_slice(&core_engine::ffi::call(&bytes))
+        let clock = std::sync::Arc::new(shortcut_clock::AndroidClock(
+            env.get_java_vm().map_err(|e| e.to_string())?,
+        ));
+        env.byte_array_from_slice(&core_engine::ffi::call_with_clock(&bytes, clock))
             .map(|a| a.into_raw())
             .map_err(|e| e.to_string())
     }));
