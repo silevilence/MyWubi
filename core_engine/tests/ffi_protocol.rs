@@ -84,8 +84,10 @@ fn shortcut_inspection_and_config_save_share_normalization_and_conflict_rules() 
         {"code":"jjad","position":3,"kind":"date_time","format":"yyyy-MM-dd","enabled":true}
     ]);
     config["shortcuts"] = json!({"rules":rules});
-    let mut table = core_engine::dictionary::TableConfig::default();
-    table.wildcard_key = Some('J');
+    let table = core_engine::dictionary::TableConfig {
+        wildcard_key: Some('J'),
+        ..Default::default()
+    };
     let inspected = ok(json!({"op":"InspectShortcuts","rules":rules,"table":table}));
     assert_eq!(inspected["rules"][0]["code"], "jjad");
     assert_eq!(inspected["rules"][0]["enabled"], true);

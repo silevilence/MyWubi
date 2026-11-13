@@ -35,7 +35,7 @@ fn frozen_c07_validation_and_pause_contract() {
         duplicate.enabled = enabled;
         assert!(validate_structure(&[rule("JJAD", 2), duplicate]).is_err());
     }
-    let rules = vec![rule("jjad", 2), rule("abcd", 2)];
+    let rules = [rule("jjad", 2), rule("abcd", 2)];
     for key in case["conflict_keys"].as_array().unwrap() {
         let environment = ShortcutEnvironment {
             wildcard: key.as_str().unwrap().chars().next(),
@@ -206,14 +206,16 @@ fn total_and_per_code_limits_include_disabled_rules() {
 fn format_length_counts_unicode_scalars_and_roundtrips_without_normalization() {
     let mut row = rule("jjad", 2);
     row.format = "年".repeat(256);
-    assert!(validate_structure(&[row.clone()]).is_ok());
+    assert!(validate_structure(std::slice::from_ref(&row)).is_ok());
     row.format.push('月');
     assert_eq!(
-        validate_structure(&[row.clone()]).unwrap_err().field,
+        validate_structure(std::slice::from_ref(&row))
+            .unwrap_err()
+            .field,
         "format"
     );
     row.format = "年\u{301}".repeat(128);
-    assert!(validate_structure(&[row.clone()]).is_ok());
+    assert!(validate_structure(std::slice::from_ref(&row)).is_ok());
     let encoded = serde_json::to_string(&row).unwrap();
     assert_eq!(serde_json::from_str::<ShortcutRule>(&encoded).unwrap(), row);
     let encoded = toml::to_string(&row).unwrap();
@@ -273,7 +275,7 @@ fn table_conflicts_pause_and_restore_without_mutating_enable_intent() {
         assert!(!status.compatible);
         assert!(!status.effective);
         assert!(status.reason.is_some());
-        assert!(validate_structure(&[row.clone()]).is_ok());
+        assert!(validate_structure(std::slice::from_ref(&row)).is_ok());
         assert!(row.enabled);
     }
     let status = availability(
@@ -301,7 +303,7 @@ fn active_table_projection_does_not_require_a_matching_word_or_obey_main_code_le
     ).unwrap();
     let ordinary = core_engine::Dictionary::from_text("a\t普通\n").unwrap();
     let row = rule("jjaad", 2);
-    assert!(validate_structure(&[row.clone()]).is_ok());
+    assert!(validate_structure(std::slice::from_ref(&row)).is_ok());
     assert!(!availability(&row, wildcard.table_config().into()).effective);
     assert!(availability(&row, ordinary.table_config().into()).effective);
     assert_eq!(row.code, "jjaad");
