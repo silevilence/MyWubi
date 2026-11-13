@@ -22,11 +22,11 @@ val specialCategories = listOf("emoji" to "Emoji", "kaomoji" to "颜文字", "ka
 fun SpecialInputSettings(model: SettingsModel, config: JSONObject, modifier: Modifier = Modifier) {
     BoxWithConstraints(modifier.fillMaxWidth()) {
         val wide = maxWidth >= 600.dp
-        BackHandler(model.specialDetail) { model.specialDetail = false }
+        BackHandler(model.specialDetail && !wide) { model.specialDetail = false }
         if(wide) {
             Row(Modifier.fillMaxSize(), horizontalArrangement=Arrangement.spacedBy(20.dp)) {
                 SpecialInputList(model,config,Modifier.width(240.dp).fillMaxHeight())
-                SpecialInputDetail(model,config,Modifier.weight(1f).fillMaxHeight())
+                SpecialInputDetail(model,config,Modifier.weight(1f).fillMaxHeight(),showBack=false)
             }
         } else if(model.specialDetail) SpecialInputDetail(model,config,Modifier.fillMaxSize())
         else SpecialInputList(model,config,Modifier.fillMaxSize())
@@ -54,11 +54,12 @@ private fun SpecialInputList(model: SettingsModel, config: JSONObject, modifier:
         HorizontalDivider();Text("快捷输入",style=MaterialTheme.typography.titleMedium)
         val rules=config.optJSONObject("shortcuts")?.optJSONArray("rules") ?: JSONArray()
         val groups=(0 until rules.length()).groupBy {rules.getJSONObject(it).optString("code").lowercase(java.util.Locale.ROOT)}
+        val selectedCode=model.specialSelection.removePrefix("rule:").toIntOrNull()?.let {rules.optJSONObject(it)?.optString("code")}
         for((code,indices) in groups) {
             if(!code.contains(model.specialSearch,true)) continue
             val enabled=indices.count {rules.getJSONObject(it).optBoolean("enabled")}
             val id="rule:${indices.first()}"
-            ItemButton(code,"${indices.size} 个格式 · $enabled 个用户启用",model.specialSelection==id) {model.specialSelection=id;model.specialDetail=true}
+            ItemButton(code,"${indices.size} 个格式 · $enabled 个用户启用",selectedCode?.equals(code,true)==true) {model.specialSelection=id;model.specialDetail=true}
         }
         OutlinedButton(onClick={
             var code="jjad"
@@ -101,9 +102,9 @@ private fun ItemButton(title:String,summary:String,selected:Boolean,onClick:()->
     }
 }
 @Composable
-private fun SpecialInputDetail(model:SettingsModel,config:JSONObject,modifier:Modifier) {
+private fun SpecialInputDetail(model:SettingsModel,config:JSONObject,modifier:Modifier,showBack:Boolean=true) {
     Column(modifier.verticalScroll(model.specialDetailScroll).semantics {contentDescription="特殊输入项目详情"},verticalArrangement=Arrangement.spacedBy(12.dp)) {
-        TextButton(onClick={model.specialDetail=false}) {Text("返回项目列表")}
+        if(showBack)TextButton(onClick={model.specialDetail=false}) {Text("返回项目列表")}
         val index=model.specialSelection.removePrefix("rule:").toIntOrNull()
         if(index!=null) {
             val rules=config.optJSONObject("shortcuts")?.optJSONArray("rules")

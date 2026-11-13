@@ -32,12 +32,13 @@ class SettingsNavigationTest {
                 assertEquals("Literal", model.specialTrials.getValue("kana").input)
                 assertEquals("shi", model.specialTrials.getValue("kana").text)
             }
-            // The explicit return button works in both single-pane and wide layouts.
-            find(By.text("返回项目列表")).click()
+            // Wide layouts already expose the list; only phone layouts have a back level.
+            val back = device.findObject(By.text("返回项目列表"))
+            back?.click()
             find(By.desc("特殊输入项目列表"))
             scenario.onActivity {
                 val model = ViewModelProvider(it)[SettingsModel::class.java]
-                assertFalse(model.specialDetail)
+                if (back != null) assertFalse(model.specialDetail)
                 assertEquals("shi", model.specialTrials.getValue("kana").text)
             }
         }

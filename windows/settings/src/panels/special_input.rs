@@ -78,7 +78,7 @@ fn list(ui: &mut Ui, state: &mut AppState, view: &mut SpecialInputUi) {
     let filter = view.filter.to_ascii_lowercase();
     ui.strong("特殊码表");
     for kind in ExpressionKind::ALL {
-        if !kind.label().to_ascii_lowercase().contains(&filter) {
+        if !kind.label().to_ascii_lowercase().contains(&filter) && !kind.slug().contains(&filter) {
             continue;
         }
         let summary =
@@ -114,7 +114,8 @@ fn list(ui: &mut Ui, state: &mut AppState, view: &mut SpecialInputUi) {
         let count = rows.iter().filter(|r| r.enabled).count();
         if ui
             .selectable_label(
-                view.selected == Item::Shortcut(index),
+                matches!(view.selected, Item::Shortcut(selected) if state.config.shortcuts.rules.get(selected)
+                    .is_some_and(|rule|rule.code.eq_ignore_ascii_case(&code))),
                 format!("{code}\n{} 个格式 · {count} 个用户启用", rows.len()),
             )
             .clicked()
