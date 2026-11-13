@@ -610,6 +610,22 @@ impl SemanticEngine {
         result
     }
 
+    /// Retry a definitely-unwritten full-match edit with its original calendar result.
+    pub(crate) fn dispatch_with_time(
+        &mut self,
+        action: Action,
+        time: Option<Result<crate::shortcut_time::LocalTime, String>>,
+    ) -> ActionResult {
+        let Some(time) = time else {
+            return self.dispatch(action);
+        };
+        let clock = Arc::clone(&self.sm.clock);
+        self.sm.clock = Arc::new(crate::shortcut_time::ReplayClock(time));
+        let result = self.dispatch(action);
+        self.sm.clock = clock;
+        result
+    }
+
     fn dispatch_inner(&mut self, action: Action) -> ActionResult {
         if self.sm.expression_query.is_some() {
             if let Some(result) = self.dispatch_expression(&action) {

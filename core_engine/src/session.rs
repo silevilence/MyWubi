@@ -155,6 +155,7 @@ pub struct Acknowledged {
 }
 
 struct Pending {
+    shortcut_attempt: Option<(Action, Result<crate::shortcut_time::LocalTime, String>)>,
     local_query: bool,
     owned_preedit_before: bool,
     previous_prediction: Option<crate::assistance::prediction::Prediction>,
@@ -163,6 +164,13 @@ struct Pending {
     next: SemanticEngine,
     rollback: Option<SemanticEngine>,
     cleanup: bool,
+}
+struct RetryTime {
+    token: EditToken,
+    query: QueryRevision,
+    context: HostContext,
+    action: Action,
+    value: Result<crate::shortcut_time::LocalTime, String>,
 }
 struct PlanParts {
     op: EditSessionOp,
@@ -175,6 +183,7 @@ struct PlanParts {
 /// A caller serializes access, releases its lock for host calls, then acknowledges.
 /// Legacy permits nested prepares; only the newest generation may publish.
 pub struct Session {
+    retry_time: Option<RetryTime>,
     clock: Arc<dyn crate::shortcut_time::Clock>,
     personal_right: Option<String>,
     prediction_wait: Option<(crate::assistance::ScoreRequest, std::time::Instant)>,
@@ -228,6 +237,7 @@ impl Session {
                 && context.allows_assistance,
         );
         Self {
+            retry_time: None,
             clock,
             prediction_wait: None,
             personal_right: None,
@@ -825,8 +835,19 @@ impl Session {
         } else {
             action
         };
+        let time = self
+            .retry_time
+            .take()
+            .filter(|retry| {
+                retry.token == self.token()
+                    && retry.context == self.context
+                    && retry.action == action
+                    && retry.query == self.engine.candidate_window(0, 0).query_revision
+            })
+            .map(|retry| retry.value);
+        let retry_action = action.clone();
         let result = if self.gate {
-            next.dispatch(action)
+            next.dispatch_with_time(action, time)
         } else {
             ActionResult {
                 disposition: Disposition::NotHandled,
@@ -854,6 +875,11 @@ impl Session {
         let prepared = self.stage(next, rollback, parts, false)?;
         if let Some(pending) = &mut self.pending {
             pending.predict_after = predict_after && pending.plan.learnable;
+            pending.shortcut_attempt = pending
+                .next
+                .state_machine()
+                .shortcut_attempt()
+                .map(|value| (retry_action, value));
         }
         Ok(prepared)
     }
@@ -942,6 +968,7 @@ impl Session {
             },
         };
         self.pending = Some(Pending {
+            shortcut_attempt: None,
             local_query,
             owned_preedit_before: self.context.owns_preedit,
             previous_prediction: self.prediction.take(),
@@ -1036,6 +1063,13 @@ impl Session {
                 if let Some(previous) = pending.rollback {
                     self.engine = previous;
                 }
+                self.retry_time = pending.shortcut_attempt.map(|(action, value)| RetryTime {
+                    token,
+                    query: self.engine.candidate_window(0, 0).query_revision,
+                    context: self.context,
+                    action,
+                    value,
+                });
                 self.prediction = pending.previous_prediction;
                 AckStatus::Retained
             }

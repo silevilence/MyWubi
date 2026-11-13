@@ -490,6 +490,67 @@ fn clock_failure_is_local_to_one_query_and_preserves_base_candidates() {
 }
 
 #[test]
+fn retry_of_first_full_match_preedit_reuses_even_an_unpublished_time_snapshot() {
+    let clock = TestClock::new();
+    let r = runtime(&[], 3, vec![rule("jjad", 1, "HH:mm:ss")], None);
+    let mut s = Session::new_with_clock(
+        &r,
+        BehaviorProfile::TouchV1,
+        HostContext::default(),
+        clock.clone(),
+    );
+    input(&mut s, "jja");
+    let first = s.prepare(Action::InputCode('d')).unwrap();
+    assert_eq!(clock.count(), 1);
+    s.acknowledge(first.token, HostOutcome::RejectedBeforeWrite);
+    *clock.value.lock().unwrap() = Ok(time(13, 0, 0, 1));
+    let retry = apply(&mut s, Action::InputCode('d'));
+    assert_eq!(clock.count(), 1);
+    assert_eq!(retry.op, first.op);
+    assert_eq!(words(&s), ["07:08:09"]);
+    apply(&mut s, Action::Backspace);
+    input(&mut s, "d");
+    assert_eq!(clock.count(), 2);
+    assert_eq!(words(&s), ["00:00:01"]);
+}
+
+#[test]
+fn timezone_and_year_changes_only_affect_a_new_query() {
+    let clock = TestClock::new();
+    let r = runtime(&[], 3, vec![rule("jjad", 1, "yyyy-MM-dd HH:mm:ss")], None);
+    let mut s = Session::new_with_clock(
+        &r,
+        BehaviorProfile::TouchV1,
+        HostContext::default(),
+        clock.clone(),
+    );
+    input(&mut s, "jjad");
+    let next = LocalTime {
+        year: 2027,
+        month: 1,
+        day: 1,
+        hour: 0,
+        minute: 0,
+        second: 1,
+        utc_offset_seconds: -18000,
+        timezone: "America/New_York".into(),
+    };
+    *clock.value.lock().unwrap() = Ok(next.clone());
+    apply(&mut s, Action::MoveCandidatePage(true));
+    assert_eq!(words(&s), ["2026-11-12 07:08:09"]);
+    assert_eq!(
+        s.state_machine().shortcut_snapshot().unwrap().timezone,
+        "Asia/Shanghai"
+    );
+    assert_eq!(clock.count(), 1);
+    apply(&mut s, Action::Cancel);
+    input(&mut s, "jjad");
+    assert_eq!(words(&s), ["2027-01-01 00:00:01"]);
+    assert_eq!(s.state_machine().shortcut_snapshot(), Some(&next));
+    assert_eq!(clock.count(), 2);
+}
+
+#[test]
 fn c11_long_and_overlapping_codes_only_suppress_automatic_commits_while_reachable() {
     for auto in [false, true] {
         for overflow in [false, true] {

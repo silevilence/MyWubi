@@ -19,6 +19,12 @@ pub trait Clock: Send + Sync {
 }
 #[derive(Default)]
 pub struct UnavailableClock;
+pub(crate) struct ReplayClock(pub Result<LocalTime, String>);
+impl Clock for ReplayClock {
+    fn now(&self) -> Result<LocalTime, String> {
+        self.0.clone()
+    }
+}
 impl Clock for UnavailableClock {
     fn now(&self) -> Result<LocalTime, String> {
         Err("平台未提供日期时间".into())

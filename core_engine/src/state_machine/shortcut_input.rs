@@ -55,6 +55,11 @@ impl StateMachine {
             .as_ref()
             .and_then(|snapshot| snapshot.value.as_ref().err().map(String::as_str))
     }
+    pub(crate) fn shortcut_attempt(&self) -> Option<Result<LocalTime, String>> {
+        self.shortcut_time
+            .as_ref()
+            .map(|snapshot| snapshot.value.clone())
+    }
     pub fn shortcut_snapshot(&self) -> Option<&LocalTime> {
         self.shortcut_time.as_ref()?.value.as_ref().ok()
     }
