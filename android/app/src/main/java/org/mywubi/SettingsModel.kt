@@ -288,6 +288,7 @@ class SettingsModel(application: Application) : AndroidViewModel(application) {
             val disk = fingerprint()
             val publish: () -> Unit = {
                 expected?.close(); expected = next; baseline = disk
+                result.optJSONObject("config")?.let { config = JSONObject(it.toString()) }
                 dirty = false; pack = null; draftFile.delete()
                 message = "已保存；输入法启动或重载后应用"
             }

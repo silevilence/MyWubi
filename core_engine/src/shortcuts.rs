@@ -4,12 +4,81 @@
 use serde::{Deserialize, Serialize};
 use std::collections::{BTreeMap, BTreeSet};
 
+#[derive(Debug, Clone)]
+pub struct CompiledRule {
+    pub rule_index: usize,
+    pub position: u32,
+    pub parts: Vec<crate::shortcut_format::FormatPart>,
+}
+
+/// Only effective rules enter the lookup index; inactive drafts remain in Config.
+#[derive(Debug, Default)]
+pub struct RuleSet {
+    exact: BTreeMap<String, Vec<CompiledRule>>,
+    prefixes: BTreeSet<String>,
+}
+
+impl RuleSet {
+    pub fn new(
+        rules: &[ShortcutRule],
+        environment: ShortcutEnvironment,
+    ) -> Result<Self, RuleError> {
+        let rules = validate_structure(rules)?;
+        let mut result = Self::default();
+        for (rule_index, rule) in rules
+            .iter()
+            .enumerate()
+            .filter(|(_, rule)| availability(rule, environment).effective)
+        {
+            let parts = crate::shortcut_format::compile(&rule.format)
+                .map_err(|_| error(Some(rule_index), "format", "格式无效"))?;
+            for end in 1..rule.code.len() {
+                result.prefixes.insert(rule.code[..end].into());
+            }
+            result
+                .exact
+                .entry(rule.code.clone())
+                .or_default()
+                .push(CompiledRule {
+                    rule_index,
+                    position: rule.position,
+                    parts,
+                });
+        }
+        for rows in result.exact.values_mut() {
+            rows.sort_by_key(|row| row.position);
+        }
+        Ok(result)
+    }
+    pub fn exact(&self, code: &str) -> &[CompiledRule] {
+        self.exact
+            .get(&code.to_ascii_lowercase())
+            .map(Vec::as_slice)
+            .unwrap_or_default()
+    }
+    pub fn is_prefix(&self, code: &str) -> bool {
+        self.prefixes.contains(&code.to_ascii_lowercase())
+    }
+    pub fn reaches(&self, code: &str) -> bool {
+        self.is_prefix(code) || !self.exact(code).is_empty()
+    }
+    pub fn is_empty(&self) -> bool {
+        self.exact.is_empty()
+    }
+}
+
 pub const MAX_RULES: usize = 1024;
 pub const MAX_RULES_PER_CODE: usize = 32;
 pub const MAX_CODE_LEN: usize = 32;
 pub const MAX_POSITION: u32 = 10_000;
 pub const MAX_FORMAT_SCALARS: usize = 256;
 pub const MAX_OUTPUT_SCALARS: usize = 512;
+
+#[derive(Debug, Clone, Default, PartialEq, Eq, Serialize, Deserialize)]
+#[serde(default, deny_unknown_fields)]
+pub struct ShortcutConfig {
+    pub rules: Vec<ShortcutRule>,
+}
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize)]
 #[serde(rename_all = "snake_case")]
@@ -121,7 +190,7 @@ impl From<&crate::dictionary::TableConfig> for ShortcutEnvironment {
     }
 }
 
-#[derive(Debug, Clone, PartialEq, Eq)]
+#[derive(Debug, Clone, PartialEq, Eq, Serialize)]
 pub struct RuleAvailability {
     /// Compatibility is independent of the user's enable intent.
     pub compatible: bool,

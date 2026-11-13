@@ -34,6 +34,8 @@ pub struct Config {
     #[serde(default)]
     pub expressions: crate::expressions::ExpressionsConfig,
     #[serde(default)]
+    pub shortcuts: crate::shortcuts::ShortcutConfig,
+    #[serde(default)]
     pub personal: crate::personal::PersonalConfig,
 }
 
@@ -392,7 +394,7 @@ impl Config {
     /// 从 TOML 字符串解析。
     #[allow(clippy::should_implement_trait)]
     pub fn from_str(text: &str) -> Result<Self, Error> {
-        let cfg: Config = toml::from_str(text)?;
+        let cfg = toml::from_str::<Config>(text)?.canonicalized()?;
         cfg.validate()?;
         Ok(cfg)
     }
@@ -407,7 +409,25 @@ impl Config {
 
     /// 序列化为 TOML 字符串。
     pub fn to_string_toml(&self) -> Result<String, Error> {
-        toml::to_string_pretty(self).map_err(|e| Error::Invalid("serialize".into(), e.to_string()))
+        toml::to_string_pretty(&self.canonicalized()?)
+            .map_err(|e| Error::Invalid("serialize".into(), e.to_string()))
+    }
+
+    /// Shared normalization for disk and JSON clients; never mutates a failing draft.
+    pub fn canonicalized(&self) -> Result<Self, Error> {
+        let mut normalized = self.clone();
+        normalized.shortcuts.rules = self.validated_shortcuts()?;
+        Ok(normalized)
+    }
+
+    fn validated_shortcuts(&self) -> Result<Vec<crate::shortcuts::ShortcutRule>, Error> {
+        crate::shortcuts::validate_structure(&self.shortcuts.rules).map_err(|error| {
+            let field = match error.rule {
+                Some(index) => format!("shortcuts.rules[{index}].{}", error.field),
+                None => "shortcuts.rules".into(),
+            };
+            Error::Invalid(field, error.message)
+        })
     }
 
     /// 安全写入：先写入临时文件再原子性改名，避免写入中断损坏原配置。
@@ -457,6 +477,7 @@ impl Config {
 
     /// 语义校验。
     fn validate(&self) -> Result<(), Error> {
+        self.validated_shortcuts()?;
         if !(1..=128).contains(&self.personal.max_mb)
             || !(1..=3650).contains(&self.personal.retention_days)
         {

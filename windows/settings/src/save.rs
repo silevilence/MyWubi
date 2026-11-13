@@ -4,6 +4,9 @@ use crate::state::AppState;
 pub fn save(state: &mut AppState) -> bool {
     match state.tables.save(&state.config, &state.config_path) {
         Ok(()) => {
+            if let Ok(canonical) = state.config.canonicalized() {
+                state.config = canonical;
+            }
             state.dirty = false;
             state.status_msg = Some("[OK] 已保存".into());
             log::info!("配置已保存到 {}", state.config_path.display());

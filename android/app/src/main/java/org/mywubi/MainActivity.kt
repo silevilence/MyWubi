@@ -119,6 +119,7 @@ private fun SettingsScreen(model: SettingsModel, enable: () -> Unit, choose: () 
                     SettingToggle("启用用户词库", dict.getBoolean("enable_user_dict"), !model.busy) { model.change("dictionary", "enable_user_dict", it) }
                     HorizontalDivider()
                     ExpressionSettings(model, config)
+                    ShortcutSettings(model, config)
                     PersonalSettings(model, config)
                 }
                 OutlinedButton(onClick = { model.getApplication<android.app.Application>().startActivity(Intent(model.getApplication(), UpdateActivity::class.java).addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)) }) { Text("应用更新") }

@@ -4,6 +4,7 @@ pub mod about;
 pub mod appearance;
 pub mod basic;
 pub mod dictionary;
+pub mod shortcuts;
 pub mod tip_manager;
 
 use crate::state::{AppState, Panel};

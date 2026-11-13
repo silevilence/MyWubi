@@ -43,6 +43,44 @@ fn release(ids: &[u64]) {
 }
 
 #[test]
+fn shortcut_inspection_and_config_save_share_normalization_and_conflict_rules() {
+    let (dir, runtime, session) = fixture();
+    let path = dir.join("config.toml");
+    let loaded = ok(json!({"op":"ReadConfig","path":path}));
+    let mut config = loaded["config"].clone();
+    let rules = json!([
+        {"code":"JJAD","position":2,"kind":"date_time","format":"yyyy年MM月dd日","enabled":true},
+        {"code":"jjad","position":3,"kind":"date_time","format":"yyyy-MM-dd","enabled":true}
+    ]);
+    config["shortcuts"] = json!({"rules":rules});
+    let mut table = core_engine::dictionary::TableConfig::default();
+    table.wildcard_key = Some('J');
+    let inspected = ok(json!({"op":"InspectShortcuts","rules":rules,"table":table}));
+    assert_eq!(inspected["rules"][0]["code"], "jjad");
+    assert_eq!(inspected["rules"][0]["enabled"], true);
+    assert_eq!(inspected["states"][0]["effective"], false);
+    let saved =
+        ok(json!({"op":"SaveConfig","path":path,"config":config,"expected":loaded["version"]}));
+    assert_eq!(saved["config"]["shortcuts"]["rules"][0]["code"], "jjad");
+    let bytes = std::fs::read(&path).unwrap();
+    config["shortcuts"]["rules"][1]["position"] = json!(2);
+    config["shortcuts"]["rules"][1]["enabled"] = json!(false);
+    assert_eq!(
+        invoke(json!({"op":"SaveConfig","path":path,"config":config,"expected":saved["version"]}))
+            ["ok"],
+        false
+    );
+    assert_eq!(std::fs::read(&path).unwrap(), bytes);
+    release(&[
+        session,
+        runtime,
+        loaded["version"].as_u64().unwrap(),
+        saved["version"].as_u64().unwrap(),
+    ]);
+    std::fs::remove_dir_all(dir).unwrap();
+}
+
+#[test]
 fn table_metadata_reads_display_name_without_parsing_entries() {
     let (dir, runtime, session) = fixture();
     let path = dir.join("display.dict");

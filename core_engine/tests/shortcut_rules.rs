@@ -1,5 +1,37 @@
 use core_engine::shortcuts::*;
 
+#[test]
+fn configuration_save_normalizes_both_frontends_and_invalid_rules_preserve_disk() {
+    use core_engine::{config::ValidationContext, Config};
+    let root = std::env::temp_dir().join(format!(
+        "si06-{}-{}",
+        std::process::id(),
+        std::time::SystemTime::now()
+            .duration_since(std::time::UNIX_EPOCH)
+            .unwrap()
+            .as_nanos()
+    ));
+    std::fs::create_dir_all(&root).unwrap();
+    let path = root.join("config.toml");
+    assert!(Config::from_str("").unwrap().shortcuts.rules.is_empty());
+    for context in [ValidationContext::DesktopSave, ValidationContext::TouchSave] {
+        let mut config = Config::default();
+        config.shortcuts.rules = vec![rule("JJAD", 2), rule("jjad", 3)];
+        config.shortcuts.rules[1].format = "yyyy-MM-dd".into();
+        config.save_for(&path, context).unwrap();
+        let saved = std::fs::read(&path).unwrap();
+        assert_eq!(Config::load(&path).unwrap().shortcuts.rules[0].code, "jjad");
+        assert_eq!(config.shortcuts.rules[0].code, "JJAD");
+        config.shortcuts.rules[1].enabled = false;
+        config.shortcuts.rules[1].position = 2;
+        let error = config.save_for(&path, context).unwrap_err().to_string();
+        assert!(error.contains("shortcuts.rules[1].position"), "{error}");
+        assert_eq!(std::fs::read(&path).unwrap(), saved);
+        assert_eq!(config.shortcuts.rules[1].position, 2);
+    }
+    std::fs::remove_dir_all(root).unwrap();
+}
+
 fn rule(code: &str, position: u32) -> ShortcutRule {
     ShortcutRule {
         code: code.into(),
@@ -8,6 +40,44 @@ fn rule(code: &str, position: u32) -> ShortcutRule {
         format: "yyyy年MM月dd日".into(),
         enabled: true,
     }
+}
+
+#[test]
+fn effective_index_keeps_rule_identity_and_excludes_disabled_or_incompatible_prefixes() {
+    let rows = vec![
+        rule("JJAD", 3),
+        rule("jjad", 2),
+        ShortcutRule {
+            enabled: false,
+            ..rule("zzad", 1)
+        },
+        rule("jjaad", 4),
+    ];
+    let index = RuleSet::new(&rows, ShortcutEnvironment::default()).unwrap();
+    assert!(index.is_prefix("JJA"));
+    assert!(index.is_prefix("JJAA"));
+    assert!(!index.is_prefix("zz"));
+    assert!(!index.is_prefix("jjad"));
+    assert!(index.reaches("jjad"));
+    assert_eq!(
+        index
+            .exact("JJAD")
+            .iter()
+            .map(|r| (r.rule_index, r.position))
+            .collect::<Vec<_>>(),
+        [(1, 2), (0, 3)]
+    );
+    let paused = RuleSet::new(
+        &rows,
+        ShortcutEnvironment {
+            wildcard: Some('J'),
+            auxiliary_entry: None,
+        },
+    )
+    .unwrap();
+    assert!(paused.is_empty());
+    assert!(!paused.reaches("j"));
+    assert!(rows[0].enabled);
 }
 
 #[test]

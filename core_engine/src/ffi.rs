@@ -100,6 +100,10 @@ enum Request {
     ValidateConfig {
         config: Config,
     },
+    InspectShortcuts {
+        rules: Vec<crate::shortcuts::ShortcutRule>,
+        table: TableConfig,
+    },
     SaveConfig {
         path: PathBuf,
         config: Config,
@@ -395,11 +399,21 @@ impl Registry {
                     .map_err(|e| err(5, e.to_string()))?;
                 json!(null)
             }
+            Request::InspectShortcuts { rules, table } => {
+                let rules = crate::shortcuts::validate_structure(&rules)
+                    .map_err(|e| err(5, e.to_string()))?;
+                let states: Vec<_> = rules
+                    .iter()
+                    .map(|rule| crate::shortcuts::availability(rule, (&table).into()))
+                    .collect();
+                json!({"rules":rules,"states":states})
+            }
             Request::SaveConfig {
                 path,
                 config,
                 expected,
             } => {
+                let config = config.canonicalized().map_err(|e| err(5, e.to_string()))?;
                 let v = save_config(
                     &config,
                     &path,
@@ -407,7 +421,7 @@ impl Registry {
                     self.policy(expected, &path)?,
                 )
                 .map_err(data_error)?;
-                json!({"version":self.version(path,v)?})
+                json!({"version":self.version(path,v)?,"config":config})
             }
             Request::ReadTableConfig { path } => {
                 json!(crate::read_table_config(&path).map_err(|e| err(5, e.to_string()))?)

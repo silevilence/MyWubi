@@ -22,6 +22,9 @@ pub fn show(ui: &mut Ui, state: &mut AppState) {
     ui.heading("常规设置");
     ui.separator();
     expressions(ui, state);
+    ui.collapsing("日期时间快捷输入", |ui| {
+        super::shortcuts::show(ui, state)
+    });
     if state
         .personal
         .show(ui, &state.config_path, &mut state.config.personal)
