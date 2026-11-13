@@ -11,6 +11,38 @@ class SettingsNavigationTest {
     private val ins = InstrumentationRegistry.getInstrumentation()
     private val device = UiDevice.getInstance(ins)
 
+    @Test fun specialInputRecreationRetainsSelectionSearchAndQueryDraft() {
+        ActivityScenario.launch(MainActivity::class.java).use { scenario ->
+            find(By.text("特殊输入")).click()
+            scenario.onActivity {
+                val model = ViewModelProvider(it)[SettingsModel::class.java]
+                model.specialSearch = "kana"
+                model.specialSelection = "kana"
+                model.specialDetail = true
+                model.specialTrials.getValue("kana").apply { input = "Literal"; text = "shi" }
+            }
+            find(By.desc("特殊输入项目详情"))
+            scenario.recreate()
+            find(By.desc("特殊输入项目详情"))
+            scenario.onActivity {
+                val model = ViewModelProvider(it)[SettingsModel::class.java]
+                assertEquals("kana", model.specialSearch)
+                assertEquals("kana", model.specialSelection)
+                assertTrue(model.specialDetail)
+                assertEquals("Literal", model.specialTrials.getValue("kana").input)
+                assertEquals("shi", model.specialTrials.getValue("kana").text)
+            }
+            // The explicit return button works in both single-pane and wide layouts.
+            find(By.text("返回项目列表")).click()
+            find(By.desc("特殊输入项目列表"))
+            scenario.onActivity {
+                val model = ViewModelProvider(it)[SettingsModel::class.java]
+                assertFalse(model.specialDetail)
+                assertEquals("shi", model.specialTrials.getValue("kana").text)
+            }
+        }
+    }
+
     private fun find(selector: BySelector): UiObject2 {
         val deadline = android.os.SystemClock.uptimeMillis() + 10000
         do {
