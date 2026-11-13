@@ -150,6 +150,16 @@ impl PreviewUi {
     }
 }
 fn next_position(rules: &[ShortcutRule], code: &str) -> u32 {
+    if let Some(position) = rules
+        .iter()
+        .filter(|r| r.code.eq_ignore_ascii_case(code))
+        .map(|r| r.position)
+        .max()
+        .and_then(|p| p.checked_add(1))
+        .filter(|p| *p <= shortcuts::MAX_POSITION)
+    {
+        return position;
+    }
     (1..=shortcuts::MAX_POSITION)
         .find(|position| {
             !rules
@@ -162,6 +172,19 @@ fn next_position(rules: &[ShortcutRule], code: &str) -> u32 {
 #[cfg(test)]
 mod tests {
     use super::*;
+    #[test]
+    fn copied_format_follows_existing_global_positions_before_using_a_gap() {
+        let mut rules = vec![ShortcutRule {
+            code: "JJAD".into(),
+            position: 2,
+            format: "yyyy".into(),
+            kind: ShortcutKind::DateTime,
+            enabled: true,
+        }];
+        assert_eq!(next_position(&rules, "jjad"), 3);
+        rules[0].position = 10000;
+        assert_eq!(next_position(&rules, "jjad"), 1);
+    }
     #[test]
     fn late_preview_of_an_older_draft_cannot_publish_into_the_current_editor() {
         let mut preview = PreviewUi::default();
@@ -240,7 +263,7 @@ pub fn show(
                 if let Some(error) = error.as_ref().filter(|e| e.rule == Some(index)) {
                     ui.colored_label(
                         ui.visuals().error_fg_color,
-                        format!("{}：{}", error.field, error.message),
+                        format!("{}：{}", error.field_label(), error.message),
                     );
                 }
                 ui.horizontal_wrapped(|ui| {

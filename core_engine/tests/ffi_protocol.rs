@@ -43,6 +43,37 @@ fn release(ids: &[u64]) {
 }
 
 #[test]
+fn draft_shortcut_preview_uses_selected_resources_without_saving_or_touching_live_sessions() {
+    let (dir, runtime, session) = fixture();
+    let path = dir.join("config.toml");
+    let bytes = std::fs::read(&path).unwrap();
+    let before = ok(json!({"op":"State","session":session}));
+    let mut config = Config::load(&path).unwrap();
+    config.shortcuts.rules = vec![core_engine::shortcuts::ShortcutRule {
+        code: "JJAD".into(),
+        position: 2,
+        format: "yyyy年MM月dd日".into(),
+        kind: core_engine::shortcuts::ShortcutKind::DateTime,
+        enabled: true,
+    }];
+    let request = json!({"op":"PreviewShortcuts","path":path,"config":config,"code":"JJAD","time":core_engine::shortcut_preview::example_time()});
+    let first = ok(request.clone());
+    assert_eq!(first["code"], "jjad");
+    assert_eq!(first["rows"][0]["actual"], 1);
+    assert_eq!(first["rows"][0]["target"], 2);
+    std::fs::write(dir.join("main.dict"), "jjad\t甲\t100\njjad\t乙\t90\n").unwrap();
+    let second = ok(request);
+    assert_eq!(second["rows"][0]["source"], "普通候选");
+    assert_eq!(second["rows"][1]["actual"], 2);
+    assert_eq!(second["rows"][1]["candidate"]["text"], "2026年11月12日");
+    assert_ne!(first["resources"], second["resources"]);
+    assert_eq!(std::fs::read(&path).unwrap(), bytes);
+    assert_eq!(ok(json!({"op":"State","session":session})), before);
+    release(&[session, runtime]);
+    std::fs::remove_dir_all(dir).unwrap();
+}
+
+#[test]
 fn shortcut_inspection_and_config_save_share_normalization_and_conflict_rules() {
     let (dir, runtime, session) = fixture();
     let path = dir.join("config.toml");

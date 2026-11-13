@@ -97,8 +97,7 @@ pub struct ShortcutRule {
     pub enabled: bool,
 }
 
-#[derive(Debug, Clone, PartialEq, Eq, thiserror::Error)]
-#[error("快捷规则 {rule:?} 的 {field}：{message}")]
+#[derive(Debug, Clone, PartialEq, Eq)]
 pub struct RuleError {
     /// Zero-based source row, for both frontends to focus the original draft.
     /// None denotes a whole-list error.
@@ -106,6 +105,32 @@ pub struct RuleError {
     pub field: &'static str,
     pub message: String,
 }
+impl RuleError {
+    pub fn field_label(&self) -> &str {
+        match self.field {
+            "code" => "编码",
+            "position" => "全局候选位置",
+            "format" => "日期时间格式",
+            _ => "规则列表",
+        }
+    }
+}
+impl std::fmt::Display for RuleError {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        if let Some(index) = self.rule {
+            write!(
+                f,
+                "第 {} 条规则的{}：{}",
+                index + 1,
+                self.field_label(),
+                self.message
+            )
+        } else {
+            write!(f, "{}：{}", self.field_label(), self.message)
+        }
+    }
+}
+impl std::error::Error for RuleError {}
 
 fn error(rule: Option<usize>, field: &'static str, message: &str) -> RuleError {
     RuleError {

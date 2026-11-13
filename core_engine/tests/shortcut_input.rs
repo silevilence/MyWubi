@@ -203,14 +203,15 @@ fn preview_uses_the_same_draft_merge_sources_and_page_locations_for_both_profile
                 .iter()
                 .map(|r| r.candidate.text.as_str())
                 .collect::<Vec<_>>(),
-            ["2026年11月12日", "2026-11-12"]
+            ["甲", "2026年11月12日", "乙", "表", "2026-11-12"]
         );
         assert_eq!(
             p.rows
                 .iter()
+                .filter(|r| r.target.is_some())
                 .map(|r| (r.target, r.actual, r.page, r.slot))
                 .collect::<Vec<_>>(),
-            [(Some(2), 1, 1, 1), (Some(8), 2, 1, 2)]
+            [(Some(2), 2, 1, 2), (Some(8), 5, 1, 5)]
         );
         let p = shortcut_preview::from_runtime(&r, "jjad", time(12, 7, 8, 9), profile).unwrap();
         assert_eq!(

@@ -79,6 +79,7 @@ pub fn from_runtime(
     {
         return Err("预览编码须为 1～32 个英文字母".into());
     }
+    let code = code.to_ascii_lowercase();
     let mut session = Session::new_with_clock(
         runtime,
         profile,
@@ -175,7 +176,7 @@ pub fn from_runtime(
     }
     Ok(ShortcutPreview {
         time,
-        code: code.to_ascii_lowercase(),
+        code,
         rows,
         total,
         effective_capacity: sm.candidate_page_capacity(),
