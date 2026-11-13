@@ -106,7 +106,6 @@ pub fn from_runtime(
     let first = session.candidate_window(0, MAX_WINDOW);
     let total = first.total;
     let mut rows = Vec::new();
-    let mut dynamic = false;
     // All configured positions are <=10000. Keep the first window plus every dynamic row.
     for offset in (0..total.min(MAX_POSITION as usize)).step_by(MAX_WINDOW) {
         for candidate in session.candidate_window(offset, MAX_WINDOW).candidates {
@@ -117,7 +116,6 @@ pub fn from_runtime(
                     None
                 }
             });
-            dynamic |= rule_index.is_some();
             let actual = candidate.id.0 + 1;
             if actual > MAX_WINDOW && rule_index.is_none() {
                 continue;
@@ -180,11 +178,7 @@ pub fn from_runtime(
         code: code.to_ascii_lowercase(),
         rows,
         total,
-        effective_capacity: if dynamic {
-            runtime.config.basic.candidate_count.min(9) as usize
-        } else {
-            runtime.config.basic.candidate_count as usize
-        },
+        effective_capacity: sm.candidate_page_capacity(),
         states,
         resources,
         warnings,

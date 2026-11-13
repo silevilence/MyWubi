@@ -363,6 +363,23 @@ fn c06_global_nine_ten_eleven_have_identical_numeric_and_click_commits() {
                     vec![rule("jjad", position, "yyyy-MM-dd")],
                     None,
                 );
+                let preview =
+                    shortcut_preview::from_runtime(&r, "jjad", time(12, 7, 8, 9), profile).unwrap();
+                let row = preview
+                    .rows
+                    .iter()
+                    .find(|row| row.target.is_some())
+                    .unwrap();
+                let effective = capacity.min(9) as usize;
+                assert_eq!(
+                    (row.target, row.actual, row.page, row.slot),
+                    (
+                        Some(position),
+                        position as usize,
+                        (position as usize - 1) / effective + 1,
+                        (position as usize - 1) % effective + 1
+                    )
+                );
                 for click in [false, true] {
                     let mut s =
                         Session::new_with_clock(&r, profile, HostContext::default(), clock.clone());

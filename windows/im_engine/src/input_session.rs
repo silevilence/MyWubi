@@ -276,6 +276,11 @@ impl InputSession {
                     candidates: window
                         .candidates
                         .into_iter()
+                        .filter(|c| {
+                            !c.hints.iter().any(|h| {
+                                matches!(h, core_engine::candidates::CandidateHint::DateTime(_))
+                            })
+                        })
                         .map(|c| core_engine::personal::Candidate {
                             id: c.id.0.to_string(),
                             text: c.text,
@@ -559,6 +564,8 @@ impl InputSession {
             };
             if plan.learnable {
                 capture.operation("windows", &plan.op, outcome, None, method);
+            } else {
+                capture.non_learning_commit(outcome);
             }
         }
         let mut core = self.core.lock();

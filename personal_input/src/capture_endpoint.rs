@@ -21,6 +21,9 @@ enum Command {
         after: Option<Context>,
         method: String,
     },
+    NonLearningCommit {
+        outcome: Outcome,
+    },
     Display {
         display: Display,
         mode: String,
@@ -66,6 +69,9 @@ impl Endpoint {
                 other => {
                     if let Some(capture) = slot.as_mut().filter(|c| c.enabled()) {
                         match other {
+                            Command::NonLearningCommit { outcome } => {
+                                capture.non_learning_commit(outcome)
+                            }
                             Command::Context { context, external } => {
                                 capture.context(context, external)
                             }

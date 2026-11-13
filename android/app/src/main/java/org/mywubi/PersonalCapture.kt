@@ -68,6 +68,11 @@ class PersonalCapture {
         send(JSONObject().put("op","Operation").put("operation",operation).put("outcome",confirmed)
             .put("after",after ?: JSONObject.NULL).put("method",method))
     }
+    fun nonLearningCommit(outcome: Any) {
+        if(!enabled || outcome=="RejectedBeforeWrite")return
+        lastDisplay="";context=JSONObject()
+        send(JSONObject().put("op","NonLearningCommit").put("outcome",if(outcome=="Applied")"CommandAccepted" else "Unknown"))
+    }
     fun display(state: JSONObject, window: JSONObject, personalVersion: String? = null) {
         if (!enabled) return
         val list = window.optJSONArray("candidates") ?: return
@@ -77,6 +82,8 @@ class PersonalCapture {
         val candidates = JSONArray()
         for(i in 0 until list.length()) {
             val item = list.getJSONObject(i)
+            val hints=item.optJSONArray("hints") ?: JSONArray()
+            if((0 until hints.length()).any {hints.optJSONObject(it)?.has("DateTime")==true})continue
             candidates.put(JSONObject().put("id",item.get("id").toString()).put("text",item.getString("text")).put("source",source))
         }
         val display = JSONObject().put("request",window.optJSONObject("query_revision")?.toString() ?: "unknown")

@@ -197,4 +197,60 @@ impl Capture {
             self.context = after;
         }
     }
+    /// A date shortcut changes the host, but must not become a training commit or
+    /// be attributed to a same-text ordinary candidate from the previous display.
+    pub fn non_learning_commit(&mut self, outcome: Outcome) {
+        if !self.enabled() || outcome == Outcome::Rejected {
+            return;
+        }
+        self.last_commit = None;
+        self.display = None;
+        self.context = Context {
+            revision: self.context.revision.saturating_add(1),
+            discontinuity: true,
+            ..Default::default()
+        };
+        self.recorder.record(
+            "host",
+            self.context.clone(),
+            None,
+            Change::Boundary {
+                reason: "non_learning_commit".into(),
+            },
+            Evidence::Observed,
+        );
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    #[test]
+    fn unlearned_commit_breaks_correction_identity_but_rejection_preserves_it() {
+        let dir = tempfile::tempdir().unwrap();
+        let mut capture = Capture::new(dir.path().join("config.toml")).unwrap();
+        capture.configure(
+            &PersonalConfig {
+                collect: true,
+                ..Default::default()
+            },
+            true,
+            "editor",
+        );
+        capture.last_commit = Some((
+            "ordinary-id".into(),
+            "2026-11-12".into(),
+            "before".into(),
+            None,
+            true,
+        ));
+        capture.context.left = Some("before".into());
+        capture.non_learning_commit(Outcome::Rejected);
+        assert!(capture.last_commit.is_some());
+        capture.non_learning_commit(Outcome::Confirmed);
+        assert!(capture.last_commit.is_none());
+        assert!(capture.display.is_none());
+        assert!(capture.context.left.is_none());
+        assert!(capture.context.discontinuity);
+    }
 }

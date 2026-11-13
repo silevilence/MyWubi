@@ -11,6 +11,13 @@ pub(super) struct FrozenTime {
 }
 
 impl StateMachine {
+    pub fn candidate_page_capacity(&self) -> usize {
+        if self.appended.is_some() {
+            self.page_size.min(9)
+        } else {
+            self.page_size
+        }
+    }
     /// Zero-based page and slot in the same sequence used by keyboard selection.
     pub fn candidate_location(&self, index: usize) -> Option<(usize, usize)> {
         if index >= self.total_candidates {

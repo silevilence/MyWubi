@@ -455,6 +455,7 @@ class MyWubiService : InputMethodService() {
             writingHost = true
             val outcome = try { editor.execute(host, plan, ::current) } finally { writingHost = false }
             if (plan.optBoolean("learnable", true)) personalCapture.operation(host, operation, outcome, projectedSelection, projectedSelection)
+            else personalCapture.nonLearningCommit(outcome)
             if (outcome != "Applied") { ownSelections.clear(); projectedPreedit = null }
             if (!current()) return false
             val ack = NativeBridge.objectCall("Ack", "session" to s.value, "token" to token, "outcome" to outcome, "owns_preedit" to editor.ownsPreedit)
