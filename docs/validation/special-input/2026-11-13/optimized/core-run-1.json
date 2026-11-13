@@ -1,0 +1,74 @@
+{
+  "all_resources_build_ms": 649.4209,
+  "all_resources_entries": {
+    "emoji": 3972,
+    "kana": 224,
+    "kaomoji": 34354,
+    "math": 124,
+    "punctuation": 49,
+    "symbols": 109
+  },
+  "all_resources_rules": 1024,
+  "disabled_1024": {
+    "input": "jjaad",
+    "timing": {
+      "p50_us": 4.6,
+      "p95_us": 11.8,
+      "p99_us": 22.0,
+      "samples": 1000
+    },
+    "total_candidates": 0
+  },
+  "disabled_empty": {
+    "input": "jjaad",
+    "timing": {
+      "p50_us": 1.7,
+      "p95_us": 3.3000000000000003,
+      "p99_us": 14.399999999999999,
+      "samples": 1000
+    },
+    "total_candidates": 0
+  },
+  "misses_five_char": {
+    "input": "jjaad",
+    "timing": {
+      "p50_us": 7.6,
+      "p95_us": 21.8,
+      "p99_us": 36.900000000000006,
+      "samples": 1000
+    },
+    "total_candidates": 0
+  },
+  "misses_fixed": {
+    "input": "jjad",
+    "timing": {
+      "p50_us": 4.1,
+      "p95_us": 11.600000000000001,
+      "p99_us": 22.0,
+      "samples": 1000
+    },
+    "total_candidates": 0
+  },
+  "multi_category": {
+    "input": "jjad",
+    "timing": {
+      "p50_us": 2151.8,
+      "p95_us": 3192.2999999999997,
+      "p99_us": 3805.3,
+      "samples": 200
+    },
+    "total_candidates": 6145
+  },
+  "same_code_32": {
+    "input": "jjad",
+    "timing": {
+      "p50_us": 16.5,
+      "p95_us": 31.3,
+      "p99_us": 49.3,
+      "samples": 200
+    },
+    "total_candidates": 32
+  },
+  "scope": "Windows core only; excludes JNI, drawing and host; OS file cache retained",
+  "warmup": 20
+}

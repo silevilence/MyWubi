@@ -103,3 +103,24 @@ fn legacy_fallback_keeps_main_usable_without_retrying_auxiliary_loading() {
     assert!(s.temporary.pinyin.is_none());
     assert!(s.temporary.paths.is_empty());
 }
+
+#[test]
+fn empty_user_dictionary_reuses_immutable_system_snapshot() {
+    let files = Files::new();
+    let system = Dictionary::from_text("a\t甲\t10\n").unwrap();
+    for contents in [None, Some("# empty user dictionary\n")] {
+        if let Some(contents) = contents {
+            files.write("user.dict", contents);
+        }
+        let merged =
+            merge_dictionary(system.clone(), &files.0.join("user.dict"), &files.config()).unwrap();
+        assert!(std::sync::Arc::ptr_eq(&system, &merged));
+        assert_eq!(merged.exact("a")[0].word, "甲");
+    }
+    files.write("user.dict", "a\t甲\t999\n");
+    let merged =
+        merge_dictionary(system.clone(), &files.0.join("user.dict"), &files.config()).unwrap();
+    assert!(!std::sync::Arc::ptr_eq(&system, &merged));
+    assert_eq!(merged.exact("a")[0].weight, 999);
+    assert_eq!(system.exact("a")[0].weight, 10);
+}

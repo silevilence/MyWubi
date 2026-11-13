@@ -1,0 +1,42 @@
+{
+  "scope": "Windows Release core; OS cache retained; no JNI, UI or actual host; PeakWorkingSet64 sampled every 20 ms",
+  "runs": [
+    {
+      "cpu_load_before_percent": 69,
+      "cpu_load_after_percent": 55,
+      "peak_working_set_bytes": 139325440,
+      "run": 1
+    },
+    {
+      "cpu_load_before_percent": 49,
+      "cpu_load_after_percent": 52,
+      "peak_working_set_bytes": 139407360,
+      "run": 2
+    },
+    {
+      "cpu_load_before_percent": 40,
+      "cpu_load_after_percent": 29,
+      "peak_working_set_bytes": 139341824,
+      "run": 3
+    }
+  ],
+  "date": "2026-11-13T10:44:06.6994058+08:00",
+  "executable_sha256": "06b55680e9a90d8aae0b02f194c9b1cd583c17342083ff2754609862898cd004",
+  "source_and_resource_sha256": {
+    "docs/validation/special-input/cases.json": "21b716b38b28bbcbb8507fdb9247f91a008ebf2c7ff00e9971c1f191e40e72bd",
+    "expressions/kaomoji.mwe": "b0b4f8f9fd1772d81896df85cce5b1197caae162cdbae81d6178029d65bd7814",
+    "tables/pinyin.dict": "234008541b549a2906c2879d8a9537400e82c5dd6b030f6440674c6b451d693b",
+    "tables/wubi86.dict": "63802db622c7ddbb252dbbaa369bbd6f43027449b2abdc0dc71a10e63176d145",
+    "core_engine/src/runtime.rs": "dad09c7096adc25ef43caa77c17d2825debc8c7bd66cca1492a356862fb45804",
+    "docs/validation/special-input/workloads.json": "5b45d1c653a4422ae47e8243ef72ca1f8c8cd4127390c64667006cdfaaf0ef04",
+    "expressions/kana.mwe": "49789256814ef73664b9897755f79f84104368a1b60666557345c7bd03c64371",
+    "tables/english.dict": "fe4a45b9325fbb53311da1978362fe6c3f29cb4a3185729deb99b68421e7f3e7",
+    "core_engine/examples/special_input_benchmark.rs": "888f2e491c9415571426809d73d4f2d9d53ba8a2492e7ba3d5056335f34a0aad",
+    "core_engine/src/dictionary.rs": "5fe2a9db7f4e02b0c88345c110fb5ebea99c61002d5b0b8865139d6972535b20",
+    "expressions/punctuation.mwe": "644b0f28962dbd703e1c1afb6738e7600eeb2271156c8ae6190419cefe98fbbc",
+    "expressions/emoji.mwe": "16056f5599579db163fd06c5574756afcb39301d97e68bbea3956bf112323802",
+    "expressions/symbols.mwe": "112abc9beb1bca46a1281b31b3575f3691636057c5a54557190976838e98c1e9",
+    "expressions/math.mwe": "53d207aae68e8d9ed416b1283050ed164dc4c23c3792265b96e224b3acc2c0da"
+  },
+  "compiler": "rustc 1.99.1 (58cf8f9c3 2026-10-13)"
+}

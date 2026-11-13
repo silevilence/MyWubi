@@ -157,7 +157,23 @@ fn profiles() -> [BehaviorProfile; 2] {
 
 #[test]
 fn literal_kana_alias_round_is_local_and_commits_only_selected_result() {
-    for profile in profiles() {
+    let document: serde_json::Value = serde_json::from_str(include_str!(
+        "../../docs/validation/special-input/cases.json"
+    ))
+    .unwrap();
+    let case = document["cases"]
+        .as_array()
+        .unwrap()
+        .iter()
+        .find(|c| c["id"] == "SI-C10")
+        .unwrap();
+    for (profile, query) in profiles().into_iter().flat_map(|profile| {
+        case["queries"]
+            .as_array()
+            .unwrap()
+            .iter()
+            .map(move |query| (profile, query.as_str().unwrap()))
+    }) {
         let mut r = runtime();
         r.config.expressions.kana.search = true;
         Arc::get_mut(&mut r.expressions).unwrap().kana = ExpressionResource {
@@ -184,10 +200,10 @@ fn literal_kana_alias_round_is_local_and_commits_only_selected_result() {
             ExpressionKind::Kana
         );
         local(&mut s, Action::SetExpressionInput(ExpressionInput::Literal));
-        for c in "shi".chars() {
+        for c in query.chars() {
             local(&mut s, Action::InputText(c, TextIntent::Normal));
         }
-        assert_eq!(s.snapshot().expression.as_ref().unwrap().text, "shi");
+        assert_eq!(s.snapshot().expression.as_ref().unwrap().text, query);
         assert!(matches!(
             s.prepare(Action::SetExpressionInput(ExpressionInput::Words)),
             Err(SessionError::Rejected(_))
@@ -199,13 +215,18 @@ fn literal_kana_alias_round_is_local_and_commits_only_selected_result() {
                 .iter()
                 .map(|c| c.text.as_str())
                 .collect::<Vec<_>>(),
-            &["し", "シ"]
+            &case["expected_contains"]
+                .as_array()
+                .unwrap()
+                .iter()
+                .map(|v| v.as_str().unwrap())
+                .collect::<Vec<_>>()
         );
         let edit = apply(&mut s, Action::InputText('1', TextIntent::Normal));
         assert_eq!(
             edit.op,
             EditSessionOp::CommitAndReplace {
-                text: "し".into(),
+                text: case["host_commit"].as_str().unwrap().into(),
                 replace_len: 0
             }
         );

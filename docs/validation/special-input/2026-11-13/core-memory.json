@@ -1,0 +1,25 @@
+{
+  "scope": "Windows Release core process; OS file cache retained; no UI, JNI or host",
+  "executable_sha256": "1a9115a1a12224b23518df69c2c1c76510a9e9ba5518fcbed506be7d26d6f8ec",
+  "date": "2026-11-13T10:33:34.8088623+08:00",
+  "runs": [
+    {
+      "peak_working_set_bytes": 266035200,
+      "run": 1,
+      "cpu_load_before_percent": null,
+      "cpu_load_after_percent": 0
+    },
+    {
+      "peak_working_set_bytes": 265572352,
+      "run": 2,
+      "cpu_load_before_percent": 5,
+      "cpu_load_after_percent": 27
+    },
+    {
+      "peak_working_set_bytes": 265527296,
+      "run": 3,
+      "cpu_load_before_percent": 41,
+      "cpu_load_after_percent": 38
+    }
+  ]
+}

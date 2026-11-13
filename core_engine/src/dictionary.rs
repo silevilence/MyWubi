@@ -2,7 +2,8 @@
 //!
 //! 本模块对外提供 [`Dictionary`]，内部采用 **按编码前缀有序的扁平数组 + 二分查找**
 //! 作为主检索结构，避免传统 Trie 树大量指针节点带来的内存碎片与缓存不友好访问。
-//! 同时维护一份 **基于 `char` 的前缀 Trie** 用于词频感知的前缀检索（体积可控时）。
+//! 显式调用 Trie 查询时才构建 **基于 `char` 的前缀 Trie**（体积可控时），
+//! 普通输入使用扁平索引，无须为主表和辅助表额外保留一份未使用的树。
 //!
 //! 整个 [`Dictionary`] 只读且 `Send + Sync`，可通过 `Arc<Dictionary>` 全局共享，
 //! 配合 [`arc_swap::ArcSwap`](../../arc_swap) 实现热重载时的无锁原子替换。
@@ -195,7 +196,7 @@ impl Default for SearchOptions {
 /// 码表加载选项。
 #[derive(Debug, Clone)]
 pub struct LoadOptions {
-    /// 启用前缀 Trie（仅当码表条目数 < `trie_threshold` 时构建）。
+    /// 允许按需构建前缀 Trie（仅当码表条目数 < `trie_threshold`）。
     pub trie_threshold: usize,
     /// 每块解析的行数（分块加载粒度）。
     pub chunk_lines: usize,
@@ -217,11 +218,8 @@ pub struct Dictionary {
     pinyin_index: Option<crate::pinyin::PinyinIndex>,
     /// 按编码有序排列的扁平条目数组，便于二分查找前缀区间。
     entries: Vec<Entry>,
-    /// 编码到首次出现下标的索引（前缀分区加速）。
-    /// key 为完整编码，value 为该前缀在 `entries` 中的起始下界。
-    prefix_index: BTreeMap<String, usize>,
-    /// 是否已构建前缀 Trie（按需构建，码表过大则不构建）。
-    trie: Option<TrieNode>,
+    /// 显式 Trie 查询首次使用时初始化；普通二分查询不构建，过大码表禁用。
+    trie: Option<std::sync::OnceLock<TrieNode>>,
     /// 来源路径（用于热重载比对）。
     source: Option<PathBuf>,
     /// 码表 YAML 头配置。
@@ -247,7 +245,6 @@ impl Dictionary {
             prediction: std::sync::OnceLock::new(),
             pinyin_index: None,
             entries: Vec::new(),
-            prefix_index: BTreeMap::new(),
             trie: None,
             source: None,
             table_config: TableConfig::default(),
@@ -293,17 +290,11 @@ impl Dictionary {
             other => other,
         });
 
-        // 构建前缀索引（按每个编码完整键入 BTreeMap，用于二分初定位）。
-        let mut prefix_index = BTreeMap::new();
-        for (idx, e) in entries.iter().enumerate() {
-            prefix_index.entry(e.code.clone()).or_insert(idx);
-        }
-
         // 单独维护同编码 word 去重的稳定视图（保留 weight 最大者）。
         let trie = if table_config.table_type != TableType::Pinyin
             && entries.len() < opts.trie_threshold
         {
-            Some(build_trie(&entries))
+            Some(std::sync::OnceLock::new())
         } else {
             None
         };
@@ -313,7 +304,6 @@ impl Dictionary {
             pinyin_index: (table_config.table_type == TableType::Pinyin)
                 .then(|| crate::pinyin::PinyinIndex::new(&entries)),
             entries,
-            prefix_index,
             trie,
             source,
             table_config,
@@ -369,9 +359,11 @@ impl Dictionary {
 
     /// 返回码表中所有编码完全等于 `code` 的词条（按 weight 倒序）。
     pub fn exact(&self, code: &str) -> Vec<&Entry> {
-        let Some(&start) = self.prefix_index.get(code) else {
-            return Vec::new();
-        };
+        // The sorted entry array is already an exact-code index. Avoid a second
+        // allocation of every distinct code in every loaded main/auxiliary table.
+        let start = self
+            .entries
+            .partition_point(|entry| entry.code.as_str() < code);
         self.entries[start..]
             .iter()
             .take_while(|e| e.code == code)
@@ -476,7 +468,7 @@ impl Dictionary {
         results
     }
 
-    /// 通过前缀 Trie 进行检索（若未构建则回退 `search`）。
+    /// 通过前缀 Trie 进行检索（首次显式查询构建；超过阈值时回退 `search`）。
     pub fn search_trie(&self, prefix: &str, opts: SearchOptions) -> Vec<&Entry> {
         if self.pinyin_index.is_some() {
             return self.search(prefix, opts);
@@ -489,7 +481,11 @@ impl Dictionary {
             return self.search(prefix, opts);
         }
         if self.trie.is_some() && opts.prefer_exact {
-            if let Some(node) = self.trie.as_ref().and_then(|t| t.lookup(prefix)) {
+            if let Some(node) = self
+                .trie
+                .as_ref()
+                .and_then(|t| t.get_or_init(|| build_trie(&self.entries)).lookup(prefix))
+            {
                 if !node.words.is_empty() {
                     // 走 Trie 精确分支，再用 weight 排序。
                     let mut ws: Vec<(String, u32)> = node.words.clone();
@@ -1423,5 +1419,38 @@ mod tests {
         let r = d.search_trie("a", SearchOptions::default());
         assert_eq!(r.len(), 1);
         assert_eq!(r[0].word, "工");
+    }
+
+    #[test]
+    fn ordinary_queries_skip_trie_and_explicit_concurrent_queries_initialize_once() {
+        let d = dict();
+        assert!(d.trie.as_ref().unwrap().get().is_none());
+        assert!(!d.search("a", SearchOptions::default()).is_empty());
+        assert!(d.trie.as_ref().unwrap().get().is_none());
+        let expected: Vec<_> = d
+            .exact("a")
+            .iter()
+            .map(|entry| entry.word.clone())
+            .collect();
+        let pointers = std::thread::scope(|scope| {
+            let threads: Vec<_> = (0..4)
+                .map(|_| {
+                    scope.spawn(|| {
+                        let actual: Vec<_> = d
+                            .search_trie("a", SearchOptions::default())
+                            .iter()
+                            .map(|entry| entry.word.clone())
+                            .collect();
+                        assert_eq!(actual, expected);
+                        d.trie.as_ref().unwrap().get().unwrap() as *const TrieNode as usize
+                    })
+                })
+                .collect();
+            threads
+                .into_iter()
+                .map(|thread| thread.join().unwrap())
+                .collect::<Vec<_>>()
+        });
+        assert!(pointers.iter().all(|pointer| *pointer == pointers[0]));
     }
 }

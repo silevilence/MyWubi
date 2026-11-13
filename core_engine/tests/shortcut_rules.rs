@@ -1,6 +1,54 @@
 use core_engine::shortcuts::*;
 
 #[test]
+fn frozen_c07_validation_and_pause_contract() {
+    let document: serde_json::Value = serde_json::from_str(include_str!(
+        "../../docs/validation/special-input/cases.json"
+    ))
+    .unwrap();
+    let case = document["cases"]
+        .as_array()
+        .unwrap()
+        .iter()
+        .find(|c| c["id"] == "SI-C07")
+        .unwrap();
+    for (raw, expected) in case["normalize"].as_object().unwrap() {
+        assert_eq!(
+            validate_structure(&[rule(raw, 2)]).unwrap()[0].code,
+            expected.as_str().unwrap()
+        );
+    }
+    for code in case["invalid_codes"].as_array().unwrap() {
+        assert!(validate_structure(&[rule(code.as_str().unwrap(), 2)]).is_err());
+    }
+    for length in case["valid_lengths"].as_array().unwrap() {
+        for position in case["position_bounds"].as_array().unwrap() {
+            validate_structure(&[rule(
+                &"a".repeat(length.as_u64().unwrap() as usize),
+                position.as_u64().unwrap() as u32,
+            )])
+            .unwrap();
+        }
+    }
+    for enabled in [true, false] {
+        let mut duplicate = rule("jjad", 2);
+        duplicate.enabled = enabled;
+        assert!(validate_structure(&[rule("JJAD", 2), duplicate]).is_err());
+    }
+    let rules = vec![rule("jjad", 2), rule("abcd", 2)];
+    for key in case["conflict_keys"].as_array().unwrap() {
+        let environment = ShortcutEnvironment {
+            wildcard: key.as_str().unwrap().chars().next(),
+            auxiliary_entry: None,
+        };
+        assert!(!availability(&rules[0], environment).effective);
+        assert!(availability(&rules[1], environment).effective);
+        assert!(rules[0].enabled);
+        assert!(availability(&rules[0], ShortcutEnvironment::default()).effective);
+    }
+}
+
+#[test]
 fn configuration_save_normalizes_both_frontends_and_invalid_rules_preserve_disk() {
     use core_engine::{config::ValidationContext, Config};
     let root = std::env::temp_dir().join(format!(

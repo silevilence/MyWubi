@@ -1,0 +1,11 @@
+{
+  "os": "Windows-11-10.0.26200-SP0",
+  "processor": "Intel64 Family 6 Model 170 Stepping 4, GenuineIntel",
+  "fixture_sha256_verified": {
+    "cases.json": "21b716b38b28bbcbb8507fdb9247f91a008ebf2c7ff00e9971c1f191e40e72bd",
+    "workloads.json": "5b45d1c653a4422ae47e8243ef72ca1f8c8cd4127390c64667006cdfaaf0ef04"
+  },
+  "config_sha256": "2fa7d7efb38075428ba348d528280c9b466c081697198689e9c03282be57f10d",
+  "resources": "local caches only; no downloads",
+  "desktop_interaction": "none; cua inventory/capability query only"
+}

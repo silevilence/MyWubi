@@ -7,6 +7,37 @@ use std::sync::{
     Arc, Mutex,
 };
 
+fn fixture(id: &str) -> serde_json::Value {
+    let document: serde_json::Value = serde_json::from_str(include_str!(
+        "../../docs/validation/special-input/cases.json"
+    ))
+    .unwrap();
+    document["cases"]
+        .as_array()
+        .unwrap()
+        .iter()
+        .find(|case| case["id"] == id)
+        .unwrap()
+        .clone()
+}
+fn fixture_pages(value: &serde_json::Value) -> Vec<Vec<String>> {
+    serde_json::from_value(value.clone()).unwrap()
+}
+fn fixture_time(value: &serde_json::Value) -> LocalTime {
+    let text = value.as_str().unwrap();
+    assert!(text.ends_with("+08:00"));
+    LocalTime {
+        year: text[..4].parse().unwrap(),
+        month: text[5..7].parse().unwrap(),
+        day: text[8..10].parse().unwrap(),
+        hour: text[11..13].parse().unwrap(),
+        minute: text[14..16].parse().unwrap(),
+        second: text[17..19].parse().unwrap(),
+        utc_offset_seconds: 28800,
+        timezone: "Asia/Shanghai".into(),
+    }
+}
+
 struct TestClock {
     calls: AtomicUsize,
     value: Mutex<Result<LocalTime, String>>,
@@ -266,28 +297,38 @@ fn temporary_modes_never_create_date_candidates_or_read_time() {
 
 #[test]
 fn c01_c02_dynamic_pages_and_no_hit_keep_their_respective_boundaries() {
+    let c01 = fixture("SI-C01");
+    let c02 = fixture("SI-C02");
     for profile in [BehaviorProfile::LegacyV1, BehaviorProfile::TouchV1] {
         let clock = TestClock::new();
         let base = ["甲", "乙", "丙", "丁", "戊", "己"];
         let r = runtime(&base, 3, vec![], Some("表"));
         let mut s = Session::new_with_clock(&r, profile, HostContext::default(), clock.clone());
         input(&mut s, "jjad");
-        assert_eq!(
-            pages(&mut s),
-            [vec!["甲", "乙", "丙"], vec!["表"], vec!["丁", "戊", "己"]]
-        );
+        assert_eq!(pages(&mut s), fixture_pages(&c01["without_match_pages"]));
         assert_eq!(clock.count(), 0);
         for position in [1, 2, 3, 4, 5] {
             let r = runtime(&base, 3, vec![rule("jjad", position, "日期")], Some("表"));
             let mut s = Session::new_with_clock(&r, profile, HostContext::default(), clock.clone());
             input(&mut s, "jjad");
-            let mut expected = vec!["甲", "乙", "丙", "表", "丁", "戊", "己"];
-            expected.insert(position as usize - 1, "日期");
-            assert_eq!(words(&s), expected);
+            let expected = if position == 2 {
+                &c01["expected_pages"]
+            } else {
+                &c02["variants"]
+                    .as_array()
+                    .unwrap()
+                    .iter()
+                    .find(|variant| variant["position"] == position)
+                    .unwrap()["expected_pages"]
+            };
             assert_eq!(
-                pages(&mut s),
-                expected.chunks(3).map(|p| p.to_vec()).collect::<Vec<_>>()
+                words(&s),
+                fixture_pages(expected)
+                    .into_iter()
+                    .flatten()
+                    .collect::<Vec<_>>()
             );
+            assert_eq!(pages(&mut s), fixture_pages(expected));
         }
     }
 }
@@ -295,30 +336,33 @@ fn c01_c02_dynamic_pages_and_no_hit_keep_their_respective_boundaries() {
 #[test]
 fn c03_c04_c05_sparse_positions_and_same_text_keep_distinct_sources() {
     let clock = TestClock::new();
+    let c03 = fixture("SI-C03");
+    let c04 = fixture("SI-C04");
+    let c05 = fixture("SI-C05");
     for (base, rules, special, expected) in [
         (
             vec![],
             vec![rule("jjad", 2, "日期甲"), rule("jjad", 3, "日期乙")],
             None,
-            vec!["日期甲", "日期乙"],
+            serde_json::from_value::<Vec<String>>(c03["variants"][0]["expected"].clone()).unwrap(),
         ),
         (
             vec!["甲", "乙"],
             vec![rule("jjad", 2, "日期甲"), rule("jjad", 8, "日期乙")],
             None,
-            vec!["甲", "日期甲", "乙", "日期乙"],
+            serde_json::from_value::<Vec<String>>(c03["variants"][1]["expected"].clone()).unwrap(),
         ),
         (
             vec!["2026-11-12", "甲", "乙"],
             vec![rule("jjad", 3, "yyyy-MM-dd")],
             None,
-            vec!["2026-11-12", "甲", "2026-11-12", "乙"],
+            serde_json::from_value::<Vec<String>>(c04["expected_texts"].clone()).unwrap(),
         ),
         (
             vec!["甲"],
             vec![rule("jjad", 3, "'X'"), rule("jjad", 4, "'X'")],
             Some("X"),
-            vec!["甲", "X", "X"],
+            serde_json::from_value::<Vec<String>>(c05["expected_texts"].clone()).unwrap(),
         ),
     ] {
         let r = runtime(&base, 3, rules, special);
@@ -352,6 +396,7 @@ fn c03_c04_c05_sparse_positions_and_same_text_keep_distinct_sources() {
 
 #[test]
 fn c06_global_nine_ten_eleven_have_identical_numeric_and_click_commits() {
+    let expected = fixture("SI-C06");
     let clock = TestClock::new();
     let text: Vec<_> = (0..12).map(|i| format!("普通{i}")).collect();
     let base: Vec<_> = text.iter().map(String::as_str).collect();
@@ -371,23 +416,23 @@ fn c06_global_nine_ten_eleven_have_identical_numeric_and_click_commits() {
                     .iter()
                     .find(|row| row.target.is_some())
                     .unwrap();
-                let effective = capacity.min(9) as usize;
+                let page_slot =
+                    &expected["expected_page_slot"][capacity.to_string()][(position - 9) as usize];
                 assert_eq!(
                     (row.target, row.actual, row.page, row.slot),
                     (
                         Some(position),
                         position as usize,
-                        (position as usize - 1) / effective + 1,
-                        (position as usize - 1) % effective + 1
+                        page_slot[0].as_u64().unwrap() as usize,
+                        page_slot[1].as_u64().unwrap() as usize
                     )
                 );
                 for click in [false, true] {
                     let mut s =
                         Session::new_with_clock(&r, profile, HostContext::default(), clock.clone());
                     input(&mut s, "jjad");
-                    let effective = capacity.min(9) as usize;
-                    let page = (position as usize - 1) / effective;
-                    let slot = (position as usize - 1) % effective + 1;
+                    let page = page_slot[0].as_u64().unwrap() as usize - 1;
+                    let slot = page_slot[1].as_u64().unwrap() as usize;
                     for _ in 0..page {
                         apply(&mut s, Action::MoveCandidatePage(true));
                     }
@@ -412,12 +457,17 @@ fn c06_global_nine_ten_eleven_have_identical_numeric_and_click_commits() {
 
 #[test]
 fn c08_c09_first_full_match_freezes_time_and_safe_retry_does_not_retake_it() {
+    let c08 = fixture("SI-C08");
+    let c09 = fixture("SI-C09");
     let clock = TestClock::new();
-    *clock.value.lock().unwrap() = Ok(time(12, 23, 59, 59));
+    *clock.value.lock().unwrap() = Ok(fixture_time(&c08["actions"][0]["at"]));
     let r = runtime(
         &["甲", "乙", "丙", "丁"],
         2,
-        vec![rule("jjad", 2, "yyyy-MM-dd HH:mm:ss")],
+        vec![
+            rule("jjad", 1, "yyyy年MM月dd日"),
+            rule("jjad", 2, "yyyy-MM-dd HH:mm:ss"),
+        ],
         None,
     );
     let mut s = Session::new_with_clock(
@@ -426,17 +476,19 @@ fn c08_c09_first_full_match_freezes_time_and_safe_retry_does_not_retake_it() {
         HostContext::default(),
         clock.clone(),
     );
-    input(&mut s, "jja");
+    input(&mut s, c08["actions"][0]["input"].as_str().unwrap());
     for _ in 0..5 {
         assert!(s.would_handle(&Action::InputCode('d')));
     }
     assert_eq!(clock.count(), 0);
-    *clock.value.lock().unwrap() = Ok(time(13, 0, 0, 1));
-    input(&mut s, "d");
-    assert_eq!(clock.count(), 1);
+    *clock.value.lock().unwrap() = Ok(fixture_time(&c08["actions"][1]["at"]));
+    input(&mut s, c08["actions"][1]["input"].as_str().unwrap());
+    assert_eq!(clock.count(), c08["clock_calls"].as_u64().unwrap() as usize);
+    let expected: Vec<String> = serde_json::from_value(c08["expected"].clone()).unwrap();
+    assert_eq!(&words(&s)[..2], expected);
     let original = s.candidate_window(1, 1);
     assert_eq!(original.candidates[0].text, "2026-11-13 00:00:01");
-    *clock.value.lock().unwrap() = Ok(time(13, 0, 1, 2));
+    *clock.value.lock().unwrap() = Ok(fixture_time(&c09["edited_time"]));
     for _ in 0..10 {
         assert!(s.would_handle(&Action::Space));
         s.candidate_window(0, 256);
@@ -461,7 +513,10 @@ fn c08_c09_first_full_match_freezes_time_and_safe_retry_does_not_retake_it() {
     assert_eq!(clock.count(), 2);
     assert_eq!(
         s.candidate_window(1, 1).candidates[0].text,
-        "2026-11-13 00:01:02"
+        format!(
+            "2026-11-13 00:00:{}",
+            c09["variants"][0]["expected_seconds"].as_str().unwrap()
+        )
     );
     assert!(s
         .prepare(Action::SelectCandidate(
@@ -628,9 +683,14 @@ fn wrong_prefix_follows_original_overflow_and_auxiliary_entry_keeps_priority() {
 
 #[test]
 fn c11_long_and_overlapping_codes_only_suppress_automatic_commits_while_reachable() {
+    let case = fixture("SI-C11");
     for auto in [false, true] {
         for overflow in [false, true] {
-            for code in ["jjaad", "jjadx", "abcdefghijklmnopqrstuvwxyzabcdef"] {
+            for code in [
+                case["shortcut"].as_str().unwrap(),
+                case["overlap"][1].as_str().unwrap(),
+                "abcdefghijklmnopqrstuvwxyzabcdef",
+            ] {
                 let mut r = runtime(&[], 3, vec![rule(code, 1, "日期")], None);
                 r.dict = Dictionary::from_text("jjaa\t普通\njjad\t普通\nabcd\t普通\n").unwrap();
                 if code == "jjadx" {

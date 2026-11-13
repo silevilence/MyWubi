@@ -1,0 +1,18 @@
+{
+  "scope": "Desktop Windows JVM JNI only; no Android device or actual host",
+  "passed": [
+    "SI-C01: matched and unmatched page boundaries",
+    "SI-C02: insertion boundaries",
+    "SI-C03: sparse positions",
+    "SI-C04: same-text identities and learning flags",
+    "SI-C05: same-text identities and learning flags",
+    "SI-C06: 1/9/10 capacity, global 9/10/11 numeric/click identity",
+    "SI-C07: normalized/disabled duplicates, invalid save, pause and restore intent",
+    "SI-C08/C09 supplemental: actual Gregorian JNI clock, frozen zone/retry and old ID; exact injected-time contract remains in core tests",
+    "SI-C10: literal shi/SHI through JNI, no query host edits",
+    "SI-C11: reachable long prefix prevents automatic commit"
+  ],
+  "requests": 1168,
+  "cases_sha256": "21b716b38b28bbcbb8507fdb9247f91a008ebf2c7ff00e9971c1f191e40e72bd",
+  "library_sha256": "4b56cf026cd491b00e1147bf8dda8bb4c3a220afdc45f4f532abd1c042df5857"
+}

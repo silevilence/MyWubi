@@ -226,6 +226,9 @@ pub fn merge_dictionary(
     }
     let user = UserDictionary::load(user_path)
         .map_err(|e| format!("加载用户词库失败 ({}): {e}", user_path.display()))?;
+    if user.entries().is_empty() {
+        return Ok(system);
+    }
     let keys: HashSet<(&str, &str)> = user
         .entries()
         .iter()
