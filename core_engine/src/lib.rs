@@ -20,6 +20,7 @@ pub mod personal;
 mod pinyin;
 pub mod runtime;
 pub mod session;
+pub mod skin;
 pub mod shortcut_format;
 pub mod shortcut_preview;
 pub mod shortcut_time;
