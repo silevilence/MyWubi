@@ -1285,7 +1285,7 @@ impl Session {
         {
             return Ok(None);
         }
-        if !self.legacy() && self.pending.is_some() {
+        if !self.legacy() && (self.pending.is_some() || self.state_machine().group_sequence().is_some()) {
             self.deferred_runtime = Some(runtime);
             return Ok(None);
         }

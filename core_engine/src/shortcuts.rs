@@ -65,6 +65,12 @@ impl RuleSet {
     pub fn is_empty(&self) -> bool {
         self.exact.is_empty()
     }
+    /// Checks effective rule codes against positions without expanding combinations or reading time.
+    pub fn reaches_groups(&self, positions: &[crate::group_input::Position]) -> bool {
+        self.exact.keys().any(|code| code.len()>=positions.len()
+            && code.chars().zip(positions).all(|(c,p)|p.selected.map_or_else(
+                ||p.characters.chars().any(|x|x.to_ascii_lowercase()==c),|x|x.to_ascii_lowercase()==c)))
+    }
 }
 
 pub const MAX_RULES: usize = 1024;
