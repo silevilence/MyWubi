@@ -252,7 +252,7 @@ impl SkinEditor {
             }
             ui.collapsing("共享颜色与资源",|ui| {
                 ui.label("共享修改可能影响 Windows 和 Android；组件覆盖值仍优先。私有副本不会自动重绑定已有引用。");
-                if let Ok(base)=parameters::builtin("jade",self.dark) {draft.dirty|=patch_form(ui,&mut draft.package.metadata.defaults,&base,true);}
+                if let Ok(base)=parameters::builtin("jade",self.dark) {draft.dirty|=patch_form(ui,&mut draft.package.metadata.defaults,&base,true,false);}
                 for (id,resource) in draft.package.metadata.resources.clone() {
                     ui.horizontal(|ui| {ui.label(format!("shared:{id} → {resource}"));
                         if ui.button("复制为当前平台资源").clicked() {
@@ -277,17 +277,17 @@ impl SkinEditor {
                             let entry_path=format!("{}/{}",self.platform,entry.path);
                             let parsed=draft.package.files.get(&entry_path).and_then(|b|std::str::from_utf8(b).ok()).and_then(|s|toml::from_str::<Appearance>(s).ok());
                             if let Some(mut appearance)=parsed {
-                                if self.platform=="windows" {
+                                if matches!(self.platform.as_str(),"windows"|"android") {
                                     let variant=if self.dark {"dark"} else {"light"};
                                     if !appearance.variants.contains_key(variant) && ui.button("创建所选变体").clicked() {
                                         appearance.variants.insert(variant.into(),resolved.parameters.0.clone());draft.dirty=true;
                                     }
                                     let mut changed=false;
-                                    if let Some(patch)=appearance.variants.get_mut(variant) {ui.collapsing("Windows 外观参数",|ui| {changed=patch_form(ui,patch,&resolved.parameters,false);});}
+                                    if let Some(patch)=appearance.variants.get_mut(variant) {ui.collapsing(if self.platform=="android" {"Android 候选栏、按键与状态参数"} else {"Windows 外观参数"},|ui| {changed=patch_form(ui,patch,&resolved.parameters,false,self.platform=="android");});}
                                     if changed || (draft.dirty && appearance.variants.contains_key(variant)) {
                                         match toml::to_string(&appearance) {Ok(s)=>{draft.package.files.insert(entry_path,s.into_bytes());draft.dirty|=changed;},Err(e)=>self.message=e.to_string()}
                                     }
-                                } else {ui.label("Android 组件已保留，当前为只读预览。");}
+                                }
                             }
                         }
                         if self.platform=="windows" {self.preview(ui,&resolved.parameters,false);} else {ui.label("此处编辑目标为 Android，不会应用到 Windows。");}
@@ -415,6 +415,7 @@ fn patch_form(
     patch: &mut Extensions,
     effective: &Parameters,
     colors_only: bool,
+    android: bool,
 ) -> bool {
     let mut changed = false;
     for (key, default) in &effective.0 {
@@ -422,6 +423,7 @@ fn patch_form(
             continue;
         }
         if !colors_only
+            && !android
             && (key.starts_with("key_")
                 || key.starts_with("function_")
                 || key.starts_with("pressed_")
@@ -430,9 +432,21 @@ fn patch_form(
         {
             continue;
         }
+        if android
+            && matches!(
+                key.as_str(),
+                "font_family" | "layout" | "density" | "max_width"
+            )
+        {
+            continue;
+        }
         let mut value = patch.get(key).unwrap_or(default).clone();
         ui.horizontal(|ui| {
-            ui.label(field_label(key));
+            ui.label(if android {
+                field_label(key).replace("DIP", "dp").replace("pt", "sp")
+            } else {
+                field_label(key).into()
+            });
             let edit = match &mut value {
                 toml::Value::String(text) if parameters::COLORS.contains(&key.as_str()) => {
                     let argb = parameters::parse_color(text).unwrap_or(0xff000000);
@@ -498,6 +512,19 @@ fn field_label(key: &str) -> &str {
         "border_width" => "边框宽度 DIP",
         "shadow" => "阴影 DIP",
         "max_width" => "最大宽度 DIP",
+        "key_background" => "普通键背景",
+        "key_text" => "普通键文字",
+        "function_background" => "功能键背景",
+        "function_text" => "功能键文字",
+        "pressed_background" => "按下背景",
+        "pressed_text" => "按下文字",
+        "bubble_background" => "气泡背景",
+        "bubble_text" => "气泡文字",
+        "key_text_size" => "按键字号 sp",
+        "bubble_text_size" => "气泡字号 sp",
+        "key_radius" => "按键圆角 dp",
+        "key_gap" => "按键间距 dp",
+        "keyboard_height" => "推荐键盘高度 dp",
         _ => key,
     }
 }

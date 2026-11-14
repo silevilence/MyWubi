@@ -16,6 +16,46 @@ fn editing_one_platform_preserves_other_platform_and_unknown_component_bytes() {
 }
 
 #[test]
+fn android_only_authoring_can_be_exported_without_a_device() {
+    let dir = tempfile::tempdir().unwrap();
+    let mut draft = Draft::builtin("jade").unwrap();
+    draft.remove_platform("windows").unwrap();
+    let path = "android/appearance.toml";
+    let mut appearance: core_engine::skin::parameters::Appearance =
+        toml::from_str(std::str::from_utf8(&draft.package.files[path]).unwrap()).unwrap();
+    appearance
+        .variants
+        .get_mut("dark")
+        .unwrap()
+        .insert("pressed_background".into(), "#123456".into());
+    draft.package.files.insert(
+        path.into(),
+        toml::to_string(&appearance).unwrap().into_bytes(),
+    );
+    let output = dir.path().join("android.zip");
+    draft.export_new(&output).unwrap();
+    let loaded = Package::open(&output).unwrap();
+    let supported = [
+        "container.zip/1".into(),
+        "android.base/1".into(),
+        "appearance.parameters/1".into(),
+    ]
+    .into();
+    let effective = core_engine::skin::parameters::resolve(
+        &loaded,
+        "android",
+        "jade",
+        true,
+        &Default::default(),
+        false,
+        &supported,
+    )
+    .unwrap();
+    assert_eq!(effective.parameters.color("pressed_background"), 0xff123456);
+    assert!(!loaded.platforms.contains_key("windows"));
+}
+
+#[test]
 fn external_modification_blocks_export_and_failed_save_keeps_draft() {
     let dir = tempfile::tempdir().unwrap();
     let source = dir.path().join("source.zip");
