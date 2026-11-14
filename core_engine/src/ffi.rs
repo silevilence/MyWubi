@@ -443,7 +443,14 @@ impl Registry {
                 if let Some(mapping) = &mapping { mapping.validate().map_err(|e| err(5,e.to_string()))?; }
                 layout.validate_geometry(mapping.as_ref(), &[KeyAction::Space,KeyAction::Enter,KeyAction::Cancel])
                     .map_err(|e| err(5,e.to_string()))?;
-                json!({"layout":layout,"mapping":mapping})
+                let bindings = |layout: &crate::skin::keyboard::Layout| -> Result<serde_json::Map<String,Value>, ProtocolError> {
+                    layout.keys.iter().map(|key| {
+                        let resolved=crate::skin::directions::resolve(&layout.directions,&key.directions,&key.disabled_directions)
+                            .map_err(|e|err(5,e.to_string()))?;
+                        Ok((key.id.clone(),json!(resolved)))
+                    }).collect()
+                };
+                json!({"bindings":bindings(&layout)?,"landscape_bindings":layout.landscape.as_ref().map(|l|bindings(l)).transpose()?,"layout":layout,"mapping":mapping})
             }
             Request::ValidateConfig { config } => {
                 config

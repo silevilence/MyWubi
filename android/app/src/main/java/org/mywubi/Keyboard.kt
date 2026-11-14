@@ -312,6 +312,21 @@ fun Keyboard(model: KeyboardModel, dispatch: (Any) -> Unit, window: (Int) -> Uni
                         }
                         val symbol=key.alternate ?: if(layout.id == "builtin.26" && character != null)
                             letterSymbol(character, !model.privateInput && model.layout == "letters" && (model.base == "Main" || model.temporary == "Pinyin")) else null
+                        fun perform(action: LayoutAction) {
+                            when(action.kind) {
+                                "Character" -> {input(if(action == key.action) value else action.value); if(isLetter) shift=shift.consumed()}
+                                "Shift" -> shift=shift.next()
+                                "Letters" -> panel="letters"
+                                "Numbers" -> panel="numbers"
+                                "Symbols" -> panel="symbols"
+                                "English" -> toggleBase()
+                                "Pinyin" -> cyclePinyin()
+                                "PageNext" -> dispatch(JSONObject().put("MoveCandidatePage",true))
+                                "PagePrevious" -> dispatch(JSONObject().put("MoveCandidatePage",false))
+                                "Backspace", "Space", "Enter", "Cancel" -> dispatch(action.kind)
+                            }
+                        }
+                        fun actionName(action: LayoutAction)=if(action.kind == "Group") "字符组 ${action.value}" else action.value.ifEmpty { action.kind }
                         Key(label,model.enabled,model.epoch,
                             Modifier.offset(x=unit*key.x,y=LocalKeyboardKeyHeight.current*key.y).width(unit*key.width),
                             heightFactor=key.height,
@@ -321,21 +336,11 @@ fun Keyboard(model: KeyboardModel, dispatch: (Any) -> Unit, window: (Int) -> Uni
                                 else -> label
                             }, function=key.role == "function",accent=key.role == "selected",
                             selected=key.action.kind == "Shift" && shift != KeyMode.Off,
-                            alternate=symbol,previewEnabled=!model.privateInput,
-                            alternateAction={if(symbol != null) dispatch(JSONObject().put("InputSymbol",symbol))},
+                            alternate=key.hold?.let(::actionName) ?: symbol,previewEnabled=!model.privateInput,
+                            bindingRevision=layout, directions=if(layout.id == "builtin.26") null else key.directions.mapValues { (_,action) -> TouchChoice(actionName(action)) {perform(action)} },
+                            alternateAction={key.hold?.let(::perform) ?: run {if(symbol != null) dispatch(JSONObject().put("InputSymbol",symbol))}},
                             clearAction={dispatch("ClearEditor")}) {
-                            when(key.action.kind) {
-                                "Character" -> {input(value); if(isLetter) shift=shift.consumed()}
-                                "Shift" -> shift=shift.next()
-                                "Letters" -> panel="letters"
-                                "Numbers" -> panel="numbers"
-                                "Symbols" -> panel="symbols"
-                                "English" -> toggleBase()
-                                "Pinyin" -> cyclePinyin()
-                                "PageNext" -> dispatch(JSONObject().put("MoveCandidatePage",true))
-                                "PagePrevious" -> dispatch(JSONObject().put("MoveCandidatePage",false))
-                                "Backspace", "Space", "Enter", "Cancel" -> dispatch(key.action.kind)
-                            }
+                            perform(key.action)
                         }
                     }
                 }
@@ -499,7 +504,7 @@ private fun ExpandedCandidateButton(item: CandidateItem, enabled: Boolean, showH
 @Composable
 private fun Key(label:String,enabled:Boolean,epoch:Long,modifier:Modifier,repeat:Boolean=false,
                 description:String=label,function:Boolean=false,accent:Boolean=false,selected:Boolean=false,
-                alternate:String?=null,previewEnabled:Boolean=false,heightFactor:Float=1f,alternateAction:()->Unit={},clearAction:()->Unit={},action:()->Unit) {
+                alternate:String?=null,previewEnabled:Boolean=false,heightFactor:Float=1f,directions:Map<Int,TouchChoice>? = null,bindingRevision:Any=epoch,alternateAction:()->Unit={},clearAction:()->Unit={},action:()->Unit) {
     // The entire column is touchable. KeyTouch draws the inset keycap inside it.
     val keyModifier=modifier.height(LocalKeyboardKeyHeight.current*heightFactor)
     val colors=MaterialTheme.colorScheme
@@ -516,7 +521,7 @@ private fun Key(label:String,enabled:Boolean,epoch:Long,modifier:Modifier,repeat
     CompositionLocalProvider(LocalMinimumInteractiveComponentSize provides 0.dp, LocalViewConfiguration provides keyViewConfiguration) {
     if (!repeat) {
         KeyTouchSurface(label,enabled,epoch,keyModifier,description,background,foreground,if(accent || selected) "selected" else if(function) "function" else "key",alternate,
-            previewEnabled && label.length == 1,alternateAction,action) { KeyLabel(label) }
+            previewEnabled,alternateAction,action,directions,bindingRevision) { KeyLabel(label) }
     } else {
         DeleteKeySurface(enabled, epoch, keyModifier, background, foreground, action, clearAction) { KeyLabel(label) }
     }

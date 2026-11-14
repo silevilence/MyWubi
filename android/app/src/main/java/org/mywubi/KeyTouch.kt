@@ -164,9 +164,12 @@ internal fun DeleteKeySurface(enabled: Boolean, epoch: Long, modifier: Modifier,
 @Composable
 internal fun KeyTouchSurface(label: String, enabled: Boolean, epoch: Long, modifier: Modifier,
     description: String, background: Color, foreground: Color, imageRole: String, alternate: String?, previewEnabled: Boolean,
-    alternateAction: () -> Unit, action: () -> Unit, content: @Composable () -> Unit) {
+    alternateAction: () -> Unit, action: () -> Unit, directions: Map<Int, TouchChoice>? = null,
+    bindingRevision: Any = epoch, content: @Composable () -> Unit) {
     val primary by rememberUpdatedState(action)
     val secondary by rememberUpdatedState(alternateAction)
+    val choices = directions ?: if(alternate != null) mapOf(0 to TouchChoice(alternate, alternateAction)) else emptyMap()
+    val currentChoices by rememberUpdatedState(choices)
     val previews = LocalKeyPreview.current
     val scope = rememberCoroutineScope()
     val lifecycle = LocalLifecycleOwner.current.lifecycle
@@ -192,8 +195,9 @@ internal fun KeyTouchSurface(label: String, enabled: Boolean, epoch: Long, modif
             if (!enabled) disabled()
             onClick { if (enabled) primary(); enabled }
             if (alternate != null) onLongClick("输入 $alternate") { if (enabled) secondary(); enabled }
+            customActions = choices.map { (direction, choice) -> CustomAccessibilityAction("${directionNames[direction]}滑：${choice.name}") { if(enabled) choice.action(); enabled } }
         }
-        .pointerInput(enabled, active, lifecycleRevision, epoch, label, alternate, previewEnabled) {
+        .pointerInput(enabled, active, lifecycleRevision, epoch, label, alternate, previewEnabled, bindingRevision, choices.mapValues { it.value.name }) {
             if (!enabled || !active) return@pointerInput
             awaitEachGesture {
                 val down = awaitFirstDown()
@@ -202,34 +206,46 @@ internal fun KeyTouchSurface(label: String, enabled: Boolean, epoch: Long, modif
                 val revision = lifecycleRevision
                 owner = token
                 pressed = true
-                var held = false
-                var slid = false
+                val gesture=DirectionalGesture(currentChoices.keys, alternate != null)
                 var committed = false
-                fun preview(symbol: Boolean) {
-                    if (previewEnabled) previews.current = KeyPreview(token, if (symbol) alternate ?: label else label, bounds)
+                fun preview() {
+                    val text=when {
+                        gesture.cancelled -> null
+                        gesture.holding -> alternate
+                        gesture.sliding -> currentChoices[gesture.direction]?.name
+                        else -> label
+                    }
+                    if(previewEnabled && text != null) previews.current=KeyPreview(token,text,bounds)
+                    else previews.clear(token)
                 }
-                preview(false)
+                preview()
                 val longPress = if (alternate != null) scope.launch {
                     delay(viewConfiguration.longPressTimeoutMillis)
-                    if (active && revision == lifecycleRevision) { held = true; preview(true) }
+                    if (active && revision == lifecycleRevision) { gesture.hold(); preview() }
                 } else null
                 longPressJob = longPress
                 try {
                     while (true) {
                         val event = awaitPointerEvent()
                         val change = event.changes.firstOrNull { it.id == down.id } ?: break
-                        if (change.isConsumed || !active || revision != lifecycleRevision) break
-                        val point = change.position
-                        val slop = viewConfiguration.touchSlop
-                        if (point.x < -slop || point.x > size.width + slop || point.y > size.height + slop) break
-                        // Without a secondary symbol, leaving the key cancels the tap.
-                        if (alternate == null && point.y < -slop) break
-                        val nextSlid = alternate != null && point.y <= down.position.y - 20.dp.toPx()
-                        if (nextSlid != slid && !held) { slid = nextSlid; preview(slid) }
+                        if (change.isConsumed || !active || revision != lifecycleRevision) { gesture.cancel(); break }
+                        // Independent keys retain two-thumb typing; a second finger on this key cancels it.
+                        if(event.changes.any { it.id != down.id && it.pressed &&
+                            it.position.x in 0f..size.width.toFloat() && it.position.y in 0f..size.height.toFloat() }) {
+                            gesture.cancel(); break
+                        }
+                        val delta=change.position-down.position
+                        gesture.move(delta.x/density,delta.y/density)
+                        if(gesture.sliding || gesture.cancelled) longPress?.cancel()
+                        preview()
                         if (!change.pressed) {
                             change.consume()
-                            if (held || slid) secondary() else primary()
-                            committed = true
+                            when(val selected=gesture.release()) {
+                                -1 -> { primary(); committed=true }
+                                -2 -> { secondary(); committed=true }
+                                null -> Unit
+                                else -> currentChoices[selected]?.let { it.action();committed=true }
+                            }
                             break
                         }
                         change.consume()

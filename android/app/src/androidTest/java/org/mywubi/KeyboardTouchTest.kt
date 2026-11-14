@@ -19,6 +19,45 @@ class KeyboardTouchTest {
     private val device = UiDevice.getInstance(instrumentation)
     private var downTime = 0L
 
+    @Test fun eightDirectionsMergedUpAndReturnToCenterUseOneReleaseAction() {
+        val events=CopyOnWriteArrayList<Any>()
+        val bindings=(0..7).associateWith { LayoutAction("Character",('a'+it).toString()) }
+        var model by mutableStateOf(KeyboardModel(enabled=true, customLayout=KeyboardLayout("test.directions",3f,3f,
+            listOf(LayoutKey("direction","方向键",1f,1f,1f,action=LayoutAction("Character","x"),directions=bindings)))))
+        ActivityScenario.launch(MainActivity::class.java).use { scenario ->
+            scenario.onActivity { it.setContent { Keyboard(model,{events.add(it)},{},switchIme={}) } }
+            val point=key("方向键").visibleCenter
+            val length=40*instrumentation.targetContext.resources.displayMetrics.density
+            for(direction in 0..7) {
+                val angle=direction*Math.PI/4
+                val x=point.x+(kotlin.math.sin(angle)*length).toInt()
+                val y=point.y-(kotlin.math.cos(angle)*length).toInt()
+                touch(MotionEvent.ACTION_DOWN,point.x,point.y)
+                touch(MotionEvent.ACTION_MOVE,x,y)
+                touch(MotionEvent.ACTION_UP,x,y)
+            }
+            settled()
+            assertEquals(('a'..'h').map(Char::toString),events.map {(it as JSONObject).getJSONArray("InputText").getString(0)})
+            touch(MotionEvent.ACTION_DOWN,point.x,point.y)
+            touch(MotionEvent.ACTION_MOVE,point.x,point.y-length.toInt())
+            touch(MotionEvent.ACTION_MOVE,point.x,point.y)
+            touch(MotionEvent.ACTION_UP,point.x,point.y);settled()
+            assertEquals(8,events.size)
+            val old=model.customLayout!!
+            val merged=old.keys.single().copy(directions=bindings+(listOf(7,0,1).associateWith {LayoutAction("Character","u")}))
+            scenario.onActivity {model=model.copy(customLayout=old.copy(id="test.merged",keys=listOf(merged)))}
+            settled()
+            for(direction in listOf(7,0,1)) {
+                val angle=direction*Math.PI/4
+                val x=point.x+(kotlin.math.sin(angle)*length).toInt()
+                val y=point.y-(kotlin.math.cos(angle)*length).toInt()
+                touch(MotionEvent.ACTION_DOWN,point.x,point.y);touch(MotionEvent.ACTION_MOVE,x,y);touch(MotionEvent.ACTION_UP,x,y)
+            }
+            settled()
+            assertEquals(List(3){"u"},events.takeLast(3).map {(it as JSONObject).getJSONArray("InputText").getString(0)})
+        }
+    }
+
     private fun key(label: String): UiObject2 {
         instrumentation.uiAutomation.clearCache()
         return device.wait(Until.findObject(By.desc(label).pkg("org.mywubi")),5000) ?: error("Missing $label")

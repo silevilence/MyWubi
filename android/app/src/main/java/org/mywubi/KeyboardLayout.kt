@@ -4,20 +4,27 @@ package org.mywubi
 data class LayoutAction(val kind: String, val value: String = "")
 data class LayoutKey(val id: String, val label: String, val x: Float, val y: Float,
     val width: Float, val height: Float = 1f, val action: LayoutAction,
-    val role: String = "key", val alternate: String? = null)
+    val role: String = "key", val alternate: String? = null,
+    val directions: Map<Int,LayoutAction> = emptyMap(),val hold: LayoutAction? = null)
 data class KeyboardLayout(val id: String, val width: Float, val height: Float, val keys: List<LayoutKey>) {
     companion object {
         /** Call on the loader thread. Only the shared validator can admit package geometry. */
         fun validated(id: String, source: org.json.JSONObject, mapping: org.json.JSONObject?, landscape: Boolean): KeyboardLayout {
-            val checked=NativeBridge.objectCall("ValidateKeyboardLayout","layout" to source,"mapping" to mapping).getJSONObject("layout")
+            val response=NativeBridge.objectCall("ValidateKeyboardLayout","layout" to source,"mapping" to mapping)
+            val checked=response.getJSONObject("layout")
             val layout=if(landscape) checked.optJSONObject("landscape") ?: checked else checked
+            val bindings=if(landscape && checked.optJSONObject("landscape")!=null) response.getJSONObject("landscape_bindings") else response.getJSONObject("bindings")
             val keys=layout.getJSONArray("keys")
             return KeyboardLayout(id,layout.getDouble("width").toFloat(),layout.getDouble("height").toFloat(),
                 (0 until keys.length()).map { index ->
                     val key=keys.getJSONObject(index);val action=key.getJSONObject("action")
+                    fun parseAction(value: org.json.JSONObject)=LayoutAction(value.getString("kind"),value.optString("value"))
+                    val directions=bindings.getJSONObject(key.getString("id"))
                     LayoutKey(key.getString("id"),key.getString("label"),key.getDouble("x").toFloat(),key.getDouble("y").toFloat(),
                         key.getDouble("width").toFloat(),key.getDouble("height").toFloat(),
-                        LayoutAction(action.getString("kind"),action.optString("value")),key.getString("role"))
+                        parseAction(action),key.getString("role"),directions=directionIds.mapIndexedNotNull { direction,name ->
+                            directions.optJSONObject(name)?.getJSONObject("action")?.let { direction to parseAction(it) }
+                        }.toMap(),hold=key.optJSONObject("long_press")?.let(::parseAction))
                 })
         }
     }
