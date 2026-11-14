@@ -26,6 +26,8 @@ pub struct Config {
     #[serde(default)]
     pub appearance: Appearance,
     #[serde(default)]
+    pub skins: crate::skin::preferences::SkinConfig,
+    #[serde(default)]
     pub dictionary: DictionaryCfg,
     #[serde(default)]
     pub hotkey: Hotkey,
@@ -477,6 +479,11 @@ impl Config {
 
     /// 语义校验。
     fn validate(&self) -> Result<(), Error> {
+        for preference in [&self.skins.windows, &self.skins.android] {
+            preference
+                .validate()
+                .map_err(|e| Error::Invalid("skins".into(), e.to_string()))?;
+        }
         self.validated_shortcuts()?;
         if !(1..=128).contains(&self.personal.max_mb)
             || !(1..=3650).contains(&self.personal.retention_days)

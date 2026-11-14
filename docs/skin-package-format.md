@@ -63,3 +63,11 @@ mapping = "1"
 `archive::import` 保存为 `<id>@<version>.mywubi-skin`，在版本库内暂存、同步、原子无覆盖发布。完全相同版本重复导入返回 already_present；相同身份内容不同返回 Conflict，调用者提示另存新版本。旧版始终保留，应用层可选择旧版本回退；导入不改配置或输入会话。`export_new` 也不覆盖现有文件。当前 API 不提供删除在用版本的操作。
 
 导出只来自包内文件映射，不读取本机配置、最近输入、词库或绝对路径。未知组件原始文件（包括注释）与共享资源原样保存；已知根/平台 metadata 重新序列化但保留合法扩展字段。运行平台的图片解码另由图片能力实现，ZIP 层不解码任何图片。
+
+## 参数解析与配置（SK-04）
+
+外观文件包含 `default_variant`、`defaults` 与 `variants.light` / `variants.dark`。共享与平台 defaults 也可含 light/dark 子表，先应用公共字段再应用所选变体。字段是扁平语义标量，支持名称见 `parameters::COLORS` 和 `validate_patch`；未知字段、类型冲突、非有限数和越界数报错，包括当前未选中的变体。合法未知组件保持只读。
+
+`parameters::resolve` 供运行端与预览共用。`builtin_package` 生成墨绿、素简和高对比的双端可编辑副本。`skins.windows` / `skins.android` 分别保存 preset（legacy/jade/plain/contrast）、mode（system/light/dark）、selection（id/version/component）、use_skin_metrics 与 overrides。缺少此节按 legacy 解释，不改写旧 appearance。默认保留 Windows 旧字号和 Android 使用偏好，采用推荐字号需显式选择；选择包优先于 preset。选择字段不出现在导出的皮肤包内。
+
+SK-04 只交付共享解析、配置读写和双端设置草稿入口；实际加载/渲染分别由 SK-05/06/12 接入。已验证 5 项定向参数测试、核心严格 Clippy、Windows settings 与 Android JNI 检查、离线 Kotlin 编译。Kotlin 检查复用本地原生库；最终 APK 需重新编译两种 ABI 后统一验收。

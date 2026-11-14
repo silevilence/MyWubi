@@ -15,6 +15,8 @@ pub fn show(ui: &mut Ui, state: &mut AppState) {
     ui.heading("外观样式");
     ui.separator();
 
+    skin_preferences(ui, state);
+
     // 迷你候选框预览
     preview(ui, state);
 
@@ -52,6 +54,54 @@ pub fn show(ui: &mut Ui, state: &mut AppState) {
         &mut state.dirty,
         &mut state.status_msg,
     );
+}
+
+fn skin_preferences(ui: &mut Ui, state: &mut AppState) {
+    use core_engine::skin::preferences::Mode;
+    let preference = &mut state.config.skins.windows;
+    let before = preference.clone();
+    eframe::egui::ComboBox::from_label("皮肤方案")
+        .selected_text(match preference.preset.as_str() {
+            "jade" => "墨绿",
+            "plain" => "素简",
+            "contrast" => "高对比",
+            _ => "保留旧外观",
+        })
+        .show_ui(ui, |ui| {
+            for (id, label) in [
+                ("legacy", "保留旧外观"),
+                ("jade", "墨绿"),
+                ("plain", "素简"),
+                ("contrast", "高对比"),
+            ] {
+                if ui
+                    .selectable_value(&mut preference.preset, id.into(), label)
+                    .changed()
+                {
+                    preference.selection = None;
+                }
+            }
+        });
+    eframe::egui::ComboBox::from_label("明暗模式")
+        .selected_text(match preference.mode {
+            Mode::System => "跟随系统",
+            Mode::Light => "浅色",
+            Mode::Dark => "深色",
+        })
+        .show_ui(ui, |ui| {
+            for (mode, label) in [
+                (Mode::System, "跟随系统"),
+                (Mode::Light, "浅色"),
+                (Mode::Dark, "深色"),
+            ] {
+                ui.selectable_value(&mut preference.mode, mode, label);
+            }
+        });
+    ui.checkbox(&mut preference.use_skin_metrics, "采用皮肤推荐字号");
+    ui.small("保存后应用；默认保留当前字号。旧外观使用下方原有颜色设置。");
+    if *preference != before {
+        state.mark_dirty();
+    }
 }
 
 fn color_row(

@@ -26,6 +26,17 @@ background_color = 0xFFFFFFFF
 # 候选项高亮色
 highlight_color = 0xFFFFD54F
 
+# 未选择新皮肤时保留旧外观。皮肤包不包含这些个人偏好。
+[skins.windows]
+preset = "legacy"
+mode = "system"
+use_skin_metrics = false
+
+[skins.android]
+preset = "legacy"
+mode = "system"
+use_skin_metrics = false
+
 [dictionary]
 # 系统码表路径
 system_table = "tables/wubi86.dict"

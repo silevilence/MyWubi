@@ -177,7 +177,7 @@ private fun SettingsScreen(model: SettingsModel, enable: () -> Unit, choose: () 
             }
             if (section == 1) {
                 Text("手机键盘", style = MaterialTheme.typography.titleLarge)
-                Text("本页开关自动保存，无需点击底部保存。", style = MaterialTheme.typography.bodySmall)
+                Text("以下输入习惯开关自动保存。皮肤设置需点击底部保存。", style = MaterialTheme.typography.bodySmall)
                 SettingToggle("按键振动", vibration) { vibration = it; model.ui.edit().putBoolean("vibration", it).apply() }
                 SettingToggle("唤起键盘时显示剪贴板建议", clipboard) { clipboard = it; model.ui.edit().putBoolean("clipboard_suggestion", it).apply() }
                 Text("点击建议即可粘贴，开始输入或关闭建议后隐藏。密码框和标记为敏感的剪贴板内容不显示预览。", style = MaterialTheme.typography.bodySmall)
@@ -186,12 +186,34 @@ private fun SettingsScreen(model: SettingsModel, enable: () -> Unit, choose: () 
                 HorizontalDivider()
                 Text("删除手势", style = MaterialTheme.typography.titleMedium)
                 Text("轻点删除一个字；长按连续删除；长按后向上滑，看到「松手清空」再松手，可清空当前输入框。滑回按键可取消清空。")
+                HorizontalDivider()
+                config?.let { SkinPreferences(model, it) }
             }
             Spacer(Modifier.height(24.dp))
         }
     }
     if (confirmLeave) AlertDialog(onDismissRequest = { confirmLeave = false }, title = { Text("保留草稿并退出？") }, text = { Text("更改尚未保存到引擎配置，下次打开可继续编辑。") }, confirmButton = { TextButton(onClick = leave, enabled = !model.busy) { Text("保留并退出") } }, dismissButton = { TextButton(onClick = { confirmLeave = false }) { Text("继续编辑") } })
     if (confirmReload) AlertDialog(onDismissRequest = { confirmReload = false }, title = { Text("重新载入磁盘设置？") }, text = { Text("这会放弃当前设置草稿和待启用的导入选择，已保存数据不受影响。") }, confirmButton = { TextButton(onClick = { confirmReload = false; model.reload(true) }) { Text("重新载入") } }, dismissButton = { TextButton(onClick = { confirmReload = false }) { Text("保留草稿") } })
+}
+
+@Composable
+private fun SkinPreferences(model: SettingsModel, config: JSONObject) {
+    val skins = config.optJSONObject("skins") ?: JSONObject()
+    val preference = skins.optJSONObject("android") ?: JSONObject()
+    fun update(key: String, value: Any) {
+        val copy = JSONObject(preference.toString()).put(key, value)
+        if (key == "preset") copy.remove("selection")
+        model.change("skins", "android", copy)
+    }
+    Text("键盘皮肤", style = MaterialTheme.typography.titleMedium)
+    val presets = listOf("保留旧外观" to "legacy", "墨绿" to "jade", "素简" to "plain", "高对比" to "contrast")
+    val preset = preference.optString("preset", "legacy")
+    TableChoice("皮肤方案", presets.firstOrNull { it.second == preset }?.first ?: preset, presets, !model.busy) { update("preset", it) }
+    val modes = listOf("跟随系统" to "system", "浅色" to "light", "深色" to "dark")
+    val mode = preference.optString("mode", "system")
+    TableChoice("明暗模式", modes.firstOrNull { it.second == mode }?.first ?: mode, modes, !model.busy) { update("mode", it) }
+    SettingToggle("采用皮肤推荐字号", preference.optBoolean("use_skin_metrics"), !model.busy) { update("use_skin_metrics", it) }
+    Text("保存后应用；换肤保留输入习惯、键位和手势。", style = MaterialTheme.typography.bodySmall)
 }
 
 @Composable
