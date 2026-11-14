@@ -51,6 +51,7 @@ data class ExpressionQueryUi(val kind: String, val phase: String, val text: Stri
 private val LocalKeyboardKeyHeight = staticCompositionLocalOf { 54.dp }
 data class KeyboardModel(
     val customLayout: KeyboardLayout? = null,
+    val mappingIdentity: JSONObject? = null,
     val skin: JSONObject? = null,
     val expression: ExpressionQueryUi? = null,
     val emojiAvailable: Boolean = false, val kaomojiAvailable: Boolean = false,
@@ -297,7 +298,7 @@ fun Keyboard(model: KeyboardModel, dispatch: (Any) -> Unit, window: (Int) -> Uni
                         else -> BuiltinKeyboardLayouts.symbols(asciiSymbols)
                     }
                 }
-                if (model.customLayout != null) TextButton(onClick={dispatch("Cancel"); useCustom=false; panel="letters"}) { Text("取消输入并恢复全键布局") }
+                if (model.customLayout != null) TextButton(onClick={dispatch("RestoreKeyboard"); useCustom=false; panel="letters"}) { Text("取消输入并恢复全键布局") }
                 BoxWithConstraints(Modifier.fillMaxWidth().height(LocalKeyboardKeyHeight.current*layout.height)) {
                     val unit=maxWidth/layout.width
                     for (key in layout.keys) {
@@ -315,6 +316,7 @@ fun Keyboard(model: KeyboardModel, dispatch: (Any) -> Unit, window: (Int) -> Uni
                         fun perform(action: LayoutAction) {
                             when(action.kind) {
                                 "Character" -> {input(if(action == key.action) value else action.value); if(isLetter) shift=shift.consumed()}
+                                "Group" -> model.mappingIdentity?.let { identity -> dispatch(JSONObject().put("InputGroup",org.json.JSONArray().put(identity).put(action.value))) }
                                 "Shift" -> shift=shift.next()
                                 "Letters" -> panel="letters"
                                 "Numbers" -> panel="numbers"

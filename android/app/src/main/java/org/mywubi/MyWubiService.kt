@@ -49,6 +49,11 @@ class MyWubiService : InputMethodService() {
     private val idleRefresh = Runnable { render(); predictionController.learning(false,viewVisible) }
     private var candidateOffset = 0
     private var keyboard by mutableStateOf(KeyboardModel())
+    private var combination: KeyboardCombination? = null
+    private var pendingCombination: KeyboardCombination? = null
+    private var hasPendingCombination = false
+    private var keyTouches = 0
+    private var boundMapping: String? = null
     private var skinAppearance: JSONObject? = null
     private var lastConfig: JSONObject? = null
     private var error: String? = null
@@ -88,6 +93,7 @@ class MyWubiService : InputMethodService() {
                 NativeHandle(config.getLong("version")).close()
                 val nextConfig = config.getJSONObject("config")
                 val skin = runCatching { loadSkinAppearance(path, nextConfig) }
+                val nextKeyboard = runCatching { restoreKeyboard(path, nextConfig) }
                 val appearanceOnly = hasRuntime && previousConfig != null && NativeBridge.objectCall(
                     "SameInputConfiguration", "previous" to previousConfig, "current" to nextConfig).getBoolean("same")
                 if (appearanceOnly) {
@@ -100,7 +106,8 @@ class MyWubiService : InputMethodService() {
                             }.onFailure {
                                 updates.edit().putString("error", "皮肤加载失败，保留原外观：${it.message}").apply()
                             }
-                            render()
+                            queueKeyboard(nextKeyboard)
+                            refresh()
                         }
                     }
                     return@execute
@@ -115,6 +122,8 @@ class MyWubiService : InputMethodService() {
                         val previous = runtime
                         runtime = result
                         lastConfig = nextConfig
+                        boundMapping = null
+                        queueKeyboard(nextKeyboard)
                         skin.onSuccess { skinAppearance = it }
                         try {
                             val s = session
@@ -160,6 +169,7 @@ class MyWubiService : InputMethodService() {
         val r = runtime ?: return
         if (!active) return
         editor.abandon()
+        boundMapping = null
         ownSelections.clear(); projectedPreedit = null
         val s = session
         if (s == null) session = NativeHandle(NativeBridge.objectCall("CreateSession", "runtime" to r.value, "context" to hostContext()).getLong("handle"))
@@ -238,7 +248,9 @@ class MyWubiService : InputMethodService() {
             setViewTreeSavedStateRegistryOwner(owner)
             setViewCompositionStrategy(ViewCompositionStrategy.DisposeOnViewTreeLifecycleDestroyed)
             setContent { Keyboard(keyboard, ::dispatch, { keyboardActivity(); candidateOffset = it; refresh() }, onTouch = { pressed ->
+                keyTouches = (keyTouches + if(pressed) 1 else -1).coerceAtLeast(0)
                 idle.touch(pressed, android.os.SystemClock.elapsedRealtime())
+                if(keyTouches == 0) main.post { refresh() }
                 keyboardActivity()
             }, hideKeyboard = { requestHideSelf(0) }, openSettings = {
                 startActivity(android.content.Intent(this@MyWubiService, MainActivity::class.java)
@@ -278,6 +290,7 @@ class MyWubiService : InputMethodService() {
                 applyPlan(NativeBridge.objectCall("Prepare", "session" to current.value, "action" to "EndTemporary"))
             }
         }
+        keyTouches = 0
         viewVisible = false; idle.touch(false, android.os.SystemClock.elapsedRealtime())
         main.removeCallbacks(idleRefresh); refresh(); viewOwner?.visible(false)
         super.onFinishInputView(finishingInput)
@@ -292,7 +305,11 @@ class MyWubiService : InputMethodService() {
         val stableIdle = active && viewVisible && session != null && idle.isIdle(
             android.os.SystemClock.elapsedRealtime(), spelling, items.length() > 0 || state.optBoolean("prediction_waiting"), editor.ownsPreedit, temporary != null)
         keyboard = KeyboardModel(
-            skin = skinAppearance,
+            skin = combination?.appearance ?: skinAppearance,
+            customLayout = combination?.takeIf { customKeyboardAllowed(inputPolicy.purpose,inputPolicy.layout,state.optString("base","Main"),temporary) }?.let {
+                if(resources.configuration.orientation == android.content.res.Configuration.ORIENTATION_LANDSCAPE) it.landscape else it.portrait
+            },
+            mappingIdentity = combination?.identity,
             expression = state.optJSONObject("view")?.optJSONObject("expression")?.let { query ->
                 ExpressionQueryUi(query.getString("kind"), query.getString("phase"), query.getString("text"),
                     query.optString("message").takeIf { it.isNotBlank() && it != "null" }, query.optString("input", "Words"))
@@ -348,6 +365,15 @@ class MyWubiService : InputMethodService() {
 
     private fun dispatch(action: Any) {
         if (!active || !viewVisible) return
+        if(action == "RestoreKeyboard") {
+            dispatch("Cancel")
+            loader.execute {
+                val result=runCatching { NativeBridge.objectCall("ManageKeyboard","request" to keyboardRequest(Resources.prepare(this),"Reset")) }
+                main.post { result.onSuccess { pendingCombination=null;hasPendingCombination=true;refresh() }
+                    .onFailure {error="恢复失败：${it.message}";render()} }
+            }
+            return
+        }
         val request = if (action == "PasteClipboard") clipboardSuggestion.text?.let(::PasteClipboard) ?: return else action
         clipboardSuggestion.dismiss()
         keyboardActivity()
@@ -381,6 +407,11 @@ class MyWubiService : InputMethodService() {
         val host = connection ?: run { error = "输入连接暂不可用"; render(); return }
         val epoch = editorEpoch
         if (!active || !viewVisible) return
+        if(request is JSONObject && request.has("InputGroup")) {
+            val current=NativeBridge.objectCall("State","session" to s.value)
+            if(!customKeyboardAllowed(inputPolicy.purpose,inputPolicy.layout,current.optString("base","Main"),
+                current.optString("temporary").takeIf {it.isNotBlank() && it!="null"})) return
+        }
         candidateOffset = 0
         try {
             syncPredictionPrefix()
@@ -493,9 +524,37 @@ class MyWubiService : InputMethodService() {
         return true
     }
 
+    private fun queueKeyboard(result: Result<KeyboardCombination?>) {
+        result.onSuccess { pendingCombination=it;hasPendingCombination=true }
+            .onFailure { updates.edit().putString("error","键盘加载失败，保留原组合：${it.message}").apply() }
+    }
+
+    private fun publishKeyboard() {
+        val spelling=state.optJSONObject("view")?.optString("spelling").orEmpty()
+        if(hasPendingCombination) {
+            val next=pendingCombination
+            val sameInput=combination != null && next != null && combination?.portrait==next.portrait &&
+                combination?.landscape==next.landscape && combination?.identity?.toString()==next.identity?.toString()
+            if(canPublishKeyboard(keyTouches,spelling,sameInput)) {
+                combination=next;pendingCombination=null;hasPendingCombination=false
+                if(!sameInput) boundMapping=null
+            }
+        }
+        val current=combination ?: return
+        val identity=current.identity ?: return
+        val s=session ?: return
+        if(spelling.isEmpty() && active && inputPolicy.purpose=="Text" && boundMapping!=identity.toString()) {
+            val plan=NativeBridge.objectCall("Prepare","session" to s.value,"action" to JSONObject()
+                .put("BindMapping",JSONArray().put(identity).put(current.definition)))
+            if(applyPlan(plan) && plan.optString("disposition")!="Rejected") boundMapping=identity.toString()
+        }
+    }
+
     private fun refresh() {
         if (destroyed) return
         session?.let {
+            state = NativeBridge.objectCall("State", "session" to it.value)
+            publishKeyboard()
             state = NativeBridge.objectCall("State", "session" to it.value)
             candidates = NativeBridge.objectCall("Candidates", "session" to it.value, "offset" to candidateOffset, "count" to 256)
         }
