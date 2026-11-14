@@ -130,6 +130,117 @@ fn invalid<T>(message: &str) -> Result<T, Error> {
     Err(Error::Invalid(message.into()))
 }
 
+impl Layout {
+    /// Persistent application controls can satisfy operations outside the custom canvas.
+    pub fn validate_geometry(
+        &self,
+        mapping: Option<&Mapping>,
+        controls: &[KeyAction],
+    ) -> Result<(), Error> {
+        validate_header(self.format, &self.charset, &self.modes)?;
+        if !self.width.is_finite()
+            || !self.height.is_finite()
+            || self.width <= 0.0
+            || self.height <= 0.0
+            || self.keys.is_empty()
+            || self.keys.len() > 256
+        {
+            return invalid("布局画布尺寸或按键数量无效");
+        }
+        let mut ids = BTreeSet::new();
+        let mut covered = BTreeSet::new();
+        let mut reachable = controls.to_vec();
+        for (index, key) in self.keys.iter().enumerate() {
+            if !super::valid_id(&key.id) || !ids.insert(&key.id) || !super::valid_id(&key.role) {
+                return invalid(&format!("按键 {} 身份或样式角色无效/重复", key.id));
+            }
+            if ![key.x, key.y, key.width, key.height]
+                .into_iter()
+                .all(f32::is_finite)
+                || key.x < 0.0
+                || key.y < 0.0
+                || key.width <= 0.0
+                || key.height <= 0.0
+                || key.x + key.width > self.width + 0.0001
+                || key.y + key.height > self.height + 0.0001
+            {
+                return invalid(&format!("按键 {} 超出画布或尺寸无效", key.id));
+            }
+            for other in &self.keys[..index] {
+                if key.x < other.x + other.width - 0.0001
+                    && other.x < key.x + key.width - 0.0001
+                    && key.y < other.y + other.height - 0.0001
+                    && other.y < key.y + key.height - 0.0001
+                {
+                    return invalid(&format!("按键 {} 与 {} 触摸区域重叠", key.id, other.id));
+                }
+            }
+            let bindings = super::directions::resolve(
+                &self.directions,
+                &key.directions,
+                &key.disabled_directions,
+            )?;
+            if key.action == KeyAction::Backspace
+                && (!bindings.is_empty() || key.long_press.is_some())
+            {
+                return invalid(&format!(
+                    "按键 {}：退格使用专用状态机，不能叠加方向或长按动作",
+                    key.id
+                ));
+            }
+            for action in std::iter::once(&key.action)
+                .chain(key.long_press.iter())
+                .chain(bindings.values().map(|b| &b.action))
+            {
+                match action {
+                    KeyAction::Character(c) if c.is_control() => {
+                        return invalid(&format!("按键 {} 包含控制字符", key.id))
+                    }
+                    KeyAction::Character(c) => {
+                        covered.insert(*c);
+                    }
+                    KeyAction::Group(id) => {
+                        let chars = mapping.and_then(|m| m.groups.get(id)).ok_or_else(|| {
+                            Error::Invalid(format!("按键 {} 缺少分组 {id}", key.id))
+                        })?;
+                        covered.extend(chars.chars());
+                    }
+                    _ => reachable.push(action.clone()),
+                }
+            }
+        }
+        for required in [
+            KeyAction::Backspace,
+            KeyAction::Space,
+            KeyAction::Enter,
+            KeyAction::Cancel,
+        ] {
+            if !reachable.contains(&required) {
+                return invalid(&format!("布局缺少必要操作：{required:?}"));
+            }
+        }
+        let missing: String = self
+            .charset
+            .chars()
+            .filter(|c| !covered.contains(c))
+            .collect();
+        if !missing.is_empty() {
+            return invalid(&format!("布局无法输入目标字符：{missing}"));
+        }
+        if let Some(landscape) = &self.landscape {
+            if landscape.landscape.is_some()
+                || landscape.charset != self.charset
+                || landscape.modes != self.modes
+                || landscape.mapping != self.mapping
+            {
+                return invalid("横屏变体不得嵌套或改变字符集、模式及映射");
+            }
+            landscape.validate_geometry(mapping, controls)?;
+        }
+        Ok(())
+    }
+}
+
 /// Validate the component dependency, not merely the presence of a similarly named file.
 pub fn mapping(package: &Package, component: &Component) -> Result<Mapping, Error> {
     if component.kind != "mapping" || !component.path.starts_with("mappings/") {

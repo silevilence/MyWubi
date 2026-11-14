@@ -131,3 +131,52 @@ fn multiple_and_layout_only_components_use_builtin_appearance() {
     assert_eq!(decoded.keys[0].action, KeyAction::Group("pair".into()));
     assert_eq!(mapping.unwrap().groups["pair"], "ab");
 }
+
+#[test]
+fn geometry_validates_split_staggered_tall_keys_and_reports_specific_failures() {
+    let p = package();
+    let (mut layout, mapping) =
+        layout(&p, p.platforms["android"].components.last().unwrap()).unwrap();
+    let controls = [
+        KeyAction::Backspace,
+        KeyAction::Space,
+        KeyAction::Enter,
+        KeyAction::Cancel,
+    ];
+    layout.width = 6.0;
+    layout.height = 3.0;
+    layout.keys[0].x = 0.5;
+    layout.keys[0].height = 2.0;
+    let mut second = layout.keys[0].clone();
+    second.id = "right".into();
+    second.x = 4.0;
+    second.y = 1.0;
+    layout.keys.push(second);
+    assert!(layout
+        .validate_geometry(mapping.as_ref(), &controls)
+        .is_ok());
+    layout.keys[1].x = 1.0;
+    assert!(layout
+        .validate_geometry(mapping.as_ref(), &controls)
+        .unwrap_err()
+        .to_string()
+        .contains("right"));
+    layout.keys.pop();
+    layout.keys[0].width = f32::NAN;
+    assert!(layout
+        .validate_geometry(mapping.as_ref(), &controls)
+        .is_err());
+    layout.keys[0].width = 1.0;
+    layout.charset.push('c');
+    assert!(layout
+        .validate_geometry(mapping.as_ref(), &controls)
+        .unwrap_err()
+        .to_string()
+        .contains('c'));
+    layout.charset = "ab".into();
+    assert!(layout
+        .validate_geometry(mapping.as_ref(), &[])
+        .unwrap_err()
+        .to_string()
+        .contains("Backspace"));
+}

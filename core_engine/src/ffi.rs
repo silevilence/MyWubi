@@ -114,6 +114,10 @@ enum Request {
     ValidateConfig {
         config: Config,
     },
+    ValidateKeyboardLayout {
+        layout: crate::skin::keyboard::Layout,
+        mapping: Option<crate::skin::keyboard::Mapping>,
+    },
     InspectShortcuts {
         rules: Vec<crate::shortcuts::ShortcutRule>,
         table: TableConfig,
@@ -433,6 +437,13 @@ impl Registry {
                     return Err(err(6, "file changed during read"));
                 }
                 json!({"config":config,"inactive":config.inactive_fields(),"version":self.version(path,before)?})
+            }
+            Request::ValidateKeyboardLayout { layout, mapping } => {
+                use crate::skin::keyboard::KeyAction;
+                if let Some(mapping) = &mapping { mapping.validate().map_err(|e| err(5,e.to_string()))?; }
+                layout.validate_geometry(mapping.as_ref(), &[KeyAction::Space,KeyAction::Enter,KeyAction::Cancel])
+                    .map_err(|e| err(5,e.to_string()))?;
+                json!({"layout":layout,"mapping":mapping})
             }
             Request::ValidateConfig { config } => {
                 config

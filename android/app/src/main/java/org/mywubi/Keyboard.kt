@@ -50,6 +50,7 @@ data class ExpressionQueryUi(val kind: String, val phase: String, val text: Stri
 
 private val LocalKeyboardKeyHeight = staticCompositionLocalOf { 54.dp }
 data class KeyboardModel(
+    val customLayout: KeyboardLayout? = null,
     val skin: JSONObject? = null,
     val expression: ExpressionQueryUi? = null,
     val emojiAvailable: Boolean = false, val kaomojiAvailable: Boolean = false,
@@ -104,6 +105,7 @@ fun Keyboard(model: KeyboardModel, dispatch: (Any) -> Unit, window: (Int) -> Uni
     var panel by remember(model.epoch, model.layout) {
         mutableStateOf(if (model.layout in listOf("number", "phone")) "numbers" else "letters")
     }
+    var useCustom by remember(model.epoch, model.customLayout?.id) { mutableStateOf(true) }
     var expanded by remember(model.epoch) { mutableStateOf(false) }
     var specialMenu by remember(model.epoch) { mutableStateOf(false) }
     val showExpanded = expanded && model.candidates.isNotEmpty() && !model.privateInput
@@ -286,57 +288,54 @@ fun Keyboard(model: KeyboardModel, dispatch: (Any) -> Unit, window: (Int) -> Uni
                     TextButton(onClick=next,enabled=canNext,
                         modifier=Modifier.imeAction("下一组",canNext,next)) {Text("下一组", maxLines=1)}
                 }
-            } else when (panel) {
-                "letters" -> {
-                    BoxWithConstraints(Modifier.fillMaxWidth()) {
-                        val unit = maxWidth / 10
-                        Column {
-                            for ((index, row) in listOf("qwertyuiop", "asdfghjkl", "zxcvbnm").withIndex()) {
-                                Row(Modifier.fillMaxWidth(), horizontalArrangement=Arrangement.Center) {
-                                    if (index == 2) Key(if(shift == KeyMode.Locked) "⇪" else "⇧",model.enabled,model.epoch,Modifier.width(unit*1.5f),
-                                        description=when(shift) { KeyMode.Off -> "小写"; KeyMode.Once -> "大写 · 本次"; KeyMode.Locked -> "大写 · 锁定" },
-                                        function=true, selected=shift != KeyMode.Off) {shift=shift.next()}
-                                    for (character in row) {
-                                        val value = if(shift != KeyMode.Off) character.uppercaseChar().toString() else character.toString()
-                                        val symbol = letterSymbol(character, !model.privateInput && model.layout == "letters" &&
-                                            (model.base == "Main" || model.temporary == "Pinyin"))
-                                        Key(value,model.enabled,model.epoch,Modifier.width(unit), alternate=symbol,
-                                            previewEnabled=!model.privateInput,
-                                            alternateAction={dispatch(JSONObject().put("InputSymbol", symbol))}) {input(value); shift=shift.consumed()}
-                                    }
-                                    if (index == 2) Key("⌫",model.enabled,model.epoch,Modifier.width(unit*1.5f),
-                                        repeat=true,description="退格",function=true,clearAction={dispatch("ClearEditor")}) {dispatch("Backspace")}
-                                }
-                            }
-                        }
+            } else {
+                val layout = remember(panel, asciiSymbols, model.layout, model.enterLabel, model.customLayout, useCustom, model.privateInput) {
+                    when(panel) {
+                        "letters" -> model.customLayout?.takeIf { useCustom && !model.privateInput && model.layout == "letters" }
+                            ?: BuiltinKeyboardLayouts.letters()
+                        "numbers" -> BuiltinKeyboardLayouts.numbers(model.layout == "phone", model.enterLabel)
+                        else -> BuiltinKeyboardLayouts.symbols(asciiSymbols)
                     }
                 }
-                "numbers" -> {
-                    Row(Modifier.fillMaxWidth()) {
-                        Column(Modifier.weight(1f)) {
-                            for (label in if(model.layout=="phone") listOf("+", "*", "#", ",") else listOf("+", "-", "/", "=")) {
-                                Key(label,model.enabled,model.epoch,Modifier.fillMaxWidth(),function=true,previewEnabled=!model.privateInput) {input(label)}
+                if (model.customLayout != null) TextButton(onClick={dispatch("Cancel"); useCustom=false; panel="letters"}) { Text("取消输入并恢复全键布局") }
+                BoxWithConstraints(Modifier.fillMaxWidth().height(LocalKeyboardKeyHeight.current*layout.height)) {
+                    val unit=maxWidth/layout.width
+                    for (key in layout.keys) {
+                        val character=key.action.value.singleOrNull()
+                        val isLetter=key.action.kind == "Character" && character?.isLowerCase() == true
+                        val value=if(isLetter && shift != KeyMode.Off) key.action.value.uppercase() else key.action.value
+                        val label=when {
+                            key.action.kind == "Shift" -> if(shift == KeyMode.Locked) "⇪" else "⇧"
+                            isLetter && key.label == key.action.value -> value
+                            key.action.kind == "Enter" -> model.enterLabel
+                            else -> key.label
+                        }
+                        val symbol=key.alternate ?: if(layout.id == "builtin.26" && character != null)
+                            letterSymbol(character, !model.privateInput && model.layout == "letters" && (model.base == "Main" || model.temporary == "Pinyin")) else null
+                        Key(label,model.enabled,model.epoch,
+                            Modifier.offset(x=unit*key.x,y=LocalKeyboardKeyHeight.current*key.y).width(unit*key.width),
+                            heightFactor=key.height,
+                            repeat=key.action.kind == "Backspace", description=when(key.action.kind) {
+                                "Backspace" -> "退格"
+                                "Shift" -> when(shift) { KeyMode.Off -> "小写"; KeyMode.Once -> "大写 · 本次"; KeyMode.Locked -> "大写 · 锁定" }
+                                else -> label
+                            }, function=key.role == "function",accent=key.role == "selected",
+                            selected=key.action.kind == "Shift" && shift != KeyMode.Off,
+                            alternate=symbol,previewEnabled=!model.privateInput,
+                            alternateAction={if(symbol != null) dispatch(JSONObject().put("InputSymbol",symbol))},
+                            clearAction={dispatch("ClearEditor")}) {
+                            when(key.action.kind) {
+                                "Character" -> {input(value); if(isLetter) shift=shift.consumed()}
+                                "Shift" -> shift=shift.next()
+                                "Letters" -> panel="letters"
+                                "Numbers" -> panel="numbers"
+                                "Symbols" -> panel="symbols"
+                                "English" -> toggleBase()
+                                "Pinyin" -> cyclePinyin()
+                                "PageNext" -> dispatch(JSONObject().put("MoveCandidatePage",true))
+                                "PagePrevious" -> dispatch(JSONObject().put("MoveCandidatePage",false))
+                                "Backspace", "Space", "Enter", "Cancel" -> dispatch(key.action.kind)
                             }
-                        }
-                        Column(Modifier.weight(4.5f)) {
-                            for (row in listOf(listOf("1","2","3"),listOf("4","5","6"),listOf("7","8","9"),listOf(".","0",","))) {
-                                Row { for(label in row) Key(label,model.enabled,model.epoch,Modifier.weight(1f),previewEnabled=!model.privateInput) {input(label)} }
-                            }
-                        }
-                        Column(Modifier.weight(1.5f)) {
-                            Key("⌫",model.enabled,model.epoch,Modifier.fillMaxWidth(),repeat=true,description="退格",function=true,clearAction={dispatch("ClearEditor")}) {dispatch("Backspace")}
-                            Key("ABC",model.enabled,model.epoch,Modifier.fillMaxWidth(),function=true) {panel="letters"}
-                            Key("符号",model.enabled,model.epoch,Modifier.fillMaxWidth(),function=true) {panel="symbols"}
-                            Key(model.enterLabel,model.enabled,model.epoch,Modifier.fillMaxWidth(),accent=true) {dispatch("Enter")}
-                        }
-                    }
-                }
-                else -> {
-                    val rows = if (asciiSymbols) listOf("!@#$%^&*", "()[]{}<>", "-_=+\\|/~", "`'\":;?,.")
-                        else listOf("，。！？、：；", "（）【】《》“”", "@#￥%&*+", "-_=/'\"~")
-                    for (row in rows) {
-                        Row(Modifier.fillMaxWidth()) {
-                            for (character in row) Key(character.toString(),model.enabled,model.epoch,Modifier.weight(1f),previewEnabled=!model.privateInput) {input(character.toString())}
                         }
                     }
                 }
@@ -500,9 +499,9 @@ private fun ExpandedCandidateButton(item: CandidateItem, enabled: Boolean, showH
 @Composable
 private fun Key(label:String,enabled:Boolean,epoch:Long,modifier:Modifier,repeat:Boolean=false,
                 description:String=label,function:Boolean=false,accent:Boolean=false,selected:Boolean=false,
-                alternate:String?=null,previewEnabled:Boolean=false,alternateAction:()->Unit={},clearAction:()->Unit={},action:()->Unit) {
+                alternate:String?=null,previewEnabled:Boolean=false,heightFactor:Float=1f,alternateAction:()->Unit={},clearAction:()->Unit={},action:()->Unit) {
     // The entire column is touchable. KeyTouch draws the inset keycap inside it.
-    val keyModifier=modifier.height(LocalKeyboardKeyHeight.current)
+    val keyModifier=modifier.height(LocalKeyboardKeyHeight.current*heightFactor)
     val colors=MaterialTheme.colorScheme
     val background=when {accent || selected -> colors.primary; function -> colors.secondaryContainer; else -> colors.surfaceContainerLowest}
     val foreground=when {accent || selected -> colors.onPrimary; function -> colors.onSecondaryContainer; else -> skinColor("key_text",colors.onSurface)}
