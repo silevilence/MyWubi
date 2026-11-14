@@ -1,0 +1,8 @@
+& : File C:\AK-Source\sandbox-start.ps1 cannot be loaded because running script
+s is disabled on this system. For more information, see about_Execution_Policie
+s at https:/go.microsoft.com/fwlink/?LinkID=135170.
+At line:1 char:9
++ try { & C:\AK-Source\sandbox-start.ps1 } catch { $_ | Out-String | Ou ...
++         ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    + CategoryInfo          : SecurityError: (:) [], PSSecurityException
+    + FullyQualifiedErrorId : UnauthorizedAccess

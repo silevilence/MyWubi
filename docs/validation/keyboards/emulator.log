@@ -1,0 +1,105 @@
+INFO    | Storing crashdata in: C:\Users\silev\AppData\Local\Temp\\AndroidEmulator\emu-crash-34.1.19.db, detection is enabled for process: 25516
+INFO    | Android emulator version 34.1.19.0 (build_id 11525734) (CL:N/A)
+INFO    | Found systemPath C:\Program Files (x86)\Android\android-sdk\system-images\android-34\google_apis_playstore\x86_64\
+INFO    | Storing crashdata in: C:\Users\silev\AppData\Local\Temp\\AndroidEmulator\emu-crash-34.1.19.db, detection is enabled for process: 33628
+INFO    | Duplicate loglines will be removed, if you wish to see each individual line launch with the -log-nofilter flag.
+INFO    | Changing default hw.initialOrientation to portrait
+INFO    | Increasing RAM size to 2048MB
+INFO    | IPv4 server found:
+INFO    | Ignore IPv6 address: b8eb:6f13:9701:0:b0df:6f13:9701:0
+INFO    | Ignore IPv6 address: b8eb:6f13:9701:0:b0df:6f13:9701:0 (2x)
+INFO    | Ignore IPv6 address: a8f1:6f13:9701:0:b0df:6f13:9701:0
+INFO    | Ignore IPv6 address: a8f1:6f13:9701:0:b0df:6f13:9701:0 (2x)
+INFO    | Ignore IPv6 address: 3800:7013:9701:0:b0df:6f13:9701:0
+INFO    | Ignore IPv6 address: 3800:7013:9701:0:b0df:6f13:9701:0 (2x)
+INFO    | Ignore IPv6 address: b006:7013:9701:0:b0df:6f13:9701:0
+INFO    | Ignore IPv6 address: b006:7013:9701:0:b0df:6f13:9701:0 (2x)
+INFO    | Ignore IPv6 address: d80c:7013:9701:0:b0df:6f13:9701:0
+INFO    | Ignore IPv6 address: d80c:7013:9701:0:b0df:6f13:9701:0 (2x)
+INFO    | Ignore IPv6 address: f014:7013:9701:0:b0df:6f13:9701:0
+INFO    | Ignore IPv6 address: f014:7013:9701:0:b0df:6f13:9701:0 (2x)
+INFO    | No consent for crashreport 1226d72e-ab24-45aa-96e2-e21a261979f6, deleting.
+INFO    | No consent for crashreport 7b51fc4b-1b29-4e2c-b2a9-85e73474603f, deleting.
+INFO    | No consent for crashreport 219ae1f7-8462-41d6-84d6-ada6044f3170, deleting.
+library_mode swiftshader_indirect gpu mode swiftshader_indirect
+Initializing hardware OpenGLES emulation supportandroid_startOpenglesRenderer: gpu infoGPU #1
+  Make: 8086
+  Model: Intel(R) Graphics
+  Device ID: 7d45
+I1114 13:17:49.882397   26760 HealthMonitor.cpp:279] HealthMonitor disabled.
+createGlobalVkEmulation:964 Selecting Vulkan device: SwiftShader Device (LLVM 10.0.0)
+I1114 13:17:49.984245   26760 VkCommonOperations.cpp:1226] Initializing VkEmulation features:
+I1114 13:17:49.984258   26760 VkCommonOperations.cpp:1227]     glInteropSupported: false
+I1114 13:17:49.984260   26760 VkCommonOperations.cpp:1228]     useDeferredCommands: true
+I1114 13:17:49.984261   26760 VkCommonOperations.cpp:1230]     createResourceWithRequirements: true
+I1114 13:17:49.984263   26760 VkCommonOperations.cpp:1231]     useVulkanComposition: false
+I1114 13:17:49.984264   26760 VkCommonOperations.cpp:1232]     useVulkanNativeSwapchain: false
+I1114 13:17:49.984265   26760 VkCommonOperations.cpp:1233]     enable guestRenderDoc: false
+I1114 13:17:49.984268   26760 VkCommonOperations.cpp:1234]     ASTC LDR emulation mode: 2
+I1114 13:17:49.984269   26760 VkCommonOperations.cpp:1235]     enable ETC2 emulation: true
+I1114 13:17:49.984270   26760 VkCommonOperations.cpp:1236]     enable Ycbcr emulation: false
+I1114 13:17:49.984271   26760 VkCommonOperations.cpp:1237]     guestUsesAngle: false
+I1114 13:17:49.984272   26760 VkCommonOperations.cpp:1238]     useDedicatedAllocations: false
+I1114 13:17:49.985273   26760 FrameBuffer.cpp:486] Graphics Adapter Vendor Google (Google Inc.)
+I1114 13:17:49.985294   26760 FrameBuffer.cpp:487] Graphics Adapter Android Emulator OpenGL ES Translator (Google SwiftShader)
+I1114 13:17:49.985297   26760 FrameBuffer.cpp:488] Graphics API Version OpenGL ES 3.0 (OpenGL ES 3.0 SwiftShader 4.0.0.1)
+I1114 13:17:49.985299   26760 FrameBuffer.cpp:489] Graphics API Extensions GL_OES_EGL_sync GL_OES_EGL_image GL_OES_EGL_image_external GL_OES_depth24 GL_OES_depth32 GL_OES_element_index_uint GL_OES_texture_float GL_OES_texture_float_linear GL_OES_compressed_paletted_texture GL_OES_compressed_ETC1_RGB8_texture GL_OES_depth_texture GL_OES_texture_half_float GL_OES_texture_half_float_linear GL_OES_packed_depth_stencil GL_OES_vertex_half_float GL_OES_standard_derivatives GL_OES_texture_npot GL_OES_rgb8_rgba8 GL_EXT_color_buffer_float GL_EXT_color_buffer_half_float GL_EXT_texture_format_BGRA8888 GL_APPLE_texture_format_BGRA8888
+I1114 13:17:49.985302   26760 FrameBuffer.cpp:490] Graphics Device Extensions N/A
+INFO    | Sending adb public key [QAAAAKGYPT+ftE3hnPVgpYpF4RFHSB7BdcdVxuVIM24sUP2kehjGh+++TYZ95eA++nx/KXqhZW6tEYuTDeCLgDIiTAJP9IzeCHBrZ34GHhCfhP3j0V2nu/jdhJiVkD3PA6wAXKuj8GEMrYA98LSA7drtdrbNVK3AJFwXsEqwYscAF21QQ5CWjEOxXnixmGhIXqBUipYcHcSg09sBHE9r8d4zQ/CdRvrHCOiiGFNizmGLnPv5n5NC8/HLuQ+ww5sBwq8LiyvdZ/AuQ9IPgtH447J7+92EqL6LorvuxUy+EFapsLaJjmnqqbvkwyy6z5Q+SBwvYT+9KN7iSNmyOrmc/WrjMMVLgW/vQhnChxy+aKtGTS6Gir2prylN11UGCVMza0jqh52eLeCrnOjFMmz/HKgVLlps6c6HosNlZxqYEEyhHaXkBrTJ9Fh5+WjdsEA3h/ipBAG80I+ryBSCPlzj8YNJkhj6AGq818URpHk6UvDVswkGvvpgzpCvPGNROtn9YeWB62eYclQQYfKzxaB0ha9dl3JqzQpT7X9R5PiXWlue6WXun5ivwrwNcRqarqZ6XY71i+CCFYtAJUlKr3gIJSsd6aHSFJTWWuEY+Pl6pri8fPC+7haj+vQLTmKpK/18lpQHhs0bdHrs9BMOreuu5Bm6C/NIBniHDmIZHoyFFfojrGfS7ckYZAEAAQA= @unknown]
+WHPX on Windows 10.0.26200 detected.
+Windows Hypervisor Platform accelerator is operational
+INFO    | Using security allow list from: C:\Program Files (x86)\Android\android-sdk\emulator\lib\emulator_access.json
+INFO    | The active JSON Web Key Sets can be found here: C:\Users\silev\AppData\Local\Temp\avd\running\33628\jwks\5f78fce7-385e-4046-a7b6-821ffded62d3\active.jwk
+INFO    | Scanning C:\Users\silev\AppData\Local\Temp\avd\running\33628\jwks\5f78fce7-385e-4046-a7b6-821ffded62d3 for jwk keys.
+INFO    | Started GRPC server at 127.0.0.1:8554, security: Local, auth: +token
+INFO    | Advertising in: C:\Users\silev\AppData\Local\Temp\avd\running\pid_33628.ini
+I1114 13:17:50.418093    3180 FrameBuffer.cpp:3707] setDisplayConfigs w 1080 h 2340 dpiX 440 dpiY 440
+I1114 13:17:50.431296    3180 FrameBuffer.cpp:3720] setDisplayActiveConfig 0
+INFO    | Loading snapshot 'default_boot'...
+INFO    | Cold boot: different renderer configured
+INFO    | Activated packet streamer for bluetooth emulation
+INFO    | Boot completed in 63442 ms
+INFO    | Increasing screen off timeout, logcat buffer size to 2M.
+INFO    | IPv4 server found:
+INFO    | Ignore IPv6 address: 78f6:e6cd:9701:0:70ea:e6cd:9701:0
+INFO    | Ignore IPv6 address: 78f6:e6cd:9701:0:70ea:e6cd:9701:0 (2x)
+INFO    | Ignore IPv6 address: 68fc:e6cd:9701:0:70ea:e6cd:9701:0
+INFO    | Ignore IPv6 address: 68fc:e6cd:9701:0:70ea:e6cd:9701:0 (2x)
+INFO    | Ignore IPv6 address: f80a:e7cd:9701:0:70ea:e6cd:9701:0
+INFO    | Ignore IPv6 address: f80a:e7cd:9701:0:70ea:e6cd:9701:0 (2x)
+INFO    | Ignore IPv6 address: 7011:e7cd:9701:0:70ea:e6cd:9701:0
+INFO    | Ignore IPv6 address: 7011:e7cd:9701:0:70ea:e6cd:9701:0 (2x)
+INFO    | Ignore IPv6 address: 9817:e7cd:9701:0:70ea:e6cd:9701:0
+INFO    | Ignore IPv6 address: 9817:e7cd:9701:0:70ea:e6cd:9701:0 (2x)
+INFO    | Ignore IPv6 address: b01f:e7cd:9701:0:70ea:e6cd:9701:0
+INFO    | Ignore IPv6 address: b01f:e7cd:9701:0:70ea:e6cd:9701:0 (2x)
+INFO    | IPv4 server found:
+INFO    | Ignore IPv6 address: 384c:8ca:9701:0:3040:8ca:9701:0
+INFO    | Ignore IPv6 address: 384c:8ca:9701:0:3040:8ca:9701:0 (2x)
+INFO    | Ignore IPv6 address: 2852:8ca:9701:0:3040:8ca:9701:0
+INFO    | Ignore IPv6 address: 2852:8ca:9701:0:3040:8ca:9701:0 (2x)
+INFO    | Ignore IPv6 address: b860:8ca:9701:0:3040:8ca:9701:0
+INFO    | Ignore IPv6 address: b860:8ca:9701:0:3040:8ca:9701:0 (2x)
+INFO    | Ignore IPv6 address: 3067:8ca:9701:0:3040:8ca:9701:0
+INFO    | Ignore IPv6 address: 3067:8ca:9701:0:3040:8ca:9701:0 (2x)
+INFO    | Ignore IPv6 address: 586d:8ca:9701:0:3040:8ca:9701:0
+INFO    | Ignore IPv6 address: 586d:8ca:9701:0:3040:8ca:9701:0 (2x)
+INFO    | Ignore IPv6 address: 7075:8ca:9701:0:3040:8ca:9701:0
+INFO    | Ignore IPv6 address: 7075:8ca:9701:0:3040:8ca:9701:0 (2x)
+INFO    | IPv4 server found:
+INFO    | Ignore IPv6 address: 289c:e3cd:9701:0:2090:e3cd:9701:0
+INFO    | Ignore IPv6 address: 289c:e3cd:9701:0:2090:e3cd:9701:0 (2x)
+INFO    | Ignore IPv6 address: 18a2:e3cd:9701:0:2090:e3cd:9701:0
+INFO    | Ignore IPv6 address: 18a2:e3cd:9701:0:2090:e3cd:9701:0 (2x)
+INFO    | Ignore IPv6 address: a8b0:e3cd:9701:0:2090:e3cd:9701:0
+INFO    | Ignore IPv6 address: a8b0:e3cd:9701:0:2090:e3cd:9701:0 (2x)
+INFO    | Ignore IPv6 address: 20b7:e3cd:9701:0:2090:e3cd:9701:0
+INFO    | Ignore IPv6 address: 20b7:e3cd:9701:0:2090:e3cd:9701:0 (2x)
+INFO    | Ignore IPv6 address: 48bd:e3cd:9701:0:2090:e3cd:9701:0
+INFO    | Ignore IPv6 address: 48bd:e3cd:9701:0:2090:e3cd:9701:0 (2x)
+INFO    | Ignore IPv6 address: 60c5:e3cd:9701:0:2090:e3cd:9701:0
+I1114 13:19:25.329563   38228 VkDecoderGlobalState.cpp:444] Creating Vulkan instance for app: Chromium
+I1114 13:19:25.803559   38228 VkDecoderGlobalState.cpp:1279] Created new VkDevice. ASTC emulation? 0. CPU decoding? 0
+E1114 13:45:27.256908   25580 FrameBuffer.cpp:1856] bad color buffer handle 0x641
+INFO    | Ignore IPv6 address: 60c5:e3cd:9701:0:2090:e3cd:9701:0 (2x)
+INFO    | Wait for emulator (pid 33628) 20 seconds to shutdown gracefully before kill;you can set environment variable ANDROID_EMULATOR_WAIT_TIME_BEFORE_KILL(in seconds) to change the default value (20 seconds)

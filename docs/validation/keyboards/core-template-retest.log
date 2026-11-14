@@ -1,0 +1,34 @@
+   Compiling core_engine v0.9.0 (C:\code\rust\MyWubi\core_engine)
+    Finished `test` profile [unoptimized + debuginfo] target(s) in 48.44s
+     Running tests\keyboard_combination.rs (target\debug\deps\keyboard_combination-72abd03623d8ea6c.exe)
+
+running 5 tests
+test cross_package_missing_resources_fixed_artwork_and_character_mismatch_are_rejected ... ok
+test failure_preserves_whole_snapshot_and_old_inflight_references ... ok
+test appearance_changes_keep_mapping_identity_and_repeated_save_keeps_recovery ... ok
+test interrupted_update_and_damaged_active_package_restore_previous_complete_version ... ok
+test mode_selections_survive_restart_independently ... ok
+
+test result: ok. 5 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.80s
+
+     Running tests\keyboard_package.rs (target\debug\deps\keyboard_package-e9c2c8623b58a06e.exe)
+
+running 4 tests
+test malformed_mapping_disables_dependents_but_preserves_package ... ok
+test geometry_validates_split_staggered_tall_keys_and_reports_specific_failures ... ok
+test groups_require_capability_and_exact_mapping_dependency ... ok
+test multiple_and_layout_only_components_use_builtin_appearance ... ok
+
+test result: ok. 4 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.02s
+
+     Running tests\keyboard_templates.rs (target\debug\deps\keyboard_templates-00c722f2d2392813.exe)
+
+running 6 tests
+test pinyin_template_is_bound_to_pinyin_and_covers_separator ... ok
+test nine_key_groups_are_semantic_and_missing_mapping_is_rejected ... ok
+test template_covers_alphabet_and_survives_package_roundtrip ... ok
+test full_keyboard_is_exact_and_templates_reimport_without_resource_changes ... ok
+test installing_templates_again_reuses_immutable_package ... ok
+test fourteen_key_real_dictionary_retains_reference_words ... ok
+
+test result: ok. 6 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 2.03s

@@ -123,14 +123,16 @@ pub(crate) fn query_index<'a>(
             result.visited += 1;
             let (_, entry, valid) = key(index);
             if valid {
-                indices.push(entry);
+                // Cache the ordering key once. Pinyin exactness counts normalized
+                // letters and must not be recalculated by every sort comparison.
+                indices.push((!exact(&entries[entry]), Reverse(entries[entry].weight), entry));
             }
         }
     }
-    indices.sort_by_key(|&i| (!exact(&entries[i]), Reverse(entries[i].weight), i));
+    indices.sort_unstable();
     let mut words = HashMap::<&str, usize>::new();
     let mut bytes = 0usize;
-    for index in indices {
+    for (not_exact, _, index) in indices {
         let entry = &entries[index];
         let additional = entry.code.len()
             + if words.contains_key(entry.word.as_str()) {
@@ -157,7 +159,7 @@ pub(crate) fn query_index<'a>(
             result.candidates.push(Match {
                 text: entry.word.clone(),
                 codes: vec![entry.code.clone()],
-                exact: exact(entry),
+                exact: !not_exact,
                 weight: entry.weight,
             });
         }

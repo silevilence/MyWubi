@@ -1,0 +1,42 @@
+   Compiling core_engine v0.9.0 (C:\code\rust\MyWubi\core_engine)
+    Finished `test` profile [unoptimized + debuginfo] target(s) in 26.27s
+     Running tests\group_pinyin.rs (target\debug\deps\group_pinyin-d7430e74d571df3d.exe)
+
+running 3 tests
+test digit_groups_match_independent_enumeration_for_multisyllable_codes ... ok
+test normalized_groups_respect_explicit_syllable_boundaries_and_no_initials ... ok
+test pinyin_group_session_commits_without_exposing_hint_and_returns_to_main ... ok
+
+test result: ok. 3 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.02s
+
+     Running tests\group_search.rs (target\debug\deps\group_search-fd166c08618e6451.exe)
+
+running 4 tests
+test explicit_letter_filters_without_destroying_original_group ... ok
+test insufficient_budget_never_claims_complete_or_unique ... ok
+test windows_across_long_tail_keep_order_and_identity ... ok
+test every_small_group_sequence_matches_exhaustive_reference_and_all_sources ... ok
+
+test result: ok. 4 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.12s
+
+     Running tests\group_session.rs (target\debug\deps\group_session-3f40ab67a730f2c5.exe)
+
+running 6 tests
+test group_shortcut_prefix_protection_is_pure_and_ends_on_wrong_prefix ... ok
+test unknown_host_result_never_replays_the_candidate_or_group_hint ... ok
+test reject_before_write_keeps_groups_and_stale_selection_cannot_commit ... ok
+test runtime_and_mapping_switch_wait_for_group_input_to_finish ... ok
+test undo_and_backspace_preserve_raw_positions_and_enter_requires_resolution ... ok
+test ambiguous_full_code_never_autocommits_or_overflows_but_explicit_resolution_can ... ok
+
+test result: ok. 6 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.01s
+
+     Running tests\group_shortcuts.rs (target\debug\deps\group_shortcuts-dc7f4ae3d4edb7e6.exe)
+
+running 4 tests
+test group_clock_retry_unknown_write_and_rule_reload_follow_session_lifecycle ... ok
+test unresolved_rule_never_reads_clock_resolved_rule_keeps_duplicate_identities_and_frozen_pages ... ok
+test explicit_ordinary_choice_enter_and_undo_keep_distinct_rules ... ok
+test uppercase_group_resolves_only_shortcut_case_and_long_prefix_stays_bounded ... ok
+
+test result: ok. 4 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.01s

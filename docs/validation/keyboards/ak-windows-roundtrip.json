@@ -1,0 +1,9 @@
+{
+  "android\/appearance.toml": "525f78f9371e820d63287ba05c78eec5fd2022998ea21fb7dd55a9c01c64bf64",
+  "android\/layouts\/shape14.toml": "023e028b09f1bdc0ad1f114de29997b46dd4673deec758c5bc6aab898ca6a2f8",
+  "android\/mappings\/shape14.toml": "e63669b325db65e319ff218a80d976fd36a05e76f4666fa05459270b87580638",
+  "android\/metadata.toml": "081dd93c63c853a584327e68fab515561ff882e828ff54cf17d4ebd7626469a0",
+  "metadata.toml": "3da9579efedc40163f5c8c4c0f26b034e72abb1ee349e891fb02e0916d6b915b",
+  "windows\/appearance.toml": "525f78f9371e820d63287ba05c78eec5fd2022998ea21fb7dd55a9c01c64bf64",
+  "windows\/metadata.toml": "f4a80c972307f7ab2c77ca3dd69615c440e8bf24b45d8f723acd4d08ecdb28de"
+}

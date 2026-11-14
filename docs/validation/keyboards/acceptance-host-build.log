@@ -1,0 +1,66 @@
+Exception while marshalling C:\Program Files (x86)\Android\android-sdk\build-tools\35.0.0\package.xml. Probably the SDK is read-only
+Exception while marshalling C:\Program Files (x86)\Android\android-sdk\platform-tools\package.xml. Probably the SDK is read-only
+Exception while marshalling C:\Program Files (x86)\Android\android-sdk\platforms\android-34\package.xml. Probably the SDK is read-only
+Exception while marshalling C:\Program Files (x86)\Android\android-sdk\platforms\android-35\package.xml. Probably the SDK is read-only
+> Task :acceptance-host:preBuild UP-TO-DATE
+> Task :acceptance-host:preDebugBuild UP-TO-DATE
+> Task :acceptance-host:mergeDebugNativeDebugMetadata NO-SOURCE
+> Task :acceptance-host:javaPreCompileDebug UP-TO-DATE
+> Task :acceptance-host:checkDebugAarMetadata UP-TO-DATE
+> Task :acceptance-host:generateDebugResValues UP-TO-DATE
+> Task :acceptance-host:mapDebugSourceSetPaths UP-TO-DATE
+> Task :acceptance-host:generateDebugResources UP-TO-DATE
+> Task :acceptance-host:mergeDebugResources UP-TO-DATE
+> Task :acceptance-host:packageDebugResources UP-TO-DATE
+> Task :acceptance-host:parseDebugLocalResources UP-TO-DATE
+> Task :acceptance-host:createDebugCompatibleScreenManifests UP-TO-DATE
+> Task :acceptance-host:extractDeepLinksDebug UP-TO-DATE
+> Task :acceptance-host:processDebugMainManifest UP-TO-DATE
+> Task :acceptance-host:processDebugManifest UP-TO-DATE
+> Task :acceptance-host:processDebugManifestForPackage UP-TO-DATE
+> Task :acceptance-host:processDebugResources UP-TO-DATE
+
+> Task :acceptance-host:compileDebugJavaWithJavac
+Java compiler version 21 has deprecated support for compiling with source/target version 8.
+Try one of the following options:
+    1. [Recommended] Use Java toolchain with a lower language version
+    2. Set a higher source/target version
+    3. Use a lower version of the JDK running the build (if you're not using Java toolchain)
+For more details on how to configure these settings, see https://developer.android.com/build/jdks.
+To suppress this warning, set android.javaCompile.suppressSourceTargetDeprecationWarning=true in gradle.properties.
+警告: [options] 源值 8 已过时，将在未来发行版中删除
+警告: [options] 目标值 8 已过时，将在未来发行版中删除
+警告: [options] 要隐藏有关已过时选项的警告, 请使用 -Xlint:-options。
+3 个警告
+
+> Task :acceptance-host:mergeDebugShaders UP-TO-DATE
+> Task :acceptance-host:compileDebugShaders NO-SOURCE
+> Task :acceptance-host:generateDebugAssets UP-TO-DATE
+> Task :acceptance-host:mergeDebugAssets UP-TO-DATE
+> Task :acceptance-host:compressDebugAssets UP-TO-DATE
+> Task :acceptance-host:processDebugJavaRes NO-SOURCE
+> Task :acceptance-host:mergeDebugJavaResource UP-TO-DATE
+> Task :acceptance-host:checkDebugDuplicateClasses UP-TO-DATE
+> Task :acceptance-host:desugarDebugFileDependencies UP-TO-DATE
+> Task :acceptance-host:mergeExtDexDebug UP-TO-DATE
+> Task :acceptance-host:mergeLibDexDebug UP-TO-DATE
+> Task :acceptance-host:dexBuilderDebug
+> Task :acceptance-host:mergeDebugJniLibFolders UP-TO-DATE
+> Task :acceptance-host:mergeDebugNativeLibs NO-SOURCE
+> Task :acceptance-host:stripDebugDebugSymbols NO-SOURCE
+> Task :acceptance-host:validateSigningDebug UP-TO-DATE
+> Task :acceptance-host:writeDebugAppMetadata UP-TO-DATE
+> Task :acceptance-host:writeDebugSigningConfigVersions UP-TO-DATE
+> Task :acceptance-host:mergeProjectDexDebug
+> Task :acceptance-host:packageDebug
+> Task :acceptance-host:createDebugApkListingFileRedirect UP-TO-DATE
+> Task :acceptance-host:assembleDebug
+
+Deprecated Gradle features were used in this build, making it incompatible with Gradle 9.0.
+
+You can use '--warning-mode all' to show the individual deprecation warnings and determine if they come from your own scripts or plugins.
+
+For more on this, please refer to https://docs.gradle.org/8.9/userguide/command_line_interface.html#sec:command_line_warnings in the Gradle documentation.
+
+BUILD SUCCESSFUL in 2s
+31 actionable tasks: 4 executed, 27 up-to-date

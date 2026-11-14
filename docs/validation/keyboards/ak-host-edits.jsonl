@@ -1,0 +1,7 @@
+{"text":"王","composing_start":-1,"composing_end":-1}
+{"text":"王a","composing_start":1,"composing_end":2}
+{"text":"王ab","composing_start":1,"composing_end":3}
+{"text":"王abc","composing_start":1,"composing_end":4}
+{"text":"王abc","composing_start":-1,"composing_end":-1}
+{"text":"王abc王","composing_start":-1,"composing_end":-1}
+{"text":"王abc王你","composing_start":-1,"composing_end":-1}

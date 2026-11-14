@@ -21,11 +21,15 @@ class KeyboardTouchTest {
 
     @Test fun eightDirectionsMergedUpAndReturnToCenterUseOneReleaseAction() {
         val events=CopyOnWriteArrayList<Any>()
+        val mergedApplied=java.util.concurrent.CountDownLatch(1)
         val bindings=(0..7).associateWith { LayoutAction("Character",('a'+it).toString()) }
         var model by mutableStateOf(KeyboardModel(enabled=true, customLayout=KeyboardLayout("test.directions",3f,3f,
             listOf(LayoutKey("direction","方向键",1f,1f,1f,action=LayoutAction("Character","x"),directions=bindings)))))
         ActivityScenario.launch(MainActivity::class.java).use { scenario ->
-            scenario.onActivity { it.setContent { Keyboard(model,{events.add(it)},{},switchIme={}) } }
+            scenario.onActivity { it.setContent {
+                Keyboard(model,{events.add(it)},{},switchIme={})
+                SideEffect { if(model.customLayout?.id=="test.merged") mergedApplied.countDown() }
+            } }
             val point=key("方向键").visibleCenter
             val length=40*instrumentation.targetContext.resources.displayMetrics.density
             for(direction in 0..7) {
@@ -46,6 +50,8 @@ class KeyboardTouchTest {
             val old=model.customLayout!!
             val merged=old.keys.single().copy(directions=bindings+(listOf(7,0,1).associateWith {LayoutAction("Character","u")}))
             scenario.onActivity {model=model.copy(customLayout=old.copy(id="test.merged",keys=listOf(merged)))}
+            assertTrue("Merged bindings must be composed before injecting the next gesture",
+                mergedApplied.await(5,java.util.concurrent.TimeUnit.SECONDS))
             settled()
             for(direction in listOf(7,0,1)) {
                 val angle=direction*Math.PI/4

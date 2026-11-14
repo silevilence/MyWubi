@@ -129,11 +129,17 @@ class KeyboardLayoutTest {
         )
         ActivityScenario.launch(MainActivity::class.java).use { scenario ->
             for ((index, model) in models.withIndex()) {
+                val composed=java.util.concurrent.CountDownLatch(1)
                 scenario.onActivity { activity ->
-                    activity.setContent { Keyboard(model.copy(epoch=index.toLong()), {events.add(it)}, {},
-                        hideKeyboard={hidden.incrementAndGet()}, switchIme={}) }
+                    activity.setContent {
+                        Keyboard(model.copy(epoch=index.toLong()), {events.add(it)}, {},
+                            hideKeyboard={hidden.incrementAndGet()}, switchIme={})
+                        SideEffect { composed.countDown() }
+                    }
                 }
+                assertTrue(composed.await(5,java.util.concurrent.TimeUnit.SECONDS))
                 device.waitForIdle()
+                instrumentation.uiAutomation.clearCache()
                 if (model.candidates.isNotEmpty()) {
                     device.wait(Until.findObject(By.desc("展开")), 5000).click()
                 }

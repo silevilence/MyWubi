@@ -21,6 +21,15 @@ pub(super) struct AppendedCandidates {
 }
 
 impl StateMachine {
+    pub(super) fn may_append_candidates(&self) -> bool {
+        self.shortcut_time.is_some()
+            || (self.expressions_allowed
+                && matches!(self.mode, InputMode::Main | InputMode::Pinyin)
+                && ExpressionKind::ALL.into_iter().any(|kind| {
+                    self.expression_config.selection(kind).append
+                        && self.expression_library(kind).is_some()
+                }))
+    }
     pub(super) fn has_shortcut_candidates(&self) -> bool {
         self.appended.as_ref().is_some_and(|view| {
             view.rows

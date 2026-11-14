@@ -1,0 +1,69 @@
+[42532:288:20261114,131749.342:ERROR filesystem_win.cc:130] GetFileAttributes C:\Users\silev\AppData\Local\Temp\\AndroidEmulator\emu-crash-34.1.19.db\attachments\1226d72e-ab24-45aa-96e2-e21a261979f6: 系统找不到指定的文件。 (2)
+[42532:288:20261114,131749.343:ERROR filesystem_win.cc:130] GetFileAttributes C:\Users\silev\AppData\Local\Temp\\AndroidEmulator\emu-crash-34.1.19.db\attachments\7b51fc4b-1b29-4e2c-b2a9-85e73474603f: 系统找不到指定的文件。 (2)
+[42532:288:20261114,131749.344:ERROR filesystem_win.cc:130] GetFileAttributes C:\Users\silev\AppData\Local\Temp\\AndroidEmulator\emu-crash-34.1.19.db\attachments\219ae1f7-8462-41d6-84d6-ada6044f3170: 系统找不到指定的文件。 (2)
+[42480:5172:20261114,131749.468:ERROR filesystem_win.cc:130] GetFileAttributes C:\Users\silev\AppData\Local\Temp\\AndroidEmulator\emu-crash-34.1.19.db\attachments\1226d72e-ab24-45aa-96e2-e21a261979f6: 系统找不到指定的文件。 (2)
+[42480:5172:20261114,131749.469:ERROR filesystem_win.cc:130] GetFileAttributes C:\Users\silev\AppData\Local\Temp\\AndroidEmulator\emu-crash-34.1.19.db\attachments\7b51fc4b-1b29-4e2c-b2a9-85e73474603f: 系统找不到指定的文件。 (2)
+[42480:5172:20261114,131749.469:ERROR filesystem_win.cc:130] GetFileAttributes C:\Users\silev\AppData\Local\Temp\\AndroidEmulator\emu-crash-34.1.19.db\attachments\219ae1f7-8462-41d6-84d6-ada6044f3170: 系统找不到指定的文件。 (2)
+added library vulkan-1.dll
+initialize: Supports id properties, got a vulkan device UUID
+WARNING | The emulator now requires a signed jwt token for gRPC access! Use the -grpc flag if you really want an open unprotected grpc port
+WARNING | *** Basic token auth should only be used by android-studio ***
+WARNING | snapshot was created with gfxstream=0, but this emulator has gfxstream=1
+WARNING | Error -1 from the snapshot callback
+WARNING | Failed to load snapshot 'default_boot'
+WARNING | Cold boot: different renderer configured
+D:\SwiftShader\src\Vulkan\VkPhysicalDevice.cpp:462 WARNING: UNSUPPORTED: curExtension->sType: 1000338000
+D:\SwiftShader\src\Vulkan\VkPhysicalDevice.cpp:462 WARNING: UNSUPPORTED: curExtension->sType: 1000437000
+D:\SwiftShader\src\Vulkan\VkPhysicalDevice.cpp:462 WARNING: UNSUPPORTED: curExtension->sType: 1000338000
+D:\SwiftShader\src\Vulkan\VkPhysicalDevice.cpp:462 WARNING: UNSUPPORTED: curExtension->sType: 1000437000
+D:\SwiftShader\src\Vulkan\VkPhysicalDevice.cpp:462 WARNING: UNSUPPORTED: curExtension->sType: 1000338000
+D:\SwiftShader\src\Vulkan\VkPhysicalDevice.cpp:462 WARNING: UNSUPPORTED: curExtension->sType: 1000437000
+D:\SwiftShader\src\Vulkan\VkPhysicalDevice.cpp:462 WARNING: UNSUPPORTED: curExtension->sType: 1000338000
+D:\SwiftShader\src\Vulkan\VkPhysicalDevice.cpp:462 WARNING: UNSUPPORTED: curExtension->sType: 1000437000
+D:\SwiftShader\src\Vulkan\VkPhysicalDevice.cpp:462 WARNING: UNSUPPORTED: curExtension->sType: 1000338000
+D:\SwiftShader\src\Vulkan\VkPhysicalDevice.cpp:462 WARNING: UNSUPPORTED: curExtension->sType: 1000437000
+D:\SwiftShader\src\Vulkan\VkPhysicalDevice.cpp:462 WARNING: UNSUPPORTED: curExtension->sType: 1000338000
+D:\SwiftShader\src\Vulkan\VkPhysicalDevice.cpp:462 WARNING: UNSUPPORTED: curExtension->sType: 1000437000
+D:\SwiftShader\src\Vulkan\VkPhysicalDevice.cpp:462 WARNING: UNSUPPORTED: curExtension->sType: 1000338000
+D:\SwiftShader\src\Vulkan\VkPhysicalDevice.cpp:462 WARNING: UNSUPPORTED: curExtension->sType: 1000437000
+D:\SwiftShader\src\Vulkan\VkPhysicalDevice.cpp:462 WARNING: UNSUPPORTED: curExtension->sType: 1000338000
+D:\SwiftShader\src\Vulkan\VkPhysicalDevice.cpp:462 WARNING: UNSUPPORTED: curExtension->sType: 1000437000
+D:\SwiftShader\src\Vulkan\VkPhysicalDevice.cpp:462 WARNING: UNSUPPORTED: curExtension->sType: 1000338000
+D:\SwiftShader\src\Vulkan\VkPhysicalDevice.cpp:462 WARNING: UNSUPPORTED: curExtension->sType: 1000437000
+D:\SwiftShader\src\Vulkan\VkPhysicalDevice.cpp:462 WARNING: UNSUPPORTED: curExtension->sType: 1000338000
+D:\SwiftShader\src\Vulkan\VkPhysicalDevice.cpp:462 WARNING: UNSUPPORTED: curExtension->sType: 1000437000
+D:\SwiftShader\src\Vulkan\VkPhysicalDevice.cpp:462 WARNING: UNSUPPORTED: curExtension->sType: 1000338000
+D:\SwiftShader\src\Vulkan\VkPhysicalDevice.cpp:462 WARNING: UNSUPPORTED: curExtension->sType: 1000437000
+D:\SwiftShader\src\Vulkan\VkPhysicalDevice.cpp:462 WARNING: UNSUPPORTED: curExtension->sType: 1000338000
+D:\SwiftShader\src\Vulkan\VkPhysicalDevice.cpp:462 WARNING: UNSUPPORTED: curExtension->sType: 1000437000
+[42532:14016:20261114,132749.345:ERROR filesystem_win.cc:130] GetFileAttributes C:\Users\silev\AppData\Local\Temp\\AndroidEmulator\emu-crash-34.1.19.db\attachments\1226d72e-ab24-45aa-96e2-e21a261979f6: 系统找不到指定的文件。 (2)
+[42532:14016:20261114,132749.362:ERROR filesystem_win.cc:130] GetFileAttributes C:\Users\silev\AppData\Local\Temp\\AndroidEmulator\emu-crash-34.1.19.db\attachments\7b51fc4b-1b29-4e2c-b2a9-85e73474603f: 系统找不到指定的文件。 (2)
+[42532:14016:20261114,132749.363:ERROR filesystem_win.cc:130] GetFileAttributes C:\Users\silev\AppData\Local\Temp\\AndroidEmulator\emu-crash-34.1.19.db\attachments\219ae1f7-8462-41d6-84d6-ada6044f3170: 系统找不到指定的文件。 (2)
+[42480:19960:20261114,132749.486:ERROR filesystem_win.cc:130] GetFileAttributes C:\Users\silev\AppData\Local\Temp\\AndroidEmulator\emu-crash-34.1.19.db\attachments\1226d72e-ab24-45aa-96e2-e21a261979f6: 系统找不到指定的文件。 (2)
+[42480:19960:20261114,132749.488:ERROR filesystem_win.cc:130] GetFileAttributes C:\Users\silev\AppData\Local\Temp\\AndroidEmulator\emu-crash-34.1.19.db\attachments\7b51fc4b-1b29-4e2c-b2a9-85e73474603f: 系统找不到指定的文件。 (2)
+[42480:19960:20261114,132749.489:ERROR filesystem_win.cc:130] GetFileAttributes C:\Users\silev\AppData\Local\Temp\\AndroidEmulator\emu-crash-34.1.19.db\attachments\219ae1f7-8462-41d6-84d6-ada6044f3170: 系统找不到指定的文件。 (2)
+[42532:14016:20261114,132749.509:ERROR filesystem_win.cc:130] GetFileAttributes C:\Users\silev\AppData\Local\Temp\\AndroidEmulator\emu-crash-34.1.19.db\attachments\1226d72e-ab24-45aa-96e2-e21a261979f6: 系统找不到指定的文件。 (2)
+[42532:14016:20261114,132749.511:ERROR filesystem_win.cc:130] GetFileAttributes C:\Users\silev\AppData\Local\Temp\\AndroidEmulator\emu-crash-34.1.19.db\attachments\7b51fc4b-1b29-4e2c-b2a9-85e73474603f: 系统找不到指定的文件。 (2)
+[42532:14016:20261114,132749.512:ERROR filesystem_win.cc:130] GetFileAttributes C:\Users\silev\AppData\Local\Temp\\AndroidEmulator\emu-crash-34.1.19.db\attachments\219ae1f7-8462-41d6-84d6-ada6044f3170: 系统找不到指定的文件。 (2)
+[42480:19960:20261114,132749.515:ERROR filesystem_win.cc:130] GetFileAttributes C:\Users\silev\AppData\Local\Temp\\AndroidEmulator\emu-crash-34.1.19.db\attachments\1226d72e-ab24-45aa-96e2-e21a261979f6: 系统找不到指定的文件。 (2)
+[42480:19960:20261114,132749.517:ERROR filesystem_win.cc:130] GetFileAttributes C:\Users\silev\AppData\Local\Temp\\AndroidEmulator\emu-crash-34.1.19.db\attachments\7b51fc4b-1b29-4e2c-b2a9-85e73474603f: 系统找不到指定的文件。 (2)
+[42480:19960:20261114,132749.519:ERROR filesystem_win.cc:130] GetFileAttributes C:\Users\silev\AppData\Local\Temp\\AndroidEmulator\emu-crash-34.1.19.db\attachments\219ae1f7-8462-41d6-84d6-ada6044f3170: 系统找不到指定的文件。 (2)
+[42532:14016:20261114,132749.522:ERROR filesystem_win.cc:130] GetFileAttributes C:\Users\silev\AppData\Local\Temp\\AndroidEmulator\emu-crash-34.1.19.db\attachments\1226d72e-ab24-45aa-96e2-e21a261979f6: 系统找不到指定的文件。 (2)
+[42532:14016:20261114,132749.523:ERROR filesystem_win.cc:130] GetFileAttributes C:\Users\silev\AppData\Local\Temp\\AndroidEmulator\emu-crash-34.1.19.db\attachments\7b51fc4b-1b29-4e2c-b2a9-85e73474603f: 系统找不到指定的文件。 (2)
+[42532:14016:20261114,132749.524:ERROR filesystem_win.cc:130] GetFileAttributes C:\Users\silev\AppData\Local\Temp\\AndroidEmulator\emu-crash-34.1.19.db\attachments\219ae1f7-8462-41d6-84d6-ada6044f3170: 系统找不到指定的文件。 (2)
+[42480:19960:20261114,132749.526:ERROR filesystem_win.cc:130] GetFileAttributes C:\Users\silev\AppData\Local\Temp\\AndroidEmulator\emu-crash-34.1.19.db\attachments\1226d72e-ab24-45aa-96e2-e21a261979f6: 系统找不到指定的文件。 (2)
+[42480:19960:20261114,132749.528:ERROR filesystem_win.cc:130] GetFileAttributes C:\Users\silev\AppData\Local\Temp\\AndroidEmulator\emu-crash-34.1.19.db\attachments\7b51fc4b-1b29-4e2c-b2a9-85e73474603f: 系统找不到指定的文件。 (2)
+[42480:19960:20261114,132749.530:ERROR filesystem_win.cc:130] GetFileAttributes C:\Users\silev\AppData\Local\Temp\\AndroidEmulator\emu-crash-34.1.19.db\attachments\219ae1f7-8462-41d6-84d6-ada6044f3170: 系统找不到指定的文件。 (2)
+[42532:288:20261114,133249.360:ERROR filesystem_win.cc:130] GetFileAttributes C:\Users\silev\AppData\Local\Temp\\AndroidEmulator\emu-crash-34.1.19.db\attachments\1226d72e-ab24-45aa-96e2-e21a261979f6: 系统找不到指定的文件。 (2)
+[42532:288:20261114,133249.362:ERROR filesystem_win.cc:130] GetFileAttributes C:\Users\silev\AppData\Local\Temp\\AndroidEmulator\emu-crash-34.1.19.db\attachments\7b51fc4b-1b29-4e2c-b2a9-85e73474603f: 系统找不到指定的文件。 (2)
+[42532:288:20261114,133249.362:ERROR filesystem_win.cc:130] GetFileAttributes C:\Users\silev\AppData\Local\Temp\\AndroidEmulator\emu-crash-34.1.19.db\attachments\219ae1f7-8462-41d6-84d6-ada6044f3170: 系统找不到指定的文件。 (2)
+[42480:5172:20261114,133249.484:ERROR filesystem_win.cc:130] GetFileAttributes C:\Users\silev\AppData\Local\Temp\\AndroidEmulator\emu-crash-34.1.19.db\attachments\1226d72e-ab24-45aa-96e2-e21a261979f6: 系统找不到指定的文件。 (2)
+[42480:5172:20261114,133249.485:ERROR filesystem_win.cc:130] GetFileAttributes C:\Users\silev\AppData\Local\Temp\\AndroidEmulator\emu-crash-34.1.19.db\attachments\7b51fc4b-1b29-4e2c-b2a9-85e73474603f: 系统找不到指定的文件。 (2)
+[42480:5172:20261114,133249.486:ERROR filesystem_win.cc:130] GetFileAttributes C:\Users\silev\AppData\Local\Temp\\AndroidEmulator\emu-crash-34.1.19.db\attachments\219ae1f7-8462-41d6-84d6-ada6044f3170: 系统找不到指定的文件。 (2)
+[42532:288:20261114,134749.364:ERROR filesystem_win.cc:130] GetFileAttributes C:\Users\silev\AppData\Local\Temp\\AndroidEmulator\emu-crash-34.1.19.db\attachments\1226d72e-ab24-45aa-96e2-e21a261979f6: 系统找不到指定的文件。 (2)
+[42532:288:20261114,134749.365:ERROR filesystem_win.cc:130] GetFileAttributes C:\Users\silev\AppData\Local\Temp\\AndroidEmulator\emu-crash-34.1.19.db\attachments\7b51fc4b-1b29-4e2c-b2a9-85e73474603f: 系统找不到指定的文件。 (2)
+[42532:288:20261114,134749.365:ERROR filesystem_win.cc:130] GetFileAttributes C:\Users\silev\AppData\Local\Temp\\AndroidEmulator\emu-crash-34.1.19.db\attachments\219ae1f7-8462-41d6-84d6-ada6044f3170: 系统找不到指定的文件。 (2)
+[42480:5172:20261114,134749.488:ERROR filesystem_win.cc:130] GetFileAttributes C:\Users\silev\AppData\Local\Temp\\AndroidEmulator\emu-crash-34.1.19.db\attachments\1226d72e-ab24-45aa-96e2-e21a261979f6: 系统找不到指定的文件。 (2)
+[42480:5172:20261114,134749.488:ERROR filesystem_win.cc:130] GetFileAttributes C:\Users\silev\AppData\Local\Temp\\AndroidEmulator\emu-crash-34.1.19.db\attachments\7b51fc4b-1b29-4e2c-b2a9-85e73474603f: 系统找不到指定的文件。 (2)
+[42480:5172:20261114,134749.488:ERROR filesystem_win.cc:130] GetFileAttributes C:\Users\silev\AppData\Local\Temp\\AndroidEmulator\emu-crash-34.1.19.db\attachments\219ae1f7-8462-41d6-84d6-ada6044f3170: 系统找不到指定的文件。 (2)
+WARNING | Not saving state: RAM not mapped as shared

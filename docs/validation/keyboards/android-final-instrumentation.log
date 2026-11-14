@@ -1,0 +1,189 @@
+INSTRUMENTATION_STATUS: class=org.mywubi.CustomKeyboardHostTest
+INSTRUMENTATION_STATUS: current=1
+INSTRUMENTATION_STATUS: id=AndroidJUnitRunner
+INSTRUMENTATION_STATUS: numtests=10
+INSTRUMENTATION_STATUS: stream=
+org.mywubi.CustomKeyboardHostTest:
+INSTRUMENTATION_STATUS: test=realTemplatesKeepGroupsLocalAndReturnToRememberedMode
+INSTRUMENTATION_STATUS_CODE: 1
+INSTRUMENTATION_STATUS: class=org.mywubi.CustomKeyboardHostTest
+INSTRUMENTATION_STATUS: current=1
+INSTRUMENTATION_STATUS: id=AndroidJUnitRunner
+INSTRUMENTATION_STATUS: numtests=10
+INSTRUMENTATION_STATUS: stack=org.mywubi.ProtocolException: 皮肤文件读写失败：File exists (os error 17)
+	at org.mywubi.NativeBridge.call(NativeBridge.kt:27)
+	at org.mywubi.NativeBridge.objectCall(NativeBridge.kt:33)
+	at org.mywubi.CustomKeyboardHostTest.realTemplatesKeepGroupsLocalAndReturnToRememberedMode(CustomKeyboardHostTest.kt:42)
+
+INSTRUMENTATION_STATUS: stream=
+Error in realTemplatesKeepGroupsLocalAndReturnToRememberedMode(org.mywubi.CustomKeyboardHostTest):
+org.mywubi.ProtocolException: 皮肤文件读写失败：File exists (os error 17)
+	at org.mywubi.NativeBridge.call(NativeBridge.kt:27)
+	at org.mywubi.NativeBridge.objectCall(NativeBridge.kt:33)
+	at org.mywubi.CustomKeyboardHostTest.realTemplatesKeepGroupsLocalAndReturnToRememberedMode(CustomKeyboardHostTest.kt:42)
+
+INSTRUMENTATION_STATUS: test=realTemplatesKeepGroupsLocalAndReturnToRememberedMode
+INSTRUMENTATION_STATUS_CODE: -2
+INSTRUMENTATION_STATUS: class=org.mywubi.KeyboardPackageTest
+INSTRUMENTATION_STATUS: current=2
+INSTRUMENTATION_STATUS: id=AndroidJUnitRunner
+INSTRUMENTATION_STATUS: numtests=10
+INSTRUMENTATION_STATUS: stream=
+org.mywubi.KeyboardPackageTest:
+INSTRUMENTATION_STATUS: test=windowsEditorArtifactPreservesEveryEntryAcrossAndroidExport
+INSTRUMENTATION_STATUS_CODE: 1
+INSTRUMENTATION_STATUS: class=org.mywubi.KeyboardPackageTest
+INSTRUMENTATION_STATUS: current=2
+INSTRUMENTATION_STATUS: id=AndroidJUnitRunner
+INSTRUMENTATION_STATUS: numtests=10
+INSTRUMENTATION_STATUS: stream=.
+INSTRUMENTATION_STATUS: test=windowsEditorArtifactPreservesEveryEntryAcrossAndroidExport
+INSTRUMENTATION_STATUS_CODE: 0
+INSTRUMENTATION_STATUS: class=org.mywubi.KeyboardPackageTest
+INSTRUMENTATION_STATUS: current=3
+INSTRUMENTATION_STATUS: id=AndroidJUnitRunner
+INSTRUMENTATION_STATUS: numtests=10
+INSTRUMENTATION_STATUS: stream=
+INSTRUMENTATION_STATUS: test=templateImportDecodeSaveExportAndReimportPreserveCombination
+INSTRUMENTATION_STATUS_CODE: 1
+INSTRUMENTATION_STATUS: class=org.mywubi.KeyboardPackageTest
+INSTRUMENTATION_STATUS: current=3
+INSTRUMENTATION_STATUS: id=AndroidJUnitRunner
+INSTRUMENTATION_STATUS: numtests=10
+INSTRUMENTATION_STATUS: stream=.
+INSTRUMENTATION_STATUS: test=templateImportDecodeSaveExportAndReimportPreserveCombination
+INSTRUMENTATION_STATUS_CODE: 0
+INSTRUMENTATION_STATUS: class=org.mywubi.KeyboardBenchmarkTest
+INSTRUMENTATION_STATUS: current=4
+INSTRUMENTATION_STATUS: id=AndroidJUnitRunner
+INSTRUMENTATION_STATUS: numtests=10
+INSTRUMENTATION_STATUS: stream=
+org.mywubi.KeyboardBenchmarkTest:
+INSTRUMENTATION_STATUS: test=compareExactAndGroupedJniOnLocalRealTables
+INSTRUMENTATION_STATUS_CODE: 1
+INSTRUMENTATION_STATUS: class=org.mywubi.KeyboardBenchmarkTest
+INSTRUMENTATION_STATUS: current=4
+INSTRUMENTATION_STATUS: id=AndroidJUnitRunner
+INSTRUMENTATION_STATUS: numtests=10
+INSTRUMENTATION_STATUS: stream=.
+INSTRUMENTATION_STATUS: test=compareExactAndGroupedJniOnLocalRealTables
+INSTRUMENTATION_STATUS_CODE: 0
+INSTRUMENTATION_STATUS: class=org.mywubi.KeyboardLayoutTest
+INSTRUMENTATION_STATUS: current=5
+INSTRUMENTATION_STATUS: id=AndroidJUnitRunner
+INSTRUMENTATION_STATUS: numtests=10
+INSTRUMENTATION_STATUS: stream=
+org.mywubi.KeyboardLayoutTest:
+INSTRUMENTATION_STATUS: test=staggeredLettersAndSeparatePanelsPreserveActions
+INSTRUMENTATION_STATUS_CODE: 1
+s_glBindAttribLocation: bind attrib 0 name position
+s_glBindAttribLocation: bind attrib 1 name color
+s_glBindAttribLocation: bind attrib 2 name localCoord
+INSTRUMENTATION_STATUS: class=org.mywubi.KeyboardLayoutTest
+INSTRUMENTATION_STATUS: current=5
+INSTRUMENTATION_STATUS: id=AndroidJUnitRunner
+INSTRUMENTATION_STATUS: numtests=10
+INSTRUMENTATION_STATUS: stream=.
+INSTRUMENTATION_STATUS: test=staggeredLettersAndSeparatePanelsPreserveActions
+INSTRUMENTATION_STATUS_CODE: 0
+INSTRUMENTATION_STATUS: class=org.mywubi.KeyboardLayoutTest
+INSTRUMENTATION_STATUS: current=6
+INSTRUMENTATION_STATUS: id=AndroidJUnitRunner
+INSTRUMENTATION_STATUS: numtests=10
+INSTRUMENTATION_STATUS: stream=
+INSTRUMENTATION_STATUS: test=largeFontCompositionKeepsKeyboardHeightAndKeyPositionsStable
+INSTRUMENTATION_STATUS_CODE: 1
+INSTRUMENTATION_STATUS: class=org.mywubi.KeyboardLayoutTest
+INSTRUMENTATION_STATUS: current=6
+INSTRUMENTATION_STATUS: id=AndroidJUnitRunner
+INSTRUMENTATION_STATUS: numtests=10
+INSTRUMENTATION_STATUS: stream=.
+INSTRUMENTATION_STATUS: test=largeFontCompositionKeepsKeyboardHeightAndKeyPositionsStable
+INSTRUMENTATION_STATUS_CODE: 0
+INSTRUMENTATION_STATUS: class=org.mywubi.KeyboardLayoutTest
+INSTRUMENTATION_STATUS: current=7
+INSTRUMENTATION_STATUS: id=AndroidJUnitRunner
+INSTRUMENTATION_STATUS: numtests=10
+INSTRUMENTATION_STATUS: stream=
+INSTRUMENTATION_STATUS: test=compositionKeepsKeyboardHeightAndKeyPositionsStable
+INSTRUMENTATION_STATUS_CODE: 1
+INSTRUMENTATION_STATUS: class=org.mywubi.KeyboardLayoutTest
+INSTRUMENTATION_STATUS: current=7
+INSTRUMENTATION_STATUS: id=AndroidJUnitRunner
+INSTRUMENTATION_STATUS: numtests=10
+INSTRUMENTATION_STATUS: stream=.
+INSTRUMENTATION_STATUS: test=compositionKeepsKeyboardHeightAndKeyPositionsStable
+INSTRUMENTATION_STATUS_CODE: 0
+INSTRUMENTATION_STATUS: class=org.mywubi.KeyboardLayoutTest
+INSTRUMENTATION_STATUS: current=8
+INSTRUMENTATION_STATUS: id=AndroidJUnitRunner
+INSTRUMENTATION_STATUS: numtests=10
+INSTRUMENTATION_STATUS: stream=
+INSTRUMENTATION_STATUS: test=hideKeyboardIsAvailableAcrossInputStatesAndDoesNotDispatchText
+INSTRUMENTATION_STATUS_CODE: 1
+INSTRUMENTATION_STATUS: class=org.mywubi.KeyboardLayoutTest
+INSTRUMENTATION_STATUS: current=8
+INSTRUMENTATION_STATUS: id=AndroidJUnitRunner
+INSTRUMENTATION_STATUS: numtests=10
+INSTRUMENTATION_STATUS: stack=androidx.test.uiautomator.StaleObjectException
+	at androidx.test.uiautomator.UiObject2.getAccessibilityNodeInfo(UiObject2.java:1018)
+	at androidx.test.uiautomator.UiObject2.isEnabled(UiObject2.java:450)
+	at org.mywubi.KeyboardLayoutTest.hideKeyboardIsAvailableAcrossInputStatesAndDoesNotDispatchText(KeyboardLayoutTest.kt:142)
+
+INSTRUMENTATION_STATUS: stream=
+Error in hideKeyboardIsAvailableAcrossInputStatesAndDoesNotDispatchText(org.mywubi.KeyboardLayoutTest):
+androidx.test.uiautomator.StaleObjectException
+	at androidx.test.uiautomator.UiObject2.getAccessibilityNodeInfo(UiObject2.java:1018)
+	at androidx.test.uiautomator.UiObject2.isEnabled(UiObject2.java:450)
+	at org.mywubi.KeyboardLayoutTest.hideKeyboardIsAvailableAcrossInputStatesAndDoesNotDispatchText(KeyboardLayoutTest.kt:142)
+
+INSTRUMENTATION_STATUS: test=hideKeyboardIsAvailableAcrossInputStatesAndDoesNotDispatchText
+INSTRUMENTATION_STATUS_CODE: -2
+INSTRUMENTATION_STATUS: class=org.mywubi.KeyboardLayoutTest
+INSTRUMENTATION_STATUS: current=9
+INSTRUMENTATION_STATUS: id=AndroidJUnitRunner
+INSTRUMENTATION_STATUS: numtests=10
+INSTRUMENTATION_STATUS: stream=
+INSTRUMENTATION_STATUS: test=directFieldsUseAsciiSymbolsAndExpandedCandidatesKeepBackspace
+INSTRUMENTATION_STATUS_CODE: 1
+INSTRUMENTATION_STATUS: class=org.mywubi.KeyboardLayoutTest
+INSTRUMENTATION_STATUS: current=9
+INSTRUMENTATION_STATUS: id=AndroidJUnitRunner
+INSTRUMENTATION_STATUS: numtests=10
+INSTRUMENTATION_STATUS: stream=.
+INSTRUMENTATION_STATUS: test=directFieldsUseAsciiSymbolsAndExpandedCandidatesKeepBackspace
+INSTRUMENTATION_STATUS_CODE: 0
+INSTRUMENTATION_STATUS: class=org.mywubi.KeyboardLayoutTest
+INSTRUMENTATION_STATUS: current=10
+INSTRUMENTATION_STATUS: id=AndroidJUnitRunner
+INSTRUMENTATION_STATUS: numtests=10
+INSTRUMENTATION_STATUS: stream=
+INSTRUMENTATION_STATUS: test=landscapeCandidatesStayAboveProportionalKeys
+INSTRUMENTATION_STATUS_CODE: 1
+INSTRUMENTATION_STATUS: class=org.mywubi.KeyboardLayoutTest
+INSTRUMENTATION_STATUS: current=10
+INSTRUMENTATION_STATUS: id=AndroidJUnitRunner
+INSTRUMENTATION_STATUS: numtests=10
+INSTRUMENTATION_STATUS: stream=.
+INSTRUMENTATION_STATUS: test=landscapeCandidatesStayAboveProportionalKeys
+INSTRUMENTATION_STATUS_CODE: 0
+INSTRUMENTATION_RESULT: stream=
+
+Time: 113.241
+There were 2 failures:
+1) realTemplatesKeepGroupsLocalAndReturnToRememberedMode(org.mywubi.CustomKeyboardHostTest)
+org.mywubi.ProtocolException: 皮肤文件读写失败：File exists (os error 17)
+	at org.mywubi.NativeBridge.call(NativeBridge.kt:27)
+	at org.mywubi.NativeBridge.objectCall(NativeBridge.kt:33)
+	at org.mywubi.CustomKeyboardHostTest.realTemplatesKeepGroupsLocalAndReturnToRememberedMode(CustomKeyboardHostTest.kt:42)
+2) hideKeyboardIsAvailableAcrossInputStatesAndDoesNotDispatchText(org.mywubi.KeyboardLayoutTest)
+androidx.test.uiautomator.StaleObjectException
+	at androidx.test.uiautomator.UiObject2.getAccessibilityNodeInfo(UiObject2.java:1018)
+	at androidx.test.uiautomator.UiObject2.isEnabled(UiObject2.java:450)
+	at org.mywubi.KeyboardLayoutTest.hideKeyboardIsAvailableAcrossInputStatesAndDoesNotDispatchText(KeyboardLayoutTest.kt:142)
+
+FAILURES!!!
+Tests run: 10,  Failures: 2
+
+
+INSTRUMENTATION_CODE: -1

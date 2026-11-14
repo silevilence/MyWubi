@@ -1,0 +1,76 @@
+   Compiling core_engine v0.9.0 (C:\code\rust\MyWubi\core_engine)
+warning: settings@0.9.0: 已复制 4 个码表到 C:\code\rust\MyWubi\target\debug\tables
+   Compiling personal_input v0.9.0 (C:\code\rust\MyWubi\personal_input)
+   Compiling text_render v0.9.0 (C:\code\rust\MyWubi\windows\text_render)
+   Compiling model_input v0.9.0 (C:\code\rust\MyWubi\model_input)
+   Compiling settings v0.9.0 (C:\code\rust\MyWubi\windows\settings)
+   Compiling im_engine v0.9.0 (C:\code\rust\MyWubi\windows\im_engine)
+   Compiling mywubi_android v0.9.0 (C:\code\rust\MyWubi\android\native)
+warning: linker stdout: symbols.o : warning LNK4104: 导出符号“DllCanUnloadNow”应为 PRIVATE␍
+         symbols.o : warning LNK4104: 导出符号“DllGetClassObject”应为 PRIVATE␍
+         symbols.o : warning LNK4104: 导出符号“DllRegisterServer”应为 PRIVATE␍
+         symbols.o : warning LNK4104: 导出符号“DllUnregisterServer”应为 PRIVATE
+  |
+  = note: `#[warn(linker_messages)]` on by default
+
+warning: `im_engine` (lib) generated 1 warning
+    Finished `test` profile [unoptimized + debuginfo] target(s) in 32.18s
+   Doc-tests core_engine
+
+running 0 tests
+
+test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+   Doc-tests im_engine
+
+running 0 tests
+
+test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+   Doc-tests model_input
+
+running 0 tests
+
+test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+   Doc-tests model_ipc
+
+running 0 tests
+
+test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+   Doc-tests mywubi_android
+
+running 0 tests
+
+test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+   Doc-tests personal_input
+
+running 0 tests
+
+test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+   Doc-tests runtime_components
+
+running 0 tests
+
+test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+   Doc-tests settings
+
+running 0 tests
+
+test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+   Doc-tests text_render
+
+running 0 tests
+
+test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+   Doc-tests tip_manager
+
+running 0 tests
+
+test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s

@@ -1,0 +1,22 @@
+[
+  {
+    "Algorithm": "SHA256",
+    "Hash": "13CD1B73F188D352843F4A74009D50C6C96FD2FF4D83023E6733A28324C21B86",
+    "Path": "C:\\code\\rust\\MyWubi\\target\\ak-validation\\windows\\im_engine.dll"
+  },
+  {
+    "Algorithm": "SHA256",
+    "Hash": "D72272A7AFD0F7ADD9BC2BAF58610696B49670DAC6EBB80CE5D5BA999FFDF0D2",
+    "Path": "C:\\code\\rust\\MyWubi\\target\\ak-validation\\windows\\settings.exe"
+  },
+  {
+    "Algorithm": "SHA256",
+    "Hash": "07D2422C9810C7C6BA8799E78BC1493CF050CD803F930558DC73027B333A312B",
+    "Path": "C:\\code\\rust\\MyWubi\\docs\\validation\\keyboards\\windows\\editor-shape14.mywubi-skin"
+  },
+  {
+    "Algorithm": "SHA256",
+    "Hash": "A4DD6189EC15CED4542A6DD00BD1AACF8883024B2D52B3BAA232FCF2E212774D",
+    "Path": "C:\\code\\rust\\MyWubi\\docs\\templates\\mywubi-keyboards-4.mywubi-skin"
+  }
+]

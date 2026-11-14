@@ -6,7 +6,8 @@ public final class EditorActivity extends android.app.Activity {
         super.onCreate(state);
         android.widget.EditText editor = new android.widget.EditText(this);
         editor.setId(1);
-        editor.setInputType(android.text.InputType.TYPE_CLASS_TEXT | android.text.InputType.TYPE_TEXT_FLAG_MULTI_LINE);
+        editor.setInputType(getIntent().getIntExtra("inputType",
+            android.text.InputType.TYPE_CLASS_TEXT | android.text.InputType.TYPE_TEXT_FLAG_MULTI_LINE));
         editor.setGravity(android.view.Gravity.TOP);
         editor.setTextSize(22);
         // Observe real document mutations without replacing the OS InputConnection.

@@ -1,0 +1,17 @@
+[
+  {
+    "Algorithm": "SHA256",
+    "Hash": "96471668E9154C510B1CC0F80F1487856C57737CD8D10DDD0FF9D7D4447E831F",
+    "Path": "C:\\code\\rust\\MyWubi\\android\\app\\build\\outputs\\apk\\debug\\app-debug.apk"
+  },
+  {
+    "Algorithm": "SHA256",
+    "Hash": "27058A15FACDE4E6698414B7D2EF35DF7B07119BA270CCFE45E892B80D1743B0",
+    "Path": "C:\\code\\rust\\MyWubi\\android\\app\\build\\outputs\\apk\\androidTest\\debug\\app-debug-androidTest.apk"
+  },
+  {
+    "Algorithm": "SHA256",
+    "Hash": "EB9340F2C742AB18976C291FDDA6A3A6C93B906062FF0940650706DC0AE89ED6",
+    "Path": "C:\\code\\rust\\MyWubi\\android\\acceptance-host\\build\\outputs\\apk\\debug\\acceptance-host-debug.apk"
+  }
+]

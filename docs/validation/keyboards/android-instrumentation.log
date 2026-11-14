@@ -1,0 +1,638 @@
+INSTRUMENTATION_STATUS: class=org.mywubi.GroupProtocolTest
+INSTRUMENTATION_STATUS: current=1
+INSTRUMENTATION_STATUS: id=AndroidJUnitRunner
+INSTRUMENTATION_STATUS: numtests=37
+INSTRUMENTATION_STATUS: stream=
+org.mywubi.GroupProtocolTest:
+INSTRUMENTATION_STATUS: test=sharedGestureTracesMatchDesktopSimulation
+INSTRUMENTATION_STATUS_CODE: 1
+INSTRUMENTATION_STATUS: class=org.mywubi.GroupProtocolTest
+INSTRUMENTATION_STATUS: current=1
+INSTRUMENTATION_STATUS: id=AndroidJUnitRunner
+INSTRUMENTATION_STATUS: numtests=37
+INSTRUMENTATION_STATUS: stream=.
+INSTRUMENTATION_STATUS: test=sharedGestureTracesMatchDesktopSimulation
+INSTRUMENTATION_STATUS_CODE: 0
+INSTRUMENTATION_STATUS: class=org.mywubi.GroupProtocolTest
+INSTRUMENTATION_STATUS: current=2
+INSTRUMENTATION_STATUS: id=AndroidJUnitRunner
+INSTRUMENTATION_STATUS: numtests=37
+INSTRUMENTATION_STATUS: stream=
+INSTRUMENTATION_STATUS: test=groupsMatchSharedRustFixturesAndNeverBecomeHostText
+INSTRUMENTATION_STATUS_CODE: 1
+INSTRUMENTATION_STATUS: class=org.mywubi.GroupProtocolTest
+INSTRUMENTATION_STATUS: current=2
+INSTRUMENTATION_STATUS: id=AndroidJUnitRunner
+INSTRUMENTATION_STATUS: numtests=37
+INSTRUMENTATION_STATUS: stream=.
+INSTRUMENTATION_STATUS: test=groupsMatchSharedRustFixturesAndNeverBecomeHostText
+INSTRUMENTATION_STATUS_CODE: 0
+INSTRUMENTATION_STATUS: class=org.mywubi.KeyboardPackageTest
+INSTRUMENTATION_STATUS: current=3
+INSTRUMENTATION_STATUS: id=AndroidJUnitRunner
+INSTRUMENTATION_STATUS: numtests=37
+INSTRUMENTATION_STATUS: stream=
+org.mywubi.KeyboardPackageTest:
+INSTRUMENTATION_STATUS: test=templateImportDecodeSaveExportAndReimportPreserveCombination
+INSTRUMENTATION_STATUS_CODE: 1
+INSTRUMENTATION_STATUS: class=org.mywubi.KeyboardPackageTest
+INSTRUMENTATION_STATUS: current=3
+INSTRUMENTATION_STATUS: id=AndroidJUnitRunner
+INSTRUMENTATION_STATUS: numtests=37
+INSTRUMENTATION_STATUS: stream=.
+INSTRUMENTATION_STATUS: test=templateImportDecodeSaveExportAndReimportPreserveCombination
+INSTRUMENTATION_STATUS_CODE: 0
+INSTRUMENTATION_STATUS: class=org.mywubi.NativeContractTest
+INSTRUMENTATION_STATUS: current=4
+INSTRUMENTATION_STATUS: id=AndroidJUnitRunner
+INSTRUMENTATION_STATUS: numtests=37
+INSTRUMENTATION_STATUS: stream=
+org.mywubi.NativeContractTest:
+INSTRUMENTATION_STATUS: test=protocolBoundariesAndLifecycle
+INSTRUMENTATION_STATUS_CODE: 1
+INSTRUMENTATION_STATUS: class=org.mywubi.NativeContractTest
+INSTRUMENTATION_STATUS: current=4
+INSTRUMENTATION_STATUS: id=AndroidJUnitRunner
+INSTRUMENTATION_STATUS: numtests=37
+INSTRUMENTATION_STATUS: stream=.
+INSTRUMENTATION_STATUS: test=protocolBoundariesAndLifecycle
+INSTRUMENTATION_STATUS_CODE: 0
+INSTRUMENTATION_STATUS: class=org.mywubi.NativeContractTest
+INSTRUMENTATION_STATUS: current=5
+INSTRUMENTATION_STATUS: id=AndroidJUnitRunner
+INSTRUMENTATION_STATUS: numtests=37
+INSTRUMENTATION_STATUS: stream=
+INSTRUMENTATION_STATUS: test=customCodesAndUnavailableModeKeepTheRound
+INSTRUMENTATION_STATUS_CODE: 1
+INSTRUMENTATION_STATUS: class=org.mywubi.NativeContractTest
+INSTRUMENTATION_STATUS: current=5
+INSTRUMENTATION_STATUS: id=AndroidJUnitRunner
+INSTRUMENTATION_STATUS: numtests=37
+INSTRUMENTATION_STATUS: stream=.
+INSTRUMENTATION_STATUS: test=customCodesAndUnavailableModeKeepTheRound
+INSTRUMENTATION_STATUS_CODE: 0
+INSTRUMENTATION_STATUS: class=org.mywubi.EditorContractTest
+INSTRUMENTATION_STATUS: current=6
+INSTRUMENTATION_STATUS: id=AndroidJUnitRunner
+INSTRUMENTATION_STATUS: numtests=37
+INSTRUMENTATION_STATUS: stream=
+org.mywubi.EditorContractTest:
+INSTRUMENTATION_STATUS: test=inputPurposeAndActionAreIndependentOfBaseMode
+INSTRUMENTATION_STATUS_CODE: 1
+INSTRUMENTATION_STATUS: class=org.mywubi.EditorContractTest
+INSTRUMENTATION_STATUS: current=6
+INSTRUMENTATION_STATUS: id=AndroidJUnitRunner
+INSTRUMENTATION_STATUS: numtests=37
+INSTRUMENTATION_STATUS: stream=.
+INSTRUMENTATION_STATUS: test=inputPurposeAndActionAreIndependentOfBaseMode
+INSTRUMENTATION_STATUS_CODE: 0
+INSTRUMENTATION_STATUS: class=org.mywubi.EditorContractTest
+INSTRUMENTATION_STATUS: current=7
+INSTRUMENTATION_STATUS: id=AndroidJUnitRunner
+INSTRUMENTATION_STATUS: numtests=37
+INSTRUMENTATION_STATUS: stream=
+INSTRUMENTATION_STATUS: test=batchBoundaryFailuresRemainUnknownWithoutRetry
+INSTRUMENTATION_STATUS_CODE: 1
+INSTRUMENTATION_STATUS: class=org.mywubi.EditorContractTest
+INSTRUMENTATION_STATUS: current=7
+INSTRUMENTATION_STATUS: id=AndroidJUnitRunner
+INSTRUMENTATION_STATUS: numtests=37
+INSTRUMENTATION_STATUS: stream=.
+INSTRUMENTATION_STATUS: test=batchBoundaryFailuresRemainUnknownWithoutRetry
+INSTRUMENTATION_STATUS_CODE: 0
+INSTRUMENTATION_STATUS: class=org.mywubi.EditorContractTest
+INSTRUMENTATION_STATUS: current=8
+INSTRUMENTATION_STATUS: id=AndroidJUnitRunner
+INSTRUMENTATION_STATUS: numtests=37
+INSTRUMENTATION_STATUS: stream=
+INSTRUMENTATION_STATUS: test=unicodeDeletionUsesWholeGraphemes
+INSTRUMENTATION_STATUS_CODE: 1
+INSTRUMENTATION_STATUS: class=org.mywubi.EditorContractTest
+INSTRUMENTATION_STATUS: current=8
+INSTRUMENTATION_STATUS: id=AndroidJUnitRunner
+INSTRUMENTATION_STATUS: numtests=37
+INSTRUMENTATION_STATUS: stream=.
+INSTRUMENTATION_STATUS: test=unicodeDeletionUsesWholeGraphemes
+INSTRUMENTATION_STATUS_CODE: 0
+INSTRUMENTATION_STATUS: class=org.mywubi.EditorContractTest
+INSTRUMENTATION_STATUS: current=9
+INSTRUMENTATION_STATUS: id=AndroidJUnitRunner
+INSTRUMENTATION_STATUS: numtests=37
+INSTRUMENTATION_STATUS: stream=
+INSTRUMENTATION_STATUS: test=clearSelectsWholeEditorAndStopsWhenSelectionFailsOrContextChanges
+INSTRUMENTATION_STATUS_CODE: 1
+INSTRUMENTATION_STATUS: class=org.mywubi.EditorContractTest
+INSTRUMENTATION_STATUS: current=9
+INSTRUMENTATION_STATUS: id=AndroidJUnitRunner
+INSTRUMENTATION_STATUS: numtests=37
+INSTRUMENTATION_STATUS: stream=.
+INSTRUMENTATION_STATUS: test=clearSelectsWholeEditorAndStopsWhenSelectionFailsOrContextChanges
+INSTRUMENTATION_STATUS_CODE: 0
+INSTRUMENTATION_STATUS: class=org.mywubi.EditorContractTest
+INSTRUMENTATION_STATUS: current=10
+INSTRUMENTATION_STATUS: id=AndroidJUnitRunner
+INSTRUMENTATION_STATUS: numtests=37
+INSTRUMENTATION_STATUS: stream=
+INSTRUMENTATION_STATUS: test=clearingCompositionReleasesOwnershipEvenWhenFinishFails
+INSTRUMENTATION_STATUS_CODE: 1
+INSTRUMENTATION_STATUS: class=org.mywubi.EditorContractTest
+INSTRUMENTATION_STATUS: current=10
+INSTRUMENTATION_STATUS: id=AndroidJUnitRunner
+INSTRUMENTATION_STATUS: numtests=37
+INSTRUMENTATION_STATUS: stream=.
+INSTRUMENTATION_STATUS: test=clearingCompositionReleasesOwnershipEvenWhenFinishFails
+INSTRUMENTATION_STATUS_CODE: 0
+INSTRUMENTATION_STATUS: class=org.mywubi.EditorContractTest
+INSTRUMENTATION_STATUS: current=11
+INSTRUMENTATION_STATUS: id=AndroidJUnitRunner
+INSTRUMENTATION_STATUS: numtests=37
+INSTRUMENTATION_STATUS: stream=
+INSTRUMENTATION_STATUS: test=pasteCommitsLiteralTextExactlyOnceWithoutClipboardSideEffects
+INSTRUMENTATION_STATUS_CODE: 1
+INSTRUMENTATION_STATUS: class=org.mywubi.EditorContractTest
+INSTRUMENTATION_STATUS: current=11
+INSTRUMENTATION_STATUS: id=AndroidJUnitRunner
+INSTRUMENTATION_STATUS: numtests=37
+INSTRUMENTATION_STATUS: stream=.
+INSTRUMENTATION_STATUS: test=pasteCommitsLiteralTextExactlyOnceWithoutClipboardSideEffects
+INSTRUMENTATION_STATUS_CODE: 0
+INSTRUMENTATION_STATUS: class=org.mywubi.KeyboardTouchTest
+INSTRUMENTATION_STATUS: current=12
+INSTRUMENTATION_STATUS: id=AndroidJUnitRunner
+INSTRUMENTATION_STATUS: numtests=37
+INSTRUMENTATION_STATUS: stream=
+org.mywubi.KeyboardTouchTest:
+INSTRUMENTATION_STATUS: test=overlappingAlternatingFingersDoNotDropRepeatedKeys
+INSTRUMENTATION_STATUS_CODE: 1
+INSTRUMENTATION_STATUS: class=org.mywubi.KeyboardTouchTest
+INSTRUMENTATION_STATUS: current=12
+INSTRUMENTATION_STATUS: id=AndroidJUnitRunner
+INSTRUMENTATION_STATUS: numtests=37
+INSTRUMENTATION_STATUS: stream=.
+INSTRUMENTATION_STATUS: test=overlappingAlternatingFingersDoNotDropRepeatedKeys
+INSTRUMENTATION_STATUS_CODE: 0
+INSTRUMENTATION_STATUS: class=org.mywubi.KeyboardTouchTest
+INSTRUMENTATION_STATUS: current=13
+INSTRUMENTATION_STATUS: id=AndroidJUnitRunner
+INSTRUMENTATION_STATUS: numtests=37
+INSTRUMENTATION_STATUS: stream=
+INSTRUMENTATION_STATUS: test=visualKeyGuttersStillAcceptTaps
+INSTRUMENTATION_STATUS_CODE: 1
+INSTRUMENTATION_STATUS: class=org.mywubi.KeyboardTouchTest
+INSTRUMENTATION_STATUS: current=13
+INSTRUMENTATION_STATUS: id=AndroidJUnitRunner
+INSTRUMENTATION_STATUS: numtests=37
+INSTRUMENTATION_STATUS: stream=.
+INSTRUMENTATION_STATUS: test=visualKeyGuttersStillAcceptTaps
+INSTRUMENTATION_STATUS_CODE: 0
+INSTRUMENTATION_STATUS: class=org.mywubi.KeyboardTouchTest
+INSTRUMENTATION_STATUS: current=14
+INSTRUMENTATION_STATUS: id=AndroidJUnitRunner
+INSTRUMENTATION_STATUS: numtests=37
+INSTRUMENTATION_STATUS: stream=
+INSTRUMENTATION_STATUS: test=eightDirectionsMergedUpAndReturnToCenterUseOneReleaseAction
+INSTRUMENTATION_STATUS_CODE: 1
+INSTRUMENTATION_STATUS: class=org.mywubi.KeyboardTouchTest
+INSTRUMENTATION_STATUS: current=14
+INSTRUMENTATION_STATUS: id=AndroidJUnitRunner
+INSTRUMENTATION_STATUS: numtests=37
+INSTRUMENTATION_STATUS: stack=java.lang.AssertionError: expected:<[u, u, u]> but was:<[h, u, u]>
+	at org.junit.Assert.fail(Assert.java:89)
+	at org.junit.Assert.failNotEquals(Assert.java:835)
+	at org.junit.Assert.assertEquals(Assert.java:120)
+	at org.junit.Assert.assertEquals(Assert.java:146)
+	at org.mywubi.KeyboardTouchTest.eightDirectionsMergedUpAndReturnToCenterUseOneReleaseAction(KeyboardTouchTest.kt:57)
+
+INSTRUMENTATION_STATUS: stream=
+Error in eightDirectionsMergedUpAndReturnToCenterUseOneReleaseAction(org.mywubi.KeyboardTouchTest):
+java.lang.AssertionError: expected:<[u, u, u]> but was:<[h, u, u]>
+	at org.junit.Assert.fail(Assert.java:89)
+	at org.junit.Assert.failNotEquals(Assert.java:835)
+	at org.junit.Assert.assertEquals(Assert.java:120)
+	at org.junit.Assert.assertEquals(Assert.java:146)
+	at org.mywubi.KeyboardTouchTest.eightDirectionsMergedUpAndReturnToCenterUseOneReleaseAction(KeyboardTouchTest.kt:57)
+
+INSTRUMENTATION_STATUS: test=eightDirectionsMergedUpAndReturnToCenterUseOneReleaseAction
+INSTRUMENTATION_STATUS_CODE: -2
+INSTRUMENTATION_STATUS: class=org.mywubi.KeyboardTouchTest
+INSTRUMENTATION_STATUS: current=15
+INSTRUMENTATION_STATUS: id=AndroidJUnitRunner
+INSTRUMENTATION_STATUS: numtests=37
+INSTRUMENTATION_STATUS: stream=
+INSTRUMENTATION_STATUS: test=deleteHoldSwipeReleaseReturnAndContextCancellation
+INSTRUMENTATION_STATUS_CODE: 1
+s_glBindAttribLocation: bind attrib 0 name position
+s_glBindAttribLocation: bind attrib 1 name color
+s_glBindAttribLocation: bind attrib 2 name localCoord
+INSTRUMENTATION_STATUS: class=org.mywubi.KeyboardTouchTest
+INSTRUMENTATION_STATUS: current=15
+INSTRUMENTATION_STATUS: id=AndroidJUnitRunner
+INSTRUMENTATION_STATUS: numtests=37
+INSTRUMENTATION_STATUS: stream=.
+INSTRUMENTATION_STATUS: test=deleteHoldSwipeReleaseReturnAndContextCancellation
+INSTRUMENTATION_STATUS_CODE: 0
+INSTRUMENTATION_STATUS: class=org.mywubi.KeyboardTouchTest
+INSTRUMENTATION_STATUS: current=16
+INSTRUMENTATION_STATUS: id=AndroidJUnitRunner
+INSTRUMENTATION_STATUS: numtests=37
+INSTRUMENTATION_STATUS: stream=
+INSTRUMENTATION_STATUS: test=modesUseFixedLabelAndSymbolsDoNotConsumeOneShotShift
+INSTRUMENTATION_STATUS_CODE: 1
+INSTRUMENTATION_STATUS: class=org.mywubi.KeyboardTouchTest
+INSTRUMENTATION_STATUS: current=16
+INSTRUMENTATION_STATUS: id=AndroidJUnitRunner
+INSTRUMENTATION_STATUS: numtests=37
+INSTRUMENTATION_STATUS: stream=.
+INSTRUMENTATION_STATUS: test=modesUseFixedLabelAndSymbolsDoNotConsumeOneShotShift
+INSTRUMENTATION_STATUS_CODE: 0
+INSTRUMENTATION_STATUS: class=org.mywubi.KeyboardTouchTest
+INSTRUMENTATION_STATUS: current=17
+INSTRUMENTATION_STATUS: id=AndroidJUnitRunner
+INSTRUMENTATION_STATUS: numtests=37
+INSTRUMENTATION_STATUS: stream=
+INSTRUMENTATION_STATUS: test=previewDoesNotBlockRapidTypingAndHidingCancelsHeldKey
+INSTRUMENTATION_STATUS_CODE: 1
+INSTRUMENTATION_STATUS: class=org.mywubi.KeyboardTouchTest
+INSTRUMENTATION_STATUS: current=17
+INSTRUMENTATION_STATUS: id=AndroidJUnitRunner
+INSTRUMENTATION_STATUS: numtests=37
+INSTRUMENTATION_STATUS: stream=.
+INSTRUMENTATION_STATUS: test=previewDoesNotBlockRapidTypingAndHidingCancelsHeldKey
+INSTRUMENTATION_STATUS_CODE: 0
+INSTRUMENTATION_STATUS: class=org.mywubi.KeyboardTouchTest
+INSTRUMENTATION_STATUS: current=18
+INSTRUMENTATION_STATUS: id=AndroidJUnitRunner
+INSTRUMENTATION_STATUS: numtests=37
+INSTRUMENTATION_STATUS: stream=
+INSTRUMENTATION_STATUS: test=tapPreviewSwipeHoldAndCancellationCommitExactlyOnce
+INSTRUMENTATION_STATUS_CODE: 1
+INSTRUMENTATION_STATUS: class=org.mywubi.KeyboardTouchTest
+INSTRUMENTATION_STATUS: current=18
+INSTRUMENTATION_STATUS: id=AndroidJUnitRunner
+INSTRUMENTATION_STATUS: numtests=37
+INSTRUMENTATION_STATUS: stream=.
+INSTRUMENTATION_STATUS: test=tapPreviewSwipeHoldAndCancellationCommitExactlyOnce
+INSTRUMENTATION_STATUS_CODE: 0
+INSTRUMENTATION_STATUS: class=org.mywubi.KeyboardLayoutTest
+INSTRUMENTATION_STATUS: current=19
+INSTRUMENTATION_STATUS: id=AndroidJUnitRunner
+INSTRUMENTATION_STATUS: numtests=37
+INSTRUMENTATION_STATUS: stream=
+org.mywubi.KeyboardLayoutTest:
+INSTRUMENTATION_STATUS: test=staggeredLettersAndSeparatePanelsPreserveActions
+INSTRUMENTATION_STATUS_CODE: 1
+INSTRUMENTATION_STATUS: class=org.mywubi.KeyboardLayoutTest
+INSTRUMENTATION_STATUS: current=19
+INSTRUMENTATION_STATUS: id=AndroidJUnitRunner
+INSTRUMENTATION_STATUS: numtests=37
+INSTRUMENTATION_STATUS: stream=.
+INSTRUMENTATION_STATUS: test=staggeredLettersAndSeparatePanelsPreserveActions
+INSTRUMENTATION_STATUS_CODE: 0
+INSTRUMENTATION_STATUS: class=org.mywubi.KeyboardLayoutTest
+INSTRUMENTATION_STATUS: current=20
+INSTRUMENTATION_STATUS: id=AndroidJUnitRunner
+INSTRUMENTATION_STATUS: numtests=37
+INSTRUMENTATION_STATUS: stream=
+INSTRUMENTATION_STATUS: test=largeFontCompositionKeepsKeyboardHeightAndKeyPositionsStable
+INSTRUMENTATION_STATUS_CODE: 1
+INSTRUMENTATION_STATUS: class=org.mywubi.KeyboardLayoutTest
+INSTRUMENTATION_STATUS: current=20
+INSTRUMENTATION_STATUS: id=AndroidJUnitRunner
+INSTRUMENTATION_STATUS: numtests=37
+INSTRUMENTATION_STATUS: stream=.
+INSTRUMENTATION_STATUS: test=largeFontCompositionKeepsKeyboardHeightAndKeyPositionsStable
+INSTRUMENTATION_STATUS_CODE: 0
+INSTRUMENTATION_STATUS: class=org.mywubi.KeyboardLayoutTest
+INSTRUMENTATION_STATUS: current=21
+INSTRUMENTATION_STATUS: id=AndroidJUnitRunner
+INSTRUMENTATION_STATUS: numtests=37
+INSTRUMENTATION_STATUS: stream=
+INSTRUMENTATION_STATUS: test=compositionKeepsKeyboardHeightAndKeyPositionsStable
+INSTRUMENTATION_STATUS_CODE: 1
+INSTRUMENTATION_STATUS: class=org.mywubi.KeyboardLayoutTest
+INSTRUMENTATION_STATUS: current=21
+INSTRUMENTATION_STATUS: id=AndroidJUnitRunner
+INSTRUMENTATION_STATUS: numtests=37
+INSTRUMENTATION_STATUS: stream=.
+INSTRUMENTATION_STATUS: test=compositionKeepsKeyboardHeightAndKeyPositionsStable
+INSTRUMENTATION_STATUS_CODE: 0
+INSTRUMENTATION_STATUS: class=org.mywubi.KeyboardLayoutTest
+INSTRUMENTATION_STATUS: current=22
+INSTRUMENTATION_STATUS: id=AndroidJUnitRunner
+INSTRUMENTATION_STATUS: numtests=37
+INSTRUMENTATION_STATUS: stream=
+INSTRUMENTATION_STATUS: test=hideKeyboardIsAvailableAcrossInputStatesAndDoesNotDispatchText
+INSTRUMENTATION_STATUS_CODE: 1
+INSTRUMENTATION_STATUS: class=org.mywubi.KeyboardLayoutTest
+INSTRUMENTATION_STATUS: current=22
+INSTRUMENTATION_STATUS: id=AndroidJUnitRunner
+INSTRUMENTATION_STATUS: numtests=37
+INSTRUMENTATION_STATUS: stream=.
+INSTRUMENTATION_STATUS: test=hideKeyboardIsAvailableAcrossInputStatesAndDoesNotDispatchText
+INSTRUMENTATION_STATUS_CODE: 0
+INSTRUMENTATION_STATUS: class=org.mywubi.KeyboardLayoutTest
+INSTRUMENTATION_STATUS: current=23
+INSTRUMENTATION_STATUS: id=AndroidJUnitRunner
+INSTRUMENTATION_STATUS: numtests=37
+INSTRUMENTATION_STATUS: stream=
+INSTRUMENTATION_STATUS: test=directFieldsUseAsciiSymbolsAndExpandedCandidatesKeepBackspace
+INSTRUMENTATION_STATUS_CODE: 1
+INSTRUMENTATION_STATUS: class=org.mywubi.KeyboardLayoutTest
+INSTRUMENTATION_STATUS: current=23
+INSTRUMENTATION_STATUS: id=AndroidJUnitRunner
+INSTRUMENTATION_STATUS: numtests=37
+INSTRUMENTATION_STATUS: stream=.
+INSTRUMENTATION_STATUS: test=directFieldsUseAsciiSymbolsAndExpandedCandidatesKeepBackspace
+INSTRUMENTATION_STATUS_CODE: 0
+INSTRUMENTATION_STATUS: class=org.mywubi.KeyboardLayoutTest
+INSTRUMENTATION_STATUS: current=24
+INSTRUMENTATION_STATUS: id=AndroidJUnitRunner
+INSTRUMENTATION_STATUS: numtests=37
+INSTRUMENTATION_STATUS: stream=
+INSTRUMENTATION_STATUS: test=landscapeCandidatesStayAboveProportionalKeys
+INSTRUMENTATION_STATUS_CODE: 1
+INSTRUMENTATION_STATUS: class=org.mywubi.KeyboardLayoutTest
+INSTRUMENTATION_STATUS: current=24
+INSTRUMENTATION_STATUS: id=AndroidJUnitRunner
+INSTRUMENTATION_STATUS: numtests=37
+INSTRUMENTATION_STATUS: stream=.
+INSTRUMENTATION_STATUS: test=landscapeCandidatesStayAboveProportionalKeys
+INSTRUMENTATION_STATUS_CODE: 0
+INSTRUMENTATION_STATUS: class=org.mywubi.SkinContractTest
+INSTRUMENTATION_STATUS: current=25
+INSTRUMENTATION_STATUS: id=AndroidJUnitRunner
+INSTRUMENTATION_STATUS: numtests=37
+INSTRUMENTATION_STATUS: stream=
+org.mywubi.SkinContractTest:
+INSTRUMENTATION_STATUS: test=actualImageSkinSupportsDarkLandscapeAndLargeFont
+INSTRUMENTATION_STATUS_CODE: 1
+INSTRUMENTATION_STATUS: class=org.mywubi.SkinContractTest
+INSTRUMENTATION_STATUS: current=25
+INSTRUMENTATION_STATUS: id=AndroidJUnitRunner
+INSTRUMENTATION_STATUS: numtests=37
+INSTRUMENTATION_STATUS: stream=.
+INSTRUMENTATION_STATUS: test=actualImageSkinSupportsDarkLandscapeAndLargeFont
+INSTRUMENTATION_STATUS_CODE: 0
+INSTRUMENTATION_STATUS: class=org.mywubi.SkinContractTest
+INSTRUMENTATION_STATUS: current=26
+INSTRUMENTATION_STATUS: id=AndroidJUnitRunner
+INSTRUMENTATION_STATUS: numtests=37
+INSTRUMENTATION_STATUS: stream=
+INSTRUMENTATION_STATUS: test=imageVariantsShareDecodedResourcesAndRejectCorruption
+INSTRUMENTATION_STATUS_CODE: 1
+INSTRUMENTATION_STATUS: class=org.mywubi.SkinContractTest
+INSTRUMENTATION_STATUS: current=26
+INSTRUMENTATION_STATUS: id=AndroidJUnitRunner
+INSTRUMENTATION_STATUS: numtests=37
+INSTRUMENTATION_STATUS: stream=.
+INSTRUMENTATION_STATUS: test=imageVariantsShareDecodedResourcesAndRejectCorruption
+INSTRUMENTATION_STATUS_CODE: 0
+INSTRUMENTATION_STATUS: class=org.mywubi.SkinContractTest
+INSTRUMENTATION_STATUS: current=27
+INSTRUMENTATION_STATUS: id=AndroidJUnitRunner
+INSTRUMENTATION_STATUS: numtests=37
+INSTRUMENTATION_STATUS: stream=
+INSTRUMENTATION_STATUS: test=resolvingBothVariantsPreservesCandidateIdentityAndPendingCommit
+INSTRUMENTATION_STATUS_CODE: 1
+INSTRUMENTATION_STATUS: class=org.mywubi.SkinContractTest
+INSTRUMENTATION_STATUS: current=27
+INSTRUMENTATION_STATUS: id=AndroidJUnitRunner
+INSTRUMENTATION_STATUS: numtests=37
+INSTRUMENTATION_STATUS: stream=.
+INSTRUMENTATION_STATUS: test=resolvingBothVariantsPreservesCandidateIdentityAndPendingCommit
+INSTRUMENTATION_STATUS_CODE: 0
+INSTRUMENTATION_STATUS: class=org.mywubi.SkinContractTest
+INSTRUMENTATION_STATUS: current=28
+INSTRUMENTATION_STATUS: id=AndroidJUnitRunner
+INSTRUMENTATION_STATUS: numtests=37
+INSTRUMENTATION_STATUS: stream=
+INSTRUMENTATION_STATUS: test=realImeKeepsPendingCandidateAcrossAppearanceSave
+INSTRUMENTATION_STATUS_CODE: 1
+INSTRUMENTATION_STATUS: class=org.mywubi.SkinContractTest
+INSTRUMENTATION_STATUS: current=28
+INSTRUMENTATION_STATUS: id=AndroidJUnitRunner
+INSTRUMENTATION_STATUS: numtests=37
+INSTRUMENTATION_STATUS: stream=.
+INSTRUMENTATION_STATUS: test=realImeKeepsPendingCandidateAcrossAppearanceSave
+INSTRUMENTATION_STATUS_CODE: 0
+INSTRUMENTATION_STATUS: class=org.mywubi.SkinContractTest
+INSTRUMENTATION_STATUS: current=29
+INSTRUMENTATION_STATUS: id=AndroidJUnitRunner
+INSTRUMENTATION_STATUS: numtests=37
+INSTRUMENTATION_STATUS: stream=
+INSTRUMENTATION_STATUS: test=nativeKeyboardKeepsCandidatesAndTouchTargetsAcrossSkinAndLargeFontChanges
+INSTRUMENTATION_STATUS_CODE: 1
+INSTRUMENTATION_STATUS: class=org.mywubi.SkinContractTest
+INSTRUMENTATION_STATUS: current=29
+INSTRUMENTATION_STATUS: id=AndroidJUnitRunner
+INSTRUMENTATION_STATUS: numtests=37
+INSTRUMENTATION_STATUS: stream=.
+INSTRUMENTATION_STATUS: test=nativeKeyboardKeepsCandidatesAndTouchTargetsAcrossSkinAndLargeFontChanges
+INSTRUMENTATION_STATUS_CODE: 0
+INSTRUMENTATION_STATUS: class=org.mywubi.SkinContractTest
+INSTRUMENTATION_STATUS: current=30
+INSTRUMENTATION_STATUS: id=AndroidJUnitRunner
+INSTRUMENTATION_STATUS: numtests=37
+INSTRUMENTATION_STATUS: stream=
+INSTRUMENTATION_STATUS: test=actualWindowsEditorExportResolvesAndRoundtripsWithoutChangingWindows
+INSTRUMENTATION_STATUS_CODE: 1
+INSTRUMENTATION_STATUS: class=org.mywubi.SkinContractTest
+INSTRUMENTATION_STATUS: current=30
+INSTRUMENTATION_STATUS: id=AndroidJUnitRunner
+INSTRUMENTATION_STATUS: numtests=37
+INSTRUMENTATION_STATUS: stream=.
+INSTRUMENTATION_STATUS: test=actualWindowsEditorExportResolvesAndRoundtripsWithoutChangingWindows
+INSTRUMENTATION_STATUS_CODE: 0
+INSTRUMENTATION_STATUS: class=org.mywubi.SkinSettingsUiTest
+INSTRUMENTATION_STATUS: current=31
+INSTRUMENTATION_STATUS: id=AndroidJUnitRunner
+INSTRUMENTATION_STATUS: numtests=37
+INSTRUMENTATION_STATUS: stream=
+org.mywubi.SkinSettingsUiTest:
+INSTRUMENTATION_STATUS: test=safImportNativePreviewDraftSaveAndSystemShare
+INSTRUMENTATION_STATUS_CODE: 1
+INSTRUMENTATION_STATUS: class=org.mywubi.SkinSettingsUiTest
+INSTRUMENTATION_STATUS: current=31
+INSTRUMENTATION_STATUS: id=AndroidJUnitRunner
+INSTRUMENTATION_STATUS: numtests=37
+INSTRUMENTATION_STATUS: stream=.
+INSTRUMENTATION_STATUS: test=safImportNativePreviewDraftSaveAndSystemShare
+INSTRUMENTATION_STATUS_CODE: 0
+INSTRUMENTATION_STATUS: class=org.mywubi.ModeHostTest
+INSTRUMENTATION_STATUS: current=32
+INSTRUMENTATION_STATUS: id=AndroidJUnitRunner
+INSTRUMENTATION_STATUS: numtests=37
+INSTRUMENTATION_STATUS: stream=
+org.mywubi.ModeHostTest:
+INSTRUMENTATION_STATUS: test=englishTemporaryPinyinAndDigitsInExternalHost
+INSTRUMENTATION_STATUS_CODE: 1
+INSTRUMENTATION_STATUS: class=org.mywubi.ModeHostTest
+INSTRUMENTATION_STATUS: current=32
+INSTRUMENTATION_STATUS: id=AndroidJUnitRunner
+INSTRUMENTATION_STATUS: numtests=37
+INSTRUMENTATION_STATUS: stream=.
+INSTRUMENTATION_STATUS: test=englishTemporaryPinyinAndDigitsInExternalHost
+INSTRUMENTATION_STATUS_CODE: 0
+INSTRUMENTATION_STATUS: class=org.mywubi.ExternalHostTest
+INSTRUMENTATION_STATUS: current=33
+INSTRUMENTATION_STATUS: id=AndroidJUnitRunner
+INSTRUMENTATION_STATUS: numtests=37
+INSTRUMENTATION_STATUS: stream=
+org.mywubi.ExternalHostTest:
+INSTRUMENTATION_STATUS: test=shapeInputInSystemSettings
+INSTRUMENTATION_STATUS_CODE: 1
+INSTRUMENTATION_STATUS: class=org.mywubi.ExternalHostTest
+INSTRUMENTATION_STATUS: current=33
+INSTRUMENTATION_STATUS: id=AndroidJUnitRunner
+INSTRUMENTATION_STATUS: numtests=37
+INSTRUMENTATION_STATUS: stack=java.lang.AssertionError
+	at org.junit.Assert.fail(Assert.java:87)
+	at org.junit.Assert.assertTrue(Assert.java:42)
+	at org.junit.Assert.assertTrue(Assert.java:53)
+	at org.mywubi.ExternalHostTest.shapeInputInSystemSettings(ExternalHostTest.kt:117)
+
+INSTRUMENTATION_STATUS: stream=
+Error in shapeInputInSystemSettings(org.mywubi.ExternalHostTest):
+java.lang.AssertionError
+	at org.junit.Assert.fail(Assert.java:87)
+	at org.junit.Assert.assertTrue(Assert.java:42)
+	at org.junit.Assert.assertTrue(Assert.java:53)
+	at org.mywubi.ExternalHostTest.shapeInputInSystemSettings(ExternalHostTest.kt:117)
+
+INSTRUMENTATION_STATUS: test=shapeInputInSystemSettings
+INSTRUMENTATION_STATUS_CODE: -2
+INSTRUMENTATION_STATUS: class=org.mywubi.ExternalHostTest
+INSTRUMENTATION_STATUS: current=34
+INSTRUMENTATION_STATUS: id=AndroidJUnitRunner
+INSTRUMENTATION_STATUS: numtests=37
+INSTRUMENTATION_STATUS: stream=
+INSTRUMENTATION_STATUS: test=composeExpansionAndRepeatStopsOnRelease
+INSTRUMENTATION_STATUS_CODE: 1
+INSTRUMENTATION_STATUS: class=org.mywubi.ExternalHostTest
+INSTRUMENTATION_STATUS: current=34
+INSTRUMENTATION_STATUS: id=AndroidJUnitRunner
+INSTRUMENTATION_STATUS: numtests=37
+INSTRUMENTATION_STATUS: stack=java.lang.AssertionError: Missing IME key: BySelector [DESC='\Q展开\E', PKG='\Qorg.mywubi\E', CLICKABLE='true']
+	at org.mywubi.ExternalHostTest.freshKey(ExternalHostTest.kt:31)
+	at org.mywubi.ExternalHostTest.composeExpansionAndRepeatStopsOnRelease$button(ExternalHostTest.kt:52)
+	at org.mywubi.ExternalHostTest.composeExpansionAndRepeatStopsOnRelease(ExternalHostTest.kt:61)
+
+INSTRUMENTATION_STATUS: stream=
+Error in composeExpansionAndRepeatStopsOnRelease(org.mywubi.ExternalHostTest):
+java.lang.AssertionError: Missing IME key: BySelector [DESC='\Q展开\E', PKG='\Qorg.mywubi\E', CLICKABLE='true']
+	at org.mywubi.ExternalHostTest.freshKey(ExternalHostTest.kt:31)
+	at org.mywubi.ExternalHostTest.composeExpansionAndRepeatStopsOnRelease$button(ExternalHostTest.kt:52)
+	at org.mywubi.ExternalHostTest.composeExpansionAndRepeatStopsOnRelease(ExternalHostTest.kt:61)
+
+INSTRUMENTATION_STATUS: test=composeExpansionAndRepeatStopsOnRelease
+INSTRUMENTATION_STATUS_CODE: -2
+INSTRUMENTATION_STATUS: class=org.mywubi.KeyboardShortcutsHostTest
+INSTRUMENTATION_STATUS: current=35
+INSTRUMENTATION_STATUS: id=AndroidJUnitRunner
+INSTRUMENTATION_STATUS: numtests=37
+INSTRUMENTATION_STATUS: stream=
+org.mywubi.KeyboardShortcutsHostTest:
+INSTRUMENTATION_STATUS: test=realEditorPastesDismissesAndClearsWholeFieldFromMiddle
+INSTRUMENTATION_STATUS_CODE: 1
+INSTRUMENTATION_STATUS: class=org.mywubi.KeyboardShortcutsHostTest
+INSTRUMENTATION_STATUS: current=35
+INSTRUMENTATION_STATUS: id=AndroidJUnitRunner
+INSTRUMENTATION_STATUS: numtests=37
+INSTRUMENTATION_STATUS: stream=.
+INSTRUMENTATION_STATUS: test=realEditorPastesDismissesAndClearsWholeFieldFromMiddle
+INSTRUMENTATION_STATUS_CODE: 0
+INSTRUMENTATION_STATUS: class=org.mywubi.CustomKeyboardHostTest
+INSTRUMENTATION_STATUS: current=36
+INSTRUMENTATION_STATUS: id=AndroidJUnitRunner
+INSTRUMENTATION_STATUS: numtests=37
+INSTRUMENTATION_STATUS: stream=
+org.mywubi.CustomKeyboardHostTest:
+INSTRUMENTATION_STATUS: test=realTemplatesKeepGroupsLocalAndReturnToRememberedMode
+INSTRUMENTATION_STATUS_CODE: 1
+INSTRUMENTATION_STATUS: class=org.mywubi.CustomKeyboardHostTest
+INSTRUMENTATION_STATUS: current=36
+INSTRUMENTATION_STATUS: id=AndroidJUnitRunner
+INSTRUMENTATION_STATUS: numtests=37
+INSTRUMENTATION_STATUS: stream=.
+INSTRUMENTATION_STATUS: test=realTemplatesKeepGroupsLocalAndReturnToRememberedMode
+INSTRUMENTATION_STATUS_CODE: 0
+INSTRUMENTATION_STATUS: class=org.mywubi.DeviceBenchmarkTest
+INSTRUMENTATION_STATUS: current=37
+INSTRUMENTATION_STATUS: id=AndroidJUnitRunner
+INSTRUMENTATION_STATUS: numtests=37
+INSTRUMENTATION_STATUS: stream=
+org.mywubi.DeviceBenchmarkTest:
+INSTRUMENTATION_STATUS: test=recordRealDictionaryJniLatencyAndMemory
+INSTRUMENTATION_STATUS_CODE: 1
+INSTRUMENTATION_STATUS: class=org.mywubi.DeviceBenchmarkTest
+INSTRUMENTATION_STATUS: current=37
+INSTRUMENTATION_STATUS: id=AndroidJUnitRunner
+INSTRUMENTATION_STATUS: numtests=37
+INSTRUMENTATION_STATUS: stack=org.junit.AssumptionViolatedException: Supply benchmark_main with a real main table
+	at org.junit.Assume.assumeTrue(Assume.java:68)
+	at org.mywubi.DeviceBenchmarkTest.recordRealDictionaryJniLatencyAndMemory(DeviceBenchmarkTest.kt:19)
+	at java.lang.reflect.Method.invoke(Native Method)
+	at org.junit.runners.model.FrameworkMethod$1.runReflectiveCall(FrameworkMethod.java:59)
+	at org.junit.internal.runners.model.ReflectiveCallable.run(ReflectiveCallable.java:12)
+	at org.junit.runners.model.FrameworkMethod.invokeExplosively(FrameworkMethod.java:56)
+	at org.junit.internal.runners.statements.InvokeMethod.evaluate(InvokeMethod.java:17)
+	at org.junit.runners.ParentRunner$3.evaluate(ParentRunner.java:306)
+	at org.junit.runners.BlockJUnit4ClassRunner$1.evaluate(BlockJUnit4ClassRunner.java:100)
+	at org.junit.runners.ParentRunner.runLeaf(ParentRunner.java:366)
+	at org.junit.runners.BlockJUnit4ClassRunner.runChild(BlockJUnit4ClassRunner.java:103)
+	at org.junit.runners.BlockJUnit4ClassRunner.runChild(BlockJUnit4ClassRunner.java:63)
+	at org.junit.runners.ParentRunner$4.run(ParentRunner.java:331)
+	at org.junit.runners.ParentRunner$1.schedule(ParentRunner.java:79)
+	at org.junit.runners.ParentRunner.runChildren(ParentRunner.java:329)
+	at org.junit.runners.ParentRunner.access$100(ParentRunner.java:66)
+	at org.junit.runners.ParentRunner$2.evaluate(ParentRunner.java:293)
+	at org.junit.runners.ParentRunner$3.evaluate(ParentRunner.java:306)
+	at org.junit.runners.ParentRunner.run(ParentRunner.java:413)
+	at org.junit.runners.Suite.runChild(Suite.java:128)
+	at org.junit.runners.Suite.runChild(Suite.java:27)
+	at org.junit.runners.ParentRunner$4.run(ParentRunner.java:331)
+	at org.junit.runners.ParentRunner$1.schedule(ParentRunner.java:79)
+	at org.junit.runners.ParentRunner.runChildren(ParentRunner.java:329)
+	at org.junit.runners.ParentRunner.access$100(ParentRunner.java:66)
+	at org.junit.runners.ParentRunner$2.evaluate(ParentRunner.java:293)
+	at org.junit.runners.ParentRunner$3.evaluate(ParentRunner.java:306)
+	at org.junit.runners.ParentRunner.run(ParentRunner.java:413)
+	at org.junit.runner.JUnitCore.run(JUnitCore.java:137)
+	at org.junit.runner.JUnitCore.run(JUnitCore.java:115)
+	at androidx.test.internal.runner.TestExecutor.execute(TestExecutor.java:68)
+	at androidx.test.internal.runner.TestExecutor.execute(TestExecutor.java:59)
+	at androidx.test.runner.AndroidJUnitRunner.onStart(AndroidJUnitRunner.java:463)
+	at android.app.Instrumentation$InstrumentationThread.run(Instrumentation.java:2402)
+
+INSTRUMENTATION_STATUS: stream=
+org.mywubi.DeviceBenchmarkTest:
+INSTRUMENTATION_STATUS: test=recordRealDictionaryJniLatencyAndMemory
+INSTRUMENTATION_STATUS_CODE: -4
+INSTRUMENTATION_RESULT: stream=
+
+Time: 603.46
+There were 3 failures:
+1) eightDirectionsMergedUpAndReturnToCenterUseOneReleaseAction(org.mywubi.KeyboardTouchTest)
+java.lang.AssertionError: expected:<[u, u, u]> but was:<[h, u, u]>
+	at org.junit.Assert.fail(Assert.java:89)
+	at org.junit.Assert.failNotEquals(Assert.java:835)
+	at org.junit.Assert.assertEquals(Assert.java:120)
+	at org.junit.Assert.assertEquals(Assert.java:146)
+	at org.mywubi.KeyboardTouchTest.eightDirectionsMergedUpAndReturnToCenterUseOneReleaseAction(KeyboardTouchTest.kt:57)
+2) shapeInputInSystemSettings(org.mywubi.ExternalHostTest)
+java.lang.AssertionError
+	at org.junit.Assert.fail(Assert.java:87)
+	at org.junit.Assert.assertTrue(Assert.java:42)
+	at org.junit.Assert.assertTrue(Assert.java:53)
+	at org.mywubi.ExternalHostTest.shapeInputInSystemSettings(ExternalHostTest.kt:117)
+3) composeExpansionAndRepeatStopsOnRelease(org.mywubi.ExternalHostTest)
+java.lang.AssertionError: Missing IME key: BySelector [DESC='\Q展开\E', PKG='\Qorg.mywubi\E', CLICKABLE='true']
+	at org.mywubi.ExternalHostTest.freshKey(ExternalHostTest.kt:31)
+	at org.mywubi.ExternalHostTest.composeExpansionAndRepeatStopsOnRelease$button(ExternalHostTest.kt:52)
+	at org.mywubi.ExternalHostTest.composeExpansionAndRepeatStopsOnRelease(ExternalHostTest.kt:61)
+
+FAILURES!!!
+Tests run: 37,  Failures: 3
+
+
+INSTRUMENTATION_CODE: -1

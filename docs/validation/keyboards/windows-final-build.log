@@ -1,0 +1,16 @@
+   Compiling core_engine v0.9.0 (C:\code\rust\MyWubi\core_engine)
+warning: settings@0.9.0: 已复制 4 个码表到 C:\code\rust\MyWubi\target\debug\tables
+   Compiling personal_input v0.9.0 (C:\code\rust\MyWubi\personal_input)
+   Compiling text_render v0.9.0 (C:\code\rust\MyWubi\windows\text_render)
+   Compiling model_input v0.9.0 (C:\code\rust\MyWubi\model_input)
+   Compiling settings v0.9.0 (C:\code\rust\MyWubi\windows\settings)
+   Compiling im_engine v0.9.0 (C:\code\rust\MyWubi\windows\im_engine)
+warning: linker stdout: symbols.o : warning LNK4104: 导出符号“DllCanUnloadNow”应为 PRIVATE␍
+         symbols.o : warning LNK4104: 导出符号“DllGetClassObject”应为 PRIVATE␍
+         symbols.o : warning LNK4104: 导出符号“DllRegisterServer”应为 PRIVATE␍
+         symbols.o : warning LNK4104: 导出符号“DllUnregisterServer”应为 PRIVATE
+  |
+  = note: `#[warn(linker_messages)]` on by default
+
+warning: `im_engine` (lib) generated 1 warning
+    Finished `dev` profile [unoptimized + debuginfo] target(s) in 56.49s

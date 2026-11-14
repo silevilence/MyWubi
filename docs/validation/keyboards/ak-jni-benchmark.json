@@ -1,0 +1,31 @@
+{
+  "model": "sdk_gphone64_x86_64",
+  "api": 34,
+  "pss_before_kib": 68987,
+  "scope": "JNI Prepare\/Ack + candidate fetch; no screen latency",
+  "Main_exact": {
+    "count": 500,
+    "p50_us": 4906.2,
+    "p95_us": 9220.3,
+    "p99_us": 11090.7
+  },
+  "Main_groups": {
+    "count": 500,
+    "p50_us": 2537.2,
+    "p95_us": 4470.9,
+    "p99_us": 6793.6
+  },
+  "Pinyin_exact": {
+    "count": 500,
+    "p50_us": 3645.6,
+    "p95_us": 6845.7,
+    "p99_us": 8697.9
+  },
+  "Pinyin_groups": {
+    "count": 500,
+    "p50_us": 3820.6,
+    "p95_us": 6612.4,
+    "p99_us": 8811.4
+  },
+  "pss_after_kib": 86731
+}

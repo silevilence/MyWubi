@@ -1,0 +1,12 @@
+[
+  {
+    "Algorithm": "SHA256",
+    "Hash": "7F5073542C810121402CAD731F46489309A9BE5D902CFF7290553B69A3CA612F",
+    "Path": "C:\\code\\rust\\MyWubi\\target\\debug\\im_engine.dll"
+  },
+  {
+    "Algorithm": "SHA256",
+    "Hash": "968D6E1C257C6F5258D98666EA7F1BBD83C638D4D67E35D0351E932C2B37A2B4",
+    "Path": "C:\\code\\rust\\MyWubi\\target\\debug\\settings.exe"
+  }
+]

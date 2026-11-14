@@ -1,5 +1,23 @@
 use core_engine::skin::{combination, keyboard::*, keyboard_templates};
 #[test]
+fn installing_templates_again_reuses_immutable_package() {
+    let dir = tempfile::tempdir().unwrap();
+    let path = dir.path().join("config.toml");
+    let first = combination::execute(combination::Request::InstallTemplates { path: path.clone() }).unwrap();
+    assert_eq!(first["already_present"], false);
+    let store = core_engine::skin::runtime::store_path(&path);
+    let target = std::fs::read_dir(&store).unwrap().next().unwrap().unwrap().path();
+    let original = std::fs::read(&target).unwrap();
+    let second = combination::execute(combination::Request::InstallTemplates { path: path.clone() }).unwrap();
+    assert_eq!(second["already_present"], true);
+    assert_eq!(original, std::fs::read(&target).unwrap());
+    let mut changed = core_engine::skin::Package::open(&target).unwrap();
+    changed.metadata.name.push_str(" changed");
+    std::fs::write(&target, changed.encoded().unwrap()).unwrap();
+    assert!(combination::execute(combination::Request::InstallTemplates { path }).is_err());
+    assert_eq!(changed.encoded().unwrap(), std::fs::read(target).unwrap());
+}
+#[test]
 fn template_covers_alphabet_and_survives_package_roundtrip() {
     let package = keyboard_templates::package().unwrap();
     let component = package.platforms["android"]

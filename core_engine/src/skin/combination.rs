@@ -390,9 +390,8 @@ pub fn execute(request: Request) -> Result<serde_json::Value, Error> {
     match request {
         Request::InstallTemplates {path} => {
             let package=super::keyboard_templates::package()?;
-            let store=runtime::store_path(&path);std::fs::create_dir_all(&store)?;
-            package.export_new(&store.join(format!("{}@{}.mywubi-skin",package.metadata.id,package.metadata.version)))?;
-            Ok(json!({"installed":true}))
+            let imported=super::archive::import(&runtime::store_path(&path),std::io::Cursor::new(package.encoded()?))?;
+            Ok(json!({"installed":true,"already_present":imported.already_present}))
         },
         Request::Prepare {
             path,

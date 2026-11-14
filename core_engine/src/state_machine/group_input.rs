@@ -350,6 +350,9 @@ impl SemanticEngine {
         if resolved {
             self.sm.capture_shortcut_time();
         }
+        if !self.sm.may_append_candidates() {
+            return self.show_group_page();
+        }
         let entries: Vec<_> = self
             .sm
             .group_matches

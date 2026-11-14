@@ -10,6 +10,25 @@ import android.os.SystemClock
 
 /** Uses the installed system Settings editor, not an EditText owned by this app. */
 class ExternalHostTest {
+    private var originalConfig: org.json.JSONObject? = null
+    @org.junit.Before fun prepareRealTable() {
+        val store=EngineStore(InstrumentationRegistry.getInstrumentation().targetContext)
+        val loaded=store.readConfig()
+        originalConfig=org.json.JSONObject(loaded.getJSONObject("config").toString())
+        val config=org.json.JSONObject(originalConfig.toString())
+        config.getJSONObject("dictionary").put("system_table","tables/wubi86.dict").put("enable_user_dict",false)
+        config.getJSONObject("basic").put("auto_commit_unique",false)
+        config.put("prediction",org.json.JSONObject().put("enabled",false))
+        config.put("shortcuts",org.json.JSONObject())
+        NativeHandle(loaded.getLong("version")).use { NativeHandle(store.saveConfig(config,it.value).getLong("version")).close() }
+    }
+    @org.junit.After fun restoreConfig() {
+        val store=EngineStore(InstrumentationRegistry.getInstrumentation().targetContext)
+        originalConfig?.let { config ->
+            val loaded=store.readConfig()
+            NativeHandle(loaded.getLong("version")).use { NativeHandle(store.saveConfig(config,it.value).getLong("version")).close() }
+        }
+    }
     private fun awaitHostText(device: UiDevice, text: String) {
         val deadline=SystemClock.uptimeMillis()+10000
         do {
@@ -52,6 +71,8 @@ class ExternalHostTest {
         fun button(label:String) = freshKey(device, By.desc(label))
         val context = InstrumentationRegistry.getInstrumentation().targetContext
         val keyBounds = button("g").visibleBounds
+        device.findObject(By.desc("英 → 中").pkg("org.mywubi"))?.click()
+        device.waitForIdle()
         val density = context.resources.displayMetrics.density
         java.io.File(context.filesDir,"keyboard-target.json").writeText(
             org.json.JSONObject().put("key", "g").put("width_dp", keyBounds.width()/density)
@@ -114,7 +135,8 @@ class ExternalHostTest {
         device.executeShellCommand("am start -W -f 0x10008000 -n org.mywubi/.MainActivity")
         assertTrue(device.wait(Until.hasObject(By.pkg("org.mywubi").scrollable(true)),15000))
         androidx.test.uiautomator.UiScrollable(androidx.test.uiautomator.UiSelector().scrollable(true)).setAsVerticalList().scrollToBeginning(20)
-        assertTrue(device.wait(Until.hasObject(By.text("1. 启用 MyWubi")),15000))
+        device.wait(Until.findObject(By.text("常用")),5000)?.click()
+        assertTrue(device.wait(Until.hasObject(By.text("MyWubi 已就绪")),15000))
         device.pressBack()
         device.executeShellCommand("am force-stop com.android.settings")
         device.executeShellCommand("am force-stop com.google.android.settings.intelligence")

@@ -108,6 +108,10 @@ fun Keyboard(model: KeyboardModel, dispatch: (Any) -> Unit, window: (Int) -> Uni
         mutableStateOf(if (model.layout in listOf("number", "phone")) "numbers" else "letters")
     }
     var useCustom by remember(model.epoch, model.customLayout?.id) { mutableStateOf(true) }
+    val groupControls = !model.privateInput && (model.groupPositions.isNotEmpty() ||
+        (useCustom && model.customLayout?.keys?.any { key ->
+            key.action.kind == "Group" || key.hold?.kind == "Group" || key.directions.values.any { it.kind == "Group" }
+        } == true))
     var expanded by remember(model.epoch) { mutableStateOf(false) }
     var specialMenu by remember(model.epoch) { mutableStateOf(false) }
     val showExpanded = expanded && model.candidates.isNotEmpty() && !model.privateInput
@@ -299,8 +303,10 @@ fun Keyboard(model: KeyboardModel, dispatch: (Any) -> Unit, window: (Int) -> Uni
                         else -> BuiltinKeyboardLayouts.symbols(asciiSymbols)
                     }
                 }
-                if(model.groupPositions.isNotEmpty() && !model.privateInput) GroupConstraints(model.groupPositions,model.query,model.enabled,dispatch)
-                if (model.customLayout != null) TextButton(onClick={dispatch("RestoreKeyboard"); useCustom=false; panel="letters"}) { Text("取消输入并恢复全键布局") }
+                if(groupControls) Box(Modifier.fillMaxWidth().height(48.dp)) {
+                    if(model.groupPositions.isNotEmpty()) GroupConstraints(model.groupPositions,model.query,model.enabled,dispatch)
+                }
+                if (model.customLayout != null) TextButton(modifier=Modifier.height(48.dp),onClick={dispatch("RestoreKeyboard"); useCustom=false; panel="letters"}) { Text("取消输入并恢复全键布局") }
                 BoxWithConstraints(Modifier.fillMaxWidth().height(LocalKeyboardKeyHeight.current*layout.height)) {
                     val unit=maxWidth/layout.width
                     for (key in layout.keys) {
@@ -410,10 +416,13 @@ fun Keyboard(model: KeyboardModel, dispatch: (Any) -> Unit, window: (Int) -> Uni
                     } else {
                         val availableHeight = maxHeight
                         Column(Modifier.widthIn(max=600.dp).fillMaxWidth()) {
-                            val rows = if (panel == "symbols" && !showExpanded) 5 else 4
+                            val customRows = model.customLayout?.takeIf {panel=="letters" && useCustom && !model.privateInput && model.layout=="letters" && !showExpanded}?.height
+                            val rows = customRows?.plus(1f) ?: if (panel == "symbols" && !showExpanded) 5f else 4f
+                            val customControls = if(showExpanded) 0.dp else
+                                (if(model.customLayout!=null) 48.dp else 0.dp) + (if(groupControls) 48.dp else 0.dp)
                             // Keep a 48 dp row budget before scaling text in a short window.
                             val controlScale = minOf(density.fontScale,
-                                ((availableHeight.value - rows*48f - 24f)/48f).coerceAtLeast(1f))
+                                ((availableHeight.value - rows*48f - 24f - customControls.value)/48f).coerceAtLeast(1f))
                             CompositionLocalProvider(LocalDensity provides androidx.compose.ui.unit.Density(density.density,controlScale)) {
                                 controls()
                             }
@@ -421,7 +430,7 @@ fun Keyboard(model: KeyboardModel, dispatch: (Any) -> Unit, window: (Int) -> Uni
                                 // Large fonts must not push the last key rows out of a
                                 // short window. Fit all rows into the space left by controls.
                                 val gridExtra = if (showExpanded) 28.dp else 0.dp
-                                val fittedHeight = minOf(keyHeight, (maxHeight-gridExtra).coerceAtLeast(0.dp) / rows)
+                                val fittedHeight = minOf(keyHeight, (maxHeight-gridExtra-customControls).coerceAtLeast(0.dp) / rows)
                                 val fittedScale = minOf(density.fontScale,
                                     ((fittedHeight.value - 16f) /
                                         ((parameters?.optDouble("key_text_size",20.0)?.toFloat() ?: 16f) + 12f)).coerceAtLeast(0.5f))
@@ -562,7 +571,7 @@ private fun Modifier.imeAction(label:String,enabled:Boolean,action:()->Unit) = c
 @Composable
 private fun GroupConstraints(positions: List<Pair<String,String?>>,query: String,enabled: Boolean,dispatch: (Any)->Unit) {
     var selected by remember(query) { mutableStateOf<Int?>(null) }
-    LazyRow(Modifier.fillMaxWidth()) {
+    LazyRow(Modifier.fillMaxWidth().height(48.dp)) {
         items(positions.size) { index ->
             val position=positions[index]
             TextButton(enabled=enabled && position.first.length>1,onClick={selected=index}) {
