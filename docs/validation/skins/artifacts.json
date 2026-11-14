@@ -1,0 +1,67 @@
+[
+  {
+    "path": "examples/skins/bamboo-android.mywubi-skin",
+    "bytes": 1540744,
+    "sha256": "97e788905b1a88b6920aeb8890ad03036b7783ac57d246801707d39e9de6068b"
+  },
+  {
+    "path": "examples/skins/bamboo-dual.mywubi-skin",
+    "bytes": 1541734,
+    "sha256": "c9231c28c2da471e97613415fd70ae0e31f1142c375d8ed7bb1310ca743e00be"
+  },
+  {
+    "path": "examples/skins/bamboo-windows.mywubi-skin",
+    "bytes": 1540747,
+    "sha256": "79cb87446038eec0289c395c34ae8f87fc7e32fda75fab65e6a3aa4ad69101b4"
+  },
+  {
+    "path": "examples/skins/compat-future-required.mywubi-skin",
+    "bytes": 1541749,
+    "sha256": "602fcd1de45ccede1e6ec6bc9b96f9f168d237dd7078d911feb6bedfe56ef97e"
+  },
+  {
+    "path": "examples/skins/compat-optional-plain.mywubi-skin",
+    "bytes": 1541743,
+    "sha256": "d573d6e3b1cdc78359f74dc04a91f3d6c30a727de62b6c473eba40e1e4043507"
+  },
+  {
+    "path": "examples/skins/invalid-damaged-png.mywubi-skin",
+    "bytes": 1541743,
+    "sha256": "f095ee700fdb6a55242cc4490cea3eb5c5af647f4dea7218bb6e2b7b7c2d1018"
+  },
+  {
+    "path": "examples/skins/parameters-dual.mywubi-skin",
+    "bytes": 1973,
+    "sha256": "c1131da15e9bd775134c8a48d1a33e3ef0091b2b27cd0449abf360d6a65a42fb"
+  },
+  {
+    "path": "examples/skins/assets/bamboo-paper.png",
+    "bytes": 1769976,
+    "sha256": "4d9f51048471db3d7b48434e69a1340808e1dd5757a7cb4fbad45562b29748aa"
+  },
+  {
+    "path": "target/release/settings.exe",
+    "bytes": 32468480,
+    "sha256": "46ac04ae0025dd34c4502a77a33e2c5b6d4f0c8e97f892e9376ec149ad59bd76"
+  },
+  {
+    "path": "target/release/im_engine.dll",
+    "bytes": 6749696,
+    "sha256": "00a20dd632293000c888b1f99f7e72f8a4efb3a93b6d7f7fb1ee2cce447d0b64"
+  },
+  {
+    "path": "android/app/build/outputs/apk/debug/app-debug.apk",
+    "bytes": 33830661,
+    "sha256": "074b461711bdf32d3542bad2bd5c0f3a1a57cd35b8ee3a1c0359594663879908"
+  },
+  {
+    "path": "android/app/build/outputs/apk/androidTest/debug/app-debug-androidTest.apk",
+    "bytes": 2621270,
+    "sha256": "d6b4c2a2ae8ef1d6dd5d6e720c2119c94b961bcdab75411e2f249cdf7ffdfe5d"
+  },
+  {
+    "path": "android/app/src/androidTest/assets/skins/editor-bamboo.mywubi-skin",
+    "bytes": 1560568,
+    "sha256": "759bf7964c3ae55f83da87973b348d502215a8fc87218bd21d45bf1962d40f84"
+  }
+]

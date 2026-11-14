@@ -1,0 +1,67 @@
+{
+  "workspace": {
+    "command": "cargo test --workspace --offline --locked",
+    "passed": 541,
+    "failed": 0
+  },
+  "native_image_template": {
+    "command": "cargo test -p text_render --test skin_images --offline --locked",
+    "passed": 3,
+    "additional_to_workspace": 1
+  },
+  "android_unit": {
+    "passed": 3,
+    "failed": 0
+  },
+  "strict_clippy": {
+    "scope": [
+      "core_engine",
+      "text_render"
+    ],
+    "all_targets": true,
+    "warnings_denied": true,
+    "result": "passed"
+  },
+  "broader_clippy": {
+    "result": "not_clean",
+    "reason": "Existing Windows COM raw-pointer lint and existing settings/model warnings; not treated as new skin failures"
+  },
+  "android_device": {
+    "device": "Existing Pixel 5 API 34 x86_64 emulator",
+    "unique_tests_passed": 21,
+    "unresolved_test_failures": 0,
+    "full_run": {
+      "log": "skin-final-preview-acceptance.log",
+      "tests": 21,
+      "passed": 20,
+      "failed": 1,
+      "failure": "SAF test clicked a disabled component while background import was still running"
+    },
+    "focused_retests": [
+      {
+        "log": "skin-final-focused-acceptance.log",
+        "tests": 2,
+        "passed": 1,
+        "failed": 1,
+        "passed_scope": "Dark landscape 2x including expanded candidates and visible bottom row",
+        "failure": "Preview consumed centre swipes, preventing the test from scrolling to the bottom row"
+      },
+      {
+        "log": "skin-final-saf-acceptance.log",
+        "tests": 1,
+        "passed": 1,
+        "failed": 0,
+        "scope": "SAF import, enabled component selection, native q/space preview, draft recreation, save and system share"
+      }
+    ],
+    "classes": {
+      "SkinContractTest": 6,
+      "SkinSettingsUiTest": 1,
+      "KeyboardLayoutTest": 6,
+      "KeyboardTouchTest": 6,
+      "NativeContractTest": 2
+    },
+    "note": "21 unique tests passed across a full run and focused retests; not one all-green full-suite run. Final bounded-grid correction was retested in dark landscape with expanded candidates.",
+    "physical_device": "not available; explicitly left incomplete"
+  }
+}

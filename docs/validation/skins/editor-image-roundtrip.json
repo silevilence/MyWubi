@@ -1,0 +1,14 @@
+{
+  "changed_entries": [
+    "android/appearance.toml"
+  ],
+  "unchanged_entries": [
+    "android/metadata.toml",
+    "metadata.toml",
+    "shared/assets/bamboo.png",
+    "windows/appearance.toml",
+    "windows/metadata.toml"
+  ],
+  "android_light_opacity": 0.2199999988079071,
+  "sha256": "759bf7964c3ae55f83da87973b348d502215a8fc87218bd21d45bf1962d40f84"
+}
