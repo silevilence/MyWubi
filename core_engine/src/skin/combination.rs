@@ -35,6 +35,48 @@ pub struct Snapshot {
     pub packages: Vec<Arc<Package>>,
 }
 
+pub fn validate_layout(layout:&Layout,mapping:Option<&Mapping>) -> Result<BTreeMap<String,String>,Error> {
+    layout.validate_geometry(
+        mapping,
+        &[KeyAction::Space, KeyAction::Enter, KeyAction::Cancel],
+    )?;
+    let known: BTreeSet<_> = super::images::ROLES.iter().copied().collect();
+    if layout
+        .required_styles
+        .iter()
+        .any(|role| !known.contains(role.as_str()))
+    {
+        return Err(Error::Invalid("缺少布局必需样式角色".into()));
+    }
+    let mut role_fallbacks = BTreeMap::new();
+    for key in layout
+        .keys
+        .iter()
+        .chain(layout.landscape.iter().flat_map(|l| l.keys.iter()))
+    {
+        if !known.contains(key.role.as_str()) {
+            let fallback = layout
+                .optional_styles
+                .get(&key.role)
+                .filter(|role| known.contains(role.as_str()))
+                .ok_or_else(|| {
+                    Error::Invalid(format!("按键 {} 缺少样式角色 {} 的回退", key.id, key.role))
+                })?;
+            role_fallbacks.insert(key.role.clone(), fallback.clone());
+        }
+    }
+    Ok(role_fallbacks)
+}
+
+pub fn validate_layout_appearance(package:&Package,id:&str)->Result<(),Error> {
+    let c=package.platforms.get("android").and_then(|p|p.components.iter().find(|c|c.id==id && c.kind=="appearance"))
+        .ok_or_else(||Error::Invalid("推荐外观组件不存在".into()))?;
+    let appearance:super::parameters::Appearance=super::parse(&package.files,&format!("android/{}",c.path))?;
+    if appearance.extensions.contains_key("fixed_layout") {return Err(Error::Invalid("固定键位图片不支持自定义布局，请选用语义角色外观".into()));}
+    for dark in [false,true] {super::parameters::resolve(package,"android",id,dark,&Default::default(),false,&supported())?;}
+    Ok(())
+}
+
 pub fn supported() -> BTreeSet<String> {
     [
         "container.zip/1",
@@ -125,49 +167,15 @@ pub fn resolve(path: &Path, choice: &Choice, mode: Mode, charset: &str) -> Resul
             }
         }
     }
-    layout.validate_geometry(
-        mapping.as_ref(),
-        &[KeyAction::Space, KeyAction::Enter, KeyAction::Cancel],
-    )?;
-    let known: BTreeSet<_> = super::images::ROLES.iter().copied().collect();
-    if layout
-        .required_styles
-        .iter()
-        .any(|role| !known.contains(role.as_str()))
-    {
-        return Err(Error::Invalid("缺少布局必需样式角色".into()));
-    }
-    let mut role_fallbacks = BTreeMap::new();
-    for key in layout
-        .keys
-        .iter()
-        .chain(layout.landscape.iter().flat_map(|l| l.keys.iter()))
-    {
-        if !known.contains(key.role.as_str()) {
-            let fallback = layout
-                .optional_styles
-                .get(&key.role)
-                .filter(|role| known.contains(role.as_str()))
-                .ok_or_else(|| {
-                    Error::Invalid(format!("按键 {} 缺少样式角色 {} 的回退", key.id, key.role))
-                })?;
-            role_fallbacks.insert(key.role.clone(), fallback.clone());
-        }
-    }
+    let role_fallbacks=validate_layout(&layout,mapping.as_ref())?;
     let mut config = crate::Config::default();
     config.skins.android = choice.appearance.clone();
     let light = runtime::load(path, &config, "android", false, false)?;
     let dark = runtime::load(path, &config, "android", true, false)?;
     if let Some(p) = &light.package {
         if let Some(selected) = &choice.appearance.selection {
-            let c = component(p, selected)?;
-            let appearance: super::parameters::Appearance =
-                super::parse(&p.files, &format!("android/{}", c.path))?;
-            if appearance.extensions.contains_key("fixed_layout") {
-                return Err(Error::Invalid(
-                    "固定键位图片不支持自定义布局，请选用语义角色外观".into(),
-                ));
-            }
+            component(p, selected)?;
+            validate_layout_appearance(p,&selected.component)?;
         }
         packages.push(Arc::clone(p));
     }

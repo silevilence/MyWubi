@@ -18,6 +18,7 @@ enum Picked {
     Image { platform: Option<String>, id: String, bytes: Vec<u8> },
 }
 pub struct SkinEditor {
+    keyboard_editor: crate::keyboard_editor::KeyboardEditor,
     android_preview: crate::android_skin_preview::AndroidPreview,
     draft: Option<Draft>,
     pending: Option<mpsc::Receiver<Result<Picked, String>>>,
@@ -43,6 +44,7 @@ pub struct SkinEditor {
 impl Default for SkinEditor {
     fn default() -> Self {
         Self {
+            keyboard_editor: Default::default(),
             android_preview: Default::default(),
             draft: None,
             pending: None,
@@ -300,11 +302,20 @@ impl SkinEditor {
                     });
                 }
             });
+            if self.platform=="android" {
+                ui.horizontal_wrapped(|ui| {for id in ["shape14","shape9","pinyin9"] {
+                    if ui.button(format!("添加 {id} 模板")).clicked() {
+                        match skin::keyboard_templates::add(&mut draft.package,id) {Ok(())=>{draft.dirty=true;self.component=id.into();},Err(e)=>self.message=e.to_string()}
+                    }
+                }});
+            }
             if let Some(platform)=draft.package.platforms.get(&self.platform) {
                 if !platform.components.iter().any(|c|c.id==self.component) {self.component=platform.components.first().map(|c|c.id.clone()).unwrap_or_default();}
                 egui::ComboBox::from_label("组件").selected_text(&self.component).show_ui(ui,|ui| {
                     for c in &platform.components {ui.selectable_value(&mut self.component,c.id.clone(),format!("{} · {}",c.id,c.kind));}
                 });
+                let is_layout=self.platform=="android" && platform.components.iter().any(|c|c.id==self.component && c.kind=="layout");
+                if is_layout {self.keyboard_editor.ui(ui,&mut draft,&self.component);} else {
                 ui.checkbox(&mut self.dark,"深色变体");
                 let supported=["container.zip/1".into(),format!("{}.base/1",self.platform),"appearance.parameters/1".into(),skin::images::CAPABILITY.into()].into();
                 if let Err(e)=crate::skin_image_editor::form(ui,&mut draft,&self.platform,&self.component,self.dark){self.message=e.to_string();}
@@ -341,6 +352,7 @@ impl SkinEditor {
                         if self.platform=="windows" {self.preview(ui,&resolved.parameters,false,self.image_cache.clone());} else {self.android_preview.ui(ui,&resolved.parameters,&self.image_cache);}
                     },
                     Err(e)=>{ui.label(format!("此范围只读，保留原始数据：{e}"));}
+                }
                 }
             }
             ui.horizontal_wrapped(|ui| {
