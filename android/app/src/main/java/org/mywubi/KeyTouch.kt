@@ -21,6 +21,8 @@ import androidx.compose.ui.semantics.*
 import androidx.compose.ui.unit.IntOffset
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.compose.ui.text.rememberTextMeasurer
+import androidx.compose.ui.text.TextStyle
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.LifecycleEventObserver
 import androidx.lifecycle.compose.LocalLifecycleOwner
@@ -51,15 +53,19 @@ internal fun letterSymbol(letter: Char, chinese: Boolean): String {
 internal fun KeyPreviewBubble(preview: KeyPreview?, origin: Offset, widthPx: Float) {
     if (preview == null) return
     val density = LocalDensity.current
-    val width = if (preview.deletion) 196.dp else 56.dp
-    val height = if (preview.deletion) 48.dp else 64.dp
+    val fontSize = if (preview.deletion) 16.sp else skinNumber("bubble_text_size",30f).sp
+    val available = with(density) { widthPx.toDp() }
+    val measured = rememberTextMeasurer().measure(preview.text, TextStyle(fontSize = fontSize),
+        constraints = androidx.compose.ui.unit.Constraints(maxWidth = (widthPx - with(density) { 24.dp.toPx() }).toInt().coerceAtLeast(1)))
+    val width = minOf(available, maxOf(if (preview.deletion) 196.dp else 56.dp, with(density) { measured.size.width.toDp() } + 24.dp))
+    val height = maxOf(if (preview.deletion) 48.dp else 64.dp, with(density) { measured.size.height.toDp() } + 16.dp)
     val x = (preview.bounds.center.x - origin.x - with(density) { width.toPx() } / 2)
         .coerceIn(0f, (widthPx - with(density) { width.toPx() }).coerceAtLeast(0f))
     val y = (preview.bounds.top - origin.y - with(density) { height.toPx() } + with(density) { 4.dp.toPx() }).coerceAtLeast(0f)
     Box(Modifier.offset { IntOffset(x.roundToInt(), y.roundToInt()) }.size(width, height)
         .shadow(skinNumber("shadow",6f).dp, RoundedCornerShape(skinNumber("key_radius",12f).dp)).background(skinColor("bubble_background",MaterialTheme.colorScheme.primary))
         .clearAndSetSemantics { contentDescription = if (preview.deletion) preview.text else "按键预览" }, contentAlignment = Alignment.Center) {
-        Text(preview.text, color = skinColor("bubble_text",MaterialTheme.colorScheme.onPrimary), fontSize = if (preview.deletion) 16.sp else skinNumber("bubble_text_size",30f).sp, maxLines = 1)
+        Text(preview.text, Modifier.padding(horizontal = 12.dp, vertical = 8.dp), color = skinColor("bubble_text",MaterialTheme.colorScheme.onPrimary), fontSize = fontSize)
     }
 }
 
@@ -242,7 +248,7 @@ internal fun KeyTouchSurface(label: String, enabled: Boolean, epoch: Long, modif
         Box(contentAlignment = Alignment.Center) {
             if (alternate != null) Text(alternate, Modifier.align(Alignment.TopEnd).padding(top = 2.dp, end = 4.dp),
                 fontSize = 10.sp, lineHeight = 12.sp, maxLines = 1)
-            Box(Modifier.padding(top = if (alternate == null) 0.dp else 9.dp), contentAlignment = Alignment.Center) { content() }
+            Box(Modifier.padding(top = if (alternate == null) 0.dp else (12f * LocalDensity.current.fontScale).dp), contentAlignment = Alignment.Center) { content() }
         }
     }
 }

@@ -89,7 +89,7 @@ fun Keyboard(model: KeyboardModel, dispatch: (Any) -> Unit, window: (Int) -> Uni
     val parameters = variant?.takeUnless { it.optBoolean("legacy") }?.optJSONObject("parameters")
     val preferredHeight = parameters?.optDouble("keyboard_height", 216.0)?.toFloat()?.div(4f)
     val baseHeight = (preferredHeight?.times(if (landscape) 48f/54f else 1f) ?: if (landscape) 48f else 54f)
-    val keyHeight = maxOf(baseHeight, (parameters?.optDouble("key_text_size",20.0)?.toFloat() ?: 20f)*LocalDensity.current.fontScale+22f).dp
+    val keyHeight = maxOf(baseHeight, ((parameters?.optDouble("key_text_size",20.0)?.toFloat() ?: 16f)+12f)*LocalDensity.current.fontScale+16f).dp
     var shift by remember(model.epoch) { mutableStateOf(KeyMode.Off) }
     val pinyinLabel = when (model.pinyinMode) {
         KeyMode.Locked -> "拼音 · 锁定"
@@ -158,7 +158,7 @@ fun Keyboard(model: KeyboardModel, dispatch: (Any) -> Unit, window: (Int) -> Uni
                 if(!results && (query.text.isNotEmpty() || model.spelling.isNotEmpty())) Text("切换输入方式前请先清空查询", Modifier.padding(horizontal=10.dp), fontSize=12.sp)
                 Text("关键词：${query.text.ifEmpty { "尚未输入" }}" + if(model.spelling.isEmpty()) "" else "　编码：${model.spelling}",
                     Modifier.fillMaxWidth().horizontalScroll(rememberScrollState()).padding(horizontal=10.dp, vertical=4.dp),
-                    color=colors.primary, fontSize=16.sp, maxLines=1)
+                    color=skinColor("code",colors.primary), fontSize=16.sp, maxLines=1)
                 val notice = if(model.statusError) model.status else query.message
                 if(!notice.isNullOrBlank()) Text(notice, Modifier.fillMaxWidth().padding(horizontal=10.dp), fontSize=12.sp, color=colors.onSurfaceVariant)
             }
@@ -171,11 +171,11 @@ fun Keyboard(model: KeyboardModel, dispatch: (Any) -> Unit, window: (Int) -> Uni
                     val heading = if (showSpelling) model.spelling else if (model.prediction) "字词预测" else "全部候选"
                     if (landscape) {
                         Text("$heading · ${model.total} 个候选", Modifier.weight(1f).padding(horizontal=12.dp),
-                            color=colors.primary, fontSize=16.sp, maxLines=1,
+                            color=skinColor("code",colors.primary), fontSize=16.sp, maxLines=1,
                             overflow=androidx.compose.ui.text.style.TextOverflow.Ellipsis)
                     } else Column(Modifier.weight(1f).padding(horizontal=12.dp)) {
                         Text(heading,
-                            color=colors.primary, fontSize=16.sp, maxLines=1,
+                            color=skinColor("code",colors.primary), fontSize=16.sp, maxLines=1,
                             overflow=androidx.compose.ui.text.style.TextOverflow.Ellipsis)
                         Text("${model.total} 个候选", color=colors.onSurfaceVariant, fontSize=12.sp, maxLines=1)
                     }
@@ -189,7 +189,7 @@ fun Keyboard(model: KeyboardModel, dispatch: (Any) -> Unit, window: (Int) -> Uni
                 if (model.expression == null) Text(if (showSpelling) model.spelling else "",
                     Modifier.fillMaxWidth().heightIn(min=28.dp).padding(horizontal=12.dp, vertical=4.dp)
                         .then(if (showSpelling) Modifier else Modifier.clearAndSetSemantics {}),
-                    color=colors.primary, fontSize=16.sp, lineHeight=20.sp, maxLines=1,
+                    color=skinColor("code",colors.primary), fontSize=16.sp, lineHeight=20.sp, maxLines=1,
                     overflow=androidx.compose.ui.text.style.TextOverflow.Ellipsis)
                 Row(Modifier.fillMaxWidth().heightIn(min=barHeight), verticalAlignment=androidx.compose.ui.Alignment.CenterVertically) {
                     Row(Modifier.weight(1f), horizontalArrangement=Arrangement.SpaceEvenly,
@@ -446,7 +446,7 @@ private fun CandidateButton(item: CandidateItem, enabled: Boolean, choose: () ->
     val description = "候选 ${item.text}" + (if(item.hint.isEmpty()) "" else "，${item.spokenHint}") +
         (if(display.fallback) "，字体不支持完整显示，选择后输入原始表情" else "")
     TextButton(onClick=choose,enabled=enabled,modifier=Modifier.heightIn(min=48.dp).imeAction(description,enabled,choose)) {
-        Text(display.text,fontSize=skinNumber("font_size",19f).sp,softWrap=false,
+        Text(display.text,color=skinColor(if (enabled) "text" else "disabled",LocalContentColor.current),fontSize=skinNumber("font_size",19f).sp,softWrap=false,
             style=androidx.compose.ui.text.TextStyle(platformStyle=androidx.compose.ui.text.PlatformTextStyle(includeFontPadding=true)))
         if(item.hint.isNotEmpty() && !display.fallback) Text(" ${item.hint}",fontSize=skinNumber("hint_size",11f).sp,softWrap=false,color=skinColor("hint",MaterialTheme.colorScheme.primary))
     }
@@ -472,8 +472,8 @@ private fun ExpandedCandidateButton(item: CandidateItem, enabled: Boolean, showH
             }
             // Reserve the same hint line in every cell, and let text measure its own height.
             // This keeps rows aligned even with Android's nonlinear font scaling.
-            if(showHints && !display.fallback) Text(item.hint.ifEmpty { " " }, Modifier.padding(top=4.dp), fontSize=12.sp,
-                color=colors.onSurfaceVariant)
+            if(showHints && !display.fallback) Text(item.hint.ifEmpty { " " }, Modifier.padding(top=4.dp), fontSize=skinNumber("hint_size",12f).sp,
+                color=skinColor("hint",colors.onSurfaceVariant))
         }
     }
 }
@@ -512,7 +512,16 @@ private fun KeyLabel(label: String) {
         Icon(androidx.compose.ui.res.painterResource(icon), null, Modifier.size(22.dp))
         if (label == "⇪") Box(Modifier.padding(top=2.dp).size(width=16.dp, height=2.dp).background(LocalContentColor.current))
     }
-    else Text(label, fontSize=skinNumber("key_text_size",16f).sp, maxLines=2)
+    else BoxWithConstraints(Modifier.fillMaxWidth(), contentAlignment=androidx.compose.ui.Alignment.Center) {
+        val desired = skinNumber("key_text_size",16f)
+        val measured = androidx.compose.ui.text.rememberTextMeasurer().measure(label,
+            androidx.compose.ui.text.TextStyle(fontSize=desired.sp), softWrap=false)
+        // Preserve the complete label on narrow functional keys. It grows with system
+        // text size until the key width is exhausted; accessibility keeps the full name.
+        val available = with(LocalDensity.current) { maxWidth.toPx() } - 8f
+        val fit = minOf(1f, available.coerceAtLeast(1f) / measured.size.width.coerceAtLeast(1))
+        Text(label, fontSize=(desired*fit).sp, maxLines=1, softWrap=false)
+    }
 }
 
 /** Keep the label and action on one accessibility node, including the IME's non-Activity window. */
