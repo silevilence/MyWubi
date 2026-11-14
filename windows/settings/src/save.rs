@@ -2,6 +2,19 @@
 use crate::state::AppState;
 
 pub fn save(state: &mut AppState) -> bool {
+    for dark in [false, true] {
+        if let Err(error) = core_engine::skin::runtime::load(
+            &state.config_path,
+            &state.config,
+            "windows",
+            dark,
+            false,
+        ) {
+            state.status_msg = Some(format!("[ERR] 皮肤未保存：{error}"));
+            state.dirty = true;
+            return false;
+        }
+    }
     if let Err(error) = core_engine::shortcuts::validate_structure(&state.config.shortcuts.rules) {
         state.active_panel = crate::state::Panel::SpecialInput;
         state.special_input.locate_rule_error(&error);

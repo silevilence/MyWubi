@@ -54,6 +54,9 @@ pub fn show(ui: &mut Ui, state: &mut AppState) {
         &mut state.dirty,
         &mut state.status_msg,
     );
+    if state.skins.ui(ui, &mut state.config, &state.config_path) {
+        state.prepare_app_container_access();
+    }
 }
 
 fn skin_preferences(ui: &mut Ui, state: &mut AppState) {

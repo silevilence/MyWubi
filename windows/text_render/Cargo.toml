@@ -6,10 +6,10 @@ license.workspace = true
 repository.workspace = true
 
 [dependencies]
+core_engine = { path = "../../core_engine" }
 windows = { workspace = true, features = ["Win32_Foundation", "Win32_Graphics_Gdi", "Win32_Graphics_DirectWrite", "Win32_Graphics_Direct2D", "Win32_Graphics_Direct2D_Common", "Win32_Graphics_Dxgi_Common"] }
 windows-core.workspace = true
 windows-numerics = "0.3"
 
 [dev-dependencies]
-core_engine = { path = "../../core_engine" }
 serde_json.workspace = true

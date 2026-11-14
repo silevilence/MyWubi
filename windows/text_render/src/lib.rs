@@ -17,7 +17,10 @@ use windows::{
 };
 use windows_numerics::Vector2;
 
+pub mod candidate_data;
+pub mod candidate_layout;
 pub mod coverage;
+pub mod preview;
 
 /// One shaped run, including ink overhang so accents are not cropped.
 #[derive(Clone)]

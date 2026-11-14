@@ -4,6 +4,15 @@
 use std::path::Path;
 
 pub(crate) fn prepare(config_path: &Path, config: &core_engine::Config) -> Result<(), String> {
+    if let Some(path) =
+        core_engine::skin::runtime::selection_path(config_path, &config.skins.windows)
+    {
+        for target in path.parent().into_iter().chain(Some(path.as_path())) {
+            if target.exists() {
+                tip_manager::app_container::grant_read(target)?;
+            }
+        }
+    }
     let system = core_engine::config_path::resolve_resource_path(
         config_path,
         &config.dictionary.system_table,

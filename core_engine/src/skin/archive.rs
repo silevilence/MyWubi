@@ -66,6 +66,13 @@ impl Package {
         }
         let package = Self::from_files(files)?;
         package.validate_archive_files()?;
+        let root = package
+            .metadata
+            .capabilities
+            .check(&["container.zip/1".into()].into());
+        if !root.enabled {
+            return Err(Error::Invalid(root.reasons.join("；")));
+        }
         for directory in directories {
             let allowed = directory == "shared"
                 || directory == "shared/assets"

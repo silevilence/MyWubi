@@ -17,6 +17,7 @@ mod model_downloads;
 pub mod panels;
 pub mod personal_panel;
 pub mod save;
+pub mod skin_editor;
 pub mod state;
 pub mod vpk;
 

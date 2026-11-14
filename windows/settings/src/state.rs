@@ -73,6 +73,7 @@ pub(crate) fn set_dirty(dirty: &mut bool, status_msg: &mut Option<String>) {
 
 /// 应用状态。所有面板通过 `&mut AppState` 读写。
 pub struct AppState {
+    pub skins: crate::skin_editor::SkinEditor,
     pub special_input: crate::panels::special_input::SpecialInputUi,
     pub personal: crate::personal_panel::PersonalPanel,
     pub expressions: crate::expression_catalog::ExpressionCatalog,
@@ -152,6 +153,7 @@ impl AppState {
         }
         Self {
             expressions: crate::expression_catalog::ExpressionCatalog::default(),
+            skins: Default::default(),
             special_input: Default::default(),
             personal: crate::personal_panel::PersonalPanel::default(),
             models: crate::model_catalog::ModelCatalog::default(),
@@ -202,7 +204,7 @@ impl AppState {
     }
 
     pub fn has_unsaved_changes(&self) -> bool {
-        self.dirty || self.tables.is_dirty()
+        self.dirty || self.tables.is_dirty() || self.skins.is_dirty()
     }
 
     pub fn browse_tables(&mut self, directory: PathBuf) {
