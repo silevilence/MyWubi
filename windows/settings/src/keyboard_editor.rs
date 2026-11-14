@@ -3,11 +3,12 @@ use core_engine::skin::{self,editor::Draft,keyboard::{Layout,Mapping,Key,KeyActi
 use eframe::egui;
 
 pub struct KeyboardEditor {
+    gestures:crate::keyboard_gestures::GestureEditor,
     source: Vec<u8>, id:String, working:Option<(Layout,Option<Mapping>)>,
     selected:usize, width:f32, font_scale:f32, landscape:bool, message:String,
 }
 impl Default for KeyboardEditor {
-    fn default()->Self {Self{source:Vec::new(),id:String::new(),working:None,selected:0,width:393.,font_scale:1.,landscape:false,message:String::new()}}
+    fn default()->Self {Self{gestures:Default::default(),source:Vec::new(),id:String::new(),working:None,selected:0,width:393.,font_scale:1.,landscape:false,message:String::new()}}
 }
 impl KeyboardEditor {
     pub fn ui(&mut self,ui:&mut egui::Ui,draft:&mut Draft,id:&str) {
@@ -70,6 +71,7 @@ impl KeyboardEditor {
                 }});
                 ui.horizontal(|ui| {ui.label("样式角色");ui.text_edit_singleline(&mut key.role);});
                 ui.push_id("primary",|ui|action_form(ui,&mut key.action));
+                self.gestures.ui(ui,&mut canvas.directions,key);
             }
         }
         if let Some(mapping)=mapping {

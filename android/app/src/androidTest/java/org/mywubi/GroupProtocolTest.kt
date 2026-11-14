@@ -30,4 +30,18 @@ class GroupProtocolTest {
             }
         }
     }
+    @Test fun sharedGestureTracesMatchDesktopSimulation() {
+        val context=InstrumentationRegistry.getInstrumentation().targetContext
+        val cases=JSONArray(context.assets.open("protocol/gestures.json").bufferedReader().use {it.readText()})
+        for(i in 0 until cases.length()) {
+            val case=cases.getJSONObject(i)
+            val bound=case.optJSONArray("bound")?.let { a -> (0 until a.length()).map {a.getInt(it)}.toSet() } ?: (0..7).toSet()
+            val gesture=DirectionalGesture(bound,true)
+            if(case.optBoolean("hold")) gesture.hold()
+            val points=case.getJSONArray("points")
+            for(p in 0 until points.length()) {val point=points.getJSONArray(p);gesture.move(point.getDouble(0).toFloat(),point.getDouble(1).toFloat())}
+            assertEquals(case.getString("name"),if(case.isNull("expected")) null else case.getInt("expected"),gesture.release())
+            assertNull(gesture.release())
+        }
+    }
 }

@@ -169,3 +169,39 @@ pub fn preset(kind: Preset, actions: [KeyAction; 8]) -> BTreeMap<String, KeyActi
         .map(|(name, action)| (name.to_string(), action))
         .collect()
 }
+
+/// Rewrite selected sectors without erasing unselected members of existing merged groups.
+pub fn replace(groups:&mut BTreeMap<String,KeyAction>,selected:&BTreeSet<Direction>,action:Option<KeyAction>)->Result<(),Error> {
+    let mut next=BTreeMap::new();
+    for (name,value) in groups.iter() {
+        let remaining=name.split('+').map(Direction::parse).collect::<Result<Vec<_>,_>>()?.into_iter()
+            .filter(|d|!selected.contains(d)).map(Direction::name).collect::<Vec<_>>().join("+");
+        if !remaining.is_empty(){next.insert(remaining,value.clone());}
+    }
+    if let Some(action)=action {if !selected.is_empty(){next.insert(selected.iter().map(|d|d.name()).collect::<Vec<_>>().join("+"),action);}}
+    expand(&next,false)?;*groups=next;Ok(())
+}
+
+#[derive(Clone,Copy,PartialEq,Eq)]
+enum Phase {Tracking,Sliding,Holding,Cancelled,Finished}
+/// Same release-only contract as Android's DirectionalGesture, in density-independent units.
+pub struct Gesture {phase:Phase,pub direction:Option<Direction>,bound:BTreeSet<Direction>,can_hold:bool}
+impl Gesture {
+    pub fn new(bound:BTreeSet<Direction>,can_hold:bool)->Self {Self{phase:Phase::Tracking,direction:None,bound,can_hold}}
+    pub fn cancel(&mut self){self.phase=Phase::Cancelled;self.direction=None;}
+    pub fn hold(&mut self){if self.phase==Phase::Tracking && self.can_hold {self.phase=Phase::Holding;}}
+    pub fn move_to(&mut self,dx:f32,dy:f32) {
+        if matches!(self.phase,Phase::Cancelled|Phase::Finished){return;}
+        let distance=dx.hypot(dy);
+        if !distance.is_finite() || distance>160. {self.cancel();return;}
+        if self.phase==Phase::Holding || (self.phase==Phase::Tracking && distance<SLIDE_DP){return;}
+        if distance<CANCEL_DP {self.cancel();return;}
+        self.phase=Phase::Sliding;self.direction=classify(dx,dy,self.direction);
+    }
+    /// -1: click, -2: hold, 0..7: clockwise sector, None: no action.
+    pub fn release(&mut self)->Option<i8> {
+        let result=match self.phase {Phase::Tracking=>Some(-1),Phase::Holding=>Some(-2),
+            Phase::Sliding=>self.direction.filter(|d|self.bound.contains(d)).map(|d|d as i8),_=>None};
+        self.phase=Phase::Finished;result
+    }
+}

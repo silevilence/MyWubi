@@ -1,0 +1,98 @@
+[
+  {
+    "name": "tap",
+    "points": [
+      [
+        0,
+        0
+      ]
+    ],
+    "expected": -1
+  },
+  {
+    "name": "up",
+    "points": [
+      [
+        0,
+        -30
+      ]
+    ],
+    "expected": 0
+  },
+  {
+    "name": "up_left",
+    "points": [
+      [
+        -30,
+        -30
+      ]
+    ],
+    "expected": 7
+  },
+  {
+    "name": "return_center",
+    "points": [
+      [
+        0,
+        -30
+      ],
+      [
+        0,
+        0
+      ],
+      [
+        0,
+        -40
+      ]
+    ],
+    "expected": null
+  },
+  {
+    "name": "far_cancel",
+    "points": [
+      [
+        170,
+        0
+      ]
+    ],
+    "expected": null
+  },
+  {
+    "name": "hysteresis",
+    "points": [
+      [
+        0,
+        -30
+      ],
+      [
+        13,
+        -30
+      ]
+    ],
+    "expected": 0
+  },
+  {
+    "name": "hold_wins",
+    "hold": true,
+    "points": [
+      [
+        0,
+        -30
+      ]
+    ],
+    "expected": -2
+  },
+  {
+    "name": "unbound",
+    "bound": [
+      0
+    ],
+    "points": [
+      [
+        30,
+        0
+      ]
+    ],
+    "expected": null
+  }
+]
