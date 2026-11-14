@@ -214,6 +214,7 @@ private fun SkinPreferences(model: SettingsModel, config: JSONObject) {
     TableChoice("明暗模式", modes.firstOrNull { it.second == mode }?.first ?: mode, modes, !model.busy) { update("mode", it) }
     SettingToggle("采用皮肤推荐字号", preference.optBoolean("use_skin_metrics"), !model.busy) { update("use_skin_metrics", it) }
     Text("保存后应用；换肤保留输入习惯、键位和手势。", style = MaterialTheme.typography.bodySmall)
+    SkinManagement(model, config)
 }
 
 @Composable
