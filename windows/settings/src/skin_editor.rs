@@ -13,7 +13,7 @@ use std::{
 };
 
 enum Picked {
-    Open(Draft),
+    Open(Box<Draft>),
     Exported(PathBuf),
 }
 pub struct SkinEditor {
@@ -91,7 +91,7 @@ impl SkinEditor {
                         std::io::Cursor::new(bytes),
                     )
                     .map_err(|e| e.to_string())?;
-                    Ok(Picked::Open(draft))
+                    Ok(Picked::Open(Box::new(draft)))
                 })();
                 let _ = tx.send(result);
             }
@@ -113,7 +113,7 @@ impl SkinEditor {
                     }
                     .into();
                     self.component.clear();
-                    self.draft = Some(draft);
+                    self.draft = Some(*draft);
                     self.pending = None;
                     self.message = "已导入并打开；当前输入法外观未改变".into();
                     self.refresh_catalog(path);
@@ -386,7 +386,7 @@ impl SkinEditor {
                     .map_err(|e| e.to_string())?;
                 let pixels = bitmap
                     .pixels()
-                    .chunks_exact(4)
+                    .as_chunks::<4>().0.iter()
                     .map(|p| egui::Color32::from_rgba_premultiplied(p[2], p[1], p[0], p[3]))
                     .collect();
                 self.texture = Some(ui.ctx().load_texture(

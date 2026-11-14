@@ -9,7 +9,7 @@ fn transparent_round_frame_has_premultiplied_edges_and_no_opaque_background_leak
     let frame = content.framed(12.0, 1.0, 0xff245d51, 4.0).unwrap();
     assert_eq!((frame.width, frame.height), (116, 76));
     assert_eq!(&frame.pixels()[..4], &[0, 0, 0, 0]);
-    for pixel in frame.pixels().chunks_exact(4) {
+    for pixel in frame.pixels().as_chunks::<4>().0.iter() {
         assert!(pixel[..3].iter().all(|c| *c <= pixel[3]));
     }
     assert!((127..=129).contains(&frame.pixels()[((38 * 116 + 58) * 4) + 3]));
@@ -32,5 +32,5 @@ fn opaque_legacy_render_and_colored_text_remain_opaque() {
             }],
         )
         .unwrap();
-    assert!(bitmap.pixels().chunks_exact(4).all(|p| p[3] == 255));
+    assert!(bitmap.pixels().as_chunks::<4>().0.iter().all(|p| p[3] == 255));
 }

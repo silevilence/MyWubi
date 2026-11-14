@@ -374,7 +374,7 @@ impl Bitmap {
         let radius = radius.clamp(0.0, width.min(height) / 2.0);
         let source = self.pixels();
         let out_width = output.width as usize;
-        for (index, pixel) in output.pixels_mut().chunks_exact_mut(4).enumerate() {
+        for (index, pixel) in output.pixels_mut().as_chunks_mut::<4>().0.iter_mut().enumerate() {
             let x = (index % out_width) as f32 - margin as f32 + 0.5;
             let y = (index / out_width) as f32 - margin as f32 + 0.5;
             let qx = (x - width / 2.0).abs() - (width / 2.0 - radius);
@@ -397,9 +397,9 @@ impl Bitmap {
                 rgba[3] = a + rgba[3] * (1.0 - a);
             }
             let a = ((border >> 24) & 255) as f32 / 255.0 * (outer - inner);
-            for channel in 0..3 {
+            for (channel, value) in rgba.iter_mut().enumerate().take(3) {
                 let c = ((border >> (channel * 8)) & 255) as f32 / 255.0;
-                rgba[channel] = c * a + rgba[channel] * (1.0 - a);
+                *value = c * a + *value * (1.0 - a);
             }
             rgba[3] = a + rgba[3] * (1.0 - a);
             for channel in 0..4 {

@@ -63,7 +63,8 @@ impl SettingsApp {
                         self.save_error = self.state.status_msg.clone();
                     }
                 }
-                if ui.button("重新加载").clicked() {
+                if ui.add_enabled(!self.state.skins.is_dirty(), egui::Button::new("重新加载"))
+                    .on_disabled_hover_text("请先导出或放弃皮肤包草稿").clicked() {
                     self.state =
                         AppState::load(self.state.config_path.clone(), self.state.portable);
                 }
@@ -210,12 +211,17 @@ impl SettingsApp {
             .collapsible(false)
             .resizable(false)
             .show(ctx, |ui| {
-                ui.label("有未保存的配置改动，是否保存？");
+                let skin_dirty = self.state.skins.is_dirty();
+                ui.label(if skin_dirty { "皮肤包草稿尚未导出。请返回外观页导出，或明确放弃后退出。" } else { "有未保存的配置改动，是否保存？" });
                 if let Some(msg) = &self.state.status_msg {
                     ui.colored_label(egui::Color32::LIGHT_RED, msg);
                 }
                 ui.horizontal(|ui| {
-                    if ui.button("保存").clicked() {
+                    if skin_dirty && ui.button("返回导出皮肤").clicked() {
+                        self.state.active_panel = Panel::Appearance;
+                        self.close_confirm = false;
+                    }
+                    if !skin_dirty && ui.button("保存").clicked() {
                         if save::save(&mut self.state) {
                             self.close_confirm = false;
                             ctx.send_viewport_cmd(egui::ViewportCommand::Close);

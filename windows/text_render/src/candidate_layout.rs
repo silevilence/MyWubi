@@ -13,105 +13,6 @@ pub struct Block {
     pub id: Option<usize>,
 }
 
-#[cfg(test)]
-mod tests {
-    use super::*;
-    use crate::candidate_data::CandidateItem;
-
-    #[test]
-    fn semantic_styles_and_explicit_layouts_keep_whole_candidate_geometry() {
-        use core_engine::skin::parameters;
-        use std::sync::Arc;
-        let mut system = TextSystem::new().unwrap();
-        let mut data = CandidateData {
-            visible: true,
-            selection_ids: vec![7, 9, 11],
-            ..Default::default()
-        };
-        data.items = (0..3)
-            .map(|_| CandidateItem {
-                expression_kind: None,
-                disabled: false,
-                label: "1. ".into(),
-                text: "跨平台输入法".repeat(3),
-                hint: "abcdef 反查".into(),
-            })
-            .collect();
-        for mode in ["auto", "horizontal", "vertical"] {
-            let mut p = parameters::builtin("jade", false).unwrap();
-            p.0.insert("layout".into(), mode.into());
-            p.0.insert("hint_size".into(), 28.into());
-            data.theme = crate::candidate_data::ThemeSnapshot::from_parameters(Arc::new(p));
-            for size in [18.0, 28.0, 56.0] {
-                let scene = Scene::build(&mut system, &data, size, 400.0).unwrap();
-                assert_eq!(
-                    scene.blocks.iter().filter_map(|b| b.id).collect::<Vec<_>>(),
-                    vec![7, 9, 11]
-                );
-                assert!(scene
-                    .blocks
-                    .iter()
-                    .all(|b| b.x + b.layout.width <= scene.width));
-                assert!(scene
-                    .blocks
-                    .iter()
-                    .all(|b| b.y + b.layout.height <= scene.height));
-                if mode == "horizontal" {
-                    assert!(!scene.vertical);
-                }
-                if mode == "vertical" {
-                    assert!(scene.vertical);
-                }
-            }
-        }
-    }
-
-    #[test]
-    fn long_expression_candidates_wrap_without_overlapping_or_losing_selection_ids() {
-        let mut system = TextSystem::new().unwrap();
-        let mut data = CandidateData {
-            visible: true,
-            selection_ids: (0..9).collect(),
-            ..Default::default()
-        };
-        data.items = (0..9)
-            .map(|i| CandidateItem {
-                expression_kind: Some(ExpressionKind::Kaomoji),
-                disabled: false,
-                label: format!("{}. ", i + 1),
-                text: "(๑•̀ㅂ•́)و✧ ".repeat(i + 2),
-                hint: "开心 · 关键词匹配".into(),
-            })
-            .collect();
-        for size in [14.0, 28.0, 56.0] {
-            let scene = Scene::build(&mut system, &data, size, 350.0).unwrap();
-            assert!(scene.vertical);
-            assert!(scene.width <= 350.0);
-            assert_eq!(
-                scene.blocks.iter().filter_map(|b| b.id).collect::<Vec<_>>(),
-                data.selection_ids
-            );
-            for blocks in scene.blocks.windows(2) {
-                assert!(blocks[0].y + blocks[0].layout.height <= blocks[1].y);
-            }
-            assert!(scene
-                .blocks
-                .iter()
-                .all(|b| b.x + b.layout.width <= scene.width));
-        }
-        data.items.truncate(2);
-        for item in &mut data.items {
-            item.text = "😀".into();
-            item.hint.clear();
-            item.expression_kind = Some(ExpressionKind::Emoji);
-        }
-        assert!(
-            !Scene::build(&mut system, &data, 20.0, 800.0)
-                .unwrap()
-                .vertical
-        );
-    }
-}
 pub struct Scene {
     pub blocks: Vec<Block>,
     pub width: f32,
@@ -416,5 +317,105 @@ impl Scene {
             .width
             .max(block.x + block.layout.width + horizontal_gap);
         self.blocks.push(block);
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use crate::candidate_data::CandidateItem;
+
+    #[test]
+    fn semantic_styles_and_explicit_layouts_keep_whole_candidate_geometry() {
+        use core_engine::skin::parameters;
+        use std::sync::Arc;
+        let mut system = TextSystem::new().unwrap();
+        let mut data = CandidateData {
+            visible: true,
+            selection_ids: vec![7, 9, 11],
+            ..Default::default()
+        };
+        data.items = (0..3)
+            .map(|_| CandidateItem {
+                expression_kind: None,
+                disabled: false,
+                label: "1. ".into(),
+                text: "跨平台输入法".repeat(3),
+                hint: "abcdef 反查".into(),
+            })
+            .collect();
+        for mode in ["auto", "horizontal", "vertical"] {
+            let mut p = parameters::builtin("jade", false).unwrap();
+            p.0.insert("layout".into(), mode.into());
+            p.0.insert("hint_size".into(), 28.into());
+            data.theme = crate::candidate_data::ThemeSnapshot::from_parameters(Arc::new(p));
+            for size in [18.0, 28.0, 56.0] {
+                let scene = Scene::build(&mut system, &data, size, 400.0).unwrap();
+                assert_eq!(
+                    scene.blocks.iter().filter_map(|b| b.id).collect::<Vec<_>>(),
+                    vec![7, 9, 11]
+                );
+                assert!(scene
+                    .blocks
+                    .iter()
+                    .all(|b| b.x + b.layout.width <= scene.width));
+                assert!(scene
+                    .blocks
+                    .iter()
+                    .all(|b| b.y + b.layout.height <= scene.height));
+                if mode == "horizontal" {
+                    assert!(!scene.vertical);
+                }
+                if mode == "vertical" {
+                    assert!(scene.vertical);
+                }
+            }
+        }
+    }
+
+    #[test]
+    fn long_expression_candidates_wrap_without_overlapping_or_losing_selection_ids() {
+        let mut system = TextSystem::new().unwrap();
+        let mut data = CandidateData {
+            visible: true,
+            selection_ids: (0..9).collect(),
+            ..Default::default()
+        };
+        data.items = (0..9)
+            .map(|i| CandidateItem {
+                expression_kind: Some(ExpressionKind::Kaomoji),
+                disabled: false,
+                label: format!("{}. ", i + 1),
+                text: "(๑•̀ㅂ•́)و✧ ".repeat(i + 2),
+                hint: "开心 · 关键词匹配".into(),
+            })
+            .collect();
+        for size in [14.0, 28.0, 56.0] {
+            let scene = Scene::build(&mut system, &data, size, 350.0).unwrap();
+            assert!(scene.vertical);
+            assert!(scene.width <= 350.0);
+            assert_eq!(
+                scene.blocks.iter().filter_map(|b| b.id).collect::<Vec<_>>(),
+                data.selection_ids
+            );
+            for blocks in scene.blocks.windows(2) {
+                assert!(blocks[0].y + blocks[0].layout.height <= blocks[1].y);
+            }
+            assert!(scene
+                .blocks
+                .iter()
+                .all(|b| b.x + b.layout.width <= scene.width));
+        }
+        data.items.truncate(2);
+        for item in &mut data.items {
+            item.text = "😀".into();
+            item.hint.clear();
+            item.expression_kind = Some(ExpressionKind::Emoji);
+        }
+        assert!(
+            !Scene::build(&mut system, &data, 20.0, 800.0)
+                .unwrap()
+                .vertical
+        );
     }
 }
