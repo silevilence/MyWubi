@@ -358,6 +358,8 @@ impl Dictionary {
     }
 
     /// 返回码表中所有编码完全等于 `code` 的词条（按 weight 倒序）。
+    pub(crate) fn pinyin_group_index(&self) -> Option<&crate::pinyin::PinyinIndex> {self.pinyin_index.as_ref()}
+
     pub fn exact(&self, code: &str) -> Vec<&Entry> {
         // The sorted entry array is already an exact-code index. Avoid a second
         // allocation of every distinct code in every loaded main/auxiliary table.

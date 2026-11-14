@@ -43,6 +43,60 @@ impl PinyinIndex {
         Self(keys)
     }
 
+    /// The existing normalized index owns syllable boundaries; groups never enumerate strings.
+    pub fn search_groups(
+        &self,
+        entries: &[Entry],
+        positions: &[crate::group_input::Position],
+        budget: usize,
+    ) -> crate::group_search::Matches {
+        use crate::group_search::{Matches, SearchStatus};
+        let invalid = || Matches {
+            status: SearchStatus::InvalidInput,
+            visited: 0,
+            candidates: Vec::new(),
+        };
+        if positions.len() > crate::group_input::MAX_POSITIONS {
+            return invalid();
+        }
+        let mut letters = Vec::new();
+        let mut boundaries = Vec::new();
+        let mut separator = false;
+        for position in positions {
+            let effective = position.effective();
+            if effective == "'" {
+                if letters.is_empty() || separator {
+                    return invalid();
+                }
+                boundaries.push(letters.len());
+                separator = true;
+            } else {
+                if !effective.chars().all(|c| c.is_ascii_lowercase()) {
+                    return invalid();
+                }
+                letters.push(position.clone());
+                separator = false;
+            }
+        }
+        crate::group_search::query_index(
+            entries,
+            &letters,
+            budget,
+            self.0.len(),
+            |i| {
+                let key = &self.0[i];
+                (
+                    &key.letters,
+                    key.entry,
+                    boundaries
+                        .iter()
+                        .all(|b| key.boundaries.binary_search(b).is_ok()),
+                )
+            },
+            |entry| entry.code.bytes().filter(|&c| c != b'\'').count() == letters.len(),
+        )
+    }
+
     pub fn search<'a>(
         &self,
         entries: &'a [Entry],

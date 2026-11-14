@@ -5,7 +5,10 @@ use core_engine::{
 };
 use std::{hint::black_box, time::Instant};
 fn main() -> Result<(), Box<dyn std::error::Error>> {
-    let dict = Dictionary::load("tables/wubi86.dict")?;
+    let path = std::env::args()
+        .nth(1)
+        .unwrap_or_else(|| "tables/wubi86.dict".into());
+    let dict = Dictionary::load(&path)?;
     let mut times = Vec::new();
     let mut incomplete = 0;
     let mut bytes = 0;
@@ -57,7 +60,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
     println!(
         "{}",
         serde_json::to_string_pretty(
-            &serde_json::json!({"path":"tables/wubi86.dict","entries":dict.len(),"count":times.len(),"incomplete":incomplete,"p50_us":times[times.len()/2],"p95_us":times[times.len()*95/100],"p99_us":times[times.len()*99/100],"peak_result_string_bytes":bytes,"extra_index_bytes":0})
+            &serde_json::json!({"path":path,"entries":dict.len(),"count":times.len(),"incomplete":incomplete,"p50_us":times[times.len()/2],"p95_us":times[times.len()*95/100],"p99_us":times[times.len()*99/100],"peak_result_string_bytes":bytes,"extra_index_bytes":0})
         )?
     );
     Ok(())

@@ -66,7 +66,9 @@ impl SemanticEngine {
     fn change_groups(&mut self, action: &Action) -> Result<Transition, Rejection> {
         match action {
             Action::InputGroup(identity, id) => {
-                if self.sm.mode != InputMode::Main || self.sm.expression_query.is_some() {
+                if !matches!(self.sm.mode, InputMode::Main | InputMode::Pinyin)
+                    || self.sm.expression_query.is_some()
+                {
                     return Err(Rejection::Unavailable("当前模式不支持字符组".into()));
                 }
                 let mapping = self
@@ -132,6 +134,7 @@ impl SemanticEngine {
                     let mut next = sequence.positions.clone();
                     next.push(Position::exact(*c));
                     if sequence.resolved().is_some()
+                        && self.sm.mode == InputMode::Main
                         && sequence.positions.len() >= self.sm.max_code_len
                         && self.sm.commit_on_max_code_overflow
                         && !self.sm.candidates.is_empty()
@@ -190,7 +193,7 @@ impl SemanticEngine {
                     .ok_or_else(|| {
                         Rejection::Unavailable("请先明确字符组，再提交原始编码".into())
                     })?;
-                self.sm.reset();
+                self.end_temporary();
                 return Ok(Transition::Commit(text));
             }
             Action::MoveCandidatePage(next) => {
@@ -224,7 +227,8 @@ impl SemanticEngine {
                 | Action::InputGroup(..)
                 | Action::ResolveGroup(..)
                 | Action::Legacy(InputEvent::Char(_))
-        ) && self.sm.auto_commit_unique
+        ) && self.sm.mode == InputMode::Main
+            && self.sm.auto_commit_unique
             && self.sm.groups.as_ref().is_some_and(|s| {
                 s.resolved().is_some() && s.positions.len() >= self.sm.max_code_len
             })
@@ -294,11 +298,17 @@ impl SemanticEngine {
         let sequence = self.sm.groups.as_ref().ok_or(Rejection::InvalidCode)?;
         self.sm.spelling = sequence.hint();
         self.sm.page = 0;
-        let matches = crate::group_search::query(
-            &self.sm.dict,
-            &sequence.positions,
-            crate::group_search::WORK_BUDGET,
-        );
+        let dict = if self.sm.mode == InputMode::Pinyin {
+            self.sm
+                .temporary
+                .pinyin
+                .as_ref()
+                .ok_or_else(|| Rejection::Unavailable("未配置拼音码表".into()))?
+        } else {
+            &self.sm.dict
+        };
+        let matches =
+            crate::group_search::query(dict, &sequence.positions, crate::group_search::WORK_BUDGET);
         self.sm.total_candidates = matches.candidates.len();
         self.sm.candidates = matches
             .candidates

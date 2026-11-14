@@ -1,0 +1,11 @@
+{
+  "count": 1000,
+  "entries": 65125,
+  "extra_index_bytes": 0,
+  "incomplete": 0,
+  "p50_us": 15.400000000000002,
+  "p95_us": 1363.8000000000002,
+  "p99_us": 3000.8,
+  "path": "tables/pinyin.dict",
+  "peak_result_string_bytes": 76593
+}

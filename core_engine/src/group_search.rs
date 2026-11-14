@@ -1,5 +1,8 @@
 //! Group lookup prunes sorted code ranges; no Cartesian expansion or secondary dictionary copy.
-use crate::{dictionary::Dictionary, group_input::Position};
+use crate::{
+    dictionary::{Dictionary, Entry},
+    group_input::Position,
+};
 use serde::{Deserialize, Serialize};
 use std::{cmp::Reverse, collections::HashMap, ops::Range};
 
@@ -27,6 +30,28 @@ pub const RESULT_BUDGET: usize = 10_000;
 const BYTE_BUDGET: usize = 64 * 1024 * 1024;
 
 pub fn query(dict: &Dictionary, positions: &[Position], budget: usize) -> Matches {
+    if let Some(index) = dict.pinyin_group_index() {
+        return index.search_groups(dict.entries(), positions, budget);
+    }
+    let entries = dict.entries();
+    query_index(
+        entries,
+        positions,
+        budget,
+        entries.len(),
+        |i| (&entries[i].code, i, true),
+        |e| e.code.chars().count() == positions.len(),
+    )
+}
+
+pub(crate) fn query_index<'a>(
+    entries: &[Entry],
+    positions: &[Position],
+    budget: usize,
+    key_count: usize,
+    key: impl Fn(usize) -> (&'a str, usize, bool),
+    exact: impl Fn(&Entry) -> bool,
+) -> Matches {
     let mut result = Matches {
         status: SearchStatus::Complete,
         visited: 0,
@@ -44,10 +69,9 @@ pub fn query(dict: &Dictionary, positions: &[Position], budget: usize) -> Matche
         return result;
     }
     let budget = budget.min(WORK_BUDGET);
-    let entries = dict.entries();
     let mut ranges = vec![Range {
         start: 0,
-        end: entries.len(),
+        end: key_count,
     }];
     for (depth, position) in positions.iter().enumerate() {
         let mut next = Vec::new();
@@ -63,9 +87,21 @@ pub fn query(dict: &Dictionary, positions: &[Position], budget: usize) -> Matche
                     return result;
                 }
                 result.visited += cost;
-                let slice = &entries[range.clone()];
-                let low = slice.partition_point(|e| e.code.chars().nth(depth) < Some(*character));
-                let high = slice.partition_point(|e| e.code.chars().nth(depth) <= Some(*character));
+                let partition = |inclusive: bool| {
+                    let (mut low, mut high) = (range.start, range.end);
+                    while low < high {
+                        let middle = low + (high - low) / 2;
+                        let c = key(middle).0.chars().nth(depth);
+                        if c < Some(*character) || (inclusive && c == Some(*character)) {
+                            low = middle + 1;
+                        } else {
+                            high = middle;
+                        }
+                    }
+                    low - range.start
+                };
+                let low = partition(false);
+                let high = partition(true);
                 if low < high {
                     next.push(range.start + low..range.start + high);
                 }
@@ -76,17 +112,7 @@ pub fn query(dict: &Dictionary, positions: &[Position], budget: usize) -> Matche
             return result;
         }
     }
-    collect_matches(dict, positions.len(), ranges, budget, result)
-}
 
-fn collect_matches(
-    dict: &Dictionary,
-    length: usize,
-    ranges: Vec<Range<usize>>,
-    budget: usize,
-    mut result: Matches,
-) -> Matches {
-    let entries = dict.entries();
     let mut indices = Vec::new();
     'ranges: for range in ranges {
         for index in range {
@@ -95,16 +121,13 @@ fn collect_matches(
                 break 'ranges;
             }
             result.visited += 1;
-            indices.push(index);
+            let (_, entry, valid) = key(index);
+            if valid {
+                indices.push(entry);
+            }
         }
     }
-    indices.sort_by_key(|&i| {
-        (
-            entries[i].code.chars().count() != length,
-            Reverse(entries[i].weight),
-            i,
-        )
-    });
+    indices.sort_by_key(|&i| (!exact(&entries[i]), Reverse(entries[i].weight), i));
     let mut words = HashMap::<&str, usize>::new();
     let mut bytes = 0usize;
     for index in indices {
@@ -134,7 +157,7 @@ fn collect_matches(
             result.candidates.push(Match {
                 text: entry.word.clone(),
                 codes: vec![entry.code.clone()],
-                exact: entry.code.chars().count() == length,
+                exact: exact(entry),
                 weight: entry.weight,
             });
         }
