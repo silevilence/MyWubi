@@ -306,7 +306,7 @@ class MyWubiService : InputMethodService() {
             android.os.SystemClock.elapsedRealtime(), spelling, items.length() > 0 || state.optBoolean("prediction_waiting"), editor.ownsPreedit, temporary != null)
         keyboard = KeyboardModel(
             skin = combination?.appearance ?: skinAppearance,
-            customLayout = combination?.takeIf { customKeyboardAllowed(inputPolicy.purpose,inputPolicy.layout,state.optString("base","Main"),temporary) }?.let {
+            customLayout = combination?.takeIf { customKeyboardAllowed(inputPolicy.purpose,inputPolicy.layout,state.optString("base","Main"),temporary,it.mode) }?.let {
                 if(resources.configuration.orientation == android.content.res.Configuration.ORIENTATION_LANDSCAPE) it.landscape else it.portrait
             },
             mappingIdentity = combination?.identity,
@@ -413,7 +413,7 @@ class MyWubiService : InputMethodService() {
         if(request is JSONObject && request.has("InputGroup")) {
             val current=NativeBridge.objectCall("State","session" to s.value)
             if(!customKeyboardAllowed(inputPolicy.purpose,inputPolicy.layout,current.optString("base","Main"),
-                current.optString("temporary").takeIf {it.isNotBlank() && it!="null"})) return
+                current.optString("temporary").takeIf {it.isNotBlank() && it!="null"},combination?.mode ?: "Main")) return
         }
         candidateOffset = 0
         try {

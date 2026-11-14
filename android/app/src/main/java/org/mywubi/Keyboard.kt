@@ -570,6 +570,7 @@ private fun GroupConstraints(positions: List<Pair<String,String?>>,query: String
             }
         }
         item {TextButton(enabled=enabled,onClick={dispatch(JSONObject().put("UndoGroupResolution",JSONObject(query)))}) {Text("撤回筛选")}}
+        item {TextButton(enabled=enabled,onClick={dispatch("Cancel")}) {Text("取消当前输入")}}
     }
     selected?.let {index -> AlertDialog(onDismissRequest={selected=null},title={Text("明确第 ${index+1} 位字母")},
         text={Row {for(c in positions[index].first) TextButton(onClick={

@@ -17,5 +17,8 @@ class KeyboardPublicationTest {
         for(layout in listOf("number","phone","url","email")) assertFalse(customKeyboardAllowed("Text",layout,"Main",null))
         assertFalse(customKeyboardAllowed("Text","letters","English",null))
         assertFalse(customKeyboardAllowed("Text","letters","Main","Pinyin"))
+        assertTrue(customKeyboardAllowed("Text","letters","Main","Pinyin","Pinyin"))
+        assertFalse(customKeyboardAllowed("Password","letters","Main","Pinyin","Pinyin"))
+        assertFalse(customKeyboardAllowed("Text","letters","Main",null,"Pinyin"))
     }
 }

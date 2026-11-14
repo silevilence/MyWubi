@@ -16,6 +16,7 @@ internal fun KeyboardManagement(model: SettingsModel, config: JSONObject) {
     val context=LocalContext.current
     val scope=rememberCoroutineScope()
     var items by remember { mutableStateOf(JSONArray()) }
+    var mode by remember { mutableStateOf("Main") }
     var draft by remember { mutableStateOf<JSONObject?>(null) }
     var preview by remember { mutableStateOf<KeyboardCombination?>(null) }
     var message by remember { mutableStateOf("") }
@@ -41,6 +42,7 @@ internal fun KeyboardManagement(model: SettingsModel, config: JSONObject) {
     for(index in 0 until items.length()) {
         val item=items.getJSONObject(index)
         OutlinedButton(enabled=!busy && item.getBoolean("enabled"),onClick={
+            mode=item.getJSONArray("modes").getString(0)
             draft=JSONObject().put("layout",item.getJSONObject("selection"))
                 .put("mapping",JSONObject.NULL).put("appearance",config.getJSONObject("skins").getJSONObject("android"))
             preview=null; message="草稿：${item.getString("name")}，尚未应用"
@@ -52,8 +54,8 @@ internal fun KeyboardManagement(model: SettingsModel, config: JSONObject) {
             busy=true; preview=null
             runCatching { withContext(Dispatchers.IO) {
                 KeyboardCombination.decode(NativeBridge.objectCall("ManageKeyboard","request" to keyboardRequest(path,"Prepare")
-                    .put("choice",draft).put("mode","Main").put("charset",keyboardCharset(path,config))))
-            } }.onSuccess { preview=it;message="预览已准备，点击应用启用" }.onFailure { message="无法启用：${it.message}" }
+                    .put("choice",draft).put("mode",mode).put("charset",keyboardCharset(path,config,mode))))
+            } }.onSuccess { preview=it;message="预览已准备，点击应用启用；绑定模式：${it.mode}" }.onFailure { message="无法启用：${it.message}" }
             busy=false
         }}) { Text("预览") }
         Button(enabled=preview!=null && !busy,onClick={scope.launch {
@@ -61,8 +63,8 @@ internal fun KeyboardManagement(model: SettingsModel, config: JSONObject) {
             runCatching { withContext(Dispatchers.IO) {
                 val snapshot=requireNotNull(preview)
                 NativeBridge.objectCall("ManageKeyboard","request" to keyboardRequest(path,"Save")
-                    .put("choice",snapshot.wire.getJSONObject("choice")).put("mode","Main")
-                    .put("charset",keyboardCharset(path,config)).put("digest",snapshot.digest))
+                    .put("choice",snapshot.wire.getJSONObject("choice")).put("mode",snapshot.mode)
+                    .put("charset",keyboardCharset(path,config,snapshot.mode)).put("digest",snapshot.digest))
                 EngineUpdates.request(context)
             } }.onSuccess { message="已保存；正在输入或触摸时延后生效" }.onFailure { message="应用失败，原组合保留：${it.message}" }
             busy=false
