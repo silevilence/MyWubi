@@ -48,6 +48,7 @@ mod prediction_context;
 pub mod reload;
 pub mod screen_geometry;
 mod shortcut_clock;
+mod skin_runtime;
 pub mod text_service;
 
 /// 内部引擎单例，对应早期 ROADMAP 阶段“工作空间骨架”：保持 C-ABI 入口
@@ -146,6 +147,7 @@ pub extern "C" fn im_engine_init() -> i32 {
     }
 
     let runtime_snapshot = load_initial_runtime_snapshot();
+    skin_runtime::start(runtime_snapshot.config_path.clone(), &runtime_snapshot.config);
     let mut sm = StateMachine::with_options(
         Arc::clone(&runtime_snapshot.dict),
         runtime_snapshot.config.basic.candidate_count as usize,

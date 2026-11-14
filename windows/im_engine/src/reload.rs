@@ -38,6 +38,24 @@ fn watch_loop(runtime: Arc<ArcSwap<RuntimeSnapshot>>) -> notify::Result<()> {
         if !event_matches(&event, &targets) {
             continue;
         }
+        let previous = runtime.load_full();
+        if event.paths.iter().any(|p| p == &previous.config_path)
+            && !event
+                .paths
+                .iter()
+                .any(|p| p != &previous.config_path && targets.contains(p))
+        {
+            if let Ok(config) = core_engine::Config::load(&previous.config_path) {
+                if core_engine::skin::runtime::same_input_configuration(&previous.config, &config) {
+                    // Preserve revision and all shared input resources; the separate skin
+                    // watcher publishes appearance to existing candidate windows.
+                    let mut updated = (*previous).clone();
+                    updated.config = config;
+                    runtime.store(Arc::new(updated));
+                    continue;
+                }
+            }
+        }
         match crate::load_runtime_snapshot() {
             Ok(snapshot) => {
                 targets = publish_reload(&runtime, snapshot);

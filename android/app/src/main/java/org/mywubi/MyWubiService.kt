@@ -49,6 +49,8 @@ class MyWubiService : InputMethodService() {
     private val idleRefresh = Runnable { render(); predictionController.learning(false,viewVisible) }
     private var candidateOffset = 0
     private var keyboard by mutableStateOf(KeyboardModel())
+    private var skinAppearance: JSONObject? = null
+    private var lastConfig: JSONObject? = null
     private var error: String? = null
     private var state = JSONObject()
     private var candidates = JSONObject()
@@ -75,14 +77,35 @@ class MyWubiService : InputMethodService() {
 
     private fun loadRuntime() {
         val ticket = loads.next()
+        val previousConfig = lastConfig?.let { JSONObject(it.toString()) }
+        val hasRuntime = runtime != null
         val requested = updates.getString("requested", "initial")
         loader.execute {
             var loaded: NativeHandle? = null
             try {
                 val path = Resources.prepare(this)
-                loaded = NativeHandle(NativeBridge.objectCall("BuildRuntime", "path" to path.path).getLong("handle"))
                 val config = NativeBridge.objectCall("ReadConfig", "path" to path.path)
                 NativeHandle(config.getLong("version")).close()
+                val nextConfig = config.getJSONObject("config")
+                val skin = runCatching { loadSkinAppearance(path, nextConfig) }
+                val appearanceOnly = hasRuntime && previousConfig != null && NativeBridge.objectCall(
+                    "SameInputConfiguration", "previous" to previousConfig, "current" to nextConfig).getBoolean("same")
+                if (appearanceOnly) {
+                    main.post {
+                        if (!destroyed && loads.accepts(ticket)) {
+                            lastConfig = nextConfig
+                            skin.onSuccess {
+                                skinAppearance = it
+                                updates.edit().putString("applied", requested).putString("error", null).apply()
+                            }.onFailure {
+                                updates.edit().putString("error", "皮肤加载失败，保留原外观：${it.message}").apply()
+                            }
+                            render()
+                        }
+                    }
+                    return@execute
+                }
+                loaded = NativeHandle(NativeBridge.objectCall("BuildRuntime", "path" to path.path).getLong("handle"))
                 val label = TableCatalog(this).label(config.getJSONObject("config").getJSONObject("dictionary").getString("system_table"))
                 val result = loaded
                 main.post {
@@ -91,6 +114,8 @@ class MyWubiService : InputMethodService() {
                         predictionController.configurePersonal(path)
                         val previous = runtime
                         runtime = result
+                        lastConfig = nextConfig
+                        skin.onSuccess { skinAppearance = it }
                         try {
                             val s = session
                             if (s != null && active) {
@@ -100,6 +125,7 @@ class MyWubiService : InputMethodService() {
                                 session?.close(); session = null; attachEditor()
                             }
                             updates.edit().putString("applied", requested).putString("error", null).apply()
+                            skin.exceptionOrNull()?.let { updates.edit().putString("error", "皮肤加载失败，保留原外观：${it.message}").apply() }
                             tableLabel = label
                             pinyinMode = KeyMode.Off
                             error = null

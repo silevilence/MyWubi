@@ -94,6 +94,19 @@ class EngineStore(private val context: Context) {
     }
 
     fun activateConfig(config: JSONObject, expected: Long, checkpoint: (String) -> Unit = {}): JSONObject {
+        loadSkinAppearance(configFile, config)
+        val previous = readConfig()
+        NativeHandle(previous.getLong("version")).use {
+            if (NativeBridge.objectCall("SameInputConfiguration", "previous" to previous.getJSONObject("config"),
+                    "current" to config).getBoolean("same")) {
+                checkpoint("before_activation")
+                val saved = saveConfig(config, expected)
+                try { checkpoint("after_activation") } catch (failure: Exception) {
+                    NativeHandle(saved.getLong("version")).close(); throw failure
+                }
+                return saved
+            }
+        }
         // Validate the full prospective runtime before touching the active config.
         val trial = File.createTempFile("activation-", ".toml", context.cacheDir)
         try {

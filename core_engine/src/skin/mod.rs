@@ -5,6 +5,7 @@ use std::collections::{BTreeMap, BTreeSet};
 pub mod archive;
 pub mod parameters;
 pub mod preferences;
+pub mod runtime;
 
 /// Unknown TOML fields are retained when an editor changes a known field.
 pub type Extensions = BTreeMap<String, toml::Value>;

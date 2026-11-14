@@ -71,3 +71,11 @@ mapping = "1"
 `parameters::resolve` 供运行端与预览共用。`builtin_package` 生成墨绿、素简和高对比的双端可编辑副本。`skins.windows` / `skins.android` 分别保存 preset（legacy/jade/plain/contrast）、mode（system/light/dark）、selection（id/version/component）、use_skin_metrics 与 overrides。缺少此节按 legacy 解释，不改写旧 appearance。默认保留 Windows 旧字号和 Android 使用偏好，采用推荐字号需显式选择；选择包优先于 preset。选择字段不出现在导出的皮肤包内。
 
 SK-04 只交付共享解析、配置读写和双端设置草稿入口；实际加载/渲染分别由 SK-05/06/12 接入。已验证 5 项定向参数测试、核心严格 Clippy、Windows settings 与 Android JNI 检查、离线 Kotlin 编译。Kotlin 检查复用本地原生库；最终 APK 需重新编译两种 ABI 后统一验收。
+
+## 独立加载（SK-05）
+
+`skin::runtime` 从配置同目录的 skins 版本库加载完整快照，ArcSwap 成功后一次发布，失败保留旧包和参数。Windows 独立线程监听配置/皮肤目录，并检测系统明暗/高对比；候选窗口使用快照指针刷新，DPI 仍通过窗口度量失效。纯外观配置变化保持 RuntimeSnapshot 的 revision、词库和模型资源，不使输入会话重新初始化。
+
+Android 通过 ResolveSkin 在 loader 线程预解析浅深变体；SameInputConfiguration 在配置通知和保存校验时识别纯外观，避免 BuildRuntime 和 ApplyRuntime。皮肤加载失败保留旧外观；冷启动可用旧默认显示。服务保留完整变体，具体键盘语义样式由 SK-12 接入。版本库无删除 API，活动快照持有包字节，因此资源替换失败或旧文件被外部删除不破坏已发布内容。
+
+自动化检查覆盖失败不发布、旧快照仍可读、1000 次切换释放退休快照、字号保留、输入配置等价及 FFI 对待确认输入无副作用。尚未用这些结果替代最终多宿主、可见延迟或真实设备证据。

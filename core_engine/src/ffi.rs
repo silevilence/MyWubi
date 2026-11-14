@@ -97,6 +97,17 @@ enum Request {
     ReadConfig {
         path: PathBuf,
     },
+    ResolveSkin {
+        path: PathBuf,
+        config: Config,
+        platform: String,
+        dark: bool,
+        high_contrast: bool,
+    },
+    SameInputConfiguration {
+        previous: Config,
+        current: Box<Config>,
+    },
     ValidateConfig {
         config: Config,
     },
@@ -436,6 +447,8 @@ impl Registry {
                 json!({"rules":rules,"states":states})
             }
             Request::PreviewShortcuts { .. }
+            | Request::ResolveSkin { .. }
+            | Request::SameInputConfiguration { .. }
             | Request::PreviewExpression { .. }
             | Request::ExportSpecialInput { .. }
             | Request::RestoreSpecialInput { .. } => {
@@ -593,6 +606,11 @@ pub fn call_with_clock(bytes: &[u8], clock: Arc<dyn crate::shortcut_time::Clock>
                 let handle = REGISTRY.lock().insert(Object::Runtime(Arc::new(runtime)))?;
                 Ok(json!({"handle": handle}))
             }
+            Request::ResolveSkin { path,config,platform,dark,high_contrast } => {
+                let skin=crate::skin::runtime::load(&path,&config,&platform,dark,high_contrast).map_err(|e|err(5,e.to_string()))?;
+                Ok(json!({"parameters":skin.parameters.as_ref(),"warnings":skin.warnings,"legacy":skin.legacy}))
+            }
+            Request::SameInputConfiguration {previous,current} => Ok(json!({"same":crate::skin::runtime::same_input_configuration(&previous,&current)})),
             Request::PreviewShortcuts {
                 path,
                 config,

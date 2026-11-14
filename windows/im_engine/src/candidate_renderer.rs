@@ -16,6 +16,9 @@ pub(crate) const SCROLL_DOWN: usize = usize::MAX - 11;
 
 #[derive(Default)]
 pub(crate) struct Renderer {
+    original: Option<Arc<CandidateData>>,
+    appearance: Option<Arc<core_engine::skin::runtime::Snapshot>>,
+    themed: Option<Arc<CandidateData>>,
     system: Option<TextSystem>,
     scene: Option<Scene>,
     last: Option<Arc<CandidateData>>,
@@ -42,6 +45,38 @@ impl Renderer {
         data: Arc<CandidateData>,
         hits: &mut Vec<(RECT, u64, usize)>,
     ) -> Result<()> {
+        let appearance = crate::skin_runtime::current();
+        let appearance_changed = match (&appearance, &self.appearance) {
+            (Some(a), Some(b)) => !Arc::ptr_eq(a, b),
+            (None, None) => false,
+            _ => true,
+        };
+        if appearance_changed
+            || self
+                .original
+                .as_ref()
+                .is_none_or(|last| !Arc::ptr_eq(last, &data))
+        {
+            self.original = Some(data.clone());
+            self.appearance = appearance;
+            self.themed = Some(if let Some(skin) = &self.appearance {
+                let mut themed = (*data).clone();
+                if !skin.legacy {
+                    themed.theme = crate::candidate_data::ThemeSnapshot::from_parameters(
+                        skin.parameters.clone(),
+                    );
+                } else {
+                    themed.theme.font_size = skin.parameters.number("font_size") as u16;
+                    themed.theme.primary_color = skin.parameters.color("code");
+                    themed.theme.background_color = skin.parameters.color("background");
+                    themed.theme.highlight_color = skin.parameters.color("selected_background");
+                }
+                Arc::new(themed)
+            } else {
+                data.clone()
+            });
+        }
+        let data = self.themed.as_ref().cloned().unwrap_or(data);
         let anchor = data
             .anchor
             .or_else(crate::screen_geometry::get_cursor_position);

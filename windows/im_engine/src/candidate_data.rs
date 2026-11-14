@@ -12,6 +12,7 @@ pub struct ScreenPoint {
 /// 外观主题快照（从 config.toml 同步）。
 #[derive(Debug, Clone)]
 pub struct ThemeSnapshot {
+    pub parameters: Option<std::sync::Arc<core_engine::skin::parameters::Parameters>>,
     pub font_size: u16,
     pub primary_color: u32,
     pub background_color: u32,
@@ -21,6 +22,7 @@ pub struct ThemeSnapshot {
 impl Default for ThemeSnapshot {
     fn default() -> Self {
         Self {
+            parameters: None,
             font_size: 14,
             primary_color: 0xFF1E88E5,
             background_color: 0xFFFFFFFF,
@@ -32,10 +34,23 @@ impl Default for ThemeSnapshot {
 impl ThemeSnapshot {
     pub fn from_config(cfg: &Config) -> Self {
         Self {
+            parameters: None,
             font_size: cfg.appearance.font_size,
             primary_color: cfg.appearance.primary_color,
             background_color: cfg.appearance.background_color,
             highlight_color: cfg.appearance.highlight_color,
+        }
+    }
+
+    pub fn from_parameters(
+        parameters: std::sync::Arc<core_engine::skin::parameters::Parameters>,
+    ) -> Self {
+        Self {
+            font_size: parameters.number("font_size") as u16,
+            primary_color: parameters.color("code"),
+            background_color: parameters.color("background"),
+            highlight_color: parameters.color("selected_background"),
+            parameters: Some(parameters),
         }
     }
 }
