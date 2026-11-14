@@ -335,6 +335,7 @@ pub fn wire(snapshot: &Snapshot) -> serde_json::Value {
 #[derive(Deserialize)]
 #[serde(tag = "action", deny_unknown_fields)]
 pub enum Request {
+    InstallTemplates { path: std::path::PathBuf },
     List {
         path: std::path::PathBuf,
     },
@@ -363,6 +364,12 @@ pub enum Request {
 pub fn execute(request: Request) -> Result<serde_json::Value, Error> {
     use serde_json::json;
     match request {
+        Request::InstallTemplates {path} => {
+            let package=super::keyboard_templates::package()?;
+            let store=runtime::store_path(&path);std::fs::create_dir_all(&store)?;
+            package.export_new(&store.join(format!("{}@{}.mywubi-skin",package.metadata.id,package.metadata.version)))?;
+            Ok(json!({"installed":true}))
+        },
         Request::Prepare {
             path,
             choice,

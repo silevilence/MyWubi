@@ -310,6 +310,9 @@ class MyWubiService : InputMethodService() {
                 if(resources.configuration.orientation == android.content.res.Configuration.ORIENTATION_LANDSCAPE) it.landscape else it.portrait
             },
             mappingIdentity = combination?.identity,
+            groupPositions = state.optJSONObject("groups")?.optJSONArray("positions")?.let { positions ->
+                (0 until positions.length()).map {positions.getJSONObject(it).let {p -> p.getString("characters") to p.optString("selected").takeIf {it.isNotBlank() && it!="null"} }}
+            } ?: emptyList(),
             expression = state.optJSONObject("view")?.optJSONObject("expression")?.let { query ->
                 ExpressionQueryUi(query.getString("kind"), query.getString("phase"), query.getString("text"),
                     query.optString("message").takeIf { it.isNotBlank() && it != "null" }, query.optString("input", "Words"))
@@ -326,7 +329,7 @@ class MyWubiService : InputMethodService() {
             epoch = editorEpoch, enabled = active && viewVisible && session != null,
             spelling = spelling,
             idle = stableIdle, updateAvailable = updateAvailable,
-            status = error ?: shortcutError ?: if(session == null) "正在加载码表…" else tableLabel,
+            status = error ?: shortcutError ?: (if(state.optString("group_search_status")=="BudgetExceeded") "候选较多，请继续输入或明确字母" else null) ?: if(session == null) "正在加载码表…" else tableLabel,
             statusError = error != null || shortcutError != null,
             pinyinMode = pinyinMode,
             base = state.optString("base", "Main"),

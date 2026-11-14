@@ -31,6 +31,13 @@ internal fun KeyboardManagement(model: SettingsModel, config: JSONObject) {
     Text("自定义键盘",style=MaterialTheme.typography.titleMedium)
     Text("从皮肤库选择布局，预览后明确应用。数字、电话、英文、网址和密码使用确定字符布局。")
     Text(message)
+    OutlinedButton(enabled=!busy,onClick={scope.launch {
+        busy=true
+        runCatching { withContext(Dispatchers.IO) {
+            NativeBridge.objectCall("ManageKeyboard","request" to keyboardRequest(path,"InstallTemplates"))
+        };list() }.onFailure {message="模板添加失败：${it.message}"}
+        busy=false
+    }}) {Text("添加内置键盘模板到库") }
     for(index in 0 until items.length()) {
         val item=items.getJSONObject(index)
         OutlinedButton(enabled=!busy && item.getBoolean("enabled"),onClick={

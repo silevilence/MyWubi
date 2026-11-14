@@ -52,6 +52,7 @@ private val LocalKeyboardKeyHeight = staticCompositionLocalOf { 54.dp }
 data class KeyboardModel(
     val customLayout: KeyboardLayout? = null,
     val mappingIdentity: JSONObject? = null,
+    val groupPositions: List<Pair<String,String?>> = emptyList(),
     val skin: JSONObject? = null,
     val expression: ExpressionQueryUi? = null,
     val emojiAvailable: Boolean = false, val kaomojiAvailable: Boolean = false,
@@ -298,6 +299,7 @@ fun Keyboard(model: KeyboardModel, dispatch: (Any) -> Unit, window: (Int) -> Uni
                         else -> BuiltinKeyboardLayouts.symbols(asciiSymbols)
                     }
                 }
+                if(model.groupPositions.isNotEmpty() && !model.privateInput) GroupConstraints(model.groupPositions,model.query,model.enabled,dispatch)
                 if (model.customLayout != null) TextButton(onClick={dispatch("RestoreKeyboard"); useCustom=false; panel="letters"}) { Text("取消输入并恢复全键布局") }
                 BoxWithConstraints(Modifier.fillMaxWidth().height(LocalKeyboardKeyHeight.current*layout.height)) {
                     val unit=maxWidth/layout.width
@@ -554,4 +556,23 @@ private fun Modifier.imeAction(label:String,enabled:Boolean,action:()->Unit) = c
     role=Role.Button;contentDescription=label
     if(!enabled) disabled()
     onClick {if(enabled)action();enabled}
+}
+
+
+@Composable
+private fun GroupConstraints(positions: List<Pair<String,String?>>,query: String,enabled: Boolean,dispatch: (Any)->Unit) {
+    var selected by remember(query) { mutableStateOf<Int?>(null) }
+    LazyRow(Modifier.fillMaxWidth()) {
+        items(positions.size) { index ->
+            val position=positions[index]
+            TextButton(enabled=enabled && position.first.length>1,onClick={selected=index}) {
+                Text("${index+1}: ${position.second ?: position.first}")
+            }
+        }
+        item {TextButton(enabled=enabled,onClick={dispatch(JSONObject().put("UndoGroupResolution",JSONObject(query)))}) {Text("撤回筛选")}}
+    }
+    selected?.let {index -> AlertDialog(onDismissRequest={selected=null},title={Text("明确第 ${index+1} 位字母")},
+        text={Row {for(c in positions[index].first) TextButton(onClick={
+            dispatch(JSONObject().put("ResolveGroup",org.json.JSONArray().put(JSONObject(query)).put(index).put(c.toString())));selected=null
+        }) {Text(c.toString())}}},confirmButton={TextButton(onClick={selected=null}) {Text("取消")}}) }
 }

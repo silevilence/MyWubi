@@ -8,6 +8,7 @@ pub mod directions;
 pub mod editor;
 pub mod images;
 pub mod keyboard;
+pub mod keyboard_templates;
 pub mod manage;
 pub mod parameters;
 pub mod preferences;
