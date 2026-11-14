@@ -8,7 +8,7 @@ internal data class KeyboardCombination(val wire: JSONObject, val portrait: Keyb
     val landscape: KeyboardLayout, val appearance: JSONObject) {
     val identity get() = wire.optJSONObject("mapping_identity")
     val definition get() = wire.optJSONObject("definition")
-    val mode get() = wire.getJSONObject("layout").getJSONArray("modes").getString(0)
+    val mode get() = wire.getString("mode")
     val digest get() = wire.getString("digest")
     companion object {
         fun decode(wire: JSONObject): KeyboardCombination {

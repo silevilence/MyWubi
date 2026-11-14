@@ -21,6 +21,7 @@ pub struct Choice {
 }
 
 pub struct Snapshot {
+    pub mode: Mode,
     pub choice: Choice,
     pub layout: Layout,
     pub mapping: Option<Mapping>,
@@ -212,6 +213,7 @@ pub fn resolve(path: &Path, choice: &Choice, mode: Mode, charset: &str) -> Resul
             revision: mapping_revision,
         });
     Ok(Snapshot {
+        mode,
         choice: choice.clone(),
         layout,
         mapping,
@@ -272,7 +274,7 @@ fn selection_path(path:&Path,mode:&Mode)->std::path::PathBuf {
 }
 fn main_mode()->Mode {Mode::Main}
 pub fn save(path: &Path, snapshot: &Snapshot) -> Result<(), Error> {
-    save_mode(path,snapshot,snapshot.layout.modes.first().cloned().ok_or_else(||Error::Invalid("布局缺少模式".into()))?)
+    save_mode(path,snapshot,snapshot.mode.clone())
 }
 fn save_mode(path: &Path, snapshot: &Snapshot,mode:Mode) -> Result<(), Error> {
     let target = selection_path(path,&mode);
@@ -346,7 +348,7 @@ fn skin_wire(snapshot: &runtime::Snapshot) -> serde_json::Value {
     serde_json::json!({"parameters":snapshot.parameters.as_ref(),"images":images,"warnings":snapshot.warnings,"legacy":snapshot.legacy})
 }
 pub fn wire(snapshot: &Snapshot) -> serde_json::Value {
-    serde_json::json!({"choice":snapshot.choice,"layout":snapshot.layout,"mapping":snapshot.mapping,
+    serde_json::json!({"mode":snapshot.mode,"choice":snapshot.choice,"layout":snapshot.layout,"mapping":snapshot.mapping,
         "mapping_identity":snapshot.mapping_identity,"definition":snapshot.definition(),"revision":snapshot.revision,"digest":snapshot.digest,
         "resource_digests":snapshot.resource_digests,"role_fallbacks":snapshot.role_fallbacks,
         "skin":{"light":skin_wire(&snapshot.light),"dark":skin_wire(&snapshot.dark)}})

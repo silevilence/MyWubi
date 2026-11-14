@@ -120,3 +120,15 @@ fn pinyin_template_is_bound_to_pinyin_and_covers_separator() {
     assert!(layout.charset.contains('\''));
     layout.validate_geometry(mapping.as_ref(),&[KeyAction::Space,KeyAction::Enter,KeyAction::Cancel]).unwrap();
 }
+
+#[test]
+fn full_keyboard_is_exact_and_templates_reimport_without_resource_changes() {
+    let package=keyboard_templates::package().unwrap();
+    let c=package.platforms["android"].components.iter().find(|c|c.id=="full26").unwrap();
+    let (layout,mapping)=layout(&package,c).unwrap();assert!(mapping.is_none());
+    assert_eq!(layout.keys.iter().filter(|k|matches!(k.action,KeyAction::Character(_))).count(),26);
+    let bytes=package.encoded().unwrap();let first=core_engine::skin::Package::read(std::io::Cursor::new(bytes)).unwrap();
+    let second=core_engine::skin::Package::read(std::io::Cursor::new(first.encoded().unwrap())).unwrap();
+    assert!(first.files==second.files);
+    for id in ["full26","shape14","shape9","pinyin9"] {assert!(compatibility(&second,&combination::supported()).unwrap()[id].enabled);}
+}

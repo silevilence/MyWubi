@@ -303,7 +303,7 @@ impl SkinEditor {
                 }
             });
             if self.platform=="android" {
-                ui.horizontal_wrapped(|ui| {for id in ["shape14","shape9","pinyin9"] {
+                ui.horizontal_wrapped(|ui| {for id in ["full26","shape14","shape9","pinyin9"] {
                     if ui.button(format!("添加 {id} 模板")).clicked() {
                         match skin::keyboard_templates::add(&mut draft.package,id) {Ok(())=>{draft.dirty=true;self.component=id.into();},Err(e)=>self.message=e.to_string()}
                     }
