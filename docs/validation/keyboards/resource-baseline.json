@@ -1,0 +1,7 @@
+{
+  "bytes": 28524544,
+  "includes": "both dictionaries loaded sequentially, allocator and process overhead",
+  "sample_interval_ms": 5,
+  "platform": "Windows host",
+  "metric": "sampled process peak working set"
+}
