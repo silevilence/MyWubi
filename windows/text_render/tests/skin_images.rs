@@ -67,3 +67,87 @@ fn compositing_preserves_premultiplication_across_dpi_and_narrow_sizes() {
         assert!(result.pixels()[offset + 3] > 0);
     }
 }
+
+#[test]
+fn shipped_bamboo_template_uses_native_layout_and_rejects_bad_png() {
+    let root = std::path::Path::new(env!("CARGO_MANIFEST_DIR")).join("../../examples/skins");
+    let package = core_engine::skin::Package::open(&root.join("bamboo-dual.mywubi-skin")).unwrap();
+    let supported = [
+        "container.zip/1",
+        "windows.base/1",
+        "appearance.parameters/1",
+        "appearance.images/1",
+    ]
+    .map(str::to_owned)
+    .into();
+    let resolved = core_engine::skin::parameters::resolve(
+        &package,
+        "windows",
+        "jade",
+        false,
+        &Default::default(),
+        false,
+        &supported,
+    )
+    .unwrap();
+    let images = Arc::new(decode(&package, &resolved.images).unwrap());
+    let mut data = text_render::candidate_data::CandidateData {
+        visible: true,
+        spelling: "a".into(),
+        ..Default::default()
+    };
+    data.theme =
+        text_render::candidate_data::ThemeSnapshot::from_parameters(Arc::new(resolved.parameters));
+    data.theme.images = images;
+    data.items = ["工", "竹纸皮肤与长候选", "👩🏽‍💻"]
+        .iter()
+        .enumerate()
+        .map(|(i, text)| text_render::candidate_data::CandidateItem {
+            label: format!("{}. ", i + 1),
+            text: (*text).into(),
+            hint: "aaaa".into(),
+            disabled: false,
+            expression_kind: None,
+        })
+        .collect();
+    let mut system = TextSystem::new().unwrap();
+    let bitmap = text_render::preview::candidate(&mut system, &data, 600.0).unwrap();
+    let target = std::path::Path::new(env!("CARGO_MANIFEST_DIR"))
+        .join("../../target/skin-acceptance/bamboo-windows-native.png");
+    std::fs::create_dir_all(target.parent().unwrap()).unwrap();
+    let mut encoder = png::Encoder::new(
+        std::fs::File::create(target).unwrap(),
+        bitmap.width,
+        bitmap.height,
+    );
+    encoder.set_color(png::ColorType::Rgba);
+    encoder.set_depth(png::BitDepth::Eight);
+    let mut rgba = Vec::new();
+    for [b, g, r, a] in bitmap.pixels().as_chunks::<4>().0 {
+        for c in [r, g, b] {
+            rgba.push(if *a == 0 {
+                0
+            } else {
+                (u32::from(*c) * 255 / u32::from(*a)).min(255) as u8
+            });
+        }
+        rgba.push(*a);
+    }
+    encoder
+        .write_header()
+        .unwrap()
+        .write_image_data(&rgba)
+        .unwrap();
+    let damaged =
+        core_engine::skin::Package::open(&root.join("invalid-damaged-png.mywubi-skin")).unwrap();
+    assert!(core_engine::skin::parameters::resolve(
+        &damaged,
+        "windows",
+        "jade",
+        false,
+        &Default::default(),
+        false,
+        &supported
+    )
+    .is_err());
+}

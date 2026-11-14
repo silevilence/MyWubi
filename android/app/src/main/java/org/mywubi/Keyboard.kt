@@ -113,8 +113,6 @@ fun Keyboard(model: KeyboardModel, dispatch: (Any) -> Unit, window: (Int) -> Uni
     // Composition and predictions own the toolbar slot until the input is cleared.
     val showCandidateBar = !model.privateInput && (model.spelling.isNotEmpty() || model.candidates.isNotEmpty())
     val showToolbar = !showCandidateBar && model.expression == null
-    // Reserve scaled text space in both states, including an empty candidate list.
-    val barHeight = maxOf(48.dp, (28 * LocalDensity.current.fontScale + 16).dp)
     LaunchedEffect(model.spelling) { if (model.spelling.isEmpty()) expanded = false }
     val originalColors = myWubiColors()
     val colors = originalColors.copy(
@@ -139,6 +137,8 @@ fun Keyboard(model: KeyboardModel, dispatch: (Any) -> Unit, window: (Int) -> Uni
             PinyinButton(pinyinMode, pinyinLabel, baseEnabled && model.pinyinAvailable, cyclePinyin)
         }
         val controls: @Composable () -> Unit = {
+            // Reserve scaled text space even when the candidate list is empty.
+            val barHeight = maxOf(48.dp, (28 * LocalDensity.current.fontScale + 16).dp)
             model.expression?.let { query ->
                 val results = query.phase == "Results"
                 val name = when(query.kind) { "emoji" -> "Emoji"; "kaomoji" -> "颜文字"; "kana" -> "假名"; "math" -> "数学符号"; "punctuation" -> "标点"; "symbols" -> "其他符号"; else -> "特殊输入" }
@@ -263,7 +263,7 @@ fun Keyboard(model: KeyboardModel, dispatch: (Any) -> Unit, window: (Int) -> Uni
                 val hasPages = model.offset > 0 || model.offset + model.candidates.size < model.total
                 val showHints = model.candidates.any { it.hint.isNotEmpty() }
                 // Spend the former spelling-strip space on the grid; retain the typing area's height.
-                val gridHeight = keyHeight * 3 + 28.dp - (if (hasPages) 48.dp else 0.dp)
+                val gridHeight = LocalKeyboardKeyHeight.current * 3 + 28.dp - (if (hasPages) 48.dp else 0.dp)
                 key(model.query, model.offset) {
                     val columnWidth = (112 * LocalDensity.current.fontScale.coerceIn(1f, 1.5f)).dp
                     LazyVerticalGrid(columns=GridCells.Adaptive(columnWidth),
@@ -400,9 +400,28 @@ fun Keyboard(model: KeyboardModel, dispatch: (Any) -> Unit, window: (Int) -> Uni
                             Column(Modifier.weight(0.64f)) { keys() }
                         }
                     } else {
+                        val availableHeight = maxHeight
                         Column(Modifier.widthIn(max=600.dp).fillMaxWidth()) {
-                            controls()
-                            keys()
+                            val rows = if (panel == "symbols" && !showExpanded) 5 else 4
+                            // Keep a 48 dp row budget before scaling text in a short window.
+                            val controlScale = minOf(density.fontScale,
+                                ((availableHeight.value - rows*48f - 24f)/48f).coerceAtLeast(1f))
+                            CompositionLocalProvider(LocalDensity provides androidx.compose.ui.unit.Density(density.density,controlScale)) {
+                                controls()
+                            }
+                            BoxWithConstraints(if (availableHeight == androidx.compose.ui.unit.Dp.Infinity) Modifier else Modifier.weight(1f, fill=false)) {
+                                // Large fonts must not push the last key rows out of a
+                                // short window. Fit all rows into the space left by controls.
+                                val gridExtra = if (showExpanded) 28.dp else 0.dp
+                                val fittedHeight = minOf(keyHeight, (maxHeight-gridExtra).coerceAtLeast(0.dp) / rows)
+                                val fittedScale = minOf(density.fontScale,
+                                    ((fittedHeight.value - 16f) /
+                                        ((parameters?.optDouble("key_text_size",20.0)?.toFloat() ?: 16f) + 12f)).coerceAtLeast(0.5f))
+                                CompositionLocalProvider(LocalKeyboardKeyHeight provides fittedHeight,
+                                    LocalDensity provides androidx.compose.ui.unit.Density(density.density, fittedScale)) {
+                                    Column { keys() }
+                                }
+                            }
                         }
                     }
                 }

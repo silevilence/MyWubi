@@ -29,9 +29,10 @@ class SkinContractTest {
         }
     }
     @Test fun actualWindowsEditorExportResolvesAndRoundtripsWithoutChangingWindows() {
+      for(asset in listOf("editor-jade.mywubi-skin","editor-bamboo.mywubi-skin")) {
         val (path,config)=fixture()
         val source=File(path.parentFile,"editor-source.mywubi-skin")
-        instrumentation.context.assets.open("skins/editor-jade.mywubi-skin").use { input -> source.outputStream().use {input.copyTo(it)} }
+        instrumentation.context.assets.open("skins/$asset").use { input -> source.outputStream().use {input.copyTo(it)} }
         val request=JSONObject().put("action","Import").put("path",path.path).put("source",source.path).put("platform","android")
         val item=NativeBridge.objectCall("ManageSkin","request" to request).getJSONObject("item")
         val selection=JSONObject().put("id",item.getString("id")).put("version",item.getString("version")).put("component","jade")
@@ -47,13 +48,14 @@ class SkinContractTest {
             assertEquals(entries.map {it.name}.toSet(),after.entries().toList().map {it.name}.toSet())
             for(entry in entries) assertArrayEquals(entry.name,before.getInputStream(entry).readBytes(),after.getInputStream(after.getEntry(entry.name)).readBytes())
         } }
+      }
     }
 
-    private fun selectImageFixture(path:File, config:JSONObject) {
+    private fun selectImageFixture(path:File, config:JSONObject, bamboo:Boolean=false) {
         val source=File(path.parentFile,"image-fixture.mywubi-skin")
-        instrumentation.context.assets.open("skins/image-fixture.mywubi-skin").use {input->source.outputStream().use {input.copyTo(it)}}
+        instrumentation.context.assets.open(if(bamboo) "skins/editor-bamboo.mywubi-skin" else "skins/image-fixture.mywubi-skin").use {input->source.outputStream().use {input.copyTo(it)}}
         NativeBridge.objectCall("ManageSkin","request" to JSONObject().put("action","Import").put("path",path.path).put("source",source.path).put("platform","android"))
-        config.getJSONObject("skins").getJSONObject("android").put("selection",JSONObject().put("id","mywubi.image.fixture").put("version","1").put("component","jade"))
+        config.getJSONObject("skins").getJSONObject("android").put("selection",JSONObject().put("id",if(bamboo) "mywubi.bamboo" else "mywubi.image.fixture").put("version","1").put("component","jade"))
     }
     @Test fun imageVariantsShareDecodedResourcesAndRejectCorruption() {
         val (path,config)=fixture();selectImageFixture(path,config)
@@ -105,7 +107,7 @@ class SkinContractTest {
             if(device.hasObject(By.desc("英 → 中"))) {key("英 → 中").click();device.waitForIdle()}
             key("a").click();device.waitForIdle();instrumentation.uiAutomation.clearCache()
             assertNotNull(device.wait(Until.findObject(By.descStartsWith("候选 工").pkg("org.mywubi")),10000))
-            config.getJSONObject("skins").getJSONObject("android").put("preset","plain")
+            selectImageFixture(store.configFile,config,true)
             val current=store.readConfig();save(config,current.getLong("version"))
             awaitApplied()
             key("空格").click();device.waitForIdle();instrumentation.uiAutomation.clearCache()
@@ -113,6 +115,49 @@ class SkinContractTest {
             device.takeScreenshot(File(context.filesDir,"skin-real-host.png"))
         } finally {val current=store.readConfig();save(original,current.getLong("version"));EngineUpdates.request(context)}
     }
+    @Test fun actualImageSkinSupportsDarkLandscapeAndLargeFont() {
+        val (path,config)=fixture();selectImageFixture(path,config,true)
+        config.getJSONObject("skins").getJSONObject("android").put("mode","dark")
+        val skin=loadSkinAppearance(path,config)
+        val device=UiDevice.getInstance(instrumentation)
+        device.executeShellCommand("am force-stop org.mywubi.acceptancehost");device.pressHome()
+        val events=java.util.concurrent.CopyOnWriteArrayList<Any>()
+        ActivityScenario.launch(MainActivity::class.java).use {scenario->
+            scenario.onActivity {it.requestedOrientation=android.content.pm.ActivityInfo.SCREEN_ORIENTATION_LANDSCAPE}
+            val deadline=android.os.SystemClock.uptimeMillis()+10000
+            while(device.displayWidth<=device.displayHeight && android.os.SystemClock.uptimeMillis()<deadline) android.os.SystemClock.sleep(100)
+            assertTrue(device.displayWidth>device.displayHeight);device.waitForIdle()
+            scenario.onActivity {activity->activity.setContent {
+                val density=LocalDensity.current
+                CompositionLocalProvider(LocalDensity provides Density(density.density,2f)) {
+                    Box(Modifier.fillMaxSize(),contentAlignment=Alignment.BottomCenter) {
+                        Keyboard(KeyboardModel(skin=skin,enabled=true,modesAvailable=true,spelling="a",candidates=listOf(CandidateItem(1,"工","aaaa"))),{events.add(it)},{},switchIme={})
+                    }
+                }
+            }}
+            device.waitForIdle();instrumentation.waitForIdleSync();instrumentation.uiAutomation.clearCache()
+            val q=device.wait(Until.findObject(By.desc("q").pkg("org.mywubi")),5000) ?: error("q missing")
+            val candidate=device.wait(Until.findObject(By.desc("候选 工，编码提示 aaaa").pkg("org.mywubi")),5000) ?: error("candidate missing")
+            assertTrue("Candidate must be above q",candidate.visibleBounds.bottom<=q.visibleBounds.top)
+            assertTrue("Candidate text must have room",candidate.visibleBounds.height()>=with(instrumentation.targetContext.resources.displayMetrics){(48*density).toInt()})
+            val space=device.wait(Until.findObject(By.desc("空格").pkg("org.mywubi")),5000) ?: error("space missing")
+            val z=device.wait(Until.findObject(By.desc("z").pkg("org.mywubi")),5000) ?: error("z missing")
+            val minimum=(48*instrumentation.targetContext.resources.displayMetrics.density).toInt()-1
+            device.takeScreenshot(File(instrumentation.targetContext.filesDir,"skin-bamboo-dark-landscape-2.0.png"))
+            assertTrue("Bottom row must be fully visible: ${space.visibleBounds}",space.visibleBounds.height()>=minimum)
+            assertTrue("Third row must be fully visible",z.visibleBounds.height()>=minimum)
+            q.click();device.waitForIdle()
+            val end=android.os.SystemClock.uptimeMillis()+5000
+            while(events.isEmpty() && android.os.SystemClock.uptimeMillis()<end) android.os.SystemClock.sleep(50)
+            assertEquals(1,events.size)
+            device.takeScreenshot(File(instrumentation.targetContext.filesDir,"skin-bamboo-dark-landscape-2.0.png"))
+            device.findObject(By.desc("展开").pkg("org.mywubi")).click()
+            device.waitForIdle();instrumentation.uiAutomation.clearCache()
+            val expandedSpace=device.wait(Until.findObject(By.desc("空格").pkg("org.mywubi")),5000) ?: error("expanded space missing")
+            assertTrue("Expanded candidates must keep the bottom row visible",expandedSpace.visibleBounds.height()>=minimum)
+        }
+    }
+
     private fun fixture(): Pair<File, JSONObject> {
         val root = File(instrumentation.targetContext.cacheDir,"skin-contract").apply { mkdirs() }
         File(root,"main.dict").writeText("a\t工\t100\na\t式\t80\n")
@@ -132,7 +177,7 @@ class SkinContractTest {
                 val before = NativeBridge.objectCall("Candidates","session" to session.value,"offset" to 0,"count" to 9).toString()
                 for (preset in listOf("jade","plain","contrast","legacy")) {
                     config.getJSONObject("skins").getJSONObject("android").remove("selection")
-                if(preset=="image") selectImageFixture(path,config) else config.getJSONObject("skins").getJSONObject("android").put("preset",preset)
+                if(preset=="image" || preset=="bamboo") selectImageFixture(path,config,preset=="bamboo") else config.getJSONObject("skins").getJSONObject("android").put("preset",preset)
                     loadSkinAppearance(path,config)
                     assertEquals(before,NativeBridge.objectCall("Candidates","session" to session.value,"offset" to 0,"count" to 9).toString())
                 }
@@ -163,9 +208,9 @@ class SkinContractTest {
                     }
                 }
             } }
-            for (preset in listOf("jade","plain","contrast","image")) for (fontScale in listOf(1f,2f)) {
+            for (preset in listOf("jade","plain","contrast","image","bamboo")) for (fontScale in listOf(1f,2f)) {
                 config.getJSONObject("skins").getJSONObject("android").remove("selection")
-                if(preset=="image") selectImageFixture(path,config) else config.getJSONObject("skins").getJSONObject("android").put("preset",preset)
+                if(preset=="image" || preset=="bamboo") selectImageFixture(path,config,preset=="bamboo") else config.getJSONObject("skins").getJSONObject("android").put("preset",preset)
                 val resolved=loadSkinAppearance(path,config)
                 scenario.onActivity { skin=resolved; scale=fontScale }
                 device.waitForIdle(); instrumentation.waitForIdleSync(); instrumentation.uiAutomation.clearCache()

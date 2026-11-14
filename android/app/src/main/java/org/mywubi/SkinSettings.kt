@@ -7,6 +7,8 @@ import androidx.compose.foundation.layout.*
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.semantics.semantics
+import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
 import androidx.core.content.FileProvider
@@ -89,7 +91,7 @@ internal fun SkinManagement(model: SettingsModel, config: JSONObject) {
                     TextButton(onClick = {
                         val selected = JSONObject().put("id", item.getString("id")).put("version", item.getString("version")).put("component", component.getString("id"))
                         model.change("skins", "android", JSONObject(preference.toString()).put("selection", selected))
-                    }, enabled = component.getBoolean("enabled") && !busy && !model.busy) { Text("选用 ${component.getString("id")}") }
+                    }, modifier=Modifier.semantics { contentDescription="选用皮肤 ${item.getString("name")}，组件 ${component.getString("id")}" }, enabled = component.getBoolean("enabled") && !busy && !model.busy) { Text("选用 ${component.getString("id")}") }
                     if (!component.isNull("reason")) Text(component.getString("reason"), style = MaterialTheme.typography.bodySmall)
                 }
                 OutlinedButton(onClick = {
@@ -110,7 +112,7 @@ internal fun SkinManagement(model: SettingsModel, config: JSONObject) {
                         }.onFailure { message = it.message ?: "导出失败" }
                         busy = false
                     }
-                }, enabled = item.has("id") && !busy && !model.busy) { Text("导出并分享完整包") }
+                }, modifier=Modifier.semantics { contentDescription="分享皮肤 ${item.getString("name")} 完整包" }, enabled = item.has("id") && !busy && !model.busy) { Text("导出并分享完整包") }
             }
         }
     }

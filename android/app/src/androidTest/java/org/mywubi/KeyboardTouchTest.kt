@@ -146,7 +146,15 @@ class KeyboardTouchTest {
             key("q").click(); settled()
             assertEquals(1, events.size)
             assertEquals("q", (events.last() as JSONObject).getJSONArray("InputText").getString(0))
-            assertFalse(device.hasObject(By.desc("按键预览")))
+            // Successful releases intentionally retain the bubble briefly. Compose
+            // idleness does not wait for the delayed clear coroutine.
+            val previewDeadline=SystemClock.uptimeMillis()+2000
+            do {
+                instrumentation.uiAutomation.clearCache()
+                if(!device.hasObject(By.desc("按键预览"))) break
+                SystemClock.sleep(25)
+            } while(SystemClock.uptimeMillis()<previewDeadline)
+            assertFalse("Release preview did not clear",device.hasObject(By.desc("按键预览")))
 
             val density = instrumentation.targetContext.resources.displayMetrics.density
             val distance = (30 * density).toInt()
