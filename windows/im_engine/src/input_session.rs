@@ -308,12 +308,7 @@ impl InputSession {
         let visible = core.has_prediction();
         let policy_changed = core.context().allows_assistance != prefix.allowed;
 
-        if core.context().editor != editor {
-            let mut context = core.context();
-            context.editor = editor;
-            context.epoch = context.epoch.wrapping_add(1);
-            core.invalidate_context(context, true);
-        }
+        bind_editor(&mut core, editor);
         core.set_assistance_allowed(prefix.allowed);
         let context = core.context();
         if prefix.text.is_some() {
@@ -337,7 +332,21 @@ impl InputSession {
         }
     }
 
-    pub fn handle<E: EditFailure>(
+    pub fn handle_in_context<E: EditFailure>(
+        &self,
+        editor: u64,
+        event: InputEvent,
+        system_modifier: bool,
+        anchor: Option<ScreenPoint>,
+        edit: impl FnMut(&EditSessionOp) -> Result<Option<ScreenPoint>, E>,
+    ) -> bool {
+        // Binding is required for ordinary candidate clicks too, even when
+        // prediction, personal collection and expression assistance are off.
+        bind_editor(&mut self.core.lock(), editor);
+        self.handle(event, system_modifier, anchor, edit)
+    }
+
+    fn handle<E: EditFailure>(
         &self,
         event: InputEvent,
         system_modifier: bool,
@@ -713,6 +722,15 @@ fn candidate_view(
     data
 }
 
+fn bind_editor(core: &mut Session, editor: u64) {
+    if core.context().editor != editor {
+        let mut context = core.context();
+        context.editor = editor;
+        context.epoch = context.epoch.wrapping_add(1);
+        core.invalidate_context(context, true);
+    }
+}
+
 fn bind_selection(core: &Session, data: &mut CandidateData) {
     static NEXT: std::sync::atomic::AtomicU64 = std::sync::atomic::AtomicU64::new(1);
     let window = core.visible_candidate_window();
@@ -742,6 +760,31 @@ fn bind_selection(core: &Session, data: &mut CandidateData) {
 #[cfg(test)]
 mod tests {
     use super::*;
+
+    #[test]
+    fn first_click_without_assistance_keeps_the_key_context_and_candidate() {
+        let (session, data, mut host, _) = setup();
+        let config = session.config();
+        assert!(!config.prediction.enabled && !config.personal.collect && !config.personal.predict);
+        assert!(!config.expressions.emoji.needed() && !config.expressions.kaomoji.needed());
+        session.handle_in_context(42, InputEvent::Char('b'), false, None, |op| host.apply(op));
+        let shown = data.load_full();
+        session.sync_prediction_context(
+            42,
+            crate::prediction_context::Prefix {
+                allowed: true,
+                ..Default::default()
+            },
+        );
+        session.choose_candidate(
+            shown.selection_token.unwrap(),
+            shown.selection_ids[0],
+            |op| host.apply(op),
+        );
+        assert_eq!(host.committed, "工");
+        assert!(host.spelling.is_empty());
+        assert!(!data.load().visible);
+    }
 
     #[test]
     fn kana_menu_and_literal_controls_keep_query_local_until_numeric_selection() {

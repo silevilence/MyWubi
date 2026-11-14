@@ -57,7 +57,7 @@ use windows::Win32::UI::TextServices::{
     ITfThreadFocusSink, ITfThreadFocusSink_Impl, ITfThreadMgr, ITfThreadMgrEventSink,
     ITfThreadMgrEventSink_Impl, TKBLayoutType, TfLBIClick, GUID_COMPARTMENT_KEYBOARD_OPENCLOSE,
     GUID_LBI_INPUTMODE, GUID_PROP_ATTRIBUTE, GUID_TFCAT_DISPLAYATTRIBUTEPROVIDER, TF_AE_END,
-    TF_ANCHOR_END, TF_ANCHOR_START, TF_CT_COLORREF, TF_DA_COLOR, TF_DA_COLOR_0,
+    TF_ANCHOR_END, TF_ANCHOR_START, TF_CT_COLORREF, TF_CT_NONE, TF_DA_COLOR, TF_DA_COLOR_0,
     TF_DEFAULT_SELECTION, TF_DISPLAYATTRIBUTE, TF_ES_READWRITE, TF_ES_SYNC, TF_LANGBARITEMINFO,
     TF_LBI_CLK_LEFT, TF_LBI_ICON, TF_LBI_STATUS, TF_LBI_STATUS_HIDDEN, TF_LBI_STYLE_BTN_BUTTON,
     TF_LBI_STYLE_SHOWNINTRAY, TF_LBI_TEXT, TF_LBI_TOOLTIP, TF_LS_DOT, TF_LS_SOLID, TF_MOD_CONTROL,
@@ -327,9 +327,14 @@ fn make_display_attr_info(
 /// 构建「编码输入态」display attribute：灰色点线。
 fn attr_input() -> TF_DISPLAYATTRIBUTE {
     TF_DISPLAYATTRIBUTE {
-        crText: make_color(0x80, 0x80, 0x80),
+        // Leave host text/background colors intact. COLORREF with a zeroed
+        // union means black, not transparent (classic Edit honors it).
+        crText: TF_DA_COLOR {
+            r#type: TF_CT_NONE,
+            ..Default::default()
+        },
         crBk: TF_DA_COLOR {
-            r#type: TF_CT_COLORREF,
+            r#type: TF_CT_NONE,
             ..Default::default()
         },
         lsStyle: TF_LS_DOT,
@@ -339,17 +344,23 @@ fn attr_input() -> TF_DISPLAYATTRIBUTE {
     }
 }
 
-/// 构建「有候选态」display attribute：黑色实线。
+/// 构建「有候选态」display attribute：使用宿主颜色的实线。
 fn attr_converted() -> TF_DISPLAYATTRIBUTE {
     TF_DISPLAYATTRIBUTE {
-        crText: make_color(0x00, 0x00, 0x00),
+        crText: TF_DA_COLOR {
+            r#type: TF_CT_NONE,
+            ..Default::default()
+        },
         crBk: TF_DA_COLOR {
-            r#type: TF_CT_COLORREF,
+            r#type: TF_CT_NONE,
             ..Default::default()
         },
         lsStyle: TF_LS_SOLID,
         fBoldLine: false.into(),
-        crLine: make_color(0x00, 0x00, 0x00),
+        crLine: TF_DA_COLOR {
+            r#type: TF_CT_NONE,
+            ..Default::default()
+        },
         bAttr: Default::default(),
     }
 }
@@ -1808,9 +1819,16 @@ impl ITfKeyEventSink_Impl for TextService_Impl {
             .or(self.candidate_tx.load().anchor)
             .or_else(|| crate::screen_geometry::get_caret_position_win32(theme.font_size))
             .or_else(crate::screen_geometry::get_cursor_position);
+        let editor = pic
+            .as_ref()
+            .and_then(|context| context.cast::<IUnknown>().ok())
+            .map(|context| context.as_raw() as usize as u64)
+            .unwrap_or(0);
         let handled = self
             .input
-            .handle(event, false, anchor, |op| self.run_edit(op, pic.as_ref()));
+            .handle_in_context(editor, event, false, anchor, |op| {
+                self.run_edit(op, pic.as_ref())
+            });
         self.pump_prediction();
         Ok(BOOL(handled as i32))
     }
@@ -1928,6 +1946,16 @@ mod tests {
             error.code(),
             windows::Win32::System::Ole::CONNECT_E_CANNOTCONNECT
         );
+    }
+
+    #[test]
+    fn composition_attributes_preserve_host_text_and_background_colors() {
+        for attribute in [attr_input(), attr_converted()] {
+            assert_eq!(attribute.crText.r#type, TF_CT_NONE);
+            assert_eq!(attribute.crBk.r#type, TF_CT_NONE);
+        }
+        assert_eq!(attr_input().lsStyle, TF_LS_DOT);
+        assert_eq!(attr_converted().lsStyle, TF_LS_SOLID);
     }
 
     #[test]
