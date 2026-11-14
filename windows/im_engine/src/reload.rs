@@ -39,21 +39,21 @@ fn watch_loop(runtime: Arc<ArcSwap<RuntimeSnapshot>>) -> notify::Result<()> {
             continue;
         }
         let previous = runtime.load_full();
-        if event.paths.iter().any(|p| p == &previous.config_path)
-            && !event
-                .paths
-                .iter()
-                .any(|p| p != &previous.config_path && targets.contains(p))
-        {
-            if let Ok(config) = core_engine::Config::load(&previous.config_path) {
-                if core_engine::skin::runtime::same_input_configuration(&previous.config, &config) {
-                    // Preserve revision and all shared input resources; the separate skin
-                    // watcher publishes appearance to existing candidate windows.
-                    let mut updated = (*previous).clone();
-                    updated.config = config;
-                    runtime.store(Arc::new(updated));
+        if config_only_event(&event, &previous.config_path, &targets) {
+            let config = match core_engine::Config::load(&previous.config_path) {
+                Ok(config) => config,
+                Err(error) => {
+                    // A write can briefly hold the file. Never retry through the full
+                    // runtime builder: it could succeed and reset an appearance-only edit.
+                    log::warn!("[reload] 配置尚不可读，保留旧快照：{error}");
                     continue;
                 }
+            };
+            if core_engine::skin::runtime::same_input_configuration(&previous.config, &config) {
+                let mut updated = (*previous).clone();
+                updated.config = config;
+                runtime.store(Arc::new(updated));
+                continue;
             }
         }
         match crate::load_runtime_snapshot() {
@@ -138,6 +138,15 @@ fn normalized(path: &Path) -> PathBuf {
     PathBuf::from(result.to_string_lossy().to_lowercase())
 }
 
+fn config_only_event(event: &Event, config: &Path, targets: &[PathBuf]) -> bool {
+    let config = normalized(config);
+    event.paths.iter().any(|p| normalized(p) == config)
+        && !event.paths.iter().any(|p| {
+            let path = normalized(p);
+            path != config && targets.iter().any(|t| normalized(t).starts_with(&path))
+        })
+}
+
 fn event_matches(event: &Event, targets: &[PathBuf]) -> bool {
     if matches!(event.kind, notify::EventKind::Access(_)) {
         return false;
@@ -160,6 +169,19 @@ mod tests {
     use super::*;
     use core_engine::{Config, Dictionary};
     use std::path::PathBuf;
+
+    #[test]
+    fn appearance_fast_path_normalizes_windows_paths_but_keeps_resource_changes() {
+        use notify::{event::ModifyKind, EventKind};
+        let config = PathBuf::from(r"C:\SkinApp\config.toml");
+        let table = PathBuf::from(r"C:\SkinApp\main.dict");
+        let targets = vec![config.clone(), table.clone()];
+        let event = Event::new(EventKind::Modify(ModifyKind::Any))
+            .add_path(PathBuf::from(r"c:\skinapp\config.toml"));
+        assert!(config_only_event(&event, &config, &targets));
+        assert!(!config_only_event(&event.clone().add_path(table), &config, &targets));
+        assert!(!config_only_event(&event.add_path(PathBuf::from(r"C:\SkinApp")), &config, &targets));
+    }
 
     fn runtime_snapshot() -> RuntimeSnapshot {
         RuntimeSnapshot {
