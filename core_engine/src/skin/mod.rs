@@ -5,6 +5,7 @@ use std::collections::{BTreeMap, BTreeSet};
 pub mod archive;
 pub mod editor;
 pub mod images;
+pub mod keyboard;
 pub mod manage;
 pub mod parameters;
 pub mod preferences;
