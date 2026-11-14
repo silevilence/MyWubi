@@ -42,6 +42,7 @@ pub struct Appearance {
 
 #[derive(Debug, Clone)]
 pub struct Resolved {
+    pub images: super::images::Images,
     pub parameters: Parameters,
     pub variant: String,
     pub warnings: Vec<String>,
@@ -406,7 +407,20 @@ pub fn resolve(
         }
         effective.0.insert("border_width".into(), 1.into());
     }
+    let images = super::images::resolve(
+        package,
+        platform,
+        component,
+        &appearance,
+        variant,
+        supported,
+    )?;
     Ok(Resolved {
+        images: if high_contrast {
+            Default::default()
+        } else {
+            images
+        },
         parameters: effective,
         variant: variant.into(),
         warnings,

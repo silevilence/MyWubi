@@ -85,3 +85,37 @@ Android 通过 ResolveSkin 在 loader 线程预解析浅深变体；SameInputCon
 保持 DirectWrite 字形与彩色表情，DC target 改用 premultiplied alpha；旧 render API 仍强制不透明，新增 render_alpha 保留透明通道。Bitmap::framed 在预乘空间处理圆角蒙版、边框和轻阴影，内容先裁入原始矩形再合成装饰；阴影的边距只平移已有命中框，不增加命中范围。WM_NCHITTEST 对非交互区域返回透明命中结果。
 
 依据：[Microsoft ID2D1DCRenderTarget](https://learn.microsoft.com/en-us/windows/win32/api/d2d1/nn-d2d1-id2d1dcrendertarget)。像素测试验证透明边角、半透明中心及 RGB 不超过 alpha；原有彩色表情和组合字符光栅测试回归通过。实际浅深宿主边缘、焦点和 GDI 对象曲线仍在统一验收采集。
+
+
+## 静态图片能力（SK-15）
+
+外观组件声明 `appearance.images/1`，包含静态 PNG、拉伸、平铺和九宫格。
+必需图片放 `capabilities.required`；允许旧客户端纯色回退时使用
+`capabilities.optional."appearance.images/1" = "plain"`。图片能力不能提升到根或平台公共要求。
+图片解码和绘制由壳层承担；共享模块只验证引用、头部尺寸、切片和预算。
+
+```toml
+[images.light.background]
+resource = "shared:panel"
+mode = "nine_slice"
+slice = [8, 8, 8, 8]
+content = [12, 10, 12, 10]
+opacity = 1.0
+```
+
+`images` 位于外观组件文件，变体必须有同名参数变体。缺少角色时使用该角色的参数背景；
+缺少图片变体不会借用另一变体的图片。Windows 支持 background、selected；Android 另支持
+candidate、key、function、pressed、disabled、bubble。它们是语义角色，不包含固定键位底图或输入动作。
+`shared:id` 查根资源表，`platform:id` 查当前平台资源表，不允许同名遮蔽或另一平台私有引用。
+
+`slice` 按左、上、右、下指定源图片像素，仅 nine_slice 可非零；左右/上下之和须小于图片对应边长。
+九宫格四角按 DIP/dp 缩放，边伸缩，中间伸缩；目标过小时等比收缩相对两边，不重叠。
+`stretch` 整图拉伸；`tile` 按源像素对应 DIP/dp 重复并裁切末端，纹理至少 8×8。
+`content` 是四边最小内容留白（0～64 DIP/dp），文字仍由原生组件绘制；它不扩大点击区域。
+`opacity` 为 0～1，先与图片 alpha 相乘，再按预乘 alpha 合成。高对比模式禁用图片。
+
+单图 1～2048 像素；一个平台两变体引用的不同图片按 RGBA 合计最多 32 MiB，重复引用只计一次。
+拒绝 APNG、截断块、缺失引用、越界切片及超限；原生解码器还须拒绝 CRC/压缩数据损坏。
+只有全部资源准备成功才发布新快照；失败保留上一版。另一平台图片保留但不解码。
+
+验证：共享引用、独立变体、高对比、旧客户端拒绝/回退、缺失/截断/超限、九宫格角区及小尺寸几何共 4 项测试通过。
