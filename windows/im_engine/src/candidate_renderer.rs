@@ -84,7 +84,13 @@ impl Renderer {
         let size = crate::screen_geometry::pt_to_px_for_window(hwnd, data.theme.font_size).max(12);
         let geometry = (monitor.0, monitor.1, monitor.2, monitor.3, size);
         let scale = size as f32 / 19.0;
-        let max_width = (900.0 * scale).min((monitor.2 - monitor.0 - 16).max(80) as f32);
+        let dip = size as f32 / (f32::from(data.theme.font_size) * 96.0 / 72.0).max(1.0);
+        let preferred_width = data
+            .theme
+            .parameters
+            .as_ref()
+            .map_or(900.0 * scale, |p| p.number("max_width") * dip);
+        let max_width = preferred_width.min((monitor.2 - monitor.0 - 16).max(80) as f32);
         let max_height = (650.0 * scale).min((monitor.3 - monitor.1 - 16).max(80) as f32);
         if self.system.is_none() {
             self.system = Some(TextSystem::new()?);

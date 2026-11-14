@@ -1,7 +1,7 @@
 //! Measured candidate layout; the same rectangles drive drawing and hit testing.
 use crate::candidate_data::CandidateData;
 use core_engine::{candidates::ExpressionPhase, expressions::ExpressionKind};
-use text_render::{coverage::inspect, TextLayout, TextSystem};
+use text_render::{coverage::inspect, TextLayout, TextSpan, TextSystem};
 use windows::core::Result;
 
 pub(crate) struct Block {
@@ -17,6 +17,54 @@ pub(crate) struct Block {
 mod tests {
     use super::*;
     use crate::candidate_data::CandidateItem;
+
+    #[test]
+    fn semantic_styles_and_explicit_layouts_keep_whole_candidate_geometry() {
+        use core_engine::skin::parameters;
+        use std::sync::Arc;
+        let mut system = TextSystem::new().unwrap();
+        let mut data = CandidateData {
+            visible: true,
+            selection_ids: vec![7, 9, 11],
+            ..Default::default()
+        };
+        data.items = (0..3)
+            .map(|_| CandidateItem {
+                expression_kind: None,
+                disabled: false,
+                label: "1. ".into(),
+                text: "跨平台输入法".repeat(3),
+                hint: "abcdef 反查".into(),
+            })
+            .collect();
+        for mode in ["auto", "horizontal", "vertical"] {
+            let mut p = parameters::builtin("jade", false).unwrap();
+            p.0.insert("layout".into(), mode.into());
+            p.0.insert("hint_size".into(), 28.into());
+            data.theme = crate::candidate_data::ThemeSnapshot::from_parameters(Arc::new(p));
+            for size in [18.0, 28.0, 56.0] {
+                let scene = Scene::build(&mut system, &data, size, 400.0).unwrap();
+                assert_eq!(
+                    scene.blocks.iter().filter_map(|b| b.id).collect::<Vec<_>>(),
+                    vec![7, 9, 11]
+                );
+                assert!(scene
+                    .blocks
+                    .iter()
+                    .all(|b| b.x + b.layout.width <= scene.width));
+                assert!(scene
+                    .blocks
+                    .iter()
+                    .all(|b| b.y + b.layout.height <= scene.height));
+                if mode == "horizontal" {
+                    assert!(!scene.vertical);
+                }
+                if mode == "vertical" {
+                    assert!(scene.vertical);
+                }
+            }
+        }
+    }
 
     #[test]
     fn long_expression_candidates_wrap_without_overlapping_or_losing_selection_ids() {
@@ -87,13 +135,33 @@ impl Scene {
         size: f32,
         max_width: f32,
     ) -> Result<Self> {
-        let pad = (size * 0.4).ceil().max(6.0);
+        let parameters = data.theme.parameters.as_deref();
+        let dip = size / (f32::from(data.theme.font_size) * 96.0 / 72.0).max(1.0);
+        let density = parameters.map_or(0.0, |p| {
+            if p.text("density") == "comfortable" {
+                4.0 * dip
+            } else {
+                0.0
+            }
+        });
+        let pad = parameters
+            .map_or((size * 0.4).ceil().max(6.0), |p| {
+                p.number("padding_x") * dip + density
+            })
+            .max(2.0);
+        let gap = parameters
+            .map_or(pad, |p| p.number("padding_y") * dip + density)
+            .max(2.0);
+        let font = parameters.map_or("Segoe UI", |p| p.text("font_family"));
         let content_width = (max_width - pad * 2.0 - 6.0).max(size * 2.0);
-        let color = foreground(data.theme.background_color);
+        let color = parameters.map_or_else(
+            || foreground(data.theme.background_color),
+            |p| p.color("text"),
+        );
         let mut scene = Self {
             blocks: Vec::new(),
             width: 200.0_f32.min(max_width),
-            height: pad,
+            height: gap,
             vertical: false,
         };
         let mut header = Vec::new();
@@ -131,7 +199,7 @@ impl Scene {
             header.push(data.mode_label.clone());
         }
         for line in header {
-            let layout = system.layout(&line, "Segoe UI", size, content_width)?;
+            let layout = system.layout(&line, font, size, content_width)?;
             scene.push(
                 Block {
                     layout,
@@ -142,6 +210,7 @@ impl Scene {
                     id: None,
                 },
                 pad,
+                gap,
             );
         }
         let mut items = Vec::new();
@@ -149,7 +218,7 @@ impl Scene {
             let family = if item.expression_kind == Some(ExpressionKind::Emoji) {
                 "Segoe UI Emoji"
             } else {
-                "Segoe UI"
+                font
             };
             let fallback = if item.expression_kind.is_some() {
                 let raw = system.layout(&item.text, family, size, 100_000.0)?;
@@ -174,13 +243,50 @@ impl Scene {
                     item.hint
                 )
             };
-            let layout = system.layout(
+            let highlighted = index == data.highlighted && !item.disabled;
+            let mut spans = Vec::new();
+            if let Some(p) = parameters {
+                let selected = |normal: &str, selected: &str| {
+                    p.color(if item.disabled {
+                        "disabled"
+                    } else if highlighted {
+                        selected
+                    } else {
+                        normal
+                    })
+                };
+                spans.push(TextSpan {
+                    start: 0,
+                    length: text.encode_utf16().count() as u32,
+                    color: selected("text", "selected_text"),
+                    size,
+                });
+                if !fallback {
+                    let label_len = item.label.encode_utf16().count() as u32;
+                    spans.push(TextSpan {
+                        start: 0,
+                        length: label_len,
+                        color: selected("label", "selected_text"),
+                        size,
+                    });
+                    if !item.hint.is_empty() {
+                        let start = label_len + item.text.encode_utf16().count() as u32 + 2;
+                        spans.push(TextSpan {
+                            start,
+                            length: item.hint.encode_utf16().count() as u32,
+                            color: selected("hint", "selected_hint"),
+                            size: p.number("hint_size") * dip * 96.0 / 72.0,
+                        });
+                    }
+                }
+            }
+            let layout = system.layout_styled(
                 &text,
                 if fallback { "Segoe UI" } else { family },
                 size,
                 content_width,
+                &spans,
             )?;
-            let highlighted = index == data.highlighted && !item.disabled;
             items.push(Block {
                 layout,
                 x: 0.0,
@@ -208,12 +314,13 @@ impl Scene {
             .iter()
             .map(|item| item.layout.width + pad)
             .sum::<f32>();
-        scene.vertical = total > content_width;
+        let layout = parameters.map_or("auto", |p| p.text("layout"));
+        scene.vertical = layout == "vertical" || (layout == "auto" && total > content_width);
         if scene.vertical {
             for mut block in items {
                 block.x = pad;
                 block.y = scene.height;
-                scene.push(block, pad);
+                scene.push(block, pad, gap);
             }
         } else {
             let mut x = pad;
@@ -221,25 +328,33 @@ impl Scene {
             for mut block in items {
                 block.x = x;
                 block.y = scene.height;
+                if x > pad && x + block.layout.width > max_width - pad {
+                    scene.height += height + gap;
+                    x = pad;
+                    height = 0.0;
+                    block.x = x;
+                    block.y = scene.height;
+                }
                 x += block.layout.width + pad;
                 height = height.max(block.layout.height);
                 scene.blocks.push(block);
             }
             scene.width = scene.width.max(x + pad);
-            scene.height += height + pad;
+            scene.height += height + gap;
         }
         for notice in &data.notices {
-            let layout = system.layout(notice, "Segoe UI", size, content_width)?;
+            let layout = system.layout(notice, font, size, content_width)?;
             scene.push(
                 Block {
                     layout,
                     x: pad,
                     y: scene.height,
-                    color,
+                    color: parameters.map_or(color, |p| p.color("status")),
                     background: None,
                     id: None,
                 },
                 pad,
+                gap,
             );
         }
         if data.total_pages > 1 {
@@ -254,11 +369,12 @@ impl Scene {
                     layout,
                     x: pad,
                     y: scene.height,
-                    color,
+                    color: parameters.map_or(color, |p| p.color("status")),
                     background: None,
                     id: None,
                 },
                 pad,
+                gap,
             );
         }
         let mut x = pad;
@@ -271,7 +387,7 @@ impl Scene {
                 content_width,
             )?;
             if x > pad && x + layout.width + pad > max_width {
-                scene.height += row_height + pad;
+                scene.height += row_height + gap;
                 x = pad;
                 row_height = 0.0;
             }
@@ -288,15 +404,17 @@ impl Scene {
             x += width + pad;
             scene.width = scene.width.max(x + pad);
         }
-        scene.height += row_height + pad;
+        scene.height += row_height + gap;
         scene.width = scene.width.min(max_width).ceil();
         scene.height = scene.height.ceil();
         Ok(scene)
     }
 
-    fn push(&mut self, block: Block, gap: f32) {
-        self.height = block.y + block.layout.height + gap;
-        self.width = self.width.max(block.x + block.layout.width + gap);
+    fn push(&mut self, block: Block, horizontal_gap: f32, vertical_gap: f32) {
+        self.height = block.y + block.layout.height + vertical_gap;
+        self.width = self
+            .width
+            .max(block.x + block.layout.width + horizontal_gap);
         self.blocks.push(block);
     }
 }

@@ -29,6 +29,14 @@ pub struct TextLayout {
     inset_y: f32,
 }
 
+/// A UTF-16 range styled within one shaped/wrapped layout.
+pub struct TextSpan {
+    pub start: u32,
+    pub length: u32,
+    pub color: u32,
+    pub size: f32,
+}
+
 /// Thread-local resources. Retain this object across frames, never across threads.
 pub struct TextSystem {
     write: IDWriteFactory,
@@ -70,6 +78,17 @@ impl TextSystem {
         size: f32,
         width: f32,
     ) -> Result<TextLayout> {
+        self.layout_styled(text, family, size, width, &[])
+    }
+
+    pub fn layout_styled(
+        &mut self,
+        text: &str,
+        family: &str,
+        size: f32,
+        width: f32,
+        spans: &[TextSpan],
+    ) -> Result<TextLayout> {
         let key = (family.to_owned(), size.to_bits());
         if !self.formats.contains_key(&key) {
             let name: Vec<u16> = family.encode_utf16().chain(Some(0)).collect();
@@ -100,6 +119,24 @@ impl TextSystem {
             let raw = self
                 .write
                 .CreateTextLayout(&utf16, format, layout_width, layout_height)?;
+            for span in spans {
+                if span.start as usize + span.length as usize > utf16.len()
+                    || !span.size.is_finite()
+                    || span.size <= 0.0
+                {
+                    return Err(windows::core::Error::new(
+                        E_INVALIDARG,
+                        "Invalid text style range",
+                    ));
+                }
+                let range = DWRITE_TEXT_RANGE {
+                    startPosition: span.start,
+                    length: span.length,
+                };
+                let brush = self.target.CreateSolidColorBrush(&rgba(span.color), None)?;
+                raw.SetDrawingEffect(&brush, range)?;
+                raw.SetFontSize(span.size, range)?;
+            }
             let mut metrics = DWRITE_TEXT_METRICS::default();
             raw.GetMetrics(&mut metrics)?;
             let ink = raw.GetOverhangMetrics()?;
