@@ -17,6 +17,7 @@ enum Picked {
     Exported(PathBuf),
 }
 pub struct SkinEditor {
+    android_preview: crate::android_skin_preview::AndroidPreview,
     draft: Option<Draft>,
     pending: Option<mpsc::Receiver<Result<Picked, String>>>,
     platform: String,
@@ -37,6 +38,7 @@ pub struct SkinEditor {
 impl Default for SkinEditor {
     fn default() -> Self {
         Self {
+            android_preview: Default::default(),
             draft: None,
             pending: None,
             platform: "windows".into(),
@@ -290,7 +292,7 @@ impl SkinEditor {
                                 }
                             }
                         }
-                        if self.platform=="windows" {self.preview(ui,&resolved.parameters,false);} else {ui.label("此处编辑目标为 Android，不会应用到 Windows。");}
+                        if self.platform=="windows" {self.preview(ui,&resolved.parameters,false);} else {self.android_preview.ui(ui,&resolved.parameters);}
                     },
                     Err(e)=>{ui.label(format!("此范围只读，保留原始数据：{e}"));}
                 }
