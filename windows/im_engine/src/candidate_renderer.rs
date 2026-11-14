@@ -17,7 +17,7 @@ pub(crate) const SCROLL_DOWN: usize = usize::MAX - 11;
 #[derive(Default)]
 pub(crate) struct Renderer {
     original: Option<Arc<CandidateData>>,
-    appearance: Option<Arc<core_engine::skin::runtime::Snapshot>>,
+    appearance: Option<Arc<crate::skin_runtime::Snapshot>>,
     themed: Option<Arc<CandidateData>>,
     system: Option<TextSystem>,
     scene: Option<Scene>,
@@ -65,6 +65,7 @@ impl Renderer {
                     themed.theme = crate::candidate_data::ThemeSnapshot::from_parameters(
                         skin.parameters.clone(),
                     );
+                    themed.theme.images = skin.images.clone();
                 } else {
                     themed.theme.font_size = skin.parameters.number("font_size") as u16;
                     themed.theme.primary_color = skin.parameters.color("code");
@@ -140,6 +141,7 @@ impl Renderer {
             return Ok(());
         }
         let mut draws = Vec::new();
+        let mut image_selections = Vec::new();
         let mut next_hits = Vec::new();
         for block in &scene.blocks {
             let top = block.y - self.scroll;
@@ -147,7 +149,20 @@ impl Renderer {
             if bottom <= 0.0 || top >= visible_height {
                 continue;
             }
-            if let Some(color) = block.background {
+            if let Some(image) = data
+                .theme
+                .images
+                .get("selected")
+                .filter(|_| block.background.is_some())
+            {
+                let inset = image.image.style.content.map(|v| v as f32 * dip);
+                image_selections.push([
+                    block.x - inset[0],
+                    top - inset[1],
+                    block.x + block.layout.width + inset[2],
+                    bottom + inset[3],
+                ]);
+            } else if let Some(color) = block.background {
                 draws.push(Draw::RoundFill {
                     left: block.x - 2.0,
                     top,
@@ -246,11 +261,12 @@ impl Renderer {
                 rect.bottom += margin;
             }
             system
-                .render_alpha(
-                    scene.width.ceil() as u32,
-                    height.ceil() as u32,
+                .render_alpha(scene.width.ceil() as u32, height.ceil() as u32, 0, &draws)?
+                .skin_background(
+                    &data.theme.images,
+                    dip,
                     data.theme.background_color,
-                    &draws,
+                    &image_selections,
                 )?
                 .framed(
                     p.number("corner_radius") * dip,

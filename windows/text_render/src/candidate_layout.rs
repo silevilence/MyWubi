@@ -45,14 +45,29 @@ impl Scene {
                 0.0
             }
         });
+        let image_insets = |role: &str| {
+            data.theme
+                .images
+                .get(role)
+                .map_or([0.0; 4], |i| i.image.style.content.map(|v| v as f32 * dip))
+        };
+        let background_insets = image_insets("background");
+        let selected_insets = image_insets("selected");
         let pad = parameters
             .map_or((size * 0.4).ceil().max(6.0), |p| {
                 p.number("padding_x") * dip + density
             })
-            .max(2.0);
+            .max(2.0)
+            .max(background_insets[0])
+            .max(background_insets[2])
+            .max(selected_insets[0])
+            .max(selected_insets[2]);
         let gap = parameters
             .map_or(pad, |p| p.number("padding_y") * dip + density)
-            .max(2.0);
+            .max(2.0)
+            .max(background_insets[1])
+            .max(background_insets[3])
+            .max(selected_insets[1] + selected_insets[3]);
         let font = parameters.map_or("Segoe UI", |p| p.text("font_family"));
         let content_width = (max_width - pad * 2.0 - 6.0).max(size * 2.0);
         let color = parameters.map_or_else(

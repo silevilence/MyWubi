@@ -14,6 +14,7 @@ use std::{
 
 #[derive(Debug)]
 pub struct Snapshot {
+    pub images: super::images::Images,
     pub parameters: Arc<Parameters>,
     pub source: Option<PathBuf>,
     pub package: Option<Arc<Package>>,
@@ -87,18 +88,22 @@ pub fn load(
     }
     let mut warnings = Vec::new();
     let mut package = None;
+    let mut images = Default::default();
     let legacy = preference.selection.is_none() && preference.preset == "legacy";
     let mut parameters = if let (Some(source), Some(selection)) = (&source, &preference.selection) {
         let loaded = Package::open(source)?;
         if loaded.metadata.id != selection.id || loaded.metadata.version != selection.version {
             return Err(Error::Invalid("安装皮肤身份与选择版本不一致".into()));
         }
-        let supported: BTreeSet<_> = [
+        let mut supported: BTreeSet<_> = [
             "container.zip/1".into(),
             format!("{platform}.base/1"),
             "appearance.parameters/1".into(),
         ]
         .into();
+        if platform == "windows" {
+            supported.insert(super::images::CAPABILITY.into());
+        }
         let resolved = parameters::resolve(
             &loaded,
             platform,
@@ -109,6 +114,7 @@ pub fn load(
             &supported,
         )?;
         warnings = resolved.warnings;
+        images = resolved.images;
         package = Some(Arc::new(loaded));
         resolved.parameters
     } else if legacy {
@@ -136,6 +142,7 @@ pub fn load(
         }
     }
     Ok(Snapshot {
+        images,
         parameters: Arc::new(parameters),
         source,
         package,

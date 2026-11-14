@@ -24,12 +24,13 @@ pub enum Request {
 }
 
 fn describe(package: &Package, platform: &str) -> Value {
-    let supported: BTreeSet<_> = [
+    let mut supported: BTreeSet<_> = [
         "container.zip/1".into(),
         format!("{platform}.base/1"),
         "appearance.parameters/1".into(),
     ]
     .into();
+    if platform == "windows" { supported.insert(super::images::CAPABILITY.into()); }
     let compatibility = package.compatibility(platform, &supported, &["appearance".into()].into());
     let mut components = Vec::new();
     let mut reason = None;

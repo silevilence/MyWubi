@@ -1,6 +1,6 @@
 //! Dedicated appearance watcher. All package reads happen here, never on key dispatch.
 use core_engine::{
-    skin::runtime::{self, SkinRuntime, Snapshot},
+    skin::runtime::{self},
     Config,
 };
 use notify::Watcher;
@@ -17,10 +17,36 @@ use windows::{
     },
 };
 
-static SKIN: OnceLock<Arc<SkinRuntime>> = OnceLock::new();
+pub struct Snapshot {
+    pub appearance: runtime::Snapshot,
+    pub images: Arc<text_render::skin_images::Cache>,
+}
+impl std::ops::Deref for Snapshot {
+    type Target = runtime::Snapshot;
+    fn deref(&self) -> &Self::Target {
+        &self.appearance
+    }
+}
+fn load(
+    path: &std::path::Path,
+    config: &Config,
+    dark: bool,
+    contrast: bool,
+) -> Result<Snapshot, core_engine::skin::Error> {
+    let appearance = runtime::load(path, config, "windows", dark, contrast)?;
+    let images = match &appearance.package {
+        Some(package) => text_render::skin_images::decode(package, &appearance.images)?,
+        None => Default::default(),
+    };
+    Ok(Snapshot {
+        appearance,
+        images: Arc::new(images),
+    })
+}
+static SKIN: OnceLock<Arc<arc_swap::ArcSwap<Snapshot>>> = OnceLock::new();
 
 pub fn current() -> Option<Arc<Snapshot>> {
-    SKIN.get().map(|s| s.snapshot())
+    SKIN.get().map(|s| s.load_full())
 }
 
 pub fn start(path: PathBuf, config: &Config) {
@@ -28,11 +54,11 @@ pub fn start(path: PathBuf, config: &Config) {
         return;
     }
     let (dark, contrast) = system_state();
-    let initial = runtime::load(&path, config, "windows", dark, contrast).or_else(|error| {
+    let initial = load(&path, config, dark, contrast).or_else(|error| {
         log::error!("[skin] 初始皮肤加载失败，保留旧外观：{error}");
         let mut fallback = config.clone();
         fallback.skins.windows = Default::default();
-        runtime::load(&path, &fallback, "windows", dark, contrast)
+        load(&path, &fallback, dark, contrast)
     });
     let initial = match initial {
         Ok(value) => value,
@@ -41,7 +67,7 @@ pub fn start(path: PathBuf, config: &Config) {
             return;
         }
     };
-    let skin = Arc::new(SkinRuntime::new(initial));
+    let skin = Arc::new(arc_swap::ArcSwap::from_pointee(initial));
     if SKIN.set(skin.clone()).is_err() {
         return;
     }
@@ -92,10 +118,13 @@ pub fn start(path: PathBuf, config: &Config) {
                 match Config::load(&path)
                     .map_err(|e| e.to_string())
                     .and_then(|config| {
-                        skin.refresh(&path, &config, "windows", next_system.0, next_system.1)
+                        load(&path, &config, next_system.0, next_system.1)
                             .map_err(|e| e.to_string())
                     }) {
-                    Ok(()) => log::info!("[skin] 已发布完整外观快照"),
+                    Ok(next) => {
+                        skin.store(Arc::new(next));
+                        log::info!("[skin] 已发布完整外观快照");
+                    }
                     Err(error) => log::error!("[skin] 保留上次可用皮肤：{error}"),
                 }
             }

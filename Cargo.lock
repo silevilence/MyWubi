@@ -3589,6 +3589,7 @@ name = "text_render"
 version = "0.9.0"
 dependencies = [
  "core_engine",
+ "png",
  "serde_json",
  "windows 0.62.2",
  "windows-core 0.62.2",

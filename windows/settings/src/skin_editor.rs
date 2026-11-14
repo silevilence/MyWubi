@@ -34,6 +34,7 @@ pub struct SkinEditor {
     active_key: String,
     active_parameters: Option<Parameters>,
     active_legacy: bool,
+    active_images: Arc<text_render::skin_images::Cache>,
 }
 impl Default for SkinEditor {
     fn default() -> Self {
@@ -55,6 +56,7 @@ impl Default for SkinEditor {
             active_key: String::new(),
             active_parameters: None,
             active_legacy: false,
+            active_images: Default::default(),
         }
     }
 }
@@ -210,6 +212,10 @@ impl SkinEditor {
                 self.active_key = key;
                 match skin::runtime::load(path, config, "windows", ui.visuals().dark_mode, false) {
                     Ok(skin) => {
+                        match skin.package.as_ref().map(|p|text_render::skin_images::decode(p,&skin.images)).transpose() {
+                            Ok(cache)=> self.active_images=Arc::new(cache.unwrap_or_default()),
+                            Err(error)=>{self.message=error.to_string();return false;}
+                        }
                         self.active_legacy = skin.legacy;
                         self.active_parameters = Some((*skin.parameters).clone());
                     }
@@ -217,7 +223,7 @@ impl SkinEditor {
                 }
             }
             if let Some(p) = self.active_parameters.clone() {
-                self.preview(ui, &p, self.active_legacy);
+                self.preview(ui, &p, self.active_legacy, self.active_images.clone());
             }
             return false;
         };
@@ -292,7 +298,7 @@ impl SkinEditor {
                                 }
                             }
                         }
-                        if self.platform=="windows" {self.preview(ui,&resolved.parameters,false);} else {self.android_preview.ui(ui,&resolved.parameters);}
+                        if self.platform=="windows" {self.preview(ui,&resolved.parameters,false,Default::default());} else {self.android_preview.ui(ui,&resolved.parameters);}
                     },
                     Err(e)=>{ui.label(format!("此范围只读，保留原始数据：{e}"));}
                 }
@@ -314,7 +320,7 @@ impl SkinEditor {
                         let bytes=draft.package.encoded().map_err(|e|e.to_string())?;
                         skin::archive::import(&skin::runtime::store_path(path),std::io::Cursor::new(bytes)).map_err(|e|e.to_string())?;
                         candidate.skins.windows.selection=Some(Selection{id:draft.package.metadata.id.clone(),version:draft.package.metadata.version.clone(),component:self.component.clone()});
-                        for dark in [false,true] {skin::runtime::load(path,&candidate,"windows",dark,false).map_err(|e|e.to_string())?;}
+                        for dark in [false,true] {let skin=skin::runtime::load(path,&candidate,"windows",dark,false).map_err(|e|e.to_string())?; if let Some(package)=&skin.package {text_render::skin_images::decode(package,&skin.images).map_err(|e|e.to_string())?;}}
                         candidate.save(path).map_err(|e|e.to_string())?;
                         config.skins.windows=candidate.skins.windows;
                         Ok(())
@@ -330,7 +336,7 @@ impl SkinEditor {
         applied
     }
 
-    fn preview(&mut self, ui: &mut egui::Ui, p: &Parameters, legacy: bool) {
+    fn preview(&mut self, ui: &mut egui::Ui, p: &Parameters, legacy: bool, images: Arc<text_render::skin_images::Cache>) {
         ui.horizontal_wrapped(|ui| {
             for (index, name) in ["普通候选", "长词与反查", "表情", "不可用状态"]
                 .into_iter()
@@ -339,7 +345,7 @@ impl SkinEditor {
                 ui.selectable_value(&mut self.sample, index, name);
             }
         });
-        let key = format!("{:?}-{}-{legacy}", p, self.sample);
+        let key = format!("{:?}-{}-{legacy}-{:p}", p, self.sample, Arc::as_ptr(&images));
         if key != self.preview_key {
             self.preview_key = key;
             self.texture = None;
@@ -357,6 +363,7 @@ impl SkinEditor {
                     )),
                     ..Default::default()
                 };
+                data.theme.images = images;
                 if legacy {
                     data.theme.parameters = None;
                 }

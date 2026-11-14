@@ -9,7 +9,10 @@ pub fn save(state: &mut AppState) -> bool {
             "windows",
             dark,
             false,
-        ) {
+        ).and_then(|skin| {
+            if let Some(package)=&skin.package { text_render::skin_images::decode(package,&skin.images)?; }
+            Ok(())
+        }) {
             state.status_msg = Some(format!("[ERR] 皮肤未保存：{error}"));
             state.dirty = true;
             return false;
