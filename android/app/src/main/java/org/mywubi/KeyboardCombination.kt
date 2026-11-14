@@ -37,20 +37,15 @@ internal fun keyboardCharset(path: File, config: JSONObject): String {
     return NativeBridge.objectCall("ReadTableConfig","path" to table.path).getString("charset")
 }
 internal fun keyboardCharset(path: File,config: JSONObject,mode: String): String =
-    if(mode=="Pinyin") "abcdefghijklmnopqrstuvwxyz'" else keyboardCharset(path,config)
-internal fun restoreKeyboard(path: File, config: JSONObject): KeyboardCombination? {
-    val catalog=NativeBridge.objectCall("ManageKeyboard","request" to keyboardRequest(path,"List"))
-    val choice=catalog.optJSONObject("choice") ?: return null
-    val selection=choice.getJSONObject("layout")
-    val items=catalog.getJSONArray("items")
-    val item=(0 until items.length()).map {items.getJSONObject(it)}.firstOrNull {
-        val other=it.getJSONObject("selection")
-        listOf("id","version","component").all {key->other.getString(key)==selection.getString(key)}
-    }
-    val mode=item?.optJSONArray("modes")?.optString(0) ?: "Main"
+    if(mode=="Pinyin") "abcdefghijklmnopqrstuvwxyz'" else if(mode=="English") "abcdefghijklmnopqrstuvwxyz" else keyboardCharset(path,config)
+internal fun restoreKeyboard(path: File, config: JSONObject, mode: String): KeyboardCombination? {
     val result=NativeBridge.call("ManageKeyboard","request" to keyboardRequest(path,"Restore")
-        .put("mode",mode).put("charset",keyboardCharset(path,config,mode))) as? JSONObject
-    return result?.let(KeyboardCombination::decode)
+        .put("mode",mode).put("charset",keyboardCharset(path,config,mode))) as? JSONObject ?: return null
+    val choice=result.getJSONObject("choice")
+    choice.put("appearance",config.getJSONObject("skins").getJSONObject("android"))
+    // A normal appearance change revalidates the complete combination, preserving mapping identity.
+    return KeyboardCombination.decode(NativeBridge.objectCall("ManageKeyboard","request" to keyboardRequest(path,"Prepare")
+        .put("choice",choice).put("mode",mode).put("charset",keyboardCharset(path,config,mode))))
 }
 
 /** Input geometry cannot change under a finger or reinterpret a nonempty query. */
@@ -58,4 +53,4 @@ internal fun canPublishKeyboard(touches: Int, spelling: String, sameInput: Boole
     touches == 0 && (spelling.isEmpty() || sameInput)
 internal fun customKeyboardAllowed(purpose: String, layout: String, base: String, temporary: String?, mode: String = "Main"): Boolean =
     purpose == "Text" && layout == "letters" &&
-        (if(mode=="Pinyin") temporary=="Pinyin" else base == "Main" && temporary == null)
+        (if(mode=="Pinyin") temporary=="Pinyin" else if(mode=="English") base=="English" && temporary==null else base == "Main" && temporary == null)

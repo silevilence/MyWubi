@@ -117,6 +117,14 @@ pub fn resolve(path: &Path, choice: &Choice, mode: Mode, charset: &str) -> Resul
             return Err(Error::Invalid("映射与布局模式/字符集不兼容".into()));
         }
     }
+    if matches!(mode,Mode::English|Mode::Number|Mode::Phone) {
+        for canvas in std::iter::once(&layout).chain(layout.landscape.as_deref()) {
+            if canvas.keys.iter().any(|k|matches!(k.action,KeyAction::Group(_)) || k.long_press.as_ref().is_some_and(|a|matches!(a,KeyAction::Group(_))) ||
+                k.directions.values().chain(canvas.directions.values()).any(|a|matches!(a,KeyAction::Group(_)))) {
+                return Err(Error::Invalid("确定输入模式不允许字符组动作".into()));
+            }
+        }
+    }
     layout.validate_geometry(
         mapping.as_ref(),
         &[KeyAction::Space, KeyAction::Enter, KeyAction::Cancel],
@@ -251,19 +259,22 @@ struct Receipt {
     digest: String,
     previous: Option<(Choice, String)>,
 }
+fn selection_path(path:&Path,mode:&Mode)->std::path::PathBuf {
+    if *mode==Mode::Main {path.with_file_name("keyboard-selection.json")} else {path.with_file_name(format!("keyboard-selection-{mode:?}.json"))}
+}
+fn main_mode()->Mode {Mode::Main}
 pub fn save(path: &Path, snapshot: &Snapshot) -> Result<(), Error> {
-    let target = path.with_file_name("keyboard-selection.json");
+    save_mode(path,snapshot,snapshot.layout.modes.first().cloned().ok_or_else(||Error::Invalid("布局缺少模式".into()))?)
+}
+fn save_mode(path: &Path, snapshot: &Snapshot,mode:Mode) -> Result<(), Error> {
+    let target = selection_path(path,&mode);
     let old = std::fs::read(&target)
         .ok()
         .and_then(|b| serde_json::from_slice::<Receipt>(&b).ok());
     if old.as_ref().is_some_and(|r| r.digest == snapshot.digest) {
         return Ok(());
     }
-    let mode = snapshot
-        .layout
-        .modes
-        .first()
-        .ok_or_else(|| Error::Invalid("布局缺少模式".into()))?;
+
     let previous = old.and_then(|r| {
         r.active
             .map(|choice| (choice, r.digest))
@@ -285,7 +296,7 @@ pub fn save(path: &Path, snapshot: &Snapshot) -> Result<(), Error> {
     Ok(())
 }
 pub fn restore(path: &Path, mode: Mode, charset: &str) -> Result<Snapshot, Error> {
-    let bytes = std::fs::read(path.with_file_name("keyboard-selection.json"))?;
+    let bytes = std::fs::read(selection_path(path,&mode))?;
     let receipt: Receipt =
         serde_json::from_slice(&bytes).map_err(|e| Error::Invalid(e.to_string()))?;
     let resolve_checked = |(choice, digest): (Choice, String)| -> Result<Snapshot, Error> {
@@ -304,8 +315,9 @@ pub fn restore(path: &Path, mode: Mode, charset: &str) -> Result<Snapshot, Error
     .or_else(|error| receipt.previous.map_or(Err(error), resolve_checked))
 }
 
-pub fn current_choice(path: &Path) -> Result<Option<Choice>, Error> {
-    match std::fs::read(path.with_file_name("keyboard-selection.json")) {
+pub fn current_choice(path: &Path) -> Result<Option<Choice>, Error> {current_choice_mode(path,&Mode::Main)}
+fn current_choice_mode(path:&Path,mode:&Mode)->Result<Option<Choice>,Error> {
+    match std::fs::read(selection_path(path,mode)) {
         Ok(bytes) => Ok(serde_json::from_slice::<Receipt>(&bytes)
             .map_err(|e| Error::Invalid(e.to_string()))?
             .active),
@@ -337,6 +349,7 @@ pub fn wire(snapshot: &Snapshot) -> serde_json::Value {
 pub enum Request {
     InstallTemplates { path: std::path::PathBuf },
     List {
+        #[serde(default="main_mode")] mode: Mode,
         path: std::path::PathBuf,
     },
     Prepare {
@@ -358,6 +371,7 @@ pub enum Request {
         charset: String,
     },
     Reset {
+        #[serde(default="main_mode")] mode: Mode,
         path: std::path::PathBuf,
     },
 }
@@ -383,11 +397,11 @@ pub fn execute(request: Request) -> Result<serde_json::Value, Error> {
             charset,
             digest,
         } => {
-            let snapshot = resolve(&path, &choice, mode, &charset)?;
+            let snapshot = resolve(&path, &choice, mode.clone(), &charset)?;
             if snapshot.digest != digest {
                 return Err(Error::Invalid("待应用组合已变化，请重新预览".into()));
             }
-            save(&path, &snapshot)?;
+            save_mode(&path, &snapshot,mode)?;
             Ok(json!({"saved":true,"revision":snapshot.revision}))
         }
         Request::Restore {
@@ -395,25 +409,26 @@ pub fn execute(request: Request) -> Result<serde_json::Value, Error> {
             mode,
             charset,
         } => {
-            if current_choice(&path)?.is_none() {
+            if current_choice_mode(&path,&mode)?.is_none() {
                 return Ok(serde_json::Value::Null);
             }
             Ok(wire(&restore(&path, mode, &charset)?))
         }
-        Request::Reset { path } => {
+        Request::Reset { path,mode } => {
             let receipt = Receipt {
                 active: None,
                 digest: String::new(),
                 previous: None,
             };
             crate::data::atomic_write(
-                &path.with_file_name("keyboard-selection.json"),
+                &selection_path(&path,&mode),
                 &serde_json::to_vec(&receipt).map_err(|e| Error::Invalid(e.to_string()))?,
             )?;
             Ok(json!({"saved":true}))
         }
-        Request::List { path } => {
+        Request::List { path,mode } => {
             let mut items = Vec::new();
+            let mut mappings = Vec::new();
             let store = runtime::store_path(&path);
             if store.exists() {
                 let mut paths = std::fs::read_dir(store)?
@@ -431,6 +446,11 @@ pub fn execute(request: Request) -> Result<serde_json::Value, Error> {
                     let Ok(states) = keyboard::compatibility(&package, &supported()) else {
                         continue;
                     };
+                    for c in package.platforms["android"].components.iter().filter(|c|c.kind=="mapping") {
+                        if states[&c.id].enabled {if let Ok(mapping)=keyboard::mapping(&package,c) {
+                            mappings.push(json!({"selection":{"id":package.metadata.id,"version":package.metadata.version,"component":c.id},"modes":mapping.modes}));
+                        }}
+                    }
                     for c in package.platforms["android"]
                         .components
                         .iter()
@@ -453,7 +473,7 @@ pub fn execute(request: Request) -> Result<serde_json::Value, Error> {
                     }
                 }
             }
-            Ok(json!({"items":items,"choice":current_choice(&path)?}))
+            Ok(json!({"items":items,"mappings":mappings,"choice":current_choice_mode(&path,&mode)?}))
         }
     }
 }

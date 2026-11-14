@@ -49,6 +49,8 @@ class MyWubiService : InputMethodService() {
     private val idleRefresh = Runnable { render(); predictionController.learning(false,viewVisible) }
     private var candidateOffset = 0
     private var keyboard by mutableStateOf(KeyboardModel())
+    private val keyboardModes = mutableMapOf<String,KeyboardCombination?>()
+    private var activeKeyboardMode = "Main"
     private var combination: KeyboardCombination? = null
     private var pendingCombination: KeyboardCombination? = null
     private var hasPendingCombination = false
@@ -93,7 +95,7 @@ class MyWubiService : InputMethodService() {
                 NativeHandle(config.getLong("version")).close()
                 val nextConfig = config.getJSONObject("config")
                 val skin = runCatching { loadSkinAppearance(path, nextConfig) }
-                val nextKeyboard = runCatching { restoreKeyboard(path, nextConfig) }
+                val nextKeyboard = listOf("Main","Pinyin","English").associateWith {mode -> runCatching { restoreKeyboard(path, nextConfig,mode) } }
                 val appearanceOnly = hasRuntime && previousConfig != null && NativeBridge.objectCall(
                     "SameInputConfiguration", "previous" to previousConfig, "current" to nextConfig).getBoolean("same")
                 if (appearanceOnly) {
@@ -370,9 +372,10 @@ class MyWubiService : InputMethodService() {
         if (!active || !viewVisible) return
         if(action == "RestoreKeyboard") {
             dispatch("Cancel")
+            val resetMode=activeKeyboardMode
             loader.execute {
-                val result=runCatching { NativeBridge.objectCall("ManageKeyboard","request" to keyboardRequest(Resources.prepare(this),"Reset")) }
-                main.post { result.onSuccess { pendingCombination=null;hasPendingCombination=true;refresh() }
+                val result=runCatching { NativeBridge.objectCall("ManageKeyboard","request" to keyboardRequest(Resources.prepare(this),"Reset").put("mode",resetMode)) }
+                main.post { result.onSuccess { keyboardModes[resetMode]=null;pendingCombination=null;hasPendingCombination=true;refresh() }
                     .onFailure {error="恢复失败：${it.message}";render()} }
             }
             return
@@ -527,12 +530,15 @@ class MyWubiService : InputMethodService() {
         return true
     }
 
-    private fun queueKeyboard(result: Result<KeyboardCombination?>) {
-        result.onSuccess { pendingCombination=it;hasPendingCombination=true }
-            .onFailure { updates.edit().putString("error","键盘加载失败，保留原组合：${it.message}").apply() }
+    private fun queueKeyboard(results: Map<String,Result<KeyboardCombination?>>) {
+        results.forEach { (mode,result) -> result.onSuccess { keyboardModes[mode]=it }
+            .onFailure { updates.edit().putString("error","$mode 键盘加载失败，保留原组合：${it.message}").apply() } }
+        pendingCombination=keyboardModes[activeKeyboardMode];hasPendingCombination=true
     }
 
     private fun publishKeyboard() {
+        val mode=if(state.optString("temporary")=="Pinyin") "Pinyin" else if(state.optString("base")=="English") "English" else "Main"
+        if(mode!=activeKeyboardMode) {activeKeyboardMode=mode;pendingCombination=keyboardModes[mode];hasPendingCombination=true}
         val spelling=state.optJSONObject("view")?.optString("spelling").orEmpty()
         if(hasPendingCombination) {
             val next=pendingCombination
