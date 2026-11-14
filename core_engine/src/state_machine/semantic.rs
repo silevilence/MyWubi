@@ -219,7 +219,7 @@ impl SemanticEngine {
     /// Read-only window query. Full lookup is performed only on explicit queries,
     /// never duplicated on the Windows key path; only the bounded window is copied.
     pub fn candidate_window(&self, offset: usize, count: usize) -> CandidateWindow {
-        if let Some(matches)=&self.sm.group_matches {
+        if let Some(matches)=self.sm.group_matches.as_ref().filter(|_|self.sm.appended.is_none()) {
             let offset=offset.min(matches.candidates.len());
             return CandidateWindow {query_revision:self.query_revision,view_revision:self.view_revision,total:matches.candidates.len(),offset,
                 candidates:matches.candidates.iter().enumerate().skip(offset).take(count.min(MAX_WINDOW)).map(|(index,item)|Candidate {

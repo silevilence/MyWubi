@@ -1,4 +1,5 @@
 use super::{semantic::*, *};
+use crate::candidates::CandidateHint;
 use crate::group_input::{BoundMapping, Position, Sequence, MAX_POSITIONS};
 
 impl StateMachine {
@@ -48,8 +49,10 @@ impl SemanticEngine {
         {
             return None;
         }
+        let previous_groups = self.sm.groups.clone();
         let result = self.change_groups(action);
         if result.is_ok()
+            && previous_groups != self.sm.groups
             && matches!(
                 action,
                 Action::ResolveGroup(..) | Action::UndoGroupResolution(..)
@@ -107,6 +110,15 @@ impl SemanticEngine {
                 if *query != self.candidate_window(0, 0).query_revision {
                     return Err(Rejection::StaleCandidate);
                 }
+                if self
+                    .sm
+                    .groups
+                    .as_ref()
+                    .and_then(|s| s.positions.get(*index))
+                    .is_some_and(|p| p.selected == Some(*character))
+                {
+                    return Ok(Transition::None);
+                }
                 self.sm
                     .groups
                     .as_mut()
@@ -118,11 +130,15 @@ impl SemanticEngine {
                 if *query != self.candidate_window(0, 0).query_revision {
                     return Err(Rejection::StaleCandidate);
                 }
-                self.sm
+                if !self
+                    .sm
                     .groups
                     .as_mut()
                     .ok_or(Rejection::StaleCandidate)?
-                    .undo();
+                    .undo()
+                {
+                    return Ok(Transition::None);
+                }
             }
             Action::InputCode(c)
             | Action::InputText(c, TextIntent::Normal)
@@ -144,7 +160,10 @@ impl SemanticEngine {
                             && self.sm.shortcut_rules.reaches_groups(&next))
                     {
                         let text = self.sm.candidates[0].clone();
-                        return Ok(self.sm.commit_and_start_next(text, 0, *c));
+                        let dynamic = self.sm.is_shortcut_candidate(self.sm.candidate_offset());
+                        let transition = self.sm.commit_and_start_next(text, 0, *c);
+                        self.sm.shortcut_committed = dynamic;
+                        return Ok(transition);
                     }
                 }
                 let sequence = self.sm.groups.as_mut().ok_or(Rejection::InvalidCode)?;
@@ -159,13 +178,15 @@ impl SemanticEngine {
                         sequence.positions.pop();
                     }
                     if sequence.positions.is_empty() {
+                        let mode = self.sm.mode;
                         self.sm.reset();
+                        self.sm.mode = mode;
                         return Ok(Transition::Cleared);
                     }
                 }
             }
             Action::Cancel | Action::Legacy(InputEvent::Esc) => {
-                self.sm.reset();
+                self.end_temporary();
                 return Ok(Transition::Cleared);
             }
             Action::SelectCandidate(query, id) => {
@@ -175,14 +196,14 @@ impl SemanticEngine {
                 return self.commit_group_candidate(id.0);
             }
             Action::Space | Action::CommitPreferred | Action::Legacy(InputEvent::Space) => {
-                return self.commit_group_candidate(self.sm.page * self.sm.page_size);
+                return self.commit_group_candidate(self.sm.candidate_offset());
             }
             Action::Legacy(InputEvent::Select(index)) => {
                 let slot = index
                     .checked_sub(1)
-                    .filter(|i| *i < self.sm.page_size)
+                    .filter(|i| *i < self.sm.candidate_page_capacity())
                     .ok_or(Rejection::StaleCandidate)?;
-                return self.commit_group_candidate(self.sm.page * self.sm.page_size + slot);
+                return self.commit_group_candidate(self.sm.candidate_offset() + slot);
             }
             Action::Enter | Action::CommitRaw | Action::Legacy(InputEvent::Enter) => {
                 let text = self
@@ -241,39 +262,48 @@ impl SemanticEngine {
         Ok(transition)
     }
     fn commit_group_candidate(&mut self, index: usize) -> Result<Transition, Rejection> {
-        let text = self
-            .sm
-            .group_matches
-            .as_ref()
-            .and_then(|m| m.candidates.get(index))
-            .map(|m| m.text.clone())
+        let candidate = self
+            .candidate_window(index, 1)
+            .candidates
+            .into_iter()
+            .next()
             .ok_or_else(|| {
                 Rejection::Unavailable("当前没有可选候选，请继续输入或明确字母".into())
             })?;
+        let text = candidate.text;
+        let dynamic = candidate
+            .hints
+            .iter()
+            .any(|h| matches!(h, CandidateHint::DateTime(_)));
         self.end_temporary();
+        self.sm.shortcut_committed = dynamic;
         Ok(Transition::Commit(text))
     }
     fn show_group_page(&mut self) -> Result<Transition, Rejection> {
-        let matches = self
-            .sm
-            .group_matches
-            .as_ref()
-            .ok_or(Rejection::StaleCandidate)?;
-        let start = self.sm.page * self.sm.page_size;
-        self.sm.candidates = matches
-            .candidates
-            .iter()
-            .skip(start)
-            .take(self.sm.page_size)
-            .map(|m| m.text.clone())
-            .collect();
-        self.sm.code_hints = matches
-            .candidates
-            .iter()
-            .skip(start)
-            .take(self.sm.page_size)
-            .map(|m| m.codes.join("/"))
-            .collect();
+        if self.sm.appended.is_some() {
+            self.sm.apply_appended_page();
+        } else {
+            let matches = self
+                .sm
+                .group_matches
+                .as_ref()
+                .ok_or(Rejection::StaleCandidate)?;
+            let start = self.sm.candidate_offset();
+            self.sm.candidates = matches
+                .candidates
+                .iter()
+                .skip(start)
+                .take(self.sm.page_size)
+                .map(|m| m.text.clone())
+                .collect();
+            self.sm.code_hints = matches
+                .candidates
+                .iter()
+                .skip(start)
+                .take(self.sm.page_size)
+                .map(|m| m.codes.join("/"))
+                .collect();
+        }
         self.sm.state = if self.sm.candidates.is_empty() {
             InputState::Composing
         } else {
@@ -289,7 +319,10 @@ impl SemanticEngine {
     }
     fn group_accepts(&self, c: char) -> bool {
         match self.sm.mode {
-            InputMode::Main => self.sm.dict.table_config().charset.contains(c),
+            InputMode::Main => {
+                self.sm.dict.table_config().charset.contains(c)
+                    || (self.sm.shortcut_active() && c.is_ascii_alphabetic())
+            }
             InputMode::Pinyin => c.is_ascii_lowercase() || c == '\'',
             _ => false,
         }
@@ -309,33 +342,31 @@ impl SemanticEngine {
         };
         let matches =
             crate::group_search::query(dict, &sequence.positions, crate::group_search::WORK_BUDGET);
+        let resolved = sequence.resolved().is_some();
         self.sm.total_candidates = matches.candidates.len();
-        self.sm.candidates = matches
-            .candidates
-            .iter()
-            .take(self.sm.page_size)
-            .map(|m| m.text.clone())
-            .collect();
-        self.sm.code_hints = matches
-            .candidates
-            .iter()
-            .take(self.sm.page_size)
-            .map(|m| m.codes.join("/"))
-            .collect();
         self.sm.group_matches = Some(Arc::new(matches));
         self.sm.appended = None;
         self.sm.shortcut_time = None;
-        self.sm.state = if self.sm.candidates.is_empty() {
-            InputState::Composing
-        } else {
-            InputState::Selecting
-        };
-        Ok(Transition::Candidates {
-            spelling: self.sm.spelling.clone(),
-            candidates: self.sm.candidates.clone(),
-            code_hints: self.sm.code_hints.clone(),
-            page: 0,
-            total_pages: self.sm.total_pages(),
-        })
+        if resolved {
+            self.sm.capture_shortcut_time();
+        }
+        let entries: Vec<_> = self
+            .sm
+            .group_matches
+            .as_ref()
+            .unwrap()
+            .candidates
+            .iter()
+            .map(|m| Entry {
+                word: m.text.clone(),
+                code: m.codes.first().cloned().unwrap_or_default(),
+                weight: m.weight,
+            })
+            .collect();
+        self.sm.appended = self
+            .sm
+            .build_appended(&entries.iter().collect::<Vec<_>>())
+            .map(Arc::new);
+        self.show_group_page()
     }
 }
