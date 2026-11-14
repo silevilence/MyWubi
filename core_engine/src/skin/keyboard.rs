@@ -157,6 +157,14 @@ pub fn layout(
     }
     let layout: Layout = super::parse(&package.files, &format!("android/{}", component.path))?;
     validate_header(layout.format, &layout.charset, &layout.modes)?;
+    for key in &layout.keys {
+        super::directions::resolve(
+            &layout.directions,
+            &key.directions,
+            &key.disabled_directions,
+        )
+        .map_err(|e| Error::Invalid(format!("按键 {}：{e}", key.id)))?;
+    }
     if !super::valid_id(&layout.fallback) || layout.optional_styles.values().any(|v| v.is_empty()) {
         return invalid("布局回退或可选样式回退无效");
     }
