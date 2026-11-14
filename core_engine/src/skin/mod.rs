@@ -3,6 +3,7 @@ use serde::{Deserialize, Serialize};
 use std::collections::{BTreeMap, BTreeSet};
 
 pub mod archive;
+pub mod combination;
 pub mod directions;
 pub mod editor;
 pub mod images;

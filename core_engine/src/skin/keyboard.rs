@@ -268,38 +268,43 @@ pub fn layout(
     }
     let layout: Layout = super::parse(&package.files, &format!("android/{}", component.path))?;
     validate_header(layout.format, &layout.charset, &layout.modes)?;
-    for key in &layout.keys {
-        super::directions::resolve(
-            &layout.directions,
-            &key.directions,
-            &key.disabled_directions,
-        )
-        .map_err(|e| Error::Invalid(format!("按键 {}：{e}", key.id)))?;
-    }
-    if !super::valid_id(&layout.fallback) || layout.optional_styles.values().any(|v| v.is_empty()) {
-        return invalid("布局回退或可选样式回退无效");
-    }
-    if (!layout.directions.is_empty() || layout.keys.iter().any(|k| !k.directions.is_empty()))
-        && !component
-            .capabilities
-            .required
-            .iter()
-            .any(|c| c == GESTURE_CAPABILITY)
-    {
-        return invalid("方向动作缺少 keyboard.directions8/1 能力声明");
-    }
-    if layout
-        .directions
-        .keys()
-        .chain(layout.keys.iter().flat_map(|k| k.directions.keys()))
-        .any(|d| d.contains('+'))
-        && !component
-            .capabilities
-            .required
-            .iter()
-            .any(|c| c == MERGE_CAPABILITY)
-    {
-        return invalid("方向合并缺少 keyboard.direction-groups/1 能力声明");
+    for variant in std::iter::once(&layout).chain(layout.landscape.as_deref()) {
+        let layout = variant;
+        for key in &layout.keys {
+            super::directions::resolve(
+                &layout.directions,
+                &key.directions,
+                &key.disabled_directions,
+            )
+            .map_err(|e| Error::Invalid(format!("按键 {}：{e}", key.id)))?;
+        }
+        if !super::valid_id(&layout.fallback)
+            || layout.optional_styles.values().any(|v| v.is_empty())
+        {
+            return invalid("布局回退或可选样式回退无效");
+        }
+        if (!layout.directions.is_empty() || layout.keys.iter().any(|k| !k.directions.is_empty()))
+            && !component
+                .capabilities
+                .required
+                .iter()
+                .any(|c| c == GESTURE_CAPABILITY)
+        {
+            return invalid("方向动作缺少 keyboard.directions8/1 能力声明");
+        }
+        if layout
+            .directions
+            .keys()
+            .chain(layout.keys.iter().flat_map(|k| k.directions.keys()))
+            .any(|d| d.contains('+'))
+            && !component
+                .capabilities
+                .required
+                .iter()
+                .any(|c| c == MERGE_CAPABILITY)
+        {
+            return invalid("方向合并缺少 keyboard.direction-groups/1 能力声明");
+        }
     }
     let mapping = layout
         .mapping
@@ -321,29 +326,32 @@ pub fn layout(
             mapping(package, declaration)
         })
         .transpose()?;
-    let actions = layout
-        .keys
-        .iter()
-        .flat_map(|k| {
-            std::iter::once(&k.action)
-                .chain(k.long_press.iter())
-                .chain(k.directions.values())
-        })
-        .chain(layout.directions.values());
-    for action in actions {
-        if let KeyAction::Group(id) = action {
-            if !component
-                .capabilities
-                .required
-                .iter()
-                .any(|c| c == GROUP_CAPABILITY)
-                || !mapping.as_ref().is_some_and(|m| {
-                    m.groups.contains_key(id)
-                        && layout.modes.iter().all(|mode| m.modes.contains(mode))
-                        && layout.charset.chars().all(|c| m.charset.contains(c))
-                })
-            {
-                return invalid(&format!("分组 {id} 缺少兼容映射或 input.groups/1 能力"));
+    for variant in std::iter::once(&layout).chain(layout.landscape.as_deref()) {
+        let layout = variant;
+        let actions = layout
+            .keys
+            .iter()
+            .flat_map(|k| {
+                std::iter::once(&k.action)
+                    .chain(k.long_press.iter())
+                    .chain(k.directions.values())
+            })
+            .chain(layout.directions.values());
+        for action in actions {
+            if let KeyAction::Group(id) = action {
+                if !component
+                    .capabilities
+                    .required
+                    .iter()
+                    .any(|c| c == GROUP_CAPABILITY)
+                    || !mapping.as_ref().is_some_and(|m| {
+                        m.groups.contains_key(id)
+                            && layout.modes.iter().all(|mode| m.modes.contains(mode))
+                            && layout.charset.chars().all(|c| m.charset.contains(c))
+                    })
+                {
+                    return invalid(&format!("分组 {id} 缺少兼容映射或 input.groups/1 能力"));
+                }
             }
         }
     }

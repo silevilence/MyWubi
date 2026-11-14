@@ -101,6 +101,9 @@ enum Request {
     ManageSkin {
         request: crate::skin::manage::Request,
     },
+    ManageKeyboard {
+        request: crate::skin::combination::Request,
+    },
     ResolveSkin {
         path: PathBuf,
         config: Config,
@@ -472,6 +475,7 @@ impl Registry {
             Request::PreviewShortcuts { .. }
             | Request::ResolveSkin { .. }
             | Request::ManageSkin { .. }
+            | Request::ManageKeyboard { .. }
             | Request::SameInputConfiguration { .. }
             | Request::PreviewExpression { .. }
             | Request::ExportSpecialInput { .. }
@@ -631,6 +635,7 @@ pub fn call_with_clock(bytes: &[u8], clock: Arc<dyn crate::shortcut_time::Clock>
                 Ok(json!({"handle": handle}))
             }
             Request::ManageSkin {request} => crate::skin::manage::execute(request).map_err(|e|err(5,e.to_string())),
+            Request::ManageKeyboard {request} => crate::skin::combination::execute(request).map_err(|e|err(5,e.to_string())),
             Request::ResolveSkin { path,config,platform,dark,high_contrast } => {
                 let skin=crate::skin::runtime::load(&path,&config,&platform,dark,high_contrast).map_err(|e|err(5,e.to_string()))?;
                 use base64::Engine;
