@@ -57,9 +57,9 @@ internal fun KeyPreviewBubble(preview: KeyPreview?, origin: Offset, widthPx: Flo
         .coerceIn(0f, (widthPx - with(density) { width.toPx() }).coerceAtLeast(0f))
     val y = (preview.bounds.top - origin.y - with(density) { height.toPx() } + with(density) { 4.dp.toPx() }).coerceAtLeast(0f)
     Box(Modifier.offset { IntOffset(x.roundToInt(), y.roundToInt()) }.size(width, height)
-        .shadow(6.dp, RoundedCornerShape(12.dp)).background(MaterialTheme.colorScheme.primary)
+        .shadow(skinNumber("shadow",6f).dp, RoundedCornerShape(skinNumber("key_radius",12f).dp)).background(skinColor("bubble_background",MaterialTheme.colorScheme.primary))
         .clearAndSetSemantics { contentDescription = if (preview.deletion) preview.text else "按键预览" }, contentAlignment = Alignment.Center) {
-        Text(preview.text, color = MaterialTheme.colorScheme.onPrimary, fontSize = if (preview.deletion) 16.sp else 30.sp, maxLines = 1)
+        Text(preview.text, color = skinColor("bubble_text",MaterialTheme.colorScheme.onPrimary), fontSize = if (preview.deletion) 16.sp else skinNumber("bubble_text_size",30f).sp, maxLines = 1)
     }
 }
 
@@ -145,9 +145,9 @@ internal fun DeleteKeySurface(enabled: Boolean, epoch: Long, modifier: Modifier,
                 previews.clear(token)
             }
         }
-    }.padding(horizontal=2.dp, vertical=3.dp), shape = MaterialTheme.shapes.small,
-        color = if (!enabled) colors.onSurface.copy(alpha = 0.12f) else if (pressed) colors.primaryContainer else background,
-        contentColor = if (enabled) foreground else colors.onSurface.copy(alpha = 0.38f)) {
+    }.padding(horizontal=(skinNumber("key_gap",4f)/2).dp, vertical=(skinNumber("key_gap",6f)/2).dp), shape = RoundedCornerShape(skinNumber("key_radius",4f).dp),
+        color = if (!enabled) colors.onSurface.copy(alpha = 0.12f) else if (pressed) skinColor("pressed_background",colors.primaryContainer) else background,
+        contentColor = if (!enabled) skinColor("disabled",colors.onSurface.copy(alpha = 0.38f)) else if (pressed) skinColor("pressed_text",foreground) else foreground) {
         Box(contentAlignment = Alignment.Center) { content() }
     }
 }
@@ -235,10 +235,10 @@ internal fun KeyTouchSurface(label: String, enabled: Boolean, epoch: Long, modif
         }
     // Apply visual spacing AFTER pointerInput so gutters still belong to this key.
     // Press feedback changes color only; scaling must not move the hit region.
-    Surface(touch.padding(horizontal=2.dp, vertical=3.dp),
-        shape = MaterialTheme.shapes.small,
-        color = if (!enabled) colors.onSurface.copy(alpha = 0.12f) else if (pressed) colors.secondaryContainer else background,
-        contentColor = if (!enabled) colors.onSurface.copy(alpha = 0.38f) else if (pressed) colors.onSecondaryContainer else foreground) {
+    Surface(touch.padding(horizontal=(skinNumber("key_gap",4f)/2).dp, vertical=(skinNumber("key_gap",6f)/2).dp),
+        shape = RoundedCornerShape(skinNumber("key_radius",4f).dp),
+        color = if (!enabled) colors.onSurface.copy(alpha = 0.12f) else if (pressed) skinColor("pressed_background",colors.secondaryContainer) else background,
+        contentColor = if (!enabled) skinColor("disabled",colors.onSurface.copy(alpha = 0.38f)) else if (pressed) skinColor("pressed_text",colors.onSecondaryContainer) else foreground) {
         Box(contentAlignment = Alignment.Center) {
             if (alternate != null) Text(alternate, Modifier.align(Alignment.TopEnd).padding(top = 2.dp, end = 4.dp),
                 fontSize = 10.sp, lineHeight = 12.sp, maxLines = 1)

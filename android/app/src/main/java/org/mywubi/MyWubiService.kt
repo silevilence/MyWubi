@@ -292,6 +292,7 @@ class MyWubiService : InputMethodService() {
         val stableIdle = active && viewVisible && session != null && idle.isIdle(
             android.os.SystemClock.elapsedRealtime(), spelling, items.length() > 0 || state.optBoolean("prediction_waiting"), editor.ownsPreedit, temporary != null)
         keyboard = KeyboardModel(
+            skin = skinAppearance,
             expression = state.optJSONObject("view")?.optJSONObject("expression")?.let { query ->
                 ExpressionQueryUi(query.getString("kind"), query.getString("phase"), query.getString("text"),
                     query.optString("message").takeIf { it.isNotBlank() && it != "null" }, query.optString("input", "Words"))

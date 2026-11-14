@@ -50,6 +50,7 @@ data class ExpressionQueryUi(val kind: String, val phase: String, val text: Stri
 
 private val LocalKeyboardKeyHeight = staticCompositionLocalOf { 54.dp }
 data class KeyboardModel(
+    val skin: JSONObject? = null,
     val expression: ExpressionQueryUi? = null,
     val emojiAvailable: Boolean = false, val kaomojiAvailable: Boolean = false,
     val emojiReason: String? = null, val kaomojiReason: String? = null,
@@ -84,7 +85,11 @@ fun Keyboard(model: KeyboardModel, dispatch: (Any) -> Unit, window: (Int) -> Uni
              hideKeyboard: () -> Unit = {}, switchIme: () -> Unit) {
     val currentTouch by rememberUpdatedState(onTouch)
     val landscape = LocalConfiguration.current.orientation == android.content.res.Configuration.ORIENTATION_LANDSCAPE
-    val keyHeight = if (landscape) 48.dp else 54.dp
+    val variant = model.skin?.optJSONObject(if (androidx.compose.foundation.isSystemInDarkTheme()) "dark" else "light")
+    val parameters = variant?.takeUnless { it.optBoolean("legacy") }?.optJSONObject("parameters")
+    val preferredHeight = parameters?.optDouble("keyboard_height", 216.0)?.toFloat()?.div(4f)
+    val baseHeight = (preferredHeight?.times(if (landscape) 48f/54f else 1f) ?: if (landscape) 48f else 54f)
+    val keyHeight = maxOf(baseHeight, (parameters?.optDouble("key_text_size",20.0)?.toFloat() ?: 20f)*LocalDensity.current.fontScale+22f).dp
     var shift by remember(model.epoch) { mutableStateOf(KeyMode.Off) }
     val pinyinLabel = when (model.pinyinMode) {
         KeyMode.Locked -> "拼音 · 锁定"
@@ -111,7 +116,16 @@ fun Keyboard(model: KeyboardModel, dispatch: (Any) -> Unit, window: (Int) -> Uni
     // Reserve scaled text space in both states, including an empty candidate list.
     val barHeight = maxOf(48.dp, (28 * LocalDensity.current.fontScale + 16).dp)
     LaunchedEffect(model.spelling) { if (model.spelling.isEmpty()) expanded = false }
-    val colors = myWubiColors()
+    val originalColors = myWubiColors()
+    val colors = originalColors.copy(
+        surface=skinColorValue(parameters,"background",originalColors.surface),
+        onSurface=skinColorValue(parameters,"text",originalColors.onSurface),
+        onSurfaceVariant=skinColorValue(parameters,"hint",originalColors.onSurfaceVariant),
+        primary=skinColorValue(parameters,"selected_background",originalColors.primary),
+        onPrimary=skinColorValue(parameters,"selected_text",originalColors.onPrimary),
+        surfaceContainerLowest=skinColorValue(parameters,"key_background",originalColors.surfaceContainerLowest),
+        secondaryContainer=skinColorValue(parameters,"function_background",originalColors.secondaryContainer),
+        onSecondaryContainer=skinColorValue(parameters,"function_text",originalColors.onSecondaryContainer))
     val baseEnabled = model.enabled && model.modesAvailable && !model.privateInput && model.expression == null
     val baseLabel = if (model.base == "Main") "中 → 英" else "英 → 中"
     val toggleBase = { dispatch(JSONObject().put("SetBaseMode", if (model.base == "Main") "English" else "Main")) }
@@ -120,7 +134,7 @@ fun Keyboard(model: KeyboardModel, dispatch: (Any) -> Unit, window: (Int) -> Uni
         dispatch(JSONObject().put("SelectCandidate", JSONArray().put(JSONObject(model.query)).put(item.id)))
         expanded = false
     }
-    MaterialTheme(colorScheme=colors) {
+    CompositionLocalProvider(LocalSkinParameters provides parameters) { MaterialTheme(colorScheme=colors) {
         val pinyinControl: @Composable () -> Unit = {
             PinyinButton(pinyinMode, pinyinLabel, baseEnabled && model.pinyinAvailable, cyclePinyin)
         }
@@ -395,7 +409,7 @@ fun Keyboard(model: KeyboardModel, dispatch: (Any) -> Unit, window: (Int) -> Uni
                 KeyPreviewBubble(preview.current, origin, keyboardWidth)
             }
         }
-    }
+    } }
 }
 
 @Composable
@@ -432,9 +446,9 @@ private fun CandidateButton(item: CandidateItem, enabled: Boolean, choose: () ->
     val description = "候选 ${item.text}" + (if(item.hint.isEmpty()) "" else "，${item.spokenHint}") +
         (if(display.fallback) "，字体不支持完整显示，选择后输入原始表情" else "")
     TextButton(onClick=choose,enabled=enabled,modifier=Modifier.heightIn(min=48.dp).imeAction(description,enabled,choose)) {
-        Text(display.text,fontSize=19.sp,softWrap=false,
+        Text(display.text,fontSize=skinNumber("font_size",19f).sp,softWrap=false,
             style=androidx.compose.ui.text.TextStyle(platformStyle=androidx.compose.ui.text.PlatformTextStyle(includeFontPadding=true)))
-        if(item.hint.isNotEmpty() && !display.fallback) Text(" ${item.hint}",fontSize=11.sp,softWrap=false,color=MaterialTheme.colorScheme.primary)
+        if(item.hint.isNotEmpty() && !display.fallback) Text(" ${item.hint}",fontSize=skinNumber("hint_size",11f).sp,softWrap=false,color=skinColor("hint",MaterialTheme.colorScheme.primary))
     }
 }
 
@@ -453,7 +467,7 @@ private fun ExpandedCandidateButton(item: CandidateItem, enabled: Boolean, showH
             // The whole surface scrolls, including its hint and padding. A drag over
             // any part of a long candidate must cancel the surface's click gesture.
             Box(Modifier.padding(vertical=4.dp)) {
-                Text(display.text, fontSize=20.sp, softWrap=false,
+                Text(display.text, fontSize=skinNumber("font_size",20f).sp, softWrap=false,
                     style=androidx.compose.ui.text.TextStyle(platformStyle=androidx.compose.ui.text.PlatformTextStyle(includeFontPadding=true)))
             }
             // Reserve the same hint line in every cell, and let text measure its own height.
@@ -472,7 +486,7 @@ private fun Key(label:String,enabled:Boolean,epoch:Long,modifier:Modifier,repeat
     val keyModifier=modifier.height(LocalKeyboardKeyHeight.current)
     val colors=MaterialTheme.colorScheme
     val background=when {accent || selected -> colors.primary; function -> colors.secondaryContainer; else -> colors.surfaceContainerLowest}
-    val foreground=when {accent || selected -> colors.onPrimary; function -> colors.onSecondaryContainer; else -> colors.onSurface}
+    val foreground=when {accent || selected -> colors.onPrimary; function -> colors.onSecondaryContainer; else -> skinColor("key_text",colors.onSurface)}
     val viewConfiguration = LocalViewConfiguration.current
     val keyViewConfiguration = remember(viewConfiguration) {
         object : ViewConfiguration by viewConfiguration {
@@ -498,7 +512,7 @@ private fun KeyLabel(label: String) {
         Icon(androidx.compose.ui.res.painterResource(icon), null, Modifier.size(22.dp))
         if (label == "⇪") Box(Modifier.padding(top=2.dp).size(width=16.dp, height=2.dp).background(LocalContentColor.current))
     }
-    else Text(label, fontSize=16.sp, maxLines=1)
+    else Text(label, fontSize=skinNumber("key_text_size",16f).sp, maxLines=2)
 }
 
 /** Keep the label and action on one accessibility node, including the IME's non-Activity window. */
