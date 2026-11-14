@@ -134,7 +134,7 @@ fun Keyboard(model: KeyboardModel, dispatch: (Any) -> Unit, window: (Int) -> Uni
         dispatch(JSONObject().put("SelectCandidate", JSONArray().put(JSONObject(model.query)).put(item.id)))
         expanded = false
     }
-    CompositionLocalProvider(LocalSkinParameters provides parameters) { MaterialTheme(colorScheme=colors) {
+    CompositionLocalProvider(LocalSkinParameters provides parameters, LocalSkinImages provides ((variant?.opt("decodedImages") as? SkinImages) ?: SkinImages(emptyMap()))) { MaterialTheme(colorScheme=colors) {
         val pinyinControl: @Composable () -> Unit = {
             PinyinButton(pinyinMode, pinyinLabel, baseEnabled && model.pinyinAvailable, cyclePinyin)
         }
@@ -203,7 +203,7 @@ fun Keyboard(model: KeyboardModel, dispatch: (Any) -> Unit, window: (Int) -> Uni
                         } else if (model.candidates.isNotEmpty() && !model.privateInput) {
                             if (model.prediction) Icon(androidx.compose.ui.res.painterResource(R.drawable.ic_prediction),
                                 "字词预测", Modifier.padding(start=8.dp).size(18.dp), tint=colors.primary)
-                            LazyRow(Modifier.weight(1f).heightIn(min=48.dp)) {
+                            LazyRow(Modifier.weight(1f).heightIn(min=48.dp).skinImage("candidate").padding(skinContent("candidate"))) {
                                 items(model.candidates, key={"${model.query}:${it.id}"}) { item -> CandidateButton(item, model.enabled) {choose(item)} }
                             }
                             ToolbarIconButton(R.drawable.ic_expand_candidates, "展开") { expanded=true }
@@ -370,7 +370,7 @@ fun Keyboard(model: KeyboardModel, dispatch: (Any) -> Unit, window: (Int) -> Uni
             maxOf(WindowInsets.navigationBarsIgnoringVisibility.getBottom(this),
                 WindowInsets.mandatorySystemGestures.getBottom(this)).toDp().coerceAtLeast(32.dp)
         }
-        val container=Modifier.fillMaxWidth().background(colors.surface)
+        val container=Modifier.fillMaxWidth().background(colors.surface).skinImage("background").padding(skinContent("background"))
             .windowInsetsPadding(WindowInsets.navigationBars.union(WindowInsets.displayCutout).only(WindowInsetsSides.Horizontal))
             .padding(start=3.dp, end=3.dp, top=4.dp, bottom=bottom)
             .pointerInput(Unit) {
@@ -497,7 +497,7 @@ private fun Key(label:String,enabled:Boolean,epoch:Long,modifier:Modifier,repeat
     // their column instead of letting Material expand them over adjacent keys.
     CompositionLocalProvider(LocalMinimumInteractiveComponentSize provides 0.dp, LocalViewConfiguration provides keyViewConfiguration) {
     if (!repeat) {
-        KeyTouchSurface(label,enabled,epoch,keyModifier,description,background,foreground,alternate,
+        KeyTouchSurface(label,enabled,epoch,keyModifier,description,background,foreground,if(accent || selected) "selected" else if(function) "function" else "key",alternate,
             previewEnabled && label.length == 1,alternateAction,action) { KeyLabel(label) }
     } else {
         DeleteKeySurface(enabled, epoch, keyModifier, background, foreground, action, clearAction) { KeyLabel(label) }

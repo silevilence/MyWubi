@@ -30,7 +30,7 @@ fn describe(package: &Package, platform: &str) -> Value {
         "appearance.parameters/1".into(),
     ]
     .into();
-    if platform == "windows" { supported.insert(super::images::CAPABILITY.into()); }
+    supported.insert(super::images::CAPABILITY.into());
     let compatibility = package.compatibility(platform, &supported, &["appearance".into()].into());
     let mut components = Vec::new();
     let mut reason = None;

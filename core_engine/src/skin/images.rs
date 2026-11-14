@@ -79,6 +79,10 @@ pub fn dimensions(bytes: &[u8]) -> Result<(u32, u32), Error> {
             .filter(|end| *end <= bytes.len())
             .ok_or_else(|| Error::Invalid("PNG 数据截断".into()))?;
         let kind = &bytes[cursor + 4..cursor + 8];
+        let checksum = u32::from_be_bytes(bytes[end-4..end].try_into().unwrap());
+        if crc32fast::hash(&bytes[cursor+4..end-4]) != checksum {
+            return Err(Error::Invalid("PNG 块校验失败".into()));
+        }
         if kind == b"acTL" {
             return Err(Error::Invalid("不支持动态 PNG".into()));
         }

@@ -613,7 +613,15 @@ pub fn call_with_clock(bytes: &[u8], clock: Arc<dyn crate::shortcut_time::Clock>
             Request::ManageSkin {request} => crate::skin::manage::execute(request).map_err(|e|err(5,e.to_string())),
             Request::ResolveSkin { path,config,platform,dark,high_contrast } => {
                 let skin=crate::skin::runtime::load(&path,&config,&platform,dark,high_contrast).map_err(|e|err(5,e.to_string()))?;
-                Ok(json!({"parameters":skin.parameters.as_ref(),"warnings":skin.warnings,"legacy":skin.legacy}))
+                use base64::Engine;
+                let mut images=serde_json::Map::new();
+                if let Some(package)=&skin.package {
+                    for (role,image) in &skin.images {
+                        images.insert(role.clone(),json!({"style":image.style,"path":image.path,"width":image.width,"height":image.height,
+                            "png":base64::engine::general_purpose::STANDARD.encode(&package.files[&image.path])}));
+                    }
+                }
+                Ok(json!({"parameters":skin.parameters.as_ref(),"images":images,"warnings":skin.warnings,"legacy":skin.legacy}))
             }
             Request::SameInputConfiguration {previous,current} => Ok(json!({"same":crate::skin::runtime::same_input_configuration(&previous,&current)})),
             Request::PreviewShortcuts {

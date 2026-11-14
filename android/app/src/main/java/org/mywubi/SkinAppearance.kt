@@ -24,9 +24,12 @@ internal fun skinNumber(key: String, fallback: Float): Float = LocalSkinParamete
 /** Both variants are resolved on the loader, never by a key event or recomposition. */
 internal fun loadSkinAppearance(path: File, config: JSONObject): JSONObject {
     val result = JSONObject()
+    val bitmaps = mutableMapOf<String,android.graphics.Bitmap>()
     for ((name, dark) in listOf("light" to false, "dark" to true)) {
-        result.put(name, NativeBridge.objectCall("ResolveSkin", "path" to path.path,
-            "config" to config, "platform" to "android", "dark" to dark, "high_contrast" to false))
+        val variant=NativeBridge.objectCall("ResolveSkin", "path" to path.path,
+            "config" to config, "platform" to "android", "dark" to dark, "high_contrast" to false)
+        variant.put("decodedImages",decodeSkinImages(variant,bitmaps))
+        result.put(name,variant)
     }
     return result
 }

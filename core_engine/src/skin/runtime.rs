@@ -101,9 +101,7 @@ pub fn load(
             "appearance.parameters/1".into(),
         ]
         .into();
-        if platform == "windows" {
-            supported.insert(super::images::CAPABILITY.into());
-        }
+        supported.insert(super::images::CAPABILITY.into());
         let resolved = parameters::resolve(
             &loaded,
             platform,

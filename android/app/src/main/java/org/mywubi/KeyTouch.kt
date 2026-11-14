@@ -55,17 +55,20 @@ internal fun KeyPreviewBubble(preview: KeyPreview?, origin: Offset, widthPx: Flo
     val density = LocalDensity.current
     val fontSize = if (preview.deletion) 16.sp else skinNumber("bubble_text_size",30f).sp
     val available = with(density) { widthPx.toDp() }
+    val imageInset = LocalSkinImages.current.roles["bubble"]?.content ?: intArrayOf(0,0,0,0)
+    val extraWidth=(imageInset[0]+imageInset[2]).dp
+    val extraHeight=(imageInset[1]+imageInset[3]).dp
     val measured = rememberTextMeasurer().measure(preview.text, TextStyle(fontSize = fontSize),
-        constraints = androidx.compose.ui.unit.Constraints(maxWidth = (widthPx - with(density) { 24.dp.toPx() }).toInt().coerceAtLeast(1)))
-    val width = minOf(available, maxOf(if (preview.deletion) 196.dp else 56.dp, with(density) { measured.size.width.toDp() } + 24.dp))
-    val height = maxOf(if (preview.deletion) 48.dp else 64.dp, with(density) { measured.size.height.toDp() } + 16.dp)
+        constraints = androidx.compose.ui.unit.Constraints(maxWidth = (widthPx - with(density) { (24.dp+extraWidth).toPx() }).toInt().coerceAtLeast(1)))
+    val width = minOf(available, maxOf(if (preview.deletion) 196.dp else 56.dp, with(density) { measured.size.width.toDp() } + 24.dp + extraWidth))
+    val height = maxOf(if (preview.deletion) 48.dp else 64.dp, with(density) { measured.size.height.toDp() } + 16.dp + extraHeight)
     val x = (preview.bounds.center.x - origin.x - with(density) { width.toPx() } / 2)
         .coerceIn(0f, (widthPx - with(density) { width.toPx() }).coerceAtLeast(0f))
     val y = (preview.bounds.top - origin.y - with(density) { height.toPx() } + with(density) { 4.dp.toPx() }).coerceAtLeast(0f)
     Box(Modifier.offset { IntOffset(x.roundToInt(), y.roundToInt()) }.size(width, height)
-        .shadow(skinNumber("shadow",6f).dp, RoundedCornerShape(skinNumber("key_radius",12f).dp)).background(skinColor("bubble_background",MaterialTheme.colorScheme.primary))
+        .shadow(skinNumber("shadow",6f).dp, RoundedCornerShape(skinNumber("key_radius",12f).dp)).background(skinColor("bubble_background",MaterialTheme.colorScheme.primary)).skinImage("bubble")
         .clearAndSetSemantics { contentDescription = if (preview.deletion) preview.text else "按键预览" }, contentAlignment = Alignment.Center) {
-        Text(preview.text, Modifier.padding(horizontal = 12.dp, vertical = 8.dp), color = skinColor("bubble_text",MaterialTheme.colorScheme.onPrimary), fontSize = fontSize)
+        Text(preview.text, Modifier.padding(skinContent("bubble")).padding(horizontal = 12.dp, vertical = 8.dp), color = skinColor("bubble_text",MaterialTheme.colorScheme.onPrimary), fontSize = fontSize)
     }
 }
 
@@ -154,13 +157,13 @@ internal fun DeleteKeySurface(enabled: Boolean, epoch: Long, modifier: Modifier,
     }.padding(horizontal=(skinNumber("key_gap",4f)/2).dp, vertical=(skinNumber("key_gap",6f)/2).dp), shape = RoundedCornerShape(skinNumber("key_radius",4f).dp),
         color = if (!enabled) colors.onSurface.copy(alpha = 0.12f) else if (pressed) skinColor("pressed_background",colors.primaryContainer) else background,
         contentColor = if (!enabled) skinColor("disabled",colors.onSurface.copy(alpha = 0.38f)) else if (pressed) skinColor("pressed_text",foreground) else foreground) {
-        Box(contentAlignment = Alignment.Center) { content() }
+        Box(Modifier.fillMaxSize().skinImage(if(!enabled) "disabled" else if(pressed) "pressed" else "function").padding(skinContent("function")),contentAlignment = Alignment.Center) { content() }
     }
 }
 
 @Composable
 internal fun KeyTouchSurface(label: String, enabled: Boolean, epoch: Long, modifier: Modifier,
-    description: String, background: Color, foreground: Color, alternate: String?, previewEnabled: Boolean,
+    description: String, background: Color, foreground: Color, imageRole: String, alternate: String?, previewEnabled: Boolean,
     alternateAction: () -> Unit, action: () -> Unit, content: @Composable () -> Unit) {
     val primary by rememberUpdatedState(action)
     val secondary by rememberUpdatedState(alternateAction)
@@ -245,7 +248,7 @@ internal fun KeyTouchSurface(label: String, enabled: Boolean, epoch: Long, modif
         shape = RoundedCornerShape(skinNumber("key_radius",4f).dp),
         color = if (!enabled) colors.onSurface.copy(alpha = 0.12f) else if (pressed) skinColor("pressed_background",colors.secondaryContainer) else background,
         contentColor = if (!enabled) skinColor("disabled",colors.onSurface.copy(alpha = 0.38f)) else if (pressed) skinColor("pressed_text",colors.onSecondaryContainer) else foreground) {
-        Box(contentAlignment = Alignment.Center) {
+        Box(Modifier.fillMaxSize().skinImage(if(!enabled) "disabled" else if(pressed) "pressed" else imageRole).padding(skinContent(imageRole)),contentAlignment = Alignment.Center) {
             if (alternate != null) Text(alternate, Modifier.align(Alignment.TopEnd).padding(top = 2.dp, end = 4.dp),
                 fontSize = 10.sp, lineHeight = 12.sp, maxLines = 1)
             Box(Modifier.padding(top = if (alternate == null) 0.dp else (12f * LocalDensity.current.fontScale).dp), contentAlignment = Alignment.Center) { content() }

@@ -49,6 +49,26 @@ class SkinContractTest {
         } }
     }
 
+    private fun selectImageFixture(path:File, config:JSONObject) {
+        val source=File(path.parentFile,"image-fixture.mywubi-skin")
+        instrumentation.context.assets.open("skins/image-fixture.mywubi-skin").use {input->source.outputStream().use {input.copyTo(it)}}
+        NativeBridge.objectCall("ManageSkin","request" to JSONObject().put("action","Import").put("path",path.path).put("source",source.path).put("platform","android"))
+        config.getJSONObject("skins").getJSONObject("android").put("selection",JSONObject().put("id","mywubi.image.fixture").put("version","1").put("component","jade"))
+    }
+    @Test fun imageVariantsShareDecodedResourcesAndRejectCorruption() {
+        val (path,config)=fixture();selectImageFixture(path,config)
+        val skin=loadSkinAppearance(path,config)
+        val light=skin.getJSONObject("light").get("decodedImages") as SkinImages
+        val dark=skin.getJSONObject("dark").get("decodedImages") as SkinImages
+        assertEquals(8,light.roles.size)
+        assertSame(light.roles["key"]!!.bitmap,dark.roles["bubble"]!!.bitmap)
+        assertSame(light.roles["background"]!!.bitmap,light.roles["pressed"]!!.bitmap)
+        assertEquals(16,light.roles["background"]!!.bitmap.width)
+        val variant=NativeBridge.objectCall("ResolveSkin","path" to path.path,"config" to config,"platform" to "android","dark" to false,"high_contrast" to false)
+        variant.getJSONObject("images").getJSONObject("key").put("png","AA==")
+        assertTrue(runCatching {decodeSkinImages(variant,mutableMapOf())}.isFailure)
+    }
+
     @Test fun realImeKeepsPendingCandidateAcrossAppearanceSave() {
         val device=UiDevice.getInstance(instrumentation)
         val context=instrumentation.targetContext
@@ -111,7 +131,8 @@ class SkinContractTest {
                 NativeBridge.call("Ack","session" to session.value,"token" to prepared.getJSONObject("token"),"outcome" to "Applied","owns_preedit" to true)
                 val before = NativeBridge.objectCall("Candidates","session" to session.value,"offset" to 0,"count" to 9).toString()
                 for (preset in listOf("jade","plain","contrast","legacy")) {
-                    config.getJSONObject("skins").getJSONObject("android").put("preset",preset)
+                    config.getJSONObject("skins").getJSONObject("android").remove("selection")
+                if(preset=="image") selectImageFixture(path,config) else config.getJSONObject("skins").getJSONObject("android").put("preset",preset)
                     loadSkinAppearance(path,config)
                     assertEquals(before,NativeBridge.objectCall("Candidates","session" to session.value,"offset" to 0,"count" to 9).toString())
                 }
@@ -142,8 +163,9 @@ class SkinContractTest {
                     }
                 }
             } }
-            for (preset in listOf("jade","plain","contrast")) for (fontScale in listOf(1f,2f)) {
-                config.getJSONObject("skins").getJSONObject("android").put("preset",preset)
+            for (preset in listOf("jade","plain","contrast","image")) for (fontScale in listOf(1f,2f)) {
+                config.getJSONObject("skins").getJSONObject("android").remove("selection")
+                if(preset=="image") selectImageFixture(path,config) else config.getJSONObject("skins").getJSONObject("android").put("preset",preset)
                 val resolved=loadSkinAppearance(path,config)
                 scenario.onActivity { skin=resolved; scale=fontScale }
                 device.waitForIdle(); instrumentation.waitForIdleSync(); instrumentation.uiAutomation.clearCache()
