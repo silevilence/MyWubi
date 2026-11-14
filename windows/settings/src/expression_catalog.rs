@@ -61,6 +61,10 @@ pub struct ExpressionCatalog {
 }
 
 impl ExpressionCatalog {
+    pub(crate) fn is_loading(&self) -> bool {
+        self.worker.is_some()
+    }
+
     fn accept(&mut self, path: &Path, config: &mut ExpressionsConfig, loaded: Loaded) -> bool {
         let current = key(path, config);
         if self.key.as_ref() != Some(&current) {
@@ -251,7 +255,7 @@ impl ExpressionCatalog {
                     if let Some(info) = current {
                         ui.small(info.path.display().to_string());
                         if let Some(error) = &info.error {
-                            ui.colored_label(egui::Color32::LIGHT_RED, error);
+                            ui.colored_label(crate::ui_style::ERROR, error);
                         } else {
                             ui.label(format!(
                                 "校验通过 · {} 条 · 版本 {}",

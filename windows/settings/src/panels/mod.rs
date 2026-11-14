@@ -17,6 +17,7 @@ use eframe::egui::Ui;
 pub fn show_active(ui: &mut Ui, state: &mut AppState) {
     match state.active_panel {
         Panel::Basic => basic::show(ui, state),
+        Panel::Intelligence => basic::intelligence(ui, state),
         Panel::Appearance => appearance::show(ui, state),
         Panel::Dictionary => dictionary::show(ui, state),
         Panel::SpecialInput => special_input::show(ui, state),

@@ -29,6 +29,23 @@ pub fn load_chinese_fonts(ctx: &eframe::egui::Context) {
         .entry(FontFamily::Monospace)
         .or_default()
         .insert(0, "noto_sans_sc".to_owned());
+    // Prefer installed Windows UI fonts; the bundled subset remains the fallback.
+    #[cfg(windows)]
+    if let Some(windows_dir) = std::env::var_os("WINDIR") {
+        let directory = std::path::PathBuf::from(windows_dir).join("Fonts");
+        for (name, file) in [("windows-cjk", "msyh.ttc"), ("windows-ui", "segoeui.ttf")] {
+            if let Ok(bytes) = std::fs::read(directory.join(file)) {
+                fonts
+                    .font_data
+                    .insert(name.into(), FontData::from_owned(bytes));
+                fonts
+                    .families
+                    .entry(FontFamily::Proportional)
+                    .or_default()
+                    .insert(0, name.into());
+            }
+        }
+    }
     ctx.set_fonts(fonts);
 }
 

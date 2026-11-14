@@ -7,6 +7,9 @@
 use settings::{app::SettingsApp, config_path, log as log_mod, state::AppState};
 
 fn main() {
+    if let Some(code) = settings::automation::run_cli(settings::automation::Application::Settings) {
+        std::process::exit(code);
+    }
     let personal_args: Vec<_> = std::env::args_os().skip(1).collect();
     if personal_args.len() == 2 && personal_args[0] == "--personal-worker" {
         settings::personal_panel::run_background(std::path::Path::new(&personal_args[1]));
@@ -23,7 +26,10 @@ fn main() {
     }
     // VelopackApp 必须最先运行：处理安装/更新/卸载钩子参数时可能直接退出进程。
     // 正常启动时本调用直接返回，继续执行后续逻辑。
-    settings::vpk::init_velopack();
+    let isolated = personal_args.iter().any(|arg| arg == "--config");
+    if !isolated {
+        settings::vpk::init_velopack();
+    }
 
     log_mod::init();
 
@@ -36,7 +42,11 @@ fn main() {
         return;
     }
 
-    let tip_access_error = settings::vpk::prepare_tip_access().err();
+    let tip_access_error = if isolated {
+        None
+    } else {
+        settings::vpk::prepare_tip_access().err()
+    };
     if let Some(error) = &tip_access_error {
         log::warn!("{error}");
     }
@@ -54,7 +64,21 @@ fn main() {
         }
     }
 
-    let (config_path, portable, fallback_msg) = match config_path::resolve_config_path() {
+    let capture = match settings::ui_capture::directory(&args) {
+        Ok(v) => v,
+        Err(e) => {
+            eprintln!("{e}");
+            std::process::exit(2);
+        }
+    };
+    let explicit = args
+        .windows(2)
+        .find(|a| a[0] == "--config")
+        .map(|a| std::path::PathBuf::from(&a[1]));
+    let resolved = explicit
+        .map(|p| Ok((p, false, None)))
+        .unwrap_or_else(config_path::resolve_config_path);
+    let (config_path, portable, fallback_msg) = match resolved {
         Ok(p) => p,
         Err(e) => {
             eprintln!("[ERR] 无法定位配置文件路径: {e}");
@@ -63,7 +87,20 @@ fn main() {
     };
     log::info!("配置文件路径: {}", config_path.display());
 
-    let mut state = AppState::load(config_path, portable);
+    let mut state = if isolated {
+        AppState::load_isolated(config_path)
+    } else {
+        AppState::load(config_path, portable)
+    };
+    if let Some(page) = args.windows(2).find(|a| a[0] == "--page") {
+        match settings::automation::panel(&page[1].to_string_lossy()) {
+            Ok(panel) => state.active_panel = panel,
+            Err(e) => {
+                eprintln!("{e}");
+                std::process::exit(2);
+            }
+        }
+    }
     if let Some(msg) = fallback_msg {
         state.status_msg = Some(msg);
     }
@@ -73,8 +110,8 @@ fn main() {
 
     let mut viewport = eframe::egui::ViewportBuilder::default()
         .with_title("MyWubi 设置")
-        .with_inner_size([900.0, 650.0])
-        .with_min_inner_size([640.0, 480.0]);
+        .with_inner_size([1080.0, 780.0])
+        .with_min_inner_size([820.0, 620.0]);
     match eframe::icon_data::from_png_bytes(include_bytes!(
         "../../../assets/branding/mywubi-256.png"
     )) {
@@ -94,7 +131,14 @@ fn main() {
     if let Err(e) = eframe::run_native(
         "MyWubi 设置",
         opts,
-        Box::new(|cc| Box::new(SettingsApp::new(cc, state))),
+        Box::new(|cc| {
+            let app = SettingsApp::new(cc, state);
+            if let Some(directory) = capture {
+                Box::new(settings::ui_capture::CaptureApp::new(app, directory))
+            } else {
+                Box::new(app)
+            }
+        }),
     ) {
         eprintln!("[ERR] 启动失败: {e}");
         std::process::exit(2);

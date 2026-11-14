@@ -6,53 +6,55 @@ use eframe::egui::{self, Ui};
 use tip_manager::TipStatus;
 
 pub fn show(ui: &mut Ui, state: &mut AppState) {
-    let texture_id = egui::Id::new("mywubi_brand_texture");
-    let texture = ui
-        .ctx()
-        .data_mut(|data| data.get_temp::<egui::TextureHandle>(texture_id))
-        .or_else(|| {
-            let icon = eframe::icon_data::from_png_bytes(include_bytes!(
-                "../../../../assets/branding/mywubi-256.png"
-            ))
-            .ok()?;
-            let image = egui::ColorImage::from_rgba_unmultiplied(
-                [icon.width as usize, icon.height as usize],
-                &icon.rgba,
-            );
-            let texture = ui
-                .ctx()
-                .load_texture("MyWubi", image, egui::TextureOptions::LINEAR);
-            ui.ctx()
-                .data_mut(|data| data.insert_temp(texture_id, texture.clone()));
-            Some(texture)
+    crate::ui_style::heading(ui, "关于与更新", "版本信息、配置位置与软件更新。");
+    crate::ui_style::card(ui, "MyWubi", |ui| {
+        let texture_id = egui::Id::new("mywubi_brand_texture");
+        let texture = ui
+            .ctx()
+            .data_mut(|data| data.get_temp::<egui::TextureHandle>(texture_id))
+            .or_else(|| {
+                let icon = eframe::icon_data::from_png_bytes(include_bytes!(
+                    "../../../../assets/branding/mywubi-256.png"
+                ))
+                .ok()?;
+                let image = egui::ColorImage::from_rgba_unmultiplied(
+                    [icon.width as usize, icon.height as usize],
+                    &icon.rgba,
+                );
+                let texture = ui
+                    .ctx()
+                    .load_texture("MyWubi", image, egui::TextureOptions::LINEAR);
+                ui.ctx()
+                    .data_mut(|data| data.insert_temp(texture_id, texture.clone()));
+                Some(texture)
+            });
+        if let Some(texture) = texture {
+            ui.image((texture.id(), egui::vec2(64.0, 64.0)));
+        }
+
+        ui.label(format!("版本: {}", env!("CARGO_PKG_VERSION")));
+        ui.label("跨平台形码输入法配置程序");
+        ui.hyperlink_to("项目仓库", env!("CARGO_PKG_REPOSITORY"));
+
+        ui.separator();
+        ui.label("当前配置文件路径:");
+        ui.monospace(state.config_path.display().to_string());
+        ui.label(if state.portable {
+            "（便携模式）"
+        } else {
+            "（用户模式）"
         });
-    if let Some(texture) = texture {
-        ui.image((texture.id(), egui::vec2(64.0, 64.0)));
-    }
-    ui.heading("关于 MyWubi");
-    ui.separator();
 
-    ui.label(format!("版本: {}", env!("CARGO_PKG_VERSION")));
-    ui.label("跨平台形码输入法配置程序");
-    ui.hyperlink_to("项目仓库", env!("CARGO_PKG_REPOSITORY"));
+        ui.separator();
+        ui.label("界面字体: 系统字体优先，Noto Sans SC 子集回退");
+        ui.label("GUI 框架: egui / eframe");
+        ui.label("依赖致谢: rfd / dirs / simplelog / windows-rs / velopack");
 
-    ui.separator();
-    ui.label("当前配置文件路径:");
-    ui.monospace(state.config_path.display().to_string());
-    ui.label(if state.portable {
-        "（便携模式）"
-    } else {
-        "（用户模式）"
+        ui.separator();
     });
-
-    ui.separator();
-    ui.label("内嵌字体: Noto Sans SC 子集");
-    ui.label("GUI 框架: egui / eframe");
-    ui.label("依赖致谢: rfd / dirs / simplelog / windows-rs / velopack");
-
-    ui.separator();
-    ui.heading("软件更新");
-    show_update_ui(ui, state);
+    crate::ui_style::card(ui, "软件更新", |ui| {
+        show_update_ui(ui, state);
+    });
 }
 
 fn show_update_ui(ui: &mut Ui, state: &mut AppState) {
@@ -70,7 +72,7 @@ fn show_update_ui(ui: &mut Ui, state: &mut AppState) {
             ui.label("正在检查更新…");
         }
         UpdateState::NoUpdate => {
-            ui.colored_label(egui::Color32::GREEN, "✅ 当前已是最新版本。");
+            ui.colored_label(crate::ui_style::SUCCESS, "✅ 当前已是最新版本。");
             if ui.button("再次检查").clicked() {
                 state.update_worker = Some(crate::vpk::start_check());
                 state.update_state = UpdateState::Checking;
@@ -113,7 +115,7 @@ fn show_update_ui(ui: &mut Ui, state: &mut AppState) {
                 if tip_installed {
                     ui.add_space(4.0);
                     ui.colored_label(
-                        egui::Color32::from_rgb(255, 152, 0),
+                        crate::ui_style::WARNING,
                         "⚠ 检测到输入法已安装。更新前需先卸载输入法以释放 im_engine.dll，否则更新会失败。",
                     );
                     ui.label("请前往「输入法管理」面板点击「卸载」，完成后回到此处继续更新。");
@@ -133,7 +135,7 @@ fn show_update_ui(ui: &mut Ui, state: &mut AppState) {
             ui.add(egui::ProgressBar::new(*progress as f32 / 100.0).animate(true));
         }
         UpdateState::Ready { asset } => {
-            ui.colored_label(egui::Color32::GREEN, "✅ 更新已下载完成。");
+            ui.colored_label(crate::ui_style::SUCCESS, "✅ 更新已下载完成。");
             // 应用更新前再次确认 TIP 已卸载（用户可能在下载期间重新安装了输入法）。
             let tip_installed = matches!(
                 state.tip_status,
@@ -141,14 +143,21 @@ fn show_update_ui(ui: &mut Ui, state: &mut AppState) {
             );
             if tip_installed {
                 ui.colored_label(
-                    egui::Color32::from_rgb(255, 152, 0),
+                    crate::ui_style::WARNING,
                     "⚠ 输入法仍处于安装状态，请先前往「输入法管理」卸载后再应用更新。",
                 );
                 if ui.button("前往「输入法管理」").clicked() {
                     state.active_panel = Panel::TipManager;
                 }
             } else {
-                if ui.button("立即重启以应用更新").clicked() {
+                if ui
+                    .add_enabled(
+                        !state.has_unsaved_changes(),
+                        egui::Button::new("立即重启以应用更新"),
+                    )
+                    .on_disabled_hover_text("请先保存当前修改")
+                    .clicked()
+                {
                     crate::vpk::apply_and_restart(asset.clone());
                 }
                 ui.label("点击后将退出程序并自动安装更新，完成后重新启动。");
@@ -156,7 +165,7 @@ fn show_update_ui(ui: &mut Ui, state: &mut AppState) {
             }
         }
         UpdateState::Error(msg) => {
-            ui.colored_label(egui::Color32::LIGHT_RED, format!("❌ {msg}"));
+            ui.colored_label(crate::ui_style::ERROR, format!("❌ {msg}"));
             if ui.button("重试").clicked() {
                 state.update_worker = Some(crate::vpk::start_check());
                 state.update_state = UpdateState::Checking;

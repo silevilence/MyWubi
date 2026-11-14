@@ -1,5 +1,6 @@
 [package]
 name = "settings"
+default-run = "settings"
 version.workspace = true
 edition.workspace = true
 license.workspace = true
@@ -7,6 +8,10 @@ license.workspace = true
 [[bin]]
 name = "settings"
 path = "src/main.rs"
+
+[[bin]]
+name = "skin_editor"
+path = "src/bin/skin_editor.rs"
 
 [lib]
 name = "settings"
@@ -32,6 +37,7 @@ serde_json.workspace = true
 runtime_components = { version = "0.9.0", path = "../runtime_components" }
 text_render = { version = "0.9.0", path = "../text_render" }
 personal_input = { version = "0.9.0", path = "../../personal_input" }
+image = { version = "0.24.9", default-features = false, features = ["png"] }
 
 [build-dependencies]
 winres = "0.1"

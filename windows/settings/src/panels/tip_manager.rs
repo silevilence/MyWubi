@@ -6,56 +6,67 @@ use tip_manager::TipStatus;
 
 /// 渲染「输入法管理」面板。
 pub fn show(ui: &mut Ui, state: &mut AppState) {
-    ui.heading("输入法管理");
-    ui.add_space(8.0);
+    crate::ui_style::heading(
+        ui,
+        "输入法管理",
+        "管理 Windows 注册状态，使用 Win+Space 切换输入法。",
+    );
+    crate::ui_style::card(ui, "安装与启用", |ui| {
+        // TIP 注册/卸载需要管理员权限。非管理员运行时仅显示状态与提升入口，
+        // 不直接调用 tip_manager（避免 COM 调用静默失败或权限错误）。
+        let is_admin = crate::elevation::is_admin();
+        if !is_admin {
+            ui.colored_label(
+                crate::ui_style::WARNING,
+                "⚠ 当前未以管理员身份运行，无法安装或卸载输入法。",
+            );
+            ui.add_space(4.0);
+            ui.label("输入法的注册需要写入系统注册表，请以管理员身份重新运行设置程序。");
+            ui.add_space(8.0);
+            if ui
+                .add_enabled(
+                    !state.has_unsaved_changes(),
+                    egui::Button::new("以管理员身份重启"),
+                )
+                .on_disabled_hover_text("请先保存当前修改，再以管理员身份重启")
+                .clicked()
+            {
+                if crate::elevation::relaunch_elevated() {
+                    // 发起重启后退出当前非提升实例。
+                    std::process::exit(0);
+                } else {
+                    state.status_msg = Some(
+                        "❌ 无法发起管理员重启，请手动右键 settings.exe 选择「以管理员身份运行」。"
+                            .into(),
+                    );
+                }
+            }
+            ui.separator();
+            ui.add_space(8.0);
+            ui.label("当前状态（只读）:");
+            ui.add_space(4.0);
+        }
 
-    // TIP 注册/卸载需要管理员权限。非管理员运行时仅显示状态与提升入口，
-    // 不直接调用 tip_manager（避免 COM 调用静默失败或权限错误）。
-    let is_admin = crate::elevation::is_admin();
-    if !is_admin {
-        ui.colored_label(
-            egui::Color32::from_rgb(255, 152, 0),
-            "⚠ 当前未以管理员身份运行，无法安装或卸载输入法。",
-        );
-        ui.add_space(4.0);
-        ui.label("输入法的注册需要写入系统注册表，请以管理员身份重新运行设置程序。");
-        ui.add_space(8.0);
-        if ui.button("以管理员身份重启").clicked() {
-            if crate::elevation::relaunch_elevated() {
-                // 发起重启后退出当前非提升实例。
-                std::process::exit(0);
-            } else {
-                state.status_msg = Some(
-                    "❌ 无法发起管理员重启，请手动右键 settings.exe 选择「以管理员身份运行」。"
-                        .into(),
-                );
+        match state.tip_status {
+            TipStatus::NotInstalled => show_not_installed(ui, state, is_admin),
+            TipStatus::InstalledEnabled => show_installed_enabled(ui, state, is_admin),
+            TipStatus::InstalledDisabled => show_installed_disabled(ui, state, is_admin),
+            TipStatus::Unknown => show_unknown(ui, state, is_admin),
+        }
+
+        if let Some(ref msg) = state.status_msg {
+            if msg.starts_with("❌") {
+                ui.add_space(8.0);
+                ui.collapsing("查看详情", |ui| {
+                    ui.label(msg);
+                });
             }
         }
-        ui.separator();
-        ui.add_space(8.0);
-        ui.label("当前状态（只读）:");
-        ui.add_space(4.0);
-    }
-
-    match state.tip_status {
-        TipStatus::NotInstalled => show_not_installed(ui, state, is_admin),
-        TipStatus::InstalledEnabled => show_installed_enabled(ui, state, is_admin),
-        TipStatus::InstalledDisabled => show_installed_disabled(ui, state, is_admin),
-        TipStatus::Unknown => show_unknown(ui, state, is_admin),
-    }
-
-    if let Some(ref msg) = state.status_msg {
-        if msg.starts_with("❌") {
-            ui.add_space(8.0);
-            ui.collapsing("查看详情", |ui| {
-                ui.label(msg);
-            });
-        }
-    }
+    });
 }
 
 fn status_badge(ui: &mut Ui, color: egui::Color32, text: &str) {
-    ui.horizontal(|ui| {
+    ui.horizontal_wrapped(|ui| {
         // 状态圆点直接绘制，避免字体缺字时显示为问号或方框。
         let (rect, _) = ui.allocate_exact_size(egui::vec2(10.0, 14.0), egui::Sense::hover());
         ui.painter().circle_filled(rect.center(), 3.0, color);
@@ -101,7 +112,7 @@ fn show_not_installed(ui: &mut Ui, state: &mut AppState, is_admin: bool) {
 }
 
 fn show_installed_enabled(ui: &mut Ui, state: &mut AppState, is_admin: bool) {
-    status_badge(ui, egui::Color32::GREEN, "已安装 · 已启用");
+    status_badge(ui, crate::ui_style::SUCCESS, "已安装 · 已启用");
     ui.add_space(8.0);
     ui.label("输入法运行正常。使用 Win+Space 切换至此输入法即可开始打字。");
     ui.add_space(8.0);
@@ -117,7 +128,7 @@ fn show_installed_enabled(ui: &mut Ui, state: &mut AppState, is_admin: bool) {
     ui.add_space(8.0);
 
     ui.add_enabled_ui(is_admin, |ui| {
-        ui.horizontal(|ui| {
+        ui.horizontal_wrapped(|ui| {
             if ui.button("禁用").clicked() {
                 match tip_manager::disable() {
                     Ok(()) => {
@@ -157,13 +168,13 @@ fn show_installed_enabled(ui: &mut Ui, state: &mut AppState, is_admin: bool) {
 }
 
 fn show_installed_disabled(ui: &mut Ui, state: &mut AppState, is_admin: bool) {
-    status_badge(ui, egui::Color32::from_rgb(255, 152, 0), "已安装 · 已禁用");
+    status_badge(ui, crate::ui_style::WARNING, "已安装 · 已禁用");
     ui.add_space(8.0);
     ui.label("输入法已安装但当前被禁用。启用后可在语言设置中选择。");
     ui.add_space(12.0);
 
     ui.add_enabled_ui(is_admin, |ui| {
-        ui.horizontal(|ui| {
+        ui.horizontal_wrapped(|ui| {
             if ui.button("启用").clicked() {
                 match tip_manager::enable() {
                     Ok(()) => {
@@ -203,13 +214,13 @@ fn show_installed_disabled(ui: &mut Ui, state: &mut AppState, is_admin: bool) {
 }
 
 fn show_unknown(ui: &mut Ui, state: &mut AppState, is_admin: bool) {
-    status_badge(ui, egui::Color32::RED, "状态异常");
+    status_badge(ui, crate::ui_style::ERROR, "状态异常");
     ui.add_space(8.0);
     ui.label("检测到不完整的安装状态。建议尝试修复或完全卸载后重新安装。");
     ui.add_space(12.0);
 
     ui.add_enabled_ui(is_admin, |ui| {
-        ui.horizontal(|ui| {
+        ui.horizontal_wrapped(|ui| {
             if ui.button("修复安装").clicked() {
                 let dll_path = std::env::current_exe()
                     .ok()
@@ -228,7 +239,11 @@ fn show_unknown(ui: &mut Ui, state: &mut AppState, is_admin: bool) {
                     }
                 }
             }
-            if ui.button("完全卸载").clicked() {
+            if ui.button("完全卸载…").clicked() {
+                state.uninstall_confirm = true;
+            }
+            if state.uninstall_confirm && ui.button("确认完全卸载").clicked() {
+                state.uninstall_confirm = false;
                 match tip_manager::uninstall() {
                     Ok(()) => {
                         state.tip_status = tip_manager::detect_status();

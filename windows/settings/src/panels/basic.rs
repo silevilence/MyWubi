@@ -19,193 +19,201 @@ const HOTKEY_OPTIONS: [(&str, &str); 11] = [
 ];
 
 pub fn show(ui: &mut Ui, state: &mut AppState) {
-    ui.heading("常规设置");
-    ui.separator();
-    if state
-        .personal
-        .show(ui, &state.config_path, &mut state.config.personal)
-    {
-        state.mark_dirty();
-    }
-    let mut prediction = state.config.prediction.enabled;
-    if ui
-        .checkbox(&mut prediction, "上屏后显示字词预测（实验性）")
-        .changed()
-    {
-        state.config.prediction.enabled = prediction;
-        state.mark_dirty();
-    }
-    ui.small(
+    crate::ui_style::heading(ui, "常用输入", "按你的打字习惯调整候选、上屏方式和快捷键。");
+    crate::ui_style::card(ui, "候选与上屏", |ui| {
+        // 候选词个数
+        ui.horizontal(|ui| {
+            ui.label("候选词个数:");
+            let mut count = state.config.basic.candidate_count;
+            if ui
+                .add(eframe::egui::Slider::new(&mut count, 1..=10))
+                .changed()
+            {
+                state.config.basic.candidate_count = count;
+                state.mark_dirty();
+            }
+        });
+
+        // 上屏方式
+        ui.horizontal(|ui| {
+            ui.label("上屏方式:");
+            let mut mode = state.config.basic.commit_mode;
+            eframe::egui::ComboBox::from_id_source("commit_mode")
+                .selected_text(commit_mode_label(mode))
+                .show_ui(ui, |ui| {
+                    ui.selectable_value(&mut mode, CommitMode::SpaceFirst, "空格首选上屏");
+                    ui.selectable_value(&mut mode, CommitMode::EnterCommit, "回车上屏");
+                });
+            if mode != state.config.basic.commit_mode {
+                state.config.basic.commit_mode = mode;
+                state.mark_dirty();
+            }
+        });
+
+        // 中英文切换键
+        ui.horizontal(|ui| {
+            ui.label("中英文切换键:");
+            let mut key = state.config.basic.switch_key;
+            eframe::egui::ComboBox::from_id_source("switch_key")
+                .selected_text(switch_key_label(key))
+                .show_ui(ui, |ui| {
+                    ui.selectable_value(&mut key, SwitchKey::Shift, "Shift");
+                    ui.selectable_value(&mut key, SwitchKey::CapsLock, "CapsLock");
+                    ui.selectable_value(&mut key, SwitchKey::CtrlSpace, "Ctrl+Space");
+                });
+            if key != state.config.basic.switch_key {
+                state.config.basic.switch_key = key;
+                state.mark_dirty();
+            }
+        });
+
+        // 四码唯一自动上屏
+        ui.horizontal(|ui| {
+            let mut auto = state.config.basic.auto_commit_unique;
+            if ui.checkbox(&mut auto, "四码唯一时自动上屏").changed() {
+                state.config.basic.auto_commit_unique = auto;
+                state.mark_dirty();
+            }
+        });
+        ui.horizontal(|ui| {
+            let mut commit = state.config.basic.commit_on_max_code_overflow;
+            if ui
+                .checkbox(&mut commit, "超过最大码长时顶首选并开始下一码")
+                .changed()
+            {
+                state.config.basic.commit_on_max_code_overflow = commit;
+                state.mark_dirty();
+            }
+        });
+        ui.horizontal(|ui| {
+            let mut show = state.config.basic.show_code_hints;
+            if ui
+                .checkbox(&mut show, "候选编码不全时显示后续编码提示")
+                .changed()
+            {
+                state.config.basic.show_code_hints = show;
+                state.mark_dirty();
+            }
+        });
+
+        ui.horizontal(|ui| {
+            ui.label("当前码表万能键:");
+            if let Some(error) = &state.tables.editor.load_error {
+                ui.colored_label(crate::ui_style::ERROR, format!("读取失败：{error}"));
+            } else if let Some(wildcard) = state.tables.editor.config.wildcard_key {
+                ui.monospace(wildcard.to_string());
+            } else {
+                ui.label("未启用");
+            }
+        });
+        ui.small("万能键由当前码表 YAML 头配置，请在“码表与词库”面板编辑。");
+
+        // 标点输入
+        ui.horizontal(|ui| {
+            ui.label("标点输入:");
+            let mut mode = state.config.basic.punctuation_mode;
+            eframe::egui::ComboBox::from_id_source("punctuation_mode")
+                .selected_text(punctuation_mode_label(mode))
+                .show_ui(ui, |ui| {
+                    ui.selectable_value(
+                        &mut mode,
+                        PunctuationMode::BufferedCommit,
+                        "加入缓冲，最后一起上屏",
+                    );
+                    ui.selectable_value(
+                        &mut mode,
+                        PunctuationMode::DirectCommit,
+                        "立即上屏，不进入编码",
+                    );
+                });
+            if mode != state.config.basic.punctuation_mode {
+                state.config.basic.punctuation_mode = mode;
+                state.mark_dirty();
+            }
+        });
+    });
+    crate::ui_style::card(ui, "选词与翻页快捷键", |ui| {
+        ui.label("快速选词热键:");
+        ui.small("候选列表显示时，可直接上屏第 2 项和第 3 项。");
+        ui.horizontal(|ui| {
+            ui.label("第二候选:");
+            let mut select_second = state.config.hotkey.select_second.clone();
+            hotkey_combo(ui, "select_second", &mut select_second);
+            apply_hotkey_change(
+                &mut state.config.hotkey.select_second,
+                select_second,
+                &mut state.dirty,
+                &mut state.status_msg,
+            );
+        });
+        ui.horizontal(|ui| {
+            ui.label("第三候选:");
+            let mut select_third = state.config.hotkey.select_third.clone();
+            hotkey_combo(ui, "select_third", &mut select_third);
+            apply_hotkey_change(
+                &mut state.config.hotkey.select_third,
+                select_third,
+                &mut state.dirty,
+                &mut state.status_msg,
+            );
+        });
+
+        ui.separator();
+        ui.label("翻页热键:");
+        ui.horizontal(|ui| {
+            ui.label("下一页:");
+            let mut next = state.config.hotkey.page_next.clone();
+            hotkey_combo(ui, "page_next", &mut next);
+            apply_hotkey_change(
+                &mut state.config.hotkey.page_next,
+                next,
+                &mut state.dirty,
+                &mut state.status_msg,
+            );
+        });
+        ui.horizontal(|ui| {
+            ui.label("上一页:");
+            let mut prev = state.config.hotkey.page_prev.clone();
+            hotkey_combo(ui, "page_prev", &mut prev);
+            apply_hotkey_change(
+                &mut state.config.hotkey.page_prev,
+                prev,
+                &mut state.dirty,
+                &mut state.status_msg,
+            );
+        });
+    });
+}
+
+pub fn intelligence(ui: &mut Ui, state: &mut AppState) {
+    crate::ui_style::heading(
+        ui,
+        "预测与学习",
+        "按需启用本地学习和字词预测，管理模型与资源。",
+    );
+    crate::ui_style::card(ui, "个人学习", |ui| {
+        if state
+            .personal
+            .show(ui, &state.config_path, &mut state.config.personal)
+        {
+            state.mark_dirty();
+        }
+    });
+    crate::ui_style::card(ui, "字词预测", |ui| {
+        let mut prediction = state.config.prediction.enabled;
+        if ui
+            .checkbox(&mut prediction, "上屏后显示字词预测（实验性）")
+            .changed()
+        {
+            state.config.prediction.enabled = prediction;
+            state.mark_dirty();
+        }
+        ui.small(
         "使用本地词典续接与常用搭配；空格选第一项，数字键或点击选词，继续编码即忽略。默认关闭，不改变编码候选排序。",
     );
-    if state.models.show(ui, &state.config_path, &mut state.config) {
-        state.mark_dirty();
-    }
-
-    // 候选词个数
-    ui.horizontal(|ui| {
-        ui.label("候选词个数:");
-        let mut count = state.config.basic.candidate_count;
-        if ui
-            .add(eframe::egui::Slider::new(&mut count, 1..=10))
-            .changed()
-        {
-            state.config.basic.candidate_count = count;
+        if state.models.show(ui, &state.config_path, &mut state.config) {
             state.mark_dirty();
         }
-    });
-
-    // 上屏方式
-    ui.horizontal(|ui| {
-        ui.label("上屏方式:");
-        let mut mode = state.config.basic.commit_mode;
-        let resp = eframe::egui::ComboBox::from_id_source("commit_mode")
-            .selected_text(commit_mode_label(mode))
-            .show_ui(ui, |ui| {
-                ui.selectable_value(&mut mode, CommitMode::SpaceFirst, "空格首选上屏");
-                ui.selectable_value(&mut mode, CommitMode::EnterCommit, "回车上屏");
-            });
-        if resp.response.changed() && mode != state.config.basic.commit_mode {
-            state.config.basic.commit_mode = mode;
-            state.mark_dirty();
-        }
-    });
-
-    // 中英文切换键
-    ui.horizontal(|ui| {
-        ui.label("中英文切换键:");
-        let mut key = state.config.basic.switch_key;
-        let resp = eframe::egui::ComboBox::from_id_source("switch_key")
-            .selected_text(switch_key_label(key))
-            .show_ui(ui, |ui| {
-                ui.selectable_value(&mut key, SwitchKey::Shift, "Shift");
-                ui.selectable_value(&mut key, SwitchKey::CapsLock, "CapsLock");
-                ui.selectable_value(&mut key, SwitchKey::CtrlSpace, "Ctrl+Space");
-            });
-        if resp.response.changed() && key != state.config.basic.switch_key {
-            state.config.basic.switch_key = key;
-            state.mark_dirty();
-        }
-    });
-
-    // 四码唯一自动上屏
-    ui.horizontal(|ui| {
-        let mut auto = state.config.basic.auto_commit_unique;
-        if ui.checkbox(&mut auto, "四码唯一时自动上屏").changed() {
-            state.config.basic.auto_commit_unique = auto;
-            state.mark_dirty();
-        }
-    });
-    ui.horizontal(|ui| {
-        let mut commit = state.config.basic.commit_on_max_code_overflow;
-        if ui
-            .checkbox(&mut commit, "超过最大码长时顶首选并开始下一码")
-            .changed()
-        {
-            state.config.basic.commit_on_max_code_overflow = commit;
-            state.mark_dirty();
-        }
-    });
-    ui.horizontal(|ui| {
-        let mut show = state.config.basic.show_code_hints;
-        if ui
-            .checkbox(&mut show, "候选编码不全时显示后续编码提示")
-            .changed()
-        {
-            state.config.basic.show_code_hints = show;
-            state.mark_dirty();
-        }
-    });
-
-    ui.horizontal(|ui| {
-        ui.label("当前码表万能键:");
-        if let Some(error) = &state.tables.editor.load_error {
-            ui.colored_label(
-                eframe::egui::Color32::LIGHT_RED,
-                format!("读取失败：{error}"),
-            );
-        } else if let Some(wildcard) = state.tables.editor.config.wildcard_key {
-            ui.monospace(wildcard.to_string());
-        } else {
-            ui.label("未启用");
-        }
-    });
-    ui.small("万能键由当前码表 YAML 头配置，请在“码表与词库”面板编辑。");
-
-    // 标点输入
-    ui.horizontal(|ui| {
-        ui.label("标点输入:");
-        let mut mode = state.config.basic.punctuation_mode;
-        let resp = eframe::egui::ComboBox::from_id_source("punctuation_mode")
-            .selected_text(punctuation_mode_label(mode))
-            .show_ui(ui, |ui| {
-                ui.selectable_value(
-                    &mut mode,
-                    PunctuationMode::BufferedCommit,
-                    "加入缓冲，最后一起上屏",
-                );
-                ui.selectable_value(
-                    &mut mode,
-                    PunctuationMode::DirectCommit,
-                    "立即上屏，不进入编码",
-                );
-            });
-        if resp.response.changed() && mode != state.config.basic.punctuation_mode {
-            state.config.basic.punctuation_mode = mode;
-            state.mark_dirty();
-        }
-    });
-
-    // 翻页热键
-    ui.separator();
-    ui.label("快速选词热键:");
-    ui.small("候选列表显示时，可直接上屏第 2 项和第 3 项。");
-    ui.horizontal(|ui| {
-        ui.label("第二候选:");
-        let mut select_second = state.config.hotkey.select_second.clone();
-        hotkey_combo(ui, "select_second", &mut select_second);
-        apply_hotkey_change(
-            &mut state.config.hotkey.select_second,
-            select_second,
-            &mut state.dirty,
-            &mut state.status_msg,
-        );
-    });
-    ui.horizontal(|ui| {
-        ui.label("第三候选:");
-        let mut select_third = state.config.hotkey.select_third.clone();
-        hotkey_combo(ui, "select_third", &mut select_third);
-        apply_hotkey_change(
-            &mut state.config.hotkey.select_third,
-            select_third,
-            &mut state.dirty,
-            &mut state.status_msg,
-        );
-    });
-
-    ui.separator();
-    ui.label("翻页热键:");
-    ui.horizontal(|ui| {
-        ui.label("下一页:");
-        let mut next = state.config.hotkey.page_next.clone();
-        hotkey_combo(ui, "page_next", &mut next);
-        apply_hotkey_change(
-            &mut state.config.hotkey.page_next,
-            next,
-            &mut state.dirty,
-            &mut state.status_msg,
-        );
-    });
-    ui.horizontal(|ui| {
-        ui.label("上一页:");
-        let mut prev = state.config.hotkey.page_prev.clone();
-        hotkey_combo(ui, "page_prev", &mut prev);
-        apply_hotkey_change(
-            &mut state.config.hotkey.page_prev,
-            prev,
-            &mut state.dirty,
-            &mut state.status_msg,
-        );
     });
 }
 

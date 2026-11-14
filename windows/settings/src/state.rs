@@ -11,6 +11,7 @@ use core_engine::{Config, UserDictionary};
 pub enum Panel {
     Basic,
     Appearance,
+    Intelligence,
     Dictionary,
     SpecialInput,
     TipManager,
@@ -34,6 +35,7 @@ pub struct PickRequest {
 }
 
 pub struct UserDictionaryEditor {
+    pub remove_confirm: bool,
     pub open: bool,
     pub dictionary: Option<UserDictionary>,
     pub code: String,
@@ -45,6 +47,7 @@ pub struct UserDictionaryEditor {
 impl Default for UserDictionaryEditor {
     fn default() -> Self {
         Self {
+            remove_confirm: false,
             open: false,
             dictionary: None,
             code: String::new(),
@@ -57,6 +60,7 @@ impl Default for UserDictionaryEditor {
 
 impl UserDictionaryEditor {
     pub fn clear_form(&mut self) {
+        self.remove_confirm = false;
         self.code.clear();
         self.word.clear();
         self.weight = 1000;
@@ -73,15 +77,18 @@ pub(crate) fn set_dirty(dirty: &mut bool, status_msg: &mut Option<String>) {
 
 /// 应用状态。所有面板通过 `&mut AppState` 读写。
 pub struct AppState {
-    pub skins: crate::skin_editor::SkinEditor,
     pub special_input: crate::panels::special_input::SpecialInputUi,
     pub personal: crate::personal_panel::PersonalPanel,
     pub expressions: crate::expression_catalog::ExpressionCatalog,
     pub models: crate::model_catalog::ModelCatalog,
     /// 当前配置（内存中的工作副本）。
     pub config: Config,
+    pub(crate) disk_snapshot: Option<Vec<u8>>,
+    pub(crate) desktop_effects: bool,
     /// 是否有未保存的改动。
     pub dirty: bool,
+    pub form_errors: std::collections::BTreeMap<String, String>,
+    pub(crate) ui_revision: u64,
     /// 当前激活面板。
     pub active_panel: Panel,
     /// 配置文件实际路径。
@@ -126,6 +133,16 @@ impl AppState {
     /// 若配置损坏，**不立即覆盖**——而是记录 `load_error`，由 UI 弹对话框
     /// 让用户选择"加载默认配置"（此时才覆盖）或"打开文件位置"自行修复。
     pub fn load(config_path: PathBuf, portable: bool) -> Self {
+        Self::load_with_effects(config_path, portable, true)
+    }
+
+    /// Isolated file session: no ACL changes, TIP calls, workers or downloads.
+    pub fn load_isolated(config_path: PathBuf) -> Self {
+        Self::load_with_effects(config_path, false, false)
+    }
+
+    fn load_with_effects(config_path: PathBuf, portable: bool, desktop_effects: bool) -> Self {
+        let disk_snapshot = std::fs::read(&config_path).ok();
         let (config, load_error) = match Config::load(&config_path) {
             Ok(cfg) => (cfg, None),
             Err(e) => {
@@ -144,8 +161,7 @@ impl AppState {
             &config.dictionary.system_table,
         );
         let tables = TableSession::load(resolved_system_table, &config.dictionary.user_table);
-        let access_error = load_error
-            .is_none()
+        let access_error = (desktop_effects && load_error.is_none())
             .then(|| crate::app_container::prepare(&config_path, &config).err())
             .flatten();
         if let Some(error) = &access_error {
@@ -153,19 +169,26 @@ impl AppState {
         }
         Self {
             expressions: crate::expression_catalog::ExpressionCatalog::default(),
-            skins: Default::default(),
             special_input: Default::default(),
             personal: crate::personal_panel::PersonalPanel::default(),
             models: crate::model_catalog::ModelCatalog::default(),
             config,
+            disk_snapshot,
+            desktop_effects,
             dirty: false,
+            form_errors: Default::default(),
+            ui_revision: 0,
             active_panel: Panel::Basic,
             config_path,
             status_msg: access_error,
             portable,
             load_error,
             pending_pick: None,
-            tip_status: tip_manager::detect_status(),
+            tip_status: if desktop_effects {
+                tip_manager::detect_status()
+            } else {
+                tip_manager::TipStatus::Unknown
+            },
             uninstall_confirm: false,
             tip_operation_pending: false,
             update_state: crate::vpk::UpdateState::Idle,
@@ -182,6 +205,9 @@ impl AppState {
     }
 
     pub(crate) fn prepare_app_container_access(&mut self) {
+        if !self.desktop_effects {
+            return;
+        }
         if let Err(error) = crate::app_container::prepare(&self.config_path, &self.config) {
             log::warn!("{error}");
             self.status_msg = Some(format!("[!] {error}"));
@@ -195,6 +221,7 @@ impl AppState {
             self.status_msg = Some(format!("[ERR] 覆盖失败: {e}"));
             log::error!("覆盖损坏配置失败: {e}");
         } else {
+            self.disk_snapshot = std::fs::read(&self.config_path).ok();
             self.config = cfg;
             self.load_error = None;
             self.status_msg = Some("[OK] 已用默认配置覆盖".into());
@@ -204,7 +231,26 @@ impl AppState {
     }
 
     pub fn has_unsaved_changes(&self) -> bool {
-        self.dirty || self.tables.is_dirty() || self.skins.is_dirty()
+        self.dirty || self.tables.is_dirty()
+    }
+
+    /// Reload only after explicit discard, keeping navigation and refusing corrupt input.
+    pub fn reload(&mut self, discard: bool) -> Result<(), String> {
+        if self.has_unsaved_changes() && !discard {
+            return Err("有未保存的修改，请先保存或确认放弃。".into());
+        }
+        Config::load(&self.config_path).map_err(|e| e.to_string())?;
+        let panel = self.active_panel;
+        let mut next = Self::load_with_effects(
+            self.config_path.clone(),
+            self.portable,
+            self.desktop_effects,
+        );
+        next.ui_revision = self.ui_revision.wrapping_add(1);
+        next.active_panel = panel;
+        next.status_msg = Some("已重新加载".into());
+        *self = next;
+        Ok(())
     }
 
     pub fn browse_tables(&mut self, directory: PathBuf) {

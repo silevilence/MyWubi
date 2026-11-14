@@ -84,6 +84,12 @@ pub fn run_saved_model(path: &std::path::Path) -> Result<(), String> {
     Ok(())
 }
 
+type BackendStatus = (
+    String,
+    Option<model_input::service::BackendAvailability>,
+    Option<Vec<model_input::device::Device>>,
+);
+
 #[derive(Default)]
 pub struct ModelCatalog {
     downloads: crate::model_downloads::ModelDownloads,
@@ -94,13 +100,7 @@ pub struct ModelCatalog {
     worker: Option<mpsc::Receiver<Result<Vec<Manifest>, String>>>,
     message: String,
     initialized: bool,
-    status_worker: Option<
-        mpsc::Receiver<(
-            String,
-            Option<model_input::service::BackendAvailability>,
-            Option<Vec<model_input::device::Device>>,
-        )>,
-    >,
+    status_worker: Option<mpsc::Receiver<BackendStatus>>,
     devices: Vec<model_input::device::Device>,
     backends: Option<model_input::service::BackendAvailability>,
     last_status: Option<std::time::Instant>,
@@ -263,7 +263,7 @@ impl ModelCatalog {
             if !backends.llama || !backends.onnx { ui.label("缺少组件时可先选择或下载模型，再从上方准备组件。"); }
             if self.packages.is_empty() { ui.label("尚无已安装模型：请导入本地模型包。不会自动下载或开启预测。"); }
             if config.prediction.model.as_ref().is_some_and(|m| !self.packages.iter().any(|p| p.id == m.id && p.version == m.version)) {
-                ui.colored_label(eframe::egui::Color32::YELLOW, "已选模型缺失或校验失败：请重新导入同版本，或明确选择词典预测。原选择已保留。");
+                ui.colored_label(crate::ui_style::WARNING, "已选模型缺失或校验失败：请重新导入同版本，或明确选择词典预测。原选择已保留。");
             }
             if ui.add_enabled(self.status_worker.is_none(),eframe::egui::Button::new("刷新运行状态")).clicked() {self.refresh_status(path, ui.ctx().clone());}
             ui.label(&self.status);

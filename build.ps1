@@ -70,6 +70,8 @@ if (-not $SkipBuild) {
 # 校验关键产物存在
 $settingsExe = Join-Path $targetDir "settings.exe"
 $imEngineDll = Join-Path $targetDir "im_engine.dll"
+$skinEditorExe = Join-Path $targetDir "skin_editor.exe"
+if (-not (Test-Path $skinEditorExe)) { throw "Missing skin_editor.exe; rebuild the settings package." }
 if (-not (Test-Path $settingsExe)) { throw "找不到 $settingsExe，请先执行 cargo build --release。" }
 if (-not (Test-Path $imEngineDll)) { throw "找不到 $imEngineDll，请先执行 cargo build --release。" }
 
@@ -82,6 +84,7 @@ New-Item -ItemType Directory -Force -Path $stagingDir | Out-Null
 
 # 主二进制
 Copy-Item $settingsExe $stagingDir -Force
+Copy-Item $skinEditorExe $stagingDir -Force
 Copy-Item $imEngineDll $stagingDir -Force
 # Native inference libraries and model weights never enter the base application.
 $embeddedCatalogFile = Join-Path $stagingDir 'components.json'

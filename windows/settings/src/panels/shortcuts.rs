@@ -170,64 +170,6 @@ fn next_position(rules: &[ShortcutRule], code: &str) -> u32 {
         .unwrap_or(1)
 }
 
-#[cfg(test)]
-mod tests {
-    use super::*;
-    #[test]
-    fn returning_to_a_completed_draft_schedules_a_new_preview() {
-        let mut preview = PreviewUi::default();
-        let ctx = egui::Context::default();
-        let frame = |preview: &mut PreviewUi, code: &str| {
-            let _ = ctx.run(Default::default(), |ctx| {
-                egui::CentralPanel::default().show(ctx, |ui| {
-                    preview.update(ui, Path::new("missing.toml"), &Config::default(), code);
-                });
-            });
-        };
-        frame(&mut preview, "jjad");
-        preview.done_key = Some(preview.key.clone());
-        preview.result = Some(Err("previous result".into()));
-        frame(&mut preview, "jjadx");
-        frame(&mut preview, "jjad");
-        preview.changed_at = Instant::now() - Duration::from_secs(1);
-        frame(&mut preview, "jjad");
-        assert!(
-            preview.worker.is_some(),
-            "the discarded result must be recomputed"
-        );
-    }
-
-    #[test]
-    fn copied_format_follows_existing_global_positions_before_using_a_gap() {
-        let mut rules = vec![ShortcutRule {
-            code: "JJAD".into(),
-            position: 2,
-            format: "yyyy".into(),
-            kind: ShortcutKind::DateTime,
-            enabled: true,
-        }];
-        assert_eq!(next_position(&rules, "jjad"), 3);
-        rules[0].position = 10000;
-        assert_eq!(next_position(&rules, "jjad"), 1);
-    }
-    #[test]
-    fn late_preview_of_an_older_draft_cannot_publish_into_the_current_editor() {
-        let mut preview = PreviewUi::default();
-        let ctx = egui::Context::default();
-        let (tx, rx) = mpsc::channel();
-        preview.worker = Some(rx);
-        tx.send(("old draft".into(), Err("stale error".into())))
-            .unwrap();
-        let _ = ctx.run(Default::default(), |ctx| {
-            egui::CentralPanel::default().show(ctx, |ui| {
-                preview.update(ui, Path::new("current.toml"), &Config::default(), "jjad")
-            });
-        });
-        assert!(preview.result.is_none());
-        assert!(preview.worker.is_none());
-        assert!(preview.done_key.is_none());
-    }
-}
 pub fn show(
     ui: &mut Ui,
     state: &mut AppState,
@@ -372,5 +314,64 @@ fn focus_error(
         response.request_focus();
         response.scroll_to_me(Some(egui::Align::Center));
         *focus = None;
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    #[test]
+    fn returning_to_a_completed_draft_schedules_a_new_preview() {
+        let mut preview = PreviewUi::default();
+        let ctx = egui::Context::default();
+        let frame = |preview: &mut PreviewUi, code: &str| {
+            let _ = ctx.run(Default::default(), |ctx| {
+                egui::CentralPanel::default().show(ctx, |ui| {
+                    preview.update(ui, Path::new("missing.toml"), &Config::default(), code);
+                });
+            });
+        };
+        frame(&mut preview, "jjad");
+        preview.done_key = Some(preview.key.clone());
+        preview.result = Some(Err("previous result".into()));
+        frame(&mut preview, "jjadx");
+        frame(&mut preview, "jjad");
+        preview.changed_at = Instant::now() - Duration::from_secs(1);
+        frame(&mut preview, "jjad");
+        assert!(
+            preview.worker.is_some(),
+            "the discarded result must be recomputed"
+        );
+    }
+
+    #[test]
+    fn copied_format_follows_existing_global_positions_before_using_a_gap() {
+        let mut rules = vec![ShortcutRule {
+            code: "JJAD".into(),
+            position: 2,
+            format: "yyyy".into(),
+            kind: ShortcutKind::DateTime,
+            enabled: true,
+        }];
+        assert_eq!(next_position(&rules, "jjad"), 3);
+        rules[0].position = 10000;
+        assert_eq!(next_position(&rules, "jjad"), 1);
+    }
+    #[test]
+    fn late_preview_of_an_older_draft_cannot_publish_into_the_current_editor() {
+        let mut preview = PreviewUi::default();
+        let ctx = egui::Context::default();
+        let (tx, rx) = mpsc::channel();
+        preview.worker = Some(rx);
+        tx.send(("old draft".into(), Err("stale error".into())))
+            .unwrap();
+        let _ = ctx.run(Default::default(), |ctx| {
+            egui::CentralPanel::default().show(ctx, |ui| {
+                preview.update(ui, Path::new("current.toml"), &Config::default(), "jjad")
+            });
+        });
+        assert!(preview.result.is_none());
+        assert!(preview.worker.is_none());
+        assert!(preview.done_key.is_none());
     }
 }

@@ -8,55 +8,67 @@ const PRESETS: [u32; 7] = [
     0xFF1E88E5, 0xFFE53935, 0xFF43A047, 0xFFFB8C00, 0xFF8E24AA, 0xFF546E7A, 0xFF000000,
 ];
 
-/// ITU-R BT.601 亮度阈值：低于此值用白色文字，高于此值用黑色文字。
-const LUMINANCE_THRESHOLD: u32 = 128000;
-
 pub fn show(ui: &mut Ui, state: &mut AppState) {
-    ui.heading("外观样式");
-    ui.separator();
-
-    skin_preferences(ui, state);
-
-    // 迷你候选框预览
-    preview(ui, state);
-
-    // 字体大小
-    ui.horizontal(|ui| {
-        ui.label("候选框字体大小:");
-        let mut size = state.config.appearance.font_size;
-        if ui
-            .add(eframe::egui::Slider::new(&mut size, 8..=32))
-            .changed()
-        {
-            state.config.appearance.font_size = size;
-            state.mark_dirty();
+    crate::ui_style::heading(ui, "候选外观", "调整候选框的显示方式；保存后自动应用。");
+    crate::ui_style::card(ui, "皮肤方案", |ui| {
+        skin_preferences(ui, state);
+        if let Some(selection) = &state.config.skins.windows.selection {
+            ui.label(format!(
+                "当前自定义皮肤：{} / {}",
+                selection.id, selection.component
+            ));
+        }
+        ui.add_space(4.0);
+        if ui.button("打开皮肤编辑器…").clicked() {
+            state.status_msg = Some(match crate::skin_app::launch(&state.config_path) {
+                Ok(()) => "已打开皮肤编辑器。应用皮肤后，可重新加载这里的设置。".into(),
+                Err(e) => format!("[ERR] {e}"),
+            });
+        }
+        ui.small("制作、导入、导出和应用皮肤，在独立编辑器中完成。");
+    });
+    crate::ui_style::card(ui, "字号与颜色", |ui| {
+        ui.add_enabled_ui(!state.config.skins.windows.use_skin_metrics, |ui| {
+            ui.horizontal(|ui| {
+                ui.label("候选字号");
+                if ui
+                    .add(
+                        eframe::egui::Slider::new(&mut state.config.appearance.font_size, 8..=32)
+                            .suffix(" pt"),
+                    )
+                    .changed()
+                {
+                    state.mark_dirty();
+                }
+            });
+        });
+        let legacy = state.config.skins.windows.selection.is_none()
+            && state.config.skins.windows.preset == "legacy";
+        if legacy {
+            for (label, value) in [
+                ("主色", &mut state.config.appearance.primary_color),
+                ("背景色", &mut state.config.appearance.background_color),
+                ("高亮色", &mut state.config.appearance.highlight_color),
+            ] {
+                color_row(
+                    ui,
+                    label,
+                    value,
+                    &mut state.dirty,
+                    &mut state.status_msg,
+                    &mut state.form_errors,
+                );
+            }
+        } else {
+            for label in ["主色", "背景色", "高亮色"] {
+                state.form_errors.remove(label);
+            }
+            ui.small("颜色由所选皮肤管理，可在皮肤编辑器中修改。");
         }
     });
-
-    color_row(
-        ui,
-        "主色",
-        &mut state.config.appearance.primary_color,
-        &mut state.dirty,
-        &mut state.status_msg,
-    );
-    color_row(
-        ui,
-        "背景色",
-        &mut state.config.appearance.background_color,
-        &mut state.dirty,
-        &mut state.status_msg,
-    );
-    color_row(
-        ui,
-        "高亮色",
-        &mut state.config.appearance.highlight_color,
-        &mut state.dirty,
-        &mut state.status_msg,
-    );
-    if state.skins.ui(ui, &mut state.config, &state.config_path) {
-        state.prepare_app_container_access();
-    }
+    crate::ui_style::card(ui, "实际候选预览", |ui| {
+        crate::skin_app::active_preview(ui, &state.config, &state.config_path);
+    });
 }
 
 fn skin_preferences(ui: &mut Ui, state: &mut AppState) {
@@ -64,23 +76,31 @@ fn skin_preferences(ui: &mut Ui, state: &mut AppState) {
     let preference = &mut state.config.skins.windows;
     let before = preference.clone();
     eframe::egui::ComboBox::from_label("皮肤方案")
-        .selected_text(match preference.preset.as_str() {
-            "jade" => "墨绿",
-            "plain" => "素简",
-            "contrast" => "高对比",
-            _ => "保留旧外观",
+        .selected_text(if preference.selection.is_some() {
+            "自定义皮肤"
+        } else {
+            match preference.preset.as_str() {
+                "jade" => "墨绿",
+                "plain" => "素简",
+                "contrast" => "高对比",
+                _ => "经典外观",
+            }
         })
         .show_ui(ui, |ui| {
             for (id, label) in [
-                ("legacy", "保留旧外观"),
+                ("legacy", "经典外观"),
                 ("jade", "墨绿"),
                 ("plain", "素简"),
                 ("contrast", "高对比"),
             ] {
                 if ui
-                    .selectable_value(&mut preference.preset, id.into(), label)
-                    .changed()
+                    .selectable_label(
+                        preference.selection.is_none() && preference.preset == id,
+                        label,
+                    )
+                    .clicked()
                 {
+                    preference.preset = id.into();
                     preference.selection = None;
                 }
             }
@@ -101,7 +121,7 @@ fn skin_preferences(ui: &mut Ui, state: &mut AppState) {
             }
         });
     ui.checkbox(&mut preference.use_skin_metrics, "采用皮肤推荐字号");
-    ui.small("保存后应用；默认保留当前字号。旧外观使用下方原有颜色设置。");
+    ui.small("默认保留当前字号；经典外观可直接自定义颜色。");
     if *preference != before {
         state.mark_dirty();
     }
@@ -113,65 +133,90 @@ fn color_row(
     value: &mut u32,
     dirty: &mut bool,
     status_msg: &mut Option<String>,
+    errors: &mut std::collections::BTreeMap<String, String>,
 ) {
-    ui.horizontal(|ui| {
-        ui.label(label);
-        // 色块预览
-        let color = eframe::egui::Color32::from_rgb(
-            ((*value >> 16) & 0xFF) as u8,
-            ((*value >> 8) & 0xFF) as u8,
-            (*value & 0xFF) as u8,
-        );
-        let (rect, _) =
-            ui.allocate_exact_size(eframe::egui::vec2(24.0, 24.0), eframe::egui::Sense::hover());
-        ui.painter().rect_filled(rect, 2.0, color);
-
-        // 预设色块
-        for &preset in &PRESETS {
-            let preset_color = eframe::egui::Color32::from_rgb(
-                ((preset >> 16) & 0xFF) as u8,
-                ((preset >> 8) & 0xFF) as u8,
-                (preset & 0xFF) as u8,
+    ui.push_id(label, |ui| {
+        ui.horizontal_wrapped(|ui| {
+            ui.label(label);
+            // 色块预览
+            let color = eframe::egui::Color32::from_rgb(
+                ((*value >> 16) & 0xFF) as u8,
+                ((*value >> 8) & 0xFF) as u8,
+                (*value & 0xFF) as u8,
             );
-            if ui
-                .add(
-                    eframe::egui::Button::new("   ")
-                        .fill(preset_color)
-                        .min_size(eframe::egui::vec2(20.0, 20.0)),
-                )
-                .clicked()
-            {
-                *value = preset;
-                state::set_dirty(dirty, status_msg);
-            }
-        }
+            let (rect, _) = ui
+                .allocate_exact_size(eframe::egui::vec2(24.0, 24.0), eframe::egui::Sense::hover());
+            ui.painter().rect_filled(rect, 2.0, color);
 
-        // 自定义按钮 → Win32 ChooseColor
-        if ui.button("自定义…").clicked() {
-            if let Some(picked) = crate::color_picker::pick_color(*value) {
-                *value = picked;
-                state::set_dirty(dirty, status_msg);
-            }
-        }
-
-        // ARGB 文本输入（非法输入标红 + tooltip）
-        let mut text = format!("0x{:08X}", *value);
-        let te = eframe::egui::TextEdit::singleline(&mut text).desired_width(90.0);
-        let resp = ui.add(te);
-        if resp.lost_focus() {
-            match parse_argb(&text) {
-                Ok(v) if v != *value => {
-                    *value = v;
+            // 预设色块
+            for &preset in &PRESETS {
+                let preset_color = eframe::egui::Color32::from_rgb(
+                    ((preset >> 16) & 0xFF) as u8,
+                    ((preset >> 8) & 0xFF) as u8,
+                    (preset & 0xFF) as u8,
+                );
+                if ui
+                    .add(
+                        eframe::egui::Button::new("   ")
+                            .fill(preset_color)
+                            .min_size(eframe::egui::vec2(20.0, 20.0)),
+                    )
+                    .clicked()
+                {
+                    *value = preset;
                     state::set_dirty(dirty, status_msg);
                 }
-                Ok(_) => {}
-                Err(()) => {
-                    resp.on_hover_text("格式应为 0xAARRGGBB 或 #RRGGBB")
-                        .request_focus();
-                    *status_msg = Some("⚠ 颜色格式非法，应为 0xAARRGGBB 或 #RRGGBB".into());
+            }
+
+            // 自定义按钮 → Win32 ChooseColor
+            if ui.button("自定义…").clicked() {
+                if let Some(picked) = crate::color_picker::pick_color(*value) {
+                    *value = picked;
+                    state::set_dirty(dirty, status_msg);
                 }
             }
-        }
+
+            let key = ui.make_persistent_id("argb-input");
+            let (text, resp) =
+                crate::ui_style::text_buffer(ui, "argb-input", &format!("#{:08X}", *value));
+            if resp.changed() {
+                state::set_dirty(dirty, status_msg);
+            }
+            let invalid = parse_argb(&text).is_err();
+            if invalid {
+                errors.insert(label.into(), format!("{label}：请输入有效的颜色值"));
+            } else {
+                errors.remove(label);
+            }
+            if invalid {
+                ui.colored_label(crate::ui_style::ERROR, "请输入 #RRGGBB 或 AARRGGBB");
+            }
+            // Commit every valid edit, but keep the user's exact buffer (including six
+            // digits on the way to eight). Navigation may stop rendering this page.
+            if resp.changed() && !invalid {
+                if let Ok(v) = parse_argb(&text) {
+                    *value = v;
+                    ui.ctx().data_mut(|d| {
+                        d.insert_temp(key, (format!("#{v:08X}"), text.clone()));
+                    });
+                }
+            }
+            if (resp.lost_focus()
+                || (resp.has_focus() && ui.input(|i| i.key_pressed(eframe::egui::Key::Enter))))
+                && !invalid
+            {
+                if let Ok(v) = parse_argb(&text) {
+                    if v != *value {
+                        *value = v;
+                        state::set_dirty(dirty, status_msg);
+                    }
+                }
+                ui.ctx().data_mut(|d| d.remove::<(String, String)>(key));
+            }
+            if !resp.has_focus() && !invalid {
+                ui.ctx().data_mut(|d| d.remove::<(String, String)>(key));
+            }
+        });
     });
 }
 
@@ -213,55 +258,4 @@ mod tests {
         assert!(parse_argb("0x123").is_err());
         assert!(parse_argb("").is_err());
     }
-}
-
-fn preview(ui: &mut Ui, state: &AppState) {
-    ui.group(|ui| {
-        ui.label("预览:");
-        let bg = eframe::egui::Color32::from_rgb(
-            ((state.config.appearance.background_color >> 16) & 0xFF) as u8,
-            ((state.config.appearance.background_color >> 8) & 0xFF) as u8,
-            (state.config.appearance.background_color & 0xFF) as u8,
-        );
-        let hl = eframe::egui::Color32::from_rgb(
-            ((state.config.appearance.highlight_color >> 16) & 0xFF) as u8,
-            ((state.config.appearance.highlight_color >> 8) & 0xFF) as u8,
-            (state.config.appearance.highlight_color & 0xFF) as u8,
-        );
-        let bg_luma = (bg.r() as u32) * 299 + (bg.g() as u32) * 587 + (bg.b() as u32) * 114;
-        let text_color = if bg_luma > LUMINANCE_THRESHOLD {
-            eframe::egui::Color32::BLACK
-        } else {
-            eframe::egui::Color32::WHITE
-        };
-        let size = state.config.appearance.font_size as f32;
-        let font_id = eframe::egui::FontId::proportional(size);
-        // 根据实际字体度量计算第一个候选项（"1 你好"）的宽度，确保高亮色完全覆盖
-        let candidate_w = ui.ctx().fonts(|f| {
-            f.glyph_width(&font_id, '1')
-                + f.glyph_width(&font_id, ' ')
-                + f.glyph_width(&font_id, '你')
-                + f.glyph_width(&font_id, '好')
-        });
-        let pad = 6.0;
-        let hl_w = candidate_w + pad * 2.0;
-        let hl_h = size + pad + 2.0;
-        let (rect, _) = ui.allocate_exact_size(
-            eframe::egui::vec2(200.0, size + 20.0),
-            eframe::egui::Sense::hover(),
-        );
-        ui.painter().rect_filled(rect, 4.0, bg);
-        let hl_rect = eframe::egui::Rect::from_min_size(
-            rect.min + eframe::egui::vec2(4.0, 4.0),
-            eframe::egui::vec2(hl_w, hl_h),
-        );
-        ui.painter().rect_filled(hl_rect, 2.0, hl);
-        ui.painter().text(
-            rect.min + eframe::egui::vec2(4.0 + pad, 8.0),
-            eframe::egui::Align2::LEFT_TOP,
-            "1 你好 2 世界",
-            font_id,
-            text_color,
-        );
-    });
 }

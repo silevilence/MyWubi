@@ -3322,6 +3322,7 @@ dependencies = [
  "core_engine",
  "dirs 5.0.1",
  "eframe",
+ "image",
  "log",
  "model_input",
  "model_ipc",

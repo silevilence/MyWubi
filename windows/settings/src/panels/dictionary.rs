@@ -1,154 +1,156 @@
 //! 码表与词库面板。
 
-use crate::state::{self, AppState, FilePickTarget, PickRequest};
+use crate::state::{AppState, FilePickTarget, PickRequest};
 use core_engine::{Entry, UserDictionary};
 use eframe::egui::{self, Ui};
 use std::path::{Path, PathBuf};
 
 pub fn show(ui: &mut Ui, state: &mut AppState) {
-    ui.heading("码表与词库");
-    ui.separator();
+    crate::ui_style::heading(ui, "码表与词库", "选择输入码表，维护词条与自造词。");
 
-    // ── 码表目录 ──
-    ui.horizontal(|ui| {
-        ui.label("码表目录:");
-        let mut s = state.tables.directory().display().to_string();
-        if ui.text_edit_singleline(&mut s).changed() {
-            let new_dir = PathBuf::from(s);
-            if new_dir.is_dir() {
-                state.browse_tables(new_dir);
+    crate::ui_style::card(ui, "系统码表", |ui| {
+        // ── 码表目录 ──
+        ui.horizontal_wrapped(|ui| {
+            ui.label("码表目录:");
+            let current = state.tables.directory().display().to_string();
+            let (text, response) = crate::ui_style::text_buffer(ui, "table-directory", &current);
+            if ui.button("打开目录").clicked()
+                || (response.has_focus() && ui.input(|i| i.key_pressed(egui::Key::Enter)))
+            {
+                let directory = PathBuf::from(&text);
+                if directory.is_dir() {
+                    state.browse_tables(directory);
+                } else {
+                    state.status_msg = Some("[ERR] 目录不存在，请检查路径。".into());
+                }
             }
-        }
-        if ui.button("浏览…").clicked() && state.pending_pick.is_none() {
-            let (tx, rx) = std::sync::mpsc::channel();
-            let start_dir = if state.tables.directory().exists() {
-                state.tables.directory().to_path_buf()
-            } else {
-                state
-                    .config_path
-                    .parent()
-                    .unwrap_or_else(|| Path::new("."))
-                    .to_path_buf()
-            };
-            std::thread::spawn(move || {
-                let _ = tx.send(
-                    rfd::FileDialog::new()
-                        .set_directory(&start_dir)
-                        .pick_folder(),
-                );
-            });
-            state.pending_pick = Some(PickRequest {
-                target: FilePickTarget::SystemTableDir,
-                rx,
-            });
-        }
-    });
-
-    // ── 码表文件选择 ──
-    if !state.tables.tables().is_empty() {
-        ui.horizontal(|ui| {
-            ui.label("使用码表:");
-            let current = state.tables.editor.path();
-            let current_idx = state.tables.tables().iter().position(|name| {
-                state.tables.directory().join(name) == current
-                    && state.tables.editor.load_error.is_none()
-            });
-            let mut selected = None;
-            egui::ComboBox::from_id_source("table_select")
-                .selected_text(
-                    current_idx
-                        .map(|i| state.tables.label(&state.tables.tables()[i]))
-                        .unwrap_or("请选择码表"),
-                )
-                .show_ui(ui, |ui| {
-                    for (i, name) in state.tables.tables().iter().enumerate() {
-                        if ui
-                            .selectable_label(current_idx == Some(i), state.tables.label(name))
-                            .on_hover_text(name)
-                            .clicked()
-                        {
-                            selected = Some(state.tables.directory().join(name));
-                        }
-                    }
+            if !response.has_focus() && text == current {
+                ui.ctx().data_mut(|d| {
+                    d.remove::<(String, String)>(ui.make_persistent_id("table-directory"))
                 });
-            if let Some(path) = selected {
-                state.select_table(path);
+            }
+            if ui.button("浏览…").clicked() && state.pending_pick.is_none() {
+                let (tx, rx) = std::sync::mpsc::channel();
+                let start_dir = if state.tables.directory().exists() {
+                    state.tables.directory().to_path_buf()
+                } else {
+                    state
+                        .config_path
+                        .parent()
+                        .unwrap_or_else(|| Path::new("."))
+                        .to_path_buf()
+                };
+                std::thread::spawn(move || {
+                    let _ = tx.send(
+                        rfd::FileDialog::new()
+                            .set_directory(&start_dir)
+                            .pick_folder(),
+                    );
+                });
+                state.pending_pick = Some(PickRequest {
+                    target: FilePickTarget::SystemTableDir,
+                    rx,
+                });
             }
         });
-    } else {
-        ui.label("（目录下未找到 .dict 码表文件）");
-        ui.add_space(4.0);
-    }
 
-    // ── 初始化码表：从 exe 同目录 tables/ 复制模板 ──
-    ui.horizontal(|ui| {
-        if ui.button("初始化码表").clicked() {
-            init_tables(state);
+        // ── 码表文件选择 ──
+        if !state.tables.tables().is_empty() {
+            ui.horizontal_wrapped(|ui| {
+                ui.label("使用码表:");
+                let current = state.tables.editor.path();
+                let current_idx = state.tables.tables().iter().position(|name| {
+                    state.tables.directory().join(name) == current
+                        && state.tables.editor.load_error.is_none()
+                });
+                let mut selected = None;
+                egui::ComboBox::from_id_source("table_select")
+                    .selected_text(
+                        current_idx
+                            .map(|i| state.tables.label(&state.tables.tables()[i]))
+                            .unwrap_or("请选择码表"),
+                    )
+                    .show_ui(ui, |ui| {
+                        for (i, name) in state.tables.tables().iter().enumerate() {
+                            if ui
+                                .selectable_label(current_idx == Some(i), state.tables.label(name))
+                                .on_hover_text(name)
+                                .clicked()
+                            {
+                                selected = Some(state.tables.directory().join(name));
+                            }
+                        }
+                    });
+                if let Some(path) = selected {
+                    state.select_table(path);
+                }
+            });
+        } else {
+            ui.label("（目录下未找到 .dict 码表文件）");
+            ui.add_space(4.0);
         }
-        ui.label("从程序目录 tables/ 复制模板码表到此目录");
-    });
 
-    ui.horizontal(|ui| {
-        if ui.button("管理当前码表…").clicked() {
-            state.tables.editor.open = true;
+        // ── 初始化码表：从 exe 同目录 tables/ 复制模板 ──
+        ui.horizontal_wrapped(|ui| {
+            if ui.button("补全内置码表").clicked() {
+                init_tables(state);
+            }
+            ui.label("添加缺少的内置码表，保留已有文件");
+        });
+
+        ui.horizontal_wrapped(|ui| {
+            if ui.button("管理当前码表…").clicked() {
+                state.tables.editor.open = true;
+            }
+            ui.label(format!(
+                "当前码表共 {} 条",
+                state.tables.editor.entries.len()
+            ));
+        });
+
+        ui.separator();
+    });
+    crate::ui_style::card(ui, "用户词库", |ui| {
+        // ── 用户词库路径 ──
+        let base_dir = state
+            .config_path
+            .parent()
+            .unwrap_or_else(|| Path::new("."))
+            .to_path_buf();
+        path_row(ui, state, &base_dir);
+
+        ui.separator();
+
+        ui.horizontal_wrapped(|ui| {
+            let mut exact = state.config.dictionary.enable_exact_match;
+            if ui.checkbox(&mut exact, "启用精确匹配优先").changed() {
+                state.config.dictionary.enable_exact_match = exact;
+                state.mark_dirty();
+            }
+        });
+
+        ui.horizontal_wrapped(|ui| {
+            let mut fuzzy = state.config.dictionary.enable_fuzzy;
+            if ui.checkbox(&mut fuzzy, "启用模糊音").changed() {
+                state.config.dictionary.enable_fuzzy = fuzzy;
+                state.mark_dirty();
+            }
+        });
+
+        ui.separator();
+
+        ui.horizontal_wrapped(|ui| {
+            let mut user_dict = state.config.dictionary.enable_user_dict;
+            if ui.checkbox(&mut user_dict, "启用用户词库功能").changed() {
+                state.config.dictionary.enable_user_dict = user_dict;
+                state.mark_dirty();
+            }
+        });
+
+        if ui.button("管理自造词…").clicked() {
+            open_user_dictionary(state);
         }
-        ui.label(format!(
-            "当前码表共 {} 条",
-            state.tables.editor.entries.len()
-        ));
     });
-
-    ui.separator();
-
-    // ── 用户词库路径 ──
-    let base_dir = state
-        .config_path
-        .parent()
-        .unwrap_or_else(|| Path::new("."))
-        .to_path_buf();
-    path_row(
-        ui,
-        "用户词库路径:",
-        &mut state.config.dictionary.user_table,
-        &mut state.dirty,
-        &mut state.status_msg,
-        &mut state.pending_pick,
-        FilePickTarget::UserTable,
-        &base_dir,
-    );
-
-    ui.separator();
-
-    ui.horizontal(|ui| {
-        let mut exact = state.config.dictionary.enable_exact_match;
-        if ui.checkbox(&mut exact, "启用精确匹配优先").changed() {
-            state.config.dictionary.enable_exact_match = exact;
-            state.mark_dirty();
-        }
-    });
-
-    ui.horizontal(|ui| {
-        let mut fuzzy = state.config.dictionary.enable_fuzzy;
-        if ui.checkbox(&mut fuzzy, "启用模糊音").changed() {
-            state.config.dictionary.enable_fuzzy = fuzzy;
-            state.mark_dirty();
-        }
-    });
-
-    ui.separator();
-
-    ui.horizontal(|ui| {
-        let mut user_dict = state.config.dictionary.enable_user_dict;
-        if ui.checkbox(&mut user_dict, "启用用户词库功能").changed() {
-            state.config.dictionary.enable_user_dict = user_dict;
-            state.mark_dirty();
-        }
-    });
-
-    if ui.button("管理自造词…").clicked() {
-        open_user_dictionary(state);
-    }
-
     show_table_editor_window(ui.ctx(), state);
     show_user_dictionary_window(ui.ctx(), state);
 }
@@ -172,7 +174,7 @@ fn show_table_editor_window(ctx: &egui::Context, state: &mut AppState) {
 
 fn show_table_editor(ui: &mut Ui, state: &mut AppState) {
     if let Some(error) = &state.tables.editor.load_error {
-        ui.colored_label(egui::Color32::LIGHT_RED, format!("码表读取失败：{error}"));
+        ui.colored_label(crate::ui_style::ERROR, format!("码表读取失败：{error}"));
         return;
     }
 
@@ -190,14 +192,14 @@ fn show_table_editor(ui: &mut Ui, state: &mut AppState) {
             editor.entries.len()
         ));
 
-        ui.horizontal(|ui| {
+        ui.horizontal_wrapped(|ui| {
             ui.label("显示名称:");
             changed |= ui
                 .text_edit_singleline(&mut editor.config.display_name)
                 .changed();
             ui.label("留空使用文件名");
         });
-        ui.horizontal(|ui| {
+        ui.horizontal_wrapped(|ui| {
             ui.label("码表类型:");
             let mut kind = editor.config.table_type;
             egui::ComboBox::from_id_source("table_type")
@@ -246,7 +248,7 @@ fn show_table_editor(ui: &mut Ui, state: &mut AppState) {
             if editor.config.charset != "abcdefghijklmnopqrstuvwxyz"
                 || !editor.wildcard_key.is_empty()
             {
-                ui.colored_label(egui::Color32::LIGHT_RED, "已加载的拼音头配置不合法。");
+                ui.colored_label(crate::ui_style::ERROR, "已加载的拼音头配置不合法。");
                 if ui.button("修正拼音字符集与万能键配置").clicked() {
                     editor.set_table_type(core_engine::TableType::Pinyin);
                     changed = true;
@@ -309,12 +311,12 @@ fn show_table_editor(ui: &mut Ui, state: &mut AppState) {
                     ui.monospace(format!("---\n{header}---"));
                 }
                 Err(error) => {
-                    ui.colored_label(egui::Color32::LIGHT_RED, error);
+                    ui.colored_label(crate::ui_style::ERROR, error);
                 }
             }
         });
 
-        ui.horizontal(|ui| {
+        ui.horizontal_wrapped(|ui| {
             ui.label("搜索:");
             let response = ui.add(
                 egui::TextEdit::singleline(&mut editor.search)
@@ -335,7 +337,7 @@ fn show_table_editor(ui: &mut Ui, state: &mut AppState) {
         });
 
         ui.separator();
-        ui.horizontal(|ui| {
+        ui.horizontal_wrapped(|ui| {
             ui.strong("编码");
             ui.add_space(116.0);
             ui.strong("字词");
@@ -351,7 +353,7 @@ fn show_table_editor(ui: &mut Ui, state: &mut AppState) {
                 for row in rows {
                     let index = editor.visible_entry_index(row);
                     let entry = &editor.entries[index];
-                    ui.horizontal(|ui| {
+                    ui.horizontal_wrapped(|ui| {
                         if ui
                             .add_sized(
                                 [150.0, row_height],
@@ -375,7 +377,7 @@ fn show_table_editor(ui: &mut Ui, state: &mut AppState) {
         }
 
         ui.separator();
-        ui.horizontal(|ui| {
+        ui.horizontal_wrapped(|ui| {
             ui.label("编码");
             ui.add(egui::TextEdit::singleline(&mut editor.code).desired_width(100.0));
             ui.label("字词");
@@ -387,7 +389,7 @@ fn show_table_editor(ui: &mut Ui, state: &mut AppState) {
                 .clicked();
         });
 
-        ui.horizontal(|ui| {
+        ui.horizontal_wrapped(|ui| {
             ui.label("另存为:");
             ui.add(
                 egui::TextEdit::singleline(&mut editor.save_as_name)
@@ -436,9 +438,9 @@ fn show_table_editor(ui: &mut Ui, state: &mut AppState) {
     }
 
     if let Err(error) = state.tables.editor.draft_config() {
-        ui.colored_label(egui::Color32::LIGHT_RED, error);
+        ui.colored_label(crate::ui_style::ERROR, error);
     } else if state.tables.editor.validation_stale() {
-        ui.colored_label(egui::Color32::YELLOW, "配置已修改，请点击“验证码表”");
+        ui.colored_label(crate::ui_style::WARNING, "配置已修改，请点击“验证码表”");
     } else {
         show_validation_report(ui, &state.tables.editor.validation);
     }
@@ -451,7 +453,7 @@ fn show_validation_report(ui: &mut Ui, report: &core_engine::TableValidationRepo
     }
 
     ui.colored_label(
-        egui::Color32::LIGHT_RED,
+        crate::ui_style::ERROR,
         format!("发现 {} 个违规项", report.issue_count),
     );
     egui::ScrollArea::vertical()
@@ -517,12 +519,16 @@ fn show_user_dictionary_window(ctx: &egui::Context, state: &mut AppState) {
                 return;
             };
 
+            ui.label("新增、更新、删除和导入会立即保存，无需点击主窗口的保存按钮。");
+            if let Some(message) = &state.status_msg {
+                ui.label(message);
+            }
             ui.label(format!(
                 "{}（{} 条）",
                 dictionary.path().display(),
                 dictionary.entries().len()
             ));
-            ui.horizontal(|ui| {
+            ui.horizontal_wrapped(|ui| {
                 if ui.button("导入…").clicked() && state.pending_pick.is_none() {
                     requested_pick = Some((
                         FilePickTarget::UserDictionaryImport,
@@ -569,10 +575,11 @@ fn show_user_dictionary_window(ctx: &egui::Context, state: &mut AppState) {
                 editor.word.clone_from(&entry.word);
                 editor.weight = entry.weight;
                 editor.selected = Some(index);
+                editor.remove_confirm = false;
             }
 
             ui.separator();
-            ui.horizontal(|ui| {
+            ui.horizontal_wrapped(|ui| {
                 ui.label("编码");
                 ui.text_edit_singleline(&mut editor.code);
                 ui.label("词条");
@@ -580,7 +587,7 @@ fn show_user_dictionary_window(ctx: &egui::Context, state: &mut AppState) {
                 ui.label("词频");
                 ui.add(egui::DragValue::new(&mut editor.weight));
             });
-            ui.horizontal(|ui| {
+            ui.horizontal_wrapped(|ui| {
                 if ui.button("新增").clicked() {
                     action = Some(UserDictionaryAction::Add(Entry {
                         code: editor.code.trim().to_string(),
@@ -605,14 +612,25 @@ fn show_user_dictionary_window(ctx: &egui::Context, state: &mut AppState) {
                     .add_enabled(editor.selected.is_some(), egui::Button::new("删除"))
                     .clicked()
                 {
-                    action = Some(UserDictionaryAction::Remove(
-                        editor.selected.unwrap_or_default(),
-                    ));
+                    editor.remove_confirm = true;
                 }
                 if ui.button("清空表单").clicked() {
                     editor.clear_form();
                 }
             });
+            if editor.remove_confirm {
+                ui.horizontal_wrapped(|ui| {
+                    ui.label(format!("确定删除“{}”？此操作立即生效。", editor.word));
+                    if ui.button("确认删除词条").clicked() {
+                        action = Some(UserDictionaryAction::Remove(
+                            editor.selected.unwrap_or_default(),
+                        ));
+                    }
+                    if ui.button("取消删除").clicked() {
+                        editor.remove_confirm = false;
+                    }
+                });
+            }
         });
     state.user_dictionary_editor.open = open;
     if let Some(action) = action {
@@ -690,7 +708,7 @@ fn init_tables(state: &mut AppState) {
         }
     };
 
-    if let Err(e) = std::fs::create_dir_all(&state.tables.directory()) {
+    if let Err(e) = std::fs::create_dir_all(state.tables.directory()) {
         state.status_msg = Some(format!("❌ 无法创建码表目录: {e}"));
         return;
     }
@@ -699,8 +717,11 @@ fn init_tables(state: &mut AppState) {
     if let Ok(entries) = std::fs::read_dir(&src) {
         for entry in entries.flatten() {
             let path = entry.path();
-            if path.extension().map_or(false, |e| e == "dict") {
+            if path.extension().is_some_and(|e| e == "dict") {
                 let dest = state.tables.directory().join(path.file_name().unwrap());
+                if dest.exists() {
+                    continue;
+                }
                 match std::fs::copy(&path, &dest) {
                     Ok(_) => copied += 1,
                     Err(e) => log::warn!("复制码表失败 {}: {e}", path.display()),
@@ -722,39 +743,35 @@ fn init_tables(state: &mut AppState) {
     }
 }
 
-fn path_row(
-    ui: &mut Ui,
-    label: &str,
-    path: &mut PathBuf,
-    dirty: &mut bool,
-    status_msg: &mut Option<String>,
-    pending: &mut Option<PickRequest>,
-    target: FilePickTarget,
-    base_dir: &Path,
-) {
-    ui.horizontal(|ui| {
-        ui.label(label);
-        let mut s = path.display().to_string();
-        if ui.text_edit_singleline(&mut s).changed() {
-            *path = PathBuf::from(s);
-            state::set_dirty(dirty, status_msg);
+fn path_row(ui: &mut Ui, app: &mut AppState, base_dir: &Path) {
+    ui.horizontal_wrapped(|ui| {
+        ui.label("用户词库路径:");
+        let mut text = app.config.dictionary.user_table.display().to_string();
+        if ui.text_edit_singleline(&mut text).changed() {
+            app.config.dictionary.user_table = PathBuf::from(text);
+            app.mark_dirty();
         }
-        if ui.button("浏览…").clicked() && pending.is_none() {
+        if ui.button("浏览…").clicked() && app.pending_pick.is_none() {
             let (tx, rx) = std::sync::mpsc::channel();
-            let start_dir = path
+            let start_dir = app
+                .config
+                .dictionary
+                .user_table
                 .parent()
                 .filter(|p| p.exists())
-                .map(|p| p.to_path_buf())
-                .unwrap_or_else(|| base_dir.to_path_buf());
+                .unwrap_or(base_dir)
+                .to_path_buf();
             std::thread::spawn(move || {
-                let dialog = rfd::FileDialog::new().set_directory(&start_dir);
-                let result = match target {
-                    FilePickTarget::UserTable => dialog.set_file_name("user.dict").save_file(),
-                    _ => dialog.pick_file(),
-                };
+                let result = rfd::FileDialog::new()
+                    .set_directory(start_dir)
+                    .set_file_name("user.dict")
+                    .save_file();
                 let _ = tx.send(result);
             });
-            *pending = Some(PickRequest { target, rx });
+            app.pending_pick = Some(PickRequest {
+                target: FilePickTarget::UserTable,
+                rx,
+            });
         }
     });
 }

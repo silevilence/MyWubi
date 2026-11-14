@@ -81,7 +81,15 @@ cargo build --release
 ```powershell
 # 直接运行
 .\target\release\settings.exe
+
+# 独立皮肤编辑器，也可从设置中的「候选外观」打开
+.\target\release\skin_editor.exe
 ```
+
+设置按常用输入、候选外观、码表与词库、特殊输入、预测与学习、输入法管理、关于与更新分组。
+配置修改统一点击「保存更改」或按 `Ctrl+S`；重新加载和退出会提示未保存的修改。
+皮肤编辑器单独管理 Windows / Android 皮肤草稿，「导出皮肤文件」保存新文件，「应用到 Windows」立即更新输入法皮肤。
+设置保存前会核对磁盘配置是否变化；皮肤编辑器应用前读取最新配置，保留其他设置。
 
 ## 测试
 
@@ -94,7 +102,16 @@ cargo test
 
 # 运行基准测试
 cargo bench -p core_engine --bench dictionary_bench
+
+# 两个桌面程序的文件操作回归：本地测试数据，无窗口、无下载
+cargo build -p settings --offline --locked
+.\scripts\test-settings-ui.ps1
+
+# 另外自动渲染常用页面和小窗口，保存截图后退出，无需逐项点击
+.\scripts\test-settings-ui.ps1 -Capture
 ```
+
+操作接口、验收范围和界面审查记录见 [Windows 设置界面与自动化验证](docs/windows-settings-ui.md)。
 
 ## 配置文件
 
