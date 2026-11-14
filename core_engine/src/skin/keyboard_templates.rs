@@ -5,6 +5,7 @@ use std::collections::BTreeMap;
 pub fn add(package: &mut Package, id: &str) -> Result<(), Error> {
     let (sets, columns, modes): (Vec<&str>, usize, Vec<Mode>) = match id {
         "shape14" => (vec!["qw","er","ty","ui","op","as","df","gh","jk","l","zx","cv","bn","m"],5,vec![Mode::Main]),
+        "shape9" => (vec!["abc","def","ghi","jkl","mno","pqr","stu","vwx","yz"],3,vec![Mode::Main]),
         _ => return Err(Error::Invalid("未知键盘模板".into())),
     };
     let mapping_id=format!("{id}.mapping");
@@ -38,7 +39,8 @@ pub fn add(package: &mut Package, id: &str) -> Result<(), Error> {
 }
 pub fn package() -> Result<Package,Error> {
     let mut package=super::parameters::builtin_package("jade")?;
-    package.metadata.id="mywubi.keyboards".into();package.metadata.version="1".into();package.metadata.name="内置键盘作者模板".into();
+    package.metadata.id="mywubi.keyboards".into();package.metadata.version="2".into();package.metadata.name="内置键盘作者模板".into();
     add(&mut package,"shape14")?;
+    add(&mut package,"shape9")?;
     Ok(package)
 }

@@ -27,3 +27,15 @@ fn fourteen_key_real_dictionary_retains_reference_words() {
         assert!(result.candidates.iter().any(|m|m.text==entry.word),"lost {}",entry.code);
     }
 }
+
+#[test]
+fn nine_key_groups_are_semantic_and_missing_mapping_is_rejected() {
+    let package=keyboard_templates::package().unwrap();
+    let c=package.platforms["android"].components.iter().find(|c|c.id=="shape9").unwrap();
+    let (layout,mapping)=layout(&package,c).unwrap();let mut mapping=mapping.unwrap();
+    assert_eq!(layout.keys.iter().filter(|k|matches!(k.action,KeyAction::Group(_))).count(),9);
+    assert_eq!(mapping.groups.values().map(String::len).sum::<usize>(),26);
+    layout.validate_geometry(Some(&mapping),&[KeyAction::Space,KeyAction::Enter,KeyAction::Cancel]).unwrap();
+    mapping.groups.remove("g0");
+    assert!(layout.validate_geometry(Some(&mapping),&[KeyAction::Space,KeyAction::Enter,KeyAction::Cancel]).is_err());
+}
