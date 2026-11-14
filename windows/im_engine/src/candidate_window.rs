@@ -277,6 +277,26 @@ unsafe extern "system" fn wnd_proc(
     lparam: LPARAM,
 ) -> LRESULT {
     match msg {
+        WM_NCHITTEST => {
+            let ptr = GetWindowLongPtrW(hwnd, GWLP_USERDATA) as *mut WindowData;
+            if !ptr.is_null() {
+                let mut point = POINT {
+                    x: (lparam.0 as u16) as i16 as i32,
+                    y: ((lparam.0 >> 16) as u16) as i16 as i32,
+                };
+                if ScreenToClient(hwnd, &mut point).as_bool()
+                    && (*ptr).hits.borrow().iter().any(|(r, _, _)| {
+                        point.x >= r.left
+                            && point.x < r.right
+                            && point.y >= r.top
+                            && point.y < r.bottom
+                    })
+                {
+                    return LRESULT(HTCLIENT as isize);
+                }
+            }
+            LRESULT(HTTRANSPARENT as isize)
+        }
         WM_MOUSEACTIVATE => LRESULT(MA_NOACTIVATE as isize),
         WM_LBUTTONDOWN | WM_LBUTTONUP => {
             let ptr = GetWindowLongPtrW(hwnd, GWLP_USERDATA) as *mut WindowData;

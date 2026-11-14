@@ -85,13 +85,18 @@ impl Renderer {
         let geometry = (monitor.0, monitor.1, monitor.2, monitor.3, size);
         let scale = size as f32 / 19.0;
         let dip = size as f32 / (f32::from(data.theme.font_size) * 96.0 / 72.0).max(1.0);
+        let parameters = data.theme.parameters.as_deref();
+        let shadow = parameters.map_or(0.0, |p| p.number("shadow") * dip);
+        let margin = (shadow * 2.0).ceil() as i32;
         let preferred_width = data
             .theme
             .parameters
             .as_ref()
             .map_or(900.0 * scale, |p| p.number("max_width") * dip);
-        let max_width = preferred_width.min((monitor.2 - monitor.0 - 16).max(80) as f32);
-        let max_height = (650.0 * scale).min((monitor.3 - monitor.1 - 16).max(80) as f32);
+        let max_width =
+            preferred_width.min((monitor.2 - monitor.0 - 16 - margin * 2).max(80) as f32);
+        let max_height =
+            (650.0 * scale).min((monitor.3 - monitor.1 - 16 - margin * 2).max(80) as f32);
         if self.system.is_none() {
             self.system = Some(TextSystem::new()?);
         }
@@ -124,7 +129,10 @@ impl Renderer {
         self.scroll = self
             .scroll
             .clamp(0.0, (scene.height - visible_height).max(0.0));
-        let (width, height_px) = (scene.width.ceil() as i32, height.ceil() as i32);
+        let (width, height_px) = (
+            scene.width.ceil() as i32 + margin * 2,
+            height.ceil() as i32 + margin * 2,
+        );
         let position = anchor
             .map(|anchor| compute_window_rect(anchor, (width, height_px), monitor))
             .unwrap_or((monitor.0 + 8, monitor.1 + 8));
@@ -140,12 +148,13 @@ impl Renderer {
                 continue;
             }
             if let Some(color) = block.background {
-                draws.push(Draw::Fill {
+                draws.push(Draw::RoundFill {
                     left: block.x - 2.0,
                     top,
                     right: block.x + block.layout.width + 2.0,
                     bottom,
                     color,
+                    radius: parameters.map_or(0.0, |p| p.number("selected_radius") * dip),
                 });
             }
             draws.push(Draw::Text {
@@ -205,7 +214,7 @@ impl Renderer {
                         left: x as i32,
                         top: visible_height.ceil() as i32,
                         right: (x + layout.width).ceil() as i32,
-                        bottom: height_px,
+                        bottom: height.ceil() as i32,
                     },
                     0,
                     id,
@@ -213,26 +222,50 @@ impl Renderer {
             }
         }
         let border = 0xffa0a0a0;
-        for (left, top, right, bottom) in [
-            (0.0, 0.0, scene.width, 1.0),
-            (0.0, height - 1.0, scene.width, height),
-            (0.0, 0.0, 1.0, height),
-            (scene.width - 1.0, 0.0, scene.width, height),
-        ] {
-            draws.push(Draw::Fill {
-                left,
-                top,
-                right,
-                bottom,
-                color: border,
-            });
+        if parameters.is_none() {
+            for (left, top, right, bottom) in [
+                (0.0, 0.0, scene.width, 1.0),
+                (0.0, height - 1.0, scene.width, height),
+                (0.0, 0.0, 1.0, height),
+                (scene.width - 1.0, 0.0, scene.width, height),
+            ] {
+                draws.push(Draw::Fill {
+                    left,
+                    top,
+                    right,
+                    bottom,
+                    color: border,
+                });
+            }
         }
-        let bitmap = system.render(
-            width as u32,
-            height_px as u32,
-            data.theme.background_color,
-            &draws,
-        )?;
+        let bitmap = if let Some(p) = parameters {
+            for (rect, _, _) in &mut next_hits {
+                rect.left += margin;
+                rect.right += margin;
+                rect.top += margin;
+                rect.bottom += margin;
+            }
+            system
+                .render_alpha(
+                    scene.width.ceil() as u32,
+                    height.ceil() as u32,
+                    data.theme.background_color,
+                    &draws,
+                )?
+                .framed(
+                    p.number("corner_radius") * dip,
+                    p.number("border_width") * dip,
+                    p.color("border"),
+                    shadow,
+                )?
+        } else {
+            system.render(
+                width as u32,
+                height_px as u32,
+                data.theme.background_color,
+                &draws,
+            )?
+        };
         unsafe {
             UpdateLayeredWindow(
                 hwnd,

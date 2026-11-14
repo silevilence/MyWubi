@@ -79,3 +79,9 @@ SK-04 只交付共享解析、配置读写和双端设置草稿入口；实际�
 Android 通过 ResolveSkin 在 loader 线程预解析浅深变体；SameInputConfiguration 在配置通知和保存校验时识别纯外观，避免 BuildRuntime 和 ApplyRuntime。皮肤加载失败保留旧外观；冷启动可用旧默认显示。服务保留完整变体，具体键盘语义样式由 SK-12 接入。版本库无删除 API，活动快照持有包字节，因此资源替换失败或旧文件被外部删除不破坏已发布内容。
 
 自动化检查覆盖失败不发布、旧快照仍可读、1000 次切换释放退休快照、字号保留、输入配置等价及 FFI 对待确认输入无副作用。尚未用这些结果替代最终多宿主、可见延迟或真实设备证据。
+
+## Windows 透明合成（SK-07）
+
+保持 DirectWrite 字形与彩色表情，DC target 改用 premultiplied alpha；旧 render API 仍强制不透明，新增 render_alpha 保留透明通道。Bitmap::framed 在预乘空间处理圆角蒙版、边框和轻阴影，内容先裁入原始矩形再合成装饰；阴影的边距只平移已有命中框，不增加命中范围。WM_NCHITTEST 对非交互区域返回透明命中结果。
+
+依据：[Microsoft ID2D1DCRenderTarget](https://learn.microsoft.com/en-us/windows/win32/api/d2d1/nn-d2d1-id2d1dcrendertarget)。像素测试验证透明边角、半透明中心及 RGB 不超过 alpha；原有彩色表情和组合字符光栅测试回归通过。实际浅深宿主边缘、焦点和 GDI 对象曲线仍在统一验收采集。

@@ -53,7 +53,7 @@ impl TextSystem {
                 r#type: D2D1_RENDER_TARGET_TYPE_SOFTWARE,
                 pixelFormat: D2D1_PIXEL_FORMAT {
                     format: DXGI_FORMAT_B8G8R8A8_UNORM,
-                    alphaMode: D2D1_ALPHA_MODE_IGNORE,
+                    alphaMode: D2D1_ALPHA_MODE_PREMULTIPLIED,
                 },
                 dpiX: 96.0,
                 dpiY: 96.0,
@@ -168,6 +168,28 @@ impl TextSystem {
         background: u32,
         draws: &[Draw<'_>],
     ) -> Result<Bitmap> {
+        self.render_internal(width, height, background, draws, false)
+    }
+
+    /// Transparent premultiplied BGRA for UpdateLayeredWindow and native previews.
+    pub fn render_alpha(
+        &self,
+        width: u32,
+        height: u32,
+        background: u32,
+        draws: &[Draw<'_>],
+    ) -> Result<Bitmap> {
+        self.render_internal(width, height, background, draws, true)
+    }
+
+    fn render_internal(
+        &self,
+        width: u32,
+        height: u32,
+        background: u32,
+        draws: &[Draw<'_>],
+        alpha: bool,
+    ) -> Result<Bitmap> {
         let mut bitmap = Bitmap::new(width, height)?;
         unsafe {
             self.target.BindDC(
@@ -183,14 +205,23 @@ impl TextSystem {
             let mut brushes = HashMap::new();
             for draw in draws {
                 let color = match draw {
-                    Draw::Text { color, .. } | Draw::Fill { color, .. } => *color,
+                    Draw::Text { color, .. }
+                    | Draw::Fill { color, .. }
+                    | Draw::RoundFill { color, .. } => *color,
                 };
                 if let std::collections::hash_map::Entry::Vacant(entry) = brushes.entry(color) {
-                    entry.insert(self.target.CreateSolidColorBrush(&rgba(color), None)?);
+                    entry.insert(self.target.CreateSolidColorBrush(
+                        &rgba(if alpha { color } else { color | 0xff000000 }),
+                        None,
+                    )?);
                 }
             }
             self.target.BeginDraw();
-            self.target.Clear(Some(&rgba(background)));
+            self.target.Clear(Some(&rgba(if alpha {
+                background
+            } else {
+                background | 0xff000000
+            })));
             for draw in draws {
                 match draw {
                     Draw::Text {
@@ -222,20 +253,49 @@ impl TextSystem {
                         },
                         &brushes[color],
                     ),
+                    Draw::RoundFill {
+                        left,
+                        top,
+                        right,
+                        bottom,
+                        radius,
+                        color,
+                    } => self.target.FillRoundedRectangle(
+                        &D2D1_ROUNDED_RECT {
+                            rect: D2D_RECT_F {
+                                left: *left,
+                                top: *top,
+                                right: *right,
+                                bottom: *bottom,
+                            },
+                            radiusX: *radius,
+                            radiusY: *radius,
+                        },
+                        &brushes[color],
+                    ),
                 }
             }
             self.target.EndDraw(None, None)?;
             GdiFlush().ok()?;
         }
-        // DC targets ignore alpha. Layered windows and egui need opaque pixels.
-        for pixel in bitmap.pixels_mut().as_chunks_mut::<4>().0 {
-            pixel[3] = 255;
+        if !alpha {
+            for pixel in bitmap.pixels_mut().as_chunks_mut::<4>().0 {
+                pixel[3] = 255;
+            }
         }
         Ok(bitmap)
     }
 }
 
 pub enum Draw<'a> {
+    RoundFill {
+        left: f32,
+        top: f32,
+        right: f32,
+        bottom: f32,
+        radius: f32,
+        color: u32,
+    },
     Text {
         layout: &'a TextLayout,
         x: f32,
@@ -251,12 +311,42 @@ pub enum Draw<'a> {
     },
 }
 
+impl Draw<'_> {
+    pub fn translate(&mut self, dx: f32, dy: f32) {
+        match self {
+            Self::Text { x, y, .. } => {
+                *x += dx;
+                *y += dy;
+            }
+            Self::Fill {
+                left,
+                top,
+                right,
+                bottom,
+                ..
+            }
+            | Self::RoundFill {
+                left,
+                top,
+                right,
+                bottom,
+                ..
+            } => {
+                *left += dx;
+                *right += dx;
+                *top += dy;
+                *bottom += dy;
+            }
+        }
+    }
+}
+
 fn rgba(argb: u32) -> D2D1_COLOR_F {
     D2D1_COLOR_F {
         r: ((argb >> 16) & 255) as f32 / 255.0,
         g: ((argb >> 8) & 255) as f32 / 255.0,
         b: (argb & 255) as f32 / 255.0,
-        a: 1.0,
+        a: ((argb >> 24) & 255) as f32 / 255.0,
     }
 }
 
@@ -271,6 +361,51 @@ pub struct Bitmap {
 }
 
 impl Bitmap {
+    /// Masks content and composites a border and soft shadow in premultiplied space.
+    /// The returned margin is visual decoration only; callers offset existing hit boxes.
+    pub fn framed(&self, radius: f32, border_width: f32, border: u32, shadow: f32) -> Result<Self> {
+        let margin = (shadow * 2.0).ceil() as u32;
+        let mut output = Self::new(self.width + margin * 2, self.height + margin * 2)?;
+        let width = self.width as f32;
+        let height = self.height as f32;
+        let radius = radius.clamp(0.0, width.min(height) / 2.0);
+        let source = self.pixels();
+        let out_width = output.width as usize;
+        for (index, pixel) in output.pixels_mut().chunks_exact_mut(4).enumerate() {
+            let x = (index % out_width) as f32 - margin as f32 + 0.5;
+            let y = (index / out_width) as f32 - margin as f32 + 0.5;
+            let qx = (x - width / 2.0).abs() - (width / 2.0 - radius);
+            let qy = (y - height / 2.0).abs() - (height / 2.0 - radius);
+            let distance = qx.max(0.0).hypot(qy.max(0.0)) + qx.max(qy).min(0.0) - radius;
+            let outer = (0.5 - distance).clamp(0.0, 1.0);
+            let inner = (0.5 - distance - border_width).clamp(0.0, 1.0);
+            let shadow_alpha = if shadow > 0.0 {
+                0.18 * (1.0 - (distance.max(0.0) / (2.0 * shadow)).min(1.0)).powi(2) * (1.0 - outer)
+            } else {
+                0.0
+            };
+            let mut rgba = [0.0, 0.0, 0.0, shadow_alpha];
+            if x >= 0.0 && y >= 0.0 && x < width && y < height {
+                let start = ((y as usize) * self.width as usize + x as usize) * 4;
+                let a = source[start + 3] as f32 / 255.0 * outer;
+                for channel in 0..3 {
+                    rgba[channel] = source[start + channel] as f32 / 255.0 * outer;
+                }
+                rgba[3] = a + rgba[3] * (1.0 - a);
+            }
+            let a = ((border >> 24) & 255) as f32 / 255.0 * (outer - inner);
+            for channel in 0..3 {
+                let c = ((border >> (channel * 8)) & 255) as f32 / 255.0;
+                rgba[channel] = c * a + rgba[channel] * (1.0 - a);
+            }
+            rgba[3] = a + rgba[3] * (1.0 - a);
+            for channel in 0..4 {
+                pixel[channel] = (rgba[channel] * 255.0).round().clamp(0.0, 255.0) as u8;
+            }
+        }
+        Ok(output)
+    }
+
     fn new(width: u32, height: u32) -> Result<Self> {
         if width == 0
             || height == 0
