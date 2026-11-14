@@ -33,7 +33,10 @@ impl log::Log for FileLogger {
             .map(|d| d.as_secs_f64())
             .unwrap_or(0.0);
         if let Ok(mut file) = self.file.lock() {
-            let _ = writeln!(file, "[{ts:.3}] [{level}] [{target}] {msg}");
+            // Multiple host processes append to this file. Format first so one
+            // append contains the whole record instead of interleaved fragments.
+            let line = format!("[{ts:.3}] [{level}] [{target}] {msg}\n");
+            let _ = file.write_all(line.as_bytes());
         }
     }
 

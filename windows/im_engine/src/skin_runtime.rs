@@ -122,8 +122,12 @@ pub fn start(path: PathBuf, config: &Config) {
                             .map_err(|e| e.to_string())
                     }) {
                     Ok(next) => {
+                        let code = next.parameters.color("code");
                         skin.store(Arc::new(next));
-                        log::info!("[skin] 已发布完整外观快照");
+                        log::info!(
+                            "[skin] 已发布完整外观快照 pid={} code={code:08X}",
+                            std::process::id()
+                        );
                     }
                     Err(error) => log::error!("[skin] 保留上次可用皮肤：{error}"),
                 }

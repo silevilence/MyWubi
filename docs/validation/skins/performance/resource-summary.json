@@ -1,0 +1,196 @@
+{
+  "windows-stress-final.json": {
+    "reload": {
+      "p50_ns": 45944000,
+      "p95_ns": 54753400,
+      "p99_ns": 59095800,
+      "samples": 1000
+    },
+    "processes": [
+      {
+        "pid": 6728,
+        "private_mib_min_max": [
+          24.77,
+          36.277
+        ],
+        "private_mib_first": 36.117,
+        "private_mib_settled": 34.184,
+        "gdi_min_max": [
+          24,
+          33
+        ],
+        "handles_min_max": [
+          356,
+          363
+        ],
+        "user_min_max": [
+          36,
+          43
+        ],
+        "settled": {
+          "gdi": 24,
+          "handles": 360,
+          "pid": 6728,
+          "private_bytes": 35844096,
+          "user": 37,
+          "working_set": 65679360
+        }
+      },
+      {
+        "pid": 6124,
+        "private_mib_min_max": [
+          30.898,
+          45.152
+        ],
+        "private_mib_first": 32.824,
+        "private_mib_settled": 32.887,
+        "gdi_min_max": [
+          24,
+          24
+        ],
+        "handles_min_max": [
+          353,
+          363
+        ],
+        "user_min_max": [
+          36,
+          36
+        ],
+        "settled": {
+          "gdi": 24,
+          "handles": 357,
+          "pid": 6124,
+          "private_bytes": 34484224,
+          "user": 37,
+          "working_set": 65372160
+        }
+      },
+      {
+        "pid": 6284,
+        "private_mib_min_max": [
+          68.887,
+          92.398
+        ],
+        "private_mib_first": 81.848,
+        "private_mib_settled": 67.004,
+        "gdi_min_max": [
+          23,
+          29
+        ],
+        "handles_min_max": [
+          1729,
+          1737
+        ],
+        "user_min_max": [
+          64,
+          65
+        ],
+        "settled": {
+          "gdi": 23,
+          "handles": 1738,
+          "pid": 6284,
+          "private_bytes": 70258688,
+          "user": 66,
+          "working_set": 193593344
+        }
+      }
+    ]
+  },
+  "windows-stress.json": {
+    "reload": {
+      "p50_ns": 47511100,
+      "p95_ns": 68082200,
+      "p99_ns": 78503900,
+      "samples": 1000
+    },
+    "processes": [
+      {
+        "pid": 3556,
+        "private_mib_min_max": [
+          25.059,
+          46.508
+        ],
+        "private_mib_first": 28.465,
+        "private_mib_settled": 33.957,
+        "gdi_min_max": [
+          24,
+          33
+        ],
+        "handles_min_max": [
+          356,
+          361
+        ],
+        "user_min_max": [
+          36,
+          44
+        ],
+        "settled": {
+          "gdi": 24,
+          "handles": 356,
+          "pid": 3556,
+          "private_bytes": 35606528,
+          "user": 36,
+          "working_set": 65458176
+        }
+      },
+      {
+        "pid": 7812,
+        "private_mib_min_max": [
+          31.734,
+          45.73
+        ],
+        "private_mib_first": 31.938,
+        "private_mib_settled": 32.203,
+        "gdi_min_max": [
+          24,
+          24
+        ],
+        "handles_min_max": [
+          353,
+          353
+        ],
+        "user_min_max": [
+          36,
+          36
+        ],
+        "settled": {
+          "gdi": 24,
+          "handles": 353,
+          "pid": 7812,
+          "private_bytes": 33767424,
+          "user": 36,
+          "working_set": 65597440
+        }
+      },
+      {
+        "pid": 8476,
+        "private_mib_min_max": [
+          67.336,
+          90.09
+        ],
+        "private_mib_first": 79.605,
+        "private_mib_settled": 65.055,
+        "gdi_min_max": [
+          22,
+          28
+        ],
+        "handles_min_max": [
+          1706,
+          1717
+        ],
+        "user_min_max": [
+          65,
+          66
+        ],
+        "settled": {
+          "gdi": 22,
+          "handles": 1716,
+          "pid": 8476,
+          "private_bytes": 68214784,
+          "user": 65,
+          "working_set": 190300160
+        }
+      }
+    ]
+  }
+}

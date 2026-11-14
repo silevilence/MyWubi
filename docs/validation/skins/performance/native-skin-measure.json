@@ -1,0 +1,2385 @@
+{
+  "reload_render": {
+    "p50_ns": 28459200,
+    "p95_ns": 35034900,
+    "p99_ns": 38919600,
+    "samples": 1000
+  },
+  "resource_curve": [
+    {
+      "resources": {
+        "gdi": 2,
+        "handles": 193,
+        "pid": 34660,
+        "private_bytes": 21032960,
+        "user": 1,
+        "working_set": 34824192
+      },
+      "switch": 0
+    },
+    {
+      "resources": {
+        "gdi": 2,
+        "handles": 193,
+        "pid": 34660,
+        "private_bytes": 21024768,
+        "user": 1,
+        "working_set": 34869248
+      },
+      "switch": 10
+    },
+    {
+      "resources": {
+        "gdi": 2,
+        "handles": 193,
+        "pid": 34660,
+        "private_bytes": 21041152,
+        "user": 1,
+        "working_set": 34906112
+      },
+      "switch": 20
+    },
+    {
+      "resources": {
+        "gdi": 2,
+        "handles": 193,
+        "pid": 34660,
+        "private_bytes": 21078016,
+        "user": 1,
+        "working_set": 34955264
+      },
+      "switch": 30
+    },
+    {
+      "resources": {
+        "gdi": 2,
+        "handles": 193,
+        "pid": 34660,
+        "private_bytes": 21037056,
+        "user": 1,
+        "working_set": 34865152
+      },
+      "switch": 40
+    },
+    {
+      "resources": {
+        "gdi": 2,
+        "handles": 193,
+        "pid": 34660,
+        "private_bytes": 21041152,
+        "user": 1,
+        "working_set": 34869248
+      },
+      "switch": 50
+    },
+    {
+      "resources": {
+        "gdi": 2,
+        "handles": 193,
+        "pid": 34660,
+        "private_bytes": 21004288,
+        "user": 1,
+        "working_set": 34840576
+      },
+      "switch": 60
+    },
+    {
+      "resources": {
+        "gdi": 2,
+        "handles": 193,
+        "pid": 34660,
+        "private_bytes": 21004288,
+        "user": 1,
+        "working_set": 34881536
+      },
+      "switch": 70
+    },
+    {
+      "resources": {
+        "gdi": 2,
+        "handles": 193,
+        "pid": 34660,
+        "private_bytes": 21012480,
+        "user": 1,
+        "working_set": 34889728
+      },
+      "switch": 80
+    },
+    {
+      "resources": {
+        "gdi": 2,
+        "handles": 193,
+        "pid": 34660,
+        "private_bytes": 20258816,
+        "user": 1,
+        "working_set": 34136064
+      },
+      "switch": 90
+    },
+    {
+      "resources": {
+        "gdi": 2,
+        "handles": 193,
+        "pid": 34660,
+        "private_bytes": 20185088,
+        "user": 1,
+        "working_set": 34086912
+      },
+      "switch": 100
+    },
+    {
+      "resources": {
+        "gdi": 2,
+        "handles": 193,
+        "pid": 34660,
+        "private_bytes": 20172800,
+        "user": 1,
+        "working_set": 34086912
+      },
+      "switch": 110
+    },
+    {
+      "resources": {
+        "gdi": 2,
+        "handles": 193,
+        "pid": 34660,
+        "private_bytes": 20176896,
+        "user": 1,
+        "working_set": 34115584
+      },
+      "switch": 120
+    },
+    {
+      "resources": {
+        "gdi": 2,
+        "handles": 193,
+        "pid": 34660,
+        "private_bytes": 20148224,
+        "user": 1,
+        "working_set": 34103296
+      },
+      "switch": 130
+    },
+    {
+      "resources": {
+        "gdi": 2,
+        "handles": 193,
+        "pid": 34660,
+        "private_bytes": 20176896,
+        "user": 1,
+        "working_set": 34099200
+      },
+      "switch": 140
+    },
+    {
+      "resources": {
+        "gdi": 2,
+        "handles": 193,
+        "pid": 34660,
+        "private_bytes": 20172800,
+        "user": 1,
+        "working_set": 34156544
+      },
+      "switch": 150
+    },
+    {
+      "resources": {
+        "gdi": 2,
+        "handles": 193,
+        "pid": 34660,
+        "private_bytes": 20201472,
+        "user": 1,
+        "working_set": 34160640
+      },
+      "switch": 160
+    },
+    {
+      "resources": {
+        "gdi": 2,
+        "handles": 193,
+        "pid": 34660,
+        "private_bytes": 20217856,
+        "user": 1,
+        "working_set": 34172928
+      },
+      "switch": 170
+    },
+    {
+      "resources": {
+        "gdi": 2,
+        "handles": 193,
+        "pid": 34660,
+        "private_bytes": 20217856,
+        "user": 1,
+        "working_set": 34172928
+      },
+      "switch": 180
+    },
+    {
+      "resources": {
+        "gdi": 2,
+        "handles": 193,
+        "pid": 34660,
+        "private_bytes": 20090880,
+        "user": 1,
+        "working_set": 34086912
+      },
+      "switch": 190
+    },
+    {
+      "resources": {
+        "gdi": 2,
+        "handles": 193,
+        "pid": 34660,
+        "private_bytes": 20090880,
+        "user": 1,
+        "working_set": 34086912
+      },
+      "switch": 200
+    },
+    {
+      "resources": {
+        "gdi": 2,
+        "handles": 193,
+        "pid": 34660,
+        "private_bytes": 20090880,
+        "user": 1,
+        "working_set": 34086912
+      },
+      "switch": 210
+    },
+    {
+      "resources": {
+        "gdi": 2,
+        "handles": 193,
+        "pid": 34660,
+        "private_bytes": 20078592,
+        "user": 1,
+        "working_set": 34074624
+      },
+      "switch": 220
+    },
+    {
+      "resources": {
+        "gdi": 2,
+        "handles": 193,
+        "pid": 34660,
+        "private_bytes": 20086784,
+        "user": 1,
+        "working_set": 34086912
+      },
+      "switch": 230
+    },
+    {
+      "resources": {
+        "gdi": 2,
+        "handles": 193,
+        "pid": 34660,
+        "private_bytes": 20086784,
+        "user": 1,
+        "working_set": 34086912
+      },
+      "switch": 240
+    },
+    {
+      "resources": {
+        "gdi": 2,
+        "handles": 193,
+        "pid": 34660,
+        "private_bytes": 20090880,
+        "user": 1,
+        "working_set": 34070528
+      },
+      "switch": 250
+    },
+    {
+      "resources": {
+        "gdi": 2,
+        "handles": 193,
+        "pid": 34660,
+        "private_bytes": 20111360,
+        "user": 1,
+        "working_set": 34091008
+      },
+      "switch": 260
+    },
+    {
+      "resources": {
+        "gdi": 2,
+        "handles": 193,
+        "pid": 34660,
+        "private_bytes": 20123648,
+        "user": 1,
+        "working_set": 34119680
+      },
+      "switch": 270
+    },
+    {
+      "resources": {
+        "gdi": 2,
+        "handles": 193,
+        "pid": 34660,
+        "private_bytes": 20131840,
+        "user": 1,
+        "working_set": 34127872
+      },
+      "switch": 280
+    },
+    {
+      "resources": {
+        "gdi": 2,
+        "handles": 193,
+        "pid": 34660,
+        "private_bytes": 20131840,
+        "user": 1,
+        "working_set": 34136064
+      },
+      "switch": 290
+    },
+    {
+      "resources": {
+        "gdi": 2,
+        "handles": 193,
+        "pid": 34660,
+        "private_bytes": 20119552,
+        "user": 1,
+        "working_set": 34107392
+      },
+      "switch": 300
+    },
+    {
+      "resources": {
+        "gdi": 2,
+        "handles": 193,
+        "pid": 34660,
+        "private_bytes": 20197376,
+        "user": 1,
+        "working_set": 34172928
+      },
+      "switch": 310
+    },
+    {
+      "resources": {
+        "gdi": 2,
+        "handles": 193,
+        "pid": 34660,
+        "private_bytes": 20094976,
+        "user": 1,
+        "working_set": 34095104
+      },
+      "switch": 320
+    },
+    {
+      "resources": {
+        "gdi": 2,
+        "handles": 193,
+        "pid": 34660,
+        "private_bytes": 20094976,
+        "user": 1,
+        "working_set": 34095104
+      },
+      "switch": 330
+    },
+    {
+      "resources": {
+        "gdi": 2,
+        "handles": 193,
+        "pid": 34660,
+        "private_bytes": 20131840,
+        "user": 1,
+        "working_set": 34127872
+      },
+      "switch": 340
+    },
+    {
+      "resources": {
+        "gdi": 2,
+        "handles": 193,
+        "pid": 34660,
+        "private_bytes": 20094976,
+        "user": 1,
+        "working_set": 34086912
+      },
+      "switch": 350
+    },
+    {
+      "resources": {
+        "gdi": 2,
+        "handles": 193,
+        "pid": 34660,
+        "private_bytes": 20094976,
+        "user": 1,
+        "working_set": 34095104
+      },
+      "switch": 360
+    },
+    {
+      "resources": {
+        "gdi": 2,
+        "handles": 193,
+        "pid": 34660,
+        "private_bytes": 20037632,
+        "user": 1,
+        "working_set": 34041856
+      },
+      "switch": 370
+    },
+    {
+      "resources": {
+        "gdi": 2,
+        "handles": 193,
+        "pid": 34660,
+        "private_bytes": 20094976,
+        "user": 1,
+        "working_set": 34095104
+      },
+      "switch": 380
+    },
+    {
+      "resources": {
+        "gdi": 2,
+        "handles": 193,
+        "pid": 34660,
+        "private_bytes": 20090880,
+        "user": 1,
+        "working_set": 34082816
+      },
+      "switch": 390
+    },
+    {
+      "resources": {
+        "gdi": 2,
+        "handles": 193,
+        "pid": 34660,
+        "private_bytes": 20094976,
+        "user": 1,
+        "working_set": 34086912
+      },
+      "switch": 400
+    },
+    {
+      "resources": {
+        "gdi": 2,
+        "handles": 193,
+        "pid": 34660,
+        "private_bytes": 20090880,
+        "user": 1,
+        "working_set": 34086912
+      },
+      "switch": 410
+    },
+    {
+      "resources": {
+        "gdi": 2,
+        "handles": 193,
+        "pid": 34660,
+        "private_bytes": 20103168,
+        "user": 1,
+        "working_set": 34095104
+      },
+      "switch": 420
+    },
+    {
+      "resources": {
+        "gdi": 2,
+        "handles": 193,
+        "pid": 34660,
+        "private_bytes": 17399808,
+        "user": 1,
+        "working_set": 31748096
+      },
+      "switch": 430
+    },
+    {
+      "resources": {
+        "gdi": 2,
+        "handles": 193,
+        "pid": 34660,
+        "private_bytes": 20090880,
+        "user": 1,
+        "working_set": 34086912
+      },
+      "switch": 440
+    },
+    {
+      "resources": {
+        "gdi": 2,
+        "handles": 193,
+        "pid": 34660,
+        "private_bytes": 20127744,
+        "user": 1,
+        "working_set": 34111488
+      },
+      "switch": 450
+    },
+    {
+      "resources": {
+        "gdi": 2,
+        "handles": 193,
+        "pid": 34660,
+        "private_bytes": 20127744,
+        "user": 1,
+        "working_set": 34111488
+      },
+      "switch": 460
+    },
+    {
+      "resources": {
+        "gdi": 2,
+        "handles": 193,
+        "pid": 34660,
+        "private_bytes": 20135936,
+        "user": 1,
+        "working_set": 34115584
+      },
+      "switch": 470
+    },
+    {
+      "resources": {
+        "gdi": 2,
+        "handles": 193,
+        "pid": 34660,
+        "private_bytes": 20127744,
+        "user": 1,
+        "working_set": 34107392
+      },
+      "switch": 480
+    },
+    {
+      "resources": {
+        "gdi": 2,
+        "handles": 193,
+        "pid": 34660,
+        "private_bytes": 20127744,
+        "user": 1,
+        "working_set": 34107392
+      },
+      "switch": 490
+    },
+    {
+      "resources": {
+        "gdi": 2,
+        "handles": 193,
+        "pid": 34660,
+        "private_bytes": 20115456,
+        "user": 1,
+        "working_set": 34103296
+      },
+      "switch": 500
+    },
+    {
+      "resources": {
+        "gdi": 2,
+        "handles": 193,
+        "pid": 34660,
+        "private_bytes": 20115456,
+        "user": 1,
+        "working_set": 34103296
+      },
+      "switch": 510
+    },
+    {
+      "resources": {
+        "gdi": 2,
+        "handles": 193,
+        "pid": 34660,
+        "private_bytes": 20090880,
+        "user": 1,
+        "working_set": 34074624
+      },
+      "switch": 520
+    },
+    {
+      "resources": {
+        "gdi": 2,
+        "handles": 193,
+        "pid": 34660,
+        "private_bytes": 20123648,
+        "user": 1,
+        "working_set": 34103296
+      },
+      "switch": 530
+    },
+    {
+      "resources": {
+        "gdi": 2,
+        "handles": 193,
+        "pid": 34660,
+        "private_bytes": 20131840,
+        "user": 1,
+        "working_set": 34119680
+      },
+      "switch": 540
+    },
+    {
+      "resources": {
+        "gdi": 2,
+        "handles": 193,
+        "pid": 34660,
+        "private_bytes": 20127744,
+        "user": 1,
+        "working_set": 34107392
+      },
+      "switch": 550
+    },
+    {
+      "resources": {
+        "gdi": 2,
+        "handles": 193,
+        "pid": 34660,
+        "private_bytes": 20115456,
+        "user": 1,
+        "working_set": 34099200
+      },
+      "switch": 560
+    },
+    {
+      "resources": {
+        "gdi": 2,
+        "handles": 193,
+        "pid": 34660,
+        "private_bytes": 20115456,
+        "user": 1,
+        "working_set": 34099200
+      },
+      "switch": 570
+    },
+    {
+      "resources": {
+        "gdi": 2,
+        "handles": 193,
+        "pid": 34660,
+        "private_bytes": 20127744,
+        "user": 1,
+        "working_set": 34103296
+      },
+      "switch": 580
+    },
+    {
+      "resources": {
+        "gdi": 2,
+        "handles": 193,
+        "pid": 34660,
+        "private_bytes": 20127744,
+        "user": 1,
+        "working_set": 34103296
+      },
+      "switch": 590
+    },
+    {
+      "resources": {
+        "gdi": 2,
+        "handles": 193,
+        "pid": 34660,
+        "private_bytes": 17420288,
+        "user": 1,
+        "working_set": 31760384
+      },
+      "switch": 600
+    },
+    {
+      "resources": {
+        "gdi": 2,
+        "handles": 193,
+        "pid": 34660,
+        "private_bytes": 20115456,
+        "user": 1,
+        "working_set": 34099200
+      },
+      "switch": 610
+    },
+    {
+      "resources": {
+        "gdi": 2,
+        "handles": 193,
+        "pid": 34660,
+        "private_bytes": 20115456,
+        "user": 1,
+        "working_set": 34099200
+      },
+      "switch": 620
+    },
+    {
+      "resources": {
+        "gdi": 2,
+        "handles": 193,
+        "pid": 34660,
+        "private_bytes": 20127744,
+        "user": 1,
+        "working_set": 34103296
+      },
+      "switch": 630
+    },
+    {
+      "resources": {
+        "gdi": 2,
+        "handles": 193,
+        "pid": 34660,
+        "private_bytes": 20127744,
+        "user": 1,
+        "working_set": 34107392
+      },
+      "switch": 640
+    },
+    {
+      "resources": {
+        "gdi": 2,
+        "handles": 193,
+        "pid": 34660,
+        "private_bytes": 20176896,
+        "user": 1,
+        "working_set": 34152448
+      },
+      "switch": 650
+    },
+    {
+      "resources": {
+        "gdi": 2,
+        "handles": 193,
+        "pid": 34660,
+        "private_bytes": 20168704,
+        "user": 1,
+        "working_set": 34152448
+      },
+      "switch": 660
+    },
+    {
+      "resources": {
+        "gdi": 2,
+        "handles": 193,
+        "pid": 34660,
+        "private_bytes": 20172800,
+        "user": 1,
+        "working_set": 34156544
+      },
+      "switch": 670
+    },
+    {
+      "resources": {
+        "gdi": 2,
+        "handles": 193,
+        "pid": 34660,
+        "private_bytes": 20176896,
+        "user": 1,
+        "working_set": 34156544
+      },
+      "switch": 680
+    },
+    {
+      "resources": {
+        "gdi": 2,
+        "handles": 193,
+        "pid": 34660,
+        "private_bytes": 20164608,
+        "user": 1,
+        "working_set": 34156544
+      },
+      "switch": 690
+    },
+    {
+      "resources": {
+        "gdi": 2,
+        "handles": 193,
+        "pid": 34660,
+        "private_bytes": 20164608,
+        "user": 1,
+        "working_set": 34156544
+      },
+      "switch": 700
+    },
+    {
+      "resources": {
+        "gdi": 2,
+        "handles": 193,
+        "pid": 34660,
+        "private_bytes": 20172800,
+        "user": 1,
+        "working_set": 34160640
+      },
+      "switch": 710
+    },
+    {
+      "resources": {
+        "gdi": 2,
+        "handles": 193,
+        "pid": 34660,
+        "private_bytes": 20160512,
+        "user": 1,
+        "working_set": 34152448
+      },
+      "switch": 720
+    },
+    {
+      "resources": {
+        "gdi": 2,
+        "handles": 193,
+        "pid": 34660,
+        "private_bytes": 20164608,
+        "user": 1,
+        "working_set": 34152448
+      },
+      "switch": 730
+    },
+    {
+      "resources": {
+        "gdi": 2,
+        "handles": 193,
+        "pid": 34660,
+        "private_bytes": 20172800,
+        "user": 1,
+        "working_set": 34160640
+      },
+      "switch": 740
+    },
+    {
+      "resources": {
+        "gdi": 2,
+        "handles": 193,
+        "pid": 34660,
+        "private_bytes": 20172800,
+        "user": 1,
+        "working_set": 34160640
+      },
+      "switch": 750
+    },
+    {
+      "resources": {
+        "gdi": 2,
+        "handles": 193,
+        "pid": 34660,
+        "private_bytes": 17465344,
+        "user": 1,
+        "working_set": 31813632
+      },
+      "switch": 760
+    },
+    {
+      "resources": {
+        "gdi": 2,
+        "handles": 193,
+        "pid": 34660,
+        "private_bytes": 20168704,
+        "user": 1,
+        "working_set": 34156544
+      },
+      "switch": 770
+    },
+    {
+      "resources": {
+        "gdi": 2,
+        "handles": 193,
+        "pid": 34660,
+        "private_bytes": 20168704,
+        "user": 1,
+        "working_set": 34160640
+      },
+      "switch": 780
+    },
+    {
+      "resources": {
+        "gdi": 2,
+        "handles": 193,
+        "pid": 34660,
+        "private_bytes": 20168704,
+        "user": 1,
+        "working_set": 34160640
+      },
+      "switch": 790
+    },
+    {
+      "resources": {
+        "gdi": 2,
+        "handles": 193,
+        "pid": 34660,
+        "private_bytes": 20168704,
+        "user": 1,
+        "working_set": 34160640
+      },
+      "switch": 800
+    },
+    {
+      "resources": {
+        "gdi": 2,
+        "handles": 193,
+        "pid": 34660,
+        "private_bytes": 20176896,
+        "user": 1,
+        "working_set": 34168832
+      },
+      "switch": 810
+    },
+    {
+      "resources": {
+        "gdi": 2,
+        "handles": 193,
+        "pid": 34660,
+        "private_bytes": 20156416,
+        "user": 1,
+        "working_set": 34156544
+      },
+      "switch": 820
+    },
+    {
+      "resources": {
+        "gdi": 2,
+        "handles": 193,
+        "pid": 34660,
+        "private_bytes": 20156416,
+        "user": 1,
+        "working_set": 34156544
+      },
+      "switch": 830
+    },
+    {
+      "resources": {
+        "gdi": 2,
+        "handles": 193,
+        "pid": 34660,
+        "private_bytes": 20148224,
+        "user": 1,
+        "working_set": 34131968
+      },
+      "switch": 840
+    },
+    {
+      "resources": {
+        "gdi": 2,
+        "handles": 193,
+        "pid": 34660,
+        "private_bytes": 20148224,
+        "user": 1,
+        "working_set": 34148352
+      },
+      "switch": 850
+    },
+    {
+      "resources": {
+        "gdi": 2,
+        "handles": 193,
+        "pid": 34660,
+        "private_bytes": 20148224,
+        "user": 1,
+        "working_set": 34148352
+      },
+      "switch": 860
+    },
+    {
+      "resources": {
+        "gdi": 2,
+        "handles": 193,
+        "pid": 34660,
+        "private_bytes": 20148224,
+        "user": 1,
+        "working_set": 34152448
+      },
+      "switch": 870
+    },
+    {
+      "resources": {
+        "gdi": 2,
+        "handles": 193,
+        "pid": 34660,
+        "private_bytes": 20148224,
+        "user": 1,
+        "working_set": 34152448
+      },
+      "switch": 880
+    },
+    {
+      "resources": {
+        "gdi": 2,
+        "handles": 193,
+        "pid": 34660,
+        "private_bytes": 20148224,
+        "user": 1,
+        "working_set": 34152448
+      },
+      "switch": 890
+    },
+    {
+      "resources": {
+        "gdi": 2,
+        "handles": 193,
+        "pid": 34660,
+        "private_bytes": 20148224,
+        "user": 1,
+        "working_set": 34152448
+      },
+      "switch": 900
+    },
+    {
+      "resources": {
+        "gdi": 2,
+        "handles": 193,
+        "pid": 34660,
+        "private_bytes": 20148224,
+        "user": 1,
+        "working_set": 34152448
+      },
+      "switch": 910
+    },
+    {
+      "resources": {
+        "gdi": 2,
+        "handles": 193,
+        "pid": 34660,
+        "private_bytes": 20148224,
+        "user": 1,
+        "working_set": 34152448
+      },
+      "switch": 920
+    },
+    {
+      "resources": {
+        "gdi": 2,
+        "handles": 193,
+        "pid": 34660,
+        "private_bytes": 20082688,
+        "user": 1,
+        "working_set": 34086912
+      },
+      "switch": 930
+    },
+    {
+      "resources": {
+        "gdi": 2,
+        "handles": 193,
+        "pid": 34660,
+        "private_bytes": 20107264,
+        "user": 1,
+        "working_set": 34099200
+      },
+      "switch": 940
+    },
+    {
+      "resources": {
+        "gdi": 2,
+        "handles": 193,
+        "pid": 34660,
+        "private_bytes": 17408000,
+        "user": 1,
+        "working_set": 31764480
+      },
+      "switch": 950
+    },
+    {
+      "resources": {
+        "gdi": 2,
+        "handles": 193,
+        "pid": 34660,
+        "private_bytes": 20140032,
+        "user": 1,
+        "working_set": 34144256
+      },
+      "switch": 960
+    },
+    {
+      "resources": {
+        "gdi": 2,
+        "handles": 193,
+        "pid": 34660,
+        "private_bytes": 20144128,
+        "user": 1,
+        "working_set": 34148352
+      },
+      "switch": 970
+    },
+    {
+      "resources": {
+        "gdi": 2,
+        "handles": 193,
+        "pid": 34660,
+        "private_bytes": 20144128,
+        "user": 1,
+        "working_set": 34148352
+      },
+      "switch": 980
+    },
+    {
+      "resources": {
+        "gdi": 2,
+        "handles": 193,
+        "pid": 34660,
+        "private_bytes": 20144128,
+        "user": 1,
+        "working_set": 34148352
+      },
+      "switch": 990
+    },
+    {
+      "resources": {
+        "gdi": 2,
+        "handles": 193,
+        "pid": 34660,
+        "private_bytes": 20152320,
+        "user": 1,
+        "working_set": 34136064
+      },
+      "switch": 1000
+    }
+  ],
+  "results": [
+    {
+      "dark": false,
+      "load_decode_ns": 102500,
+      "preset": "legacy",
+      "render": {
+        "p50_ns": 485900,
+        "p95_ns": 911500,
+        "p99_ns": 1327700,
+        "samples": 200
+      },
+      "resources": {
+        "gdi": 2,
+        "handles": 189,
+        "pid": 34660,
+        "private_bytes": 4980736,
+        "user": 1,
+        "working_set": 18661376
+      },
+      "state": "ordinary"
+    },
+    {
+      "dark": false,
+      "load_decode_ns": 102500,
+      "preset": "legacy",
+      "render": {
+        "p50_ns": 504300,
+        "p95_ns": 1028000,
+        "p99_ns": 1401300,
+        "samples": 200
+      },
+      "resources": {
+        "gdi": 2,
+        "handles": 189,
+        "pid": 34660,
+        "private_bytes": 5165056,
+        "user": 1,
+        "working_set": 18939904
+      },
+      "state": "reverse"
+    },
+    {
+      "dark": false,
+      "load_decode_ns": 102500,
+      "preset": "legacy",
+      "render": {
+        "p50_ns": 569100,
+        "p95_ns": 1031800,
+        "p99_ns": 1445900,
+        "samples": 200
+      },
+      "resources": {
+        "gdi": 2,
+        "handles": 189,
+        "pid": 34660,
+        "private_bytes": 5689344,
+        "user": 1,
+        "working_set": 19513344
+      },
+      "state": "long"
+    },
+    {
+      "dark": false,
+      "load_decode_ns": 102500,
+      "preset": "legacy",
+      "render": {
+        "p50_ns": 467000,
+        "p95_ns": 881100,
+        "p99_ns": 1083900,
+        "samples": 200
+      },
+      "resources": {
+        "gdi": 2,
+        "handles": 189,
+        "pid": 34660,
+        "private_bytes": 5697536,
+        "user": 1,
+        "working_set": 20869120
+      },
+      "state": "prediction"
+    },
+    {
+      "dark": false,
+      "load_decode_ns": 102500,
+      "preset": "legacy",
+      "render": {
+        "p50_ns": 3085400,
+        "p95_ns": 4475300,
+        "p99_ns": 5246600,
+        "samples": 200
+      },
+      "resources": {
+        "gdi": 2,
+        "handles": 194,
+        "pid": 34660,
+        "private_bytes": 20815872,
+        "user": 1,
+        "working_set": 32333824
+      },
+      "state": "emoji"
+    },
+    {
+      "dark": false,
+      "load_decode_ns": 102500,
+      "preset": "legacy",
+      "render": {
+        "p50_ns": 454100,
+        "p95_ns": 795600,
+        "p99_ns": 1080700,
+        "samples": 200
+      },
+      "resources": {
+        "gdi": 2,
+        "handles": 194,
+        "pid": 34660,
+        "private_bytes": 21413888,
+        "user": 1,
+        "working_set": 31473664
+      },
+      "state": "unavailable"
+    },
+    {
+      "dark": false,
+      "load_decode_ns": 102500,
+      "preset": "legacy",
+      "render": {
+        "p50_ns": 397900,
+        "p95_ns": 649800,
+        "p99_ns": 830800,
+        "samples": 200
+      },
+      "resources": {
+        "gdi": 2,
+        "handles": 194,
+        "pid": 34660,
+        "private_bytes": 21643264,
+        "user": 1,
+        "working_set": 31621120
+      },
+      "state": "empty"
+    },
+    {
+      "dark": false,
+      "load_decode_ns": 16700,
+      "preset": "jade",
+      "render": {
+        "p50_ns": 1083100,
+        "p95_ns": 1553200,
+        "p99_ns": 2409600,
+        "samples": 200
+      },
+      "resources": {
+        "gdi": 2,
+        "handles": 192,
+        "pid": 34660,
+        "private_bytes": 21630976,
+        "user": 1,
+        "working_set": 31633408
+      },
+      "state": "ordinary"
+    },
+    {
+      "dark": false,
+      "load_decode_ns": 16700,
+      "preset": "jade",
+      "render": {
+        "p50_ns": 1535500,
+        "p95_ns": 2188200,
+        "p99_ns": 2647000,
+        "samples": 200
+      },
+      "resources": {
+        "gdi": 2,
+        "handles": 192,
+        "pid": 34660,
+        "private_bytes": 21643264,
+        "user": 1,
+        "working_set": 31719424
+      },
+      "state": "reverse"
+    },
+    {
+      "dark": false,
+      "load_decode_ns": 16700,
+      "preset": "jade",
+      "render": {
+        "p50_ns": 2502800,
+        "p95_ns": 3209200,
+        "p99_ns": 3957100,
+        "samples": 200
+      },
+      "resources": {
+        "gdi": 2,
+        "handles": 192,
+        "pid": 34660,
+        "private_bytes": 21643264,
+        "user": 1,
+        "working_set": 31830016
+      },
+      "state": "long"
+    },
+    {
+      "dark": false,
+      "load_decode_ns": 16700,
+      "preset": "jade",
+      "render": {
+        "p50_ns": 1064600,
+        "p95_ns": 1717500,
+        "p99_ns": 2045800,
+        "samples": 200
+      },
+      "resources": {
+        "gdi": 2,
+        "handles": 192,
+        "pid": 34660,
+        "private_bytes": 21643264,
+        "user": 1,
+        "working_set": 31719424
+      },
+      "state": "prediction"
+    },
+    {
+      "dark": false,
+      "load_decode_ns": 16700,
+      "preset": "jade",
+      "render": {
+        "p50_ns": 4146500,
+        "p95_ns": 5234600,
+        "p99_ns": 5840100,
+        "samples": 200
+      },
+      "resources": {
+        "gdi": 2,
+        "handles": 195,
+        "pid": 34660,
+        "private_bytes": 20295680,
+        "user": 1,
+        "working_set": 33529856
+      },
+      "state": "emoji"
+    },
+    {
+      "dark": false,
+      "load_decode_ns": 16700,
+      "preset": "jade",
+      "render": {
+        "p50_ns": 1390500,
+        "p95_ns": 2247000,
+        "p99_ns": 3306900,
+        "samples": 200
+      },
+      "resources": {
+        "gdi": 2,
+        "handles": 195,
+        "pid": 34660,
+        "private_bytes": 21524480,
+        "user": 1,
+        "working_set": 33665024
+      },
+      "state": "unavailable"
+    },
+    {
+      "dark": false,
+      "load_decode_ns": 16700,
+      "preset": "jade",
+      "render": {
+        "p50_ns": 1092700,
+        "p95_ns": 1554100,
+        "p99_ns": 1929800,
+        "samples": 200
+      },
+      "resources": {
+        "gdi": 2,
+        "handles": 195,
+        "pid": 34660,
+        "private_bytes": 21540864,
+        "user": 1,
+        "working_set": 33640448
+      },
+      "state": "empty"
+    },
+    {
+      "dark": true,
+      "load_decode_ns": 14200,
+      "preset": "jade",
+      "render": {
+        "p50_ns": 1164000,
+        "p95_ns": 1734900,
+        "p99_ns": 2196400,
+        "samples": 200
+      },
+      "resources": {
+        "gdi": 2,
+        "handles": 195,
+        "pid": 34660,
+        "private_bytes": 21540864,
+        "user": 1,
+        "working_set": 33640448
+      },
+      "state": "ordinary"
+    },
+    {
+      "dark": true,
+      "load_decode_ns": 14200,
+      "preset": "jade",
+      "render": {
+        "p50_ns": 1603200,
+        "p95_ns": 2648900,
+        "p99_ns": 3241100,
+        "samples": 200
+      },
+      "resources": {
+        "gdi": 2,
+        "handles": 195,
+        "pid": 34660,
+        "private_bytes": 21598208,
+        "user": 1,
+        "working_set": 33701888
+      },
+      "state": "reverse"
+    },
+    {
+      "dark": true,
+      "load_decode_ns": 14200,
+      "preset": "jade",
+      "render": {
+        "p50_ns": 2512500,
+        "p95_ns": 3666300,
+        "p99_ns": 4123300,
+        "samples": 200
+      },
+      "resources": {
+        "gdi": 2,
+        "handles": 195,
+        "pid": 34660,
+        "private_bytes": 21676032,
+        "user": 1,
+        "working_set": 33808384
+      },
+      "state": "long"
+    },
+    {
+      "dark": true,
+      "load_decode_ns": 14200,
+      "preset": "jade",
+      "render": {
+        "p50_ns": 1143900,
+        "p95_ns": 1788700,
+        "p99_ns": 2036500,
+        "samples": 200
+      },
+      "resources": {
+        "gdi": 2,
+        "handles": 195,
+        "pid": 34660,
+        "private_bytes": 18739200,
+        "user": 1,
+        "working_set": 30748672
+      },
+      "state": "prediction"
+    },
+    {
+      "dark": true,
+      "load_decode_ns": 14200,
+      "preset": "jade",
+      "render": {
+        "p50_ns": 3945100,
+        "p95_ns": 5373300,
+        "p99_ns": 6412300,
+        "samples": 200
+      },
+      "resources": {
+        "gdi": 2,
+        "handles": 195,
+        "pid": 34660,
+        "private_bytes": 18903040,
+        "user": 1,
+        "working_set": 33071104
+      },
+      "state": "emoji"
+    },
+    {
+      "dark": true,
+      "load_decode_ns": 14200,
+      "preset": "jade",
+      "render": {
+        "p50_ns": 1354300,
+        "p95_ns": 2024700,
+        "p99_ns": 2337100,
+        "samples": 200
+      },
+      "resources": {
+        "gdi": 2,
+        "handles": 195,
+        "pid": 34660,
+        "private_bytes": 19615744,
+        "user": 1,
+        "working_set": 33103872
+      },
+      "state": "unavailable"
+    },
+    {
+      "dark": true,
+      "load_decode_ns": 14200,
+      "preset": "jade",
+      "render": {
+        "p50_ns": 1071300,
+        "p95_ns": 1449200,
+        "p99_ns": 2096600,
+        "samples": 200
+      },
+      "resources": {
+        "gdi": 2,
+        "handles": 195,
+        "pid": 34660,
+        "private_bytes": 19640320,
+        "user": 1,
+        "working_set": 33107968
+      },
+      "state": "empty"
+    },
+    {
+      "dark": false,
+      "load_decode_ns": 14300,
+      "preset": "plain",
+      "render": {
+        "p50_ns": 1070600,
+        "p95_ns": 1618900,
+        "p99_ns": 1856000,
+        "samples": 200
+      },
+      "resources": {
+        "gdi": 2,
+        "handles": 195,
+        "pid": 34660,
+        "private_bytes": 19640320,
+        "user": 1,
+        "working_set": 33112064
+      },
+      "state": "ordinary"
+    },
+    {
+      "dark": false,
+      "load_decode_ns": 14300,
+      "preset": "plain",
+      "render": {
+        "p50_ns": 1555700,
+        "p95_ns": 2300200,
+        "p99_ns": 2926600,
+        "samples": 200
+      },
+      "resources": {
+        "gdi": 2,
+        "handles": 195,
+        "pid": 34660,
+        "private_bytes": 19902464,
+        "user": 1,
+        "working_set": 33267712
+      },
+      "state": "reverse"
+    },
+    {
+      "dark": false,
+      "load_decode_ns": 14300,
+      "preset": "plain",
+      "render": {
+        "p50_ns": 2519400,
+        "p95_ns": 3257200,
+        "p99_ns": 3903400,
+        "samples": 200
+      },
+      "resources": {
+        "gdi": 2,
+        "handles": 195,
+        "pid": 34660,
+        "private_bytes": 19951616,
+        "user": 1,
+        "working_set": 33366016
+      },
+      "state": "long"
+    },
+    {
+      "dark": false,
+      "load_decode_ns": 14300,
+      "preset": "plain",
+      "render": {
+        "p50_ns": 1118500,
+        "p95_ns": 1974500,
+        "p99_ns": 2345000,
+        "samples": 200
+      },
+      "resources": {
+        "gdi": 2,
+        "handles": 195,
+        "pid": 34660,
+        "private_bytes": 19951616,
+        "user": 1,
+        "working_set": 33243136
+      },
+      "state": "prediction"
+    },
+    {
+      "dark": false,
+      "load_decode_ns": 14300,
+      "preset": "plain",
+      "render": {
+        "p50_ns": 3873900,
+        "p95_ns": 4917400,
+        "p99_ns": 5324300,
+        "samples": 200
+      },
+      "resources": {
+        "gdi": 2,
+        "handles": 195,
+        "pid": 34660,
+        "private_bytes": 16728064,
+        "user": 1,
+        "working_set": 30941184
+      },
+      "state": "emoji"
+    },
+    {
+      "dark": false,
+      "load_decode_ns": 14300,
+      "preset": "plain",
+      "render": {
+        "p50_ns": 1443600,
+        "p95_ns": 3037900,
+        "p99_ns": 4021500,
+        "samples": 200
+      },
+      "resources": {
+        "gdi": 2,
+        "handles": 195,
+        "pid": 34660,
+        "private_bytes": 16801792,
+        "user": 1,
+        "working_set": 30912512
+      },
+      "state": "unavailable"
+    },
+    {
+      "dark": false,
+      "load_decode_ns": 14300,
+      "preset": "plain",
+      "render": {
+        "p50_ns": 1092300,
+        "p95_ns": 1645800,
+        "p99_ns": 2044100,
+        "samples": 200
+      },
+      "resources": {
+        "gdi": 2,
+        "handles": 195,
+        "pid": 34660,
+        "private_bytes": 16801792,
+        "user": 1,
+        "working_set": 30887936
+      },
+      "state": "empty"
+    },
+    {
+      "dark": true,
+      "load_decode_ns": 13600,
+      "preset": "plain",
+      "render": {
+        "p50_ns": 1110300,
+        "p95_ns": 2014600,
+        "p99_ns": 3048900,
+        "samples": 200
+      },
+      "resources": {
+        "gdi": 2,
+        "handles": 195,
+        "pid": 34660,
+        "private_bytes": 16801792,
+        "user": 1,
+        "working_set": 30900224
+      },
+      "state": "ordinary"
+    },
+    {
+      "dark": true,
+      "load_decode_ns": 13600,
+      "preset": "plain",
+      "render": {
+        "p50_ns": 1577700,
+        "p95_ns": 2384700,
+        "p99_ns": 3000400,
+        "samples": 200
+      },
+      "resources": {
+        "gdi": 2,
+        "handles": 195,
+        "pid": 34660,
+        "private_bytes": 16830464,
+        "user": 1,
+        "working_set": 30949376
+      },
+      "state": "reverse"
+    },
+    {
+      "dark": true,
+      "load_decode_ns": 13600,
+      "preset": "plain",
+      "render": {
+        "p50_ns": 2487800,
+        "p95_ns": 3399900,
+        "p99_ns": 4111300,
+        "samples": 200
+      },
+      "resources": {
+        "gdi": 2,
+        "handles": 195,
+        "pid": 34660,
+        "private_bytes": 16920576,
+        "user": 1,
+        "working_set": 31055872
+      },
+      "state": "long"
+    },
+    {
+      "dark": true,
+      "load_decode_ns": 13600,
+      "preset": "plain",
+      "render": {
+        "p50_ns": 1169600,
+        "p95_ns": 1877000,
+        "p99_ns": 2713600,
+        "samples": 200
+      },
+      "resources": {
+        "gdi": 2,
+        "handles": 195,
+        "pid": 34660,
+        "private_bytes": 16920576,
+        "user": 1,
+        "working_set": 30932992
+      },
+      "state": "prediction"
+    },
+    {
+      "dark": true,
+      "load_decode_ns": 13600,
+      "preset": "plain",
+      "render": {
+        "p50_ns": 3862300,
+        "p95_ns": 4825100,
+        "p99_ns": 5273300,
+        "samples": 200
+      },
+      "resources": {
+        "gdi": 2,
+        "handles": 195,
+        "pid": 34660,
+        "private_bytes": 23449600,
+        "user": 1,
+        "working_set": 35016704
+      },
+      "state": "emoji"
+    },
+    {
+      "dark": true,
+      "load_decode_ns": 13600,
+      "preset": "plain",
+      "render": {
+        "p50_ns": 1358800,
+        "p95_ns": 2185500,
+        "p99_ns": 2443300,
+        "samples": 200
+      },
+      "resources": {
+        "gdi": 2,
+        "handles": 195,
+        "pid": 34660,
+        "private_bytes": 24223744,
+        "user": 1,
+        "working_set": 35172352
+      },
+      "state": "unavailable"
+    },
+    {
+      "dark": true,
+      "load_decode_ns": 13600,
+      "preset": "plain",
+      "render": {
+        "p50_ns": 1121400,
+        "p95_ns": 1857300,
+        "p99_ns": 2428900,
+        "samples": 200
+      },
+      "resources": {
+        "gdi": 2,
+        "handles": 195,
+        "pid": 34660,
+        "private_bytes": 24252416,
+        "user": 1,
+        "working_set": 35151872
+      },
+      "state": "empty"
+    },
+    {
+      "dark": false,
+      "load_decode_ns": 14600,
+      "preset": "contrast",
+      "render": {
+        "p50_ns": 1070000,
+        "p95_ns": 1870200,
+        "p99_ns": 2337000,
+        "samples": 200
+      },
+      "resources": {
+        "gdi": 2,
+        "handles": 195,
+        "pid": 34660,
+        "private_bytes": 24252416,
+        "user": 1,
+        "working_set": 35151872
+      },
+      "state": "ordinary"
+    },
+    {
+      "dark": false,
+      "load_decode_ns": 14600,
+      "preset": "contrast",
+      "render": {
+        "p50_ns": 1848600,
+        "p95_ns": 3481400,
+        "p99_ns": 3901000,
+        "samples": 200
+      },
+      "resources": {
+        "gdi": 2,
+        "handles": 195,
+        "pid": 34660,
+        "private_bytes": 24264704,
+        "user": 1,
+        "working_set": 35192832
+      },
+      "state": "reverse"
+    },
+    {
+      "dark": false,
+      "load_decode_ns": 14600,
+      "preset": "contrast",
+      "render": {
+        "p50_ns": 2513100,
+        "p95_ns": 3993800,
+        "p99_ns": 5025300,
+        "samples": 200
+      },
+      "resources": {
+        "gdi": 2,
+        "handles": 195,
+        "pid": 34660,
+        "private_bytes": 24322048,
+        "user": 1,
+        "working_set": 35303424
+      },
+      "state": "long"
+    },
+    {
+      "dark": false,
+      "load_decode_ns": 14600,
+      "preset": "contrast",
+      "render": {
+        "p50_ns": 1346500,
+        "p95_ns": 2315500,
+        "p99_ns": 2643300,
+        "samples": 200
+      },
+      "resources": {
+        "gdi": 2,
+        "handles": 195,
+        "pid": 34660,
+        "private_bytes": 21385216,
+        "user": 1,
+        "working_set": 32243712
+      },
+      "state": "prediction"
+    },
+    {
+      "dark": false,
+      "load_decode_ns": 14600,
+      "preset": "contrast",
+      "render": {
+        "p50_ns": 4129000,
+        "p95_ns": 6865900,
+        "p99_ns": 7921500,
+        "samples": 200
+      },
+      "resources": {
+        "gdi": 2,
+        "handles": 195,
+        "pid": 34660,
+        "private_bytes": 20029440,
+        "user": 1,
+        "working_set": 31801344
+      },
+      "state": "emoji"
+    },
+    {
+      "dark": false,
+      "load_decode_ns": 14600,
+      "preset": "contrast",
+      "render": {
+        "p50_ns": 1171100,
+        "p95_ns": 1863900,
+        "p99_ns": 2448000,
+        "samples": 200
+      },
+      "resources": {
+        "gdi": 2,
+        "handles": 195,
+        "pid": 34660,
+        "private_bytes": 20025344,
+        "user": 1,
+        "working_set": 31772672
+      },
+      "state": "unavailable"
+    },
+    {
+      "dark": false,
+      "load_decode_ns": 14600,
+      "preset": "contrast",
+      "render": {
+        "p50_ns": 977400,
+        "p95_ns": 1519700,
+        "p99_ns": 1729700,
+        "samples": 200
+      },
+      "resources": {
+        "gdi": 2,
+        "handles": 195,
+        "pid": 34660,
+        "private_bytes": 20025344,
+        "user": 1,
+        "working_set": 31748096
+      },
+      "state": "empty"
+    },
+    {
+      "dark": true,
+      "load_decode_ns": 14400,
+      "preset": "contrast",
+      "render": {
+        "p50_ns": 919600,
+        "p95_ns": 1330400,
+        "p99_ns": 1910400,
+        "samples": 200
+      },
+      "resources": {
+        "gdi": 2,
+        "handles": 195,
+        "pid": 34660,
+        "private_bytes": 20025344,
+        "user": 1,
+        "working_set": 31748096
+      },
+      "state": "ordinary"
+    },
+    {
+      "dark": true,
+      "load_decode_ns": 14400,
+      "preset": "contrast",
+      "render": {
+        "p50_ns": 1316200,
+        "p95_ns": 2366500,
+        "p99_ns": 2642000,
+        "samples": 200
+      },
+      "resources": {
+        "gdi": 2,
+        "handles": 195,
+        "pid": 34660,
+        "private_bytes": 20025344,
+        "user": 1,
+        "working_set": 31813632
+      },
+      "state": "reverse"
+    },
+    {
+      "dark": true,
+      "load_decode_ns": 14400,
+      "preset": "contrast",
+      "render": {
+        "p50_ns": 2177200,
+        "p95_ns": 3096600,
+        "p99_ns": 3909800,
+        "samples": 200
+      },
+      "resources": {
+        "gdi": 2,
+        "handles": 195,
+        "pid": 34660,
+        "private_bytes": 20058112,
+        "user": 1,
+        "working_set": 31903744
+      },
+      "state": "long"
+    },
+    {
+      "dark": true,
+      "load_decode_ns": 14400,
+      "preset": "contrast",
+      "render": {
+        "p50_ns": 1251900,
+        "p95_ns": 2056300,
+        "p99_ns": 2493700,
+        "samples": 200
+      },
+      "resources": {
+        "gdi": 2,
+        "handles": 195,
+        "pid": 34660,
+        "private_bytes": 20058112,
+        "user": 1,
+        "working_set": 31780864
+      },
+      "state": "prediction"
+    },
+    {
+      "dark": true,
+      "load_decode_ns": 14400,
+      "preset": "contrast",
+      "render": {
+        "p50_ns": 4142400,
+        "p95_ns": 5817700,
+        "p99_ns": 6665600,
+        "samples": 200
+      },
+      "resources": {
+        "gdi": 2,
+        "handles": 195,
+        "pid": 34660,
+        "private_bytes": 23941120,
+        "user": 1,
+        "working_set": 36175872
+      },
+      "state": "emoji"
+    },
+    {
+      "dark": true,
+      "load_decode_ns": 14400,
+      "preset": "contrast",
+      "render": {
+        "p50_ns": 1410500,
+        "p95_ns": 2290800,
+        "p99_ns": 2708700,
+        "samples": 200
+      },
+      "resources": {
+        "gdi": 2,
+        "handles": 195,
+        "pid": 34660,
+        "private_bytes": 22093824,
+        "user": 1,
+        "working_set": 34574336
+      },
+      "state": "unavailable"
+    },
+    {
+      "dark": true,
+      "load_decode_ns": 14400,
+      "preset": "contrast",
+      "render": {
+        "p50_ns": 1415700,
+        "p95_ns": 2161800,
+        "p99_ns": 2636000,
+        "samples": 200
+      },
+      "resources": {
+        "gdi": 2,
+        "handles": 195,
+        "pid": 34660,
+        "private_bytes": 23072768,
+        "user": 1,
+        "working_set": 34553856
+      },
+      "state": "empty"
+    },
+    {
+      "dark": false,
+      "load_decode_ns": 52764500,
+      "preset": "bamboo",
+      "render": {
+        "p50_ns": 2122000,
+        "p95_ns": 3692400,
+        "p99_ns": 4826700,
+        "samples": 200
+      },
+      "resources": {
+        "gdi": 2,
+        "handles": 195,
+        "pid": 34660,
+        "private_bytes": 31330304,
+        "user": 1,
+        "working_set": 42381312
+      },
+      "state": "ordinary"
+    },
+    {
+      "dark": false,
+      "load_decode_ns": 52764500,
+      "preset": "bamboo",
+      "render": {
+        "p50_ns": 2972000,
+        "p95_ns": 5021700,
+        "p99_ns": 5918700,
+        "samples": 200
+      },
+      "resources": {
+        "gdi": 2,
+        "handles": 195,
+        "pid": 34660,
+        "private_bytes": 31354880,
+        "user": 1,
+        "working_set": 42455040
+      },
+      "state": "reverse"
+    },
+    {
+      "dark": false,
+      "load_decode_ns": 52764500,
+      "preset": "bamboo",
+      "render": {
+        "p50_ns": 4042200,
+        "p95_ns": 5210200,
+        "p99_ns": 6215400,
+        "samples": 200
+      },
+      "resources": {
+        "gdi": 2,
+        "handles": 195,
+        "pid": 34660,
+        "private_bytes": 28463104,
+        "user": 1,
+        "working_set": 39624704
+      },
+      "state": "long"
+    },
+    {
+      "dark": false,
+      "load_decode_ns": 52764500,
+      "preset": "bamboo",
+      "render": {
+        "p50_ns": 1587700,
+        "p95_ns": 2236200,
+        "p99_ns": 2891900,
+        "samples": 200
+      },
+      "resources": {
+        "gdi": 2,
+        "handles": 195,
+        "pid": 34660,
+        "private_bytes": 28577792,
+        "user": 1,
+        "working_set": 39526400
+      },
+      "state": "prediction"
+    },
+    {
+      "dark": false,
+      "load_decode_ns": 52764500,
+      "preset": "bamboo",
+      "render": {
+        "p50_ns": 4967300,
+        "p95_ns": 7027900,
+        "p99_ns": 7567100,
+        "samples": 200
+      },
+      "resources": {
+        "gdi": 2,
+        "handles": 195,
+        "pid": 34660,
+        "private_bytes": 26365952,
+        "user": 1,
+        "working_set": 39096320
+      },
+      "state": "emoji"
+    },
+    {
+      "dark": false,
+      "load_decode_ns": 52764500,
+      "preset": "bamboo",
+      "render": {
+        "p50_ns": 2125800,
+        "p95_ns": 2904100,
+        "p99_ns": 3445900,
+        "samples": 200
+      },
+      "resources": {
+        "gdi": 2,
+        "handles": 195,
+        "pid": 34660,
+        "private_bytes": 26394624,
+        "user": 1,
+        "working_set": 39079936
+      },
+      "state": "unavailable"
+    },
+    {
+      "dark": false,
+      "load_decode_ns": 52764500,
+      "preset": "bamboo",
+      "render": {
+        "p50_ns": 1687400,
+        "p95_ns": 2551300,
+        "p99_ns": 3091200,
+        "samples": 200
+      },
+      "resources": {
+        "gdi": 2,
+        "handles": 195,
+        "pid": 34660,
+        "private_bytes": 26394624,
+        "user": 1,
+        "working_set": 39047168
+      },
+      "state": "empty"
+    },
+    {
+      "dark": true,
+      "load_decode_ns": 21453800,
+      "preset": "bamboo",
+      "render": {
+        "p50_ns": 1634700,
+        "p95_ns": 2430100,
+        "p99_ns": 2989500,
+        "samples": 200
+      },
+      "resources": {
+        "gdi": 2,
+        "handles": 195,
+        "pid": 34660,
+        "private_bytes": 24969216,
+        "user": 1,
+        "working_set": 37670912
+      },
+      "state": "ordinary"
+    },
+    {
+      "dark": true,
+      "load_decode_ns": 21453800,
+      "preset": "bamboo",
+      "render": {
+        "p50_ns": 2562900,
+        "p95_ns": 3546600,
+        "p99_ns": 4375400,
+        "samples": 200
+      },
+      "resources": {
+        "gdi": 2,
+        "handles": 195,
+        "pid": 34660,
+        "private_bytes": 24985600,
+        "user": 1,
+        "working_set": 37728256
+      },
+      "state": "reverse"
+    },
+    {
+      "dark": true,
+      "load_decode_ns": 21453800,
+      "preset": "bamboo",
+      "render": {
+        "p50_ns": 4357800,
+        "p95_ns": 6371500,
+        "p99_ns": 7890900,
+        "samples": 200
+      },
+      "resources": {
+        "gdi": 2,
+        "handles": 195,
+        "pid": 34660,
+        "private_bytes": 25190400,
+        "user": 1,
+        "working_set": 37888000
+      },
+      "state": "long"
+    },
+    {
+      "dark": true,
+      "load_decode_ns": 21453800,
+      "preset": "bamboo",
+      "render": {
+        "p50_ns": 2361800,
+        "p95_ns": 3880500,
+        "p99_ns": 5882200,
+        "samples": 200
+      },
+      "resources": {
+        "gdi": 2,
+        "handles": 195,
+        "pid": 34660,
+        "private_bytes": 25190400,
+        "user": 1,
+        "working_set": 37744640
+      },
+      "state": "prediction"
+    },
+    {
+      "dark": true,
+      "load_decode_ns": 21453800,
+      "preset": "bamboo",
+      "render": {
+        "p50_ns": 6156300,
+        "p95_ns": 8119700,
+        "p99_ns": 10168000,
+        "samples": 200
+      },
+      "resources": {
+        "gdi": 2,
+        "handles": 195,
+        "pid": 34660,
+        "private_bytes": 26177536,
+        "user": 1,
+        "working_set": 38748160
+      },
+      "state": "emoji"
+    },
+    {
+      "dark": true,
+      "load_decode_ns": 21453800,
+      "preset": "bamboo",
+      "render": {
+        "p50_ns": 2514400,
+        "p95_ns": 4146800,
+        "p99_ns": 4869300,
+        "samples": 200
+      },
+      "resources": {
+        "gdi": 2,
+        "handles": 195,
+        "pid": 34660,
+        "private_bytes": 26177536,
+        "user": 1,
+        "working_set": 38719488
+      },
+      "state": "unavailable"
+    },
+    {
+      "dark": true,
+      "load_decode_ns": 21453800,
+      "preset": "bamboo",
+      "render": {
+        "p50_ns": 2205300,
+        "p95_ns": 3196800,
+        "p99_ns": 4020000,
+        "samples": 200
+      },
+      "resources": {
+        "gdi": 2,
+        "handles": 195,
+        "pid": 34660,
+        "private_bytes": 26189824,
+        "user": 1,
+        "working_set": 38703104
+      },
+      "state": "empty"
+    }
+  ],
+  "scope": "96 DPI native layout/raster and load/decode, not TSF/display latency",
+  "warmup": 20
+}

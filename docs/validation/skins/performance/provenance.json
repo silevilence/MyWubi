@@ -1,0 +1,34 @@
+{
+  "date": "2026-11-14",
+  "fix_commit": "e9dbe89",
+  "windows_dll_sha256": "9c6f37820a1c1b267e7659703819672019706443a8e0daacb4e4c1a8e1a3ecb6",
+  "windows_first_stress_dll_sha256": "a28a978ef895eb99cb965cf1ac122802bd53579a81358708cf8dc464e44a7faf",
+  "final_processes": [
+    {
+      "Id": 6284,
+      "ProcessName": "msedge"
+    },
+    {
+      "Id": 6124,
+      "ProcessName": "notepad"
+    },
+    {
+      "Id": 6728,
+      "ProcessName": "notepad"
+    }
+  ],
+  "portable_config": "C:/SkinPerfApp2/config.toml",
+  "fallback_and_final_stress_config": "C:/Users/WDAGUtilityAccount/AppData/Roaming/MyWubi/config.toml",
+  "resource_reuse": "Existing local Cargo/Gradle/SDK/NDK/font/table/APK/AVD/Notepad/Edge/image package; no downloads",
+  "cleanup": {
+    "sandbox_environments": [],
+    "adb_devices": []
+  },
+  "limits": [
+    "No physical Android or TalkBack",
+    "No hardware multi-monitor/DPI matrix",
+    "No compositor presentation timing",
+    "No full installation/upgrade matrix",
+    "AK-17-dependent matrix not run"
+  ]
+}

@@ -1,0 +1,202 @@
+{
+  "results": [
+    {
+      "dpi": 96,
+      "p50_ns": 389000,
+      "p95_ns": 766500,
+      "samples": 200,
+      "state": "ordinary"
+    },
+    {
+      "dpi": 96,
+      "p50_ns": 479000,
+      "p95_ns": 799800,
+      "samples": 200,
+      "state": "reverse"
+    },
+    {
+      "dpi": 96,
+      "p50_ns": 622800,
+      "p95_ns": 899300,
+      "samples": 200,
+      "state": "long"
+    },
+    {
+      "dpi": 96,
+      "p50_ns": 382200,
+      "p95_ns": 615600,
+      "samples": 200,
+      "state": "prediction"
+    },
+    {
+      "dpi": 96,
+      "p50_ns": 2769600,
+      "p95_ns": 4017200,
+      "samples": 200,
+      "state": "emoji"
+    },
+    {
+      "dpi": 96,
+      "p50_ns": 305700,
+      "p95_ns": 516300,
+      "samples": 200,
+      "state": "unavailable"
+    },
+    {
+      "dpi": 96,
+      "p50_ns": 294800,
+      "p95_ns": 481200,
+      "samples": 200,
+      "state": "empty"
+    },
+    {
+      "dpi": 120,
+      "p50_ns": 325800,
+      "p95_ns": 568000,
+      "samples": 200,
+      "state": "ordinary"
+    },
+    {
+      "dpi": 120,
+      "p50_ns": 340700,
+      "p95_ns": 725200,
+      "samples": 200,
+      "state": "reverse"
+    },
+    {
+      "dpi": 120,
+      "p50_ns": 444900,
+      "p95_ns": 948200,
+      "samples": 200,
+      "state": "long"
+    },
+    {
+      "dpi": 120,
+      "p50_ns": 377300,
+      "p95_ns": 754300,
+      "samples": 200,
+      "state": "prediction"
+    },
+    {
+      "dpi": 120,
+      "p50_ns": 2603200,
+      "p95_ns": 3345200,
+      "samples": 200,
+      "state": "emoji"
+    },
+    {
+      "dpi": 120,
+      "p50_ns": 576300,
+      "p95_ns": 849200,
+      "samples": 200,
+      "state": "unavailable"
+    },
+    {
+      "dpi": 120,
+      "p50_ns": 375500,
+      "p95_ns": 735000,
+      "samples": 200,
+      "state": "empty"
+    },
+    {
+      "dpi": 144,
+      "p50_ns": 322200,
+      "p95_ns": 585000,
+      "samples": 200,
+      "state": "ordinary"
+    },
+    {
+      "dpi": 144,
+      "p50_ns": 310900,
+      "p95_ns": 620300,
+      "samples": 200,
+      "state": "reverse"
+    },
+    {
+      "dpi": 144,
+      "p50_ns": 484000,
+      "p95_ns": 736200,
+      "samples": 200,
+      "state": "long"
+    },
+    {
+      "dpi": 144,
+      "p50_ns": 316100,
+      "p95_ns": 528300,
+      "samples": 200,
+      "state": "prediction"
+    },
+    {
+      "dpi": 144,
+      "p50_ns": 2368000,
+      "p95_ns": 3224200,
+      "samples": 200,
+      "state": "emoji"
+    },
+    {
+      "dpi": 144,
+      "p50_ns": 327300,
+      "p95_ns": 539300,
+      "samples": 200,
+      "state": "unavailable"
+    },
+    {
+      "dpi": 144,
+      "p50_ns": 313700,
+      "p95_ns": 487200,
+      "samples": 200,
+      "state": "empty"
+    },
+    {
+      "dpi": 192,
+      "p50_ns": 324800,
+      "p95_ns": 565600,
+      "samples": 200,
+      "state": "ordinary"
+    },
+    {
+      "dpi": 192,
+      "p50_ns": 440100,
+      "p95_ns": 793500,
+      "samples": 200,
+      "state": "reverse"
+    },
+    {
+      "dpi": 192,
+      "p50_ns": 612600,
+      "p95_ns": 1002900,
+      "samples": 200,
+      "state": "long"
+    },
+    {
+      "dpi": 192,
+      "p50_ns": 338900,
+      "p95_ns": 592700,
+      "samples": 200,
+      "state": "prediction"
+    },
+    {
+      "dpi": 192,
+      "p50_ns": 2388200,
+      "p95_ns": 3412100,
+      "samples": 200,
+      "state": "emoji"
+    },
+    {
+      "dpi": 192,
+      "p50_ns": 345700,
+      "p95_ns": 594600,
+      "samples": 200,
+      "state": "unavailable"
+    },
+    {
+      "dpi": 192,
+      "p50_ns": 314300,
+      "p95_ns": 597600,
+      "samples": 200,
+      "state": "empty"
+    }
+  ],
+  "scope": "Release native shaping + software raster; no HWND, TSF, compositor, or device latency",
+  "warmup": 20
+}

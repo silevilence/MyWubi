@@ -14,3 +14,4 @@ windows-numerics = "0.3"
 
 [dev-dependencies]
 serde_json.workspace = true
+windows = { workspace = true, features = ["Win32_System_ProcessStatus", "Win32_System_Threading"] }

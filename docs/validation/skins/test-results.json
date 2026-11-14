@@ -63,5 +63,42 @@
     },
     "note": "21 unique tests passed across a full run and focused retests; not one all-green full-suite run. Final bounded-grid correction was retested in dark landscape with expanded candidates.",
     "physical_device": "not available; explicitly left incomplete"
+  },
+  "continuation_2026_11_14": {
+    "im_engine": {
+      "command": "cargo test -p im_engine --offline --locked",
+      "unit_passed": 82,
+      "integration_passed": 3,
+      "ignored": 1,
+      "failed": 0
+    },
+    "first_click_regression": {
+      "before_fix": "failed: expected commit 工, actual empty",
+      "after_fix": "passed; actual Notepad and Edge clicks also passed"
+    },
+    "probe_clippy": {
+      "command": "cargo clippy -p text_render --example skin_probe --offline --locked -- -D warnings",
+      "result": "passed"
+    },
+    "android_loader": {
+      "class": "org.mywubi.SkinPerformanceTest",
+      "passed": 1,
+      "seconds": 263.168,
+      "switches": 1000,
+      "max_retired_bitmaps_alive": 0,
+      "result": "performance/android-loader.json"
+    },
+    "windows_multi_host": {
+      "switches": 1000,
+      "pids": [
+        6728,
+        6124,
+        6284
+      ],
+      "per_switch_acknowledgements": 3,
+      "result": "performance/windows-stress-final.json"
+    },
+    "visible_latency": "not_measured",
+    "note": "Targeted continuation, not a rerun of the full workspace or the full Android suite."
   }
 }

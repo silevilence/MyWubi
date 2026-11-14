@@ -46,8 +46,8 @@
   },
   {
     "path": "target/release/im_engine.dll",
-    "bytes": 6749696,
-    "sha256": "00a20dd632293000c888b1f99f7e72f8a4efb3a93b6d7f7fb1ee2cce447d0b64"
+    "bytes": 6676992,
+    "sha256": "9c6f37820a1c1b267e7659703819672019706443a8e0daacb4e4c1a8e1a3ecb6"
   },
   {
     "path": "android/app/build/outputs/apk/debug/app-debug.apk",
@@ -56,12 +56,17 @@
   },
   {
     "path": "android/app/build/outputs/apk/androidTest/debug/app-debug-androidTest.apk",
-    "bytes": 2621270,
-    "sha256": "d6b4c2a2ae8ef1d6dd5d6e720c2119c94b961bcdab75411e2f249cdf7ffdfe5d"
+    "bytes": 2623678,
+    "sha256": "a469720320dec9591396586ecc3d1fbb978e7b02d02991512c4575aa2a82b53c"
   },
   {
     "path": "android/app/src/androidTest/assets/skins/editor-bamboo.mywubi-skin",
     "bytes": 1560568,
     "sha256": "759bf7964c3ae55f83da87973b348d502215a8fc87218bd21d45bf1962d40f84"
+  },
+  {
+    "path": "target/release/examples/skin_probe.exe",
+    "bytes": 2327040,
+    "sha256": "f8ec00a46f945a759a63d63a748b7c04f7f59c6f82629e84fc256ac02e9265b9"
   }
 ]

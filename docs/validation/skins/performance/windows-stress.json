@@ -1,0 +1,3338 @@
+{
+  "acknowledged_pids": [
+    3556,
+    7812,
+    8476
+  ],
+  "curve": [
+    {
+      "elapsed_ms": 1655,
+      "processes": [
+        {
+          "gdi": 31,
+          "handles": 361,
+          "pid": 3556,
+          "private_bytes": 29847552,
+          "user": 44,
+          "working_set": 60055552
+        },
+        {
+          "gdi": 24,
+          "handles": 353,
+          "pid": 7812,
+          "private_bytes": 33488896,
+          "user": 36,
+          "working_set": 65540096
+        },
+        {
+          "gdi": 22,
+          "handles": 1711,
+          "pid": 8476,
+          "private_bytes": 83472384,
+          "user": 66,
+          "working_set": 203395072
+        }
+      ],
+      "switch": 0
+    },
+    {
+      "elapsed_ms": 2509,
+      "processes": [
+        {
+          "gdi": 27,
+          "handles": 360,
+          "pid": 3556,
+          "private_bytes": 26927104,
+          "user": 44,
+          "working_set": 57589760
+        },
+        {
+          "gdi": 24,
+          "handles": 353,
+          "pid": 7812,
+          "private_bytes": 33275904,
+          "user": 36,
+          "working_set": 65376256
+        },
+        {
+          "gdi": 22,
+          "handles": 1711,
+          "pid": 8476,
+          "private_bytes": 83431424,
+          "user": 66,
+          "working_set": 203354112
+        }
+      ],
+      "switch": 10
+    },
+    {
+      "elapsed_ms": 3318,
+      "processes": [
+        {
+          "gdi": 33,
+          "handles": 360,
+          "pid": 3556,
+          "private_bytes": 30232576,
+          "user": 44,
+          "working_set": 60178432
+        },
+        {
+          "gdi": 24,
+          "handles": 353,
+          "pid": 7812,
+          "private_bytes": 33488896,
+          "user": 36,
+          "working_set": 65523712
+        },
+        {
+          "gdi": 22,
+          "handles": 1711,
+          "pid": 8476,
+          "private_bytes": 83394560,
+          "user": 66,
+          "working_set": 203317248
+        }
+      ],
+      "switch": 20
+    },
+    {
+      "elapsed_ms": 4143,
+      "processes": [
+        {
+          "gdi": 33,
+          "handles": 360,
+          "pid": 3556,
+          "private_bytes": 27828224,
+          "user": 44,
+          "working_set": 58236928
+        },
+        {
+          "gdi": 24,
+          "handles": 353,
+          "pid": 7812,
+          "private_bytes": 33492992,
+          "user": 36,
+          "working_set": 65499136
+        },
+        {
+          "gdi": 22,
+          "handles": 1711,
+          "pid": 8476,
+          "private_bytes": 83435520,
+          "user": 66,
+          "working_set": 203358208
+        }
+      ],
+      "switch": 30
+    },
+    {
+      "elapsed_ms": 4997,
+      "processes": [
+        {
+          "gdi": 33,
+          "handles": 360,
+          "pid": 3556,
+          "private_bytes": 30322688,
+          "user": 44,
+          "working_set": 60129280
+        },
+        {
+          "gdi": 24,
+          "handles": 353,
+          "pid": 7812,
+          "private_bytes": 33488896,
+          "user": 36,
+          "working_set": 65499136
+        },
+        {
+          "gdi": 22,
+          "handles": 1711,
+          "pid": 8476,
+          "private_bytes": 83443712,
+          "user": 66,
+          "working_set": 203366400
+        }
+      ],
+      "switch": 40
+    },
+    {
+      "elapsed_ms": 5827,
+      "processes": [
+        {
+          "gdi": 27,
+          "handles": 360,
+          "pid": 3556,
+          "private_bytes": 26279936,
+          "user": 44,
+          "working_set": 56934400
+        },
+        {
+          "gdi": 24,
+          "handles": 353,
+          "pid": 7812,
+          "private_bytes": 33492992,
+          "user": 36,
+          "working_set": 65519616
+        },
+        {
+          "gdi": 22,
+          "handles": 1711,
+          "pid": 8476,
+          "private_bytes": 83435520,
+          "user": 66,
+          "working_set": 203358208
+        }
+      ],
+      "switch": 50
+    },
+    {
+      "elapsed_ms": 6636,
+      "processes": [
+        {
+          "gdi": 27,
+          "handles": 360,
+          "pid": 3556,
+          "private_bytes": 28745728,
+          "user": 44,
+          "working_set": 58970112
+        },
+        {
+          "gdi": 24,
+          "handles": 353,
+          "pid": 7812,
+          "private_bytes": 33492992,
+          "user": 36,
+          "working_set": 65572864
+        },
+        {
+          "gdi": 22,
+          "handles": 1711,
+          "pid": 8476,
+          "private_bytes": 83259392,
+          "user": 66,
+          "working_set": 203182080
+        }
+      ],
+      "switch": 60
+    },
+    {
+      "elapsed_ms": 7480,
+      "processes": [
+        {
+          "gdi": 27,
+          "handles": 360,
+          "pid": 3556,
+          "private_bytes": 34697216,
+          "user": 44,
+          "working_set": 65171456
+        },
+        {
+          "gdi": 24,
+          "handles": 353,
+          "pid": 7812,
+          "private_bytes": 33488896,
+          "user": 36,
+          "working_set": 65556480
+        },
+        {
+          "gdi": 22,
+          "handles": 1711,
+          "pid": 8476,
+          "private_bytes": 83435520,
+          "user": 66,
+          "working_set": 203358208
+        }
+      ],
+      "switch": 70
+    },
+    {
+      "elapsed_ms": 8339,
+      "processes": [
+        {
+          "gdi": 27,
+          "handles": 360,
+          "pid": 3556,
+          "private_bytes": 26275840,
+          "user": 44,
+          "working_set": 57020416
+        },
+        {
+          "gdi": 24,
+          "handles": 353,
+          "pid": 7812,
+          "private_bytes": 46632960,
+          "user": 36,
+          "working_set": 77496320
+        },
+        {
+          "gdi": 22,
+          "handles": 1711,
+          "pid": 8476,
+          "private_bytes": 94466048,
+          "user": 66,
+          "working_set": 213843968
+        }
+      ],
+      "switch": 80
+    },
+    {
+      "elapsed_ms": 9187,
+      "processes": [
+        {
+          "gdi": 27,
+          "handles": 360,
+          "pid": 3556,
+          "private_bytes": 28708864,
+          "user": 44,
+          "working_set": 59019264
+        },
+        {
+          "gdi": 24,
+          "handles": 353,
+          "pid": 7812,
+          "private_bytes": 33497088,
+          "user": 36,
+          "working_set": 65556480
+        },
+        {
+          "gdi": 22,
+          "handles": 1711,
+          "pid": 8476,
+          "private_bytes": 83271680,
+          "user": 66,
+          "working_set": 203194368
+        }
+      ],
+      "switch": 90
+    },
+    {
+      "elapsed_ms": 10041,
+      "processes": [
+        {
+          "gdi": 27,
+          "handles": 360,
+          "pid": 3556,
+          "private_bytes": 37081088,
+          "user": 44,
+          "working_set": 67141632
+        },
+        {
+          "gdi": 24,
+          "handles": 353,
+          "pid": 7812,
+          "private_bytes": 33492992,
+          "user": 36,
+          "working_set": 65552384
+        },
+        {
+          "gdi": 22,
+          "handles": 1711,
+          "pid": 8476,
+          "private_bytes": 83435520,
+          "user": 66,
+          "working_set": 203358208
+        }
+      ],
+      "switch": 100
+    },
+    {
+      "elapsed_ms": 10862,
+      "processes": [
+        {
+          "gdi": 27,
+          "handles": 360,
+          "pid": 3556,
+          "private_bytes": 34521088,
+          "user": 44,
+          "working_set": 65044480
+        },
+        {
+          "gdi": 24,
+          "handles": 353,
+          "pid": 7812,
+          "private_bytes": 33492992,
+          "user": 36,
+          "working_set": 65531904
+        },
+        {
+          "gdi": 22,
+          "handles": 1711,
+          "pid": 8476,
+          "private_bytes": 83435520,
+          "user": 66,
+          "working_set": 203358208
+        }
+      ],
+      "switch": 110
+    },
+    {
+      "elapsed_ms": 11723,
+      "processes": [
+        {
+          "gdi": 27,
+          "handles": 360,
+          "pid": 3556,
+          "private_bytes": 29655040,
+          "user": 44,
+          "working_set": 59158528
+        },
+        {
+          "gdi": 24,
+          "handles": 353,
+          "pid": 7812,
+          "private_bytes": 33497088,
+          "user": 36,
+          "working_set": 65560576
+        },
+        {
+          "gdi": 22,
+          "handles": 1711,
+          "pid": 8476,
+          "private_bytes": 83435520,
+          "user": 66,
+          "working_set": 203358208
+        }
+      ],
+      "switch": 120
+    },
+    {
+      "elapsed_ms": 12571,
+      "processes": [
+        {
+          "gdi": 31,
+          "handles": 360,
+          "pid": 3556,
+          "private_bytes": 27123712,
+          "user": 44,
+          "working_set": 57982976
+        },
+        {
+          "gdi": 24,
+          "handles": 353,
+          "pid": 7812,
+          "private_bytes": 33497088,
+          "user": 36,
+          "working_set": 65495040
+        },
+        {
+          "gdi": 22,
+          "handles": 1711,
+          "pid": 8476,
+          "private_bytes": 83435520,
+          "user": 66,
+          "working_set": 203358208
+        }
+      ],
+      "switch": 130
+    },
+    {
+      "elapsed_ms": 13389,
+      "processes": [
+        {
+          "gdi": 29,
+          "handles": 360,
+          "pid": 3556,
+          "private_bytes": 29097984,
+          "user": 44,
+          "working_set": 59076608
+        },
+        {
+          "gdi": 24,
+          "handles": 353,
+          "pid": 7812,
+          "private_bytes": 33497088,
+          "user": 36,
+          "working_set": 65523712
+        },
+        {
+          "gdi": 22,
+          "handles": 1711,
+          "pid": 8476,
+          "private_bytes": 83386368,
+          "user": 66,
+          "working_set": 203309056
+        }
+      ],
+      "switch": 140
+    },
+    {
+      "elapsed_ms": 14217,
+      "processes": [
+        {
+          "gdi": 27,
+          "handles": 360,
+          "pid": 3556,
+          "private_bytes": 28749824,
+          "user": 44,
+          "working_set": 59064320
+        },
+        {
+          "gdi": 24,
+          "handles": 353,
+          "pid": 7812,
+          "private_bytes": 33497088,
+          "user": 36,
+          "working_set": 65515520
+        },
+        {
+          "gdi": 22,
+          "handles": 1711,
+          "pid": 8476,
+          "private_bytes": 92598272,
+          "user": 66,
+          "working_set": 212500480
+        }
+      ],
+      "switch": 150
+    },
+    {
+      "elapsed_ms": 15132,
+      "processes": [
+        {
+          "gdi": 27,
+          "handles": 360,
+          "pid": 3556,
+          "private_bytes": 28684288,
+          "user": 44,
+          "working_set": 59088896
+        },
+        {
+          "gdi": 24,
+          "handles": 353,
+          "pid": 7812,
+          "private_bytes": 33492992,
+          "user": 36,
+          "working_set": 65515520
+        },
+        {
+          "gdi": 22,
+          "handles": 1711,
+          "pid": 8476,
+          "private_bytes": 83439616,
+          "user": 66,
+          "working_set": 203362304
+        }
+      ],
+      "switch": 160
+    },
+    {
+      "elapsed_ms": 15984,
+      "processes": [
+        {
+          "gdi": 31,
+          "handles": 361,
+          "pid": 3556,
+          "private_bytes": 27856896,
+          "user": 44,
+          "working_set": 58552320
+        },
+        {
+          "gdi": 24,
+          "handles": 353,
+          "pid": 7812,
+          "private_bytes": 33497088,
+          "user": 36,
+          "working_set": 65560576
+        },
+        {
+          "gdi": 22,
+          "handles": 1711,
+          "pid": 8476,
+          "private_bytes": 83378176,
+          "user": 66,
+          "working_set": 203300864
+        }
+      ],
+      "switch": 170
+    },
+    {
+      "elapsed_ms": 16831,
+      "processes": [
+        {
+          "gdi": 27,
+          "handles": 360,
+          "pid": 3556,
+          "private_bytes": 28667904,
+          "user": 44,
+          "working_set": 59023360
+        },
+        {
+          "gdi": 24,
+          "handles": 353,
+          "pid": 7812,
+          "private_bytes": 33497088,
+          "user": 36,
+          "working_set": 65568768
+        },
+        {
+          "gdi": 22,
+          "handles": 1711,
+          "pid": 8476,
+          "private_bytes": 83378176,
+          "user": 66,
+          "working_set": 203300864
+        }
+      ],
+      "switch": 180
+    },
+    {
+      "elapsed_ms": 17698,
+      "processes": [
+        {
+          "gdi": 27,
+          "handles": 360,
+          "pid": 3556,
+          "private_bytes": 28659712,
+          "user": 44,
+          "working_set": 59027456
+        },
+        {
+          "gdi": 24,
+          "handles": 353,
+          "pid": 7812,
+          "private_bytes": 46637056,
+          "user": 36,
+          "working_set": 78069760
+        },
+        {
+          "gdi": 22,
+          "handles": 1711,
+          "pid": 8476,
+          "private_bytes": 83251200,
+          "user": 66,
+          "working_set": 203173888
+        }
+      ],
+      "switch": 190
+    },
+    {
+      "elapsed_ms": 18532,
+      "processes": [
+        {
+          "gdi": 27,
+          "handles": 360,
+          "pid": 3556,
+          "private_bytes": 37117952,
+          "user": 44,
+          "working_set": 67223552
+        },
+        {
+          "gdi": 24,
+          "handles": 353,
+          "pid": 7812,
+          "private_bytes": 33497088,
+          "user": 36,
+          "working_set": 65515520
+        },
+        {
+          "gdi": 22,
+          "handles": 1711,
+          "pid": 8476,
+          "private_bytes": 83251200,
+          "user": 66,
+          "working_set": 203173888
+        }
+      ],
+      "switch": 200
+    },
+    {
+      "elapsed_ms": 19349,
+      "processes": [
+        {
+          "gdi": 27,
+          "handles": 360,
+          "pid": 3556,
+          "private_bytes": 26304512,
+          "user": 44,
+          "working_set": 57155584
+        },
+        {
+          "gdi": 24,
+          "handles": 353,
+          "pid": 7812,
+          "private_bytes": 33497088,
+          "user": 36,
+          "working_set": 65527808
+        },
+        {
+          "gdi": 22,
+          "handles": 1711,
+          "pid": 8476,
+          "private_bytes": 83365888,
+          "user": 66,
+          "working_set": 203284480
+        }
+      ],
+      "switch": 210
+    },
+    {
+      "elapsed_ms": 20160,
+      "processes": [
+        {
+          "gdi": 27,
+          "handles": 360,
+          "pid": 3556,
+          "private_bytes": 28626944,
+          "user": 44,
+          "working_set": 58822656
+        },
+        {
+          "gdi": 24,
+          "handles": 353,
+          "pid": 7812,
+          "private_bytes": 33497088,
+          "user": 36,
+          "working_set": 65560576
+        },
+        {
+          "gdi": 22,
+          "handles": 1706,
+          "pid": 8476,
+          "private_bytes": 83382272,
+          "user": 65,
+          "working_set": 203329536
+        }
+      ],
+      "switch": 220
+    },
+    {
+      "elapsed_ms": 21024,
+      "processes": [
+        {
+          "gdi": 27,
+          "handles": 360,
+          "pid": 3556,
+          "private_bytes": 26320896,
+          "user": 44,
+          "working_set": 57184256
+        },
+        {
+          "gdi": 24,
+          "handles": 353,
+          "pid": 7812,
+          "private_bytes": 33501184,
+          "user": 36,
+          "working_set": 65507328
+        },
+        {
+          "gdi": 22,
+          "handles": 1706,
+          "pid": 8476,
+          "private_bytes": 83169280,
+          "user": 65,
+          "working_set": 202854400
+        }
+      ],
+      "switch": 230
+    },
+    {
+      "elapsed_ms": 21878,
+      "processes": [
+        {
+          "gdi": 33,
+          "handles": 360,
+          "pid": 3556,
+          "private_bytes": 27865088,
+          "user": 44,
+          "working_set": 58580992
+        },
+        {
+          "gdi": 24,
+          "handles": 353,
+          "pid": 7812,
+          "private_bytes": 33501184,
+          "user": 36,
+          "working_set": 65527808
+        },
+        {
+          "gdi": 22,
+          "handles": 1706,
+          "pid": 8476,
+          "private_bytes": 83173376,
+          "user": 65,
+          "working_set": 202858496
+        }
+      ],
+      "switch": 240
+    },
+    {
+      "elapsed_ms": 22802,
+      "processes": [
+        {
+          "gdi": 33,
+          "handles": 360,
+          "pid": 3556,
+          "private_bytes": 30257152,
+          "user": 44,
+          "working_set": 60530688
+        },
+        {
+          "gdi": 24,
+          "handles": 353,
+          "pid": 7812,
+          "private_bytes": 33497088,
+          "user": 36,
+          "working_set": 65466368
+        },
+        {
+          "gdi": 22,
+          "handles": 1706,
+          "pid": 8476,
+          "private_bytes": 83329024,
+          "user": 65,
+          "working_set": 203014144
+        }
+      ],
+      "switch": 250
+    },
+    {
+      "elapsed_ms": 23794,
+      "processes": [
+        {
+          "gdi": 27,
+          "handles": 360,
+          "pid": 3556,
+          "private_bytes": 41775104,
+          "user": 44,
+          "working_set": 71372800
+        },
+        {
+          "gdi": 24,
+          "handles": 353,
+          "pid": 7812,
+          "private_bytes": 46637056,
+          "user": 36,
+          "working_set": 75382784
+        },
+        {
+          "gdi": 22,
+          "handles": 1706,
+          "pid": 8476,
+          "private_bytes": 94334976,
+          "user": 65,
+          "working_set": 211378176
+        }
+      ],
+      "switch": 260
+    },
+    {
+      "elapsed_ms": 24817,
+      "processes": [
+        {
+          "gdi": 27,
+          "handles": 360,
+          "pid": 3556,
+          "private_bytes": 35979264,
+          "user": 44,
+          "working_set": 65961984
+        },
+        {
+          "gdi": 24,
+          "handles": 353,
+          "pid": 7812,
+          "private_bytes": 46637056,
+          "user": 36,
+          "working_set": 74817536
+        },
+        {
+          "gdi": 22,
+          "handles": 1706,
+          "pid": 8476,
+          "private_bytes": 94449664,
+          "user": 65,
+          "working_set": 213262336
+        }
+      ],
+      "switch": 270
+    },
+    {
+      "elapsed_ms": 25855,
+      "processes": [
+        {
+          "gdi": 31,
+          "handles": 360,
+          "pid": 3556,
+          "private_bytes": 29626368,
+          "user": 44,
+          "working_set": 60051456
+        },
+        {
+          "gdi": 24,
+          "handles": 353,
+          "pid": 7812,
+          "private_bytes": 33497088,
+          "user": 36,
+          "working_set": 65519616
+        },
+        {
+          "gdi": 22,
+          "handles": 1706,
+          "pid": 8476,
+          "private_bytes": 94351360,
+          "user": 65,
+          "working_set": 214016000
+        }
+      ],
+      "switch": 280
+    },
+    {
+      "elapsed_ms": 26848,
+      "processes": [
+        {
+          "gdi": 33,
+          "handles": 360,
+          "pid": 3556,
+          "private_bytes": 30228480,
+          "user": 44,
+          "working_set": 60293120
+        },
+        {
+          "gdi": 24,
+          "handles": 353,
+          "pid": 7812,
+          "private_bytes": 40321024,
+          "user": 36,
+          "working_set": 71962624
+        },
+        {
+          "gdi": 22,
+          "handles": 1706,
+          "pid": 8476,
+          "private_bytes": 94269440,
+          "user": 65,
+          "working_set": 210591744
+        }
+      ],
+      "switch": 290
+    },
+    {
+      "elapsed_ms": 27938,
+      "processes": [
+        {
+          "gdi": 33,
+          "handles": 360,
+          "pid": 3556,
+          "private_bytes": 30248960,
+          "user": 44,
+          "working_set": 60628992
+        },
+        {
+          "gdi": 24,
+          "handles": 353,
+          "pid": 7812,
+          "private_bytes": 33501184,
+          "user": 36,
+          "working_set": 65519616
+        },
+        {
+          "gdi": 22,
+          "handles": 1706,
+          "pid": 8476,
+          "private_bytes": 83238912,
+          "user": 65,
+          "working_set": 202924032
+        }
+      ],
+      "switch": 300
+    },
+    {
+      "elapsed_ms": 28854,
+      "processes": [
+        {
+          "gdi": 27,
+          "handles": 360,
+          "pid": 3556,
+          "private_bytes": 37068800,
+          "user": 44,
+          "working_set": 67645440
+        },
+        {
+          "gdi": 24,
+          "handles": 353,
+          "pid": 7812,
+          "private_bytes": 39804928,
+          "user": 36,
+          "working_set": 67538944
+        },
+        {
+          "gdi": 22,
+          "handles": 1706,
+          "pid": 8476,
+          "private_bytes": 83316736,
+          "user": 65,
+          "working_set": 203001856
+        }
+      ],
+      "switch": 310
+    },
+    {
+      "elapsed_ms": 29745,
+      "processes": [
+        {
+          "gdi": 31,
+          "handles": 360,
+          "pid": 3556,
+          "private_bytes": 29618176,
+          "user": 44,
+          "working_set": 60461056
+        },
+        {
+          "gdi": 24,
+          "handles": 353,
+          "pid": 7812,
+          "private_bytes": 33497088,
+          "user": 36,
+          "working_set": 65515520
+        },
+        {
+          "gdi": 22,
+          "handles": 1706,
+          "pid": 8476,
+          "private_bytes": 83255296,
+          "user": 65,
+          "working_set": 202940416
+        }
+      ],
+      "switch": 320
+    },
+    {
+      "elapsed_ms": 30610,
+      "processes": [
+        {
+          "gdi": 31,
+          "handles": 361,
+          "pid": 3556,
+          "private_bytes": 29138944,
+          "user": 44,
+          "working_set": 60116992
+        },
+        {
+          "gdi": 24,
+          "handles": 353,
+          "pid": 7812,
+          "private_bytes": 33497088,
+          "user": 36,
+          "working_set": 65515520
+        },
+        {
+          "gdi": 22,
+          "handles": 1706,
+          "pid": 8476,
+          "private_bytes": 83316736,
+          "user": 65,
+          "working_set": 203001856
+        }
+      ],
+      "switch": 330
+    },
+    {
+      "elapsed_ms": 31473,
+      "processes": [
+        {
+          "gdi": 27,
+          "handles": 360,
+          "pid": 3556,
+          "private_bytes": 37089280,
+          "user": 44,
+          "working_set": 67309568
+        },
+        {
+          "gdi": 24,
+          "handles": 353,
+          "pid": 7812,
+          "private_bytes": 33472512,
+          "user": 36,
+          "working_set": 65462272
+        },
+        {
+          "gdi": 22,
+          "handles": 1706,
+          "pid": 8476,
+          "private_bytes": 92540928,
+          "user": 65,
+          "working_set": 208035840
+        }
+      ],
+      "switch": 340
+    },
+    {
+      "elapsed_ms": 32330,
+      "processes": [
+        {
+          "gdi": 27,
+          "handles": 360,
+          "pid": 3556,
+          "private_bytes": 37060608,
+          "user": 44,
+          "working_set": 67170304
+        },
+        {
+          "gdi": 24,
+          "handles": 353,
+          "pid": 7812,
+          "private_bytes": 33501184,
+          "user": 36,
+          "working_set": 65462272
+        },
+        {
+          "gdi": 22,
+          "handles": 1706,
+          "pid": 8476,
+          "private_bytes": 83410944,
+          "user": 65,
+          "working_set": 203055104
+        }
+      ],
+      "switch": 350
+    },
+    {
+      "elapsed_ms": 33318,
+      "processes": [
+        {
+          "gdi": 27,
+          "handles": 360,
+          "pid": 3556,
+          "private_bytes": 26509312,
+          "user": 44,
+          "working_set": 57401344
+        },
+        {
+          "gdi": 24,
+          "handles": 353,
+          "pid": 7812,
+          "private_bytes": 33497088,
+          "user": 36,
+          "working_set": 65507328
+        },
+        {
+          "gdi": 22,
+          "handles": 1706,
+          "pid": 8476,
+          "private_bytes": 83410944,
+          "user": 65,
+          "working_set": 203055104
+        }
+      ],
+      "switch": 360
+    },
+    {
+      "elapsed_ms": 34300,
+      "processes": [
+        {
+          "gdi": 33,
+          "handles": 360,
+          "pid": 3556,
+          "private_bytes": 30273536,
+          "user": 44,
+          "working_set": 60608512
+        },
+        {
+          "gdi": 24,
+          "handles": 353,
+          "pid": 7812,
+          "private_bytes": 33501184,
+          "user": 36,
+          "working_set": 65511424
+        },
+        {
+          "gdi": 22,
+          "handles": 1706,
+          "pid": 8476,
+          "private_bytes": 83664896,
+          "user": 65,
+          "working_set": 203239424
+        }
+      ],
+      "switch": 370
+    },
+    {
+      "elapsed_ms": 35216,
+      "processes": [
+        {
+          "gdi": 27,
+          "handles": 360,
+          "pid": 3556,
+          "private_bytes": 28635136,
+          "user": 44,
+          "working_set": 59101184
+        },
+        {
+          "gdi": 24,
+          "handles": 353,
+          "pid": 7812,
+          "private_bytes": 33497088,
+          "user": 36,
+          "working_set": 65437696
+        },
+        {
+          "gdi": 22,
+          "handles": 1706,
+          "pid": 8476,
+          "private_bytes": 83410944,
+          "user": 65,
+          "working_set": 203055104
+        }
+      ],
+      "switch": 380
+    },
+    {
+      "elapsed_ms": 36096,
+      "processes": [
+        {
+          "gdi": 27,
+          "handles": 360,
+          "pid": 3556,
+          "private_bytes": 37113856,
+          "user": 44,
+          "working_set": 67301376
+        },
+        {
+          "gdi": 24,
+          "handles": 353,
+          "pid": 7812,
+          "private_bytes": 33501184,
+          "user": 36,
+          "working_set": 65519616
+        },
+        {
+          "gdi": 22,
+          "handles": 1706,
+          "pid": 8476,
+          "private_bytes": 94441472,
+          "user": 65,
+          "working_set": 213278720
+        }
+      ],
+      "switch": 390
+    },
+    {
+      "elapsed_ms": 36980,
+      "processes": [
+        {
+          "gdi": 27,
+          "handles": 360,
+          "pid": 3556,
+          "private_bytes": 28635136,
+          "user": 44,
+          "working_set": 59064320
+        },
+        {
+          "gdi": 24,
+          "handles": 353,
+          "pid": 7812,
+          "private_bytes": 33497088,
+          "user": 36,
+          "working_set": 65495040
+        },
+        {
+          "gdi": 22,
+          "handles": 1706,
+          "pid": 8476,
+          "private_bytes": 83537920,
+          "user": 65,
+          "working_set": 203182080
+        }
+      ],
+      "switch": 400
+    },
+    {
+      "elapsed_ms": 37863,
+      "processes": [
+        {
+          "gdi": 27,
+          "handles": 360,
+          "pid": 3556,
+          "private_bytes": 28700672,
+          "user": 44,
+          "working_set": 59174912
+        },
+        {
+          "gdi": 24,
+          "handles": 353,
+          "pid": 7812,
+          "private_bytes": 33501184,
+          "user": 36,
+          "working_set": 65470464
+        },
+        {
+          "gdi": 22,
+          "handles": 1706,
+          "pid": 8476,
+          "private_bytes": 83410944,
+          "user": 65,
+          "working_set": 203055104
+        }
+      ],
+      "switch": 410
+    },
+    {
+      "elapsed_ms": 38727,
+      "processes": [
+        {
+          "gdi": 27,
+          "handles": 360,
+          "pid": 3556,
+          "private_bytes": 37052416,
+          "user": 44,
+          "working_set": 67256320
+        },
+        {
+          "gdi": 24,
+          "handles": 353,
+          "pid": 7812,
+          "private_bytes": 33501184,
+          "user": 36,
+          "working_set": 65503232
+        },
+        {
+          "gdi": 22,
+          "handles": 1706,
+          "pid": 8476,
+          "private_bytes": 83521536,
+          "user": 65,
+          "working_set": 203165696
+        }
+      ],
+      "switch": 420
+    },
+    {
+      "elapsed_ms": 39596,
+      "processes": [
+        {
+          "gdi": 33,
+          "handles": 360,
+          "pid": 3556,
+          "private_bytes": 30273536,
+          "user": 44,
+          "working_set": 60575744
+        },
+        {
+          "gdi": 24,
+          "handles": 353,
+          "pid": 7812,
+          "private_bytes": 46637056,
+          "user": 36,
+          "working_set": 77975552
+        },
+        {
+          "gdi": 22,
+          "handles": 1706,
+          "pid": 8476,
+          "private_bytes": 81473536,
+          "user": 65,
+          "working_set": 201117696
+        }
+      ],
+      "switch": 430
+    },
+    {
+      "elapsed_ms": 40498,
+      "processes": [
+        {
+          "gdi": 33,
+          "handles": 360,
+          "pid": 3556,
+          "private_bytes": 30158848,
+          "user": 44,
+          "working_set": 60588032
+        },
+        {
+          "gdi": 24,
+          "handles": 353,
+          "pid": 7812,
+          "private_bytes": 33501184,
+          "user": 36,
+          "working_set": 65470464
+        },
+        {
+          "gdi": 22,
+          "handles": 1706,
+          "pid": 8476,
+          "private_bytes": 83546112,
+          "user": 65,
+          "working_set": 203190272
+        }
+      ],
+      "switch": 440
+    },
+    {
+      "elapsed_ms": 41428,
+      "processes": [
+        {
+          "gdi": 33,
+          "handles": 360,
+          "pid": 3556,
+          "private_bytes": 28147712,
+          "user": 44,
+          "working_set": 58871808
+        },
+        {
+          "gdi": 24,
+          "handles": 353,
+          "pid": 7812,
+          "private_bytes": 33501184,
+          "user": 36,
+          "working_set": 65499136
+        },
+        {
+          "gdi": 22,
+          "handles": 1706,
+          "pid": 8476,
+          "private_bytes": 83542016,
+          "user": 65,
+          "working_set": 203186176
+        }
+      ],
+      "switch": 450
+    },
+    {
+      "elapsed_ms": 42325,
+      "processes": [
+        {
+          "gdi": 27,
+          "handles": 360,
+          "pid": 3556,
+          "private_bytes": 26595328,
+          "user": 44,
+          "working_set": 57470976
+        },
+        {
+          "gdi": 24,
+          "handles": 353,
+          "pid": 7812,
+          "private_bytes": 33497088,
+          "user": 36,
+          "working_set": 65495040
+        },
+        {
+          "gdi": 22,
+          "handles": 1706,
+          "pid": 8476,
+          "private_bytes": 83542016,
+          "user": 65,
+          "working_set": 203186176
+        }
+      ],
+      "switch": 460
+    },
+    {
+      "elapsed_ms": 43220,
+      "processes": [
+        {
+          "gdi": 27,
+          "handles": 360,
+          "pid": 3556,
+          "private_bytes": 28631040,
+          "user": 44,
+          "working_set": 59133952
+        },
+        {
+          "gdi": 24,
+          "handles": 353,
+          "pid": 7812,
+          "private_bytes": 39800832,
+          "user": 36,
+          "working_set": 67526656
+        },
+        {
+          "gdi": 22,
+          "handles": 1706,
+          "pid": 8476,
+          "private_bytes": 83537920,
+          "user": 65,
+          "working_set": 203182080
+        }
+      ],
+      "switch": 470
+    },
+    {
+      "elapsed_ms": 44151,
+      "processes": [
+        {
+          "gdi": 27,
+          "handles": 360,
+          "pid": 3556,
+          "private_bytes": 28622848,
+          "user": 44,
+          "working_set": 59088896
+        },
+        {
+          "gdi": 24,
+          "handles": 353,
+          "pid": 7812,
+          "private_bytes": 33497088,
+          "user": 36,
+          "working_set": 65470464
+        },
+        {
+          "gdi": 22,
+          "handles": 1706,
+          "pid": 8476,
+          "private_bytes": 83410944,
+          "user": 65,
+          "working_set": 203055104
+        }
+      ],
+      "switch": 480
+    },
+    {
+      "elapsed_ms": 45087,
+      "processes": [
+        {
+          "gdi": 27,
+          "handles": 360,
+          "pid": 3556,
+          "private_bytes": 28655616,
+          "user": 44,
+          "working_set": 59133952
+        },
+        {
+          "gdi": 24,
+          "handles": 353,
+          "pid": 7812,
+          "private_bytes": 46632960,
+          "user": 36,
+          "working_set": 78360576
+        },
+        {
+          "gdi": 22,
+          "handles": 1706,
+          "pid": 8476,
+          "private_bytes": 94457856,
+          "user": 65,
+          "working_set": 211001344
+        }
+      ],
+      "switch": 490
+    },
+    {
+      "elapsed_ms": 45975,
+      "processes": [
+        {
+          "gdi": 27,
+          "handles": 360,
+          "pid": 3556,
+          "private_bytes": 28647424,
+          "user": 44,
+          "working_set": 59203584
+        },
+        {
+          "gdi": 24,
+          "handles": 353,
+          "pid": 7812,
+          "private_bytes": 33501184,
+          "user": 36,
+          "working_set": 65490944
+        },
+        {
+          "gdi": 22,
+          "handles": 1706,
+          "pid": 8476,
+          "private_bytes": 83542016,
+          "user": 65,
+          "working_set": 203186176
+        }
+      ],
+      "switch": 500
+    },
+    {
+      "elapsed_ms": 132718,
+      "processes": [
+        {
+          "gdi": 24,
+          "handles": 356,
+          "pid": 3556,
+          "private_bytes": 36712448,
+          "user": 36,
+          "working_set": 66486272
+        },
+        {
+          "gdi": 24,
+          "handles": 353,
+          "pid": 7812,
+          "private_bytes": 33771520,
+          "user": 36,
+          "working_set": 65540096
+        },
+        {
+          "gdi": 22,
+          "handles": 1713,
+          "pid": 8476,
+          "private_bytes": 74133504,
+          "user": 65,
+          "working_set": 195092480
+        }
+      ],
+      "switch": 510
+    },
+    {
+      "elapsed_ms": 133590,
+      "processes": [
+        {
+          "gdi": 24,
+          "handles": 356,
+          "pid": 3556,
+          "private_bytes": 36712448,
+          "user": 36,
+          "working_set": 66461696
+        },
+        {
+          "gdi": 24,
+          "handles": 353,
+          "pid": 7812,
+          "private_bytes": 33775616,
+          "user": 36,
+          "working_set": 65589248
+        },
+        {
+          "gdi": 26,
+          "handles": 1714,
+          "pid": 8476,
+          "private_bytes": 77414400,
+          "user": 65,
+          "working_set": 199045120
+        }
+      ],
+      "switch": 520
+    },
+    {
+      "elapsed_ms": 134461,
+      "processes": [
+        {
+          "gdi": 24,
+          "handles": 356,
+          "pid": 3556,
+          "private_bytes": 36712448,
+          "user": 36,
+          "working_set": 66461696
+        },
+        {
+          "gdi": 24,
+          "handles": 353,
+          "pid": 7812,
+          "private_bytes": 33775616,
+          "user": 36,
+          "working_set": 65576960
+        },
+        {
+          "gdi": 22,
+          "handles": 1713,
+          "pid": 8476,
+          "private_bytes": 75866112,
+          "user": 65,
+          "working_set": 197062656
+        }
+      ],
+      "switch": 530
+    },
+    {
+      "elapsed_ms": 135340,
+      "processes": [
+        {
+          "gdi": 24,
+          "handles": 356,
+          "pid": 3556,
+          "private_bytes": 36712448,
+          "user": 36,
+          "working_set": 66445312
+        },
+        {
+          "gdi": 24,
+          "handles": 353,
+          "pid": 7812,
+          "private_bytes": 33771520,
+          "user": 36,
+          "working_set": 65572864
+        },
+        {
+          "gdi": 22,
+          "handles": 1713,
+          "pid": 8476,
+          "private_bytes": 73637888,
+          "user": 65,
+          "working_set": 195256320
+        }
+      ],
+      "switch": 540
+    },
+    {
+      "elapsed_ms": 136180,
+      "processes": [
+        {
+          "gdi": 24,
+          "handles": 356,
+          "pid": 3556,
+          "private_bytes": 35631104,
+          "user": 36,
+          "working_set": 65392640
+        },
+        {
+          "gdi": 24,
+          "handles": 353,
+          "pid": 7812,
+          "private_bytes": 33779712,
+          "user": 36,
+          "working_set": 65560576
+        },
+        {
+          "gdi": 22,
+          "handles": 1713,
+          "pid": 8476,
+          "private_bytes": 75350016,
+          "user": 65,
+          "working_set": 196669440
+        }
+      ],
+      "switch": 550
+    },
+    {
+      "elapsed_ms": 137032,
+      "processes": [
+        {
+          "gdi": 24,
+          "handles": 356,
+          "pid": 3556,
+          "private_bytes": 35631104,
+          "user": 36,
+          "working_set": 65409024
+        },
+        {
+          "gdi": 24,
+          "handles": 353,
+          "pid": 7812,
+          "private_bytes": 33767424,
+          "user": 36,
+          "working_set": 65548288
+        },
+        {
+          "gdi": 22,
+          "handles": 1713,
+          "pid": 8476,
+          "private_bytes": 82587648,
+          "user": 65,
+          "working_set": 203923456
+        }
+      ],
+      "switch": 560
+    },
+    {
+      "elapsed_ms": 137891,
+      "processes": [
+        {
+          "gdi": 24,
+          "handles": 356,
+          "pid": 3556,
+          "private_bytes": 35631104,
+          "user": 36,
+          "working_set": 65409024
+        },
+        {
+          "gdi": 24,
+          "handles": 353,
+          "pid": 7812,
+          "private_bytes": 33771520,
+          "user": 36,
+          "working_set": 65581056
+        },
+        {
+          "gdi": 22,
+          "handles": 1713,
+          "pid": 8476,
+          "private_bytes": 74731520,
+          "user": 65,
+          "working_set": 195862528
+        }
+      ],
+      "switch": 570
+    },
+    {
+      "elapsed_ms": 138754,
+      "processes": [
+        {
+          "gdi": 24,
+          "handles": 356,
+          "pid": 3556,
+          "private_bytes": 35631104,
+          "user": 36,
+          "working_set": 65409024
+        },
+        {
+          "gdi": 24,
+          "handles": 353,
+          "pid": 7812,
+          "private_bytes": 33775616,
+          "user": 36,
+          "working_set": 65601536
+        },
+        {
+          "gdi": 22,
+          "handles": 1713,
+          "pid": 8476,
+          "private_bytes": 71475200,
+          "user": 65,
+          "working_set": 192921600
+        }
+      ],
+      "switch": 580
+    },
+    {
+      "elapsed_ms": 139606,
+      "processes": [
+        {
+          "gdi": 24,
+          "handles": 356,
+          "pid": 3556,
+          "private_bytes": 35631104,
+          "user": 36,
+          "working_set": 65392640
+        },
+        {
+          "gdi": 24,
+          "handles": 353,
+          "pid": 7812,
+          "private_bytes": 33767424,
+          "user": 36,
+          "working_set": 65626112
+        },
+        {
+          "gdi": 22,
+          "handles": 1713,
+          "pid": 8476,
+          "private_bytes": 73334784,
+          "user": 65,
+          "working_set": 194826240
+        }
+      ],
+      "switch": 590
+    },
+    {
+      "elapsed_ms": 140474,
+      "processes": [
+        {
+          "gdi": 24,
+          "handles": 356,
+          "pid": 3556,
+          "private_bytes": 35631104,
+          "user": 36,
+          "working_set": 65724416
+        },
+        {
+          "gdi": 24,
+          "handles": 353,
+          "pid": 7812,
+          "private_bytes": 33779712,
+          "user": 36,
+          "working_set": 65597440
+        },
+        {
+          "gdi": 22,
+          "handles": 1713,
+          "pid": 8476,
+          "private_bytes": 74473472,
+          "user": 65,
+          "working_set": 196251648
+        }
+      ],
+      "switch": 600
+    },
+    {
+      "elapsed_ms": 141324,
+      "processes": [
+        {
+          "gdi": 24,
+          "handles": 356,
+          "pid": 3556,
+          "private_bytes": 35631104,
+          "user": 36,
+          "working_set": 65765376
+        },
+        {
+          "gdi": 24,
+          "handles": 353,
+          "pid": 7812,
+          "private_bytes": 33779712,
+          "user": 36,
+          "working_set": 65626112
+        },
+        {
+          "gdi": 22,
+          "handles": 1713,
+          "pid": 8476,
+          "private_bytes": 75915264,
+          "user": 65,
+          "working_set": 197210112
+        }
+      ],
+      "switch": 610
+    },
+    {
+      "elapsed_ms": 142174,
+      "processes": [
+        {
+          "gdi": 24,
+          "handles": 356,
+          "pid": 3556,
+          "private_bytes": 35631104,
+          "user": 36,
+          "working_set": 65736704
+        },
+        {
+          "gdi": 24,
+          "handles": 353,
+          "pid": 7812,
+          "private_bytes": 33771520,
+          "user": 36,
+          "working_set": 65585152
+        },
+        {
+          "gdi": 28,
+          "handles": 1713,
+          "pid": 8476,
+          "private_bytes": 73129984,
+          "user": 65,
+          "working_set": 194293760
+        }
+      ],
+      "switch": 620
+    },
+    {
+      "elapsed_ms": 143037,
+      "processes": [
+        {
+          "gdi": 24,
+          "handles": 356,
+          "pid": 3556,
+          "private_bytes": 35631104,
+          "user": 36,
+          "working_set": 65712128
+        },
+        {
+          "gdi": 24,
+          "handles": 353,
+          "pid": 7812,
+          "private_bytes": 33775616,
+          "user": 36,
+          "working_set": 65540096
+        },
+        {
+          "gdi": 22,
+          "handles": 1713,
+          "pid": 8476,
+          "private_bytes": 77164544,
+          "user": 65,
+          "working_set": 198578176
+        }
+      ],
+      "switch": 630
+    },
+    {
+      "elapsed_ms": 143898,
+      "processes": [
+        {
+          "gdi": 24,
+          "handles": 356,
+          "pid": 3556,
+          "private_bytes": 35631104,
+          "user": 36,
+          "working_set": 65736704
+        },
+        {
+          "gdi": 24,
+          "handles": 353,
+          "pid": 7812,
+          "private_bytes": 33779712,
+          "user": 36,
+          "working_set": 65556480
+        },
+        {
+          "gdi": 22,
+          "handles": 1713,
+          "pid": 8476,
+          "private_bytes": 74936320,
+          "user": 65,
+          "working_set": 196587520
+        }
+      ],
+      "switch": 640
+    },
+    {
+      "elapsed_ms": 144756,
+      "processes": [
+        {
+          "gdi": 24,
+          "handles": 356,
+          "pid": 3556,
+          "private_bytes": 35631104,
+          "user": 36,
+          "working_set": 65736704
+        },
+        {
+          "gdi": 24,
+          "handles": 353,
+          "pid": 7812,
+          "private_bytes": 33775616,
+          "user": 36,
+          "working_set": 65630208
+        },
+        {
+          "gdi": 22,
+          "handles": 1713,
+          "pid": 8476,
+          "private_bytes": 75214848,
+          "user": 65,
+          "working_set": 196354048
+        }
+      ],
+      "switch": 650
+    },
+    {
+      "elapsed_ms": 145616,
+      "processes": [
+        {
+          "gdi": 24,
+          "handles": 356,
+          "pid": 3556,
+          "private_bytes": 35631104,
+          "user": 36,
+          "working_set": 65724416
+        },
+        {
+          "gdi": 24,
+          "handles": 353,
+          "pid": 7812,
+          "private_bytes": 33775616,
+          "user": 36,
+          "working_set": 65585152
+        },
+        {
+          "gdi": 22,
+          "handles": 1713,
+          "pid": 8476,
+          "private_bytes": 72986624,
+          "user": 65,
+          "working_set": 194420736
+        }
+      ],
+      "switch": 660
+    },
+    {
+      "elapsed_ms": 146481,
+      "processes": [
+        {
+          "gdi": 24,
+          "handles": 356,
+          "pid": 3556,
+          "private_bytes": 35631104,
+          "user": 36,
+          "working_set": 65703936
+        },
+        {
+          "gdi": 24,
+          "handles": 353,
+          "pid": 7812,
+          "private_bytes": 33779712,
+          "user": 36,
+          "working_set": 65622016
+        },
+        {
+          "gdi": 26,
+          "handles": 1714,
+          "pid": 8476,
+          "private_bytes": 72380416,
+          "user": 65,
+          "working_set": 193912832
+        }
+      ],
+      "switch": 670
+    },
+    {
+      "elapsed_ms": 147317,
+      "processes": [
+        {
+          "gdi": 24,
+          "handles": 356,
+          "pid": 3556,
+          "private_bytes": 35631104,
+          "user": 36,
+          "working_set": 65708032
+        },
+        {
+          "gdi": 24,
+          "handles": 353,
+          "pid": 7812,
+          "private_bytes": 33746944,
+          "user": 36,
+          "working_set": 65597440
+        },
+        {
+          "gdi": 22,
+          "handles": 1713,
+          "pid": 8476,
+          "private_bytes": 70778880,
+          "user": 65,
+          "working_set": 192794624
+        }
+      ],
+      "switch": 680
+    },
+    {
+      "elapsed_ms": 148177,
+      "processes": [
+        {
+          "gdi": 24,
+          "handles": 356,
+          "pid": 3556,
+          "private_bytes": 35631104,
+          "user": 36,
+          "working_set": 65708032
+        },
+        {
+          "gdi": 24,
+          "handles": 353,
+          "pid": 7812,
+          "private_bytes": 33775616,
+          "user": 36,
+          "working_set": 65585152
+        },
+        {
+          "gdi": 22,
+          "handles": 1713,
+          "pid": 8476,
+          "private_bytes": 72843264,
+          "user": 65,
+          "working_set": 194338816
+        }
+      ],
+      "switch": 690
+    },
+    {
+      "elapsed_ms": 149017,
+      "processes": [
+        {
+          "gdi": 24,
+          "handles": 356,
+          "pid": 3556,
+          "private_bytes": 35631104,
+          "user": 36,
+          "working_set": 65748992
+        },
+        {
+          "gdi": 24,
+          "handles": 353,
+          "pid": 7812,
+          "private_bytes": 33759232,
+          "user": 36,
+          "working_set": 65642496
+        },
+        {
+          "gdi": 28,
+          "handles": 1713,
+          "pid": 8476,
+          "private_bytes": 77692928,
+          "user": 65,
+          "working_set": 198586368
+        }
+      ],
+      "switch": 700
+    },
+    {
+      "elapsed_ms": 149867,
+      "processes": [
+        {
+          "gdi": 24,
+          "handles": 356,
+          "pid": 3556,
+          "private_bytes": 35631104,
+          "user": 36,
+          "working_set": 65748992
+        },
+        {
+          "gdi": 24,
+          "handles": 353,
+          "pid": 7812,
+          "private_bytes": 33771520,
+          "user": 36,
+          "working_set": 65630208
+        },
+        {
+          "gdi": 22,
+          "handles": 1716,
+          "pid": 8476,
+          "private_bytes": 83304448,
+          "user": 65,
+          "working_set": 204529664
+        }
+      ],
+      "switch": 710
+    },
+    {
+      "elapsed_ms": 150809,
+      "processes": [
+        {
+          "gdi": 24,
+          "handles": 356,
+          "pid": 3556,
+          "private_bytes": 35631104,
+          "user": 36,
+          "working_set": 65736704
+        },
+        {
+          "gdi": 24,
+          "handles": 353,
+          "pid": 7812,
+          "private_bytes": 42184704,
+          "user": 36,
+          "working_set": 73773056
+        },
+        {
+          "gdi": 26,
+          "handles": 1717,
+          "pid": 8476,
+          "private_bytes": 74313728,
+          "user": 65,
+          "working_set": 196300800
+        }
+      ],
+      "switch": 720
+    },
+    {
+      "elapsed_ms": 151789,
+      "processes": [
+        {
+          "gdi": 24,
+          "handles": 356,
+          "pid": 3556,
+          "private_bytes": 35631104,
+          "user": 36,
+          "working_set": 65736704
+        },
+        {
+          "gdi": 24,
+          "handles": 353,
+          "pid": 7812,
+          "private_bytes": 46903296,
+          "user": 36,
+          "working_set": 75751424
+        },
+        {
+          "gdi": 22,
+          "handles": 1716,
+          "pid": 8476,
+          "private_bytes": 83345408,
+          "user": 65,
+          "working_set": 204570624
+        }
+      ],
+      "switch": 730
+    },
+    {
+      "elapsed_ms": 152824,
+      "processes": [
+        {
+          "gdi": 24,
+          "handles": 356,
+          "pid": 3556,
+          "private_bytes": 48766976,
+          "user": 36,
+          "working_set": 78217216
+        },
+        {
+          "gdi": 24,
+          "handles": 353,
+          "pid": 7812,
+          "private_bytes": 46907392,
+          "user": 36,
+          "working_set": 76881920
+        },
+        {
+          "gdi": 22,
+          "handles": 1716,
+          "pid": 8476,
+          "private_bytes": 84369408,
+          "user": 65,
+          "working_set": 206106624
+        }
+      ],
+      "switch": 740
+    },
+    {
+      "elapsed_ms": 153816,
+      "processes": [
+        {
+          "gdi": 24,
+          "handles": 356,
+          "pid": 3556,
+          "private_bytes": 48734208,
+          "user": 36,
+          "working_set": 77090816
+        },
+        {
+          "gdi": 24,
+          "handles": 353,
+          "pid": 7812,
+          "private_bytes": 46882816,
+          "user": 36,
+          "working_set": 74661888
+        },
+        {
+          "gdi": 26,
+          "handles": 1716,
+          "pid": 8476,
+          "private_bytes": 73756672,
+          "user": 65,
+          "working_set": 195776512
+        }
+      ],
+      "switch": 750
+    },
+    {
+      "elapsed_ms": 154757,
+      "processes": [
+        {
+          "gdi": 24,
+          "handles": 356,
+          "pid": 3556,
+          "private_bytes": 35614720,
+          "user": 36,
+          "working_set": 65339392
+        },
+        {
+          "gdi": 24,
+          "handles": 353,
+          "pid": 7812,
+          "private_bytes": 33763328,
+          "user": 36,
+          "working_set": 65622016
+        },
+        {
+          "gdi": 22,
+          "handles": 1716,
+          "pid": 8476,
+          "private_bytes": 76374016,
+          "user": 65,
+          "working_set": 197873664
+        }
+      ],
+      "switch": 760
+    },
+    {
+      "elapsed_ms": 155684,
+      "processes": [
+        {
+          "gdi": 24,
+          "handles": 356,
+          "pid": 3556,
+          "private_bytes": 35614720,
+          "user": 36,
+          "working_set": 65339392
+        },
+        {
+          "gdi": 24,
+          "handles": 353,
+          "pid": 7812,
+          "private_bytes": 33775616,
+          "user": 36,
+          "working_set": 65597440
+        },
+        {
+          "gdi": 22,
+          "handles": 1716,
+          "pid": 8476,
+          "private_bytes": 70606848,
+          "user": 65,
+          "working_set": 192376832
+        }
+      ],
+      "switch": 770
+    },
+    {
+      "elapsed_ms": 156604,
+      "processes": [
+        {
+          "gdi": 24,
+          "handles": 356,
+          "pid": 3556,
+          "private_bytes": 48766976,
+          "user": 36,
+          "working_set": 74928128
+        },
+        {
+          "gdi": 24,
+          "handles": 353,
+          "pid": 7812,
+          "private_bytes": 46911488,
+          "user": 36,
+          "working_set": 75046912
+        },
+        {
+          "gdi": 22,
+          "handles": 1716,
+          "pid": 8476,
+          "private_bytes": 83230720,
+          "user": 65,
+          "working_set": 204439552
+        }
+      ],
+      "switch": 780
+    },
+    {
+      "elapsed_ms": 157661,
+      "processes": [
+        {
+          "gdi": 24,
+          "handles": 356,
+          "pid": 3556,
+          "private_bytes": 35631104,
+          "user": 36,
+          "working_set": 65351680
+        },
+        {
+          "gdi": 24,
+          "handles": 353,
+          "pid": 7812,
+          "private_bytes": 46919680,
+          "user": 36,
+          "working_set": 77594624
+        },
+        {
+          "gdi": 26,
+          "handles": 1716,
+          "pid": 8476,
+          "private_bytes": 75292672,
+          "user": 65,
+          "working_set": 197050368
+        }
+      ],
+      "switch": 790
+    },
+    {
+      "elapsed_ms": 158747,
+      "processes": [
+        {
+          "gdi": 24,
+          "handles": 356,
+          "pid": 3556,
+          "private_bytes": 48750592,
+          "user": 36,
+          "working_set": 75280384
+        },
+        {
+          "gdi": 24,
+          "handles": 353,
+          "pid": 7812,
+          "private_bytes": 46907392,
+          "user": 36,
+          "working_set": 78016512
+        },
+        {
+          "gdi": 28,
+          "handles": 1716,
+          "pid": 8476,
+          "private_bytes": 77369344,
+          "user": 65,
+          "working_set": 198262784
+        }
+      ],
+      "switch": 800
+    },
+    {
+      "elapsed_ms": 159860,
+      "processes": [
+        {
+          "gdi": 24,
+          "handles": 356,
+          "pid": 3556,
+          "private_bytes": 48766976,
+          "user": 36,
+          "working_set": 74637312
+        },
+        {
+          "gdi": 24,
+          "handles": 353,
+          "pid": 7812,
+          "private_bytes": 47947776,
+          "user": 36,
+          "working_set": 75280384
+        },
+        {
+          "gdi": 22,
+          "handles": 1716,
+          "pid": 8476,
+          "private_bytes": 81604608,
+          "user": 65,
+          "working_set": 202833920
+        }
+      ],
+      "switch": 810
+    },
+    {
+      "elapsed_ms": 160944,
+      "processes": [
+        {
+          "gdi": 24,
+          "handles": 356,
+          "pid": 3556,
+          "private_bytes": 48766976,
+          "user": 36,
+          "working_set": 77053952
+        },
+        {
+          "gdi": 24,
+          "handles": 353,
+          "pid": 7812,
+          "private_bytes": 47747072,
+          "user": 36,
+          "working_set": 73220096
+        },
+        {
+          "gdi": 22,
+          "handles": 1716,
+          "pid": 8476,
+          "private_bytes": 73674752,
+          "user": 65,
+          "working_set": 195473408
+        }
+      ],
+      "switch": 820
+    },
+    {
+      "elapsed_ms": 161921,
+      "processes": [
+        {
+          "gdi": 24,
+          "handles": 356,
+          "pid": 3556,
+          "private_bytes": 48766976,
+          "user": 36,
+          "working_set": 73515008
+        },
+        {
+          "gdi": 24,
+          "handles": 353,
+          "pid": 7812,
+          "private_bytes": 47898624,
+          "user": 36,
+          "working_set": 72695808
+        },
+        {
+          "gdi": 28,
+          "handles": 1716,
+          "pid": 8476,
+          "private_bytes": 74866688,
+          "user": 65,
+          "working_set": 195948544
+        }
+      ],
+      "switch": 830
+    },
+    {
+      "elapsed_ms": 162970,
+      "processes": [
+        {
+          "gdi": 24,
+          "handles": 356,
+          "pid": 3556,
+          "private_bytes": 42442752,
+          "user": 36,
+          "working_set": 71663616
+        },
+        {
+          "gdi": 24,
+          "handles": 353,
+          "pid": 7812,
+          "private_bytes": 41631744,
+          "user": 36,
+          "working_set": 71204864
+        },
+        {
+          "gdi": 22,
+          "handles": 1716,
+          "pid": 8476,
+          "private_bytes": 82735104,
+          "user": 65,
+          "working_set": 204206080
+        }
+      ],
+      "switch": 840
+    },
+    {
+      "elapsed_ms": 164103,
+      "processes": [
+        {
+          "gdi": 24,
+          "handles": 356,
+          "pid": 3556,
+          "private_bytes": 48750592,
+          "user": 36,
+          "working_set": 78163968
+        },
+        {
+          "gdi": 24,
+          "handles": 353,
+          "pid": 7812,
+          "private_bytes": 47943680,
+          "user": 36,
+          "working_set": 73936896
+        },
+        {
+          "gdi": 22,
+          "handles": 1716,
+          "pid": 8476,
+          "private_bytes": 82268160,
+          "user": 65,
+          "working_set": 203489280
+        }
+      ],
+      "switch": 850
+    },
+    {
+      "elapsed_ms": 165163,
+      "processes": [
+        {
+          "gdi": 24,
+          "handles": 356,
+          "pid": 3556,
+          "private_bytes": 48766976,
+          "user": 36,
+          "working_set": 75321344
+        },
+        {
+          "gdi": 24,
+          "handles": 353,
+          "pid": 7812,
+          "private_bytes": 34779136,
+          "user": 36,
+          "working_set": 65990656
+        },
+        {
+          "gdi": 22,
+          "handles": 1716,
+          "pid": 8476,
+          "private_bytes": 82735104,
+          "user": 65,
+          "working_set": 198791168
+        }
+      ],
+      "switch": 860
+    },
+    {
+      "elapsed_ms": 166151,
+      "processes": [
+        {
+          "gdi": 24,
+          "handles": 356,
+          "pid": 3556,
+          "private_bytes": 48750592,
+          "user": 36,
+          "working_set": 75550720
+        },
+        {
+          "gdi": 24,
+          "handles": 353,
+          "pid": 7812,
+          "private_bytes": 47947776,
+          "user": 36,
+          "working_set": 75374592
+        },
+        {
+          "gdi": 22,
+          "handles": 1716,
+          "pid": 8476,
+          "private_bytes": 70635520,
+          "user": 65,
+          "working_set": 192405504
+        }
+      ],
+      "switch": 870
+    },
+    {
+      "elapsed_ms": 167134,
+      "processes": [
+        {
+          "gdi": 24,
+          "handles": 356,
+          "pid": 3556,
+          "private_bytes": 35614720,
+          "user": 36,
+          "working_set": 65347584
+        },
+        {
+          "gdi": 24,
+          "handles": 353,
+          "pid": 7812,
+          "private_bytes": 33771520,
+          "user": 36,
+          "working_set": 65396736
+        },
+        {
+          "gdi": 22,
+          "handles": 1716,
+          "pid": 8476,
+          "private_bytes": 83345408,
+          "user": 65,
+          "working_set": 205074432
+        }
+      ],
+      "switch": 880
+    },
+    {
+      "elapsed_ms": 168165,
+      "processes": [
+        {
+          "gdi": 24,
+          "handles": 356,
+          "pid": 3556,
+          "private_bytes": 35614720,
+          "user": 36,
+          "working_set": 65368064
+        },
+        {
+          "gdi": 24,
+          "handles": 353,
+          "pid": 7812,
+          "private_bytes": 47951872,
+          "user": 36,
+          "working_set": 78368768
+        },
+        {
+          "gdi": 22,
+          "handles": 1716,
+          "pid": 8476,
+          "private_bytes": 72278016,
+          "user": 65,
+          "working_set": 194306048
+        }
+      ],
+      "switch": 890
+    },
+    {
+      "elapsed_ms": 169166,
+      "processes": [
+        {
+          "gdi": 24,
+          "handles": 356,
+          "pid": 3556,
+          "private_bytes": 35614720,
+          "user": 36,
+          "working_set": 65384448
+        },
+        {
+          "gdi": 24,
+          "handles": 353,
+          "pid": 7812,
+          "private_bytes": 34816000,
+          "user": 36,
+          "working_set": 66236416
+        },
+        {
+          "gdi": 26,
+          "handles": 1717,
+          "pid": 8476,
+          "private_bytes": 71131136,
+          "user": 65,
+          "working_set": 193331200
+        }
+      ],
+      "switch": 900
+    },
+    {
+      "elapsed_ms": 170230,
+      "processes": [
+        {
+          "gdi": 24,
+          "handles": 356,
+          "pid": 3556,
+          "private_bytes": 48750592,
+          "user": 36,
+          "working_set": 75309056
+        },
+        {
+          "gdi": 24,
+          "handles": 353,
+          "pid": 7812,
+          "private_bytes": 47951872,
+          "user": 36,
+          "working_set": 75243520
+        },
+        {
+          "gdi": 22,
+          "handles": 1716,
+          "pid": 8476,
+          "private_bytes": 82780160,
+          "user": 65,
+          "working_set": 201687040
+        }
+      ],
+      "switch": 910
+    },
+    {
+      "elapsed_ms": 171249,
+      "processes": [
+        {
+          "gdi": 24,
+          "handles": 356,
+          "pid": 3556,
+          "private_bytes": 42442752,
+          "user": 36,
+          "working_set": 71852032
+        },
+        {
+          "gdi": 24,
+          "handles": 353,
+          "pid": 7812,
+          "private_bytes": 34816000,
+          "user": 36,
+          "working_set": 66080768
+        },
+        {
+          "gdi": 26,
+          "handles": 1716,
+          "pid": 8476,
+          "private_bytes": 71729152,
+          "user": 65,
+          "working_set": 193499136
+        }
+      ],
+      "switch": 920
+    },
+    {
+      "elapsed_ms": 172196,
+      "processes": [
+        {
+          "gdi": 24,
+          "handles": 356,
+          "pid": 3556,
+          "private_bytes": 48766976,
+          "user": 36,
+          "working_set": 77287424
+        },
+        {
+          "gdi": 24,
+          "handles": 353,
+          "pid": 7812,
+          "private_bytes": 46714880,
+          "user": 36,
+          "working_set": 76505088
+        },
+        {
+          "gdi": 22,
+          "handles": 1716,
+          "pid": 8476,
+          "private_bytes": 84258816,
+          "user": 65,
+          "working_set": 205987840
+        }
+      ],
+      "switch": 930
+    },
+    {
+      "elapsed_ms": 173131,
+      "processes": [
+        {
+          "gdi": 24,
+          "handles": 356,
+          "pid": 3556,
+          "private_bytes": 35631104,
+          "user": 36,
+          "working_set": 65466368
+        },
+        {
+          "gdi": 24,
+          "handles": 353,
+          "pid": 7812,
+          "private_bytes": 33755136,
+          "user": 36,
+          "working_set": 65519616
+        },
+        {
+          "gdi": 22,
+          "handles": 1716,
+          "pid": 8476,
+          "private_bytes": 83828736,
+          "user": 65,
+          "working_set": 205295616
+        }
+      ],
+      "switch": 940
+    },
+    {
+      "elapsed_ms": 174107,
+      "processes": [
+        {
+          "gdi": 24,
+          "handles": 356,
+          "pid": 3556,
+          "private_bytes": 35631104,
+          "user": 36,
+          "working_set": 65470464
+        },
+        {
+          "gdi": 24,
+          "handles": 353,
+          "pid": 7812,
+          "private_bytes": 33779712,
+          "user": 36,
+          "working_set": 65634304
+        },
+        {
+          "gdi": 26,
+          "handles": 1717,
+          "pid": 8476,
+          "private_bytes": 75403264,
+          "user": 65,
+          "working_set": 197369856
+        }
+      ],
+      "switch": 950
+    },
+    {
+      "elapsed_ms": 175024,
+      "processes": [
+        {
+          "gdi": 24,
+          "handles": 356,
+          "pid": 3556,
+          "private_bytes": 48726016,
+          "user": 36,
+          "working_set": 77737984
+        },
+        {
+          "gdi": 24,
+          "handles": 353,
+          "pid": 7812,
+          "private_bytes": 33783808,
+          "user": 36,
+          "working_set": 65634304
+        },
+        {
+          "gdi": 28,
+          "handles": 1716,
+          "pid": 8476,
+          "private_bytes": 72257536,
+          "user": 65,
+          "working_set": 193613824
+        }
+      ],
+      "switch": 960
+    },
+    {
+      "elapsed_ms": 175967,
+      "processes": [
+        {
+          "gdi": 24,
+          "handles": 356,
+          "pid": 3556,
+          "private_bytes": 48726016,
+          "user": 36,
+          "working_set": 77815808
+        },
+        {
+          "gdi": 24,
+          "handles": 353,
+          "pid": 7812,
+          "private_bytes": 33763328,
+          "user": 36,
+          "working_set": 65597440
+        },
+        {
+          "gdi": 22,
+          "handles": 1716,
+          "pid": 8476,
+          "private_bytes": 83304448,
+          "user": 65,
+          "working_set": 204255232
+        }
+      ],
+      "switch": 970
+    },
+    {
+      "elapsed_ms": 176944,
+      "processes": [
+        {
+          "gdi": 24,
+          "handles": 356,
+          "pid": 3556,
+          "private_bytes": 48742400,
+          "user": 36,
+          "working_set": 73113600
+        },
+        {
+          "gdi": 24,
+          "handles": 353,
+          "pid": 7812,
+          "private_bytes": 47943680,
+          "user": 36,
+          "working_set": 73449472
+        },
+        {
+          "gdi": 22,
+          "handles": 1716,
+          "pid": 8476,
+          "private_bytes": 82780160,
+          "user": 65,
+          "working_set": 204242944
+        }
+      ],
+      "switch": 980
+    },
+    {
+      "elapsed_ms": 177980,
+      "processes": [
+        {
+          "gdi": 24,
+          "handles": 356,
+          "pid": 3556,
+          "private_bytes": 48742400,
+          "user": 36,
+          "working_set": 74084352
+        },
+        {
+          "gdi": 24,
+          "handles": 353,
+          "pid": 7812,
+          "private_bytes": 47939584,
+          "user": 36,
+          "working_set": 77496320
+        },
+        {
+          "gdi": 26,
+          "handles": 1717,
+          "pid": 8476,
+          "private_bytes": 71061504,
+          "user": 65,
+          "working_set": 192299008
+        }
+      ],
+      "switch": 990
+    },
+    {
+      "elapsed_ms": 178939,
+      "processes": [
+        {
+          "gdi": 24,
+          "handles": 356,
+          "pid": 3556,
+          "private_bytes": 35606528,
+          "user": 36,
+          "working_set": 65458176
+        },
+        {
+          "gdi": 24,
+          "handles": 353,
+          "pid": 7812,
+          "private_bytes": 33767424,
+          "user": 36,
+          "working_set": 65597440
+        },
+        {
+          "gdi": 22,
+          "handles": 1716,
+          "pid": 8476,
+          "private_bytes": 84840448,
+          "user": 65,
+          "working_set": 206299136
+        }
+      ],
+      "switch": 1000
+    },
+    {
+      "processes": [
+        {
+          "gdi": 24,
+          "handles": 356,
+          "pid": 3556,
+          "private_bytes": 35606528,
+          "user": 36,
+          "working_set": 65458176
+        },
+        {
+          "gdi": 24,
+          "handles": 353,
+          "pid": 7812,
+          "private_bytes": 33767424,
+          "user": 36,
+          "working_set": 65597440
+        },
+        {
+          "gdi": 22,
+          "handles": 1716,
+          "pid": 8476,
+          "private_bytes": 68206592,
+          "user": 65,
+          "working_set": 190291968
+        }
+      ],
+      "settle_second": 1
+    },
+    {
+      "processes": [
+        {
+          "gdi": 24,
+          "handles": 356,
+          "pid": 3556,
+          "private_bytes": 35606528,
+          "user": 36,
+          "working_set": 65458176
+        },
+        {
+          "gdi": 24,
+          "handles": 353,
+          "pid": 7812,
+          "private_bytes": 33767424,
+          "user": 36,
+          "working_set": 65597440
+        },
+        {
+          "gdi": 22,
+          "handles": 1716,
+          "pid": 8476,
+          "private_bytes": 68214784,
+          "user": 65,
+          "working_set": 190300160
+        }
+      ],
+      "settle_second": 2
+    },
+    {
+      "processes": [
+        {
+          "gdi": 24,
+          "handles": 356,
+          "pid": 3556,
+          "private_bytes": 35606528,
+          "user": 36,
+          "working_set": 65458176
+        },
+        {
+          "gdi": 24,
+          "handles": 353,
+          "pid": 7812,
+          "private_bytes": 33767424,
+          "user": 36,
+          "working_set": 65597440
+        },
+        {
+          "gdi": 22,
+          "handles": 1716,
+          "pid": 8476,
+          "private_bytes": 68214784,
+          "user": 65,
+          "working_set": 190300160
+        }
+      ],
+      "settle_second": 3
+    },
+    {
+      "processes": [
+        {
+          "gdi": 24,
+          "handles": 356,
+          "pid": 3556,
+          "private_bytes": 35606528,
+          "user": 36,
+          "working_set": 65458176
+        },
+        {
+          "gdi": 24,
+          "handles": 353,
+          "pid": 7812,
+          "private_bytes": 33767424,
+          "user": 36,
+          "working_set": 65597440
+        },
+        {
+          "gdi": 22,
+          "handles": 1716,
+          "pid": 8476,
+          "private_bytes": 68214784,
+          "user": 65,
+          "working_set": 190300160
+        }
+      ],
+      "settle_second": 4
+    },
+    {
+      "processes": [
+        {
+          "gdi": 24,
+          "handles": 356,
+          "pid": 3556,
+          "private_bytes": 35606528,
+          "user": 36,
+          "working_set": 65458176
+        },
+        {
+          "gdi": 24,
+          "handles": 353,
+          "pid": 7812,
+          "private_bytes": 33767424,
+          "user": 36,
+          "working_set": 65597440
+        },
+        {
+          "gdi": 22,
+          "handles": 1716,
+          "pid": 8476,
+          "private_bytes": 68214784,
+          "user": 65,
+          "working_set": 190300160
+        }
+      ],
+      "settle_second": 5
+    },
+    {
+      "processes": [
+        {
+          "gdi": 24,
+          "handles": 356,
+          "pid": 3556,
+          "private_bytes": 35606528,
+          "user": 36,
+          "working_set": 65458176
+        },
+        {
+          "gdi": 24,
+          "handles": 353,
+          "pid": 7812,
+          "private_bytes": 33767424,
+          "user": 36,
+          "working_set": 65597440
+        },
+        {
+          "gdi": 22,
+          "handles": 1716,
+          "pid": 8476,
+          "private_bytes": 68214784,
+          "user": 65,
+          "working_set": 190300160
+        }
+      ],
+      "settle_second": 6
+    },
+    {
+      "processes": [
+        {
+          "gdi": 24,
+          "handles": 356,
+          "pid": 3556,
+          "private_bytes": 35606528,
+          "user": 36,
+          "working_set": 65458176
+        },
+        {
+          "gdi": 24,
+          "handles": 353,
+          "pid": 7812,
+          "private_bytes": 33767424,
+          "user": 36,
+          "working_set": 65597440
+        },
+        {
+          "gdi": 22,
+          "handles": 1716,
+          "pid": 8476,
+          "private_bytes": 68214784,
+          "user": 65,
+          "working_set": 190300160
+        }
+      ],
+      "settle_second": 7
+    },
+    {
+      "processes": [
+        {
+          "gdi": 24,
+          "handles": 356,
+          "pid": 3556,
+          "private_bytes": 35606528,
+          "user": 36,
+          "working_set": 65458176
+        },
+        {
+          "gdi": 24,
+          "handles": 353,
+          "pid": 7812,
+          "private_bytes": 33767424,
+          "user": 36,
+          "working_set": 65597440
+        },
+        {
+          "gdi": 22,
+          "handles": 1716,
+          "pid": 8476,
+          "private_bytes": 68214784,
+          "user": 65,
+          "working_set": 190300160
+        }
+      ],
+      "settle_second": 8
+    },
+    {
+      "processes": [
+        {
+          "gdi": 24,
+          "handles": 356,
+          "pid": 3556,
+          "private_bytes": 35606528,
+          "user": 36,
+          "working_set": 65458176
+        },
+        {
+          "gdi": 24,
+          "handles": 353,
+          "pid": 7812,
+          "private_bytes": 33767424,
+          "user": 36,
+          "working_set": 65597440
+        },
+        {
+          "gdi": 22,
+          "handles": 1716,
+          "pid": 8476,
+          "private_bytes": 68214784,
+          "user": 65,
+          "working_set": 190300160
+        }
+      ],
+      "settle_second": 9
+    },
+    {
+      "processes": [
+        {
+          "gdi": 24,
+          "handles": 356,
+          "pid": 3556,
+          "private_bytes": 35606528,
+          "user": 36,
+          "working_set": 65458176
+        },
+        {
+          "gdi": 24,
+          "handles": 353,
+          "pid": 7812,
+          "private_bytes": 33767424,
+          "user": 36,
+          "working_set": 65597440
+        },
+        {
+          "gdi": 22,
+          "handles": 1716,
+          "pid": 8476,
+          "private_bytes": 68214784,
+          "user": 65,
+          "working_set": 190300160
+        }
+      ],
+      "settle_second": 10
+    }
+  ],
+  "reload": {
+    "p50_ns": 47511100,
+    "p95_ns": 68082200,
+    "p99_ns": 78503900,
+    "samples": 1000
+  },
+  "scope": "config save to all loader publications; not key-to-visible latency",
+  "switches": 1000,
+  "warmup": 20
+}
