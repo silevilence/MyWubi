@@ -892,7 +892,13 @@ impl Session {
         cleanup: bool,
     ) -> Result<PreparedEdit, SessionError> {
         let local_query = self.state_machine().mode().expression_kind().is_some()
-            || next.state_machine().mode().expression_kind().is_some();
+            || next.state_machine().mode().expression_kind().is_some()
+            || self.state_machine().group_sequence().is_some()
+            || next.state_machine().group_sequence().is_some();
+        // Group hints are keyboard presentation only, including fully resolved histories.
+        if next.state_machine().group_sequence().is_some() && matches!(parts.op, EditSessionOp::CompositionUpdate { .. }) {
+            parts.op = if self.context.owns_preedit { EditSessionOp::EndComposition { delete_text: true } } else { EditSessionOp::NoOp };
+        }
         if self.closed {
             return Err(SessionError::Closed);
         }
@@ -1180,7 +1186,7 @@ impl Session {
     }
 
     fn finish_operation(&self, temporary: bool) -> EditSessionOp {
-        if self.state_machine().mode().expression_kind().is_some() {
+        if self.state_machine().mode().expression_kind().is_some() || self.state_machine().group_sequence().is_some() {
             return EditSessionOp::NoOp;
         }
         // Local preedit has no host range to finish: preserve a base round by

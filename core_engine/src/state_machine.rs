@@ -15,6 +15,7 @@ mod expression_candidates;
 mod expression_query;
 pub mod semantic;
 mod shortcut_input;
+mod group_input;
 mod temporary_input;
 
 /// 当前所处的输入阶段。
@@ -99,6 +100,7 @@ const DEFAULT_PAGE_SIZE: usize = 5;
 /// 跨平台输入核心状态机。
 #[derive(Clone)]
 pub struct StateMachine {
+    groups: Option<crate::group_input::Sequence>,
     shortcut_committed: bool,
     shortcut_rules: Arc<crate::shortcuts::RuleSet>,
     clock: Arc<dyn crate::shortcut_time::Clock>,
@@ -180,6 +182,7 @@ impl StateMachine {
     ) -> Self {
         let page_size = page_size.clamp(1, 10);
         Self {
+            groups: None,
             shortcut_rules: Arc::default(),
             shortcut_committed: false,
             clock: Arc::new(crate::shortcut_time::UnavailableClock),
@@ -328,6 +331,7 @@ impl StateMachine {
 
     /// 重置全部状态（不释放码表绑定）。
     pub fn reset(&mut self) {
+        self.groups = None;
         self.shortcut_committed = false;
         self.shortcut_time = None;
         self.expression_query = None;
@@ -344,6 +348,7 @@ impl StateMachine {
 
     /// 提交当前输入：有候选上屏首选，否则上屏原始缓冲。
     pub fn commit_current(&mut self) -> Option<(String, usize)> {
+        if self.groups.is_some() { return None; }
         if self.expression_query.is_some() {
             return None;
         }
@@ -365,6 +370,7 @@ impl StateMachine {
 
     /// 提交当前原始编码，不选候选词。
     pub fn commit_raw_current(&mut self) -> Option<(String, usize)> {
+        if self.groups.is_some() { return None; }
         if self.expression_query.is_some() {
             return None;
         }

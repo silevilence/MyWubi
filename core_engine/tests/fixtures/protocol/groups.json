@@ -1,0 +1,7 @@
+[
+  {"action":{"BindMapping":[{"id":"test.pairs","version":"1","revision":7},{"charset":"abcdefghijklmnopqrstuvwxyz","groups":{"jk":"jk"}}]},"hint":"","positions":0},
+  {"action":{"InputGroup":[{"id":"test.pairs","version":"1","revision":7},"jk"]},"hint":"[jk]","positions":1},
+  {"action":{"InputCode":"j"},"hint":"[jk]j","positions":2},
+  {"action":"Backspace","hint":"[jk]","positions":1},
+  {"action":"Cancel","hint":"","positions":0}
+]

@@ -27,6 +27,7 @@ struct Envelope {
 #[derive(Deserialize)]
 #[serde(tag = "op", deny_unknown_fields)]
 enum Request {
+    KeyboardCapabilities,
     BuildRuntime {
         path: PathBuf,
     },
@@ -350,7 +351,7 @@ impl Registry {
             }
             Request::State { session } => {
                 let s = self.session(session)?;
-                json!({"status":s.status(),"view":s.snapshot(),"base":s.base_mode(),"temporary":s.temporary_mode(),"revision":s.revision(),"pinyin":s.capability(TemporaryMode::Pinyin),"emoji":s.capability(TemporaryMode::Emoji),"kaomoji":s.capability(TemporaryMode::Kaomoji),"kana":s.capability(TemporaryMode::Kana),"math":s.capability(TemporaryMode::Math),"punctuation":s.capability(TemporaryMode::Punctuation),"symbols":s.capability(TemporaryMode::Symbols),"prediction_enabled":s.config().prediction.enabled,"personal_prediction_enabled":s.config().personal.predict,"prediction_waiting":s.waiting_for_prediction()})
+                json!({"status":s.status(),"groups":s.state_machine().group_sequence(),"view":s.snapshot(),"base":s.base_mode(),"temporary":s.temporary_mode(),"revision":s.revision(),"pinyin":s.capability(TemporaryMode::Pinyin),"emoji":s.capability(TemporaryMode::Emoji),"kaomoji":s.capability(TemporaryMode::Kaomoji),"kana":s.capability(TemporaryMode::Kana),"math":s.capability(TemporaryMode::Math),"punctuation":s.capability(TemporaryMode::Punctuation),"symbols":s.capability(TemporaryMode::Symbols),"prediction_enabled":s.config().prediction.enabled,"personal_prediction_enabled":s.config().personal.predict,"prediction_waiting":s.waiting_for_prediction()})
             }
             Request::PredictionContext {
                 session,
@@ -438,6 +439,7 @@ impl Registry {
                 }
                 json!({"config":config,"inactive":config.inactive_fields(),"version":self.version(path,before)?})
             }
+            Request::KeyboardCapabilities => json!({"protocol":1,"input_groups":1,"max_positions":crate::group_input::MAX_POSITIONS,"max_group":crate::group_input::MAX_GROUP,"layouts":1,"directions":8}),
             Request::ValidateKeyboardLayout { layout, mapping } => {
                 use crate::skin::keyboard::KeyAction;
                 if let Some(mapping) = &mapping { mapping.validate().map_err(|e| err(5,e.to_string()))?; }

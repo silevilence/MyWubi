@@ -109,3 +109,11 @@ JNI 使用同一 facade，设备等价验收记录归 CP-13。
 `.mwsi` 版本 1 包含六类所选资源原文、开关和快捷规则，不包含主码表/个人数据或环境暂停状态。缺失/重复类别、损坏资源和非法规则在创建导入资源前拒绝；保存草稿仍须调用带版本检查的 SaveConfig。调用方应防止异步恢复覆盖更新的草稿。备份文件通过路径传递，上限 512 MiB，不放入 16 MiB 协议请求；每个资源仍受 64 MiB 限制。
 
 日期候选的提示为 `DateTime(rule_index)`，保留来源身份；`PreparedEdit.learnable=false` 的提交须隔离个人采集/预测上下文，不得当普通词训练。`SessionView.shortcut_error` 为可选的本轮取时错误。每页/连续窗口仍使用 QueryRevision 和 CandidateId，不能用显示文本作为候选身份。
+
+## 字符组协议（AK-06）
+
+`KeyboardCapabilities` 无需句柄，返回组协议版本、32 位置/32 字符组上限和布局/方向能力。现有单字符动作与 envelope 版本保持不变。`BindMapping(identity, definition)` 在空会话绑定映射，identity 为 id/version/revision，definition 为 charset/groups；只读声明数据，不执行脚本。`InputGroup(identity, group_id)` 输入一个位置，版本不符拒绝。空集、重复、超限、控制字符或不属于当前码表的字符拒绝，错误不改变输入。
+
+`ResolveGroup(query_revision, position, character)` 明确一个位置；`UndoGroupResolution(query_revision)` 撤回约束。`State.groups` 返回原始 positions、selected 和映射身份；候选剪枝不改变 positions。提示仅显示于键盘，不能写宿主 preedit。未确定回车/原文提交拒绝并提示先选词/消歧；失焦不把组标记当原文提交。密码及 Direct 在 Session 层拒绝组动作。
+
+`groups.json` 由 Rust 和 Android JNI 测试共同消费。组检索及上屏策略分别在 AK-07/08 扩展，不以协议测试替代最终真实宿主验收。
