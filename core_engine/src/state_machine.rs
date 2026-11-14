@@ -13,9 +13,9 @@ use crate::temporary::{InputMode, TemporaryTables};
 use std::sync::Arc;
 mod expression_candidates;
 mod expression_query;
+mod group_input;
 pub mod semantic;
 mod shortcut_input;
-mod group_input;
 mod temporary_input;
 
 /// 当前所处的输入阶段。
@@ -351,7 +351,9 @@ impl StateMachine {
 
     /// 提交当前输入：有候选上屏首选，否则上屏原始缓冲。
     pub fn commit_current(&mut self) -> Option<(String, usize)> {
-        if self.groups.is_some() { return None; }
+        if self.groups.is_some() {
+            return None;
+        }
         if self.expression_query.is_some() {
             return None;
         }
@@ -373,7 +375,9 @@ impl StateMachine {
 
     /// 提交当前原始编码，不选候选词。
     pub fn commit_raw_current(&mut self) -> Option<(String, usize)> {
-        if self.groups.is_some() { return None; }
+        if self.groups.is_some() {
+            return None;
+        }
         if self.expression_query.is_some() {
             return None;
         }

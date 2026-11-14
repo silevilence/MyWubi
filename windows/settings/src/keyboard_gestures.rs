@@ -1,12 +1,36 @@
-use core_engine::skin::{directions::{self,Direction,Gesture,ALL,Preset},keyboard::{Key,KeyAction}};
-use std::collections::{BTreeMap,BTreeSet};
+use core_engine::skin::{
+    directions::{self, Direction, Gesture, Preset, ALL},
+    keyboard::{Key, KeyAction},
+};
 use eframe::egui;
-pub struct GestureEditor {selected:BTreeSet<Direction>,action:KeyAction,defaults:bool,gesture:Option<Gesture>,origin:Option<egui::Pos2>,result:String}
+use std::collections::{BTreeMap, BTreeSet};
+pub struct GestureEditor {
+    selected: BTreeSet<Direction>,
+    action: KeyAction,
+    defaults: bool,
+    gesture: Option<Gesture>,
+    origin: Option<egui::Pos2>,
+    result: String,
+}
 impl Default for GestureEditor {
-    fn default()->Self {Self{selected:[Direction::Up].into(),action:KeyAction::Character('a'),defaults:false,gesture:None,origin:None,result:String::new()}}
+    fn default() -> Self {
+        Self {
+            selected: [Direction::Up].into(),
+            action: KeyAction::Character('a'),
+            defaults: false,
+            gesture: None,
+            origin: None,
+            result: String::new(),
+        }
+    }
 }
 impl GestureEditor {
-    pub fn ui(&mut self,ui:&mut egui::Ui,defaults:&mut BTreeMap<String,KeyAction>,key:&mut Key) {
+    pub fn ui(
+        &mut self,
+        ui: &mut egui::Ui,
+        defaults: &mut BTreeMap<String, KeyAction>,
+        key: &mut Key,
+    ) {
         ui.collapsing("八向动作与连续滑动模拟",|ui| {
             if key.action==KeyAction::Backspace {ui.label("退格使用专用长按重复与上滑清空，不能叠加普通方向动作。");
                 if ui.button("隔离所有布局默认方向").clicked(){key.directions.clear();key.disabled_directions=ALL.iter().map(|d|d.name().into()).collect();key.long_press=None;}return;}

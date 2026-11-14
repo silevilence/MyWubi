@@ -969,14 +969,53 @@ fn context_modes_and_uncertain_writes_invalidate_the_old_query_without_replay() 
 
 #[test]
 fn resolved_group_uses_same_special_dynamic_merge_and_learning_identity() {
-    use core_engine::group_input::{Definition,MappingIdentity};
-    let runtime=runtime(&["甲","乙"],2,vec![rule("jjad",2,"yyyy")],Some("2026"));
-    let clock=TestClock::new();let mut session=Session::new_with_clock(&runtime,BehaviorProfile::TouchV1,HostContext::default(),clock.clone());
-    let identity=MappingIdentity{id:"pairs".into(),version:"1".into(),revision:1};
-    apply(&mut session,Action::BindMapping(identity.clone(),Definition{charset:"jk".into(),groups:[("pair".into(),"jk".into())].into()}));
-    apply(&mut session,Action::InputGroup(identity,"pair".into()));input(&mut session,"jad");
-    assert_eq!(clock.count(),0);
-    let revision=session.candidate_window(0,0).query_revision;apply(&mut session,Action::ResolveGroup(revision,0,'j'));
-    let all=session.candidate_window(0,20);assert_eq!(all.candidates.iter().map(|c|c.text.as_str()).collect::<Vec<_>>(),vec!["甲","2026","乙"]);
-    let plan=session.prepare(Action::SelectCandidate(all.query_revision,all.candidates[1].id)).unwrap();assert!(!plan.learnable);
+    use core_engine::group_input::{Definition, MappingIdentity};
+    let runtime = runtime(
+        &["甲", "乙"],
+        2,
+        vec![rule("jjad", 2, "yyyy")],
+        Some("2026"),
+    );
+    let clock = TestClock::new();
+    let mut session = Session::new_with_clock(
+        &runtime,
+        BehaviorProfile::TouchV1,
+        HostContext::default(),
+        clock.clone(),
+    );
+    let identity = MappingIdentity {
+        id: "pairs".into(),
+        version: "1".into(),
+        revision: 1,
+    };
+    apply(
+        &mut session,
+        Action::BindMapping(
+            identity.clone(),
+            Definition {
+                charset: "jk".into(),
+                groups: [("pair".into(), "jk".into())].into(),
+            },
+        ),
+    );
+    apply(&mut session, Action::InputGroup(identity, "pair".into()));
+    input(&mut session, "jad");
+    assert_eq!(clock.count(), 0);
+    let revision = session.candidate_window(0, 0).query_revision;
+    apply(&mut session, Action::ResolveGroup(revision, 0, 'j'));
+    let all = session.candidate_window(0, 20);
+    assert_eq!(
+        all.candidates
+            .iter()
+            .map(|c| c.text.as_str())
+            .collect::<Vec<_>>(),
+        vec!["甲", "2026", "乙"]
+    );
+    let plan = session
+        .prepare(Action::SelectCandidate(
+            all.query_revision,
+            all.candidates[1].id,
+        ))
+        .unwrap();
+    assert!(!plan.learnable);
 }

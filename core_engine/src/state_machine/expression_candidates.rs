@@ -136,8 +136,13 @@ impl StateMachine {
         let row = self.appended.as_ref()?.rows.get(index)?;
         let (text, exact, hints) = match row {
             Row::Text(entry) => {
-                let group=self.group_matches.as_ref().and_then(|m|m.candidates.iter().find(|m|m.text==entry.word));
-                let hints = if let Some(m)=group {vec![CandidateHint::ReverseCodes(m.codes.clone())]} else if self.mode == InputMode::Main {
+                let group = self
+                    .group_matches
+                    .as_ref()
+                    .and_then(|m| m.candidates.iter().find(|m| m.text == entry.word));
+                let hints = if let Some(m) = group {
+                    vec![CandidateHint::ReverseCodes(m.codes.clone())]
+                } else if self.mode == InputMode::Main {
                     entry
                         .code
                         .strip_prefix(self.lookup_key())
@@ -155,7 +160,11 @@ impl StateMachine {
                 } else {
                     Vec::new()
                 };
-                (entry.word.clone(), group.map_or(entry.code == self.spelling,|m|m.exact), hints)
+                (
+                    entry.word.clone(),
+                    group.map_or(entry.code == self.spelling, |m| m.exact),
+                    hints,
+                )
             }
             Row::Expression(kind, index) => {
                 let entry = self

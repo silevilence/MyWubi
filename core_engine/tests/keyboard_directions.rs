@@ -68,14 +68,48 @@ fn sectors_have_clockwise_boundaries_and_hysteresis() {
 #[test]
 fn shared_android_gesture_traces_and_editing_keep_semantics() {
     use core_engine::skin::directions::*;
-    let cases:serde_json::Value=serde_json::from_str(include_str!("fixtures/protocol/gestures.json")).unwrap();
-    for case in cases.as_array().unwrap(){let bound=case["bound"].as_array().map(|a|a.iter().map(|i|ALL[i.as_u64().unwrap() as usize]).collect()).unwrap_or_else(||ALL.into());
-        let mut gesture=Gesture::new(bound,true);if case["hold"]==true {gesture.hold();}
-        for point in case["points"].as_array().unwrap(){gesture.move_to(point[0].as_f64().unwrap() as f32,point[1].as_f64().unwrap() as f32);}
-        assert_eq!(gesture.release().map(i64::from),case["expected"].as_i64(),"{}",case["name"]);assert_eq!(gesture.release(),None);
+    let cases: serde_json::Value =
+        serde_json::from_str(include_str!("fixtures/protocol/gestures.json")).unwrap();
+    for case in cases.as_array().unwrap() {
+        let bound = case["bound"]
+            .as_array()
+            .map(|a| {
+                a.iter()
+                    .map(|i| ALL[i.as_u64().unwrap() as usize])
+                    .collect()
+            })
+            .unwrap_or_else(|| ALL.into());
+        let mut gesture = Gesture::new(bound, true);
+        if case["hold"] == true {
+            gesture.hold();
+        }
+        for point in case["points"].as_array().unwrap() {
+            gesture.move_to(
+                point[0].as_f64().unwrap() as f32,
+                point[1].as_f64().unwrap() as f32,
+            );
+        }
+        assert_eq!(
+            gesture.release().map(i64::from),
+            case["expected"].as_i64(),
+            "{}",
+            case["name"]
+        );
+        assert_eq!(gesture.release(), None);
     }
-    let mut groups=preset(Preset::WideUp,std::array::from_fn(|_|core_engine::skin::keyboard::KeyAction::Character('a')));
-    replace(&mut groups,&[Direction::Up].into(),Some(core_engine::skin::keyboard::KeyAction::Character('b'))).unwrap();
-    let resolved=resolve(&Default::default(),&groups,&[]).unwrap();
-    assert_ne!(resolved[&Direction::Up].action,resolved[&Direction::UpLeft].action);
+    let mut groups = preset(
+        Preset::WideUp,
+        std::array::from_fn(|_| core_engine::skin::keyboard::KeyAction::Character('a')),
+    );
+    replace(
+        &mut groups,
+        &[Direction::Up].into(),
+        Some(core_engine::skin::keyboard::KeyAction::Character('b')),
+    )
+    .unwrap();
+    let resolved = resolve(&Default::default(), &groups, &[]).unwrap();
+    assert_ne!(
+        resolved[&Direction::Up].action,
+        resolved[&Direction::UpLeft].action
+    );
 }

@@ -45,16 +45,18 @@ fn release(ids: &[u64]) {
 #[test]
 fn skin_resolution_leaves_pending_input_and_candidate_identity_unchanged() {
     let (dir, runtime, session) = fixture();
-    let plan=ok(json!({"op":"Prepare","session":session,"action":{"InputCode":"a"}}));
-    let before=ok(json!({"op":"State","session":session}));
-    let config=Config::load(dir.join("config.toml")).unwrap();
-    for dark in [false,true] {
-        let result=ok(json!({"op":"ResolveSkin","path":dir.join("config.toml"),"config":config,"platform":"android","dark":dark,"high_contrast":false}));
+    let plan = ok(json!({"op":"Prepare","session":session,"action":{"InputCode":"a"}}));
+    let before = ok(json!({"op":"State","session":session}));
+    let config = Config::load(dir.join("config.toml")).unwrap();
+    for dark in [false, true] {
+        let result = ok(
+            json!({"op":"ResolveSkin","path":dir.join("config.toml"),"config":config,"platform":"android","dark":dark,"high_contrast":false}),
+        );
         assert!(result["parameters"].is_object());
     }
-    assert_eq!(before,ok(json!({"op":"State","session":session})));
+    assert_eq!(before, ok(json!({"op":"State","session":session})));
     assert!(!plan.is_null());
-    release(&[session,runtime]);
+    release(&[session, runtime]);
     std::fs::remove_dir_all(dir).unwrap();
 }
 

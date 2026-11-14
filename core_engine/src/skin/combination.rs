@@ -36,7 +36,10 @@ pub struct Snapshot {
     pub packages: Vec<Arc<Package>>,
 }
 
-pub fn validate_layout(layout:&Layout,mapping:Option<&Mapping>) -> Result<BTreeMap<String,String>,Error> {
+pub fn validate_layout(
+    layout: &Layout,
+    mapping: Option<&Mapping>,
+) -> Result<BTreeMap<String, String>, Error> {
     layout.validate_geometry(
         mapping,
         &[KeyAction::Space, KeyAction::Enter, KeyAction::Cancel],
@@ -69,12 +72,34 @@ pub fn validate_layout(layout:&Layout,mapping:Option<&Mapping>) -> Result<BTreeM
     Ok(role_fallbacks)
 }
 
-pub fn validate_layout_appearance(package:&Package,id:&str)->Result<(),Error> {
-    let c=package.platforms.get("android").and_then(|p|p.components.iter().find(|c|c.id==id && c.kind=="appearance"))
-        .ok_or_else(||Error::Invalid("推荐外观组件不存在".into()))?;
-    let appearance:super::parameters::Appearance=super::parse(&package.files,&format!("android/{}",c.path))?;
-    if appearance.extensions.contains_key("fixed_layout") {return Err(Error::Invalid("固定键位图片不支持自定义布局，请选用语义角色外观".into()));}
-    for dark in [false,true] {super::parameters::resolve(package,"android",id,dark,&Default::default(),false,&supported())?;}
+pub fn validate_layout_appearance(package: &Package, id: &str) -> Result<(), Error> {
+    let c = package
+        .platforms
+        .get("android")
+        .and_then(|p| {
+            p.components
+                .iter()
+                .find(|c| c.id == id && c.kind == "appearance")
+        })
+        .ok_or_else(|| Error::Invalid("推荐外观组件不存在".into()))?;
+    let appearance: super::parameters::Appearance =
+        super::parse(&package.files, &format!("android/{}", c.path))?;
+    if appearance.extensions.contains_key("fixed_layout") {
+        return Err(Error::Invalid(
+            "固定键位图片不支持自定义布局，请选用语义角色外观".into(),
+        ));
+    }
+    for dark in [false, true] {
+        super::parameters::resolve(
+            package,
+            "android",
+            id,
+            dark,
+            &Default::default(),
+            false,
+            &supported(),
+        )?;
+    }
     Ok(())
 }
 
@@ -160,15 +185,23 @@ pub fn resolve(path: &Path, choice: &Choice, mode: Mode, charset: &str) -> Resul
             return Err(Error::Invalid("映射与布局模式/字符集不兼容".into()));
         }
     }
-    if matches!(mode,Mode::English|Mode::Number|Mode::Phone) {
+    if matches!(mode, Mode::English | Mode::Number | Mode::Phone) {
         for canvas in std::iter::once(&layout).chain(layout.landscape.as_deref()) {
-            if canvas.keys.iter().any(|k|matches!(k.action,KeyAction::Group(_)) || k.long_press.as_ref().is_some_and(|a|matches!(a,KeyAction::Group(_))) ||
-                k.directions.values().chain(canvas.directions.values()).any(|a|matches!(a,KeyAction::Group(_)))) {
+            if canvas.keys.iter().any(|k| {
+                matches!(k.action, KeyAction::Group(_))
+                    || k.long_press
+                        .as_ref()
+                        .is_some_and(|a| matches!(a, KeyAction::Group(_)))
+                    || k.directions
+                        .values()
+                        .chain(canvas.directions.values())
+                        .any(|a| matches!(a, KeyAction::Group(_)))
+            }) {
                 return Err(Error::Invalid("确定输入模式不允许字符组动作".into()));
             }
         }
     }
-    let role_fallbacks=validate_layout(&layout,mapping.as_ref())?;
+    let role_fallbacks = validate_layout(&layout, mapping.as_ref())?;
     let mut config = crate::Config::default();
     config.skins.android = choice.appearance.clone();
     let light = runtime::load(path, &config, "android", false, false)?;
@@ -176,7 +209,7 @@ pub fn resolve(path: &Path, choice: &Choice, mode: Mode, charset: &str) -> Resul
     if let Some(p) = &light.package {
         if let Some(selected) = &choice.appearance.selection {
             component(p, selected)?;
-            validate_layout_appearance(p,&selected.component)?;
+            validate_layout_appearance(p, &selected.component)?;
         }
         packages.push(Arc::clone(p));
     }
@@ -269,15 +302,21 @@ struct Receipt {
     digest: String,
     previous: Option<(Choice, String)>,
 }
-fn selection_path(path:&Path,mode:&Mode)->std::path::PathBuf {
-    if *mode==Mode::Main {path.with_file_name("keyboard-selection.json")} else {path.with_file_name(format!("keyboard-selection-{mode:?}.json"))}
+fn selection_path(path: &Path, mode: &Mode) -> std::path::PathBuf {
+    if *mode == Mode::Main {
+        path.with_file_name("keyboard-selection.json")
+    } else {
+        path.with_file_name(format!("keyboard-selection-{mode:?}.json"))
+    }
 }
-fn main_mode()->Mode {Mode::Main}
+fn main_mode() -> Mode {
+    Mode::Main
+}
 pub fn save(path: &Path, snapshot: &Snapshot) -> Result<(), Error> {
-    save_mode(path,snapshot,snapshot.mode.clone())
+    save_mode(path, snapshot, snapshot.mode.clone())
 }
-fn save_mode(path: &Path, snapshot: &Snapshot,mode:Mode) -> Result<(), Error> {
-    let target = selection_path(path,&mode);
+fn save_mode(path: &Path, snapshot: &Snapshot, mode: Mode) -> Result<(), Error> {
+    let target = selection_path(path, &mode);
     let old = std::fs::read(&target)
         .ok()
         .and_then(|b| serde_json::from_slice::<Receipt>(&b).ok());
@@ -306,7 +345,7 @@ fn save_mode(path: &Path, snapshot: &Snapshot,mode:Mode) -> Result<(), Error> {
     Ok(())
 }
 pub fn restore(path: &Path, mode: Mode, charset: &str) -> Result<Snapshot, Error> {
-    let bytes = std::fs::read(selection_path(path,&mode))?;
+    let bytes = std::fs::read(selection_path(path, &mode))?;
     let receipt: Receipt =
         serde_json::from_slice(&bytes).map_err(|e| Error::Invalid(e.to_string()))?;
     let resolve_checked = |(choice, digest): (Choice, String)| -> Result<Snapshot, Error> {
@@ -325,9 +364,11 @@ pub fn restore(path: &Path, mode: Mode, charset: &str) -> Result<Snapshot, Error
     .or_else(|error| receipt.previous.map_or(Err(error), resolve_checked))
 }
 
-pub fn current_choice(path: &Path) -> Result<Option<Choice>, Error> {current_choice_mode(path,&Mode::Main)}
-fn current_choice_mode(path:&Path,mode:&Mode)->Result<Option<Choice>,Error> {
-    match std::fs::read(selection_path(path,mode)) {
+pub fn current_choice(path: &Path) -> Result<Option<Choice>, Error> {
+    current_choice_mode(path, &Mode::Main)
+}
+fn current_choice_mode(path: &Path, mode: &Mode) -> Result<Option<Choice>, Error> {
+    match std::fs::read(selection_path(path, mode)) {
         Ok(bytes) => Ok(serde_json::from_slice::<Receipt>(&bytes)
             .map_err(|e| Error::Invalid(e.to_string()))?
             .active),
@@ -357,9 +398,12 @@ pub fn wire(snapshot: &Snapshot) -> serde_json::Value {
 #[derive(Deserialize)]
 #[serde(tag = "action", deny_unknown_fields)]
 pub enum Request {
-    InstallTemplates { path: std::path::PathBuf },
+    InstallTemplates {
+        path: std::path::PathBuf,
+    },
     List {
-        #[serde(default="main_mode")] mode: Mode,
+        #[serde(default = "main_mode")]
+        mode: Mode,
         path: std::path::PathBuf,
     },
     Prepare {
@@ -381,18 +425,22 @@ pub enum Request {
         charset: String,
     },
     Reset {
-        #[serde(default="main_mode")] mode: Mode,
+        #[serde(default = "main_mode")]
+        mode: Mode,
         path: std::path::PathBuf,
     },
 }
 pub fn execute(request: Request) -> Result<serde_json::Value, Error> {
     use serde_json::json;
     match request {
-        Request::InstallTemplates {path} => {
-            let package=super::keyboard_templates::package()?;
-            let imported=super::archive::import(&runtime::store_path(&path),std::io::Cursor::new(package.encoded()?))?;
+        Request::InstallTemplates { path } => {
+            let package = super::keyboard_templates::package()?;
+            let imported = super::archive::import(
+                &runtime::store_path(&path),
+                std::io::Cursor::new(package.encoded()?),
+            )?;
             Ok(json!({"installed":true,"already_present":imported.already_present}))
-        },
+        }
         Request::Prepare {
             path,
             choice,
@@ -410,7 +458,7 @@ pub fn execute(request: Request) -> Result<serde_json::Value, Error> {
             if snapshot.digest != digest {
                 return Err(Error::Invalid("待应用组合已变化，请重新预览".into()));
             }
-            save_mode(&path, &snapshot,mode)?;
+            save_mode(&path, &snapshot, mode)?;
             Ok(json!({"saved":true,"revision":snapshot.revision}))
         }
         Request::Restore {
@@ -418,24 +466,24 @@ pub fn execute(request: Request) -> Result<serde_json::Value, Error> {
             mode,
             charset,
         } => {
-            if current_choice_mode(&path,&mode)?.is_none() {
+            if current_choice_mode(&path, &mode)?.is_none() {
                 return Ok(serde_json::Value::Null);
             }
             Ok(wire(&restore(&path, mode, &charset)?))
         }
-        Request::Reset { path,mode } => {
+        Request::Reset { path, mode } => {
             let receipt = Receipt {
                 active: None,
                 digest: String::new(),
                 previous: None,
             };
             crate::data::atomic_write(
-                &selection_path(&path,&mode),
+                &selection_path(&path, &mode),
                 &serde_json::to_vec(&receipt).map_err(|e| Error::Invalid(e.to_string()))?,
             )?;
             Ok(json!({"saved":true}))
         }
-        Request::List { path,mode } => {
+        Request::List { path, mode } => {
             let mut items = Vec::new();
             let mut mappings = Vec::new();
             let store = runtime::store_path(&path);
@@ -455,10 +503,16 @@ pub fn execute(request: Request) -> Result<serde_json::Value, Error> {
                     let Ok(states) = keyboard::compatibility(&package, &supported()) else {
                         continue;
                     };
-                    for c in package.platforms["android"].components.iter().filter(|c|c.kind=="mapping") {
-                        if states[&c.id].enabled {if let Ok(mapping)=keyboard::mapping(&package,c) {
-                            mappings.push(json!({"selection":{"id":package.metadata.id,"version":package.metadata.version,"component":c.id},"modes":mapping.modes}));
-                        }}
+                    for c in package.platforms["android"]
+                        .components
+                        .iter()
+                        .filter(|c| c.kind == "mapping")
+                    {
+                        if states[&c.id].enabled {
+                            if let Ok(mapping) = keyboard::mapping(&package, c) {
+                                mappings.push(json!({"selection":{"id":package.metadata.id,"version":package.metadata.version,"component":c.id},"modes":mapping.modes}));
+                            }
+                        }
                     }
                     for c in package.platforms["android"]
                         .components
@@ -482,7 +536,9 @@ pub fn execute(request: Request) -> Result<serde_json::Value, Error> {
                     }
                 }
             }
-            Ok(json!({"items":items,"mappings":mappings,"choice":current_choice_mode(&path,&mode)?}))
+            Ok(
+                json!({"items":items,"mappings":mappings,"choice":current_choice_mode(&path,&mode)?}),
+            )
         }
     }
 }

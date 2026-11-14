@@ -134,13 +134,19 @@ fn json_facade_exposes_protocol_limits_without_handles() {
 
 #[test]
 fn rust_and_jni_share_position_fixtures() {
-    let fixtures:serde_json::Value=serde_json::from_str(include_str!("fixtures/protocol/groups.json")).unwrap();
-    let mut s=session(InputPurpose::Text);
+    let fixtures: serde_json::Value =
+        serde_json::from_str(include_str!("fixtures/protocol/groups.json")).unwrap();
+    let mut s = session(InputPurpose::Text);
     for fixture in fixtures.as_array().unwrap() {
-        let action=serde_json::from_value(fixture["action"].clone()).unwrap();
-        let plan=apply(&mut s,action);
-        assert_eq!(plan.op,EditSessionOp::NoOp);
-        assert_eq!(s.snapshot().spelling,fixture["hint"].as_str().unwrap());
-        assert_eq!(s.state_machine().group_sequence().map_or(0,|s|s.positions.len()),fixture["positions"].as_u64().unwrap() as usize);
+        let action = serde_json::from_value(fixture["action"].clone()).unwrap();
+        let plan = apply(&mut s, action);
+        assert_eq!(plan.op, EditSessionOp::NoOp);
+        assert_eq!(s.snapshot().spelling, fixture["hint"].as_str().unwrap());
+        assert_eq!(
+            s.state_machine()
+                .group_sequence()
+                .map_or(0, |s| s.positions.len()),
+            fixture["positions"].as_u64().unwrap() as usize
+        );
     }
 }

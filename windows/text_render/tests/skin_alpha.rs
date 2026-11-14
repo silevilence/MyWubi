@@ -32,5 +32,10 @@ fn opaque_legacy_render_and_colored_text_remain_opaque() {
             }],
         )
         .unwrap();
-    assert!(bitmap.pixels().as_chunks::<4>().0.iter().all(|p| p[3] == 255));
+    assert!(bitmap
+        .pixels()
+        .as_chunks::<4>()
+        .0
+        .iter()
+        .all(|p| p[3] == 255));
 }

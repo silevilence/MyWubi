@@ -147,7 +147,10 @@ pub extern "C" fn im_engine_init() -> i32 {
     }
 
     let runtime_snapshot = load_initial_runtime_snapshot();
-    skin_runtime::start(runtime_snapshot.config_path.clone(), &runtime_snapshot.config);
+    skin_runtime::start(
+        runtime_snapshot.config_path.clone(),
+        &runtime_snapshot.config,
+    );
     let mut sm = StateMachine::with_options(
         Arc::clone(&runtime_snapshot.dict),
         runtime_snapshot.config.basic.candidate_count as usize,

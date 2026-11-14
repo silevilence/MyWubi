@@ -4,7 +4,14 @@ use std::collections::BTreeMap;
 
 pub fn add(package: &mut Package, id: &str) -> Result<(), Error> {
     let (sets, columns, modes): (Vec<&str>, usize, Vec<Mode>) = match id {
-        "full26" => (vec!["q","w","e","r","t","y","u","i","o","p","a","s","d","f","g","h","j","k","l","z","x","c","v","b","n","m"],10,vec![Mode::Main,Mode::Pinyin,Mode::English]),
+        "full26" => (
+            vec![
+                "q", "w", "e", "r", "t", "y", "u", "i", "o", "p", "a", "s", "d", "f", "g", "h",
+                "j", "k", "l", "z", "x", "c", "v", "b", "n", "m",
+            ],
+            10,
+            vec![Mode::Main, Mode::Pinyin, Mode::English],
+        ),
         "shape14" => (
             vec![
                 "qw", "er", "ty", "ui", "op", "as", "df", "gh", "jk", "l", "zx", "cv", "bn", "m",
@@ -17,11 +24,22 @@ pub fn add(package: &mut Package, id: &str) -> Result<(), Error> {
             3,
             vec![Mode::Main],
         ),
-        "pinyin9" => (vec!["'","abc","def","ghi","jkl","mno","pqrs","tuv","wxyz"],3,vec![Mode::Pinyin]),
+        "pinyin9" => (
+            vec![
+                "'", "abc", "def", "ghi", "jkl", "mno", "pqrs", "tuv", "wxyz",
+            ],
+            3,
+            vec![Mode::Pinyin],
+        ),
         _ => return Err(Error::Invalid("未知键盘模板".into())),
     };
     let mapping_id = format!("{id}.mapping");
-    let charset = if id=="pinyin9" || id=="full26" {"abcdefghijklmnopqrstuvwxyz'"} else {"abcdefghijklmnopqrstuvwxyz"}.to_owned();
+    let charset = if id == "pinyin9" || id == "full26" {
+        "abcdefghijklmnopqrstuvwxyz'"
+    } else {
+        "abcdefghijklmnopqrstuvwxyz"
+    }
+    .to_owned();
     let groups: BTreeMap<_, _> = sets
         .iter()
         .enumerate()
@@ -78,14 +96,30 @@ pub fn add(package: &mut Package, id: &str) -> Result<(), Error> {
         disabled_directions: Vec::new(),
         extensions: Default::default(),
     });
-    if id=="full26" {
-        for (index,key) in keys.iter_mut().take(26).enumerate() {
-            key.action=KeyAction::Character(sets[index].chars().next().unwrap());key.label=sets[index].into();key.directions.clear();
-            (key.x,key.y)=if index<10 {(index as f32,0.)} else if index<19 {((index-10) as f32+0.5,1.)} else {((index-19) as f32+1.5,2.)};
+    if id == "full26" {
+        for (index, key) in keys.iter_mut().take(26).enumerate() {
+            key.action = KeyAction::Character(sets[index].chars().next().unwrap());
+            key.label = sets[index].into();
+            key.directions.clear();
+            (key.x, key.y) = if index < 10 {
+                (index as f32, 0.)
+            } else if index < 19 {
+                ((index - 10) as f32 + 0.5, 1.)
+            } else {
+                ((index - 19) as f32 + 1.5, 2.)
+            };
         }
-        keys[0].long_press=Some(KeyAction::Character('\''));
-        let delete=keys.last_mut().unwrap();delete.x=8.5;delete.y=2.;delete.width=1.5;
-        let mut shift=delete.clone();shift.id="shift".into();shift.label="⇧".into();shift.x=0.;shift.action=KeyAction::Shift;keys.push(shift);
+        keys[0].long_press = Some(KeyAction::Character('\''));
+        let delete = keys.last_mut().unwrap();
+        delete.x = 8.5;
+        delete.y = 2.;
+        delete.width = 1.5;
+        let mut shift = delete.clone();
+        shift.id = "shift".into();
+        shift.label = "⇧".into();
+        shift.x = 0.;
+        shift.action = KeyAction::Shift;
+        keys.push(shift);
     }
     let layout = Layout {
         format: 1,
@@ -93,7 +127,7 @@ pub fn add(package: &mut Package, id: &str) -> Result<(), Error> {
         charset,
         width: columns as f32,
         height: keys.len().div_ceil(columns) as f32,
-        mapping: (id!="full26").then(||mapping_id.clone()),
+        mapping: (id != "full26").then(|| mapping_id.clone()),
         recommended_appearance: None,
         fallback: "builtin.26".into(),
         required_styles: Vec::new(),
@@ -141,15 +175,23 @@ pub fn add(package: &mut Package, id: &str) -> Result<(), Error> {
         kind: "layout".into(),
         path: format!("layouts/{id}.toml"),
         capabilities: Capabilities {
-            required: if id=="full26" {vec![LAYOUT_CAPABILITY.into()]} else {vec![
-                LAYOUT_CAPABILITY.into(),
-                GROUP_CAPABILITY.into(),
-                GESTURE_CAPABILITY.into(),
-                MERGE_CAPABILITY.into(),
-            ]},
+            required: if id == "full26" {
+                vec![LAYOUT_CAPABILITY.into()]
+            } else {
+                vec![
+                    LAYOUT_CAPABILITY.into(),
+                    GROUP_CAPABILITY.into(),
+                    GESTURE_CAPABILITY.into(),
+                    MERGE_CAPABILITY.into(),
+                ]
+            },
             ..Default::default()
         },
-        dependencies: if id=="full26" {Default::default()} else {[(mapping_id, "1".into())].into()},
+        dependencies: if id == "full26" {
+            Default::default()
+        } else {
+            [(mapping_id, "1".into())].into()
+        },
         extensions: Default::default(),
     });
     Ok(())

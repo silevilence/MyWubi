@@ -442,12 +442,20 @@ impl Registry {
                 }
                 json!({"config":config,"inactive":config.inactive_fields(),"version":self.version(path,before)?})
             }
-            Request::KeyboardCapabilities => json!({"protocol":1,"input_groups":1,"max_positions":crate::group_input::MAX_POSITIONS,"max_group":crate::group_input::MAX_GROUP,"layouts":1,"directions":8}),
+            Request::KeyboardCapabilities => {
+                json!({"protocol":1,"input_groups":1,"max_positions":crate::group_input::MAX_POSITIONS,"max_group":crate::group_input::MAX_GROUP,"layouts":1,"directions":8})
+            }
             Request::ValidateKeyboardLayout { layout, mapping } => {
                 use crate::skin::keyboard::KeyAction;
-                if let Some(mapping) = &mapping { mapping.validate().map_err(|e| err(5,e.to_string()))?; }
-                layout.validate_geometry(mapping.as_ref(), &[KeyAction::Space,KeyAction::Enter,KeyAction::Cancel])
-                    .map_err(|e| err(5,e.to_string()))?;
+                if let Some(mapping) = &mapping {
+                    mapping.validate().map_err(|e| err(5, e.to_string()))?;
+                }
+                layout
+                    .validate_geometry(
+                        mapping.as_ref(),
+                        &[KeyAction::Space, KeyAction::Enter, KeyAction::Cancel],
+                    )
+                    .map_err(|e| err(5, e.to_string()))?;
                 let bindings = |layout: &crate::skin::keyboard::Layout| -> Result<serde_json::Map<String,Value>, ProtocolError> {
                     layout.keys.iter().map(|key| {
                         let resolved=crate::skin::directions::resolve(&layout.directions,&key.directions,&key.disabled_directions)

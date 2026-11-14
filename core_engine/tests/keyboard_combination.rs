@@ -213,15 +213,57 @@ fn appearance_changes_keep_mapping_identity_and_repeated_save_keeps_recovery() {
 
 #[test]
 fn mode_selections_survive_restart_independently() {
-    let directory=tempfile::tempdir().unwrap();let path=directory.path().join("config.toml");
-    let package=core_engine::skin::keyboard_templates::package().unwrap();install(&path,&package);
-    let choice=|component:&str|Choice{layout:Selection{id:package.metadata.id.clone(),version:package.metadata.version.clone(),component:component.into()},mapping:None,appearance:Preference::default()};
-    let main=resolve(&path,&choice("shape14"),Mode::Main,"abcdefghijklmnopqrstuvwxyz").unwrap();
-    let pinyin=resolve(&path,&choice("pinyin9"),Mode::Pinyin,"abcdefghijklmnopqrstuvwxyz'").unwrap();
-    save(&path,&main).unwrap();save(&path,&pinyin).unwrap();
-    assert_eq!(restore(&path,Mode::Main,"abcdefghijklmnopqrstuvwxyz").unwrap().digest,main.digest);
-    assert_eq!(restore(&path,Mode::Pinyin,"abcdefghijklmnopqrstuvwxyz'").unwrap().digest,pinyin.digest);
-    execute(serde_json::from_value(serde_json::json!({"action":"Reset","path":path,"mode":"Pinyin"})).unwrap()).unwrap();
-    assert!(restore(&path,Mode::Pinyin,"abcdefghijklmnopqrstuvwxyz'").is_err());
-    assert_eq!(restore(&path,Mode::Main,"abcdefghijklmnopqrstuvwxyz").unwrap().digest,main.digest);
+    let directory = tempfile::tempdir().unwrap();
+    let path = directory.path().join("config.toml");
+    let package = core_engine::skin::keyboard_templates::package().unwrap();
+    install(&path, &package);
+    let choice = |component: &str| Choice {
+        layout: Selection {
+            id: package.metadata.id.clone(),
+            version: package.metadata.version.clone(),
+            component: component.into(),
+        },
+        mapping: None,
+        appearance: Preference::default(),
+    };
+    let main = resolve(
+        &path,
+        &choice("shape14"),
+        Mode::Main,
+        "abcdefghijklmnopqrstuvwxyz",
+    )
+    .unwrap();
+    let pinyin = resolve(
+        &path,
+        &choice("pinyin9"),
+        Mode::Pinyin,
+        "abcdefghijklmnopqrstuvwxyz'",
+    )
+    .unwrap();
+    save(&path, &main).unwrap();
+    save(&path, &pinyin).unwrap();
+    assert_eq!(
+        restore(&path, Mode::Main, "abcdefghijklmnopqrstuvwxyz")
+            .unwrap()
+            .digest,
+        main.digest
+    );
+    assert_eq!(
+        restore(&path, Mode::Pinyin, "abcdefghijklmnopqrstuvwxyz'")
+            .unwrap()
+            .digest,
+        pinyin.digest
+    );
+    execute(
+        serde_json::from_value(serde_json::json!({"action":"Reset","path":path,"mode":"Pinyin"}))
+            .unwrap(),
+    )
+    .unwrap();
+    assert!(restore(&path, Mode::Pinyin, "abcdefghijklmnopqrstuvwxyz'").is_err());
+    assert_eq!(
+        restore(&path, Mode::Main, "abcdefghijklmnopqrstuvwxyz")
+            .unwrap()
+            .digest,
+        main.digest
+    );
 }

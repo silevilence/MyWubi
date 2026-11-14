@@ -64,7 +64,10 @@ pub enum TextIntent {
 /// Semantic actions do not contain platform key codes or display coordinates.
 #[derive(Debug, Clone, PartialEq, Eq, serde::Serialize, serde::Deserialize)]
 pub enum Action {
-    BindMapping(crate::group_input::MappingIdentity, crate::group_input::Definition),
+    BindMapping(
+        crate::group_input::MappingIdentity,
+        crate::group_input::Definition,
+    ),
     InputGroup(crate::group_input::MappingIdentity, String),
     ResolveGroup(QueryRevision, usize, char),
     UndoGroupResolution(QueryRevision),
@@ -219,12 +222,33 @@ impl SemanticEngine {
     /// Read-only window query. Full lookup is performed only on explicit queries,
     /// never duplicated on the Windows key path; only the bounded window is copied.
     pub fn candidate_window(&self, offset: usize, count: usize) -> CandidateWindow {
-        if let Some(matches)=self.sm.group_matches.as_ref().filter(|_|self.sm.appended.is_none()) {
-            let offset=offset.min(matches.candidates.len());
-            return CandidateWindow {query_revision:self.query_revision,view_revision:self.view_revision,total:matches.candidates.len(),offset,
-                candidates:matches.candidates.iter().enumerate().skip(offset).take(count.min(MAX_WINDOW)).map(|(index,item)|Candidate {
-                    expression_kind:None,id:CandidateId(index),text:item.text.clone(),exact:item.exact,hints:vec![CandidateHint::ReverseCodes(item.codes.clone())]
-                }).collect()};
+        if let Some(matches) = self
+            .sm
+            .group_matches
+            .as_ref()
+            .filter(|_| self.sm.appended.is_none())
+        {
+            let offset = offset.min(matches.candidates.len());
+            return CandidateWindow {
+                query_revision: self.query_revision,
+                view_revision: self.view_revision,
+                total: matches.candidates.len(),
+                offset,
+                candidates: matches
+                    .candidates
+                    .iter()
+                    .enumerate()
+                    .skip(offset)
+                    .take(count.min(MAX_WINDOW))
+                    .map(|(index, item)| Candidate {
+                        expression_kind: None,
+                        id: CandidateId(index),
+                        text: item.text.clone(),
+                        exact: item.exact,
+                        hints: vec![CandidateHint::ReverseCodes(item.codes.clone())],
+                    })
+                    .collect(),
+            };
         }
         if self.sm.mode == InputMode::Menu {
             let offset = offset.min(self.sm.candidates.len());
@@ -525,7 +549,10 @@ impl SemanticEngine {
     /// Pure routing prediction: does not clone the state or execute a search.
     pub fn would_handle(&self, action: &Action) -> bool {
         match action {
-            Action::BindMapping(..) | Action::InputGroup(..) | Action::ResolveGroup(..) | Action::UndoGroupResolution(..) => true,
+            Action::BindMapping(..)
+            | Action::InputGroup(..)
+            | Action::ResolveGroup(..)
+            | Action::UndoGroupResolution(..) => true,
             Action::SelectCandidate(revision, id) => {
                 *revision == self.query_revision && id.0 < self.sm.total_candidates
             }
@@ -641,7 +668,9 @@ impl SemanticEngine {
     }
 
     fn dispatch_inner(&mut self, action: Action) -> ActionResult {
-        if let Some(result)=self.dispatch_groups(&action) { return result; }
+        if let Some(result) = self.dispatch_groups(&action) {
+            return result;
+        }
         if self.sm.expression_query.is_some() {
             if let Some(result) = self.dispatch_expression(&action) {
                 return result;
@@ -649,7 +678,12 @@ impl SemanticEngine {
         }
         let legacy = matches!(action, Action::Legacy(_));
         let transition = match action {
-            Action::BindMapping(..) | Action::InputGroup(..) | Action::ResolveGroup(..) | Action::UndoGroupResolution(..) => return ActionResult::rejected(Rejection::InvalidCode),
+            Action::BindMapping(..)
+            | Action::InputGroup(..)
+            | Action::ResolveGroup(..)
+            | Action::UndoGroupResolution(..) => {
+                return ActionResult::rejected(Rejection::InvalidCode)
+            }
             Action::FindExpressions
             | Action::EditExpressionQuery
             | Action::SetExpressionInput(_)
@@ -822,7 +856,12 @@ impl SemanticEngine {
 
     fn dispatch_expression(&mut self, action: &Action) -> Option<ActionResult> {
         let transition = match action {
-            Action::BindMapping(..) | Action::InputGroup(..) | Action::ResolveGroup(..) | Action::UndoGroupResolution(..) => return Some(ActionResult::rejected(Rejection::InvalidCode)),
+            Action::BindMapping(..)
+            | Action::InputGroup(..)
+            | Action::ResolveGroup(..)
+            | Action::UndoGroupResolution(..) => {
+                return Some(ActionResult::rejected(Rejection::InvalidCode))
+            }
             Action::SetBaseMode(_) | Action::BeginTemporary(_) | Action::ChooseMode(_) => {
                 return None
             }

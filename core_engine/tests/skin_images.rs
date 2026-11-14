@@ -1,4 +1,8 @@
-use core_engine::skin::{images::{patches, Mode, Style, CAPABILITY}, parameters::*, Extensions, Package};
+use core_engine::skin::{
+    images::{patches, Mode, Style, CAPABILITY},
+    parameters::*,
+    Extensions, Package,
+};
 use std::collections::BTreeSet;
 fn package() -> Package {
     let mut p = builtin_package("jade").unwrap();
@@ -110,7 +114,10 @@ fn old_client_rejects_required_or_uses_explicit_plain_fallback() {
 #[test]
 fn missing_truncated_and_oversized_images_are_rejected() {
     let mut p = package();
-    p.files.get_mut("shared/assets/panel.png").unwrap().truncate(35);
+    p.files
+        .get_mut("shared/assets/panel.png")
+        .unwrap()
+        .truncate(35);
     assert!(resolve(
         &p,
         "windows",
@@ -122,7 +129,8 @@ fn missing_truncated_and_oversized_images_are_rejected() {
     )
     .is_err());
     p = package();
-    p.files.get_mut("shared/assets/panel.png").unwrap()[16..20].copy_from_slice(&2049u32.to_be_bytes());
+    p.files.get_mut("shared/assets/panel.png").unwrap()[16..20]
+        .copy_from_slice(&2049u32.to_be_bytes());
     assert!(resolve(
         &p,
         "windows",

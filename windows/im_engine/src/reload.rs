@@ -179,8 +179,16 @@ mod tests {
         let event = Event::new(EventKind::Modify(ModifyKind::Any))
             .add_path(PathBuf::from(r"c:\skinapp\config.toml"));
         assert!(config_only_event(&event, &config, &targets));
-        assert!(!config_only_event(&event.clone().add_path(table), &config, &targets));
-        assert!(!config_only_event(&event.add_path(PathBuf::from(r"C:\SkinApp")), &config, &targets));
+        assert!(!config_only_event(
+            &event.clone().add_path(table),
+            &config,
+            &targets
+        ));
+        assert!(!config_only_event(
+            &event.add_path(PathBuf::from(r"C:\SkinApp")),
+            &config,
+            &targets
+        ));
     }
 
     fn runtime_snapshot() -> RuntimeSnapshot {

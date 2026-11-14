@@ -3,12 +3,20 @@ use core_engine::skin::{combination, keyboard::*, keyboard_templates};
 fn installing_templates_again_reuses_immutable_package() {
     let dir = tempfile::tempdir().unwrap();
     let path = dir.path().join("config.toml");
-    let first = combination::execute(combination::Request::InstallTemplates { path: path.clone() }).unwrap();
+    let first = combination::execute(combination::Request::InstallTemplates { path: path.clone() })
+        .unwrap();
     assert_eq!(first["already_present"], false);
     let store = core_engine::skin::runtime::store_path(&path);
-    let target = std::fs::read_dir(&store).unwrap().next().unwrap().unwrap().path();
+    let target = std::fs::read_dir(&store)
+        .unwrap()
+        .next()
+        .unwrap()
+        .unwrap()
+        .path();
     let original = std::fs::read(&target).unwrap();
-    let second = combination::execute(combination::Request::InstallTemplates { path: path.clone() }).unwrap();
+    let second =
+        combination::execute(combination::Request::InstallTemplates { path: path.clone() })
+            .unwrap();
     assert_eq!(second["already_present"], true);
     assert_eq!(original, std::fs::read(&target).unwrap());
     let mut changed = core_engine::skin::Package::open(&target).unwrap();
@@ -131,22 +139,47 @@ fn nine_key_groups_are_semantic_and_missing_mapping_is_rejected() {
 
 #[test]
 fn pinyin_template_is_bound_to_pinyin_and_covers_separator() {
-    let package=keyboard_templates::package().unwrap();
-    let c=package.platforms["android"].components.iter().find(|c|c.id=="pinyin9").unwrap();
-    let (layout,mapping)=layout(&package,c).unwrap();
-    assert_eq!(layout.modes,vec![Mode::Pinyin]);
+    let package = keyboard_templates::package().unwrap();
+    let c = package.platforms["android"]
+        .components
+        .iter()
+        .find(|c| c.id == "pinyin9")
+        .unwrap();
+    let (layout, mapping) = layout(&package, c).unwrap();
+    assert_eq!(layout.modes, vec![Mode::Pinyin]);
     assert!(layout.charset.contains('\''));
-    layout.validate_geometry(mapping.as_ref(),&[KeyAction::Space,KeyAction::Enter,KeyAction::Cancel]).unwrap();
+    layout
+        .validate_geometry(
+            mapping.as_ref(),
+            &[KeyAction::Space, KeyAction::Enter, KeyAction::Cancel],
+        )
+        .unwrap();
 }
 
 #[test]
 fn full_keyboard_is_exact_and_templates_reimport_without_resource_changes() {
-    let package=keyboard_templates::package().unwrap();
-    let c=package.platforms["android"].components.iter().find(|c|c.id=="full26").unwrap();
-    let (layout,mapping)=layout(&package,c).unwrap();assert!(mapping.is_none());
-    assert_eq!(layout.keys.iter().filter(|k|matches!(k.action,KeyAction::Character(_))).count(),26);
-    let bytes=package.encoded().unwrap();let first=core_engine::skin::Package::read(std::io::Cursor::new(bytes)).unwrap();
-    let second=core_engine::skin::Package::read(std::io::Cursor::new(first.encoded().unwrap())).unwrap();
-    assert!(first.files==second.files);
-    for id in ["full26","shape14","shape9","pinyin9"] {assert!(compatibility(&second,&combination::supported()).unwrap()[id].enabled);}
+    let package = keyboard_templates::package().unwrap();
+    let c = package.platforms["android"]
+        .components
+        .iter()
+        .find(|c| c.id == "full26")
+        .unwrap();
+    let (layout, mapping) = layout(&package, c).unwrap();
+    assert!(mapping.is_none());
+    assert_eq!(
+        layout
+            .keys
+            .iter()
+            .filter(|k| matches!(k.action, KeyAction::Character(_)))
+            .count(),
+        26
+    );
+    let bytes = package.encoded().unwrap();
+    let first = core_engine::skin::Package::read(std::io::Cursor::new(bytes)).unwrap();
+    let second =
+        core_engine::skin::Package::read(std::io::Cursor::new(first.encoded().unwrap())).unwrap();
+    assert!(first.files == second.files);
+    for id in ["full26", "shape14", "shape9", "pinyin9"] {
+        assert!(compatibility(&second, &combination::supported()).unwrap()[id].enabled);
+    }
 }

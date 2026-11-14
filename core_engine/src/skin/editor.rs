@@ -91,30 +91,67 @@ impl Draft {
         Ok(())
     }
     /// Stage one layout and its mapping, validating before replacing any package bytes.
-    pub fn update_keyboard(&mut self,id:&str,layout:&super::keyboard::Layout,mapping:Option<&super::keyboard::Mapping>)->Result<(),Error> {
-        let mut next=self.package.clone();
-        let component=next.platforms.get("android").and_then(|p|p.components.iter().find(|c|c.id==id && c.kind=="layout"))
-            .cloned().ok_or_else(||Error::Invalid("布局组件不存在".into()))?;
-        next.files.insert(format!("android/{}",component.path),toml::to_string(layout)?.into_bytes());
-        if let Some(mapping)=mapping {
-            let id=layout.mapping.as_ref().ok_or_else(||Error::Invalid("布局未声明映射".into()))?;
-            let declaration=next.platforms["android"].components.iter().find(|c|&c.id==id && c.kind=="mapping")
-                .ok_or_else(||Error::Invalid("映射组件不存在".into()))?;
-            next.files.insert(format!("android/{}",declaration.path),toml::to_string(mapping)?.into_bytes());
+    pub fn update_keyboard(
+        &mut self,
+        id: &str,
+        layout: &super::keyboard::Layout,
+        mapping: Option<&super::keyboard::Mapping>,
+    ) -> Result<(), Error> {
+        let mut next = self.package.clone();
+        let component = next
+            .platforms
+            .get("android")
+            .and_then(|p| {
+                p.components
+                    .iter()
+                    .find(|c| c.id == id && c.kind == "layout")
+            })
+            .cloned()
+            .ok_or_else(|| Error::Invalid("布局组件不存在".into()))?;
+        next.files.insert(
+            format!("android/{}", component.path),
+            toml::to_string(layout)?.into_bytes(),
+        );
+        if let Some(mapping) = mapping {
+            let id = layout
+                .mapping
+                .as_ref()
+                .ok_or_else(|| Error::Invalid("布局未声明映射".into()))?;
+            let declaration = next.platforms["android"]
+                .components
+                .iter()
+                .find(|c| &c.id == id && c.kind == "mapping")
+                .ok_or_else(|| Error::Invalid("映射组件不存在".into()))?;
+            next.files.insert(
+                format!("android/{}", declaration.path),
+                toml::to_string(mapping)?.into_bytes(),
+            );
         }
-        let (checked,mapping)=super::keyboard::layout(&next,&component)?;
-        super::combination::validate_layout(&checked,mapping.as_ref())?;
-        if let Some(id)=&checked.recommended_appearance {super::combination::validate_layout_appearance(&next,id)?;}
-        let states=super::keyboard::compatibility(&next,&super::combination::supported())?;
-        if !states[id].enabled {return Err(Error::Invalid(states[id].reasons.join("；")));}
-        self.package=next;self.dirty=true;Ok(())
+        let (checked, mapping) = super::keyboard::layout(&next, &component)?;
+        super::combination::validate_layout(&checked, mapping.as_ref())?;
+        if let Some(id) = &checked.recommended_appearance {
+            super::combination::validate_layout_appearance(&next, id)?;
+        }
+        let states = super::keyboard::compatibility(&next, &super::combination::supported())?;
+        if !states[id].enabled {
+            return Err(Error::Invalid(states[id].reasons.join("；")));
+        }
+        self.package = next;
+        self.dirty = true;
+        Ok(())
     }
-    pub fn validate_keyboards(&self)->Result<(),Error> {
-        if let Some(platform)=self.package.platforms.get("android") {
-            super::keyboard::compatibility(&self.package,&super::combination::supported())?;
-            for c in platform.components.iter().filter(|c|c.kind=="layout" && c.capabilities.required.iter().all(|cap|super::combination::supported().contains(cap))) {
-                let (layout,mapping)=super::keyboard::layout(&self.package,c)?;
-                super::combination::validate_layout(&layout,mapping.as_ref())?;
+    pub fn validate_keyboards(&self) -> Result<(), Error> {
+        if let Some(platform) = self.package.platforms.get("android") {
+            super::keyboard::compatibility(&self.package, &super::combination::supported())?;
+            for c in platform.components.iter().filter(|c| {
+                c.kind == "layout"
+                    && c.capabilities
+                        .required
+                        .iter()
+                        .all(|cap| super::combination::supported().contains(cap))
+            }) {
+                let (layout, mapping) = super::keyboard::layout(&self.package, c)?;
+                super::combination::validate_layout(&layout, mapping.as_ref())?;
             }
         }
         Ok(())

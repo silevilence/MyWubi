@@ -31,12 +31,12 @@ simplelog = "0.12"
 wgpu = "0.19"
 velopack = "1.2"
 semver = "1"
-model_input = { version = "0.9.0", path = "../../model_input" }
-model_ipc = { version = "0.9.0", path = "../model_ipc" }
+model_input = { version = "0.10.0", path = "../../model_input" }
+model_ipc = { version = "0.10.0", path = "../model_ipc" }
 serde_json.workspace = true
-runtime_components = { version = "0.9.0", path = "../runtime_components" }
-text_render = { version = "0.9.0", path = "../text_render" }
-personal_input = { version = "0.9.0", path = "../../personal_input" }
+runtime_components = { version = "0.10.0", path = "../runtime_components" }
+text_render = { version = "0.10.0", path = "../text_render" }
+personal_input = { version = "0.10.0", path = "../../personal_input" }
 image = { version = "0.24.9", default-features = false, features = ["png"] }
 
 [build-dependencies]

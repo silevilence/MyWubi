@@ -125,7 +125,11 @@ pub(crate) fn query_index<'a>(
             if valid {
                 // Cache the ordering key once. Pinyin exactness counts normalized
                 // letters and must not be recalculated by every sort comparison.
-                indices.push((!exact(&entries[entry]), Reverse(entries[entry].weight), entry));
+                indices.push((
+                    !exact(&entries[entry]),
+                    Reverse(entries[entry].weight),
+                    entry,
+                ));
             }
         }
     }

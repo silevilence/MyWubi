@@ -375,7 +375,13 @@ impl Bitmap {
         let radius = radius.clamp(0.0, width.min(height) / 2.0);
         let source = self.pixels();
         let out_width = output.width as usize;
-        for (index, pixel) in output.pixels_mut().as_chunks_mut::<4>().0.iter_mut().enumerate() {
+        for (index, pixel) in output
+            .pixels_mut()
+            .as_chunks_mut::<4>()
+            .0
+            .iter_mut()
+            .enumerate()
+        {
             let x = (index % out_width) as f32 - margin as f32 + 0.5;
             let y = (index / out_width) as f32 - margin as f32 + 0.5;
             let qx = (x - width / 2.0).abs() - (width / 2.0 - radius);
