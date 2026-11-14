@@ -219,6 +219,13 @@ impl SemanticEngine {
     /// Read-only window query. Full lookup is performed only on explicit queries,
     /// never duplicated on the Windows key path; only the bounded window is copied.
     pub fn candidate_window(&self, offset: usize, count: usize) -> CandidateWindow {
+        if let Some(matches)=&self.sm.group_matches {
+            let offset=offset.min(matches.candidates.len());
+            return CandidateWindow {query_revision:self.query_revision,view_revision:self.view_revision,total:matches.candidates.len(),offset,
+                candidates:matches.candidates.iter().enumerate().skip(offset).take(count.min(MAX_WINDOW)).map(|(index,item)|Candidate {
+                    expression_kind:None,id:CandidateId(index),text:item.text.clone(),exact:item.exact,hints:vec![CandidateHint::ReverseCodes(item.codes.clone())]
+                }).collect()};
+        }
         if self.sm.mode == InputMode::Menu {
             let offset = offset.min(self.sm.candidates.len());
             return CandidateWindow {

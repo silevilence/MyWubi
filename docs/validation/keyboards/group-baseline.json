@@ -1,0 +1,11 @@
+{
+  "count": 1000,
+  "entries": 136239,
+  "extra_index_bytes": 0,
+  "incomplete": 0,
+  "p50_us": 17.9,
+  "p95_us": 49.6,
+  "p99_us": 2608.5,
+  "path": "tables/wubi86.dict",
+  "peak_result_string_bytes": 90705
+}

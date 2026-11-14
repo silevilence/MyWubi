@@ -5,6 +5,9 @@ impl StateMachine {
     pub fn group_sequence(&self) -> Option<&Sequence> {
         self.groups.as_ref()
     }
+    pub fn group_search_status(&self) -> Option<crate::group_search::SearchStatus> {
+        self.group_matches.as_ref().map(|m| m.status)
+    }
 }
 
 impl SemanticEngine {
@@ -56,7 +59,7 @@ impl SemanticEngine {
     fn change_groups(&mut self, action: &Action) -> Result<Transition, Rejection> {
         match action {
             Action::InputGroup(identity, id) => {
-                if !matches!(self.sm.mode, InputMode::Main | InputMode::Pinyin)
+                if self.sm.mode != InputMode::Main
                     || self.sm.expression_query.is_some()
                 {
                     return Err(Rejection::Unavailable("当前模式不支持字符组".into()));
@@ -160,12 +163,34 @@ impl SemanticEngine {
         let sequence = self.sm.groups.as_ref().ok_or(Rejection::InvalidCode)?;
         self.sm.spelling = sequence.hint();
         self.sm.page = 0;
-        self.sm.candidates.clear();
-        self.sm.code_hints.clear();
-        self.sm.total_candidates = 0;
+        let matches = crate::group_search::query(
+            &self.sm.dict,
+            &sequence.positions,
+            crate::group_search::WORK_BUDGET,
+        );
+        self.sm.total_candidates = matches.candidates.len();
+        self.sm.candidates = matches
+            .candidates
+            .iter()
+            .take(self.sm.page_size)
+            .map(|m| m.text.clone())
+            .collect();
+        self.sm.code_hints = matches
+            .candidates
+            .iter()
+            .take(self.sm.page_size)
+            .map(|m| m.codes.join("/"))
+            .collect();
+        self.sm.group_matches = Some(Arc::new(matches));
         self.sm.appended = None;
         self.sm.shortcut_time = None;
         self.sm.state = InputState::Composing;
-        Ok(Transition::SpellingUpdated(self.sm.spelling.clone()))
+        Ok(Transition::Candidates {
+            spelling: self.sm.spelling.clone(),
+            candidates: self.sm.candidates.clone(),
+            code_hints: self.sm.code_hints.clone(),
+            page: 0,
+            total_pages: self.sm.total_pages(),
+        })
     }
 }

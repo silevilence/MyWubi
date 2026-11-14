@@ -101,6 +101,7 @@ const DEFAULT_PAGE_SIZE: usize = 5;
 #[derive(Clone)]
 pub struct StateMachine {
     groups: Option<crate::group_input::Sequence>,
+    group_matches: Option<Arc<crate::group_search::Matches>>,
     shortcut_committed: bool,
     shortcut_rules: Arc<crate::shortcuts::RuleSet>,
     clock: Arc<dyn crate::shortcut_time::Clock>,
@@ -183,6 +184,7 @@ impl StateMachine {
         let page_size = page_size.clamp(1, 10);
         Self {
             groups: None,
+            group_matches: None,
             shortcut_rules: Arc::default(),
             shortcut_committed: false,
             clock: Arc::new(crate::shortcut_time::UnavailableClock),
@@ -332,6 +334,7 @@ impl StateMachine {
     /// 重置全部状态（不释放码表绑定）。
     pub fn reset(&mut self) {
         self.groups = None;
+        self.group_matches = None;
         self.shortcut_committed = false;
         self.shortcut_time = None;
         self.expression_query = None;
