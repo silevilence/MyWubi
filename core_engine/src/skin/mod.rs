@@ -2,6 +2,8 @@
 use serde::{Deserialize, Serialize};
 use std::collections::{BTreeMap, BTreeSet};
 
+pub mod archive;
+
 /// Unknown TOML fields are retained when an editor changes a known field.
 pub type Extensions = BTreeMap<String, toml::Value>;
 
@@ -11,6 +13,14 @@ pub enum Error {
     Invalid(String),
     #[error("皮肤 metadata 格式错误：{0}")]
     Toml(#[from] toml::de::Error),
+    #[error("皮肤文件读写失败：{0}")]
+    Io(#[from] std::io::Error),
+    #[error("皮肤 ZIP 无效：{0}")]
+    Zip(#[from] zip::result::ZipError),
+    #[error("皮肤 metadata 无法保存：{0}")]
+    Serialize(#[from] toml::ser::Error),
+    #[error("皮肤 {0}@{1} 已存在且内容不同，请另存新版本")]
+    Conflict(String, String),
 }
 
 /// Capability IDs include their major version, e.g. `appearance.parameters/1`.
