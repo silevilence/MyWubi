@@ -1,8 +1,12 @@
 //! Contract-based schematic; never represented as Android device pixel evidence.
 use core_engine::skin::parameters::Parameters;
 use eframe::egui::{self, Color32};
+use std::{collections::BTreeMap, sync::Arc};
+use text_render::skin_images::Cache;
 
 pub struct AndroidPreview {
+    image_key: usize,
+    textures: BTreeMap<String, egui::TextureHandle>,
     width: u32,
     landscape: bool,
     font_scale: f32,
@@ -14,6 +18,8 @@ pub struct AndroidPreview {
 impl Default for AndroidPreview {
     fn default() -> Self {
         Self {
+            image_key: 0,
+            textures: BTreeMap::new(),
             width: 393,
             landscape: false,
             font_scale: 1.0,
@@ -25,7 +31,34 @@ impl Default for AndroidPreview {
     }
 }
 impl AndroidPreview {
-    pub fn ui(&mut self, ui: &mut egui::Ui, p: &Parameters) {
+    pub fn ui(&mut self, ui: &mut egui::Ui, p: &Parameters, images: &Arc<Cache>) {
+        let key = Arc::as_ptr(images) as usize;
+        if self.image_key != key {
+            self.image_key = key;
+            self.textures.clear();
+            for cached in images.values() {
+                self.textures
+                    .entry(cached.image.path.clone())
+                    .or_insert_with(|| {
+                        let pixels = cached
+                            .pixels
+                            .bgra
+                            .as_chunks::<4>()
+                            .0
+                            .iter()
+                            .map(|p| Color32::from_rgba_premultiplied(p[2], p[1], p[0], p[3]))
+                            .collect();
+                        ui.ctx().load_texture(
+                            &cached.image.path,
+                            egui::ColorImage {
+                                size: [cached.pixels.width as usize, cached.pixels.height as usize],
+                                pixels,
+                            },
+                            egui::TextureOptions::LINEAR,
+                        )
+                    });
+            }
+        }
         ui.label("Android 示意预览 · Windows 字体与系统渲染可能不同，需在 Android 原生预览核对");
         ui.horizontal_wrapped(|ui| {
             egui::ComboBox::from_label("屏宽 dp")
@@ -59,7 +92,16 @@ impl AndroidPreview {
         );
         let painter = ui.painter();
         painter.rect_filled(rect, 0.0, color(p, "background"));
+        paint_image(painter, &self.textures, images, "background", rect, scale);
         let baseline = rect.top() + top;
+        paint_image(
+            painter,
+            &self.textures,
+            images,
+            "candidate",
+            egui::Rect::from_min_size(egui::pos2(rect.left(), baseline), egui::vec2(width, bar)),
+            scale,
+        );
         painter.text(
             egui::pos2(rect.left() + 8.0 * scale, baseline + bar / 2.0),
             egui::Align2::LEFT_CENTER,
@@ -76,6 +118,9 @@ impl AndroidPreview {
             let keys: Vec<_> = letters.chars().map(|c| c.to_string()).collect();
             draw_row(
                 painter,
+                &self.textures,
+                images,
+                scale,
                 p,
                 &keys,
                 rect.left(),
@@ -92,6 +137,9 @@ impl AndroidPreview {
         let keys = ["⇧", "123", "空格", "删除", "回车"].map(str::to_owned);
         draw_row(
             painter,
+            &self.textures,
+            images,
+            scale,
             p,
             &keys,
             rect.left(),
@@ -114,6 +162,7 @@ impl AndroidPreview {
                 p.number("key_radius") * scale,
                 color(p, "bubble_background"),
             );
+            paint_image(painter, &self.textures, images, "bubble", bubble, scale);
             painter.text(
                 bubble.center(),
                 egui::Align2::CENTER_CENTER,
@@ -128,6 +177,9 @@ impl AndroidPreview {
 #[allow(clippy::too_many_arguments)]
 fn draw_row(
     painter: &egui::Painter,
+    textures: &BTreeMap<String, egui::TextureHandle>,
+    images: &Cache,
+    scale: f32,
     p: &Parameters,
     keys: &[String],
     x: f32,
@@ -168,6 +220,22 @@ fn draw_row(
             p.number("key_radius").min(height / 2.0),
             color(p, background),
         );
+        paint_image(
+            painter,
+            textures,
+            images,
+            if disabled {
+                "disabled"
+            } else if down {
+                "pressed"
+            } else if function {
+                "function"
+            } else {
+                "key"
+            },
+            rect,
+            scale,
+        );
         painter.text(
             rect.center(),
             egui::Align2::CENTER_CENTER,
@@ -180,4 +248,44 @@ fn draw_row(
 fn color(p: &Parameters, key: &str) -> Color32 {
     let [a, r, g, b] = p.color(key).to_be_bytes();
     Color32::from_rgba_unmultiplied(r, g, b, a)
+}
+
+fn paint_image(
+    painter: &egui::Painter,
+    textures: &BTreeMap<String, egui::TextureHandle>,
+    images: &Cache,
+    role: &str,
+    rect: egui::Rect,
+    scale: f32,
+) {
+    let Some(cached) = images.get(role) else {
+        return;
+    };
+    let Some(texture) = textures.get(&cached.image.path) else {
+        return;
+    };
+    let width = cached.pixels.width as f32;
+    let height = cached.pixels.height as f32;
+    let painter = painter.with_clip_rect(rect);
+    for (source, target) in core_engine::skin::images::patches(
+        &cached.image.style,
+        [width, height],
+        [rect.width(), rect.height()],
+        scale,
+    ) {
+        let uv = egui::Rect::from_min_max(
+            egui::pos2(source[0] / width, source[1] / height),
+            egui::pos2(source[2] / width, source[3] / height),
+        );
+        let dest = egui::Rect::from_min_max(
+            rect.min + egui::vec2(target[0], target[1]),
+            rect.min + egui::vec2(target[2], target[3]),
+        );
+        painter.image(
+            texture.id(),
+            dest,
+            uv,
+            Color32::WHITE.gamma_multiply(cached.image.style.opacity),
+        );
+    }
 }

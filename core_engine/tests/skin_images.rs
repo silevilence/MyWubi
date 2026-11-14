@@ -4,9 +4,9 @@ fn package() -> Package {
     let mut p = builtin_package("jade").unwrap();
     p.metadata
         .resources
-        .insert("panel".into(), "shared/panel.png".into());
+        .insert("panel".into(), "shared/assets/panel.png".into());
     p.files.insert(
-        "shared/panel.png".into(),
+        "shared/assets/panel.png".into(),
         include_bytes!("fixtures/skin-panel.png").to_vec(),
     );
     for platform in ["windows", "android"] {
@@ -48,7 +48,7 @@ fn shared_image_has_independent_platform_styles_and_system_override() {
             &supported(),
         )
         .unwrap();
-        assert_eq!(r.images["background"].path, "shared/panel.png");
+        assert_eq!(r.images["background"].path, "shared/assets/panel.png");
         assert_eq!(r.images["background"].width, 16);
         assert!(resolve(
             &p,
@@ -110,7 +110,7 @@ fn old_client_rejects_required_or_uses_explicit_plain_fallback() {
 #[test]
 fn missing_truncated_and_oversized_images_are_rejected() {
     let mut p = package();
-    p.files.get_mut("shared/panel.png").unwrap().truncate(35);
+    p.files.get_mut("shared/assets/panel.png").unwrap().truncate(35);
     assert!(resolve(
         &p,
         "windows",
@@ -122,7 +122,7 @@ fn missing_truncated_and_oversized_images_are_rejected() {
     )
     .is_err());
     p = package();
-    p.files.get_mut("shared/panel.png").unwrap()[16..20].copy_from_slice(&2049u32.to_be_bytes());
+    p.files.get_mut("shared/assets/panel.png").unwrap()[16..20].copy_from_slice(&2049u32.to_be_bytes());
     assert!(resolve(
         &p,
         "windows",

@@ -100,3 +100,46 @@ fn platform_removal_and_private_resource_copy_preserve_shared_and_other_data() {
     assert!(draft.package.platforms.contains_key("windows"));
     assert!(draft.package.encoded().is_ok());
 }
+
+#[test]
+fn image_resource_edits_preserve_other_platform_and_block_referenced_deletion() {
+    let mut draft = Draft::builtin("jade").unwrap();
+    let bytes = include_bytes!("fixtures/skin-panel.png").to_vec();
+    draft.import_png(None, "panel", bytes.clone()).unwrap();
+    let windows = draft.package.files["windows/appearance.toml"].clone();
+    let mut source =
+        String::from_utf8(draft.package.files["android/appearance.toml"].clone()).unwrap();
+    source.push_str("\n[images.light.background]\nresource='shared:panel'\nmode='nine_slice'\nslice=[4,4,4,4]\ncontent=[2,2,2,2]\nopacity=0.5\n");
+    draft
+        .package
+        .files
+        .insert("android/appearance.toml".into(), source.as_bytes().to_vec());
+    draft
+        .package
+        .platforms
+        .get_mut("android")
+        .unwrap()
+        .components[0]
+        .capabilities
+        .required
+        .push("appearance.images/1".into());
+    assert!(draft.remove_resource(None, "panel").is_err());
+    draft.copy_shared_resource("panel", "android").unwrap();
+    draft.package.files.insert(
+        "android/appearance.toml".into(),
+        source
+            .replace("shared:panel", "platform:panel")
+            .into_bytes(),
+    );
+    draft.remove_resource(None, "panel").unwrap();
+    assert!(draft.remove_resource(Some("android"), "panel").is_err());
+    assert_eq!(draft.package.files["windows/appearance.toml"], windows);
+    assert_eq!(draft.package.files["android/assets/panel.png"], bytes);
+    draft.validate_images().unwrap();
+    let dir = tempfile::tempdir().unwrap();
+    let path = dir.path().join("images.mywubi-skin");
+    draft.export_new(&path).unwrap();
+    let reopened = Draft::open(&path).unwrap();
+    reopened.validate_images().unwrap();
+    assert_eq!(reopened.package.files["windows/appearance.toml"], windows);
+}

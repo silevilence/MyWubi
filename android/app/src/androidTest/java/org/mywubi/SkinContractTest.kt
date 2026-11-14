@@ -65,7 +65,7 @@ class SkinContractTest {
         assertSame(light.roles["background"]!!.bitmap,light.roles["pressed"]!!.bitmap)
         assertEquals(16,light.roles["background"]!!.bitmap.width)
         val variant=NativeBridge.objectCall("ResolveSkin","path" to path.path,"config" to config,"platform" to "android","dark" to false,"high_contrast" to false)
-        variant.getJSONObject("images").getJSONObject("key").put("png","AA==")
+        for(role in variant.getJSONObject("images").keys()) variant.getJSONObject("images").getJSONObject(role).put("png","AA==")
         assertTrue(runCatching {decodeSkinImages(variant,mutableMapOf())}.isFailure)
     }
 

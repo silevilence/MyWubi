@@ -10,11 +10,11 @@ fn fixture() -> (
 ) {
     let mut package = builtin_package("jade").unwrap();
     package.files.insert(
-        "shared/panel.png".into(),
+        "shared/assets/panel.png".into(),
         include_bytes!("../../../core_engine/tests/fixtures/skin-panel.png").to_vec(),
     );
     let image = Image {
-        path: "shared/panel.png".into(),
+        path: "shared/assets/panel.png".into(),
         width: 16,
         height: 16,
         style: Style {
@@ -48,7 +48,7 @@ fn decoded_resources_are_shared_and_released_and_corrupt_png_is_rejected() {
         let cache = decode(&package, &images).unwrap();
         assert_eq!(cache["background"].pixels.bgra.len(), 1024);
     }
-    package.files.get_mut("shared/panel.png").unwrap()[45] ^= 0xff;
+    package.files.get_mut("shared/assets/panel.png").unwrap()[45] ^= 0xff;
     assert!(decode(&package, &images).is_err());
 }
 #[test]

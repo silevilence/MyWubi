@@ -15,6 +15,7 @@ use std::{
 enum Picked {
     Open(Box<Draft>),
     Exported(PathBuf),
+    Image { platform: Option<String>, id: String, bytes: Vec<u8> },
 }
 pub struct SkinEditor {
     android_preview: crate::android_skin_preview::AndroidPreview,
@@ -35,6 +36,9 @@ pub struct SkinEditor {
     active_parameters: Option<Parameters>,
     active_legacy: bool,
     active_images: Arc<text_render::skin_images::Cache>,
+    image_id: String,
+    image_key: u64,
+    image_cache: Arc<text_render::skin_images::Cache>,
 }
 impl Default for SkinEditor {
     fn default() -> Self {
@@ -57,6 +61,9 @@ impl Default for SkinEditor {
             active_parameters: None,
             active_legacy: false,
             active_images: Default::default(),
+            image_id: "image".into(),
+            image_key: 0,
+            image_cache: Default::default(),
         }
     }
 }
@@ -126,6 +133,12 @@ impl SkinEditor {
                     match Draft::open(&target) {
                         Ok(d) => self.draft = Some(d),
                         Err(e) => self.message = e.to_string(),
+                    }
+                }
+                Ok(Ok(Picked::Image {platform,id,bytes})) => {
+                    self.pending=None;
+                    if let Some(draft)=self.draft.as_mut() {
+                        self.message=match draft.import_png(platform.as_deref(),&id,bytes) {Ok(())=>"图片已加入草稿；请在角色中绑定".into(),Err(e)=>e.to_string()};
                     }
                 }
                 Ok(Err(error)) => {
@@ -241,6 +254,24 @@ impl SkinEditor {
                     ui.horizontal(|ui| {ui.label(label);draft.dirty|=ui.text_edit_singleline(value).changed();});
                 }
             });
+            ui.collapsing("图片资源管理",|ui| {
+                ui.label("相同 ID 将替换该资源；共享替换影响引用它的 Windows 和 Android。先复制为本平台资源可隔离修改。");
+                ui.horizontal(|ui|{ui.label("资源 ID");ui.text_edit_singleline(&mut self.image_id);});
+                for (label,scope) in [("导入共享 PNG",None),("导入当前平台 PNG",Some(self.platform.clone()))] {
+                    if ui.button(label).clicked() {
+                        let id=self.image_id.clone();let ctx=ui.ctx().clone();let (tx,rx)=mpsc::channel();self.pending=Some(rx);
+                        std::thread::spawn(move || {
+                            if let Some(path)=rfd::FileDialog::new().add_filter("PNG",&["png"]).pick_file() {
+                                let result=(|| {use std::io::Read;let mut bytes=Vec::new();std::fs::File::open(path).map_err(|e|e.to_string())?.take(skin::archive::MAX_ENTRY+1).read_to_end(&mut bytes).map_err(|e|e.to_string())?;
+                                    if bytes.len() as u64>skin::archive::MAX_ENTRY {return Err("图片文件超限".into());}
+                                    skin::images::dimensions(&bytes).map_err(|e|e.to_string())?;Ok(Picked::Image{platform:scope,id,bytes})})();let _=tx.send(result);
+                            }ctx.request_repaint();
+                        });
+                    }
+                }
+                let resources:Vec<_>=draft.package.metadata.resources.keys().map(|id|(None,id.clone())).chain(draft.package.platforms.get(&self.platform).into_iter().flat_map(|p|p.resources.keys()).map(|id|(Some(self.platform.clone()),id.clone()))).collect();
+                for (scope,id) in resources {ui.horizontal(|ui|{ui.label(format!("{}:{id}",scope.as_deref().unwrap_or("shared")));if ui.button("删除资源").clicked(){self.message=match draft.remove_resource(scope.as_deref(),&id){Ok(())=>"未引用资源已删除".into(),Err(e)=>e.to_string()};}});}
+            });
             ui.horizontal(|ui| {
                 for platform in ["windows","android"] {
                     if ui.selectable_label(self.platform==platform,platform).clicked() {self.platform=platform.into();self.component.clear();self.remove_confirm=false;}
@@ -275,7 +306,8 @@ impl SkinEditor {
                     for c in &platform.components {ui.selectable_value(&mut self.component,c.id.clone(),format!("{} · {}",c.id,c.kind));}
                 });
                 ui.checkbox(&mut self.dark,"深色变体");
-                let supported=["container.zip/1".into(),format!("{}.base/1",self.platform),"appearance.parameters/1".into()].into();
+                let supported=["container.zip/1".into(),format!("{}.base/1",self.platform),"appearance.parameters/1".into(),skin::images::CAPABILITY.into()].into();
+                if let Err(e)=crate::skin_image_editor::form(ui,&mut draft,&self.platform,&self.component,self.dark){self.message=e.to_string();}
                 let resolved=parameters::resolve(&draft.package,&self.platform,&self.component,self.dark,&Extensions::new(),false,&supported);
                 match resolved {
                     Ok(resolved)=>{
@@ -298,7 +330,15 @@ impl SkinEditor {
                                 }
                             }
                         }
-                        if self.platform=="windows" {self.preview(ui,&resolved.parameters,false,Default::default());} else {self.android_preview.ui(ui,&resolved.parameters);}
+                        use std::hash::{Hash,Hasher};let mut hasher=std::collections::hash_map::DefaultHasher::new();
+                        format!("{:?}",resolved.images).hash(&mut hasher);
+                        for image in resolved.images.values(){draft.package.files[&image.path].hash(&mut hasher);}
+                        let key=hasher.finish();
+                        if key!=self.image_key {
+                            self.image_key=key;
+                            match text_render::skin_images::decode(&draft.package,&resolved.images) {Ok(cache)=>self.image_cache=Arc::new(cache),Err(e)=>{self.image_cache=Default::default();self.message=e.to_string();}}
+                        }
+                        if self.platform=="windows" {self.preview(ui,&resolved.parameters,false,self.image_cache.clone());} else {self.android_preview.ui(ui,&resolved.parameters,&self.image_cache);}
                     },
                     Err(e)=>{ui.label(format!("此范围只读，保留原始数据：{e}"));}
                 }
@@ -308,7 +348,7 @@ impl SkinEditor {
                     let copy=draft.clone();let ctx=ui.ctx().clone();let (tx,rx)=mpsc::channel();self.pending=Some(rx);
                     std::thread::spawn(move || {
                         if let Some(path)=rfd::FileDialog::new().set_file_name(format!("{}-{}.mywubi-skin",copy.package.metadata.id,copy.package.metadata.version)).save_file() {
-                            let _=tx.send(copy.export_new(&path).map(|_|Picked::Exported(path)).map_err(|e|e.to_string()));
+                            let _=tx.send(crate::skin_image_editor::validate(&copy).and_then(|_|copy.export_new(&path)).map(|_|Picked::Exported(path)).map_err(|e|e.to_string()));
                         }ctx.request_repaint();
                     });
                 }

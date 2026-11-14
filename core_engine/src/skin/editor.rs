@@ -48,7 +48,119 @@ impl Draft {
     }
     pub fn export_new(&self, path: &Path) -> Result<(), Error> {
         self.check_source()?;
+        self.validate_images()?;
         self.package.export_new(path)
+    }
+    pub fn validate_images(&self) -> Result<(), Error> {
+        for (platform, descriptor) in &self.package.platforms {
+            for component in descriptor
+                .components
+                .iter()
+                .filter(|c| c.kind == "appearance")
+            {
+                let appearance: parameters::Appearance = super::parse(
+                    &self.package.files,
+                    &format!("{platform}/{}", component.path),
+                )?;
+                // Unknown image versions remain losslessly read-only in the editor.
+                if appearance.extensions.contains_key("images")
+                    && (component
+                        .capabilities
+                        .required
+                        .iter()
+                        .any(|c| c == super::images::CAPABILITY)
+                        || component
+                            .capabilities
+                            .optional
+                            .contains_key(super::images::CAPABILITY))
+                {
+                    for variant in appearance.variants.keys() {
+                        super::images::resolve(
+                            &self.package,
+                            platform,
+                            component,
+                            &appearance,
+                            variant,
+                            &[super::images::CAPABILITY.into()].into(),
+                        )?;
+                    }
+                }
+            }
+        }
+        Ok(())
+    }
+    pub fn import_png(
+        &mut self,
+        platform: Option<&str>,
+        id: &str,
+        bytes: Vec<u8>,
+    ) -> Result<(), Error> {
+        if !super::valid_id(id) {
+            return Err(Error::Invalid("资源 ID 无效".into()));
+        }
+        super::images::dimensions(&bytes)?;
+        let path = if let Some(platform) = platform {
+            let descriptor = self
+                .package
+                .platforms
+                .get_mut(platform)
+                .ok_or_else(|| Error::Invalid("平台不存在".into()))?;
+            let path = format!("assets/{id}.png");
+            descriptor.resources.insert(id.into(), path.clone());
+            format!("{platform}/{path}")
+        } else {
+            let path = format!("shared/assets/{id}.png");
+            self.package
+                .metadata
+                .resources
+                .insert(id.into(), path.clone());
+            path
+        };
+        self.package.files.insert(path, bytes);
+        self.dirty = true;
+        Ok(())
+    }
+    pub fn remove_resource(&mut self, platform: Option<&str>, id: &str) -> Result<(), Error> {
+        let reference = format!(
+            "{}:{id}",
+            if platform.is_some() {
+                "platform"
+            } else {
+                "shared"
+            }
+        );
+        let scope = platform.map(|p| format!("{p}/"));
+        if self.package.files.iter().any(|(path, bytes)| {
+            scope.as_ref().is_none_or(|scope| path.starts_with(scope))
+                && std::str::from_utf8(bytes).is_ok_and(|s| s.contains(&reference))
+        }) {
+            return Err(Error::Invalid(
+                "资源仍被引用，请先在相关平台/变体重新绑定".into(),
+            ));
+        }
+        let path = if let Some(platform) = platform {
+            self.package
+                .platforms
+                .get_mut(platform)
+                .and_then(|p| p.resources.remove(id))
+                .map(|p| format!("{platform}/{p}"))
+        } else {
+            self.package.metadata.resources.remove(id)
+        };
+        if let Some(path) = path {
+            // A second resource ID may intentionally alias the same file.
+            let shared = self.package.metadata.resources.values().any(|p| p == &path);
+            let private = self.package.platforms.iter().any(|(platform, p)| {
+                p.resources
+                    .values()
+                    .any(|v| format!("{platform}/{v}") == path)
+            });
+            if !shared && !private {
+                self.package.files.remove(&path);
+            }
+            self.dirty = true;
+        }
+        Ok(())
     }
     pub fn add_platform(&mut self, platform: &str) -> Result<(), Error> {
         if !matches!(platform, "windows" | "android") {

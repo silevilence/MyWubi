@@ -19,6 +19,7 @@ pub mod panels;
 pub mod personal_panel;
 pub mod save;
 pub mod skin_editor;
+mod skin_image_editor;
 pub mod state;
 pub mod vpk;
 
