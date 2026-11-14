@@ -1,0 +1,30 @@
+{
+  "schema": 1,
+  "windows_dpi": [96, 120, 144, 192],
+  "font_scale": [1.0, 1.3, 2.0],
+  "android_width_dp": [320, 393, 720],
+  "states": [
+    {"id":"ordinary", "code":"a", "text":"1. 工  2. 戈  3. 或", "commit":"工"},
+    {"id":"reverse", "code":"ni'hao", "text":"1. 你好 · wqvb  2. 你们好 · wuwqvb", "commit":"你好"},
+    {"id":"long", "code":"test", "text":"1. 跨平台形码输入法候选显示与长文本自动换行  2. internationalization and accessibility", "commit":"跨平台形码输入法候选显示与长文本自动换行"},
+    {"id":"prediction", "code":"预测", "text":"你好 → 世界 · 预测", "commit":"世界"},
+    {"id":"emoji", "code":"开心", "text":"1. 😀  2. 👨‍👩‍👧‍👦  3. 👩🏽‍💻  4. é  5. (๑•̀ㅂ•́)و✧", "commit":"😀"},
+    {"id":"unavailable", "code":"临时拼音", "text":"拼音码表不可用；返回主码表", "commit":null},
+    {"id":"empty", "code":"zzzz", "text":"无候选", "commit":"zzzz"}
+  ],
+  "keyboard_states": ["letters", "numbers_symbols", "function", "pressed", "disabled", "bubble", "long_press", "slide_cancel", "password", "expanded_candidates"],
+  "palettes": {
+    "jade": {
+      "light": ["#F4F7F5", "#192C27", "#52635B", "#245D51", "#FFFFFF"],
+      "dark": ["#191F1D", "#E1E8E4", "#AFBEB6", "#9CD3C1", "#00382C"]
+    },
+    "plain": {
+      "light": ["#FAFAFA", "#202020", "#595959", "#333333", "#FFFFFF"],
+      "dark": ["#202020", "#FAFAFA", "#BDBDBD", "#E0E0E0", "#202020"]
+    },
+    "contrast": {
+      "light": ["#FFFFFF", "#000000", "#333333", "#000000", "#FFFFFF"],
+      "dark": ["#000000", "#FFFFFF", "#EEEEEE", "#FFFFFF", "#000000"]
+    }
+  }
+}
