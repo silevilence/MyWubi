@@ -149,7 +149,7 @@ fun Keyboard(model: KeyboardModel, dispatch: (Any) -> Unit, window: (Int) -> Uni
             val barHeight = maxOf(48.dp, (28 * LocalDensity.current.fontScale + 16).dp)
             model.expression?.let { query ->
                 val results = query.phase == "Results"
-                val name = when(query.kind) { "emoji" -> "Emoji"; "kaomoji" -> "颜文字"; "kana" -> "假名"; "math" -> "数学符号"; "punctuation" -> "标点"; "symbols" -> "其他符号"; else -> "特殊输入" }
+                val name = specialLabel(query.kind)
                 FlowRow(Modifier.fillMaxWidth().heightIn(min=48.dp).padding(horizontal=10.dp), horizontalArrangement=Arrangement.spacedBy(8.dp)) {
                     TextButton(onClick={expanded=false; dispatch("BrowseExpressions")}, enabled=model.enabled) { Text("全部") }
                     Text("$name · ${if(results) "选择结果" else if(query.input == "Literal") "字面别名" else "主码表组词"}", Modifier.padding(vertical=14.dp), fontSize=14.sp)
@@ -235,22 +235,10 @@ fun Keyboard(model: KeyboardModel, dispatch: (Any) -> Unit, window: (Int) -> Uni
                                     badge={ if (showUpdate) Badge() }, action=openSettings)
                                 Box {
                                     ToolbarIconButton(R.drawable.ic_emoji, "特殊输入", enabled=baseEnabled) { specialMenu=true }
-                                    DropdownMenu(expanded=specialMenu && baseEnabled, onDismissRequest={specialMenu=false}) {
-                                        for((mode, title) in listOf("Emoji" to "Emoji", "Kaomoji" to "颜文字", "Kana" to "假名", "Math" to "数学符号", "Punctuation" to "标点", "Symbols" to "其他符号")) {
-                                            val capability = model.specialCapabilities[mode] ?: when(mode) {
-                                                "Emoji" -> model.emojiAvailable to model.emojiReason
-                                                "Kaomoji" -> model.kaomojiAvailable to model.kaomojiReason
-                                                else -> false to "词库未加载"
-                                            }
-                                            DropdownMenuItem(text={Column {
-                                                Text(title)
-                                                if(!capability.first) Text(capability.second ?: "不可用", fontSize=12.sp)
-                                            }}, enabled=capability.first, onClick={
-                                                specialMenu=false
-                                                dispatch(JSONObject().put("BeginTemporary", mode))
-                                                dispatch("BrowseExpressions")
-                                            })
-                                        }
+                                    SpecialCategoryMenu(model,specialMenu && baseEnabled,dismiss={specialMenu=false}) { mode ->
+                                        specialMenu=false
+                                        dispatch(JSONObject().put("BeginTemporary",mode))
+                                        dispatch("BrowseExpressions")
                                     }
                                 }
                                 ToolbarIconButton(R.drawable.ic_switch_ime, "切换输入法", action=switchIme)

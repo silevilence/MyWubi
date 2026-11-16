@@ -29,6 +29,8 @@ fn main() -> Result<(), Box<dyn Error>> {
                         message: None,
                     }),
                     browser: Some(BrowserData {
+                        choosing_category: false,
+                        category_index: 0,
                         offset: 0,
                         total: entries.len(),
                         categories: ExpressionKind::ALL
@@ -112,6 +114,48 @@ fn main() -> Result<(), Box<dyn Error>> {
                 }
                 encoder.write_header()?.write_image_data(&rgba)?;
                 report.push(serde_json::json!({"file":file,"width":bitmap.width,"height":bitmap.height,"items":grid.len(),"scroll_limit":scene.scroll_limit}));
+                if kind == ExpressionKind::Emoji {
+                    let browser = data.browser.as_mut().unwrap();
+                    browser.choosing_category = true;
+                    browser.category_index = ExpressionKind::ALL.len() - 1;
+                    let picker =
+                        BrowserScene::build(&mut system, &data, 19.0 * scale, 1000.0, 900.0)?;
+                    let cells: Vec<_> = picker
+                        .hits(0.0)
+                        .into_iter()
+                        .filter(|(_, id, _, _)| {
+                            (BROWSER_CATEGORY_BASE
+                                ..BROWSER_CATEGORY_BASE + ExpressionKind::ALL.len())
+                                .contains(id)
+                        })
+                        .collect();
+                    assert_eq!(cells.len(), ExpressionKind::ALL.len());
+                    assert!(cells
+                        .iter()
+                        .all(|(r, _, _, _)| r.left >= picker.viewport.left
+                            && r.right <= picker.viewport.right + 0.1
+                            && r.top >= picker.viewport.top
+                            && r.bottom <= picker.viewport.bottom + 0.1));
+                    let bitmap = picker.render(&mut system, 0.0)?;
+                    let file = format!(
+                        "categories-{}-{}.png",
+                        if dark { "dark" } else { "light" },
+                        (scale * 100.0) as u32
+                    );
+                    let mut encoder = png::Encoder::new(
+                        std::fs::File::create(out.join(&file))?,
+                        bitmap.width,
+                        bitmap.height,
+                    );
+                    encoder.set_color(png::ColorType::Rgba);
+                    encoder.set_depth(png::BitDepth::Eight);
+                    let mut rgba = bitmap.pixels().to_vec();
+                    for pixel in rgba.as_chunks_mut::<4>().0 {
+                        pixel.swap(0, 2);
+                    }
+                    encoder.write_header()?.write_image_data(&rgba)?;
+                    report.push(serde_json::json!({"file":file,"categories":cells.len()}));
+                }
             }
         }
     }

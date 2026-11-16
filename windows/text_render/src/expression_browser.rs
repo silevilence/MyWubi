@@ -63,7 +63,10 @@ impl BrowserScene {
         max_width: f32,
         max_height: f32,
     ) -> Result<Self> {
-        let size = size.min(max_height / 12.0).max(10.0);
+        let size = size
+            .min(max_height / 24.0)
+            .min(max_width / 500.0 * 19.0)
+            .max(8.0);
         let scale = size / 19.0;
         let width = max_width.min(500.0 * scale);
         let height = max_height.min(490.0 * scale);
@@ -138,40 +141,73 @@ impl BrowserScene {
             return Ok(scene);
         };
         let kind = data.expression.as_ref().map(|q| q.kind);
-        let tab_width = (width - 2.0 * pad - 5.0 * gap) / 6.0;
-        for (index, category) in browser.categories.iter().enumerate() {
-            let active = Some(category.kind) == kind;
-            let label = match category.kind {
-                ExpressionKind::Math => "数学",
-                ExpressionKind::Symbols => "其他符号",
-                _ => category.kind.label(),
-            };
-            let x = pad + index as f32 * (tab_width + gap);
+        scene.control(
+            system,
+            Rect {
+                left: pad,
+                top: 52.0 * scale,
+                right: width - pad,
+                bottom: 82.0 * scale,
+            },
+            &format!("分类 (F3) · {} ▾", kind.map_or("", |k| k.label())),
+            Some(CHOOSE_CATEGORY),
+            text,
+            Some(key_fill),
+            false,
+        )?;
+        if browser.choosing_category {
+            let columns = 4;
+            let cell_width = (scene.viewport.width() - 3.0 * gap) / 4.0;
+            let row_height = (scene.viewport.height() - 4.0 * gap) / 5.0;
+            for (index, category) in browser.categories.iter().enumerate() {
+                let active = index == browser.category_index;
+                let x = pad + (index % columns) as f32 * (cell_width + gap);
+                let y = scene.viewport.top + (index / columns) as f32 * (row_height + gap);
+                scene.control(
+                    system,
+                    Rect {
+                        left: x,
+                        top: y,
+                        right: x + cell_width,
+                        bottom: y + row_height,
+                    },
+                    category.kind.label(),
+                    category.unavailable.is_none().then_some(category.id),
+                    if category.unavailable.is_some() {
+                        disabled
+                    } else if active {
+                        selected_text
+                    } else {
+                        text
+                    },
+                    Some(if active { selected } else { key_fill }),
+                    active,
+                )?;
+                if let Some(reason) = &category.unavailable {
+                    if let Some(cell) = scene.elements.last_mut() {
+                        cell.name = format!("{}，{reason}", category.kind.label());
+                    }
+                }
+            }
             scene.control(
                 system,
                 Rect {
-                    left: x,
-                    top: 52.0 * scale,
-                    right: x + tab_width,
-                    bottom: 82.0 * scale,
+                    left: pad,
+                    top: height - 62.0 * scale,
+                    right: width - pad,
+                    bottom: height - 12.0 * scale,
                 },
-                label,
-                category.unavailable.is_none().then_some(category.id),
-                if category.unavailable.is_some() {
-                    disabled
-                } else if active {
-                    selected_text
-                } else {
-                    text
-                },
-                Some(if active { selected } else { key_fill }),
-                active,
+                browser
+                    .categories
+                    .get(browser.category_index)
+                    .and_then(|c| c.unavailable.as_deref())
+                    .unwrap_or("方向键选择分类 · 回车确认 · Esc 返回"),
+                None,
+                hint,
+                None,
+                false,
             )?;
-            if let Some(reason) = &category.unavailable {
-                if let Some(tab) = scene.elements.last_mut() {
-                    tab.name = format!("{label}，{reason}");
-                }
-            }
+            return Ok(scene);
         }
         let columns = if kind == Some(ExpressionKind::Kaomoji) {
             2
@@ -191,8 +227,13 @@ impl BrowserScene {
                     "Segoe UI"
                 };
                 let glyph_size = if columns == 2 { size } else { size * 1.45 };
+                let display_text = if kind == Some(ExpressionKind::Diacritics) {
+                    format!("◌{}", item.text)
+                } else {
+                    item.text.clone()
+                };
                 let raw = system.layout(
-                    &item.text,
+                    &display_text,
                     family,
                     glyph_size,
                     (cell_width - 12.0 * scale).max(1.0),
@@ -295,7 +336,7 @@ impl BrowserScene {
             },
             &format!(
                 "{}–{} / {}",
-                browser.offset + 1,
+                browser.offset + usize::from(!data.items.is_empty()),
                 browser.offset + data.items.len(),
                 browser.total
             ),
@@ -312,7 +353,7 @@ impl BrowserScene {
                 right: width - pad,
                 bottom: height - 6.0 * scale,
             },
-            "方向键选择 · 回车上屏 · PgUp/PgDn 翻页 · Tab 搜索",
+            "方向键选择 · 回车上屏 · PgUp/PgDn 翻页 · F2 搜索",
             None,
             hint,
             None,

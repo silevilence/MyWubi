@@ -1749,6 +1749,13 @@ impl ITfKeyEventSink_Impl for TextService_Impl {
         }
         let event = self.translated_key(wparam, lparam);
         if !key_filter::is_system_modifier_pressed()
+            && self
+                .input
+                .palette_key(wparam.0 as u16, false, |_| Ok::<_, &str>(None))
+        {
+            return Ok(BOOL(1));
+        }
+        if !key_filter::is_system_modifier_pressed()
             && self.input.browser_navigation(wparam.0 as u16, false)
         {
             return Ok(BOOL(1));
@@ -1776,6 +1783,13 @@ impl ITfKeyEventSink_Impl for TextService_Impl {
             return Ok(BOOL(0));
         }
         let event = self.translated_key(wparam, lparam);
+        if !key_filter::is_system_modifier_pressed()
+            && self
+                .input
+                .palette_key(wparam.0 as u16, true, |op| self.run_edit(op, None))
+        {
+            return Ok(BOOL(1));
+        }
         if !key_filter::is_system_modifier_pressed()
             && self.input.browser_navigation(wparam.0 as u16, true)
         {

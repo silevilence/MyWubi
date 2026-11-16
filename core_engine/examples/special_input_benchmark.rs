@@ -67,14 +67,7 @@ fn synthetic(workload: &Value) -> ExpressionResources {
             kind,
         )
         .unwrap();
-        let resource = match kind {
-            ExpressionKind::Emoji => &mut resources.emoji,
-            ExpressionKind::Kaomoji => &mut resources.kaomoji,
-            ExpressionKind::Kana => &mut resources.kana,
-            ExpressionKind::Math => &mut resources.math,
-            ExpressionKind::Punctuation => &mut resources.punctuation,
-            ExpressionKind::Symbols => &mut resources.symbols,
-        };
+        let resource = resources.resource_mut(kind);
         resource.library = Some(Arc::new(library));
     }
     resources

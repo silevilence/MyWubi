@@ -419,7 +419,7 @@ fun ExpressionSettings(model: SettingsModel, config: JSONObject, selectedKind: S
     }
     Text("特殊码表", style = MaterialTheme.typography.titleMedium)
     if (model.expressionError.isNotEmpty()) Text(model.expressionError, color = MaterialTheme.colorScheme.error)
-    for ((kind, label) in listOf("emoji" to "Emoji", "kaomoji" to "颜文字", "kana" to "假名", "math" to "数学符号", "punctuation" to "标点", "symbols" to "其他符号")) {
+    for ((kind, label) in specialCategories) {
         if(kind != selectedKind) continue
         val selection = config.optJSONObject("expressions")?.optJSONObject(kind) ?: JSONObject()
         fun change(key: String, value: Any) {

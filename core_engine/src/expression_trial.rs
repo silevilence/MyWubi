@@ -59,6 +59,20 @@ pub fn run(
         ExpressionKind::Math => TemporaryMode::Math,
         ExpressionKind::Punctuation => TemporaryMode::Punctuation,
         ExpressionKind::Symbols => TemporaryMode::Symbols,
+        ExpressionKind::Greek => TemporaryMode::Greek,
+        ExpressionKind::Cyrillic => TemporaryMode::Cyrillic,
+        ExpressionKind::Latin => TemporaryMode::Latin,
+        ExpressionKind::Phonetic => TemporaryMode::Phonetic,
+        ExpressionKind::Enclosed => TemporaryMode::Enclosed,
+        ExpressionKind::Numbers => TemporaryMode::Numbers,
+        ExpressionKind::Arrows => TemporaryMode::Arrows,
+        ExpressionKind::Currency => TemporaryMode::Currency,
+        ExpressionKind::Units => TemporaryMode::Units,
+        ExpressionKind::Shapes => TemporaryMode::Shapes,
+        ExpressionKind::BoxDrawing => TemporaryMode::BoxDrawing,
+        ExpressionKind::Braille => TemporaryMode::Braille,
+        ExpressionKind::Music => TemporaryMode::Music,
+        ExpressionKind::Diacritics => TemporaryMode::Diacritics,
     };
     let mut session = Session::new(runtime, BehaviorProfile::TouchV1, HostContext::default());
     let mut selected = None;

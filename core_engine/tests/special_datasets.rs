@@ -113,6 +113,16 @@ fn symbol_resources_have_declared_coverage_and_stable_representative_queries() {
         ),
     ] {
         let library = load(kind);
+        let manifest: Value = serde_json::from_str(
+            &std::fs::read_to_string(
+                Path::new(env!("CARGO_MANIFEST_DIR"))
+                    .join(format!("../expressions/{}-coverage.json", kind.slug())),
+            )
+            .unwrap(),
+        )
+        .unwrap();
+        assert!(library.document().entries.len() >= count);
+        let count = manifest["count"].as_u64().unwrap() as usize;
         assert_eq!(library.document().entries.len(), count);
         assert_eq!(
             library
@@ -142,7 +152,7 @@ fn symbol_resources_have_declared_coverage_and_stable_representative_queries() {
             assert!(library
                 .exact(&entry.name)
                 .any(|candidate| candidate.text == entry.text));
-            assert_eq!(entry.sources, ["mywubi-curated"]);
+            assert!(entry.sources.iter().any(|s| s == "unicode-18"));
         }
     }
     let library = load(ExpressionKind::Symbols);

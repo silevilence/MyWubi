@@ -83,8 +83,9 @@ pub const WORDS_EXPRESSION: usize = usize::MAX - 6;
 pub const LITERAL_EXPRESSION: usize = usize::MAX - 7;
 pub const CLEAR_EXPRESSION: usize = usize::MAX - 8;
 pub const BROWSE_EXPRESSIONS: usize = usize::MAX - 9;
-pub const BROWSER_CATEGORY_BASE: usize = usize::MAX - 32;
+pub const BROWSER_CATEGORY_BASE: usize = usize::MAX - 100;
 pub const BROWSER_PAGE_SIZE: usize = 24;
+pub const CHOOSE_CATEGORY: usize = usize::MAX - 12;
 
 #[derive(Debug, Clone)]
 pub struct BrowserCategory {
@@ -96,6 +97,8 @@ pub struct BrowserCategory {
 /// A bounded presentation window over the core's immutable library, not a copy of it.
 #[derive(Debug, Clone)]
 pub struct BrowserData {
+    pub choosing_category: bool,
+    pub category_index: usize,
     pub offset: usize,
     pub total: usize,
     pub categories: Vec<BrowserCategory>,

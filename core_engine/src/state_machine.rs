@@ -268,7 +268,7 @@ impl StateMachine {
     /// 总页数。
     pub fn total_pages(&self) -> usize {
         if self.mode == InputMode::Menu {
-            return 1;
+            return self.total_candidates.div_ceil(8).max(1);
         }
         if self.expression_query.is_some() {
             return self.total_candidates.div_ceil(self.page_size.min(9)).max(1);
@@ -281,7 +281,7 @@ impl StateMachine {
 
     pub fn candidate_offset(&self) -> usize {
         if self.mode == InputMode::Menu {
-            return 0;
+            return self.page * 8;
         }
         if let Some(appended) = &self.appended {
             return appended.pages.get(self.page).map_or(0, |range| range.start);

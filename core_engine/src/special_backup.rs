@@ -1,7 +1,7 @@
 //! Portable settings-side backup. Restore stages private resources and returns a draft;
 //! it never activates a runtime, writes config, or persists environment availability.
 use crate::{
-    expressions::{ExpressionKind, ExpressionLibrary, ExpressionsConfig},
+    expressions::{ExpressionKind, ExpressionLibrary},
     shortcuts::{self, ShortcutConfig},
     Config,
 };
@@ -9,7 +9,7 @@ use serde::{Deserialize, Serialize};
 use std::{io::Read, path::Path};
 
 pub const MAX_BYTES: u64 = 512 * 1024 * 1024;
-const MAGIC: &str = "MYWUBI-SPECIAL-INPUT-1";
+const MAGIC: &str = "MYWUBI-SPECIAL-INPUT-2";
 
 #[derive(Serialize, Deserialize)]
 #[serde(deny_unknown_fields)]
@@ -27,7 +27,7 @@ struct Resource {
     library: String,
 }
 
-/// All six selected resources are included, even if their switches are off.
+/// All selected resources are included, even if their switches are off.
 pub fn export(path: &Path, config: &Config, target: &Path) -> Result<(), String> {
     let rules =
         shortcuts::validate_structure(&config.shortcuts.rules).map_err(|e| e.to_string())?;
@@ -67,14 +67,22 @@ pub fn restore(path: &Path, config: &Config, source: &Path) -> Result<Config, St
     }
     let archive: Archive =
         serde_json::from_slice(&bytes).map_err(|e| format!("备份格式无效：{e}"))?;
-    if archive.magic != MAGIC || archive.resources.len() != ExpressionKind::ALL.len() {
-        return Err("不是完整的 MyWubi 特殊输入备份（版本 1）".into());
+    let kinds = if archive.magic == "MYWUBI-SPECIAL-INPUT-1" {
+        &ExpressionKind::ALL[..6]
+    } else if archive.magic == MAGIC {
+        &ExpressionKind::ALL[..]
+    } else {
+        return Err("不支持的 MyWubi 特殊输入备份版本".into());
+    };
+    if archive.resources.len() != kinds.len() {
+        return Err("特殊输入备份缺少类别或存在多余类别".into());
     }
     let rules =
         shortcuts::validate_structure(&archive.shortcuts.rules).map_err(|e| e.to_string())?;
     // Validate every entry before creating any import generation.
-    let libraries = ExpressionKind::ALL
-        .into_iter()
+    let libraries = kinds
+        .iter()
+        .copied()
         .map(|kind| {
             let matches: Vec<_> = archive
                 .resources
@@ -90,7 +98,8 @@ pub fn restore(path: &Path, config: &Config, source: &Path) -> Result<Config, St
             Ok((kind, resource, library))
         })
         .collect::<Result<Vec<_>, String>>()?;
-    let mut expressions = ExpressionsConfig::default();
+    // Version 1 did not know the new categories: preserve their current selections.
+    let mut expressions = config.expressions.clone();
     for (kind, resource, library) in libraries {
         let imported = crate::expression_store::import_library(path, kind, &library)?;
         let selected = expressions.selection_mut(kind);

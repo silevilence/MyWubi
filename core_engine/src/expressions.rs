@@ -23,20 +23,73 @@ pub enum ExpressionKind {
     Math,
     Punctuation,
     Symbols,
+    Greek,
+    Cyrillic,
+    Latin,
+    Phonetic,
+    Enclosed,
+    Numbers,
+    Arrows,
+    Currency,
+    Units,
+    Shapes,
+    BoxDrawing,
+    Braille,
+    Music,
+    Diacritics,
 }
 
 impl ExpressionKind {
     /// Stable category order, shared by settings and candidate append.
-    pub const ALL: [Self; 6] = [
+    pub const ALL: [Self; 20] = [
         Self::Emoji,
         Self::Kaomoji,
         Self::Kana,
         Self::Math,
         Self::Punctuation,
         Self::Symbols,
+        Self::Greek,
+        Self::Cyrillic,
+        Self::Latin,
+        Self::Phonetic,
+        Self::Enclosed,
+        Self::Numbers,
+        Self::Arrows,
+        Self::Currency,
+        Self::Units,
+        Self::Shapes,
+        Self::BoxDrawing,
+        Self::Braille,
+        Self::Music,
+        Self::Diacritics,
     ];
 
     /// Stable resource and protocol name.
+    pub fn temporary_mode(self) -> crate::TemporaryMode {
+        match self {
+            Self::Emoji => crate::TemporaryMode::Emoji,
+            Self::Kaomoji => crate::TemporaryMode::Kaomoji,
+            Self::Kana => crate::TemporaryMode::Kana,
+            Self::Math => crate::TemporaryMode::Math,
+            Self::Punctuation => crate::TemporaryMode::Punctuation,
+            Self::Symbols => crate::TemporaryMode::Symbols,
+            Self::Greek => crate::TemporaryMode::Greek,
+            Self::Cyrillic => crate::TemporaryMode::Cyrillic,
+            Self::Latin => crate::TemporaryMode::Latin,
+            Self::Phonetic => crate::TemporaryMode::Phonetic,
+            Self::Enclosed => crate::TemporaryMode::Enclosed,
+            Self::Numbers => crate::TemporaryMode::Numbers,
+            Self::Arrows => crate::TemporaryMode::Arrows,
+            Self::Currency => crate::TemporaryMode::Currency,
+            Self::Units => crate::TemporaryMode::Units,
+            Self::Shapes => crate::TemporaryMode::Shapes,
+            Self::BoxDrawing => crate::TemporaryMode::BoxDrawing,
+            Self::Braille => crate::TemporaryMode::Braille,
+            Self::Music => crate::TemporaryMode::Music,
+            Self::Diacritics => crate::TemporaryMode::Diacritics,
+        }
+    }
+
     pub fn slug(self) -> &'static str {
         match self {
             Self::Emoji => "emoji",
@@ -45,6 +98,20 @@ impl ExpressionKind {
             Self::Math => "math",
             Self::Punctuation => "punctuation",
             Self::Symbols => "symbols",
+            Self::Greek => "greek",
+            Self::Cyrillic => "cyrillic",
+            Self::Latin => "latin",
+            Self::Phonetic => "phonetic",
+            Self::Enclosed => "enclosed",
+            Self::Numbers => "numbers",
+            Self::Arrows => "arrows",
+            Self::Currency => "currency",
+            Self::Units => "units",
+            Self::Shapes => "shapes",
+            Self::BoxDrawing => "box_drawing",
+            Self::Braille => "braille",
+            Self::Music => "music",
+            Self::Diacritics => "diacritics",
         }
     }
 
@@ -56,6 +123,20 @@ impl ExpressionKind {
             Self::Math => "数学符号",
             Self::Punctuation => "标点",
             Self::Symbols => "其他符号",
+            Self::Greek => "希腊字母",
+            Self::Cyrillic => "西里尔字母",
+            Self::Latin => "拼音与拉丁",
+            Self::Phonetic => "音标",
+            Self::Enclosed => "圈号与括号",
+            Self::Numbers => "数字形式",
+            Self::Arrows => "箭头",
+            Self::Currency => "货币",
+            Self::Units => "单位",
+            Self::Shapes => "几何图形",
+            Self::BoxDrawing => "制表与方块",
+            Self::Braille => "盲文",
+            Self::Music => "音乐符号",
+            Self::Diacritics => "组合附加符",
         }
     }
     pub fn default_path(self) -> PathBuf {
@@ -66,6 +147,20 @@ impl ExpressionKind {
             Self::Math => "expressions/math.mwe",
             Self::Punctuation => "expressions/punctuation.mwe",
             Self::Symbols => "expressions/symbols.mwe",
+            Self::Greek => "expressions/greek.mwe",
+            Self::Cyrillic => "expressions/cyrillic.mwe",
+            Self::Latin => "expressions/latin.mwe",
+            Self::Phonetic => "expressions/phonetic.mwe",
+            Self::Enclosed => "expressions/enclosed.mwe",
+            Self::Numbers => "expressions/numbers.mwe",
+            Self::Arrows => "expressions/arrows.mwe",
+            Self::Currency => "expressions/currency.mwe",
+            Self::Units => "expressions/units.mwe",
+            Self::Shapes => "expressions/shapes.mwe",
+            Self::BoxDrawing => "expressions/box_drawing.mwe",
+            Self::Braille => "expressions/braille.mwe",
+            Self::Music => "expressions/music.mwe",
+            Self::Diacritics => "expressions/diacritics.mwe",
         })
     }
 }
@@ -100,6 +195,20 @@ pub struct ExpressionsConfig {
     pub math: ExpressionSelection,
     pub punctuation: ExpressionSelection,
     pub symbols: ExpressionSelection,
+    pub greek: ExpressionSelection,
+    pub cyrillic: ExpressionSelection,
+    pub latin: ExpressionSelection,
+    pub phonetic: ExpressionSelection,
+    pub enclosed: ExpressionSelection,
+    pub numbers: ExpressionSelection,
+    pub arrows: ExpressionSelection,
+    pub currency: ExpressionSelection,
+    pub units: ExpressionSelection,
+    pub shapes: ExpressionSelection,
+    pub box_drawing: ExpressionSelection,
+    pub braille: ExpressionSelection,
+    pub music: ExpressionSelection,
+    pub diacritics: ExpressionSelection,
 }
 
 impl ExpressionsConfig {
@@ -111,6 +220,20 @@ impl ExpressionsConfig {
             ExpressionKind::Math => &self.math,
             ExpressionKind::Punctuation => &self.punctuation,
             ExpressionKind::Symbols => &self.symbols,
+            ExpressionKind::Greek => &self.greek,
+            ExpressionKind::Cyrillic => &self.cyrillic,
+            ExpressionKind::Latin => &self.latin,
+            ExpressionKind::Phonetic => &self.phonetic,
+            ExpressionKind::Enclosed => &self.enclosed,
+            ExpressionKind::Numbers => &self.numbers,
+            ExpressionKind::Arrows => &self.arrows,
+            ExpressionKind::Currency => &self.currency,
+            ExpressionKind::Units => &self.units,
+            ExpressionKind::Shapes => &self.shapes,
+            ExpressionKind::BoxDrawing => &self.box_drawing,
+            ExpressionKind::Braille => &self.braille,
+            ExpressionKind::Music => &self.music,
+            ExpressionKind::Diacritics => &self.diacritics,
         }
     }
     pub fn selection_mut(&mut self, kind: ExpressionKind) -> &mut ExpressionSelection {
@@ -121,6 +244,20 @@ impl ExpressionsConfig {
             ExpressionKind::Math => &mut self.math,
             ExpressionKind::Punctuation => &mut self.punctuation,
             ExpressionKind::Symbols => &mut self.symbols,
+            ExpressionKind::Greek => &mut self.greek,
+            ExpressionKind::Cyrillic => &mut self.cyrillic,
+            ExpressionKind::Latin => &mut self.latin,
+            ExpressionKind::Phonetic => &mut self.phonetic,
+            ExpressionKind::Enclosed => &mut self.enclosed,
+            ExpressionKind::Numbers => &mut self.numbers,
+            ExpressionKind::Arrows => &mut self.arrows,
+            ExpressionKind::Currency => &mut self.currency,
+            ExpressionKind::Units => &mut self.units,
+            ExpressionKind::Shapes => &mut self.shapes,
+            ExpressionKind::BoxDrawing => &mut self.box_drawing,
+            ExpressionKind::Braille => &mut self.braille,
+            ExpressionKind::Music => &mut self.music,
+            ExpressionKind::Diacritics => &mut self.diacritics,
         }
     }
 }
@@ -333,6 +470,20 @@ pub struct ExpressionResources {
     pub math: ExpressionResource,
     pub punctuation: ExpressionResource,
     pub symbols: ExpressionResource,
+    pub greek: ExpressionResource,
+    pub cyrillic: ExpressionResource,
+    pub latin: ExpressionResource,
+    pub phonetic: ExpressionResource,
+    pub enclosed: ExpressionResource,
+    pub numbers: ExpressionResource,
+    pub arrows: ExpressionResource,
+    pub currency: ExpressionResource,
+    pub units: ExpressionResource,
+    pub shapes: ExpressionResource,
+    pub box_drawing: ExpressionResource,
+    pub braille: ExpressionResource,
+    pub music: ExpressionResource,
+    pub diacritics: ExpressionResource,
 }
 impl ExpressionResources {
     pub fn resource(&self, kind: ExpressionKind) -> &ExpressionResource {
@@ -343,6 +494,45 @@ impl ExpressionResources {
             ExpressionKind::Math => &self.math,
             ExpressionKind::Punctuation => &self.punctuation,
             ExpressionKind::Symbols => &self.symbols,
+            ExpressionKind::Greek => &self.greek,
+            ExpressionKind::Cyrillic => &self.cyrillic,
+            ExpressionKind::Latin => &self.latin,
+            ExpressionKind::Phonetic => &self.phonetic,
+            ExpressionKind::Enclosed => &self.enclosed,
+            ExpressionKind::Numbers => &self.numbers,
+            ExpressionKind::Arrows => &self.arrows,
+            ExpressionKind::Currency => &self.currency,
+            ExpressionKind::Units => &self.units,
+            ExpressionKind::Shapes => &self.shapes,
+            ExpressionKind::BoxDrawing => &self.box_drawing,
+            ExpressionKind::Braille => &self.braille,
+            ExpressionKind::Music => &self.music,
+            ExpressionKind::Diacritics => &self.diacritics,
+        }
+    }
+
+    pub fn resource_mut(&mut self, kind: ExpressionKind) -> &mut ExpressionResource {
+        match kind {
+            ExpressionKind::Emoji => &mut self.emoji,
+            ExpressionKind::Kaomoji => &mut self.kaomoji,
+            ExpressionKind::Kana => &mut self.kana,
+            ExpressionKind::Math => &mut self.math,
+            ExpressionKind::Punctuation => &mut self.punctuation,
+            ExpressionKind::Symbols => &mut self.symbols,
+            ExpressionKind::Greek => &mut self.greek,
+            ExpressionKind::Cyrillic => &mut self.cyrillic,
+            ExpressionKind::Latin => &mut self.latin,
+            ExpressionKind::Phonetic => &mut self.phonetic,
+            ExpressionKind::Enclosed => &mut self.enclosed,
+            ExpressionKind::Numbers => &mut self.numbers,
+            ExpressionKind::Arrows => &mut self.arrows,
+            ExpressionKind::Currency => &mut self.currency,
+            ExpressionKind::Units => &mut self.units,
+            ExpressionKind::Shapes => &mut self.shapes,
+            ExpressionKind::BoxDrawing => &mut self.box_drawing,
+            ExpressionKind::Braille => &mut self.braille,
+            ExpressionKind::Music => &mut self.music,
+            ExpressionKind::Diacritics => &mut self.diacritics,
         }
     }
 
@@ -380,6 +570,20 @@ impl ExpressionResources {
                 ExpressionKind::Punctuation,
             ),
             symbols: one(config_path, &config.symbols, ExpressionKind::Symbols),
+            greek: one(config_path, &config.greek, ExpressionKind::Greek),
+            cyrillic: one(config_path, &config.cyrillic, ExpressionKind::Cyrillic),
+            latin: one(config_path, &config.latin, ExpressionKind::Latin),
+            phonetic: one(config_path, &config.phonetic, ExpressionKind::Phonetic),
+            enclosed: one(config_path, &config.enclosed, ExpressionKind::Enclosed),
+            numbers: one(config_path, &config.numbers, ExpressionKind::Numbers),
+            arrows: one(config_path, &config.arrows, ExpressionKind::Arrows),
+            currency: one(config_path, &config.currency, ExpressionKind::Currency),
+            units: one(config_path, &config.units, ExpressionKind::Units),
+            shapes: one(config_path, &config.shapes, ExpressionKind::Shapes),
+            box_drawing: one(config_path, &config.box_drawing, ExpressionKind::BoxDrawing),
+            braille: one(config_path, &config.braille, ExpressionKind::Braille),
+            music: one(config_path, &config.music, ExpressionKind::Music),
+            diacritics: one(config_path, &config.diacritics, ExpressionKind::Diacritics),
         }
     }
     pub fn paths(&self) -> impl Iterator<Item = &PathBuf> {

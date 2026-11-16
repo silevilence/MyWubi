@@ -27,9 +27,22 @@ function Expect-Text([string]$Expected,[string]$Name) {
 function Open-Browser {
     [BrowserAutomation]::Key(0xC0)
     Wait-Until { [BrowserAutomation]::Palette() -ne [IntPtr]::Zero } '辅助输入菜单未打开'
-    Invoke-Control 'Emoji，'
-    Invoke-Control '全部'
+    [BrowserAutomation]::Key(0x33) # menu slot 3: Emoji
+    Start-Sleep -Milliseconds 180
+    [BrowserAutomation]::Key(0x71) # F2: all
+    Start-Sleep -Milliseconds 180
     Check ((Names) -contains '搜索') '空关键词打开全部浏览'
+}
+$categories = @('Emoji','颜文字','假名','数学符号','标点','其他符号','希腊字母','西里尔字母','拼音与拉丁','音标','圈号与括号','数字形式','箭头','货币','单位','几何图形','制表与方块','盲文','音乐符号','组合附加符')
+function Select-Category([string]$Name) {
+    [BrowserAutomation]::Key(0x72) # F3
+    Start-Sleep -Milliseconds 180
+    [BrowserAutomation]::Key(0x24) # Home
+    $index=[Array]::IndexOf($categories,$Name)
+    if ($index -lt 0) {throw "Unknown category $Name"}
+    for ($i=0;$i -lt $index;$i++) {[BrowserAutomation]::Key(0x27)}
+    [BrowserAutomation]::Key(0x0D)
+    Start-Sleep -Milliseconds 180
 }
 function Resource([string]$Slug) {
     $name = if ($Slug -eq 'kaomoji') {'imported-kaomoji'} else {$Slug}
@@ -46,6 +59,15 @@ try {
     [BrowserAutomation]::Key(0x1B)
     [BrowserAutomation]::CtrlA()
     [BrowserAutomation]::Key(0x08)
+    [BrowserAutomation]::Key(0xC0)
+    Start-Sleep -Milliseconds 180
+    [BrowserAutomation]::Key(0x22)
+    [BrowserAutomation]::Key(0x22)
+    [BrowserAutomation]::Key(0x36)
+    [BrowserAutomation]::Key(0x71)
+    Wait-Until { ((Names) -join '|').Contains('分类 (F3) · 组合附加符') } '辅助菜单第三页未进入最后一类'
+    Check ((Text) -ceq '') '纯键盘从辅助菜单第三页进入全部，关键词不写入正文'
+    [BrowserAutomation]::Key(0x1B)
     Open-Browser
     $emoji=@(Resource emoji)
     $expected=''
@@ -70,8 +92,8 @@ try {
     $expected += $emoji[24].text
     Expect-Text $expected 'PageDown 后选择下一页首项'
     [BrowserAutomation]::Capture('C:\Browser-Results\emoji-light.png')
-    foreach ($category in @(@('kaomoji','颜文字'),@('kana','假名'),@('math','数学'),@('punctuation','标点'),@('symbols','其他符号'))) {
-        Invoke-Control $category[1]
+    foreach ($category in @(@('kaomoji','颜文字'),@('kana','假名'),@('math','数学符号'),@('punctuation','标点'),@('symbols','其他符号'),@('greek','希腊字母'),@('cyrillic','西里尔字母'),@('latin','拼音与拉丁'),@('phonetic','音标'),@('enclosed','圈号与括号'),@('numbers','数字形式'),@('arrows','箭头'),@('currency','货币'),@('units','单位'),@('shapes','几何图形'),@('box_drawing','制表与方块'),@('braille','盲文'),@('music','音乐符号'),@('diacritics','组合附加符'))) {
+        Select-Category $category[1]
         $entries=@(Resource $category[0])
         [BrowserAutomation]::Key(0x0D)
         $expected += $entries[0].text
@@ -85,7 +107,28 @@ try {
             Check ((Names) -contains '搜索') '滚动后搜索按钮固定可用'
         }
     }
-    Invoke-Control '假名'
+    foreach ($sample in @(@('希腊字母','03b1','α'),@('圈号与括号','2460','①'),@('拼音与拉丁','a1','ā'))) {
+        Select-Category $sample[0]
+        [BrowserAutomation]::Key(0x71) # search
+        [BrowserAutomation]::Key(0x74) # literal aliases
+        [BrowserAutomation]::Key(0x5A)
+        [BrowserAutomation]::Key(0x73) # clear the temporary z draft
+        foreach ($c in $sample[1].ToUpperInvariant().ToCharArray()) {[BrowserAutomation]::Key([byte][char]$c)}
+        [BrowserAutomation]::Key(0x09) # find
+        Start-Sleep -Milliseconds 250
+        [BrowserAutomation]::Key(0x31) # first result
+        $expected += $sample[2]
+        Expect-Text $expected ('纯键盘别名查询 '+$sample[2])
+        Open-Browser
+    }
+    [BrowserAutomation]::Key(0x72)
+    [BrowserAutomation]::Key(0x23)
+    Start-Sleep -Milliseconds 180
+    [BrowserAutomation]::Capture('C:\Browser-Results\categories-light.png')
+    [BrowserAutomation]::Key(0x1B)
+    Start-Sleep -Milliseconds 180
+    Check ((Names) -contains '搜索') 'Esc 从分类返回全部网格'
+    Select-Category '假名'
     $kana=@(Resource kana)
     $pages=1
     while ((Names) -contains '下一页') {
@@ -96,15 +139,15 @@ try {
     $expected += $kana[-1].text
     Expect-Text $expected '末页最后一项可达'
     Check (-not ((Names) -contains '下一页')) '连续输入保留末页位置'
-    Invoke-Control '搜索'
-    Invoke-Control '切换为字面别名'
+    [BrowserAutomation]::Key(0x71)
+    [BrowserAutomation]::Key(0x74)
     foreach ($key in 0x53,0x48,0x49) {[BrowserAutomation]::Key($key)}
     Start-Sleep -Milliseconds 150
-    Invoke-Control '全部'
-    Invoke-Control '搜索'
+    [BrowserAutomation]::Key(0x71)
+    [BrowserAutomation]::Key(0x71)
     [BrowserAutomation]::Key(0x09)
     Start-Sleep -Milliseconds 250
-    Invoke-Control 'し，'
+    [BrowserAutomation]::Key(0x31)
     $expected += 'し'
     Expect-Text $expected '全部与搜索切换保留 shi 草稿'
     Open-Browser
@@ -129,7 +172,16 @@ try {
     [IO.File]::WriteAllText('C:\Browser-App\config.toml',$config,[Text.UTF8Encoding]::new($false))
     Start-Sleep -Seconds 2
     Open-Browser
-    Check (-not ((Names) -contains '数学')) '关闭专用检索的分类不可操作'
+    [BrowserAutomation]::Key(0x72)
+    Start-Sleep -Milliseconds 180
+    Check (-not ((Names) -contains '数学符号')) '关闭专用检索的分类不可操作'
+    [BrowserAutomation]::Key(0x24)
+    1..3 | ForEach-Object { [BrowserAutomation]::Key(0x27) }
+    [BrowserAutomation]::Key(0x0D)
+    Start-Sleep -Milliseconds 180
+    Check ((Names) -contains '希腊字母') '键盘确认不可用分类仍留在分类面板'
+    [BrowserAutomation]::Capture('C:\Browser-Results\categories-dark.png')
+    [BrowserAutomation]::Key(0x1B)
     [BrowserAutomation]::Capture('C:\Browser-Results\emoji-dark.png')
     Invoke-Control '关闭'
     Wait-Until { [BrowserAutomation]::Palette() -eq [IntPtr]::Zero } '关闭按钮未生效'

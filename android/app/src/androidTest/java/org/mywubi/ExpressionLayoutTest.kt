@@ -22,7 +22,7 @@ import java.util.concurrent.CopyOnWriteArrayList
 /** Compose visual/interaction evidence, independent of the real-host test. */
 class ExpressionLayoutTest {
     private val instrumentation=InstrumentationRegistry.getInstrumentation()
-    private val device=UiDevice.getInstance(instrumentation)
+    private val device=UiDevice.getInstance(instrumentation).also { Configurator.getInstance().waitForIdleTimeout=500 }
     private val evidence=File(instrumentation.targetContext.getExternalFilesDir(null),"expression-layout").apply { mkdirs() }
     private fun settled() {
         device.waitForIdle();instrumentation.waitForIdleSync()
@@ -31,7 +31,11 @@ class ExpressionLayoutTest {
     }
     private fun node(selector:BySelector):UiObject2 {
         settled()
-        return device.wait(Until.findObject(By.copy(selector).pkg("org.mywubi")),5000) ?: error("Missing $selector")
+        return device.wait(Until.findObject(By.copy(selector).pkg("org.mywubi")),5000) ?: run {
+            device.takeScreenshot(File(evidence,"failure.png"))
+            device.dumpWindowHierarchy(File(evidence,"failure.xml"))
+            error("Missing $selector")
+        }
     }
     private fun shot(name:String) {
         settled();device.takeScreenshot(File(evidence,"$name.png"));device.dumpWindowHierarchy(File(evidence,"$name.xml"))
@@ -59,7 +63,7 @@ class ExpressionLayoutTest {
         val samples=(0 until 256).map { CandidateItem(it.toLong(),listOf("＋","−","×","÷","≠","≤","≥","∞")[it%8],"符号 $it","math") }
         val model=KeyboardModel(enabled=true,modesAvailable=true,query="{\"revision\":91}",
             expression=ExpressionQueryUi("math","Results","",null,browsing=true),candidates=samples,total=300,
-            specialCapabilities=listOf("Emoji","Kaomoji","Kana","Math","Punctuation","Symbols").associateWith {true to null})
+            specialCapabilities=specialModes.map { it.first }.associateWith {true to null})
         ActivityScenario.launch(MainActivity::class.java).use { scenario ->
             scenario.onActivity { it.requestedOrientation=if(landscape) ActivityInfo.SCREEN_ORIENTATION_LANDSCAPE else ActivityInfo.SCREEN_ORIENTATION_PORTRAIT }
             val deadline=SystemClock.uptimeMillis()+10000
@@ -82,9 +86,16 @@ class ExpressionLayoutTest {
             assertEquals(0,(events.last() as JSONObject).getJSONArray("SelectCandidate").getInt(1))
             node(By.text("下一组")).click(); settled(); assertEquals(256,pages.last())
             node(By.text("搜索")).click(); settled(); assertEquals("EditExpressionQuery",events.last())
+            node(By.textContains("切换分类")).click(); settled()
             node(By.desc("假名")).click(); settled()
             assertEquals("BrowseExpressions",events.last())
             assertEquals("Kana",(events[events.size-2] as JSONObject).getString("BeginTemporary"))
+            node(By.textContains("切换分类")).click(); settled()
+            val lastCategory=reveal(By.desc("组合附加符"),By.desc("特殊码表分类列表"))
+            shot("category-menu-${if(landscape) "landscape" else "portrait"}-$fontScale")
+            lastCategory.click(); settled()
+            assertEquals("Diacritics",(events[events.size-2] as JSONObject).getString("BeginTemporary"))
+            shot("browser-categories-${if(landscape) "landscape" else "portrait"}-$fontScale")
             node(By.text("返回键盘")).click(); settled(); assertEquals("EndTemporary",events.last())
         }
     }

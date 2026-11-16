@@ -147,7 +147,7 @@ impl IAccessible_Impl for Accessible_Impl {
         }))
     }
     fn get_accHelp(&self, _: &VARIANT) -> Result<BSTR> {
-        Ok("方向键选择，回车上屏，Tab 搜索，Esc 关闭，PageUp/PageDown 翻页".into())
+        Ok("方向键选择，回车上屏，F2 全部或搜索，F3 分类，F4 清空，F5 输入方式，Tab 查找，Esc 返回或关闭，PageUp/PageDown 翻页".into())
     }
     fn get_accHelpTopic(&self, _: *mut BSTR, _: &VARIANT) -> Result<i32> {
         Err(E_NOTIMPL.into())

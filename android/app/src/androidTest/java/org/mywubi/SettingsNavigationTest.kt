@@ -11,6 +11,31 @@ class SettingsNavigationTest {
     private val ins = InstrumentationRegistry.getInstrumentation()
     private val device = UiDevice.getInstance(ins)
 
+    @Test fun finalUnicodeCategoryIsSearchableAndKeepsItsOwnDraft() {
+        ActivityScenario.launch(MainActivity::class.java).use { scenario ->
+            find(By.text("特殊输入")).click()
+            scenario.onActivity {
+                val model=ViewModelProvider(it)[SettingsModel::class.java]
+                model.specialSearch="diacritics"
+            }
+            find(By.text("组合附加符")).click()
+            find(By.desc("特殊输入项目详情"))
+            scenario.onActivity {
+                val model=ViewModelProvider(it)[SettingsModel::class.java]
+                assertEquals("diacritics",model.specialSelection)
+                assertEquals(20,model.specialTrials.size)
+                model.specialTrials.getValue("diacritics").text="0301"
+            }
+            scenario.recreate()
+            find(By.desc("特殊输入项目详情"))
+            scenario.onActivity {
+                val model=ViewModelProvider(it)[SettingsModel::class.java]
+                assertEquals("0301",model.specialTrials.getValue("diacritics").text)
+                assertTrue(model.specialTrials.getValue("latin").text.isEmpty())
+            }
+        }
+    }
+
     @Test fun specialInputRecreationRetainsSelectionSearchAndQueryDraft() {
         ActivityScenario.launch(MainActivity::class.java).use { scenario ->
             find(By.text("特殊输入")).click()

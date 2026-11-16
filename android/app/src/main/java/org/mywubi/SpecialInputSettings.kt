@@ -16,7 +16,6 @@ import org.json.JSONArray
 import org.json.JSONObject
 import java.io.File
 
-val specialCategories = listOf("emoji" to "Emoji", "kaomoji" to "颜文字", "kana" to "假名", "math" to "数学符号", "punctuation" to "标点", "symbols" to "其他符号")
 
 @Composable
 fun SpecialInputSettings(model: SettingsModel, config: JSONObject, modifier: Modifier = Modifier) {
@@ -85,7 +84,7 @@ private fun SpecialInputBackup(model: SettingsModel) {
         uri?.let(model::restoreSpecialInput)
     }
     SettingsDisclosure("特殊输入备份与恢复") {
-        Text("包含当前草稿的六类所选资源、开关和日期规则；不包含主码表、个人词库或其他设置。恢复会替换特殊输入草稿，检查后再保存。")
+        Text("包含当前草稿的各类所选资源、开关和日期规则；不包含主码表、个人词库或其他设置。恢复会替换特殊输入草稿，检查后再保存。")
         OutlinedButton(onClick={export.launch("MyWubi-special-input.mwsi")},enabled=!model.busy) {Text("导出特殊输入备份")}
         OutlinedButton(onClick={restore.launch(arrayOf("*/*"))},enabled=!model.busy) {Text("恢复备份到草稿")}
     }

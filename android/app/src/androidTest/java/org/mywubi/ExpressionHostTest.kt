@@ -15,7 +15,7 @@ import java.util.regex.Pattern
 class ExpressionHostTest {
     private val instrumentation=InstrumentationRegistry.getInstrumentation()
     private val context=instrumentation.targetContext
-    private val device=UiDevice.getInstance(instrumentation)
+    private val device=UiDevice.getInstance(instrumentation).also { Configurator.getInstance().waitForIdleTimeout=500 }
     private val evidence=File(context.getExternalFilesDir(null),"expression-host").apply { mkdirs() }
     private fun fresh(selector:BySelector):UiObject2 {
         val end=SystemClock.uptimeMillis()+10000
@@ -53,6 +53,8 @@ class ExpressionHostTest {
         config.put("prediction",JSONObject().put("enabled",false))
         config.put("expressions",JSONObject().put("emoji",JSONObject().put("append",false).put("search",true))
             .put("math",JSONObject().put("append",false).put("search",true)))
+        for (kind in listOf("greek","enclosed","latin"))
+            config.getJSONObject("expressions").put(kind,JSONObject().put("append",false).put("search",true))
         fun save(value:JSONObject,version:Long) {
             NativeHandle(version).use { NativeHandle(store.saveConfig(value,it.value).getLong("version")).close() }
         }
@@ -75,11 +77,18 @@ class ExpressionHostTest {
             candidate(text);assertHost(text+text)
             shot("browser-repeated-emoji")
             button("搜索");fresh(By.text("关键词：尚未输入").pkg("org.mywubi"))
-            button("全部");button("数学")
+            button("全部")
+            fresh(By.textContains("切换分类").pkg("org.mywubi")).click();button("数学符号")
             fresh(By.desc("特殊码表全部词条").pkg("org.mywubi"))
             shot("browser-math")
+            var expected=text+text
+            for ((label,symbol) in listOf("希腊字母" to "α", "圈号与括号" to "①", "拼音与拉丁" to "ā")) {
+                fresh(By.textContains("切换分类").pkg("org.mywubi")).click();button(label)
+                candidate(symbol);expected+=symbol;assertHost(expected)
+            }
+            shot("browser-unicode")
             button("返回键盘");fresh(By.desc("a").pkg("org.mywubi"))
-            assertHost(text+text)
+            assertHost(expected)
         } finally {
             save(original,store.readConfig().getLong("version"))
             device.pressBack();device.pressBack()

@@ -42,6 +42,7 @@ object ExpressionDisplay {
     }
 
     fun display(text: String, hint: String, kind: String?): Display {
+        if(kind == "diacritics" && supported("◌$text",false)) return Display("◌$text",false)
         if (kind == null || supported(text, kind == "emoji")) return Display(text, false)
         val codes = text.codePoints().toArray().joinToString(" ") { "U+%04X".format(Locale.ROOT, it) }
         return Display("[${hint.ifEmpty { "表情" }} · 字体不支持：$codes]", true)

@@ -303,7 +303,7 @@ class MyWubiService : InputMethodService() {
         val items = candidates.optJSONArray("candidates") ?: JSONArray()
         val spelling = state.optJSONObject("view")?.optString("spelling") ?: ""
         val shortcutError = state.optJSONObject("view")?.optString("shortcut_error")?.takeIf { it.isNotBlank() && it != "null" }?.let { "日期时间不可用：$it" }
-        val temporary = state.optString("temporary").takeIf { it in listOf("Pinyin", "English", "Emoji", "Kaomoji", "Kana", "Math", "Punctuation", "Symbols") }
+        val temporary = state.optString("temporary").takeIf { it in (listOf("Pinyin", "English") + specialModes.map { it.first }) }
         val stableIdle = active && viewVisible && session != null && idle.isIdle(
             android.os.SystemClock.elapsedRealtime(), spelling, items.length() > 0 || state.optBoolean("prediction_waiting"), editor.ownsPreedit, temporary != null)
         keyboard = KeyboardModel(
@@ -319,8 +319,8 @@ class MyWubiService : InputMethodService() {
                 ExpressionQueryUi(query.getString("kind"), query.getString("phase"), query.getString("text"),
                     query.optString("message").takeIf { it.isNotBlank() && it != "null" }, query.optString("input", "Words"), query.optBoolean("browsing"))
             },
-            specialCapabilities = listOf("Emoji", "Kaomoji", "Kana", "Math", "Punctuation", "Symbols").associateWith { mode ->
-                val capability = state.optJSONObject(mode.lowercase(java.util.Locale.ROOT))
+            specialCapabilities = specialModes.map { it.first }.associateWith { mode ->
+                val capability = state.optJSONObject("special_capabilities")?.optJSONObject(specialKind(mode)) ?: state.optJSONObject(specialKind(mode))
                 (capability?.optBoolean("available") == true) to capability?.optString("reason")?.takeIf { it != "null" }
             },
             emojiAvailable = state.optJSONObject("emoji")?.optBoolean("available") == true,
@@ -360,7 +360,7 @@ class MyWubiService : InputMethodService() {
                     }
                 }
                 CandidateItem(item.getLong("id"),item.getString("text"),hint,
-                    item.optString("expression_kind").takeIf { it in listOf("emoji", "kaomoji", "kana", "math", "punctuation", "symbols") },
+                    item.optString("expression_kind").takeIf { it in specialKinds },
                     (0 until hints.length()).any { hints.getJSONObject(it).has("DateTime") })
             },
             query = candidates.optJSONObject("query_revision")?.toString() ?: "{}",

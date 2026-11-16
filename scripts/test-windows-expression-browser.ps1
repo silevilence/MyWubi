@@ -47,7 +47,7 @@ font_size = 14
 background_color = 0xFFFFFFFF
 highlight_color = 0xFFFFD54F
 '@
-foreach ($kind in 'emoji','kaomoji','kana','math','punctuation','symbols') {
+foreach ($kind in 'emoji','kaomoji','kana','math','punctuation','symbols','greek','cyrillic','latin','phonetic','enclosed','numbers','arrows','currency','units','shapes','box_drawing','braille','music','diacritics') {
     $config += "`n[expressions.$kind]`nsearch = true`n"
     if ($kind -eq 'kaomoji') {$config += 'resource = "expressions/imported-kaomoji.mwe"' + "`n"}
 }

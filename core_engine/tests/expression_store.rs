@@ -6,6 +6,23 @@ use std::{
 };
 
 struct Files(PathBuf);
+
+#[test]
+fn unicode_upgrade_offers_an_alternate_without_overwriting_user_edits() {
+    let f = Files::new();
+    let kind = ExpressionKind::Math;
+    let target = f.0.join(kind.default_path());
+    std::fs::create_dir_all(target.parent().unwrap()).unwrap();
+    std::fs::copy(f.source(kind), &target).unwrap();
+    let before = std::fs::read(&target).unwrap();
+    let bundle = Path::new(env!("CARGO_MANIFEST_DIR")).join("../expressions");
+    prepare_builtin(&f.config(), &bundle, kind).unwrap();
+    assert_eq!(std::fs::read(&target).unwrap(), before);
+    let choices = list(&f.config(), kind, &ExpressionSelection::default()).unwrap();
+    assert!(choices
+        .iter()
+        .any(|c| c.version == "18.0.0-1" && c.entries > 124));
+}
 impl Files {
     fn new() -> Self {
         static NEXT: AtomicU64 = AtomicU64::new(0);

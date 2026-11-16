@@ -15,7 +15,7 @@ pub struct SpecialInputUi {
     selected: Item,
     detail: bool,
     pub preview: super::shortcuts::PreviewUi,
-    trials: [super::expression_trial::TrialUi; 6],
+    trials: [super::expression_trial::TrialUi; ExpressionKind::ALL.len()],
     backup: super::special_backup::BackupUi,
     focus_rule: Option<(usize, &'static str)>,
 }
@@ -214,6 +214,32 @@ fn detail(ui: &mut Ui, state: &mut AppState, view: &mut SpecialInputUi) {
 #[cfg(test)]
 mod tests {
     use super::*;
+    #[test]
+    fn all_categories_open_details_in_wide_and_narrow_settings() {
+        let directory = tempfile::tempdir().unwrap();
+        let mut state = AppState::load(directory.path().join("missing.toml"), true);
+        let ctx = egui::Context::default();
+        for width in [1100.0, 480.0] {
+            for kind in ExpressionKind::ALL {
+                state.special_input.selected = Item::Table(kind);
+                state.special_input.detail = true;
+                let output = ctx.run(
+                    egui::RawInput {
+                        screen_rect: Some(egui::Rect::from_min_size(
+                            egui::Pos2::ZERO,
+                            egui::vec2(width, 700.0),
+                        )),
+                        ..Default::default()
+                    },
+                    |ctx| {
+                        egui::CentralPanel::default().show(ctx, |ui| show(ui, &mut state));
+                    },
+                );
+                assert!(!output.shapes.is_empty());
+                assert_eq!(state.special_input.selected, Item::Table(kind));
+            }
+        }
+    }
     #[test]
     fn invalid_save_opens_the_rule_and_focuses_its_field_without_writing() {
         for field in ["code", "position", "format"] {

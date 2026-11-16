@@ -55,7 +55,7 @@ impl BackupUi {
             }
         }
         ui.collapsing("特殊输入备份与恢复", |ui| {
-            ui.label("包含当前草稿的六类所选资源、开关和日期规则；不包含主码表、个人词库或其他设置。恢复会替换特殊输入草稿，检查后再保存。");
+            ui.label("包含当前草稿的各类所选资源、开关和日期规则；不包含主码表、个人词库或其他设置。恢复会替换特殊输入草稿，检查后再保存。");
             ui.horizontal_wrapped(|ui| {
                 for (restore, label) in [(false,"导出特殊输入备份"),(true,"恢复备份到草稿")] {
                     if ui.add_enabled(self.worker.is_none(), egui::Button::new(label)).clicked() {

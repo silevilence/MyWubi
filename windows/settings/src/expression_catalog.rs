@@ -21,7 +21,7 @@ fn key(path: &Path, config: &ExpressionsConfig) -> Key {
     )
 }
 struct Loaded {
-    entries: [Vec<ResourceInfo>; 6],
+    entries: [Vec<ResourceInfo>; ExpressionKind::ALL.len()],
     imported: Option<(ExpressionKind, PathBuf)>,
 }
 
@@ -54,7 +54,7 @@ mod tests {
 #[derive(Default)]
 pub struct ExpressionCatalog {
     preview: crate::expression_preview::ExpressionPreview,
-    entries: [Vec<ResourceInfo>; 6],
+    entries: [Vec<ResourceInfo>; ExpressionKind::ALL.len()],
     key: Option<Key>,
     worker: Option<mpsc::Receiver<Result<Loaded, String>>>,
     message: Option<String>,
@@ -115,18 +115,14 @@ impl ExpressionCatalog {
                     None
                 };
                 Ok(Loaded {
-                    entries: [
-                        expression_store::list(&path, ExpressionKind::Emoji, &config.emoji)?,
-                        expression_store::list(&path, ExpressionKind::Kaomoji, &config.kaomoji)?,
-                        expression_store::list(&path, ExpressionKind::Kana, &config.kana)?,
-                        expression_store::list(&path, ExpressionKind::Math, &config.math)?,
-                        expression_store::list(
-                            &path,
-                            ExpressionKind::Punctuation,
-                            &config.punctuation,
-                        )?,
-                        expression_store::list(&path, ExpressionKind::Symbols, &config.symbols)?,
-                    ],
+                    entries: {
+                        let mut entries = std::array::from_fn(|_| Vec::new());
+                        for (index, kind) in ExpressionKind::ALL.into_iter().enumerate() {
+                            entries[index] =
+                                expression_store::list(&path, kind, config.selection(kind))?;
+                        }
+                        entries
+                    },
                     imported,
                 })
             })();

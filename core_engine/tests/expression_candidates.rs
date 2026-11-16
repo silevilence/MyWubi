@@ -467,13 +467,7 @@ fn resource_change_cancels_old_query_even_when_prediction_settings_change_too() 
 fn every_new_category_resource_reload_invalidates_old_candidate_identity() {
     fn resources_for(kind: ExpressionKind, text: &str) -> Arc<ExpressionResources> {
         let mut resources = ExpressionResources::default();
-        let target = match kind {
-            ExpressionKind::Kana => &mut resources.kana,
-            ExpressionKind::Math => &mut resources.math,
-            ExpressionKind::Punctuation => &mut resources.punctuation,
-            ExpressionKind::Symbols => &mut resources.symbols,
-            _ => unreachable!(),
-        };
+        let target = resources.resource_mut(kind);
         target.library = Some(library(kind, &[(text, &["开心"])]));
         Arc::new(resources)
     }

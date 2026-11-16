@@ -355,6 +355,26 @@ impl InputSession {
     ) -> bool {
         let view = self.candidates.load_full();
         if !system_modifier && view.browser.is_some() {
+            if let Some(browser) = view.browser.as_ref().filter(|b| b.choosing_category) {
+                match event {
+                    InputEvent::Esc | InputEvent::Backspace => {
+                        self.toggle_category_picker();
+                        return true;
+                    }
+                    InputEvent::Enter | InputEvent::Space => {
+                        if let (Some(token), Some(category)) = (
+                            view.selection_token,
+                            browser.categories.get(browser.category_index),
+                        ) {
+                            self.choose_candidate(token, category.id, edit);
+                        }
+                        return true;
+                    }
+                    InputEvent::PageNext | InputEvent::PagePrev => return true,
+                    InputEvent::Select(_) | InputEvent::Char('0'..='9') => return true,
+                    _ => {}
+                }
+            }
             match event {
                 InputEvent::PageNext | InputEvent::PagePrev => {
                     if let Some(token) = view.selection_token {
@@ -440,6 +460,10 @@ impl InputSession {
         };
         if view.browser.is_some() {
             use crate::candidate_data::*;
+            if id == CHOOSE_CATEGORY {
+                self.toggle_category_picker();
+                return;
+            }
             if matches!(id, PREVIOUS_PAGE | NEXT_PAGE) {
                 self.browser_page(token, id == NEXT_PAGE);
                 return;
@@ -458,6 +482,9 @@ impl InputSession {
                     .as_ref()
                     .is_some_and(|q| q.kind == category.kind)
                 {
+                    if view.browser.as_ref().is_some_and(|b| b.choosing_category) {
+                        self.toggle_category_picker();
+                    }
                     return;
                 }
                 // Each local transition is acknowledged by the same session; no host edit occurs.
@@ -521,6 +548,78 @@ impl InputSession {
         self.core.lock().has_prediction()
     }
 
+    fn toggle_category_picker(&self) {
+        let core = self.core.lock();
+        let previous = self.candidates.load_full();
+        if previous.selection_query != Some(core.candidate_window(0, 0).query_revision) {
+            return;
+        }
+        let mut data = (*previous).clone();
+        if let Some(browser) = &mut data.browser {
+            browser.choosing_category = !browser.choosing_category;
+            data.selection_token = Some(next_selection_token());
+            self.candidates.store(Arc::new(data));
+        }
+    }
+
+    /// Focusless controls have explicit keys; no Tab traversal steals host focus.
+    pub fn palette_key<E: EditFailure>(
+        &self,
+        vk: u16,
+        apply: bool,
+        mut edit: impl FnMut(&EditSessionOp) -> Result<Option<ScreenPoint>, E>,
+    ) -> bool {
+        let data = self.candidates.load_full();
+        let Some(query) = &data.expression else {
+            return false;
+        };
+        if !(0x71..=0x74).contains(&vk)
+            || !self.core.lock().would_handle(&Action::EditExpressionQuery)
+        {
+            return false;
+        }
+        if !apply {
+            return true;
+        }
+        match vk {
+            0x71 => {
+                self.action(
+                    if query.browsing {
+                        Action::EditExpressionQuery
+                    } else {
+                        Action::BrowseExpressions
+                    },
+                    data.anchor,
+                    edit,
+                );
+            }
+            0x72 => {
+                if data.browser.is_some()
+                    || self.action(Action::BrowseExpressions, data.anchor, &mut edit)
+                {
+                    self.toggle_category_picker();
+                }
+            }
+            0x73 => {
+                self.action(Action::ClearExpressionQuery, data.anchor, edit);
+            }
+            _ => {
+                self.action(
+                    Action::SetExpressionInput(
+                        if query.input == core_engine::candidates::ExpressionInput::Words {
+                            core_engine::candidates::ExpressionInput::Literal
+                        } else {
+                            core_engine::candidates::ExpressionInput::Words
+                        },
+                    ),
+                    data.anchor,
+                    edit,
+                );
+            }
+        }
+        true
+    }
+
     fn browser_page(&self, token: u64, next: bool) {
         use crate::candidate_data::BROWSER_PAGE_SIZE;
         let previous = self.candidates.load_full();
@@ -574,7 +673,10 @@ impl InputSession {
         if view.selection_query != Some(core.candidate_window(0, 0).query_revision) {
             return true;
         }
-        let columns = if view
+        let choosing = view.browser.as_ref().is_some_and(|b| b.choosing_category);
+        let columns = if choosing {
+            4
+        } else if view
             .expression
             .as_ref()
             .is_some_and(|q| q.kind == core_engine::expressions::ExpressionKind::Kaomoji)
@@ -583,18 +685,35 @@ impl InputSession {
         } else {
             6
         };
-        let last = view.items.len().saturating_sub(1);
+        let current = if choosing {
+            view.browser.as_ref().map_or(0, |b| b.category_index)
+        } else {
+            view.highlighted
+        };
+        let last = if choosing {
+            view.browser
+                .as_ref()
+                .map_or(0, |b| b.categories.len().saturating_sub(1))
+        } else {
+            view.items.len().saturating_sub(1)
+        };
         let index = match vk {
-            v if v == VK_LEFT.0 => view.highlighted.saturating_sub(1),
-            v if v == VK_RIGHT.0 => (view.highlighted + 1).min(last),
-            v if v == VK_UP.0 => view.highlighted.saturating_sub(columns),
-            v if v == VK_DOWN.0 => (view.highlighted + columns).min(last),
+            v if v == VK_LEFT.0 => current.saturating_sub(1),
+            v if v == VK_RIGHT.0 => (current + 1).min(last),
+            v if v == VK_UP.0 => current.saturating_sub(columns),
+            v if v == VK_DOWN.0 => (current + columns).min(last),
             v if v == VK_HOME.0 => 0,
             _ => last,
         };
-        if index != view.highlighted {
+        if index != current {
             let mut data = (*view).clone();
-            data.highlighted = index;
+            if choosing {
+                if let Some(browser) = &mut data.browser {
+                    browser.category_index = index;
+                }
+            } else {
+                data.highlighted = index;
+            }
             self.candidates.store(Arc::new(data));
         }
         true
@@ -802,7 +921,7 @@ fn candidate_view(
         data.controls = vec![
             CandidateControl {
                 id: BROWSE_EXPRESSIONS,
-                label: "全部".into(),
+                label: "全部 (F2)".into(),
             },
             CandidateControl {
                 id: if results {
@@ -824,7 +943,7 @@ fn candidate_view(
         ];
         data.controls.push(CandidateControl {
             id: CLEAR_EXPRESSION,
-            label: "清空查询".into(),
+            label: "清空查询 (F4)".into(),
         });
         if !results {
             let literal = query.input == core_engine::candidates::ExpressionInput::Literal;
@@ -835,9 +954,9 @@ fn candidate_view(
                     LITERAL_EXPRESSION
                 },
                 label: if literal {
-                    "切换为主码表组词"
+                    "切换为主码表组词 (F5)"
                 } else {
-                    "切换为字面别名"
+                    "切换为字面别名 (F5)"
                 }
                 .into(),
             });
@@ -903,19 +1022,15 @@ fn bind_editor(core: &mut Session, editor: u64) {
 }
 
 fn expression_mode(kind: core_engine::expressions::ExpressionKind) -> core_engine::TemporaryMode {
-    use core_engine::{expressions::ExpressionKind as K, TemporaryMode as M};
-    match kind {
-        K::Emoji => M::Emoji,
-        K::Kaomoji => M::Kaomoji,
-        K::Kana => M::Kana,
-        K::Math => M::Math,
-        K::Punctuation => M::Punctuation,
-        K::Symbols => M::Symbols,
-    }
+    kind.temporary_mode()
+}
+
+fn next_selection_token() -> u64 {
+    static NEXT: std::sync::atomic::AtomicU64 = std::sync::atomic::AtomicU64::new(1);
+    NEXT.fetch_add(1, std::sync::atomic::Ordering::Relaxed)
 }
 
 fn bind_selection(core: &Session, data: &mut CandidateData, previous: &CandidateData) {
-    static NEXT: std::sync::atomic::AtomicU64 = std::sync::atomic::AtomicU64::new(1);
     let window = if let Some(kind) = data
         .expression
         .as_ref()
@@ -998,6 +1113,11 @@ fn bind_selection(core: &Session, data: &mut CandidateData, previous: &Candidate
             });
         }
         data.browser = Some(BrowserData {
+            choosing_category: false,
+            category_index: core_engine::expressions::ExpressionKind::ALL
+                .iter()
+                .position(|k| *k == kind)
+                .unwrap_or(0),
             offset,
             total,
             categories: core_engine::expressions::ExpressionKind::ALL
@@ -1029,7 +1149,7 @@ fn bind_selection(core: &Session, data: &mut CandidateData, previous: &Candidate
             || data.selection_ids != ids
             || data.selection_token.is_none()
         {
-            data.selection_token = Some(NEXT.fetch_add(1, std::sync::atomic::Ordering::Relaxed));
+            data.selection_token = Some(next_selection_token());
         }
         data.selection_query = Some(window.query_revision);
         data.selection_ids = ids;
@@ -1077,6 +1197,51 @@ mod tests {
         );
         session.action(Action::BrowseExpressions, None, |op| editor.apply(op));
         assert!(editor.committed.is_empty() && editor.spelling.is_empty());
+        // Every palette control is reachable without an accessibility or mouse action.
+        assert!(session.palette_key(0x72, true, |op| editor.apply(op))); // F3
+        assert!(data.load().browser.as_ref().unwrap().choosing_category);
+        let stale = data.load_full();
+        session.browser_navigation(0x23, true); // End: last of twenty categories
+        assert_eq!(data.load().browser.as_ref().unwrap().category_index, 19);
+        session.handle(InputEvent::Enter, false, None, |op| editor.apply(op));
+        assert_eq!(
+            data.load().expression.as_ref().unwrap().kind,
+            ExpressionKind::Diacritics
+        );
+        assert!(!data.load().browser.as_ref().unwrap().choosing_category);
+        session.choose_candidate(
+            stale.selection_token.unwrap(),
+            stale.selection_ids[0],
+            |_| -> Result<_, &str> { panic!("old picker snapshot must not commit") },
+        );
+        session.palette_key(0x72, true, |op| editor.apply(op));
+        session.handle(InputEvent::Char('1'), false, None, |op| editor.apply(op));
+        assert!(editor.committed.is_empty());
+        session.handle(InputEvent::Esc, false, None, |op| editor.apply(op));
+        assert!(!data.load().browser.as_ref().unwrap().choosing_category);
+        assert!(data.load().visible);
+        session.palette_key(0x71, true, |op| editor.apply(op)); // F2 search
+        assert!(data.load().browser.is_none());
+        session.palette_key(0x74, true, |op| editor.apply(op)); // F5 literal
+        type_text(&session, &mut editor, "abc");
+        assert_eq!(data.load().expression.as_ref().unwrap().text, "abc");
+        session.palette_key(0x73, true, |op| editor.apply(op)); // F4 clear
+        assert!(data.load().expression.as_ref().unwrap().text.is_empty());
+        session.palette_key(0x71, true, |op| editor.apply(op));
+        session.handle(InputEvent::Esc, false, None, |op| editor.apply(op));
+        assert!(!session.palette_key(0x71, false, |op| editor.apply(op)));
+        session.action(Action::OpenModeChooser, None, |op| editor.apply(op));
+        assert!(session.test_key(&InputEvent::PageNext, false));
+        session.handle(InputEvent::PageNext, false, None, |op| editor.apply(op));
+        session.handle(InputEvent::PageNext, false, None, |op| editor.apply(op));
+        assert_eq!(data.load().items[5].text, "组合附加符");
+        session.handle(InputEvent::Char('6'), false, None, |op| editor.apply(op));
+        assert_eq!(
+            data.load().expression.as_ref().unwrap().kind,
+            ExpressionKind::Diacritics
+        );
+        session.palette_key(0x71, true, |op| editor.apply(op));
+        let retained_anchor = data.load().anchor.unwrap().x;
         for kind in ExpressionKind::ALL {
             let shown = data.load_full();
             let category = shown
@@ -1129,7 +1294,7 @@ mod tests {
                     data.load().browser.as_ref().unwrap().offset,
                     last.browser.as_ref().unwrap().offset
                 );
-                assert_eq!(data.load().anchor.unwrap().x, 1);
+                assert_eq!(data.load().anchor.unwrap().x, retained_anchor);
             }
             assert!(editor.committed.ends_with(&expected.repeat(2)));
             session.choose_candidate(
@@ -1480,12 +1645,13 @@ mod tests {
         // separate status fields are covered by the versioned-click tests above.
         fn without_status_labels(data: &CandidateData) -> String {
             let mut data = data.clone();
+            let menu = data.mode_label == InputMode::Menu.label()
+                || data.spelling.starts_with(InputMode::Menu.label());
             data.selection_query = None;
             data.selection_token = None;
             data.selection_ids.clear();
             data.mode_label.clear();
             data.notices.clear();
-            let menu = data.spelling.starts_with(InputMode::Menu.label());
             for mode in [InputMode::Menu, InputMode::Pinyin, InputMode::English] {
                 if let Some(spelling) = data.spelling.strip_prefix(mode.label()) {
                     data.spelling = spelling.trim_start().into();
@@ -1493,8 +1659,11 @@ mod tests {
                 }
             }
             if menu {
+                // The expanded menu adds visible page controls; its keyboard and
+                // global candidate IDs are checked by the palette regression above.
+                data.controls.clear();
                 for item in &mut data.items {
-                    item.disabled = !item.hint.is_empty();
+                    item.disabled |= !item.hint.is_empty();
                     item.hint.clear();
                 }
             }

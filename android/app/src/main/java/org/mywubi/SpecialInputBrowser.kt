@@ -3,15 +3,13 @@ package org.mywubi
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.layout.*
-import androidx.compose.foundation.lazy.LazyRow
-import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.lazy.grid.GridCells
 import androidx.compose.foundation.lazy.grid.GridItemSpan
 import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
 import androidx.compose.foundation.lazy.grid.items
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.material3.*
-import androidx.compose.runtime.Composable
+import androidx.compose.runtime.*
 import androidx.compose.runtime.key
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
@@ -35,10 +33,7 @@ internal fun SpecialInputBrowser(model: KeyboardModel, dispatch: (Any) -> Unit,
                                  modifier: Modifier = Modifier) {
     val query = model.expression ?: return
     val colors = MaterialTheme.colorScheme
-    val categories = listOf("Emoji" to "Emoji", "Kaomoji" to "颜文字", "Kana" to "假名",
-        "Math" to "数学", "Punctuation" to "标点", "Symbols" to "其他符号")
-    val categoryScroll = rememberLazyListState(
-        initialFirstVisibleItemIndex=(categories.indexOfFirst { it.first.equals(query.kind,true) }-1).coerceAtLeast(0))
+    var choosingCategory by remember { mutableStateOf(false) }
     Column(modifier) {
         Row(Modifier.fillMaxWidth().heightIn(min=48.dp), verticalAlignment=Alignment.CenterVertically) {
             Text("全部", Modifier.padding(horizontal=12.dp), color=colors.primary, fontSize=16.sp)
@@ -51,28 +46,17 @@ internal fun SpecialInputBrowser(model: KeyboardModel, dispatch: (Any) -> Unit,
                 Icon(painterResource(R.drawable.ic_hide_keyboard), null, Modifier.size(24.dp), tint=colors.onSurface)
             }
         }
-        LazyRow(Modifier.fillMaxWidth().heightIn(min=48.dp),
-            state=categoryScroll,
-            contentPadding=PaddingValues(horizontal=8.dp), horizontalArrangement=Arrangement.spacedBy(8.dp)) {
-            categories.forEach { (mode, label) ->
-                item(key=mode) {
-                    val capability = model.specialCapabilities[mode] ?: when(mode) {
-                        "Emoji" -> model.emojiAvailable to model.emojiReason
-                        "Kaomoji" -> model.kaomojiAvailable to model.kaomojiReason
-                        else -> false to "词库未加载"
-                    }
-                    val selected = mode.equals(query.kind, ignoreCase=true)
-                    FilterChip(selected=selected, enabled=model.enabled && capability.first,
-                        onClick={
-                            if (!selected) {
-                                dispatch("ClearExpressionQuery")
-                                dispatch(JSONObject().put("BeginTemporary",mode))
-                                dispatch("BrowseExpressions")
-                            }
-                        }, label={Text(label, maxLines=1)},
-                        modifier=Modifier.heightIn(min=48.dp).semantics {
-                            contentDescription=if(capability.first) label else "$label，${capability.second ?: "不可用"}"
-                        })
+        Box(Modifier.fillMaxWidth()) {
+            TextButton(onClick={choosingCategory=true},enabled=model.enabled,
+                modifier=Modifier.fillMaxWidth().heightIn(min=48.dp)) {
+                Text("${specialLabel(query.kind)} · 切换分类 ▾")
+            }
+            SpecialCategoryMenu(model,choosingCategory,query.kind,{choosingCategory=false}) { mode ->
+                choosingCategory=false
+                if(specialKind(mode)!=query.kind) {
+                    dispatch("ClearExpressionQuery")
+                    dispatch(JSONObject().put("BeginTemporary",mode))
+                    dispatch("BrowseExpressions")
                 }
             }
         }

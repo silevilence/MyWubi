@@ -110,7 +110,7 @@ fn every_special_category_roundtrips_and_keeps_independent_resource_failures() {
     let restored = Config::from_str(&config.to_string_toml().unwrap()).unwrap();
     assert_eq!(restored.expressions, config.expressions);
     let resources = ExpressionResources::load(&path, &restored.expressions);
-    assert_eq!(resources.paths().count(), 6);
+    assert_eq!(resources.paths().count(), ExpressionKind::ALL.len());
     assert_eq!(resources.errors().count(), 0);
     for kind in ExpressionKind::ALL {
         let loaded = resources.resource(kind).library.as_ref().unwrap();

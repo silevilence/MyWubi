@@ -10,15 +10,27 @@ impl StateMachine {
             return Transition::Cleared;
         }
         if self.mode == InputMode::Menu {
+            match event {
+                InputEvent::PageNext if self.page + 1 < self.total_pages() => {
+                    self.page += 1;
+                    return self.refresh_temporary();
+                }
+                InputEvent::PagePrev if self.page > 0 => {
+                    self.page -= 1;
+                    return self.refresh_temporary();
+                }
+                _ => {}
+            }
             let index = match event {
-                InputEvent::Select(index) => index,
+                InputEvent::Select(index @ 1..=8) => index,
                 InputEvent::Char(c @ '1'..='8') => c as usize - '0' as usize,
                 _ => return Transition::None,
             };
+            let index = self.page * 8 + index;
             match index {
                 1 if self.temporary.pinyin.is_some() => self.mode = InputMode::Pinyin,
                 2 if self.temporary.english_error.is_none() => self.mode = InputMode::English,
-                3..=8 => {
+                3..=22 => {
                     let kind = crate::expressions::ExpressionKind::ALL[index - 3];
                     return self
                         .begin_expression(kind, None)
@@ -93,37 +105,45 @@ impl StateMachine {
         }
     }
 
+    pub(super) fn menu_candidates(&self) -> Vec<(String, String)> {
+        let mut candidates = vec![
+            "拼音".into(),
+            "英文".into(),
+            "Emoji".into(),
+            "颜文字".into(),
+        ];
+        let mut code_hints = vec![
+            self.temporary.pinyin_error.clone().unwrap_or_else(|| {
+                if self.temporary.pinyin.is_none() {
+                    "未配置拼音码表".into()
+                } else {
+                    String::new()
+                }
+            }),
+            self.temporary.english_error.clone().unwrap_or_default(),
+            self.expression_capability(crate::expressions::ExpressionKind::Emoji)
+                .reason
+                .unwrap_or_default(),
+            self.expression_capability(crate::expressions::ExpressionKind::Kaomoji)
+                .reason
+                .unwrap_or_default(),
+        ];
+        for kind in crate::expressions::ExpressionKind::ALL.into_iter().skip(2) {
+            candidates.push(kind.label().into());
+            code_hints.push(self.expression_capability(kind).reason.unwrap_or_default());
+        }
+        candidates.into_iter().zip(code_hints).collect()
+    }
+
     pub(super) fn refresh_temporary(&mut self) -> Transition {
         if self.mode == InputMode::Menu {
             self.appended = None;
-            self.candidates = vec![
-                "拼音".into(),
-                "英文".into(),
-                "Emoji".into(),
-                "颜文字".into(),
-            ];
-            self.code_hints = vec![
-                self.temporary.pinyin_error.clone().unwrap_or_else(|| {
-                    if self.temporary.pinyin.is_none() {
-                        "未配置拼音码表".into()
-                    } else {
-                        String::new()
-                    }
-                }),
-                self.temporary.english_error.clone().unwrap_or_default(),
-                self.expression_capability(crate::expressions::ExpressionKind::Emoji)
-                    .reason
-                    .unwrap_or_default(),
-                self.expression_capability(crate::expressions::ExpressionKind::Kaomoji)
-                    .reason
-                    .unwrap_or_default(),
-            ];
-            for kind in crate::expressions::ExpressionKind::ALL.into_iter().skip(2) {
-                self.candidates.push(kind.label().into());
-                self.code_hints
-                    .push(self.expression_capability(kind).reason.unwrap_or_default());
-            }
-            self.total_candidates = self.candidates.len();
+            let all = self.menu_candidates();
+            self.total_candidates = all.len();
+            self.page = self.page.min(self.total_pages() - 1);
+            let (candidates, hints) = all.into_iter().skip(self.page * 8).take(8).unzip();
+            self.candidates = candidates;
+            self.code_hints = hints;
             self.state = InputState::Selecting;
         } else if !self.reuse_appended_page() {
             let dict = match self.mode {
@@ -179,11 +199,7 @@ impl StateMachine {
             candidates: self.candidates.clone(),
             code_hints: self.code_hints.clone(),
             page: self.page,
-            total_pages: if self.mode == InputMode::Menu {
-                1
-            } else {
-                self.total_pages()
-            },
+            total_pages: self.total_pages(),
         }
     }
 }

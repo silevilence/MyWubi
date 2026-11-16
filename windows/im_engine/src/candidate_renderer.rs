@@ -26,6 +26,7 @@ pub(crate) struct Renderer {
     geometry: Option<(i32, i32, i32, i32, i32)>,
     position: Option<(i32, i32)>,
     scroll: f32,
+    grid_scroll: f32,
     dirty: bool,
 }
 
@@ -158,11 +159,19 @@ impl Renderer {
                     system,
                     &data,
                     size as f32,
-                    max_width,
+                    (monitor.2 - monitor.0 - 16).max(80) as f32,
                     max_height,
                 )?;
                 if !same_group {
                     self.scroll = 0.0;
+                    self.grid_scroll = 0.0;
+                } else if let Some(previous) = self.last.as_ref().and_then(|d| d.browser.as_ref()) {
+                    if browser.choosing_category && !previous.choosing_category {
+                        self.grid_scroll = self.scroll;
+                        self.scroll = 0.0;
+                    } else if !browser.choosing_category && previous.choosing_category {
+                        self.scroll = self.grid_scroll;
+                    }
                 }
                 if self
                     .last

@@ -60,6 +60,15 @@ pub fn list(
 ) -> Result<Vec<ResourceInfo>, String> {
     let builtin = crate::config_path::resolve_resource_path(config, &kind.default_path());
     let mut paths = BTreeSet::from([builtin.clone(), selected.path(config, kind)]);
+    let expanded = crate::config_path::resolve_resource_path(
+        config,
+        Path::new(&format!("expressions/{}-unicode18.mwe", slug(kind))),
+    );
+    // Fresh installs already use the same bytes. Only offer the alternate for an
+    // older/edited default (or when explicitly selected above).
+    if expanded.is_file() && std::fs::read(&builtin).ok() != std::fs::read(&expanded).ok() {
+        paths.insert(expanded.clone());
+    }
     let imports =
         crate::config_path::resolve_resource_path(config, Path::new("expressions/imports"));
     match std::fs::read_dir(&imports) {
@@ -150,6 +159,22 @@ pub(crate) fn import_library(
 
 /// Prepare a missing bundled file. Existing data, including user edits, is preserved.
 pub fn prepare_builtin(config: &Path, bundle: &Path, kind: ExpressionKind) -> Result<(), String> {
+    let expanded_name = format!("{}-unicode18.mwe", slug(kind));
+    let expanded_source = bundle.join(&expanded_name);
+    let expanded_target = crate::config_path::resolve_resource_path(
+        config,
+        &Path::new("expressions").join(expanded_name),
+    );
+    if expanded_source.is_file() && !expanded_target.exists() {
+        let library = ExpressionLibrary::load(&expanded_source, kind).map_err(|e| e.to_string())?;
+        std::fs::create_dir_all(expanded_target.parent().ok_or("词库路径没有父目录")?)
+            .map_err(|e| e.to_string())?;
+        crate::data::atomic_write(
+            &expanded_target,
+            library.encode().map_err(|e| e.to_string())?.as_bytes(),
+        )
+        .map_err(|e| e.to_string())?;
+    }
     let destination = crate::config_path::resolve_resource_path(config, &kind.default_path());
     if destination.exists() {
         return Ok(());

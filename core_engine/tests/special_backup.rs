@@ -7,6 +7,26 @@ use serde_json::{json, Value};
 use std::path::PathBuf;
 
 struct Files(PathBuf);
+
+#[test]
+fn legacy_six_category_archive_preserves_new_category_selections() {
+    let files = Files::new();
+    let mut config = files.config();
+    config.expressions.latin.search = true;
+    let archive = files.0.join("legacy.mwsi");
+    special_backup::export(&files.path(), &config, &archive).unwrap();
+    let mut legacy: Value = serde_json::from_slice(&std::fs::read(&archive).unwrap()).unwrap();
+    legacy["magic"] = json!("MYWUBI-SPECIAL-INPUT-1");
+    legacy["resources"].as_array_mut().unwrap().truncate(6);
+    std::fs::write(&archive, serde_json::to_vec(&legacy).unwrap()).unwrap();
+    let restored = special_backup::restore(&files.path(), &config, &archive).unwrap();
+    assert_eq!(restored.expressions.latin, config.expressions.latin);
+    assert_eq!(
+        restored.expressions.diacritics,
+        config.expressions.diacritics
+    );
+    assert!(restored.expressions.kana.search);
+}
 impl Files {
     fn new() -> Self {
         static NEXT: std::sync::atomic::AtomicU64 = std::sync::atomic::AtomicU64::new(0);
@@ -141,7 +161,7 @@ fn invalid_archives_and_missing_resources_do_not_change_config_or_replace_backup
                 value["resources"][5]["library"] = value["resources"][0]["library"].clone()
             }
             "bad-rule" => value["shortcuts"]["rules"][1]["position"] = json!(2),
-            "future" => value["magic"] = json!("MYWUBI-SPECIAL-INPUT-2"),
+            "future" => value["magic"] = json!("MYWUBI-SPECIAL-INPUT-99"),
             _ => unreachable!(),
         }
         std::fs::write(&archive, serde_json::to_vec(&value).unwrap()).unwrap();

@@ -174,10 +174,14 @@ pub fn translate_for_mode(
     }
     if mode != core_engine::InputMode::Main {
         match vk {
-            v if mode.expression_kind().is_some() && v == VK_PRIOR.0 => {
+            v if (mode.expression_kind().is_some() || mode == core_engine::InputMode::Menu)
+                && v == VK_PRIOR.0 =>
+            {
                 return Some(InputEvent::PagePrev)
             }
-            v if mode.expression_kind().is_some() && v == VK_NEXT.0 => {
+            v if (mode.expression_kind().is_some() || mode == core_engine::InputMode::Menu)
+                && v == VK_NEXT.0 =>
+            {
                 return Some(InputEvent::PageNext)
             }
             v if v == VK_SPACE.0 => return Some(InputEvent::Space),
@@ -244,12 +248,7 @@ fn mode_character(
         InputMode::Menu => true,
         InputMode::Pinyin => c == '\'' || c.is_ascii_alphanumeric(),
         InputMode::English => !c.is_control(),
-        InputMode::Emoji
-        | InputMode::Kaomoji
-        | InputMode::Kana
-        | InputMode::Math
-        | InputMode::Punctuation
-        | InputMode::Symbols => !c.is_control(),
+        _ => !c.is_control(), // All expression modes protect literal query characters.
     };
     protected.then_some(InputEvent::Char(c))
 }

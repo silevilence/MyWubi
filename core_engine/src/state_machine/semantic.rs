@@ -22,6 +22,20 @@ pub enum TemporaryMode {
     Math,
     Punctuation,
     Symbols,
+    Greek,
+    Cyrillic,
+    Latin,
+    Phonetic,
+    Enclosed,
+    Numbers,
+    Arrows,
+    Currency,
+    Units,
+    Shapes,
+    BoxDrawing,
+    Braille,
+    Music,
+    Diacritics,
 }
 
 impl TemporaryMode {
@@ -33,6 +47,20 @@ impl TemporaryMode {
             Self::Math => Some(crate::expressions::ExpressionKind::Math),
             Self::Punctuation => Some(crate::expressions::ExpressionKind::Punctuation),
             Self::Symbols => Some(crate::expressions::ExpressionKind::Symbols),
+            Self::Greek => Some(crate::expressions::ExpressionKind::Greek),
+            Self::Cyrillic => Some(crate::expressions::ExpressionKind::Cyrillic),
+            Self::Latin => Some(crate::expressions::ExpressionKind::Latin),
+            Self::Phonetic => Some(crate::expressions::ExpressionKind::Phonetic),
+            Self::Enclosed => Some(crate::expressions::ExpressionKind::Enclosed),
+            Self::Numbers => Some(crate::expressions::ExpressionKind::Numbers),
+            Self::Arrows => Some(crate::expressions::ExpressionKind::Arrows),
+            Self::Currency => Some(crate::expressions::ExpressionKind::Currency),
+            Self::Units => Some(crate::expressions::ExpressionKind::Units),
+            Self::Shapes => Some(crate::expressions::ExpressionKind::Shapes),
+            Self::BoxDrawing => Some(crate::expressions::ExpressionKind::BoxDrawing),
+            Self::Braille => Some(crate::expressions::ExpressionKind::Braille),
+            Self::Music => Some(crate::expressions::ExpressionKind::Music),
+            Self::Diacritics => Some(crate::expressions::ExpressionKind::Diacritics),
 
             _ => None,
         }
@@ -252,31 +280,28 @@ impl SemanticEngine {
             };
         }
         if self.sm.mode == InputMode::Menu {
-            let offset = offset.min(self.sm.candidates.len());
+            let all = self.sm.menu_candidates();
+            let offset = offset.min(all.len());
             return CandidateWindow {
                 query_revision: self.query_revision,
                 view_revision: self.view_revision,
-                total: self.sm.candidates.len(),
+                total: all.len(),
                 offset,
-                candidates: self
-                    .sm
-                    .candidates
-                    .iter()
+                candidates: all
+                    .into_iter()
                     .enumerate()
                     .skip(offset)
                     .take(count.min(MAX_WINDOW))
-                    .map(|(i, text)| Candidate {
+                    .map(|(i, (text, reason))| Candidate {
                         expression_kind: None,
                         id: CandidateId(i),
-                        text: text.clone(),
+                        text,
                         exact: true,
-                        hints: self
-                            .sm
-                            .code_hints
-                            .get(i)
-                            .filter(|s| !s.is_empty())
-                            .map(|s| vec![CandidateHint::ExpressionMatch(s.clone())])
-                            .unwrap_or_default(),
+                        hints: if reason.is_empty() {
+                            vec![]
+                        } else {
+                            vec![CandidateHint::ExpressionMatch(reason)]
+                        },
                     })
                     .collect(),
             };
@@ -319,6 +344,20 @@ impl SemanticEngine {
             | InputMode::Math
             | InputMode::Punctuation
             | InputMode::Symbols => None,
+            InputMode::Greek => None,
+            InputMode::Cyrillic => None,
+            InputMode::Latin => None,
+            InputMode::Phonetic => None,
+            InputMode::Enclosed => None,
+            InputMode::Numbers => None,
+            InputMode::Arrows => None,
+            InputMode::Currency => None,
+            InputMode::Units => None,
+            InputMode::Shapes => None,
+            InputMode::BoxDrawing => None,
+            InputMode::Braille => None,
+            InputMode::Music => None,
+            InputMode::Diacritics => None,
         };
         let all = if let Some(dict) =
             dict.filter(|_| !self.sm.spelling.is_empty() && !self.sm.candidates.is_empty())
@@ -397,6 +436,20 @@ impl SemanticEngine {
                 InputMode::Math => Some(TemporaryMode::Math),
                 InputMode::Punctuation => Some(TemporaryMode::Punctuation),
                 InputMode::Symbols => Some(TemporaryMode::Symbols),
+                InputMode::Greek => Some(TemporaryMode::Greek),
+                InputMode::Cyrillic => Some(TemporaryMode::Cyrillic),
+                InputMode::Latin => Some(TemporaryMode::Latin),
+                InputMode::Phonetic => Some(TemporaryMode::Phonetic),
+                InputMode::Enclosed => Some(TemporaryMode::Enclosed),
+                InputMode::Numbers => Some(TemporaryMode::Numbers),
+                InputMode::Arrows => Some(TemporaryMode::Arrows),
+                InputMode::Currency => Some(TemporaryMode::Currency),
+                InputMode::Units => Some(TemporaryMode::Units),
+                InputMode::Shapes => Some(TemporaryMode::Shapes),
+                InputMode::BoxDrawing => Some(TemporaryMode::BoxDrawing),
+                InputMode::Braille => Some(TemporaryMode::Braille),
+                InputMode::Music => Some(TemporaryMode::Music),
+                InputMode::Diacritics => Some(TemporaryMode::Diacritics),
 
                 _ => None,
             }
@@ -440,6 +493,48 @@ impl SemanticEngine {
             TemporaryMode::Symbols => self
                 .sm
                 .expression_capability(crate::expressions::ExpressionKind::Symbols),
+            TemporaryMode::Greek => self
+                .sm
+                .expression_capability(crate::expressions::ExpressionKind::Greek),
+            TemporaryMode::Cyrillic => self
+                .sm
+                .expression_capability(crate::expressions::ExpressionKind::Cyrillic),
+            TemporaryMode::Latin => self
+                .sm
+                .expression_capability(crate::expressions::ExpressionKind::Latin),
+            TemporaryMode::Phonetic => self
+                .sm
+                .expression_capability(crate::expressions::ExpressionKind::Phonetic),
+            TemporaryMode::Enclosed => self
+                .sm
+                .expression_capability(crate::expressions::ExpressionKind::Enclosed),
+            TemporaryMode::Numbers => self
+                .sm
+                .expression_capability(crate::expressions::ExpressionKind::Numbers),
+            TemporaryMode::Arrows => self
+                .sm
+                .expression_capability(crate::expressions::ExpressionKind::Arrows),
+            TemporaryMode::Currency => self
+                .sm
+                .expression_capability(crate::expressions::ExpressionKind::Currency),
+            TemporaryMode::Units => self
+                .sm
+                .expression_capability(crate::expressions::ExpressionKind::Units),
+            TemporaryMode::Shapes => self
+                .sm
+                .expression_capability(crate::expressions::ExpressionKind::Shapes),
+            TemporaryMode::BoxDrawing => self
+                .sm
+                .expression_capability(crate::expressions::ExpressionKind::BoxDrawing),
+            TemporaryMode::Braille => self
+                .sm
+                .expression_capability(crate::expressions::ExpressionKind::Braille),
+            TemporaryMode::Music => self
+                .sm
+                .expression_capability(crate::expressions::ExpressionKind::Music),
+            TemporaryMode::Diacritics => self
+                .sm
+                .expression_capability(crate::expressions::ExpressionKind::Diacritics),
         }
     }
 
@@ -536,6 +631,20 @@ impl SemanticEngine {
             Some(TemporaryMode::Math) => InputMode::Math,
             Some(TemporaryMode::Punctuation) => InputMode::Punctuation,
             Some(TemporaryMode::Symbols) => InputMode::Symbols,
+            Some(TemporaryMode::Greek) => InputMode::Greek,
+            Some(TemporaryMode::Cyrillic) => InputMode::Cyrillic,
+            Some(TemporaryMode::Latin) => InputMode::Latin,
+            Some(TemporaryMode::Phonetic) => InputMode::Phonetic,
+            Some(TemporaryMode::Enclosed) => InputMode::Enclosed,
+            Some(TemporaryMode::Numbers) => InputMode::Numbers,
+            Some(TemporaryMode::Arrows) => InputMode::Arrows,
+            Some(TemporaryMode::Currency) => InputMode::Currency,
+            Some(TemporaryMode::Units) => InputMode::Units,
+            Some(TemporaryMode::Shapes) => InputMode::Shapes,
+            Some(TemporaryMode::BoxDrawing) => InputMode::BoxDrawing,
+            Some(TemporaryMode::Braille) => InputMode::Braille,
+            Some(TemporaryMode::Music) => InputMode::Music,
+            Some(TemporaryMode::Diacritics) => InputMode::Diacritics,
 
             None if self.base == BaseMode::English => InputMode::English,
             None => InputMode::Main,
@@ -579,6 +688,20 @@ impl SemanticEngine {
                 | InputMode::Kana
                 | InputMode::Math
                 | InputMode::Punctuation
+                | InputMode::Greek
+                | InputMode::Cyrillic
+                | InputMode::Latin
+                | InputMode::Phonetic
+                | InputMode::Enclosed
+                | InputMode::Numbers
+                | InputMode::Arrows
+                | InputMode::Currency
+                | InputMode::Units
+                | InputMode::Shapes
+                | InputMode::BoxDrawing
+                | InputMode::Braille
+                | InputMode::Music
+                | InputMode::Diacritics
                 | InputMode::Symbols => self.sm.accepts_code_char(*c),
                 InputMode::Pinyin => c.is_ascii_lowercase() || *c == '\'',
                 InputMode::English => !c.is_control(),
@@ -705,6 +828,20 @@ impl SemanticEngine {
                         TemporaryMode::Math,
                         TemporaryMode::Punctuation,
                         TemporaryMode::Symbols,
+                        TemporaryMode::Greek,
+                        TemporaryMode::Cyrillic,
+                        TemporaryMode::Latin,
+                        TemporaryMode::Phonetic,
+                        TemporaryMode::Enclosed,
+                        TemporaryMode::Numbers,
+                        TemporaryMode::Arrows,
+                        TemporaryMode::Currency,
+                        TemporaryMode::Units,
+                        TemporaryMode::Shapes,
+                        TemporaryMode::BoxDrawing,
+                        TemporaryMode::Braille,
+                        TemporaryMode::Music,
+                        TemporaryMode::Diacritics,
                     ]
                     .get(id.0) else {
                         return ActionResult::rejected(Rejection::StaleCandidate);
@@ -741,6 +878,7 @@ impl SemanticEngine {
                 }
                 if self.sm.mode != InputMode::Menu {
                     self.sm.menu_return = self.sm.mode;
+                    self.sm.page = 0;
                 }
                 self.sm.mode = InputMode::Menu;
                 self.sm.refresh_temporary()

@@ -286,7 +286,7 @@ fn literal_kana_alias_round_is_local_and_commits_only_selected_result() {
         let mut s = Session::new(&r, profile, HostContext::default());
         apply(&mut s, Action::OpenModeChooser);
         let menu = s.candidate_window(0, 20);
-        assert_eq!(menu.total, 8);
+        assert_eq!(menu.total, 2 + ExpressionKind::ALL.len());
         local(
             &mut s,
             Action::SelectCandidate(menu.query_revision, menu.candidates[4].id),
@@ -757,7 +757,7 @@ fn mode_chooser_uses_versioned_clicks_without_a_main_table_trigger() {
         let mut s = Session::new(&runtime(), profile, HostContext::default());
         assert!(s.state_machine().temporary_trigger().is_none());
         apply(&mut s, Action::OpenModeChooser);
-        let menu = s.candidate_window(0, 10);
+        let menu = s.candidate_window(0, 8);
         assert_eq!(
             menu.candidates
                 .iter()

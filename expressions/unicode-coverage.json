@@ -1,0 +1,289 @@
+{
+  "unicode": "18.0.0",
+  "sources": {
+    "UnicodeData": "0736451DE439AE7BAF1425136617DA495E09EE5AFBE6E394374DB7009EA08950",
+    "Blocks": "A58F8D322F3C5E254F9F97B1CBF76A454A7E02DE6AC35619A5E4F27AAABFD553",
+    "Scripts": "0071FD81B6AEAE25F6E8BCE8EFEC3066A6476A91B49BDB2F52DC76E817862A6A",
+    "DerivedCoreProperties": "09C928886A178FCAFD93C29E4BD59073A058E5A100B716D425CB563AB50F68C9"
+  },
+  "categories": {
+    "greek": {
+      "label": "希腊字母",
+      "ucd_expected": 335,
+      "previously_available": 49,
+      "previously_missing": 286,
+      "entries": 335,
+      "sha256": "ed5a8c0c0997a3cffaa4076b4ec6c8ceb54f703ad583b08e9cd04d3b6d2bfe4a"
+    },
+    "cyrillic": {
+      "label": "西里尔字母",
+      "ucd_expected": 447,
+      "previously_available": 0,
+      "previously_missing": 447,
+      "entries": 447,
+      "sha256": "7ecd83184df7aa27195ff2131617b1545144c79ee207b1d9d12aba880e9f421e"
+    },
+    "latin": {
+      "label": "拼音与拉丁",
+      "ucd_expected": 1308,
+      "previously_available": 0,
+      "previously_missing": 1308,
+      "entries": 1308,
+      "sha256": "0a1c8f32c1b9ba531aa07b2b029c6f1353ebf113780d71474e4c980706e0ac8e"
+    },
+    "phonetic": {
+      "label": "音标",
+      "ucd_expected": 359,
+      "previously_available": 0,
+      "previously_missing": 359,
+      "entries": 359,
+      "sha256": "bfae995624451d812f06b1fb1562e8f2698c13df9036eb3cb5d2bf14b4a05458"
+    },
+    "enclosed": {
+      "label": "圈号与括号",
+      "ucd_expected": 679,
+      "previously_available": 44,
+      "previously_missing": 635,
+      "entries": 679,
+      "sha256": "10215f287428c502d494797855791daaaeec9ce79305ebfab60ebc4b176d2305"
+    },
+    "numbers": {
+      "label": "数字形式",
+      "ucd_expected": 2107,
+      "previously_available": 32,
+      "previously_missing": 2075,
+      "entries": 2107,
+      "sha256": "1da68685964ec1dcc5ec8b9137185b7fccf8f6037d62cb50b380e0e6856e0843"
+    },
+    "arrows": {
+      "label": "箭头",
+      "ucd_expected": 840,
+      "previously_available": 30,
+      "previously_missing": 810,
+      "entries": 840,
+      "sha256": "f9d550dcaeeec87d6902d9309b3265f6203bbed442ea441d071e6f1d013d7f65"
+    },
+    "currency": {
+      "label": "货币",
+      "ucd_expected": 67,
+      "previously_available": 6,
+      "previously_missing": 61,
+      "entries": 67,
+      "sha256": "198d7e6762f9fc32b95b488b9e29c5507bf20c128a4b91e9ee243b509457da5a"
+    },
+    "units": {
+      "label": "单位",
+      "ucd_expected": 262,
+      "previously_available": 13,
+      "previously_missing": 249,
+      "entries": 262,
+      "sha256": "91c16edb56d46f3ed242b110b3ac193f648134fdc38859e50ff61e61e696850b"
+    },
+    "shapes": {
+      "label": "几何图形",
+      "ucd_expected": 216,
+      "previously_available": 23,
+      "previously_missing": 193,
+      "entries": 216,
+      "sha256": "32c3d3ab00b72f62fb3119c89db1c84d7179da62422113d50bac950fdb261ff9"
+    },
+    "box_drawing": {
+      "label": "制表与方块",
+      "ucd_expected": 1100,
+      "previously_available": 0,
+      "previously_missing": 1100,
+      "entries": 1100,
+      "sha256": "c0b564ec0c190163e2ba08ccf044fba9056ba63cecadd6aafc9b885eacf5bff8"
+    },
+    "braille": {
+      "label": "盲文",
+      "ucd_expected": 256,
+      "previously_available": 0,
+      "previously_missing": 256,
+      "entries": 256,
+      "sha256": "7aa111ceb7f48287eefe6ecd26a0e21bdf79f60b7b4bbca4cd10548b8c998cde"
+    },
+    "music": {
+      "label": "音乐符号",
+      "ucd_expected": 806,
+      "previously_available": 3,
+      "previously_missing": 803,
+      "entries": 806,
+      "sha256": "5388e41c5289b7919cd7ca9d5c10bd6732c2e7c11e546d5c00a7fe87b94a2ce4"
+    },
+    "diacritics": {
+      "label": "组合附加符",
+      "ucd_expected": 269,
+      "previously_available": 0,
+      "previously_missing": 269,
+      "entries": 269,
+      "sha256": "5d1eb8defb23b7276ad3a7f261f3043686002b106a56ed0000fc8656d2fe7afc"
+    },
+    "math": {
+      "label": "数学符号",
+      "ucd_expected": 1850,
+      "previously_available": 54,
+      "previously_missing": 1796,
+      "entries": 1920,
+      "sha256": "c701313067ac06ea499cf8287a1c0d8ec056d207eb73b8a2cf8b7758eb756d63"
+    },
+    "punctuation": {
+      "label": "标点",
+      "ucd_expected": 816,
+      "previously_available": 42,
+      "previously_missing": 774,
+      "entries": 831,
+      "sha256": "dd842219bb7eb9a52f99e1622558539d2ca4a43a2296f6acdc0320ed59a1a7ca"
+    },
+    "symbols": {
+      "label": "其他符号",
+      "ucd_expected": 4082,
+      "previously_available": 1166,
+      "previously_missing": 2916,
+      "entries": 4177,
+      "sha256": "46cd4e3a8c30edb5742b1097b4e628a633322291fd31fd1d45bb07554fe3e1cd"
+    }
+  },
+  "excluded_categories": {
+    "Zs": 17,
+    "Ll": 648,
+    "default_ignorable": 9,
+    "Lm": 121,
+    "Lu": 649,
+    "Mn": 1438,
+    "Me": 5,
+    "Lo": 21653,
+    "Cf": 32,
+    "Mc": 463,
+    "Zl": 1,
+    "Zp": 1
+  },
+  "scope": "All assigned, non-default-ignorable P*, S* and N*; Latin/Greek/Cyrillic letters, phonetic and selected combining blocks. No arbitrary scripts, controls, unassigned, private-use or invisible formatting.",
+  "missing_symbols_or_punctuation": [],
+  "missing_numbers": [],
+  "examples": {
+    "α": {
+      "before": true,
+      "after": true,
+      "categories": [
+        "greek",
+        "math"
+      ]
+    },
+    "①": {
+      "before": true,
+      "after": true,
+      "categories": [
+        "enclosed",
+        "symbols"
+      ]
+    },
+    "ā": {
+      "before": false,
+      "after": true,
+      "categories": [
+        "latin"
+      ]
+    },
+    "ǚ": {
+      "before": false,
+      "after": true,
+      "categories": [
+        "latin"
+      ]
+    },
+    "Ⓐ": {
+      "before": false,
+      "after": true,
+      "categories": [
+        "enclosed"
+      ]
+    },
+    "⓿": {
+      "before": false,
+      "after": true,
+      "categories": [
+        "enclosed"
+      ]
+    },
+    "Ⅷ": {
+      "before": true,
+      "after": true,
+      "categories": [
+        "numbers",
+        "symbols"
+      ]
+    },
+    "⅝": {
+      "before": false,
+      "after": true,
+      "categories": [
+        "numbers"
+      ]
+    },
+    "↯": {
+      "before": false,
+      "after": true,
+      "categories": [
+        "arrows"
+      ]
+    },
+    "₿": {
+      "before": false,
+      "after": true,
+      "categories": [
+        "currency"
+      ]
+    },
+    "㎏": {
+      "before": true,
+      "after": true,
+      "categories": [
+        "units",
+        "symbols"
+      ]
+    },
+    "╬": {
+      "before": false,
+      "after": true,
+      "categories": [
+        "box_drawing"
+      ]
+    },
+    "⣿": {
+      "before": false,
+      "after": true,
+      "categories": [
+        "braille"
+      ]
+    },
+    "♯": {
+      "before": false,
+      "after": true,
+      "categories": [
+        "music"
+      ]
+    },
+    "ʃ": {
+      "before": false,
+      "after": true,
+      "categories": [
+        "phonetic"
+      ]
+    },
+    "Ж": {
+      "before": false,
+      "after": true,
+      "categories": [
+        "cyrillic"
+      ]
+    },
+    "𝒜": {
+      "before": false,
+      "after": true,
+      "categories": [
+        "math"
+      ]
+    }
+  }
+}

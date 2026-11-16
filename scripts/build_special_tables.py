@@ -316,8 +316,6 @@ if __name__ == "__main__":
     if options.kind == "kana":
         write_resource("kana", "MyWubi 假名字符", kana_entries())
     else:
-        generators = {"math": ("MyWubi 数学符号", math_entries),
-                      "punctuation": ("MyWubi 标点", punctuation_entries),
-                      "symbols": ("MyWubi 特殊符号", symbol_entries)}
-        title, generator = generators[options.kind]
-        write_resource(options.kind, title, generator())
+        from build_unicode_tables import build
+        for path, text in build().items():
+            path.write_bytes(text.encode('utf-8'))
