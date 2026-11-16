@@ -50,6 +50,45 @@ class ExpressionLayoutTest {
     @Test fun landscapeNormalFont()=checkLayout(true,1f)
     @Test fun landscapeLargeFont()=checkLayout(true,2f)
 
+    @Test fun browserPortrait()=checkBrowser(false,1f)
+    @Test fun browserLargeLandscape()=checkBrowser(true,2f)
+
+    private fun checkBrowser(landscape:Boolean,fontScale:Float) {
+        val events=CopyOnWriteArrayList<Any>()
+        val pages=CopyOnWriteArrayList<Int>()
+        val samples=(0 until 256).map { CandidateItem(it.toLong(),listOf("＋","−","×","÷","≠","≤","≥","∞")[it%8],"符号 $it","math") }
+        val model=KeyboardModel(enabled=true,modesAvailable=true,query="{\"revision\":91}",
+            expression=ExpressionQueryUi("math","Results","",null,browsing=true),candidates=samples,total=300,
+            specialCapabilities=listOf("Emoji","Kaomoji","Kana","Math","Punctuation","Symbols").associateWith {true to null})
+        ActivityScenario.launch(MainActivity::class.java).use { scenario ->
+            scenario.onActivity { it.requestedOrientation=if(landscape) ActivityInfo.SCREEN_ORIENTATION_LANDSCAPE else ActivityInfo.SCREEN_ORIENTATION_PORTRAIT }
+            val deadline=SystemClock.uptimeMillis()+10000
+            while((device.displayWidth>device.displayHeight)!=landscape && SystemClock.uptimeMillis()<deadline) SystemClock.sleep(100)
+            scenario.onActivity { activity -> activity.setContent {
+                val density=LocalDensity.current
+                CompositionLocalProvider(LocalDensity provides Density(density.density,fontScale)) {
+                    Box(Modifier.fillMaxSize(),contentAlignment=Alignment.BottomCenter) {
+                        Keyboard(model,{events.add(it)},{pages.add(it)},switchIme={})
+                    }
+                }
+            } }
+            val first=node(By.desc("候选 ＋，符号 0"))
+            shot("browser-${if(landscape) "landscape" else "portrait"}-$fontScale")
+            val grid=node(By.desc("特殊码表全部词条")).visibleBounds
+            val footer=node(By.text("下一组")).visibleBounds
+            assertTrue(grid.height()>0 && grid.bottom<=footer.top)
+            assertTrue(first.visibleBounds.height()>=(48*instrumentation.targetContext.resources.displayMetrics.density).toInt())
+            first.click(); settled()
+            assertEquals(0,(events.last() as JSONObject).getJSONArray("SelectCandidate").getInt(1))
+            node(By.text("下一组")).click(); settled(); assertEquals(256,pages.last())
+            node(By.text("搜索")).click(); settled(); assertEquals("EditExpressionQuery",events.last())
+            node(By.desc("假名")).click(); settled()
+            assertEquals("BrowseExpressions",events.last())
+            assertEquals("Kana",(events[events.size-2] as JSONObject).getString("BeginTemporary"))
+            node(By.text("返回键盘")).click(); settled(); assertEquals("EndTemporary",events.last())
+        }
+    }
+
     private fun checkLayout(landscape:Boolean,fontScale:Float) {
         val events=CopyOnWriteArrayList<Any>()
         val name="${if(landscape) "landscape" else "portrait"}-$fontScale"

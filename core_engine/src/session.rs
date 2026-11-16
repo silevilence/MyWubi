@@ -962,7 +962,12 @@ impl Session {
             self.engine = next.clone();
         }
         let plan = PreparedEdit {
-            learnable: !next.state_machine().committed_shortcut(),
+            learnable: !next.state_machine().committed_shortcut()
+                && !parts
+                    .view
+                    .expression
+                    .as_ref()
+                    .is_some_and(|query| query.browsing),
             token: self.token(),
             op: parts.op,
             target,
@@ -1541,7 +1546,13 @@ fn plan(
     {
         // Query words and codes are local UI state. Never start, update or finish
         // host composition for this round, including cancellation and empty results.
-        op = EditSessionOp::NoOp;
+        // A browsing palette remains open after selection; only its explicit
+        // candidate commit may cross the host boundary while the query survives.
+        if !(view.expression.as_ref().is_some_and(|query| query.browsing)
+            && matches!(op, EditSessionOp::CommitAndReplace { .. }))
+        {
+            op = EditSessionOp::NoOp;
+        }
         view.preedit_kind = None;
     }
     view.preedit_kind = match &op {

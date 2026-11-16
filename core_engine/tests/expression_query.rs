@@ -166,6 +166,92 @@ fn profiles() -> [BehaviorProfile; 2] {
 }
 
 #[test]
+fn browsing_without_keywords_exposes_every_entry_and_keeps_palette_after_commit() {
+    for profile in profiles() {
+        let mut s = Session::new(&runtime(), profile, HostContext::default());
+        begin(&mut s);
+        local(&mut s, Action::BrowseExpressions);
+        assert!(s.snapshot().expression.as_ref().unwrap().browsing);
+        let first = s.candidate_window(0, MAX_WINDOW);
+        assert_eq!(first.total, 612);
+        assert_eq!(first.candidates.len(), MAX_WINDOW);
+        assert_eq!(
+            first.candidates[0].hints,
+            vec![CandidateHint::ExpressionName("禁止自行车".into())]
+        );
+        let last = s.candidate_window(512, MAX_WINDOW);
+        assert_eq!(last.candidates.len(), 100);
+        let candidate = last.candidates.last().unwrap();
+        let selected = apply(
+            &mut s,
+            Action::SelectCandidate(last.query_revision, candidate.id),
+        );
+        assert!(
+            matches!(selected.op, EditSessionOp::CommitAndReplace { ref text, .. } if text == &candidate.text)
+        );
+        assert!(!selected.learnable);
+        assert!(s.snapshot().expression.as_ref().unwrap().browsing);
+        assert!(s
+            .prepare(Action::SelectCandidate(last.query_revision, candidate.id))
+            .is_err());
+        let next = s.candidate_window(0, 1);
+        let selected = apply(
+            &mut s,
+            Action::SelectCandidate(next.query_revision, next.candidates[0].id),
+        );
+        assert!(
+            matches!(selected.op, EditSessionOp::CommitAndReplace { ref text, .. } if text == "🚳")
+        );
+        local(&mut s, Action::EndTemporary);
+        assert!(s.snapshot().expression.is_none());
+    }
+}
+
+#[test]
+fn browsing_preserves_unfinished_search_and_invalidates_previous_candidates() {
+    let mut s = Session::new(&runtime(), BehaviorProfile::TouchV1, HostContext::default());
+    begin(&mut s);
+    word(&mut s, 'a');
+    local(&mut s, Action::InputCode('b'));
+    local(&mut s, Action::BrowseExpressions);
+    let all = s.candidate_window(0, 1);
+    local(&mut s, Action::EditExpressionQuery);
+    let snapshot = s.snapshot();
+    assert!(!snapshot.expression.as_ref().unwrap().browsing);
+    assert_eq!(snapshot.expression.as_ref().unwrap().text, "禁止");
+    assert_eq!(snapshot.spelling, "b");
+    assert!(s
+        .prepare(Action::SelectCandidate(
+            all.query_revision,
+            all.candidates[0].id
+        ))
+        .is_err());
+    local(&mut s, Action::FindExpressions);
+    assert_eq!(s.candidate_window(0, 1).candidates[0].text, "🚳");
+}
+
+#[test]
+fn browsing_respects_disabled_and_missing_resources() {
+    let mut r = runtime();
+    r.config.expressions.emoji.search = false;
+    let mut s = Session::new(&r, BehaviorProfile::TouchV1, HostContext::default());
+    assert!(s
+        .prepare(Action::BeginTemporary(TemporaryMode::Emoji))
+        .is_err());
+    local(&mut s, Action::BrowseExpressions);
+    assert_eq!(s.candidate_window(0, MAX_WINDOW).total, 0);
+    r.config.expressions.emoji.search = true;
+    r.expressions = Arc::new(ExpressionResources::default());
+    let mut s = Session::new(&r, BehaviorProfile::TouchV1, HostContext::default());
+    assert!(s
+        .prepare(Action::BeginTemporary(TemporaryMode::Emoji))
+        .is_err());
+    local(&mut s, Action::BrowseExpressions);
+    assert_eq!(s.candidate_window(0, MAX_WINDOW).total, 0);
+    assert!(s.snapshot().expression.is_none());
+}
+
+#[test]
 fn literal_kana_alias_round_is_local_and_commits_only_selected_result() {
     let document: serde_json::Value = serde_json::from_str(include_str!(
         "../../docs/validation/special-input/cases.json"

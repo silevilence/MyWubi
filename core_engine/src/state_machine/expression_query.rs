@@ -15,6 +15,7 @@ pub(super) struct ExpressionQuery {
     word_code: String,
     word_candidates: Arc<Vec<Entry>>,
     results: Option<Arc<Vec<ExpressionMatch>>>,
+    browsing: bool,
     message: Option<String>,
     return_mode: InputMode,
     pub(super) return_temporary: Option<TemporaryMode>,
@@ -135,6 +136,7 @@ impl StateMachine {
         let query = self.expression_query.as_ref()?;
         Some(ExpressionQueryView {
             kind: query.kind,
+            browsing: query.browsing,
             input: query.input,
             phase: if query.results.is_some() {
                 ExpressionPhase::Results
@@ -221,6 +223,7 @@ impl StateMachine {
             word_code: String::new(),
             word_candidates: Arc::default(),
             results: None,
+            browsing: false,
             message: None,
             return_mode,
             return_temporary,
@@ -276,11 +279,40 @@ impl StateMachine {
         self.refresh_expression()
     }
 
+    /// Enumerate the selected immutable library in its declared order. Keep the
+    /// search draft local so returning to search never loses unfinished input.
+    pub(super) fn browse_expressions(&mut self) -> Transition {
+        let Some(mut query) = self.expression_query.take() else {
+            return Transition::None;
+        };
+        if let Some(library) = self.expression_library(query.kind) {
+            query.results = Some(Arc::new(
+                (0..library.document().entries.len())
+                    .map(|index| ExpressionMatch {
+                        index,
+                        quality: MatchQuality::Exact,
+                        matched_terms: 0,
+                    })
+                    .collect(),
+            ));
+            query.browsing = true;
+            query.message = library
+                .document()
+                .entries
+                .is_empty()
+                .then(|| "当前词库没有可浏览的词条。".into());
+            self.page = 0;
+        }
+        self.expression_query = Some(query);
+        self.refresh_expression()
+    }
+
     pub(super) fn edit_expression(&mut self) -> Transition {
         let Some(query) = &mut self.expression_query else {
             return Transition::None;
         };
         query.results = None;
+        query.browsing = false;
         query.message = None;
         self.page = 0;
         self.refresh_expression()
@@ -310,6 +342,7 @@ impl StateMachine {
             query.literal.clear();
             query.builder.reset();
             query.results = None;
+            query.browsing = false;
             query.message = None;
             self.page = 0;
         }
@@ -329,19 +362,23 @@ impl StateMachine {
                 expression_kind: Some(query.kind),
                 id: CandidateId(index),
                 text: entry.text.clone(),
-                exact: result.quality == MatchQuality::Exact,
-                hints: vec![
-                    CandidateHint::ExpressionName(entry.name.clone()),
-                    CandidateHint::ExpressionMatch(
-                        match result.quality {
-                            MatchQuality::Exact => "名称/别名匹配",
-                            MatchQuality::AllTerms => "关键词匹配",
-                            MatchQuality::Loose => "宽松匹配",
-                            MatchQuality::Partial => "部分匹配",
-                        }
-                        .into(),
-                    ),
-                ],
+                exact: !query.browsing && result.quality == MatchQuality::Exact,
+                hints: if query.browsing {
+                    vec![CandidateHint::ExpressionName(entry.name.clone())]
+                } else {
+                    vec![
+                        CandidateHint::ExpressionName(entry.name.clone()),
+                        CandidateHint::ExpressionMatch(
+                            match result.quality {
+                                MatchQuality::Exact => "名称/别名匹配",
+                                MatchQuality::AllTerms => "关键词匹配",
+                                MatchQuality::Loose => "宽松匹配",
+                                MatchQuality::Partial => "部分匹配",
+                            }
+                            .into(),
+                        ),
+                    ]
+                },
             })
         } else {
             let entry = query.word_candidates.get(index)?;
@@ -368,7 +405,10 @@ impl StateMachine {
             return Transition::None;
         };
         if query.results.is_some() {
-            self.exit_expression();
+            // Browsing is a palette: allow consecutive symbols until explicitly closed.
+            if !query.browsing {
+                self.exit_expression();
+            }
             Transition::Commit(candidate.text)
         } else {
             if query.accept_word(candidate.text) {

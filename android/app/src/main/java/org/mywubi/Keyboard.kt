@@ -46,7 +46,7 @@ import org.json.JSONObject
 data class CandidateItem(val id: Long, val text: String, val hint: String, val expressionKind: String? = null, val dateTime: Boolean = false) {
     val spokenHint: String get() = if(expressionKind == null && !dateTime && hint.isNotEmpty()) "编码提示 $hint" else hint
 }
-data class ExpressionQueryUi(val kind: String, val phase: String, val text: String, val message: String?, val input: String = "Words")
+data class ExpressionQueryUi(val kind: String, val phase: String, val text: String, val message: String?, val input: String = "Words", val browsing: Boolean = false)
 
 private val LocalKeyboardKeyHeight = staticCompositionLocalOf { 54.dp }
 data class KeyboardModel(
@@ -151,6 +151,7 @@ fun Keyboard(model: KeyboardModel, dispatch: (Any) -> Unit, window: (Int) -> Uni
                 val results = query.phase == "Results"
                 val name = when(query.kind) { "emoji" -> "Emoji"; "kaomoji" -> "颜文字"; "kana" -> "假名"; "math" -> "数学符号"; "punctuation" -> "标点"; "symbols" -> "其他符号"; else -> "特殊输入" }
                 FlowRow(Modifier.fillMaxWidth().heightIn(min=48.dp).padding(horizontal=10.dp), horizontalArrangement=Arrangement.spacedBy(8.dp)) {
+                    TextButton(onClick={expanded=false; dispatch("BrowseExpressions")}, enabled=model.enabled) { Text("全部") }
                     Text("$name · ${if(results) "选择结果" else if(query.input == "Literal") "字面别名" else "主码表组词"}", Modifier.padding(vertical=14.dp), fontSize=14.sp)
                     TextButton(onClick={expanded=false; dispatch(if(results) "EditExpressionQuery" else "FindExpressions")}, enabled=model.enabled) {
                         Text(if(results) "修改关键词" else "查找")
@@ -247,6 +248,7 @@ fun Keyboard(model: KeyboardModel, dispatch: (Any) -> Unit, window: (Int) -> Uni
                                             }}, enabled=capability.first, onClick={
                                                 specialMenu=false
                                                 dispatch(JSONObject().put("BeginTemporary", mode))
+                                                dispatch("BrowseExpressions")
                                             })
                                         }
                                     }
@@ -404,7 +406,11 @@ fun Keyboard(model: KeyboardModel, dispatch: (Any) -> Unit, window: (Int) -> Uni
                 BoxWithConstraints(container, contentAlignment=androidx.compose.ui.Alignment.TopCenter) {
                     // Keep candidates above every panel in either orientation. Capping the
                     // shared width avoids stretching keys and moving controls on expansion.
-                    if (landscape && model.expression != null) {
+                    if (model.expression?.browsing == true && !model.privateInput) {
+                        SpecialInputBrowser(model, dispatch, window, hideKeyboard,
+                            Modifier.widthIn(max=600.dp).fillMaxWidth()
+                                .height(minOf(maxHeight, keyHeight*4+76.dp)))
+                    } else if (landscape && model.expression != null) {
                         // Query controls must not consume the typing area's vertical budget.
                         // On short screens the left pane scrolls; all four key rows remain visible.
                         val paneHeight=minOf(maxHeight,keyHeight*4+28.dp)
@@ -561,7 +567,7 @@ private fun KeyLabel(label: String) {
 }
 
 /** Keep the label and action on one accessibility node, including the IME's non-Activity window. */
-private fun Modifier.imeAction(label:String,enabled:Boolean,action:()->Unit) = clearAndSetSemantics {
+internal fun Modifier.imeAction(label:String,enabled:Boolean,action:()->Unit) = clearAndSetSemantics {
     role=Role.Button;contentDescription=label
     if(!enabled) disabled()
     onClick {if(enabled)action();enabled}

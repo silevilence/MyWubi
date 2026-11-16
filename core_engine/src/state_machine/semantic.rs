@@ -90,6 +90,7 @@ pub enum Action {
     ChooseMode(TemporaryMode),
     CloseModeChooser,
     FindExpressions,
+    BrowseExpressions,
     EditExpressionQuery,
     SetExpressionInput(crate::candidates::ExpressionInput),
     ClearExpressionQuery,
@@ -563,6 +564,7 @@ impl SemanticEngine {
             | Action::ChooseMode(_)
             | Action::CloseModeChooser
             | Action::FindExpressions
+            | Action::BrowseExpressions
             | Action::EditExpressionQuery
             | Action::SetExpressionInput(_)
             | Action::ClearExpressionQuery => true,
@@ -685,6 +687,7 @@ impl SemanticEngine {
                 return ActionResult::rejected(Rejection::InvalidCode)
             }
             Action::FindExpressions
+            | Action::BrowseExpressions
             | Action::EditExpressionQuery
             | Action::SetExpressionInput(_)
             | Action::ClearExpressionQuery => Transition::None,
@@ -872,6 +875,7 @@ impl SemanticEngine {
             }
             Action::EndTemporary | Action::CloseModeChooser => self.sm.exit_expression(),
             Action::FindExpressions => self.sm.find_expressions(),
+            Action::BrowseExpressions => self.sm.browse_expressions(),
             Action::EditExpressionQuery => self.sm.edit_expression(),
             Action::ClearExpressionQuery => self.sm.clear_expression_query(),
             Action::SetExpressionInput(input) => match self.sm.set_expression_input(*input) {

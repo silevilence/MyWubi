@@ -1747,7 +1747,13 @@ impl ITfKeyEventSink_Impl for TextService_Impl {
         if !self.prepare_context(_pic.as_ref())? {
             return Ok(BOOL(0));
         }
-        let handled = if let Some(event) = self.translated_key(wparam, lparam) {
+        let event = self.translated_key(wparam, lparam);
+        if !key_filter::is_system_modifier_pressed()
+            && self.input.browser_navigation(wparam.0 as u16, false)
+        {
+            return Ok(BOOL(1));
+        }
+        let handled = if let Some(event) = event {
             self.input.test_key(&event, false)
         } else {
             self.input.clear_prediction_context();
@@ -1769,7 +1775,13 @@ impl ITfKeyEventSink_Impl for TextService_Impl {
         if !self.prepare_context(pic.as_ref())? {
             return Ok(BOOL(0));
         }
-        let Some(event) = self.translated_key(wparam, lparam) else {
+        let event = self.translated_key(wparam, lparam);
+        if !key_filter::is_system_modifier_pressed()
+            && self.input.browser_navigation(wparam.0 as u16, true)
+        {
+            return Ok(BOOL(1));
+        }
+        let Some(event) = event else {
             self.input.clear_prediction_context();
             return Ok(BOOL(0));
         };

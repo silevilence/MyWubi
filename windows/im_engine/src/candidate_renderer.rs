@@ -21,6 +21,7 @@ pub(crate) struct Renderer {
     themed: Option<Arc<CandidateData>>,
     system: Option<TextSystem>,
     scene: Option<Scene>,
+    browser: Option<text_render::expression_browser::BrowserScene>,
     last: Option<Arc<CandidateData>>,
     geometry: Option<(i32, i32, i32, i32, i32)>,
     position: Option<(i32, i32)>,
@@ -29,6 +30,40 @@ pub(crate) struct Renderer {
 }
 
 impl Renderer {
+    pub fn accessible_items(
+        &self,
+        hits: &[(RECT, u64, usize)],
+    ) -> Vec<crate::candidate_accessibility::Item> {
+        let Some(data) = &self.last else {
+            return Vec::new();
+        };
+        hits.iter()
+            .filter_map(|(rect, token, id)| {
+                let (name, selected) = if let Some(browser) = &self.browser {
+                    let cell = browser.elements.iter().find(|e| e.id == Some(*id))?;
+                    (cell.name.clone(), cell.selected)
+                } else if let Some(index) = data.selection_ids.iter().position(|n| n == id) {
+                    let item = data.items.get(index)?;
+                    (
+                        format!("{}，{}", item.text, item.hint),
+                        index == data.highlighted,
+                    )
+                } else {
+                    (
+                        data.controls.iter().find(|c| c.id == *id)?.label.clone(),
+                        false,
+                    )
+                };
+                Some(crate::candidate_accessibility::Item {
+                    rect: *rect,
+                    token: *token,
+                    id: *id,
+                    name,
+                    selected,
+                })
+            })
+            .collect()
+    }
     pub fn scroll(&mut self, delta: f32) {
         self.scroll = (self.scroll + delta).max(0.0);
         self.dirty = true;
@@ -36,6 +71,7 @@ impl Renderer {
     pub fn reset(&mut self) {
         self.last = None;
         self.scene = None;
+        self.browser = None;
         self.scroll = 0.0;
     }
 
@@ -104,6 +140,108 @@ impl Renderer {
         let Some(system) = self.system.as_mut() else {
             return Ok(());
         };
+        if let Some(browser) = &data.browser {
+            let changed = self
+                .last
+                .as_ref()
+                .is_none_or(|last| !Arc::ptr_eq(last, &data))
+                || self.geometry != Some(geometry);
+            if changed || self.browser.is_none() {
+                let same_group = self.last.as_ref().is_some_and(|last| {
+                    last.browser
+                        .as_ref()
+                        .is_some_and(|b| b.offset == browser.offset)
+                        && last.expression.as_ref().map(|q| q.kind)
+                            == data.expression.as_ref().map(|q| q.kind)
+                }) && self.geometry == Some(geometry);
+                let scene = text_render::expression_browser::BrowserScene::build(
+                    system,
+                    &data,
+                    size as f32,
+                    max_width,
+                    max_height,
+                )?;
+                if !same_group {
+                    self.scroll = 0.0;
+                }
+                if self
+                    .last
+                    .as_ref()
+                    .is_none_or(|last| last.highlighted != data.highlighted)
+                {
+                    if let Some(id) = data.selection_ids.get(data.highlighted) {
+                        self.scroll = scene.reveal(*id, self.scroll);
+                    }
+                }
+                self.browser = Some(scene);
+                self.last = Some(data.clone());
+                self.geometry = Some(geometry);
+                self.dirty = true;
+            }
+            let Some(scene) = &self.browser else {
+                return Ok(());
+            };
+            self.scroll = self.scroll.clamp(0.0, scene.scroll_limit);
+            let position = anchor
+                .map(|a| {
+                    compute_window_rect(
+                        a,
+                        (scene.width.ceil() as i32, scene.height.ceil() as i32),
+                        monitor,
+                    )
+                })
+                .unwrap_or((monitor.0 + 8, monitor.1 + 8));
+            if !self.dirty && self.position == Some(position) {
+                return Ok(());
+            }
+            let bitmap = scene.render(system, self.scroll)?;
+            unsafe {
+                UpdateLayeredWindow(
+                    hwnd,
+                    None,
+                    Some(&POINT {
+                        x: position.0,
+                        y: position.1,
+                    }),
+                    Some(&SIZE {
+                        cx: bitmap.width as i32,
+                        cy: bitmap.height as i32,
+                    }),
+                    Some(bitmap.dc()),
+                    Some(&POINT { x: 0, y: 0 }),
+                    COLORREF::default(),
+                    Some(&BLENDFUNCTION {
+                        BlendOp: AC_SRC_OVER as u8,
+                        BlendFlags: 0,
+                        SourceConstantAlpha: 255,
+                        AlphaFormat: AC_SRC_ALPHA as u8,
+                    }),
+                    ULW_ALPHA,
+                )?;
+            }
+            *hits = scene
+                .hits(self.scroll)
+                .into_iter()
+                .filter_map(|(r, id, _, _)| {
+                    data.selection_token.map(|token| {
+                        (
+                            RECT {
+                                left: r.left.ceil() as i32,
+                                top: r.top.ceil() as i32,
+                                right: r.right.floor() as i32,
+                                bottom: r.bottom.floor() as i32,
+                            },
+                            token,
+                            id,
+                        )
+                    })
+                })
+                .collect();
+            self.position = Some(position);
+            self.dirty = false;
+            return Ok(());
+        }
+        self.browser = None;
         if self
             .last
             .as_ref()

@@ -92,6 +92,9 @@ pub enum ExpressionInput {
 #[derive(Debug, Clone, PartialEq, Eq, serde::Serialize, serde::Deserialize)]
 pub struct ExpressionQueryView {
     pub kind: crate::expressions::ExpressionKind,
+    /// Full-library browsing, independent of the retained search draft.
+    #[serde(default, skip_serializing_if = "std::ops::Not::not")]
+    pub browsing: bool,
     #[serde(default)]
     pub input: ExpressionInput,
     pub phase: ExpressionPhase,

@@ -10,6 +10,7 @@ use std::thread::JoinHandle;
 
 use arc_swap::ArcSwap;
 use windows::core::w;
+use windows::core::Interface;
 use windows::Win32::Foundation::*;
 use windows::Win32::Graphics::Gdi::*;
 use windows::Win32::UI::WindowsAndMessaging::*;
@@ -158,6 +159,22 @@ fn run_window_thread(
     owner: isize,
     target: isize,
 ) {
+    // MSAA marshals snapshots out of this window's apartment. Balance COM even
+    // when window creation fails; the guard drops after the window is destroyed.
+    struct Apartment;
+    impl Drop for Apartment {
+        fn drop(&mut self) {
+            unsafe { windows::Win32::System::Com::CoUninitialize() }
+        }
+    }
+    let _apartment = unsafe {
+        windows::Win32::System::Com::CoInitializeEx(
+            None,
+            windows::Win32::System::Com::COINIT_APARTMENTTHREADED,
+        )
+        .ok()
+        .map(|()| Apartment)
+    };
     let hinstance = HINSTANCE(crate::module_handle() as *mut c_void);
     if hinstance.0.is_null() {
         log::error!("候选窗口: module_handle 未初始化");
@@ -277,9 +294,34 @@ unsafe extern "system" fn wnd_proc(
     lparam: LPARAM,
 ) -> LRESULT {
     match msg {
+        WM_GETOBJECT if lparam.0 as i32 == OBJID_CLIENT.0 => {
+            let ptr = GetWindowLongPtrW(hwnd, GWLP_USERDATA) as *mut WindowData;
+            if ptr.is_null() {
+                return LRESULT(0);
+            }
+            let data = &*ptr;
+            let accessible: windows::Win32::UI::Accessibility::IAccessible =
+                crate::candidate_accessibility::Accessible {
+                    hwnd,
+                    target: data.target,
+                    items: data.renderer.borrow().accessible_items(&data.hits.borrow()),
+                    name: "MyWubi 候选与特殊输入".into(),
+                }
+                .into();
+            windows::Win32::UI::Accessibility::LresultFromObject(
+                &windows::Win32::UI::Accessibility::IAccessible::IID,
+                wparam,
+                &accessible,
+            )
+        }
         WM_NCHITTEST => {
             let ptr = GetWindowLongPtrW(hwnd, GWLP_USERDATA) as *mut WindowData;
             if !ptr.is_null() {
+                // The palette's gaps and empty grid space must receive inactive
+                // window scrolling too. MA_NOACTIVATE still preserves host focus.
+                if (*ptr).data_src.load().browser.is_some() {
+                    return LRESULT(HTCLIENT as isize);
+                }
                 let mut point = POINT {
                     x: (lparam.0 as u16) as i16 as i32,
                     y: ((lparam.0 >> 16) as u16) as i16 as i32,

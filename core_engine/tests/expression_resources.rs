@@ -172,6 +172,12 @@ fn new_category_capabilities_and_candidate_sources_survive_both_profiles() {
                 engine.dispatch(Action::BeginTemporary(mode)).disposition,
                 Disposition::Handled
             );
+            engine.dispatch(Action::BrowseExpressions);
+            let all = engine.candidate_window(0, 9);
+            assert_eq!(all.candidates[0].text, text);
+            assert_eq!(all.candidates[0].expression_kind, Some(kind));
+            assert!(engine.state_machine().expression_view().unwrap().browsing);
+            engine.dispatch(Action::EditExpressionQuery);
             engine.dispatch(Action::InputCode('a'));
             engine.dispatch(Action::FindExpressions);
             let view = engine.candidate_window(0, 9);

@@ -28,6 +28,7 @@ use windows::Win32::Foundation::CLASS_E_CLASSNOTAVAILABLE;
 use windows::Win32::Foundation::HMODULE;
 use windows::Win32::System::SystemServices::DLL_PROCESS_ATTACH;
 
+mod candidate_accessibility;
 pub mod candidate_data;
 mod candidate_dispatch;
 mod candidate_layout;

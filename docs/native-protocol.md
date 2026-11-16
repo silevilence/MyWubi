@@ -110,6 +110,10 @@ JNI 使用同一 facade，设备等价验收记录归 CP-13。
 
 日期候选的提示为 `DateTime(rule_index)`，保留来源身份；`PreparedEdit.learnable=false` 的提交须隔离个人采集/预测上下文，不得当普通词训练。`SessionView.shortcut_error` 为可选的本轮取时错误。每页/连续窗口仍使用 QueryRevision 和 CandidateId，不能用显示文本作为候选身份。
 
+## 特殊码表浏览
+
+特殊输入的 `BrowseExpressions` 动作在已开启的特殊码表会话中按资源顺序列出全部词条，不需要关键词，也不产生宿主编辑。`ExpressionQueryView.browsing` 为可选布尔值（缺省 false），浏览时 `phase=Results`；候选继续使用有界 `Candidates` 窗口、QueryRevision 和 CandidateId，提示仅包含名称，不伪装为关键词匹配。`EditExpressionQuery` 恢复保留的搜索草稿，`ClearExpressionQuery` 清空并回到编辑，`EndTemporary` 退出。浏览候选显式选择后仍保留面板，以 `CommitAndReplace` 原样提交且 `learnable=false`；旧 revision 随提交失效。
+
 ## 字符组协议（AK-06）
 
 `KeyboardCapabilities` 无需句柄，返回组协议版本、32 位置/32 字符组上限和布局/方向能力。现有单字符动作与 envelope 版本保持不变。`BindMapping(identity, definition)` 在空会话绑定映射，identity 为 id/version/revision，definition 为 charset/groups；只读声明数据，不执行脚本。`InputGroup(identity, group_id)` 输入一个位置，版本不符拒绝。空集、重复、超限、控制字符或不属于当前码表的字符拒绝，错误不改变输入。

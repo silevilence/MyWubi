@@ -174,6 +174,12 @@ pub fn translate_for_mode(
     }
     if mode != core_engine::InputMode::Main {
         match vk {
+            v if mode.expression_kind().is_some() && v == VK_PRIOR.0 => {
+                return Some(InputEvent::PagePrev)
+            }
+            v if mode.expression_kind().is_some() && v == VK_NEXT.0 => {
+                return Some(InputEvent::PageNext)
+            }
             v if v == VK_SPACE.0 => return Some(InputEvent::Space),
             v if v == VK_RETURN.0 => return Some(InputEvent::Enter),
             v if v == VK_BACK.0 => return Some(InputEvent::Backspace),

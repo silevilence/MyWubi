@@ -82,6 +82,24 @@ pub const NEXT_PAGE: usize = usize::MAX - 5;
 pub const WORDS_EXPRESSION: usize = usize::MAX - 6;
 pub const LITERAL_EXPRESSION: usize = usize::MAX - 7;
 pub const CLEAR_EXPRESSION: usize = usize::MAX - 8;
+pub const BROWSE_EXPRESSIONS: usize = usize::MAX - 9;
+pub const BROWSER_CATEGORY_BASE: usize = usize::MAX - 32;
+pub const BROWSER_PAGE_SIZE: usize = 24;
+
+#[derive(Debug, Clone)]
+pub struct BrowserCategory {
+    pub kind: core_engine::expressions::ExpressionKind,
+    pub id: usize,
+    pub unavailable: Option<String>,
+}
+
+/// A bounded presentation window over the core's immutable library, not a copy of it.
+#[derive(Debug, Clone)]
+pub struct BrowserData {
+    pub offset: usize,
+    pub total: usize,
+    pub categories: Vec<BrowserCategory>,
+}
 #[derive(Debug, Clone)]
 pub struct CandidateControl {
     pub id: usize,
@@ -90,6 +108,7 @@ pub struct CandidateControl {
 
 #[derive(Debug, Clone, Default)]
 pub struct CandidateData {
+    pub browser: Option<BrowserData>,
     pub controls: Vec<CandidateControl>,
     pub selection_query: Option<core_engine::candidates::QueryRevision>,
     pub selection_token: Option<u64>,
@@ -136,6 +155,7 @@ impl CandidateData {
         theme: ThemeSnapshot,
     ) -> Self {
         Self {
+            browser: None,
             controls: Vec::new(),
             selection_query: None,
             selection_token: None,

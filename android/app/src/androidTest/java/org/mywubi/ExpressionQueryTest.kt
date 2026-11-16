@@ -65,6 +65,20 @@ resource = "emoji.mwe"
                 val chosen = prepare(JSONObject().put("SelectCandidate", JSONArray().put(fuzzy.getJSONObject("query_revision")).put(match.getInt("id"))))
                 assertEquals("🚳", chosen.getJSONObject("op").getJSONObject("CommitAndReplace").getString("text"))
                 ack(chosen)
+                local(JSONObject().put("BeginTemporary", "Emoji"))
+                local("BrowseExpressions")
+                assertTrue(state().getJSONObject("view").getJSONObject("expression").getBoolean("browsing"))
+                val all = NativeBridge.objectCall("Candidates", "session" to session.value, "offset" to 256, "count" to 256)
+                assertTrue(all.getInt("total") > 256)
+                val symbol = all.getJSONArray("candidates").getJSONObject(0)
+                val pick = prepare(JSONObject().put("SelectCandidate", JSONArray().put(all.getJSONObject("query_revision")).put(symbol.getInt("id"))))
+                assertEquals(symbol.getString("text"), pick.getJSONObject("op").getJSONObject("CommitAndReplace").getString("text"))
+                assertFalse(pick.getBoolean("learnable"))
+                ack(pick)
+                assertTrue(state().getJSONObject("view").getJSONObject("expression").getBoolean("browsing"))
+                local("EditExpressionQuery")
+                assertEquals("",state().getJSONObject("view").getJSONObject("expression").getString("text"))
+                local("EndTemporary")
             }
         }
     }

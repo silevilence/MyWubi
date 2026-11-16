@@ -230,7 +230,7 @@ impl InputSession {
                 core.config(),
                 self.candidates.load().anchor,
             );
-            bind_selection(&core, &mut data);
+            bind_selection(&core, &mut data, &self.candidates.load());
             self.observe_display(&core, &data);
             self.candidates.store(Arc::new(data));
         }
@@ -321,7 +321,7 @@ impl InputSession {
                 core.config(),
                 self.candidates.load().anchor,
             );
-            bind_selection(&core, &mut data);
+            bind_selection(&core, &mut data, &self.candidates.load());
             self.observe_display(&core, &data);
             self.candidates.store(Arc::new(data));
         } else if visible && !core.has_prediction() {
@@ -351,8 +351,44 @@ impl InputSession {
         event: InputEvent,
         system_modifier: bool,
         anchor: Option<ScreenPoint>,
-        edit: impl FnMut(&EditSessionOp) -> Result<Option<ScreenPoint>, E>,
+        mut edit: impl FnMut(&EditSessionOp) -> Result<Option<ScreenPoint>, E>,
     ) -> bool {
+        let view = self.candidates.load_full();
+        if !system_modifier && view.browser.is_some() {
+            match event {
+                InputEvent::PageNext | InputEvent::PagePrev => {
+                    if let Some(token) = view.selection_token {
+                        self.browser_page(token, event == InputEvent::PageNext);
+                    }
+                    return true;
+                }
+                InputEvent::Esc => return self.action(Action::EndTemporary, anchor, edit),
+                InputEvent::FindExpressions | InputEvent::Backspace => {
+                    return self.action(Action::EditExpressionQuery, anchor, edit)
+                }
+                InputEvent::Space
+                | InputEvent::Enter
+                | InputEvent::Select(_)
+                | InputEvent::Char('1'..='9') => {
+                    let index = match event {
+                        InputEvent::Select(n) => n.saturating_sub(1),
+                        InputEvent::Char(c) => c as usize - '1' as usize,
+                        _ => view.highlighted,
+                    };
+                    if let (Some(token), Some(id)) =
+                        (view.selection_token, view.selection_ids.get(index))
+                    {
+                        self.choose_candidate(token, *id, edit);
+                    }
+                    return true;
+                }
+                _ => {
+                    if !self.action(Action::EditExpressionQuery, anchor, &mut edit) {
+                        return true;
+                    }
+                }
+            }
+        }
         let method = match &event {
             InputEvent::Space => "space",
             InputEvent::Enter => "enter",
@@ -393,7 +429,7 @@ impl InputSession {
         &self,
         token: u64,
         id: usize,
-        edit: impl FnMut(&EditSessionOp) -> Result<Option<ScreenPoint>, E>,
+        mut edit: impl FnMut(&EditSessionOp) -> Result<Option<ScreenPoint>, E>,
     ) {
         let view = self.candidates.load_full();
         if view.selection_token != Some(token) {
@@ -402,11 +438,47 @@ impl InputSession {
         let Some(query) = view.selection_query else {
             return;
         };
+        if view.browser.is_some() {
+            use crate::candidate_data::*;
+            if matches!(id, PREVIOUS_PAGE | NEXT_PAGE) {
+                self.browser_page(token, id == NEXT_PAGE);
+                return;
+            }
+            if let Some(category) = view.browser.as_ref().and_then(|browser| {
+                browser
+                    .categories
+                    .iter()
+                    .find(|category| category.id == id && category.unavailable.is_none())
+            }) {
+                if self.core.lock().candidate_window(0, 0).query_revision != query {
+                    return;
+                }
+                if view
+                    .expression
+                    .as_ref()
+                    .is_some_and(|q| q.kind == category.kind)
+                {
+                    return;
+                }
+                // Each local transition is acknowledged by the same session; no host edit occurs.
+                if self.action(Action::ClearExpressionQuery, view.anchor, &mut edit)
+                    && self.action(
+                        Action::BeginTemporary(expression_mode(category.kind)),
+                        view.anchor,
+                        &mut edit,
+                    )
+                {
+                    self.action(Action::BrowseExpressions, view.anchor, edit);
+                }
+                return;
+            }
+        }
         let action = if view.selection_ids.contains(&id) {
             Action::SelectCandidate(query, core_engine::candidates::CandidateId(id))
         } else if view.controls.iter().any(|control| control.id == id) {
             match id {
                 crate::candidate_data::FIND_EXPRESSIONS => Action::FindExpressions,
+                crate::candidate_data::BROWSE_EXPRESSIONS => Action::BrowseExpressions,
                 crate::candidate_data::EDIT_EXPRESSION => Action::EditExpressionQuery,
                 crate::candidate_data::CANCEL_EXPRESSION => Action::EndTemporary,
                 crate::candidate_data::CLEAR_EXPRESSION => Action::ClearExpressionQuery,
@@ -431,11 +503,101 @@ impl InputSession {
             core.prepare(action)
         };
         if let Ok(plan) = plan {
+            if view.browser.is_some() {
+                if let Some(index) = view
+                    .selection_ids
+                    .iter()
+                    .position(|candidate| *candidate == id)
+                {
+                    let mut selected = (*view).clone();
+                    selected.highlighted = index;
+                    self.candidates.store(Arc::new(selected));
+                }
+            }
             self.execute(plan, view.anchor, edit, "candidate_click");
         }
     }
     pub fn has_prediction(&self) -> bool {
         self.core.lock().has_prediction()
+    }
+
+    fn browser_page(&self, token: u64, next: bool) {
+        use crate::candidate_data::BROWSER_PAGE_SIZE;
+        let previous = self.candidates.load_full();
+        let Some(browser) = &previous.browser else {
+            return;
+        };
+        let core = self.core.lock();
+        if previous.selection_token != Some(token)
+            || previous.selection_query != Some(core.candidate_window(0, 0).query_revision)
+        {
+            return;
+        }
+        let offset = if next {
+            browser.offset.saturating_add(BROWSER_PAGE_SIZE)
+        } else {
+            browser.offset.saturating_sub(BROWSER_PAGE_SIZE)
+        };
+        if offset >= browser.total || offset == browser.offset {
+            return;
+        }
+        let mut data = (*previous).clone();
+        if let Some(browser) = &mut data.browser {
+            browser.offset = offset;
+        }
+        data.selection_token = None;
+        bind_selection(&core, &mut data, &previous);
+        self.candidates.store(Arc::new(data));
+    }
+
+    /// Arrow/Home/End navigation is local to the palette; never move the host caret.
+    pub fn browser_navigation(&self, vk: u16, apply: bool) -> bool {
+        use windows::Win32::UI::Input::KeyboardAndMouse::*;
+        if ![
+            VK_LEFT.0, VK_RIGHT.0, VK_UP.0, VK_DOWN.0, VK_HOME.0, VK_END.0,
+        ]
+        .contains(&vk)
+        {
+            return false;
+        }
+        let view = self.candidates.load_full();
+        if view.browser.is_none() {
+            return false;
+        }
+        let core = self.core.lock();
+        if !core.would_handle(&Action::EditExpressionQuery) {
+            return false;
+        }
+        if !apply {
+            return true;
+        }
+        if view.selection_query != Some(core.candidate_window(0, 0).query_revision) {
+            return true;
+        }
+        let columns = if view
+            .expression
+            .as_ref()
+            .is_some_and(|q| q.kind == core_engine::expressions::ExpressionKind::Kaomoji)
+        {
+            2
+        } else {
+            6
+        };
+        let last = view.items.len().saturating_sub(1);
+        let index = match vk {
+            v if v == VK_LEFT.0 => view.highlighted.saturating_sub(1),
+            v if v == VK_RIGHT.0 => (view.highlighted + 1).min(last),
+            v if v == VK_UP.0 => view.highlighted.saturating_sub(columns),
+            v if v == VK_DOWN.0 => (view.highlighted + columns).min(last),
+            v if v == VK_HOME.0 => 0,
+            _ => last,
+        };
+        if index != view.highlighted {
+            let mut data = (*view).clone();
+            data.highlighted = index;
+            self.candidates.store(Arc::new(data));
+        }
+        true
     }
     pub fn recover<E: EditFailure>(
         &self,
@@ -596,12 +758,17 @@ impl InputSession {
                     // candidate view without changing the requested text edit.
                     next_view = candidate_view(core.snapshot(), core.config(), next_view.anchor);
                 }
-                if next_view.visible || core.waiting_for_prediction() {
+                if (next_view.visible || core.waiting_for_prediction())
+                    && !next_view
+                        .expression
+                        .as_ref()
+                        .is_some_and(|query| query.browsing)
+                {
                     if let Ok(precise) = result {
                         next_view.anchor = precise.or(next_view.anchor);
                     }
                 }
-                bind_selection(&core, &mut next_view);
+                bind_selection(&core, &mut next_view, &self.candidates.load());
                 self.observe_display(&core, &next_view);
                 self.candidates.store(Arc::new(next_view));
             }
@@ -633,6 +800,10 @@ fn candidate_view(
         use crate::candidate_data::*;
         let results = query.phase == core_engine::candidates::ExpressionPhase::Results;
         data.controls = vec![
+            CandidateControl {
+                id: BROWSE_EXPRESSIONS,
+                label: "全部".into(),
+            },
             CandidateControl {
                 id: if results {
                     EDIT_EXPRESSION
@@ -731,9 +902,121 @@ fn bind_editor(core: &mut Session, editor: u64) {
     }
 }
 
-fn bind_selection(core: &Session, data: &mut CandidateData) {
+fn expression_mode(kind: core_engine::expressions::ExpressionKind) -> core_engine::TemporaryMode {
+    use core_engine::{expressions::ExpressionKind as K, TemporaryMode as M};
+    match kind {
+        K::Emoji => M::Emoji,
+        K::Kaomoji => M::Kaomoji,
+        K::Kana => M::Kana,
+        K::Math => M::Math,
+        K::Punctuation => M::Punctuation,
+        K::Symbols => M::Symbols,
+    }
+}
+
+fn bind_selection(core: &Session, data: &mut CandidateData, previous: &CandidateData) {
     static NEXT: std::sync::atomic::AtomicU64 = std::sync::atomic::AtomicU64::new(1);
-    let window = core.visible_candidate_window();
+    let window = if let Some(kind) = data
+        .expression
+        .as_ref()
+        .filter(|q| q.browsing)
+        .map(|q| q.kind)
+    {
+        use crate::candidate_data::*;
+        let retained = previous
+            .expression
+            .as_ref()
+            .is_some_and(|q| q.browsing && q.kind == kind);
+        let offset = data
+            .browser
+            .as_ref()
+            .or({
+                if retained {
+                    previous.browser.as_ref()
+                } else {
+                    None
+                }
+            })
+            .map_or(0, |b| b.offset);
+        let total = core.candidate_window(0, 0).total;
+        let offset = offset.min(total.saturating_sub(1) / BROWSER_PAGE_SIZE * BROWSER_PAGE_SIZE);
+        let window = core.candidate_window(offset, BROWSER_PAGE_SIZE);
+        data.visible = true;
+        data.highlighted = if retained
+            && previous
+                .browser
+                .as_ref()
+                .is_some_and(|b| b.offset == offset)
+        {
+            previous
+                .highlighted
+                .min(window.candidates.len().saturating_sub(1))
+        } else {
+            0
+        };
+        data.items = window
+            .candidates
+            .iter()
+            .map(|item| CandidateItem {
+                expression_kind: item.expression_kind,
+                disabled: false,
+                label: String::new(),
+                text: item.text.clone(),
+                hint: item
+                    .hints
+                    .iter()
+                    .filter_map(|hint| match hint {
+                        core_engine::candidates::CandidateHint::ExpressionName(name) => {
+                            Some(name.as_str())
+                        }
+                        _ => None,
+                    })
+                    .collect::<Vec<_>>()
+                    .join(" "),
+            })
+            .collect();
+        data.controls = vec![
+            CandidateControl {
+                id: EDIT_EXPRESSION,
+                label: "搜索 (Tab)".into(),
+            },
+            CandidateControl {
+                id: CANCEL_EXPRESSION,
+                label: "关闭 (Esc)".into(),
+            },
+        ];
+        if offset > 0 {
+            data.controls.push(CandidateControl {
+                id: PREVIOUS_PAGE,
+                label: "上一页".into(),
+            });
+        }
+        if offset + data.items.len() < total {
+            data.controls.push(CandidateControl {
+                id: NEXT_PAGE,
+                label: "下一页".into(),
+            });
+        }
+        data.browser = Some(BrowserData {
+            offset,
+            total,
+            categories: core_engine::expressions::ExpressionKind::ALL
+                .iter()
+                .enumerate()
+                .map(|(index, kind)| {
+                    let capability = core.capability(expression_mode(*kind));
+                    BrowserCategory {
+                        kind: *kind,
+                        id: BROWSER_CATEGORY_BASE + index,
+                        unavailable: capability.reason,
+                    }
+                })
+                .collect(),
+        });
+        window
+    } else {
+        core.visible_candidate_window()
+    };
     if data.visible
         && window.candidates.len() == data.items.len()
         && (!data.items.is_empty() || !data.controls.is_empty())
@@ -760,6 +1043,121 @@ fn bind_selection(core: &Session, data: &mut CandidateData) {
 #[cfg(test)]
 mod tests {
     use super::*;
+
+    #[test]
+    fn browser_pages_full_libraries_and_keeps_commits_focusless_and_versioned() {
+        use crate::candidate_data::*;
+        use core_engine::expressions::*;
+        let mut config = Config::default();
+        config.basic.candidate_count = 2;
+        for kind in ExpressionKind::ALL {
+            config.expressions.selection_mut(kind).search = true;
+        }
+        let config_path =
+            std::path::Path::new(env!("CARGO_MANIFEST_DIR")).join("../../config.toml");
+        let expressions = Arc::new(ExpressionResources::load(&config_path, &config.expressions));
+        assert_eq!(expressions.errors().count(), 0);
+        let runtime = RuntimeSnapshot {
+            expressions: expressions.clone(),
+            config,
+            config_path,
+            revision: 1,
+            dict: Dictionary::from_text("a\t笑脸\n").unwrap(),
+            temporary: Arc::default(),
+            system_table_path: "s".into(),
+            user_table_path: "u".into(),
+        };
+        let data = Arc::new(ArcSwap::from_pointee(CandidateData::default()));
+        let session = InputSession::from_snapshot(&runtime, data.clone());
+        let mut editor = Editor::default();
+        session.action(
+            Action::BeginTemporary(core_engine::TemporaryMode::Emoji),
+            Some(ScreenPoint { x: 1, y: 2 }),
+            |op| editor.apply(op),
+        );
+        session.action(Action::BrowseExpressions, None, |op| editor.apply(op));
+        assert!(editor.committed.is_empty() && editor.spelling.is_empty());
+        for kind in ExpressionKind::ALL {
+            let shown = data.load_full();
+            let category = shown
+                .browser
+                .as_ref()
+                .unwrap()
+                .categories
+                .iter()
+                .find(|c| c.kind == kind)
+                .unwrap();
+            session.choose_candidate(shown.selection_token.unwrap(), category.id, |op| {
+                editor.apply(op)
+            });
+            let entries = &expressions
+                .resource(kind)
+                .library
+                .as_ref()
+                .unwrap()
+                .document()
+                .entries;
+            assert_eq!(data.load().browser.as_ref().unwrap().total, entries.len());
+            let mut seen = Vec::new();
+            loop {
+                let page = data.load_full();
+                seen.extend(page.items.iter().map(|i| i.text.clone()));
+                assert!(page.items.len() <= BROWSER_PAGE_SIZE);
+                if !page.controls.iter().any(|c| c.id == NEXT_PAGE) {
+                    break;
+                }
+                assert!(session.test_key(&InputEvent::PageNext, false));
+                session.handle(InputEvent::PageNext, false, None, |op| editor.apply(op));
+                session.choose_candidate(
+                    page.selection_token.unwrap(),
+                    page.selection_ids[0],
+                    |_| -> Result<_, &str> { panic!("stale page must not commit") },
+                );
+            }
+            assert_eq!(
+                seen,
+                entries.iter().map(|e| e.text.clone()).collect::<Vec<_>>()
+            );
+            let last = data.load_full();
+            assert!(session.browser_navigation(0x23, true)); // End chooses the last visible item.
+            let expected = last.items.last().unwrap().text.clone();
+            for _ in 0..2 {
+                assert!(session.test_key(&InputEvent::Enter, false));
+                session.handle(InputEvent::Enter, false, None, |op| editor.apply(op));
+                assert!(data.load().visible);
+                assert_eq!(
+                    data.load().browser.as_ref().unwrap().offset,
+                    last.browser.as_ref().unwrap().offset
+                );
+                assert_eq!(data.load().anchor.unwrap().x, 1);
+            }
+            assert!(editor.committed.ends_with(&expected.repeat(2)));
+            session.choose_candidate(
+                last.selection_token.unwrap(),
+                last.selection_ids[0],
+                |_| -> Result<_, &str> { panic!("commit invalidates old clicks") },
+            );
+        }
+        assert_eq!(session.config().basic.candidate_count, 2);
+        session.handle(InputEvent::FindExpressions, false, None, |op| {
+            editor.apply(op)
+        });
+        assert!(data.load().browser.is_none());
+        session.action(
+            Action::SetExpressionInput(core_engine::candidates::ExpressionInput::Literal),
+            None,
+            |op| editor.apply(op),
+        );
+        type_text(&session, &mut editor, "abc");
+        session.action(Action::BrowseExpressions, None, |op| editor.apply(op));
+        session.handle(InputEvent::FindExpressions, false, None, |op| {
+            editor.apply(op)
+        });
+        assert_eq!(data.load().expression.as_ref().unwrap().text, "abc");
+        session.action(Action::BrowseExpressions, None, |op| editor.apply(op));
+        session.lose_focus(|op| editor.apply(op));
+        assert!(!data.load().visible);
+    }
 
     #[test]
     fn first_click_without_assistance_keeps_the_key_context_and_candidate() {

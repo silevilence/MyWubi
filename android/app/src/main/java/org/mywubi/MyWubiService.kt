@@ -317,7 +317,7 @@ class MyWubiService : InputMethodService() {
             } ?: emptyList(),
             expression = state.optJSONObject("view")?.optJSONObject("expression")?.let { query ->
                 ExpressionQueryUi(query.getString("kind"), query.getString("phase"), query.getString("text"),
-                    query.optString("message").takeIf { it.isNotBlank() && it != "null" }, query.optString("input", "Words"))
+                    query.optString("message").takeIf { it.isNotBlank() && it != "null" }, query.optString("input", "Words"), query.optBoolean("browsing"))
             },
             specialCapabilities = listOf("Emoji", "Kaomoji", "Kana", "Math", "Punctuation", "Symbols").associateWith { mode ->
                 val capability = state.optJSONObject(mode.lowercase(java.util.Locale.ROOT))
@@ -418,7 +418,11 @@ class MyWubiService : InputMethodService() {
             if(!customKeyboardAllowed(inputPolicy.purpose,inputPolicy.layout,current.optString("base","Main"),
                 current.optString("temporary").takeIf {it.isNotBlank() && it!="null"},combination?.mode ?: "Main")) return
         }
-        candidateOffset = 0
+        // Consecutive symbol selections stay at the same place in the palette.
+        if (!(request is JSONObject && request.has("SelectCandidate") &&
+                state.optJSONObject("view")?.optJSONObject("expression")?.optBoolean("browsing") == true)) {
+            candidateOffset = 0
+        }
         try {
             syncPredictionPrefix()
             val recovery = NativeBridge.call("Recover", "session" to s.value) as? JSONObject

@@ -20,6 +20,7 @@ use windows_numerics::Vector2;
 pub mod candidate_data;
 pub mod candidate_layout;
 pub mod coverage;
+pub mod expression_browser;
 pub mod preview;
 pub mod skin_images;
 
@@ -165,6 +166,33 @@ impl TextSystem {
         }
     }
 
+    /// A single display line with native cluster-safe ellipsis. The source is unchanged.
+    pub fn single_line(
+        &mut self,
+        text: &str,
+        family: &str,
+        size: f32,
+        width: f32,
+    ) -> Result<TextLayout> {
+        let mut layout = self.layout(text, family, size, width)?;
+        unsafe {
+            layout.raw.SetWordWrapping(DWRITE_WORD_WRAPPING_NO_WRAP)?;
+            let sign = self.write.CreateEllipsisTrimmingSign(&layout.raw)?;
+            layout.raw.SetTrimming(
+                &DWRITE_TRIMMING {
+                    granularity: DWRITE_TRIMMING_GRANULARITY_CHARACTER,
+                    ..Default::default()
+                },
+                &sign,
+            )?;
+            let mut metrics = DWRITE_TEXT_METRICS::default();
+            layout.raw.GetMetrics(&mut metrics)?;
+            layout.width = (metrics.widthIncludingTrailingWhitespace + 2.0).min(width);
+            layout.height = metrics.height + layout.inset_y + 1.0;
+        }
+        Ok(layout)
+    }
+
     pub fn render(
         &self,
         width: u32,
@@ -212,6 +240,7 @@ impl TextSystem {
                     Draw::Text { color, .. }
                     | Draw::Fill { color, .. }
                     | Draw::RoundFill { color, .. } => *color,
+                    Draw::PushClip { .. } | Draw::PopClip => continue,
                 };
                 if let std::collections::hash_map::Entry::Vacant(entry) = brushes.entry(color) {
                     entry.insert(self.target.CreateSolidColorBrush(
@@ -228,6 +257,21 @@ impl TextSystem {
             })));
             for draw in draws {
                 match draw {
+                    Draw::PushClip {
+                        left,
+                        top,
+                        right,
+                        bottom,
+                    } => self.target.PushAxisAlignedClip(
+                        &D2D_RECT_F {
+                            left: *left,
+                            top: *top,
+                            right: *right,
+                            bottom: *bottom,
+                        },
+                        D2D1_ANTIALIAS_MODE_ALIASED,
+                    ),
+                    Draw::PopClip => self.target.PopAxisAlignedClip(),
                     Draw::Text {
                         layout,
                         x,
@@ -292,6 +336,13 @@ impl TextSystem {
 }
 
 pub enum Draw<'a> {
+    PushClip {
+        left: f32,
+        top: f32,
+        right: f32,
+        bottom: f32,
+    },
+    PopClip,
     RoundFill {
         left: f32,
         top: f32,
@@ -318,6 +369,7 @@ pub enum Draw<'a> {
 impl Draw<'_> {
     pub fn translate(&mut self, dx: f32, dy: f32) {
         match self {
+            Self::PopClip => {}
             Self::Text { x, y, .. } => {
                 *x += dx;
                 *y += dy;
@@ -328,6 +380,12 @@ impl Draw<'_> {
                 right,
                 bottom,
                 ..
+            }
+            | Self::PushClip {
+                left,
+                top,
+                right,
+                bottom,
             }
             | Self::RoundFill {
                 left,
