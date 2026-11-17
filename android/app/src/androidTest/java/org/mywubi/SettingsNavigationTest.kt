@@ -11,9 +11,41 @@ class SettingsNavigationTest {
     private val ins = InstrumentationRegistry.getInstrumentation()
     private val device = UiDevice.getInstance(ins)
 
+    @Test fun skinHasItsOwnPageAndKeepsAppearanceDraftAcrossNavigationAndRecreation() {
+        val file=java.io.File(ins.targetContext.filesDir,"settings-draft.json")
+        val previous=file.takeIf { it.exists() }?.readBytes()
+        try {
+            ActivityScenario.launch(MainActivity::class.java).use { scenario ->
+                find(By.text("键盘")).click()
+                find(By.text("手机键盘"))
+                assertFalse(device.hasObject(By.text("皮肤方案")))
+                find(By.text("皮肤")).click()
+                find(By.text("皮肤与布局"))
+                find(By.text("皮肤方案"))
+                scenario.onActivity {
+                    val model=ViewModelProvider(it)[SettingsModel::class.java]
+                    val preference=org.json.JSONObject(model.config!!.getJSONObject("skins").getJSONObject("android").toString())
+                    preference.put("mode",if(preference.optString("mode")=="dark") "light" else "dark")
+                    model.change("skins","android",preference)
+                }
+                find(By.text("有未保存更改 · 草稿会保留"))
+                find(By.text("键盘")).click()
+                find(By.text("手机键盘"))
+                find(By.text("皮肤")).click()
+                scenario.recreate()
+                find(By.text("皮肤与布局"))
+                find(By.text("有未保存更改 · 草稿会保留"))
+                device.takeScreenshot(java.io.File(ins.targetContext.filesDir,"settings-skin-page.png"))
+                device.dumpWindowHierarchy(java.io.File(ins.targetContext.filesDir,"settings-skin-page.xml"))
+            }
+        } finally {
+            previous?.let {file.writeBytes(it)} ?: run {if(file.exists()) check(file.delete())}
+        }
+    }
+
     @Test fun finalUnicodeCategoryIsSearchableAndKeepsItsOwnDraft() {
         ActivityScenario.launch(MainActivity::class.java).use { scenario ->
-            find(By.text("特殊输入")).click()
+            selectSettingsTab(device,"特殊输入")
             scenario.onActivity {
                 val model=ViewModelProvider(it)[SettingsModel::class.java]
                 model.specialSearch="diacritics"
@@ -38,7 +70,7 @@ class SettingsNavigationTest {
 
     @Test fun specialInputRecreationRetainsSelectionSearchAndQueryDraft() {
         ActivityScenario.launch(MainActivity::class.java).use { scenario ->
-            find(By.text("特殊输入")).click()
+            selectSettingsTab(device,"特殊输入")
             scenario.onActivity {
                 val model = ViewModelProvider(it)[SettingsModel::class.java]
                 model.specialSearch = "kana"
@@ -109,8 +141,8 @@ class SettingsNavigationTest {
             }
             toggle.click()
             assertTrue(device.wait(Until.hasObject(By.text("有未保存更改 · 草稿会保留")), 5000))
-            for (tab in listOf("键盘", "码表", "预测")) {
-                device.findObject(By.text(tab).selected(false)).click()
+            for (tab in listOf("键盘", "皮肤", "码表", "预测")) {
+                selectSettingsTab(device,tab)
                 device.waitForIdle()
                 assertTrue(device.findObject(By.text("保存设置")).isEnabled)
                 device.swipe(device.displayWidth / 2, device.displayHeight * 2 / 3, device.displayWidth / 2, device.displayHeight / 3, 25)
@@ -123,7 +155,7 @@ class SettingsNavigationTest {
                 assertTrue(device.wait(Until.hasObject(By.text("保存设置")), 5000))
                 assertTrue(device.hasObject(By.text("有未保存更改 · 草稿会保留")))
             } finally { device.setOrientationNatural(); device.unfreezeRotation(); device.waitForIdle() }
-            find(By.text("常用")).click()
+            selectSettingsTab(device,"常用")
             device.waitForIdle()
             scenario.onActivity {
                 val model = ViewModelProvider(it)[SettingsModel::class.java]
@@ -134,13 +166,13 @@ class SettingsNavigationTest {
             find(By.text("重新载入")).click()
             find(By.text("重新载入磁盘设置？"))
             find(By.text("重新载入")).click()
-            assertTrue(device.wait(Until.hasObject(By.text("没有未保存更改")), 5000))
+            assertTrue(find(By.text("没有未保存更改")).isEnabled)
         }
     }
 
     @Test fun standardPackageExplainsModelLimitAndOffersWorkingDictionaryPath() {
         ActivityScenario.launch(MainActivity::class.java).use { scenario ->
-            device.wait(Until.findObject(By.text("预测")), 10000).click()
+            selectSettingsTab(device,"预测")
             scrollToText("预测模型与资源（实验性）").click()
             scrollToText("当前版本仅支持词典预测")
             assertTrue(device.hasObject(By.text("当前版本仅支持词典预测")))

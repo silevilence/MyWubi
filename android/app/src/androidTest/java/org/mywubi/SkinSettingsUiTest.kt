@@ -34,11 +34,22 @@ class SkinSettingsUiTest {
     }
     private fun clickReady(label:String, description:Boolean=false) {
         text(label,description)
-        device.waitForIdle();instrumentation.uiAutomation.clearCache()
-        val selector=(if(description) By.desc(label) else By.text(label)).enabled(true)
-        val button=device.wait(Until.findObject(selector),10000) ?: error("Control stayed disabled: $label")
-        button.click()
-        device.waitForIdle()
+        val target=if(description) By.desc(label) else By.text(label)
+        val deadline=android.os.SystemClock.uptimeMillis()+10000
+        while(android.os.SystemClock.uptimeMillis()<deadline) {
+            device.waitForIdle()
+            instrumentation.uiAutomation.clearCache()
+            val button=device.findObject(target)?.actionNode()
+            if(button!=null && button.isEnabled && button.visibleBounds.height() >= 40*context.resources.displayMetrics.density) {
+                button.click();device.waitForIdle();instrumentation.uiAutomation.clearCache()
+                return
+            }
+            if(button!=null && button.visibleBounds.height() < 40*context.resources.displayMetrics.density) {
+                val bounds=device.findObject(By.desc("设置内容"))?.visibleBounds ?: error("Missing settings viewport")
+                device.swipe(bounds.left+8,bounds.bottom-20,bounds.left+8,bounds.centerY(),20)
+            } else android.os.SystemClock.sleep(100)
+        }
+        error("Control stayed unavailable: $label")
     }
     @get:org.junit.Rule val evidence=object:org.junit.rules.TestWatcher() {
         override fun failed(error:Throwable,description:org.junit.runner.Description) {
@@ -68,7 +79,7 @@ class SkinSettingsUiTest {
             val current=store.readConfig()
             NativeHandle(current.getLong("version")).use {NativeHandle(store.saveConfig(baseline,it.value).getLong("version")).close()}
             ActivityScenario.launch(MainActivity::class.java).use { scenario ->
-                text("键盘").click()
+                text("皮肤").click()
                 val importButton=text("从文件导入皮肤包")
                 device.waitForIdle()
                 device.takeScreenshot(File(context.filesDir,"skin-before-picker.png"))
@@ -99,10 +110,18 @@ class SkinSettingsUiTest {
                 device.wait(Until.findObject(By.textStartsWith(name)),10000)?.click() ?: error("SAF fixture not listed")
                 device.waitForIdle()
                 clickReady("选用皮肤 jade 自定义副本，组件 jade",true)
-                assertTrue("Selecting the imported component must create a draft",device.wait(Until.hasObject(By.text("有未保存更改 · 草稿会保留")),10000))
+                device.takeScreenshot(File(context.filesDir,"skin-selected-component.png"))
+                device.dumpWindowHierarchy(File(context.filesDir,"skin-selected-component.xml"))
+                scenario.onActivity {
+                    val model=androidx.lifecycle.ViewModelProvider(it)[SettingsModel::class.java]
+                    File(context.filesDir,"skin-selected-state.json").writeText(org.json.JSONObject()
+                        .put("dirty",model.dirty).put("skin",model.config?.getJSONObject("skins")?.getJSONObject("android")).toString())
+                    assertTrue("Selecting the imported component must create a draft",model.dirty)
+                }
+                text("有未保存更改 · 草稿会保留")
                 clickReady("预览当前草稿");text("Android 原生键盘预览")
                 text("q",true);text("空格",true)
-                scenario.recreate();text("键盘").click();text("预览当前草稿")
+                scenario.recreate();text("皮肤").click();text("预览当前草稿")
                 assertTrue(text("草稿选择：mywubi.jade.copy @ 1 / jade").isEnabled)
                 // Save validates the selected package before any persistent activation.
                 text("保存设置").click()

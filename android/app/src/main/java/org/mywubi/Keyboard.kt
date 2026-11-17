@@ -51,6 +51,9 @@ data class ExpressionQueryUi(val kind: String, val phase: String, val text: Stri
 private val LocalKeyboardKeyHeight = staticCompositionLocalOf { 54.dp }
 data class KeyboardModel(
     val customLayout: KeyboardLayout? = null,
+    val mainKeyboards: List<MainKeyboardOption> = emptyList(),
+    val mainKeyboardSelection: KeyboardSelection? = null,
+    val switchingKeyboard: Boolean = false,
     val mappingIdentity: JSONObject? = null,
     val groupPositions: List<Pair<String,String?>> = emptyList(),
     val skin: JSONObject? = null,
@@ -114,6 +117,7 @@ fun Keyboard(model: KeyboardModel, dispatch: (Any) -> Unit, window: (Int) -> Uni
         } == true))
     var expanded by remember(model.epoch) { mutableStateOf(false) }
     var specialMenu by remember(model.epoch) { mutableStateOf(false) }
+    var keyboardMenu by remember(model.epoch, model.mainKeyboards, model.base, model.temporary, panel) { mutableStateOf(false) }
     val showExpanded = expanded && model.candidates.isNotEmpty() && !model.privateInput
     var asciiSymbols by remember(model.epoch, model.base, model.privateInput, model.layout) {
         mutableStateOf(model.privateInput || model.base == "English" || model.layout != "letters")
@@ -233,6 +237,13 @@ fun Keyboard(model: KeyboardModel, dispatch: (Any) -> Unit, window: (Int) -> Uni
                                 val label = if (showUpdate) "设置，有可用更新" else "设置"
                                 ToolbarIconButton(R.drawable.ic_settings, label,
                                     badge={ if (showUpdate) Badge() }, action=openSettings)
+                                if (model.mainKeyboards.size > 1 && model.base == "Main" && model.temporary == null &&
+                                    model.modesAvailable && !model.privateInput && model.layout == "letters" && panel == "letters") Box {
+                                    ToolbarIconButton(R.drawable.ic_keyboard_layout, "切换形码键盘",
+                                        enabled=model.enabled && !model.switchingKeyboard) { keyboardMenu=true }
+                                    MainKeyboardMenu(model, keyboardMenu && model.enabled && !model.switchingKeyboard,
+                                        dismiss={keyboardMenu=false}) { dispatch(SwitchMainKeyboard(it)) }
+                                }
                                 Box {
                                     ToolbarIconButton(R.drawable.ic_emoji, "特殊输入", enabled=baseEnabled) { specialMenu=true }
                                     SpecialCategoryMenu(model,specialMenu && baseEnabled,dismiss={specialMenu=false}) { mode ->

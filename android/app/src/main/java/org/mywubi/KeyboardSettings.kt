@@ -38,6 +38,7 @@ internal fun KeyboardManagement(model: SettingsModel, config: JSONObject) {
         FilterChip(selected=mode==value,onClick={drafts[mode]=draft;mode=value;preview=null;draft=drafts[value]},label={Text(label)})
     } }
     Text("从皮肤库选择布局，预览后明确应用。数字、电话、英文、网址和密码使用确定字符布局。")
+    Text("同一皮肤包提供多个形码布局时，可在打字时通过工具栏「切换形码键盘」选择；不会切换为拼音或英文。")
     Text(message)
     OutlinedButton(enabled=!busy,onClick={scope.launch {
         busy=true

@@ -52,6 +52,7 @@ private fun SettingsScreen(model: SettingsModel, enable: () -> Unit, choose: () 
     var localPreedit by remember { mutableStateOf(model.ui.getBoolean("local_preedit", false)) }
     var clipboard by remember { mutableStateOf(model.ui.getBoolean("clipboard_suggestion", true)) }
     var section by rememberSaveable { mutableIntStateOf(0) }
+    val sections = listOf(0 to "常用", 1 to "键盘", 5 to "皮肤", 2 to "码表", 3 to "预测", 4 to "特殊输入")
     LaunchedEffect(model.shortcutError) {
         if (model.shortcutError != null) section = 4
     }
@@ -76,8 +77,9 @@ private fun SettingsScreen(model: SettingsModel, enable: () -> Unit, choose: () 
                     Image(painterResource(R.drawable.mywubi_brand), null, Modifier.size(36.dp))
                     Text("MyWubi 设置", style = MaterialTheme.typography.titleLarge)
                 }
-                ScrollableTabRow(selectedTabIndex = section, edgePadding = 12.dp) {
-                    listOf("常用", "键盘", "码表", "预测", "特殊输入").forEachIndexed { index, label ->
+                ScrollableTabRow(selectedTabIndex = sections.indexOfFirst { it.first == section }, edgePadding = 12.dp,
+                    modifier = Modifier.semantics { contentDescription = "设置分类" }) {
+                    sections.forEach { (index, label) ->
                         Tab(selected = section == index, onClick = { section = index }, text = { Text(label) })
                     }
                 }
@@ -100,7 +102,7 @@ private fun SettingsScreen(model: SettingsModel, enable: () -> Unit, choose: () 
             }
         }) { padding ->
         // Each category keeps its position; changing tabs never discards the ViewModel draft.
-        val scrollStates = List(5) { rememberScrollState() }
+        val scrollStates = List(6) { rememberScrollState() }
         Column(Modifier.fillMaxSize().padding(padding).then(if(section == 4) Modifier else Modifier.verticalScroll(scrollStates[section]))
             .semantics { contentDescription = "设置内容" }.padding(20.dp), verticalArrangement = Arrangement.spacedBy(12.dp)) {
             if (model.busy && !model.trialRunning) LinearProgressIndicator(Modifier.fillMaxWidth())
@@ -177,7 +179,7 @@ private fun SettingsScreen(model: SettingsModel, enable: () -> Unit, choose: () 
             }
             if (section == 1) {
                 Text("手机键盘", style = MaterialTheme.typography.titleLarge)
-                Text("以下输入习惯开关自动保存。皮肤设置需点击底部保存。", style = MaterialTheme.typography.bodySmall)
+                Text("以下输入习惯开关自动保存。外观和布局请前往「皮肤」页。", style = MaterialTheme.typography.bodySmall)
                 SettingToggle("按键振动", vibration) { vibration = it; model.ui.edit().putBoolean("vibration", it).apply() }
                 SettingToggle("唤起键盘时显示剪贴板建议", clipboard) { clipboard = it; model.ui.edit().putBoolean("clipboard_suggestion", it).apply() }
                 Text("点击建议即可粘贴，开始输入或关闭建议后隐藏。密码框和标记为敏感的剪贴板内容不显示预览。", style = MaterialTheme.typography.bodySmall)
@@ -186,8 +188,12 @@ private fun SettingsScreen(model: SettingsModel, enable: () -> Unit, choose: () 
                 HorizontalDivider()
                 Text("删除手势", style = MaterialTheme.typography.titleMedium)
                 Text("轻点删除一个字；长按连续删除；长按后向上滑，看到「松手清空」再松手，可清空当前输入框。滑回按键可取消清空。")
-                HorizontalDivider()
-                config?.let { SkinPreferences(model, it) }
+            }
+            if (section == 5) {
+                Text("皮肤与布局", style = MaterialTheme.typography.titleLarge)
+                Text("选择外观、导入皮肤包和配置键盘布局。外观修改后点击底部「保存设置」。",
+                    style = MaterialTheme.typography.bodySmall)
+                if (config == null) Text("正在读取设置…") else SkinPreferences(model, config)
             }
             Spacer(Modifier.height(24.dp))
         }

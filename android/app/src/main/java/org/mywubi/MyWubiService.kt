@@ -50,6 +50,8 @@ class MyWubiService : InputMethodService() {
     private var candidateOffset = 0
     private var keyboard by mutableStateOf(KeyboardModel())
     private val keyboardModes = mutableMapOf<String,KeyboardCombination?>()
+    private var mainKeyboards: List<MainKeyboardOption> = emptyList()
+    private var switchingKeyboard = false
     private var activeKeyboardMode = "Main"
     private var combination: KeyboardCombination? = null
     private var pendingCombination: KeyboardCombination? = null
@@ -96,6 +98,7 @@ class MyWubiService : InputMethodService() {
                 val nextConfig = config.getJSONObject("config")
                 val skin = runCatching { loadSkinAppearance(path, nextConfig) }
                 val nextKeyboard = listOf("Main","Pinyin","English").associateWith {mode -> runCatching { restoreKeyboard(path, nextConfig,mode) } }
+                val nextChoices = runCatching { mainKeyboardChoices(path, nextConfig) }.getOrDefault(emptyList())
                 val appearanceOnly = hasRuntime && previousConfig != null && NativeBridge.objectCall(
                     "SameInputConfiguration", "previous" to previousConfig, "current" to nextConfig).getBoolean("same")
                 if (appearanceOnly) {
@@ -109,6 +112,8 @@ class MyWubiService : InputMethodService() {
                                 updates.edit().putString("error", "皮肤加载失败，保留原外观：${it.message}").apply()
                             }
                             queueKeyboard(nextKeyboard)
+                            mainKeyboards = nextChoices
+                            switchingKeyboard = false
                             refresh()
                         }
                     }
@@ -126,6 +131,8 @@ class MyWubiService : InputMethodService() {
                         lastConfig = nextConfig
                         boundMapping = null
                         queueKeyboard(nextKeyboard)
+                        mainKeyboards = nextChoices
+                        switchingKeyboard = false
                         skin.onSuccess { skinAppearance = it }
                         try {
                             val s = session
@@ -151,6 +158,7 @@ class MyWubiService : InputMethodService() {
                 loaded?.close()
                 main.post {
                     if (!destroyed && loads.accepts(ticket)) {
+                        switchingKeyboard = false
                         error = if (runtime == null) "输入资源加载失败，请在设置中修复" else "配置已保存但未应用，继续使用原码表"
                         updates.edit().putString("error", error).apply(); render()
                     }
@@ -307,6 +315,9 @@ class MyWubiService : InputMethodService() {
         val stableIdle = active && viewVisible && session != null && idle.isIdle(
             android.os.SystemClock.elapsedRealtime(), spelling, items.length() > 0 || state.optBoolean("prediction_waiting"), editor.ownsPreedit, temporary != null)
         keyboard = KeyboardModel(
+            mainKeyboards = mainKeyboards,
+            mainKeyboardSelection = combination?.takeIf { it.mode == "Main" }?.selection(),
+            switchingKeyboard = switchingKeyboard,
             skin = combination?.appearance ?: skinAppearance,
             customLayout = combination?.takeIf { customKeyboardAllowed(inputPolicy.purpose,inputPolicy.layout,state.optString("base","Main"),temporary,it.mode) }?.let {
                 if(resources.configuration.orientation == android.content.res.Configuration.ORIENTATION_LANDSCAPE) it.landscape else it.portrait
@@ -370,6 +381,10 @@ class MyWubiService : InputMethodService() {
 
     private fun dispatch(action: Any) {
         if (!active || !viewVisible) return
+        if (action is SwitchMainKeyboard) {
+            switchMainKeyboard(action.selection)
+            return
+        }
         if(action == "RestoreKeyboard") {
             dispatch("Cancel")
             val resetMode=activeKeyboardMode
@@ -538,6 +553,51 @@ class MyWubiService : InputMethodService() {
         results.forEach { (mode,result) -> result.onSuccess { keyboardModes[mode]=it }
             .onFailure { updates.edit().putString("error","$mode 键盘加载失败，保留原组合：${it.message}").apply() } }
         pendingCombination=keyboardModes[activeKeyboardMode];hasPendingCombination=true
+    }
+
+    private fun switchMainKeyboard(selection: KeyboardSelection) {
+        if (switchingKeyboard || keyTouches != 0 ||
+            !customKeyboardAllowed(inputPolicy.purpose, inputPolicy.layout, state.optString("base", "Main"),
+                state.optString("temporary").takeIf { it != "null" && it.isNotEmpty() }) ||
+            state.optJSONObject("view")?.optString("spelling").orEmpty().isNotEmpty() ||
+            mainKeyboards.none { it.selection == selection && it.reason == null }) return
+        switchingKeyboard = true
+        render()
+        loader.execute {
+            val result = runCatching {
+                val path = Resources.prepare(this)
+                val read = NativeBridge.objectCall("ReadConfig", "path" to path.path)
+                NativeHandle(read.getLong("version")).close()
+                val config = read.getJSONObject("config")
+                // Recheck the package after any queued settings reload; stale menus cannot
+                // select a layout from a skin that is no longer in use.
+                require(mainKeyboardChoices(path, config).any { it.selection == selection && it.reason == null }) {
+                    "皮肤已改变，请重新选择布局"
+                }
+                val choice = JSONObject().put("layout", selection.json()).put("mapping", JSONObject.NULL)
+                    .put("appearance", config.getJSONObject("skins").getJSONObject("android"))
+                val charset = keyboardCharset(path, config, "Main")
+                val prepared = KeyboardCombination.decode(NativeBridge.objectCall("ManageKeyboard", "request" to
+                    keyboardRequest(path, "Prepare").put("choice", choice).put("mode", "Main").put("charset", charset)))
+                NativeBridge.objectCall("ManageKeyboard", "request" to keyboardRequest(path, "Save")
+                    .put("choice", choice).put("mode", "Main").put("charset", charset).put("digest", prepared.digest))
+            }
+            main.post {
+                if (!destroyed) {
+                    result.onSuccess {
+                        error = null
+                        // Use the normal publication gate. Input may have started while
+                        // preparing; never clear or reinterpret it to change geometry.
+                        EngineUpdates.request(this)
+                    }.onFailure {
+                        switchingKeyboard = false
+                        error = "键盘切换失败：${it.message}"
+                        android.widget.Toast.makeText(this, error, android.widget.Toast.LENGTH_LONG).show()
+                    }
+                    render()
+                }
+            }
+        }
     }
 
     private fun publishKeyboard() {

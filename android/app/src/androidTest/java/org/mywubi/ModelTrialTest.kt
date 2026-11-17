@@ -89,7 +89,7 @@ class ModelTrialTest {
         try {
             assertTrue(File(store.configFile.parentFile,"models/qwen25-words--q4km-v1/manifest.json").isFile)
             device.executeShellCommand("am start -W -f 0x10008000 -n org.mywubi/.MainActivity")
-            find(By.text("预测")).click()
+            selectSettingsTab(device,"预测")
             find(By.text("预测模型与资源（实验性）")).click()
             find(By.text("自定义模型指南与试运行（实验性）")).click()
             find(By.text("接入指南（离线可读）")).click();assertTrue(device.wait(Until.hasObject(By.text("自定义模型接入")),5000))

@@ -94,7 +94,7 @@ class SettingsUiTest {
         device.pressBack(); text("保留并退出").click()
         device.executeShellCommand("am start -n org.mywubi/.MainActivity")
         text("已恢复未保存草稿")
-        text("码表").click()
+        selectSettingsTab(device,"码表")
         text("从手机导入码表").click()
         assertTrue(device.wait(Until.hasObject(By.pkg("com.google.android.documentsui")), 10000) || device.hasObject(By.pkg("com.android.documentsui")))
         device.pressBack()
@@ -112,7 +112,7 @@ class SettingsUiTest {
         NativeHandle(original.getLong("version")).close()
         try {
             device.executeShellCommand("am start -W -f 0x10008000 -n org.mywubi/.MainActivity")
-            text("码表").click()
+            selectSettingsTab(device,"码表")
             text("从手机导入码表").click()
             device.waitForIdle()
             device.wait(Until.findObject(By.desc("Show roots")), 5000)?.click()
@@ -149,7 +149,7 @@ class SettingsUiTest {
         NativeHandle(original.getLong("version")).close()
         try {
             device.executeShellCommand("am start -W -f 0x10008000 -n org.mywubi/.MainActivity")
-            text("码表").click()
+            selectSettingsTab(device,"码表")
             text("从手机导入码表").click()
             device.wait(Until.findObject(By.desc("Show roots")), 5000)?.click()
             device.waitForIdle()
