@@ -1,5 +1,17 @@
 # Change Log
 
+## V0.10.2
+
+### ✨ 新功能
+
+- **安卓形码键盘快捷切换**：使用含多个形码布局的皮肤时，可从键盘工具栏切换全键、十四键、九键或皮肤自定义布局，并记住上次选择。切换保留当前外观，拼音、英文和数字仍由原功能键切换；正在输入时保留当前编码，待输入结束后应用新布局。
+
+### 🚀 优化
+
+- **独立皮肤设置页**：安卓将外观、皮肤包导入分享和键盘布局管理集中到「皮肤」页，切换设置分类或重建页面时保留外观草稿，方便查找和调整。
+
+已完成安卓模拟器中的真实宿主输入、皮肤导入分享、横竖屏、大字体与深色显示验收；ARM64 真机和 TalkBack 实操尚未验证。使用方式与验证范围见[自定义键盘说明](https://github.com/silevilence/MyWubi/blob/V0.10.2/docs/custom-keyboard-authors.md)和[验收记录](https://github.com/silevilence/MyWubi/blob/V0.10.2/docs/validation/android-keyboard-switch.md)。
+
 ## V0.10.1
 
 ### ✨ 新功能
