@@ -90,7 +90,8 @@ fun Keyboard(model: KeyboardModel, dispatch: (Any) -> Unit, window: (Int) -> Uni
              openSettings: () -> Unit = {}, onTouch: (Boolean) -> Unit = {},
              hideKeyboard: () -> Unit = {}, switchIme: () -> Unit) {
     val currentTouch by rememberUpdatedState(onTouch)
-    val landscape = LocalConfiguration.current.orientation == android.content.res.Configuration.ORIENTATION_LANDSCAPE
+    val configuration = LocalConfiguration.current
+    val landscape = configuration.orientation == android.content.res.Configuration.ORIENTATION_LANDSCAPE
     val variant = model.skin?.optJSONObject(if (androidx.compose.foundation.isSystemInDarkTheme()) "dark" else "light")
     val parameters = variant?.takeUnless { it.optBoolean("legacy") }?.optJSONObject("parameters")
     val preferredHeight = parameters?.optDouble("keyboard_height", 216.0)?.toFloat()?.div(4f)
@@ -199,12 +200,15 @@ fun Keyboard(model: KeyboardModel, dispatch: (Any) -> Unit, window: (Int) -> Uni
                     }
                 }
             } else {
-                if (model.expression == null) Text(if (showSpelling) model.spelling else "",
+                if (!landscape && model.expression == null) Text(if (showSpelling) model.spelling else "",
                     Modifier.fillMaxWidth().heightIn(min=28.dp).padding(horizontal=12.dp, vertical=4.dp)
                         .then(if (showSpelling) Modifier else Modifier.clearAndSetSemantics {}),
                     color=skinColor("code",colors.primary), fontSize=16.sp, lineHeight=20.sp, maxLines=1,
                     overflow=androidx.compose.ui.text.style.TextOverflow.Ellipsis)
                 Row(Modifier.fillMaxWidth().heightIn(min=barHeight), verticalAlignment=androidx.compose.ui.Alignment.CenterVertically) {
+                    if (landscape && model.expression == null && showSpelling) Text(model.spelling,
+                        Modifier.widthIn(max=112.dp).padding(horizontal=8.dp), color=skinColor("code",colors.primary),
+                        fontSize=16.sp, maxLines=1, overflow=androidx.compose.ui.text.style.TextOverflow.Ellipsis)
                     Row(Modifier.weight(1f), horizontalArrangement=Arrangement.SpaceEvenly,
                         verticalAlignment=androidx.compose.ui.Alignment.CenterVertically) {
                         if (showClipboard) {
@@ -267,12 +271,15 @@ fun Keyboard(model: KeyboardModel, dispatch: (Any) -> Unit, window: (Int) -> Uni
                 }
             }
         }
+        val expandedExtra = if (landscape) 0.dp else 28.dp
         val keys: @Composable () -> Unit = {
+            val rowHeight = LocalKeyboardKeyHeight.current
+            val footerHeight = if (landscape && showExpanded) maxOf(48.dp, rowHeight).coerceAtMost(rowHeight * 4) else rowHeight
             if (showExpanded) {
                 val hasPages = model.offset > 0 || model.offset + model.candidates.size < model.total
                 val showHints = model.candidates.any { it.hint.isNotEmpty() }
                 // Spend the former spelling-strip space on the grid; retain the typing area's height.
-                val gridHeight = LocalKeyboardKeyHeight.current * 3 + 28.dp - (if (hasPages) 48.dp else 0.dp)
+                val gridHeight = (rowHeight * 4 + expandedExtra - footerHeight - (if (hasPages) 48.dp else 0.dp)).coerceAtLeast(0.dp)
                 key(model.query, model.offset) {
                     val columnWidth = (112 * LocalDensity.current.fontScale.coerceIn(1f, 1.5f)).dp
                     LazyVerticalGrid(columns=GridCells.Adaptive(columnWidth),
@@ -356,7 +363,7 @@ fun Keyboard(model: KeyboardModel, dispatch: (Any) -> Unit, window: (Int) -> Uni
                     }
                 }
             }
-            if (panel != "numbers" || showExpanded) Row(Modifier.fillMaxWidth()) {
+            if (panel != "numbers" || showExpanded) CompositionLocalProvider(LocalKeyboardKeyHeight provides footerHeight) { Row(Modifier.fillMaxWidth()) {
                 val showBackspace = showExpanded || panel == "symbols"
                 Key(if(panel=="letters") "123" else "ABC",model.enabled,model.epoch,Modifier.weight(1.3f),function=true) {
                     panel=if(panel=="letters") "numbers" else "letters"; expanded=false
@@ -376,16 +383,18 @@ fun Keyboard(model: KeyboardModel, dispatch: (Any) -> Unit, window: (Int) -> Uni
                 }
                 Key(if(model.base=="Main") "中" else "英",baseEnabled,model.epoch,Modifier.weight(1.3f),description=baseLabel,function=true) {toggleBase()}
                 Key(model.enterLabel,model.enabled,model.epoch,Modifier.weight(1.7f),accent=true) {dispatch("Enter")}
-            }
+            } }
         }
         val density = LocalDensity.current
         // Some IME hosts consume navigation insets before Compose receives them.
         // Keep a dedicated bottom band even then, clear of the OEM's IME buttons.
         val bottom = with(density) {
             maxOf(WindowInsets.navigationBarsIgnoringVisibility.getBottom(this),
-                WindowInsets.mandatorySystemGestures.getBottom(this)).toDp().coerceAtLeast(32.dp)
+                WindowInsets.mandatorySystemGestures.getBottom(this)).toDp().coerceAtLeast(if (landscape) 8.dp else 32.dp)
         }
-        val container=Modifier.fillMaxWidth().background(colors.surface).skinImage("background").padding(skinContent("background"))
+        val heightLimit = if (landscape && configuration.screenHeightDp > 0)
+            Modifier.heightIn(max=configuration.screenHeightDp.dp * 2 / 3) else Modifier
+        val container=Modifier.fillMaxWidth().then(heightLimit).background(colors.surface).skinImage("background").padding(skinContent("background"))
             .windowInsetsPadding(WindowInsets.navigationBars.union(WindowInsets.displayCutout).only(WindowInsetsSides.Horizontal))
             .padding(start=3.dp, end=3.dp, top=4.dp, bottom=bottom)
             .pointerInput(Unit) {
@@ -403,6 +412,11 @@ fun Keyboard(model: KeyboardModel, dispatch: (Any) -> Unit, window: (Int) -> Uni
         CompositionLocalProvider(LocalKeyPreview provides preview, LocalKeyboardKeyHeight provides keyHeight) {
             Box(Modifier.fillMaxWidth().onGloballyPositioned { origin=it.positionInRoot(); keyboardWidth=it.size.width.toFloat() }) {
                 BoxWithConstraints(container, contentAlignment=androidx.compose.ui.Alignment.TopCenter) {
+                    val customRows = model.customLayout?.takeIf {panel=="letters" && useCustom && !model.privateInput && model.layout=="letters" && !showExpanded}?.height
+                    val rows = customRows?.plus(1f) ?: if (panel == "symbols" && !showExpanded) 5f else 4f
+                    val customControls = if(showExpanded) 0.dp else
+                        (if(model.customLayout!=null) 48.dp else 0.dp) + (if(groupControls) 48.dp else 0.dp)
+                    val gridExtra = if (showExpanded) expandedExtra else 0.dp
                     // Keep candidates above every panel in either orientation. Capping the
                     // shared width avoids stretching keys and moving controls on expansion.
                     if (model.expression?.browsing == true && !model.privateInput) {
@@ -413,18 +427,18 @@ fun Keyboard(model: KeyboardModel, dispatch: (Any) -> Unit, window: (Int) -> Uni
                         // Query controls must not consume the typing area's vertical budget.
                         // On short screens the left pane scrolls; all four key rows remain visible.
                         val paneHeight=minOf(maxHeight,keyHeight*4+28.dp)
+                        val fittedHeight = minOf(keyHeight, (maxHeight-gridExtra-customControls).coerceAtLeast(0.dp) / rows)
                         Row(Modifier.widthIn(max=1100.dp).fillMaxWidth()) {
                             Column(Modifier.weight(0.36f).height(paneHeight)
                                 .verticalScroll(rememberScrollState()).semantics { contentDescription="表情查询与操作" }) { controls() }
-                            Column(Modifier.weight(0.64f)) { keys() }
+                            CompositionLocalProvider(LocalKeyboardKeyHeight provides fittedHeight) {
+                                Column(Modifier.weight(0.64f)) { keys() }
+                            }
                         }
                     } else {
                         val availableHeight = maxHeight
-                        Column(Modifier.widthIn(max=600.dp).fillMaxWidth()) {
-                            val customRows = model.customLayout?.takeIf {panel=="letters" && useCustom && !model.privateInput && model.layout=="letters" && !showExpanded}?.height
-                            val rows = customRows?.plus(1f) ?: if (panel == "symbols" && !showExpanded) 5f else 4f
-                            val customControls = if(showExpanded) 0.dp else
-                                (if(model.customLayout!=null) 48.dp else 0.dp) + (if(groupControls) 48.dp else 0.dp)
+                        val panelWidth = if (landscape) minOf(600.dp, ((availableHeight-48.dp).coerceAtLeast(0.dp)/4)*12.5f) else 600.dp
+                        Column(Modifier.widthIn(max=panelWidth).fillMaxWidth()) {
                             // Keep a 48 dp row budget before scaling text in a short window.
                             val controlScale = minOf(density.fontScale,
                                 ((availableHeight.value - rows*48f - 24f - customControls.value)/48f).coerceAtLeast(1f))
@@ -434,7 +448,6 @@ fun Keyboard(model: KeyboardModel, dispatch: (Any) -> Unit, window: (Int) -> Uni
                             BoxWithConstraints(if (availableHeight == androidx.compose.ui.unit.Dp.Infinity) Modifier else Modifier.weight(1f, fill=false)) {
                                 // Large fonts must not push the last key rows out of a
                                 // short window. Fit all rows into the space left by controls.
-                                val gridExtra = if (showExpanded) 28.dp else 0.dp
                                 val fittedHeight = minOf(keyHeight, (maxHeight-gridExtra-customControls).coerceAtLeast(0.dp) / rows)
                                 val fittedScale = minOf(density.fontScale,
                                     ((fittedHeight.value - 16f) /
