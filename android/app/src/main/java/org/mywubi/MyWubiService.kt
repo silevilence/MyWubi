@@ -170,11 +170,11 @@ class MyWubiService : InputMethodService() {
     private fun hostContext() = JSONObject().put("editor", editorEpoch).put("epoch", editorEpoch)
         .put("supports_preedit", supportsPreedit && inputPolicy.purpose == "Text").put("supports_insert", true).put("owns_preedit", false)
         .put("purpose", inputPolicy.purpose).put("selection_available", true).put("surrounding_available", true)
-        .put("allows_assistance", inputPolicy.purpose == "Text" && (editorInfo?.imeOptions ?: 0) and EditorInfo.IME_FLAG_NO_PERSONALIZED_LEARNING == 0)
+        .put("allows_assistance", inputPolicy.allowsAssistance)
         .put("enter_action", inputPolicy.action)
 
     private fun attachEditor() {
-        personalCapture.gate(active && hostContext().optBoolean("allows_assistance"), editorEpoch.toString())
+        personalCapture.gate(active && inputPolicy.allowsAssistance, editorEpoch.toString())
         pinyinMode = KeyMode.Off
         val r = runtime ?: return
         if (!active) return
@@ -633,7 +633,7 @@ class MyWubiService : InputMethodService() {
         }
         render()
         personalCapture.display(state, candidates, predictionController.personalVersion)
-        session?.let { predictionController.update(it.value,active && viewVisible && inputPolicy.purpose=="Text") }
+        session?.let { predictionController.update(it.value,active && viewVisible && inputPolicy.allowsAssistance) }
     }
     private fun invalidatePrediction() {
         if(::predictionController.isInitialized) predictionController.cancel()
@@ -644,9 +644,7 @@ class MyWubiService : InputMethodService() {
     private fun syncPredictionPrefix() {
         val s = session ?: return
         if ((!state.optBoolean("prediction_enabled") && !state.optBoolean("personal_prediction_enabled")) || editor.ownsPreedit) return
-        val private = inputPolicy.purpose != "Text" ||
-            (editorInfo?.imeOptions ?: 0) and EditorInfo.IME_FLAG_NO_PERSONALIZED_LEARNING != 0
-        if (private || hasSelection) { invalidatePrediction(); return }
+        if (!inputPolicy.allowsAssistance || hasSelection) { invalidatePrediction(); return }
         val before = try { connection?.getTextBeforeCursor(512, 0)?.toString()?.let(PredictionPrefix::bounded) } catch (_: RuntimeException) { null }
         val right = if(state.optBoolean("personal_prediction_enabled")) try {connection?.getTextAfterCursor(512,0)?.toString()}catch(_:RuntimeException){null} else null
         NativeBridge.call("PredictionContext", "session" to s.value, "editor" to editorEpoch,

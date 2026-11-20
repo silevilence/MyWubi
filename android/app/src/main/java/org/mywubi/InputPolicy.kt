@@ -6,7 +6,7 @@ import android.view.inputmethod.InputConnection
 import android.icu.text.BreakIterator
 import java.util.Locale
 
-data class InputPolicy(val layout: String, val purpose: String, val action: String, val actionId: Int) {
+data class InputPolicy(val layout: String, val purpose: String, val action: String, val actionId: Int, val allowsAssistance: Boolean) {
     companion object {
         fun from(inputType: Int, imeOptions: Int): InputPolicy {
             val type = inputType and InputType.TYPE_MASK_CLASS
@@ -24,7 +24,13 @@ data class InputPolicy(val layout: String, val purpose: String, val action: Stri
                     else -> "letters"
                 }
             }
-            val purpose = if (password) "Password" else if (layout != "letters" || inputType == InputType.TYPE_NULL) "Direct" else "Text"
+            val purpose = when {
+                password -> "Password"
+                inputType == InputType.TYPE_NULL -> "Direct"
+                layout == "letters" || layout == "url" -> "Text"
+                else -> "Direct"
+            }
+            val allowsAssistance = purpose == "Text" && layout != "url" && imeOptions and EditorInfo.IME_FLAG_NO_PERSONALIZED_LEARNING == 0
             val id = if (imeOptions and EditorInfo.IME_FLAG_NO_ENTER_ACTION != 0) EditorInfo.IME_ACTION_NONE else imeOptions and EditorInfo.IME_MASK_ACTION
             val action = when(id) {
                 EditorInfo.IME_ACTION_SEND -> "Send"
@@ -33,7 +39,7 @@ data class InputPolicy(val layout: String, val purpose: String, val action: Stri
                 EditorInfo.IME_ACTION_DONE, EditorInfo.IME_ACTION_GO -> "Done"
                 else -> "Newline"
             }
-            return InputPolicy(layout,purpose,action,id)
+            return InputPolicy(layout,purpose,action,id,allowsAssistance)
         }
     }
 

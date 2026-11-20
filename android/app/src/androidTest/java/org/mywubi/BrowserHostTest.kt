@@ -57,6 +57,32 @@ class BrowserHostTest {
         awaitValue("Submission count $value") {device.findObject(By.text("提交次数：$value"))}
     }
 
+    @Test fun addressBarCommitsChineseAndEnglishWithoutLosingFocus() {
+        val browser = InstrumentationRegistry.getArguments().getString("browserPackage", "com.android.chrome")
+        device.executeShellCommand("ime enable org.mywubi/.MyWubiService")
+        device.executeShellCommand("ime set org.mywubi/.MyWubiService")
+        device.executeShellCommand("am start -W -a android.intent.action.VIEW -d about:blank -p $browser")
+        val address = By.res(browser, "url_bar")
+        awaitValue("Browser address bar") { device.findObject(address) }.click()
+        awaitValue("Focused address bar") { device.findObject(address.focused(true)) }.text = ""
+        val initialMode = awaitValue("Enabled language switch") {
+            device.findObject(By.pkg("org.mywubi").desc(java.util.regex.Pattern.compile("中 → 英|英 → 中")).enabled(true))?.contentDescription
+        }
+        try {
+            if (initialMode == "英 → 中") key("英 → 中")
+            key("p")
+            awaitValue("Chinese address-bar candidate") {
+                device.findObject(By.pkg("org.mywubi").desc(java.util.regex.Pattern.compile("候选 这(?:，.*)?")))
+            }.click()
+            awaitValue("Committed Chinese") { device.findObject(By.res(browser, "url_bar").focused(true).text("这")) }
+            key("中 → 英"); key("p"); key("."); key("/")
+            awaitValue("Mixed address-bar text") { device.findObject(By.res(browser, "url_bar").focused(true).text("这p./")) }
+        } finally {
+            val restore = if (initialMode == "中 → 英") "英 → 中" else "中 → 英"
+            if (device.hasObject(By.pkg("org.mywubi").desc(restore).enabled(true))) key(restore)
+        }
+    }
+
     @Test fun enterCommitsBeforeSendAndEmptyTemporaryDoesNotSubmit() {
         open(1)
         key("拼音"); key("空格"); key("发送"); counter(0)
@@ -110,8 +136,7 @@ class BrowserHostTest {
         open(5)
         key("+"); key("1"); key("2"); expect("+12")
         open(6)
-        key("g");key("g");expect("gg")
-        key(".");expect("gg.")
+        key("/");key(".");expect("/.")
         open(7)
         key("a");key("@");expect("a@")
         open(8)
