@@ -618,6 +618,64 @@ impl TextService {
         self.lifecycle.owner()
     }
 
+    fn bind_edit_sink(&self, context: Option<&ITfContext>) {
+        let Some((revision, previous)) = self
+            .lifecycle
+            .begin_edit_binding(|old| context.is_some_and(|new| old.as_raw() == new.as_raw()))
+        else {
+            return;
+        };
+        if let Some((old, cookie)) = previous {
+            if let Ok(source) = old.cast::<ITfSource>() {
+                let _ = unsafe { source.UnadviseSink(cookie) };
+            }
+        }
+        let (Some(context), Some(owner)) = (context, self.clone_self_unknown()) else {
+            return;
+        };
+        let Ok(source) = context.cast::<ITfSource>() else {
+            return;
+        };
+        if let Ok(cookie) = unsafe { source.AdviseSink(&ITfTextEditSink::IID, &owner) } {
+            if !self
+                .lifecycle
+                .finish_edit_binding(revision, context.clone(), cookie)
+            {
+                let _ = unsafe { source.UnadviseSink(cookie) };
+            }
+        }
+    }
+
+    fn bind_focused_edit_sink(&self) {
+        let top = self
+            .lifecycle
+            .manager()
+            .and_then(|tm| unsafe { tm.GetFocus().ok() })
+            .and_then(|dm| unsafe { dm.GetTop().ok() });
+        self.bind_edit_sink(top.as_ref());
+    }
+
+    fn queue_context_read(&self) {
+        if self.prediction_check_queued.swap(true, Ordering::AcqRel) {
+            return;
+        }
+        let target = self.candidate_dispatch.lock().as_ref().map(|d| d.hwnd());
+        let posted = target.is_some_and(|hwnd| unsafe {
+            // WM_TIMER runs after pending bridge/input messages, unlike a posted
+            // callback which may still observe the legacy pre-commit selection.
+            windows::Win32::UI::WindowsAndMessaging::SetTimer(
+                Some(hwnd),
+                crate::candidate_dispatch::VERIFY_TIMER,
+                20,
+                None,
+            ) != 0
+        });
+        if !posted {
+            self.prediction_check_queued.store(false, Ordering::Release);
+            self.input.clear_prediction_context();
+        }
+    }
+
     fn choose_prediction(&self, version: u64, id: usize) {
         if version == 0 && id == 1 {
             self.pump_prediction();
@@ -654,6 +712,7 @@ impl TextService {
         // After an external notification (or just before a click), an unreadable
         // range cannot prove that a previously displayed suggestion is still current.
         if prediction && prefix.allowed && prefix.text.is_none() {
+            self.input.sync_prediction_context(editor, prefix);
             self.input.clear_prediction_context();
             return;
         }
@@ -767,6 +826,9 @@ impl TextService {
 
     /// 按键来自新 context 时，先结束旧文档的会话，失败则阻止本次输入。
     fn prepare_context(&self, context: Option<&ITfContext>) -> Result<bool> {
+        if context.is_some() {
+            self.bind_edit_sink(context);
+        }
         let composition = self.composition.lock().clone();
         if let (Some(comp), Some(context)) = (composition, context) {
             let previous = unsafe { comp.GetRange()?.GetContext()? };
@@ -794,11 +856,20 @@ impl TextService {
             &self.writing_host,
             self.writing_host.swap(true, Ordering::AcqRel),
         );
-        self.run_edit_inner(op, context, Arc::clone(&committed))
+        let result = self
+            .run_edit_inner(op, context, Arc::clone(&committed))
             .map_err(|error| crate::input_session::SessionEditError {
                 message: error.to_string(),
                 text_committed: committed.load(Ordering::Acquire),
-            })
+            });
+        if result.is_ok()
+            && matches!(op, EditSessionOp::CommitAndReplace { .. })
+            && self.config_snapshot().personal.collect
+        {
+            // Observe the committed range after TSF releases the write transaction.
+            self.queue_context_read();
+        }
+        result
     }
 
     fn run_edit_inner(
@@ -1487,20 +1558,7 @@ impl ITfTextInputProcessorEx_Impl for TextService_Impl {
             }
         }
 
-        // 注册 ITfTextEditSink（监听外部文本编辑）
-        if let Some(ref punk) = punk_self_later {
-            if let Ok(doc_mgr) = unsafe { tm.GetFocus() } {
-                if let Ok(ctx) = unsafe { doc_mgr.GetBase() } {
-                    if let Ok(source) = ctx.cast::<ITfSource>() {
-                        let iid_edit = <ITfTextEditSink as Interface>::IID;
-                        if let Ok(cookie) = unsafe { source.AdviseSink(&iid_edit, punk) } {
-                            self.lifecycle.record(Registration::TextEdit(ctx, cookie));
-                            log::debug!("[TSF] ITfTextEditSink 注册成功");
-                        }
-                    }
-                }
-            }
-        }
+        self.bind_focused_edit_sink();
 
         let activated = self.lifecycle.finish_activation(remove_registration);
         if !matches!(activated, Ok(true)) {
@@ -1596,27 +1654,11 @@ impl ITfTextEditSink_Impl for TextService_Impl {
     ) -> Result<()> {
         // Some TSF bridges expose the pre-commit selection during OnEndEdit.
         // Re-read on the apartment after the host has completed the transaction.
+        let config = self.config_snapshot();
         if !self.writing_host.load(Ordering::Acquire)
-            && (self.config_snapshot().prediction.enabled
-                || self.config_snapshot().personal.collect
-                || self.config_snapshot().personal.predict)
-            && !self.prediction_check_queued.swap(true, Ordering::AcqRel)
+            && (config.prediction.enabled || config.personal.collect || config.personal.predict)
         {
-            let target = self.candidate_dispatch.lock().as_ref().map(|d| d.hwnd());
-            let posted = target.is_some_and(|hwnd| unsafe {
-                // WM_TIMER runs after pending bridge/input messages, unlike a posted
-                // callback which may still observe the legacy pre-commit selection.
-                windows::Win32::UI::WindowsAndMessaging::SetTimer(
-                    Some(hwnd),
-                    crate::candidate_dispatch::VERIFY_TIMER,
-                    20,
-                    None,
-                ) != 0
-            });
-            if !posted {
-                self.prediction_check_queued.store(false, Ordering::Release);
-                self.input.clear_prediction_context();
-            }
+            self.queue_context_read();
         }
         // 如果 composition 被外部编辑破坏，ITfCompositionSink::OnCompositionTerminated
         // 会收到通知并清理状态。此处仅做日志监控。
@@ -1711,6 +1753,10 @@ impl ITfThreadMgrEventSink_Impl for TextService_Impl {
         if pdimfocus.as_ref() != _pdimprevfocus.as_ref() {
             self.input.lose_focus(|op| self.run_edit(op, None));
         }
+        let top = pdimfocus
+            .as_ref()
+            .and_then(|dm| unsafe { dm.GetTop().ok() });
+        self.bind_edit_sink(top.as_ref());
         let new_mgr = pdimfocus.as_ref().cloned();
         let old = std::mem::replace(&mut *self.focus_doc_mgr.lock(), new_mgr);
         drop(old);
@@ -1718,10 +1764,12 @@ impl ITfThreadMgrEventSink_Impl for TextService_Impl {
     }
 
     fn OnPushContext(&self, _pic: Ref<'_, ITfContext>) -> Result<()> {
+        self.bind_focused_edit_sink();
         Ok(())
     }
 
     fn OnPopContext(&self, _pic: Ref<'_, ITfContext>) -> Result<()> {
+        self.bind_focused_edit_sink();
         Ok(())
     }
 }
@@ -1766,6 +1814,11 @@ impl ITfKeyEventSink_Impl for TextService_Impl {
             self.input.clear_prediction_context();
             false
         };
+        // An editor may consume undo, delete or cursor movement without sending
+        // OnEndEdit. Observe the result after dispatch, without consuming the key.
+        if !handled && self.config_snapshot().personal.collect {
+            self.queue_context_read();
+        }
         Ok(BOOL(handled as i32))
     }
 

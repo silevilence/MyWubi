@@ -1,4 +1,6 @@
 //! Reproducible synthetic temporal comparison and optional sustained core replay.
+#[path = "personal_check/evaluation.rs"]
+mod evaluation;
 use personal_input::{store::Store, *};
 use std::{
     sync::{
@@ -9,6 +11,25 @@ use std::{
 };
 fn main() -> Result<()> {
     let args: Vec<_> = std::env::args().collect();
+    if let [_, op, config] = args.as_slice() {
+        if op == "rollback" {
+            let result = api::execute(std::path::Path::new(config), api::Command::Rollback)?;
+            println!("{}", serde_json::to_string(&result)?);
+            return Ok(());
+        }
+        if op == "store-path" {
+            println!(
+                "{}",
+                Store::beside_config(std::path::Path::new(config))?
+                    .root
+                    .display()
+            );
+            return Ok(());
+        }
+    }
+    if args.get(1).is_some_and(|s| s == "evaluate") {
+        return evaluation::run(&args[2..]);
+    }
     if args.get(1).is_some_and(|s| s == "export" || s == "import") {
         let root = args
             .get(2)

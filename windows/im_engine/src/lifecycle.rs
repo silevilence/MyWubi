@@ -43,6 +43,7 @@ enum Phase {
 struct State<M, O, C> {
     phase: Phase,
     cancel_activation: bool,
+    edit_revision: u64,
     manager: Option<M>,
     owner: Option<O>,
     tid: u32,
@@ -61,6 +62,7 @@ impl<M, O, C> Default for Lifecycle<M, O, C> {
             state: Mutex::new(State {
                 phase: Phase::Idle,
                 cancel_activation: false,
+                edit_revision: 0,
                 manager: None,
                 owner: None,
                 tid: 0,
@@ -92,6 +94,7 @@ impl<M: Clone, O: Clone, C: Clone> Lifecycle<M, O, C> {
         if state.phase != Phase::Idle || state.owner.is_none() {
             return false;
         }
+        state.edit_revision = state.edit_revision.wrapping_add(1);
         state.manager = Some(manager);
         state.tid = tid;
         state.phase = Phase::Activating;
@@ -103,6 +106,44 @@ impl<M: Clone, O: Clone, C: Clone> Lifecycle<M, O, C> {
         let mut state = self.state.lock();
         debug_assert!(matches!(state.phase, Phase::Activating | Phase::Active));
         state.records.push(registration);
+    }
+
+    /// Take the old cookie before calling COM. A newer focus change or a new
+    /// activation invalidates any subscription returned by a reentrant call.
+    pub fn begin_edit_binding(
+        &self,
+        same_context: impl Fn(&C) -> bool,
+    ) -> Option<(u64, Option<(C, u32)>)> {
+        let mut state = self.state.lock();
+        if !matches!(state.phase, Phase::Active | Phase::Activating) || state.cancel_activation {
+            return None;
+        }
+        let index = state
+            .records
+            .iter()
+            .position(|r| matches!(r, Registration::TextEdit(..)));
+        if index.is_some_and(
+            |i| matches!(&state.records[i], Registration::TextEdit(ctx, _) if same_context(ctx)),
+        ) {
+            return None;
+        }
+        let previous = index.and_then(|i| match state.records.remove(i) {
+            Registration::TextEdit(ctx, cookie) => Some((ctx, cookie)),
+            _ => None,
+        });
+        state.edit_revision = state.edit_revision.wrapping_add(1);
+        Some((state.edit_revision, previous))
+    }
+    pub fn finish_edit_binding(&self, revision: u64, context: C, cookie: u32) -> bool {
+        let mut state = self.state.lock();
+        if state.edit_revision != revision
+            || state.cancel_activation
+            || !matches!(state.phase, Phase::Active | Phase::Activating)
+        {
+            return false;
+        }
+        state.records.push(Registration::TextEdit(context, cookie));
+        true
     }
 
     /// 注册外调重入注销时延迟清理，直到所有迟到的成功注册都已记录。
@@ -268,6 +309,23 @@ mod tests {
         assert!(lifecycle.begin(7, 9));
         assert!(lifecycle.finish_activation::<()>(|_, _, _| Ok(())).unwrap());
         lifecycle
+    }
+
+    #[test]
+    fn focus_change_or_deactivation_discards_late_edit_subscription() {
+        let lifecycle: Lifecycle<u32, (), u32> = Lifecycle::default();
+        lifecycle.set_owner(());
+        assert!(lifecycle.begin(1, 1));
+        let (first, _) = lifecycle.begin_edit_binding(|_| false).unwrap();
+        let (second, _) = lifecycle.begin_edit_binding(|_| false).unwrap();
+        assert!(!lifecycle.finish_edit_binding(first, 10, 3));
+        assert!(lifecycle.finish_edit_binding(second, 20, 4));
+        assert!(lifecycle.begin_edit_binding(|ctx| *ctx == 20).is_none());
+        let (third, old) = lifecycle.begin_edit_binding(|_| false).unwrap();
+        assert_eq!(old, Some((20, 4)));
+        lifecycle.finish_activation::<()>(|_, _, _| Ok(())).unwrap();
+        lifecycle.deactivate::<()>(|_, _, _| Ok(())).unwrap();
+        assert!(!lifecycle.finish_edit_binding(third, 30, 5));
     }
 
     #[test]

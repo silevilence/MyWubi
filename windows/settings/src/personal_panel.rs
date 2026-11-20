@@ -13,6 +13,7 @@ pub fn run_background(config: &Path) {
         return;
     };
     let memory = model_ipc::MemoryPressure::new().ok();
+    let mut previous_input = None;
     loop {
         let Ok(settings) = core_engine::Config::load(config) else {
             return;
@@ -31,12 +32,14 @@ pub fn run_background(config: &Path) {
                     .wrapping_sub(input.dwTime)
                     > 30_000
         };
-        let allowed = model_ipc::auto_gpu_power_allowed()
+        let busy = previous_input.replace(input.dwTime) != Some(input.dwTime) && !idle;
+        let allowed = idle
+            && model_ipc::auto_gpu_power_allowed()
             && !memory
                 .as_ref()
                 .and_then(|m| m.is_low().ok())
                 .unwrap_or(false);
-        worker.update(config.to_owned(), allowed, !idle);
+        worker.update(config.to_owned(), allowed, busy);
         std::thread::sleep(std::time::Duration::from_secs(1));
     }
 }
@@ -46,6 +49,7 @@ pub struct PersonalPanel {
     password: String,
     encrypted: bool,
     replace: bool,
+    legacy_portable: bool,
     clear_models: bool,
     clear_confirm: bool,
     selected: Option<PathBuf>,
@@ -80,6 +84,7 @@ impl PersonalPanel {
                 }
                 Ok(value) => {
                     self.status = if value.get("data").is_some() {
+                        self.legacy_portable = value["legacy_portable"].as_bool().unwrap_or(false);
                         format!(
                             "记录 {} 条，占用 {} 字节，缺失 {} 条；个人模型：{}；学习：{}",
                             value["data"]["records"],
@@ -133,6 +138,13 @@ impl PersonalPanel {
                 ui.checkbox(&mut self.encrypted,"使用密码加密导出");
                 ui.add(egui::TextEdit::singleline(&mut self.password).password(true).hint_text("导出或导入密码"));
                 ui.small("密码不可恢复。明文包包含输入与上下文，请自行保管；交换文件不需要上传服务。");
+                if self.legacy_portable {
+                    ui.small("旧版便携目录仍有记录。确认这些记录属于你后，可导出并合并到当前 Windows 账户。");
+                    if ui.button("导出我的旧版便携记录").clicked() {
+                        let password = self.encrypted.then(||self.password.clone());
+                        self.start(config_path,move || rfd::FileDialog::new().set_file_name("legacy-personal.mwp").save_file().map(|path|Command::ExportLegacy{path,password}));
+                    }
+                }
                 if ui.button("导出个人数据").clicked(){
                     let password=self.encrypted.then(||self.password.clone());
                     self.start(config_path,move || rfd::FileDialog::new().set_file_name("personal.mwp").save_file().map(|path|Command::Export{path,password}));

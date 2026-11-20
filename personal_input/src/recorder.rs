@@ -23,6 +23,7 @@ pub struct Recorder {
 impl Recorder {
     pub fn new(config_path: PathBuf) -> Result<Self> {
         let source = crate::identity()?;
+        let store = crate::store::Store::beside_config(&config_path)?;
         let (tx, rx) = mpsc::sync_channel::<(u64, Event)>(128);
         let epoch = Arc::new(AtomicU64::new(0));
         let worker_epoch = epoch.clone();
@@ -33,7 +34,6 @@ impl Recorder {
         let worker = std::thread::Builder::new()
             .name("personal-writer".into())
             .spawn(move || {
-                let store = crate::store::Store::beside_config(&config_path);
                 while let Ok(first) = rx.recv() {
                     let current = worker_epoch.load(Ordering::Acquire);
                     let mut batch = Vec::new();
@@ -123,6 +123,7 @@ impl Recorder {
             .is_err()
         {
             self.dropped.fetch_add(1, Ordering::Relaxed);
+            return None;
         }
         Some(id)
     }

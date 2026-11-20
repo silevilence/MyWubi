@@ -2,7 +2,7 @@
 use crate::{learning, store::Store};
 pub fn process_lease(config: &std::path::Path) -> crate::Result<std::fs::File> {
     use fs2::FileExt;
-    let store = Store::beside_config(config);
+    let store = Store::beside_config(config)?;
     std::fs::create_dir_all(&store.root)?;
     let file = std::fs::OpenOptions::new()
         .create(true)
@@ -89,7 +89,9 @@ impl Worker {
                     };
                     (config, guard.status.clone())
                 };
-                let store = Store::beside_config(&config);
+                let Ok(store) = Store::beside_config(&config) else {
+                    continue;
+                };
                 if let Ok(mut value) = serde_json::to_value(status) {
                     value["observed_ms"] = crate::now_ms().into();
                     if let Ok(bytes) = serde_json::to_vec(&value) {
@@ -138,7 +140,7 @@ impl Worker {
                     let _ = std::fs::remove_file(request);
                 }
                 let start = Instant::now();
-                let result = learning::train(&Store::beside_config(&config), &signal);
+                let result = learning::train(&store, &signal);
                 if let Ok(mut guard) = state.0.lock() {
                     guard.status.elapsed_ms = start.elapsed().as_millis() as u64;
                     match result {

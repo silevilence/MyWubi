@@ -26,9 +26,29 @@ pub struct Samples {
     pub kept: Vec<Sample>,
     pub excluded: Vec<Excluded>,
 }
-pub fn build(events: impl IntoIterator<Item = Event>) -> Samples {
-    let mut events: Vec<_> = events.into_iter().collect();
+/// Establish a total order without reversing events from a producer whose clock moved back.
+pub fn chronological(mut events: Vec<Event>) -> Vec<Event> {
     events.sort_by(|a, b| a.source.cmp(&b.source).then(a.sequence.cmp(&b.sequence)));
+    let mut previous = None;
+    for event in &mut events {
+        if let Some((source, time)) = &previous {
+            if source == &event.source {
+                event.time_ms = event.time_ms.max(u64::saturating_add(*time, 1));
+            }
+        }
+        previous = Some((event.source.clone(), event.time_ms));
+    }
+    events.sort_by(|a, b| {
+        a.time_ms
+            .cmp(&b.time_ms)
+            .then_with(|| a.source.cmp(&b.source))
+            .then(a.sequence.cmp(&b.sequence))
+    });
+    events
+}
+
+pub fn build(events: impl IntoIterator<Item = Event>) -> Samples {
+    let events = chronological(events.into_iter().collect());
     let withdrawn: BTreeSet<_> = events
         .iter()
         .filter_map(|event| match &event.change {
@@ -44,10 +64,7 @@ pub fn build(events: impl IntoIterator<Item = Event>) -> Samples {
         ..Default::default()
     };
     let mut seen = BTreeSet::new();
-    let mut times = std::collections::BTreeMap::<String, u64>::new();
     for event in events {
-        let time = times.entry(event.source.clone()).or_default();
-        *time = event.time_ms.max(time.saturating_add(1));
         let Change::Commit {
             text,
             source,
@@ -94,7 +111,7 @@ pub fn build(events: impl IntoIterator<Item = Event>) -> Samples {
             source: source.clone(),
             session: event.session,
             sequence: event.sequence,
-            time_ms: *time,
+            time_ms: event.time_ms,
             left: event.before.left.unwrap_or_default(),
             right: right.clone(),
             target: text.clone(),
@@ -113,10 +130,5 @@ pub fn build(events: impl IntoIterator<Item = Event>) -> Samples {
             },
         });
     }
-    // Clock ordering is only meaningful across sources to the precision supplied
-    // by hosts. Sequence orders ties and preserves each source's causal order.
-    result
-        .kept
-        .sort_by(|a, b| a.time_ms.cmp(&b.time_ms).then(a.event.cmp(&b.event)));
     result
 }

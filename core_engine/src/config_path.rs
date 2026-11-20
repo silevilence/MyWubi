@@ -124,6 +124,66 @@ pub fn is_portable_mode(exe_dir: &Path) -> bool {
     exe_dir.join("config.toml").exists()
 }
 
+/// Keep personal history per account even if several users share a portable config.
+pub fn personal_store_path(config: &Path) -> Option<PathBuf> {
+    let parent = config.parent().unwrap_or_else(|| Path::new("."));
+    #[cfg(windows)]
+    {
+        use sha2::{Digest, Sha256};
+        use std::sync::LazyLock;
+        static LOCAL: LazyLock<Option<PathBuf>> = LazyLock::new(dirs::data_local_dir);
+        static ROAMING: LazyLock<Option<PathBuf>> = LazyLock::new(dirs::config_dir);
+        fn key(path: &Path) -> Vec<u16> {
+            use std::os::windows::ffi::OsStrExt;
+            let wide: Vec<_> = path
+                .as_os_str()
+                .encode_wide()
+                .map(|c| match c {
+                    65..=90 => c + 32,
+                    47 => 92,
+                    _ => c,
+                })
+                .collect();
+            let extended: Vec<_> = r"\\?\".encode_utf16().collect();
+            let unc: Vec<_> = r"\\?\unc\".encode_utf16().collect();
+            if let Some(tail) = wide.strip_prefix(unc.as_slice()) {
+                return [92, 92].into_iter().chain(tail.iter().copied()).collect();
+            }
+            wide.strip_prefix(extended.as_slice())
+                .unwrap_or(&wide)
+                .to_vec()
+        }
+        let absolute = std::path::absolute(config).ok()?;
+        let normalized = key(&absolute);
+        if ![LOCAL.as_deref(), ROAMING.as_deref()]
+            .into_iter()
+            .flatten()
+            .any(|private| {
+                let mut prefix = key(private);
+                prefix.push(92);
+                normalized.starts_with(&prefix)
+                    && !absolute
+                        .components()
+                        .any(|c| c == std::path::Component::ParentDir)
+            })
+        {
+            let mut hash = Sha256::new();
+            for unit in normalized {
+                hash.update(unit.to_le_bytes());
+            }
+            return Some(
+                LOCAL
+                    .as_ref()?
+                    .join("MyWubi")
+                    .join("portable")
+                    .join(format!("{:x}", hash.finalize()))
+                    .join("personal"),
+            );
+        }
+    }
+    Some(parent.join("personal"))
+}
+
 /// Optional packages stay with user configuration, outside versioned binaries.
 pub fn model_store_path(config_path: &Path) -> PathBuf {
     config_path

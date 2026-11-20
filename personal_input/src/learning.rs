@@ -47,8 +47,12 @@ pub struct Metrics {
     pub top3: usize,
     pub covered: usize,
     pub wrong: usize,
-    pub saved_keys: usize,
-    pub new_phrases: usize,
+    /// Historical model JSON name; this counts characters and is only a proxy.
+    #[serde(rename = "saved_keys")]
+    pub hit_characters_minus_one: usize,
+    /// Historical model JSON name; membership in a dictionary is not tested here.
+    #[serde(rename = "new_phrases")]
+    pub multi_character_hits: usize,
     pub latency_us_p50: u64,
     pub latency_us_p95: u64,
     pub latency_us_p99: u64,
@@ -65,6 +69,14 @@ fn suffix(text: &str, length: usize) -> String {
 fn prefix(text: &str, length: usize) -> String {
     text.chars().take(length).collect()
 }
+/// A continuation must not insert a second copy of text already at the caret.
+pub fn fits_right(word: &str, right: &str) -> bool {
+    right.is_empty()
+        || (!word.starts_with(right)
+            && !word
+                .char_indices()
+                .any(|(start, _)| right.starts_with(&word[start..])))
+}
 impl Model {
     pub fn predict(&self, left: &str, right: &str, limit: usize) -> Vec<String> {
         if left.is_empty() {
@@ -77,8 +89,7 @@ impl Model {
                 || phrase.left.is_empty()
                 || phrase.right != right
                 || !core_engine::assistance::prediction::valid_proposal(left, &phrase.text)
-                || (!right.is_empty()
-                    && (phrase.text.starts_with(&right) || right.starts_with(&phrase.text)))
+                || !fits_right(&phrase.text, &right)
             {
                 continue;
             }
@@ -159,6 +170,29 @@ fn fit(
         evaluation: Metrics::default(),
     })
 }
+/// Fit an in-memory model under the production sample, time and size budgets.
+pub fn replay_model(samples: &[Sample], algorithm: Algorithm) -> Result<Option<Model>> {
+    let supported: Vec<_> = samples
+        .iter()
+        .rev()
+        .filter(|s| core_engine::assistance::prediction::valid_proposal(&s.left, &s.target))
+        .take(MAX_SAMPLES)
+        .cloned()
+        .collect();
+    if supported.len() < MIN_SAMPLES {
+        return Ok(None);
+    }
+    let model = fit(
+        &supported,
+        algorithm,
+        &AtomicBool::new(false),
+        Instant::now() + Duration::from_secs(BATCH_SECONDS),
+    )?;
+    if !model.valid() || serde_json::to_vec(&model)?.len() > MAX_MODEL_BYTES {
+        return Err(Error::Invalid("评测模型超过发布预算"));
+    }
+    Ok(Some(model))
+}
 pub fn evaluate(model: &Model, samples: &[Sample]) -> Metrics {
     evaluate_checked(
         model,
@@ -190,8 +224,8 @@ fn evaluate_checked(
         result.top1 += usize::from(candidates.first() == Some(&sample.target));
         if candidates.contains(&sample.target) {
             result.top3 += 1;
-            result.saved_keys += sample.target.chars().count().saturating_sub(1);
-            result.new_phrases += usize::from(sample.target.chars().count() > 1);
+            result.hit_characters_minus_one += sample.target.chars().count().saturating_sub(1);
+            result.multi_character_hits += usize::from(sample.target.chars().count() > 1);
         } else if !candidates.is_empty() {
             result.wrong += 1;
         }
@@ -246,18 +280,34 @@ pub fn compare(samples: &[Sample], cancel: &AtomicBool, deadline: Instant) -> Re
         quality_accepted: false,
     })
 }
-pub fn load(store: &Store) -> Result<Model> {
-    let path = store.root.join("model.json");
-    if path.metadata()?.len() > MAX_MODEL_BYTES as u64 {
+fn validated_model(path: &std::path::Path, state: &crate::store::Snapshot) -> Result<Model> {
+    use std::io::Read;
+    let mut bytes = Vec::new();
+    std::fs::File::open(path)?
+        .take(MAX_MODEL_BYTES as u64 + 1)
+        .read_to_end(&mut bytes)?;
+    if bytes.len() > MAX_MODEL_BYTES {
         return Err(Error::Invalid("个人模型超过资源上限"));
     }
-    let model: Model = serde_json::from_slice(&std::fs::read(path)?)?;
-    let state = store.snapshot()?;
-    let withdrawn=state.events.values().any(|e|matches!(&e.change,crate::Change::Edit{related:Some(id),operation:crate::EditKind::Delete|crate::EditKind::Replace|crate::EditKind::Undo} if e.evidence==crate::Evidence::Observed && model.trained_events.contains(id)));
+    let model: Model = serde_json::from_slice(&bytes)?;
+    let withdrawn = state.events.values().any(|e| {
+        e.evidence == crate::Evidence::Observed
+            && matches!(&e.change, crate::Change::Edit {related: Some(id), operation:
+            crate::EditKind::Delete | crate::EditKind::Replace | crate::EditKind::Undo
+        } if model.trained_events.contains(id))
+    });
     if !model.valid() || model.data_epoch != state.data_epoch || withdrawn {
         return Err(Error::Invalid("个人模型失效，需要重新训练"));
     }
     Ok(model)
+}
+pub fn load(store: &Store) -> Result<Model> {
+    let _lock = store.lock()?;
+    let path = store.root.join("model.json");
+    if !path.is_file() {
+        return Err(Error::Invalid("个人模型尚未就绪"));
+    }
+    validated_model(&path, &store.load_locked()?)
 }
 pub fn train(store: &Store, cancel: &AtomicBool) -> Result<Model> {
     let _training = {
@@ -356,11 +406,10 @@ pub fn train(store: &Store, cancel: &AtomicBool) -> Result<Model> {
 }
 pub fn rollback(store: &Store) -> Result<()> {
     let _lock = store.lock()?;
-    let bytes = std::fs::read(store.root.join("previous-model.json"))?;
-    let model: Model = serde_json::from_slice(&bytes)?;
-    if !model.valid() || model.data_epoch != store.load_locked()?.data_epoch {
-        return Err(Error::Invalid("上一版本不适用于当前数据"));
-    }
-    core_engine::data::atomic_write(&store.root.join("model.json"), &bytes)?;
+    let model = validated_model(
+        &store.root.join("previous-model.json"),
+        &store.load_locked()?,
+    )?;
+    core_engine::data::atomic_write(&store.root.join("model.json"), &serde_json::to_vec(&model)?)?;
     Ok(())
 }

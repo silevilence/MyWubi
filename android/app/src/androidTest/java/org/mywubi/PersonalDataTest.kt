@@ -53,6 +53,48 @@ class PersonalDataTest {
             manage("Clear","models" to true);assertTrue(manage("Status").isNull("model"))
         } finally {capture("Close");root.deleteRecursively()}
     }
+    @Test fun shortAndMissingHostReadsKeepTheirMeaningAcrossEditors() {
+        val app = InstrumentationRegistry.getInstrumentation().targetContext
+        val root = File(app.cacheDir, "short-read-" + System.nanoTime()).apply { mkdirs() }
+        val file = File(root, "config.toml").apply { writeText("[personal]\ncollect=true\n") }
+        val capture = PersonalCapture()
+        var reads = 0
+        var left: String? = "甲".repeat(512) + "乙"
+        val host = java.lang.reflect.Proxy.newProxyInstance(
+            android.view.inputmethod.InputConnection::class.java.classLoader,
+            arrayOf(android.view.inputmethod.InputConnection::class.java)
+        ) { _, method, _ ->
+            reads++
+            when(method.name) {
+                "getTextBeforeCursor" -> left
+                "getTextAfterCursor" -> null
+                else -> error("unexpected host read")
+            }
+        } as android.view.inputmethod.InputConnection
+        try {
+            capture.configure(file, JSONObject().put("collect", true))
+            capture.gate(false, "private")
+            assertNull(capture.observe(host, 700, 700))
+            assertEquals(0, reads)
+            capture.gate(true, "editor-one")
+            val first = requireNotNull(capture.observe(host, 700, 700))
+            assertEquals("甲".repeat(511) + "乙", first.getString("left"))
+            assertTrue(first.isNull("right"))
+            left = "短"
+            val short = requireNotNull(capture.observe(host, 700, 700))
+            assertEquals("短", short.getString("left"))
+            assertTrue(short.getBoolean("truncated"))
+            capture.gate(false, "disconnected")
+            capture.gate(true, "editor-two")
+            left = null
+            val missing = requireNotNull(capture.observe(host, 0, 0))
+            assertTrue(missing.isNull("left"))
+        } finally {
+            capture.close()
+            root.deleteRecursively()
+        }
+    }
+
     @Test fun windowsPackagesRoundTripThroughAndroidWithoutDuplicatingEvents() {
         val app=InstrumentationRegistry.getInstrumentation().targetContext
         val external=app.getExternalFilesDir(null)!!

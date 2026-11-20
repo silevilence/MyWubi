@@ -19,7 +19,7 @@ class PersonalCapture {
     val enabled get() = allowed && settings.optBoolean("collect")
     fun configure(file: File, personal: JSONObject, prediction:JSONObject = JSONObject()) { config = file; settings = personal; modelId=prediction.optJSONObject("model")?.let{it.optString("id")+":"+it.optString("version")}; gate(allowed, session) }
     fun gate(value: Boolean, editor: String) {
-        if (editor != session || !value) { lastDisplay = ""; context = JSONObject() }
+        if (editor != session || !value || !settings.optBoolean("collect")) { lastDisplay = ""; context = JSONObject() }
         allowed = value; session = editor
         val file = config ?: return
         send(JSONObject().put("op", "Configure").put("config", file.absolutePath)
@@ -30,24 +30,28 @@ class PersonalCapture {
     }
     fun observe(connection: InputConnection?, start: Int, end: Int, external: Boolean = false): JSONObject? {
         if (!enabled) return null
-        fun read(block: () -> CharSequence?): Any = try {
-            val text = block()?.toString()
-            if (text == null) JSONObject.NULL else {
-                var end = minOf(text.length,512)
-                if(end>0 && text[end-1].isHighSurrogate())end--
-                val start = if(end>0 && text[0].isLowSurrogate()) 1 else 0
-                text.substring(start,end)
-            }
-        } catch (_: RuntimeException) { JSONObject.NULL }
-        val next = JSONObject().put("revision", ++revision)
-            .put("left", read { connection?.getTextBeforeCursor(512, 0) })
-            .put("right", read { connection?.getTextAfterCursor(512, 0) })
-            .put("selected", if(start >= 0 && start == end) "" else read { connection?.getSelectedText(0) })
-            .put("selection", if(start >= 0 && end >= 0) JSONObject().put("start",start).put("end",end).put("unit","Utf16").put("absolute",true) else JSONObject.NULL)
-            .put("truncated",true).put("discontinuity",false)
+        val next = readContext(connection, start, end)
         context = next
         send(JSONObject().put("op","Context").put("context",next).put("external",external))
         return next
+    }
+    private fun readContext(connection: InputConnection?, start: Int, end: Int): JSONObject {
+        fun read(tail: Boolean = false, block: () -> CharSequence?): Any {
+            val raw = try { block() } catch (_: RuntimeException) { null } ?: return JSONObject.NULL
+            val bounded = if (tail) raw.takeLast(512) else raw.take(512)
+            var first = 0
+            var last = bounded.length
+            if (first < last && bounded[first].isLowSurrogate()) first++
+            if (first < last && bounded[last - 1].isHighSurrogate()) last--
+            return bounded.subSequence(first, last).toString()
+        }
+        return JSONObject().put("revision", ++revision)
+            .put("left", read(true) { connection?.getTextBeforeCursor(512, 0) })
+            .put("right", read { connection?.getTextAfterCursor(512, 0) })
+            .put("selected", if (start >= 0 && start == end) "" else read { connection?.getSelectedText(0) })
+            .put("selection", if (start >= 0 && end >= 0) JSONObject().put("start", start)
+                .put("end", end).put("unit", "Utf16").put("absolute", true) else JSONObject.NULL)
+            .put("truncated", true).put("discontinuity", false)
     }
     fun operation(connection: InputConnection?, operation: JSONObject?, outcome: Any, start: Int, end: Int) {
         if (!enabled || operation == null) return
@@ -60,13 +64,20 @@ class PersonalCapture {
             // bounded readback only for completed commits without a new preedit.
             if (commit != null && operation.has("CommitAndReplace")) {
                 val text = commit.optString("text")
-                val before = try { connection?.getTextBeforeCursor(512,0)?.toString() } catch (_:RuntimeException) { null }
+                val observed = readContext(connection, start, end)
                 val left = context.opt("left") as? String
-                if (left != null && before != null && text.isNotEmpty() && before.endsWith((left + text).takeLast(512))) confirmed = "Confirmed"
+                val right = context.opt("right") as? String
+                val expected = left?.let { (it + text).takeLast(512).dropWhile(Char::isLowSurrogate) }
+                if (text.isNotEmpty() && expected != null && right != null &&
+                    observed.opt("left") == expected && observed.opt("right") == right) {
+                    confirmed = "Confirmed"
+                    after = observed
+                }
             }
         } else if (outcome == "RejectedBeforeWrite") confirmed = "Rejected"
         send(JSONObject().put("op","Operation").put("operation",operation).put("outcome",confirmed)
             .put("after",after ?: JSONObject.NULL).put("method",method))
+        if (after != null) context = after
     }
     fun nonLearningCommit(outcome: Any) {
         if(!enabled || outcome=="RejectedBeforeWrite")return
@@ -92,5 +103,5 @@ class PersonalCapture {
         lastDisplay = display.toString()
         send(JSONObject().put("op","Display").put("mode",state.optJSONObject("view")?.optString("mode") ?: "android").put("display",display))
     }
-    fun close() { allowed=false; send(JSONObject().put("op","Close")) }
+    fun close() { allowed=false; context=JSONObject(); lastDisplay=""; send(JSONObject().put("op","Close")) }
 }

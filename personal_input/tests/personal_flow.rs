@@ -68,6 +68,44 @@ fn exchange_roundtrips_encrypted_and_plaintext_without_changing_identity() {
     );
 }
 #[test]
+fn offline_replay_uses_only_corrections_known_at_each_cutoff() {
+    let dir = tempfile::tempdir().unwrap();
+    let store = Store::new(dir.path().join("data"));
+    let mut events: Vec<_> = (1..=101).map(event).collect();
+    events[70].change = Change::Edit {
+        operation: EditKind::Undo,
+        related: Some(events[0].id.clone()),
+    };
+    store.append(events, 0, &config()).unwrap();
+    let package = dir.path().join("history.bin");
+    let table = dir.path().join("test.dict");
+    std::fs::write(&package, exchange::export(&store, Some("fixture")).unwrap()).unwrap();
+    std::fs::write(&table, "g\t图书馆\n").unwrap();
+    let output = std::process::Command::new(env!("CARGO_BIN_EXE_personal_check"))
+        .arg("evaluate")
+        .arg(package)
+        .arg(table)
+        .env("MYWUBI_EVAL_PASSWORD", "fixture")
+        .output()
+        .unwrap();
+    assert!(
+        output.status.success(),
+        "{}",
+        String::from_utf8_lossy(&output.stderr)
+    );
+    let report: serde_json::Value = serde_json::from_slice(&output.stdout).unwrap();
+    let stages = report["stages"].as_array().unwrap();
+    assert_eq!(stages[0]["trainable"], 40);
+    assert_eq!(stages[1]["trainable"], 60);
+    assert_eq!(stages[2]["trainable"], 79);
+    assert_eq!(
+        stages[2]["personal"]["by_past_context"]["repeated_target"]["top1"],
+        20
+    );
+    assert!(report["observed_net_keys_saved"].is_null());
+    assert!(!String::from_utf8_lossy(&output.stdout).contains("图书馆"));
+}
+#[test]
 fn export_preserves_edit_identity_after_referenced_record_is_pruned() {
     let dir = tempfile::tempdir().unwrap();
     let store = Store::new(dir.path());
@@ -247,7 +285,7 @@ fn disabled_sensitive_and_revoked_queue_never_write_text() {
     let mut cfg = core_engine::Config::default();
     cfg.personal.collect = true;
     cfg.save(&path).unwrap();
-    let store = Store::beside_config(&path);
+    let store = Store::beside_config(&path).unwrap();
     std::fs::create_dir_all(&store.root).unwrap();
     let lock = std::fs::OpenOptions::new()
         .create(true)
@@ -311,7 +349,14 @@ fn normal_shutdown_drains_authorized_events() {
     let e = event(1);
     recorder.record("main", e.before, None, e.change, Evidence::Observed);
     drop(recorder);
-    assert_eq!(Store::beside_config(&path).stats().unwrap().records, 1);
+    assert_eq!(
+        Store::beside_config(&path)
+            .unwrap()
+            .stats()
+            .unwrap()
+            .records,
+        1
+    );
 }
 #[test]
 fn records_without_usable_prefix_do_not_publish_a_ready_model() {
@@ -327,4 +372,168 @@ fn records_without_usable_prefix_do_not_publish_a_ready_model() {
     store.append(events, 0, &config()).unwrap();
     assert!(learning::train(&store, &AtomicBool::new(false)).is_err());
     assert!(!store.root.join("model.json").exists());
+}
+
+#[test]
+fn capacity_eviction_keeps_snapshot_within_budget_across_restarts() {
+    let dir = tempfile::tempdir().unwrap();
+    let store = Store::new(dir.path());
+    let config = PersonalConfig {
+        max_mb: 1,
+        ..config()
+    };
+    let records = (1..=3100)
+        .map(|n| {
+            let mut e = event(n);
+            e.before.right = Some("文".repeat(128));
+            e
+        })
+        .collect();
+    store.append(records, 0, &config).unwrap();
+    let stats = Store::new(dir.path()).stats().unwrap();
+    assert!(stats.records > 0 && stats.records < 3100);
+    assert!(stats.bytes <= 1024 * 1024);
+    let snapshot = store.snapshot().unwrap();
+    assert!(snapshot.events.contains_key(&event(3100).id));
+    assert!(snapshot.retired.len() <= 1024);
+}
+
+#[test]
+fn later_correction_does_not_leak_into_earlier_training_window() {
+    let mut later = event(3);
+    later.time_ms = 1;
+    later.change = Change::Edit {
+        operation: EditKind::Undo,
+        related: Some(event(1).id),
+    };
+    let events = samples::chronological(vec![later, event(2), event(1)]);
+    assert_eq!(
+        events.iter().map(|e| e.sequence).collect::<Vec<_>>(),
+        vec![1, 2, 3]
+    );
+    assert_eq!(samples::build(events[..2].iter().cloned()).kept.len(), 2);
+    assert_eq!(samples::build(events).kept.len(), 1);
+}
+
+#[test]
+fn observed_reversal_withdraws_only_the_immediately_preceding_confirmed_insert() {
+    use core_engine::session::EditSessionOp;
+    for interrupted in [false, true] {
+        let dir = tempfile::tempdir().unwrap();
+        let path = dir.path().join("config.toml");
+        let cfg = core_engine::Config {
+            personal: config(),
+            ..Default::default()
+        };
+        cfg.save(&path).unwrap();
+        let mut capture = capture::Capture::new(path.clone()).unwrap();
+        capture.configure(&cfg.personal, true, "editor");
+        let before = event(1).before;
+        capture.context(before.clone(), false);
+        let mut after = before.clone();
+        after.left = Some("明天去图书馆".into());
+        capture.operation(
+            "main",
+            &EditSessionOp::CommitAndReplace {
+                text: "图书馆".into(),
+                replace_len: 0,
+            },
+            Outcome::Confirmed,
+            Some(after),
+            "space",
+        );
+        if interrupted {
+            capture.context(Context::default(), true);
+        }
+        capture.context(before, true);
+        drop(capture);
+        let store = Store::beside_config(&path).unwrap();
+        let observed = store.snapshot().unwrap();
+        assert_eq!(
+            observed.events.values().any(|e| matches!(
+                &e.change,
+                Change::Edit {
+                    operation: EditKind::Delete,
+                    related: Some(_)
+                }
+            )),
+            !interrupted
+        );
+    }
+}
+
+#[cfg(windows)]
+#[test]
+fn portable_store_is_account_local_and_stable_for_windows_path_spellings() {
+    let a = Store::beside_config(std::path::Path::new(r"C:\MI-Shared\config.toml")).unwrap();
+    let b = Store::beside_config(std::path::Path::new(r"\\?\c:\mi-shared\config.toml")).unwrap();
+    assert_eq!(a.root, b.root);
+    assert!(a
+        .root
+        .starts_with(std::env::var_os("LOCALAPPDATA").unwrap()));
+    let other = Store::beside_config(std::path::Path::new(r"C:\MI-Other\config.toml")).unwrap();
+    assert_ne!(a.root, other.root);
+}
+
+#[test]
+fn rollback_rejects_a_model_containing_a_withdrawn_sample() {
+    let dir = tempfile::tempdir().unwrap();
+    let store = Store::new(dir.path());
+    fill(&store, 40);
+    let cancel = AtomicBool::new(false);
+    learning::train(&store, &cancel).unwrap();
+    store
+        .append((41..=60).map(event).collect(), 0, &config())
+        .unwrap();
+    learning::train(&store, &cancel).unwrap();
+    let current = std::fs::read(store.root.join("model.json")).unwrap();
+    let mut correction = event(61);
+    correction.change = Change::Edit {
+        operation: EditKind::Undo,
+        related: Some(event(1).id),
+    };
+    store.append(vec![correction], 0, &config()).unwrap();
+    assert!(learning::rollback(&store).is_err());
+    assert_eq!(
+        std::fs::read(store.root.join("model.json")).unwrap(),
+        current
+    );
+}
+
+#[test]
+#[ignore = "allocates a full 128 MiB synthetic store"]
+fn maximum_store_capacity_recovers_and_accepts_new_input_after_eviction() {
+    let dir = tempfile::tempdir().unwrap();
+    let store = Store::new(dir.path());
+    let cfg = PersonalConfig {
+        max_mb: 128,
+        ..config()
+    };
+    // Large bounded observations exercise the byte cap without depending on
+    // the machine's filesystem capacity. The full-volume case runs separately.
+    for batch in 0..16 {
+        let events = (1..=3000)
+            .map(|n| {
+                let mut e = event(batch * 3000 + n);
+                e.before.left = Some("前".repeat(512));
+                e.before.right = Some("后".repeat(512));
+                e
+            })
+            .collect();
+        store.append(events, 0, &cfg).unwrap();
+    }
+    let reopened = Store::new(dir.path());
+    reopened.append(vec![event(48001)], 0, &cfg).unwrap();
+    let state = reopened.snapshot().unwrap();
+    assert!(state.events.len() < 48001 && state.events.contains_key(&event(48001).id));
+    assert!(!state.retired.is_empty());
+    assert!(serde_json::to_vec(&state).unwrap().len() <= 128 * 1024 * 1024);
+}
+
+#[test]
+fn middle_insert_rejects_partial_duplication_of_the_existing_right_context() {
+    assert!(!learning::fits_right("北京大学", "大学生"));
+    assert!(!learning::fits_right("资料", "资料"));
+    assert!(learning::fits_right("图书馆", "出发"));
+    assert!(learning::fits_right("图书馆", ""));
 }

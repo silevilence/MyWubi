@@ -18,6 +18,11 @@ pub enum Command {
         path: PathBuf,
         password: Option<String>,
     },
+    #[cfg(windows)]
+    ExportLegacy {
+        path: PathBuf,
+        password: Option<String>,
+    },
     Preview {
         path: PathBuf,
         password: Option<String>,
@@ -36,7 +41,7 @@ pub enum Command {
     Schedule,
     Rollback,
 }
-fn read_package(path: &Path) -> Result<Vec<u8>> {
+pub fn read_package(path: &Path) -> Result<Vec<u8>> {
     use std::io::Read;
     let mut bytes = Vec::new();
     std::fs::File::open(path)?
@@ -47,16 +52,26 @@ fn read_package(path: &Path) -> Result<Vec<u8>> {
     }
     Ok(bytes)
 }
+#[cfg(windows)]
+fn legacy_store(config: &Path, current: &Store) -> Option<Store> {
+    let root = config.parent()?.join("personal");
+    (root != current.root && root.join("store.lock").is_file()).then(|| Store::new(root))
+}
+
 pub fn execute(config: &Path, command: Command) -> Result<serde_json::Value> {
-    let store = Store::beside_config(config);
+    let store = Store::beside_config(config)?;
     match command {
         Command::Status => {
             let model = learning::load(&store).ok();
             let learning = std::fs::read(store.root.join("learning-status.json"))
                 .ok()
                 .and_then(|bytes| serde_json::from_slice::<serde_json::Value>(&bytes).ok());
+            #[cfg(windows)]
+            let legacy = legacy_store(config, &store).is_some();
+            #[cfg(not(windows))]
+            let legacy = false;
             Ok(
-                serde_json::json!({"data":store.stats()?,"learning":learning,"model":model.as_ref().map(|m| serde_json::json!({"version":m.version,"samples":m.sample_count,"updated":m.created_ms,"algorithm":m.algorithm,"bytes":std::fs::metadata(store.root.join("model.json")).ok().map(|f|f.len())})),"quality":"experimental"}),
+                serde_json::json!({"legacy_portable":legacy,"data":store.stats()?,"learning":learning,"model":model.as_ref().map(|m| serde_json::json!({"version":m.version,"samples":m.sample_count,"updated":m.created_ms,"algorithm":m.algorithm,"bytes":std::fs::metadata(store.root.join("model.json")).ok().map(|f|f.len())})),"quality":"experimental"}),
             )
         }
         Command::Schedule => {
@@ -72,6 +87,14 @@ pub fn execute(config: &Path, command: Command) -> Result<serde_json::Value> {
             Ok(
                 serde_json::json!({"message":"已请求更新；输入空闲且资源允许时执行，Android 请保持输入法可见"}),
             )
+        }
+        #[cfg(windows)]
+        Command::ExportLegacy { path, password } => {
+            let legacy =
+                legacy_store(config, &store).ok_or(Error::Invalid("未找到旧版便携数据"))?;
+            let bytes = exchange::export(&legacy, password.as_deref())?;
+            core_engine::data::atomic_write(&path, &bytes)?;
+            Ok(serde_json::json!({"message":"旧版数据已导出，可在当前账户预览并合并"}))
         }
         Command::Export { path, password } => {
             let bytes = exchange::export(&store, password.as_deref())?;

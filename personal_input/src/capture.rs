@@ -10,8 +10,36 @@ pub struct Capture {
     context: Context,
     display: Option<Display>,
     editor: String,
-    last_commit: Option<(String, String, String, Option<String>, bool)>,
+    last_commit: Option<PendingCommit>,
 }
+struct PendingCommit {
+    id: String,
+    text: String,
+    before: Context,
+    observed: bool,
+}
+
+impl PendingCommit {
+    fn matches_insert(&self, next: &Context) -> bool {
+        self.before.left.as_ref().is_some_and(|left| {
+            next.left.as_deref() == Some(format!("{left}{}", self.text).as_str())
+        }) && self.before.right.is_some()
+            && self.before.right == next.right
+            && next.selected.as_deref() == Some("")
+            && !next.discontinuity
+    }
+
+    fn restored(&self, next: &Context) -> bool {
+        self.observed
+            && !next.discontinuity
+            && self.before.left == next.left
+            && self.before.right == next.right
+            && self.before.selected.is_some()
+            && self.before.selected == next.selected
+            && self.before.selection == next.selection
+    }
+}
+
 impl Capture {
     pub fn new(config: PathBuf) -> Result<Self> {
         Ok(Self {
@@ -56,45 +84,47 @@ impl Capture {
             return;
         }
         context.revision = context.revision.saturating_add(1);
-        if external && context != self.context {
-            let corrected = self
-                .last_commit
-                .as_ref()
-                .filter(|(_, text, left, right, observed)| {
-                    *observed
-                        && context.left.as_deref() == Some(left.as_str())
-                        && context.right == *right
-                        && !text.is_empty()
-                })
-                .map(|(id, _, _, _, _)| id.clone());
+        if let Some(commit) = &mut self.last_commit {
+            if commit.matches_insert(&context) {
+                commit.observed = true;
+            } else {
+                let restored = external && commit.restored(&context);
+                if external {
+                    let operation = if restored && commit.before.selected.as_deref() != Some("") {
+                        crate::EditKind::Replace
+                    } else if restored {
+                        crate::EditKind::Delete
+                    } else {
+                        crate::EditKind::Unknown
+                    };
+                    self.recorder.record(
+                        "host",
+                        self.context.clone(),
+                        Some(context.clone()),
+                        Change::Edit {
+                            operation,
+                            related: restored.then(|| commit.id.clone()),
+                        },
+                        if restored {
+                            Evidence::Observed
+                        } else {
+                            Evidence::Unknown
+                        },
+                    );
+                }
+                self.last_commit = None;
+            }
+        } else if external {
             self.recorder.record(
                 "host",
                 self.context.clone(),
                 Some(context.clone()),
                 Change::Edit {
-                    operation: if corrected.is_some() {
-                        crate::EditKind::Delete
-                    } else {
-                        crate::EditKind::Unknown
-                    },
-                    related: corrected.clone(),
+                    operation: crate::EditKind::Unknown,
+                    related: None,
                 },
-                if corrected.is_some() {
-                    Evidence::Observed
-                } else {
-                    Evidence::Unknown
-                },
+                Evidence::Unknown,
             );
-            if corrected.is_some() {
-                self.last_commit = None;
-            }
-        }
-        if let Some((_, text, left, right, observed)) = self.last_commit.as_mut() {
-            if context.left.as_deref() == Some(format!("{left}{text}").as_str())
-                && context.right == *right
-            {
-                *observed = true;
-            }
         }
         self.recorder.record(
             "host",
@@ -162,11 +192,26 @@ impl Capture {
                     },
                     Evidence::Observed,
                 );
-                if outcome == Outcome::Confirmed {
-                    if let (Some(id), Some(left)) = (id, self.context.left.clone()) {
-                        self.last_commit =
-                            Some((id, text.clone(), left, self.context.right.clone(), false));
-                    }
+                if outcome != Outcome::Rejected {
+                    self.last_commit = id
+                        .filter(|_| {
+                            outcome == Outcome::Confirmed
+                                && !text.is_empty()
+                                && self.context.left.is_some()
+                                && self.context.right.is_some()
+                                && !self.context.discontinuity
+                        })
+                        .map(|id| {
+                            let mut commit = PendingCommit {
+                                id,
+                                text: text.clone(),
+                                before: self.context.clone(),
+                                observed: false,
+                            };
+                            commit.observed =
+                                after.as_ref().is_some_and(|ctx| commit.matches_insert(ctx));
+                            commit
+                        });
                 }
             }
             EditSessionOp::CompositionUpdate { spelling, .. } => {
@@ -237,13 +282,12 @@ mod tests {
             true,
             "editor",
         );
-        capture.last_commit = Some((
-            "ordinary-id".into(),
-            "2026-11-12".into(),
-            "before".into(),
-            None,
-            true,
-        ));
+        capture.last_commit = Some(PendingCommit {
+            id: "ordinary-id".into(),
+            text: "2026-11-12".into(),
+            before: Context::default(),
+            observed: true,
+        });
         capture.context.left = Some("before".into());
         capture.non_learning_commit(Outcome::Rejected);
         assert!(capture.last_commit.is_some());

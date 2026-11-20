@@ -465,12 +465,8 @@ impl Session {
     pub fn model_store_path(&self) -> std::path::PathBuf {
         crate::config_path::model_store_path(&self.resources.config_path)
     }
-    pub fn personal_store_path(&self) -> std::path::PathBuf {
-        self.resources
-            .config_path
-            .parent()
-            .unwrap_or(std::path::Path::new("."))
-            .join("personal")
+    pub fn personal_store_path(&self) -> Option<std::path::PathBuf> {
+        crate::config_path::personal_store_path(&self.resources.config_path)
     }
     pub fn personal_right(&self) -> Option<&str> {
         self.personal_right.as_deref()

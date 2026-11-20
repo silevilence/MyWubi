@@ -47,8 +47,10 @@ impl Store {
     pub fn new(root: impl Into<PathBuf>) -> Self {
         Self { root: root.into() }
     }
-    pub fn beside_config(config: &Path) -> Self {
-        Self::new(config.parent().unwrap_or(Path::new(".")).join("personal"))
+    pub fn beside_config(config: &Path) -> Result<Self> {
+        core_engine::config_path::personal_store_path(config)
+            .map(Self::new)
+            .ok_or(Error::Invalid("无法定位当前用户的个人数据目录"))
     }
     pub(crate) fn lock(&self) -> Result<File> {
         fs::create_dir_all(&self.root)?;
@@ -203,25 +205,34 @@ impl Store {
     fn prune(&self, state: &mut Snapshot, config: &PersonalConfig) -> Result<()> {
         let cutoff = crate::now_ms().saturating_sub(u64::from(config.retention_days) * 86_400_000);
         let limit = u64::from(config.max_mb) * 1024 * 1024;
+        // Moving an ID between JSON maps keeps the key; only the serialized
+        // value changes. Count bytes exactly, including delimiters, so the
+        // snapshot stays within its configured budget even with many tiny rows.
         let mut size = serde_json::to_vec(state)?.len() as u64;
         let mut order: Vec<_> = state
             .events
             .values()
             .map(|e| (e.time_ms, e.id.clone()))
             .collect();
-        order.sort();
+        order.sort_unstable();
         for (time, id) in order {
             if time >= cutoff && size <= limit {
                 break;
             }
             if let Some(event) = state.events.remove(&id) {
                 let bytes = serde_json::to_vec(&event)?;
-                size = size.saturating_sub(bytes.len() as u64).saturating_add(66);
+                size -= bytes.len() as u64 + u64::from(!state.events.is_empty());
+                size += 66 + u64::from(!state.retired.is_empty());
                 state.retired.insert(id, digest(&bytes));
             }
         }
-        while state.retired.len() > 100_000.min((limit / 1024) as usize) {
-            state.retired.pop_first();
+        while state.retired.len() > 100_000.min((limit / 1024) as usize) || size > limit {
+            let Some((id, hash)) = state.retired.pop_first() else {
+                break;
+            };
+            size = size.saturating_sub(
+                (id.len() + hash.len() + 5) as u64 + u64::from(!state.retired.is_empty()),
+            );
         }
         Ok(())
     }

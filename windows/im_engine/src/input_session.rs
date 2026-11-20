@@ -181,9 +181,11 @@ impl InputSession {
                 if personal.is_none() {
                     *personal = personal_input::predictor::Predictor::new().ok();
                 }
-                if let Some(predictor) = personal.as_ref() {
+                if let (Some(predictor), Some(root)) =
+                    (personal.as_ref(), core.personal_store_path())
+                {
                     predictor.submit(
-                        core.personal_store_path(),
+                        root,
                         request.clone(),
                         core.personal_right().map(str::to_owned),
                     );

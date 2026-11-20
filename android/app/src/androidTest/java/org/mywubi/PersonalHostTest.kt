@@ -47,9 +47,23 @@ class PersonalHostTest {
             command(true,"Configure","settings" to config.getJSONObject("personal"),"allowed" to true,"session" to "synthetic-seed")
             command(true,"Context","context" to JSONObject("""{"revision":1,"left":"明天去","right":"","selected":"","selection":null,"truncated":false,"discontinuity":false}"""),"external" to false)
             repeat(40){command(true,"Operation","operation" to JSONObject("""{"CommitAndReplace":{"text":"图书馆","replace_len":0}}"""),"outcome" to "Confirmed","after" to null,"method" to "fixture")}
-            val end=android.os.SystemClock.uptimeMillis()+10000
-            while(command(false,"Status").getJSONObject("data").getInt("records")<42 && android.os.SystemClock.uptimeMillis()<end)android.os.SystemClock.sleep(50)
-            command(false,"Train");command(true,"Close")
+            fun awaitRecords(minimum: Int) {
+                val deadline = android.os.SystemClock.uptimeMillis() + 10000
+                while (command(false, "Status").getJSONObject("data").getInt("records") < minimum &&
+                    android.os.SystemClock.uptimeMillis() < deadline) android.os.SystemClock.sleep(50)
+                assertTrue(command(false, "Status").getJSONObject("data").getInt("records") >= minimum)
+            }
+            awaitRecords(42)
+            val firstVersion = command(false, "Train").getString("version")
+            command(true, "Context", "context" to JSONObject("""{"revision":2,"left":"明天去图书馆","right":"","selected":"","selection":null,"truncated":false,"discontinuity":false}"""), "external" to false)
+            repeat(40) {
+                command(true, "Operation", "operation" to JSONObject("""{"CommitAndReplace":{"text":"查资料","replace_len":0}}"""),
+                    "outcome" to "Confirmed", "after" to null, "method" to "fixture")
+            }
+            awaitRecords(83)
+            val updatedVersion = command(false, "Train").getString("version")
+            assertNotEquals(firstVersion, updatedVersion)
+            command(true, "Close")
             config.getJSONObject("personal").put("predict",true).put("learn",false)
             save(config,store.readConfig().getLong("version"))
             device.executeShellCommand("ime enable org.mywubi/.MyWubiService");device.executeShellCommand("ime set org.mywubi/.MyWubiService")
@@ -61,6 +75,17 @@ class PersonalHostTest {
             key("w");key("空格")
             fresh(By.desc(Pattern.compile("候选 图书馆(?:，.*)?")).pkg("org.mywubi")).click()
             expectText("明天去图书馆")
+            fresh(By.desc(Pattern.compile("候选 查资料(?:，.*)?")).pkg("org.mywubi")).click()
+            expectText("明天去图书馆查资料")
+            device.pressKeyCode(android.view.KeyEvent.KEYCODE_DEL)
+            expectText("明天去图书馆查资")
+            device.setOrientationLeft()
+            expectText("明天去图书馆查资")
+            device.setOrientationNatural()
+            expectText("明天去图书馆查资")
+            val field = fresh(By.clazz("android.widget.EditText").pkg("org.mywubi.acceptancehost"))
+            field.click()
+            assertTrue(field.isFocused)
             device.takeScreenshot(File(app.filesDir,"personal-host-commit.png"))
             config.getJSONObject("personal").put("collect",false)
             save(config,store.readConfig().getLong("version"))
@@ -70,8 +95,17 @@ class PersonalHostTest {
             key("w");key("空格")
             fresh(By.desc(Pattern.compile("候选 图书馆(?:，.*)?")).pkg("org.mywubi")).click()
             expectText("明天去图书馆")
+            command(false, "Rollback")
+            assertEquals(firstVersion, command(false, "Status").getJSONObject("model").getString("version"))
+            // Trigger a fresh request after rollback in the same external editor.
+            fresh(By.clazz("android.widget.EditText").pkg("org.mywubi.acceptancehost")).text = ""
+            key("w"); key("空格")
+            fresh(By.desc(Pattern.compile("候选 图书馆(?:，.*)?")).pkg("org.mywubi")).click()
+            expectText("明天去图书馆")
+            assertFalse(device.wait(Until.hasObject(By.desc(Pattern.compile("候选 查资料(?:，.*)?")).pkg("org.mywubi")), 1200))
             assertEquals(records,command(false,"Status").getJSONObject("data").getInt("records"))
         } finally {
+            device.unfreezeRotation()
             command(true,"Close")
             save(initial,store.readConfig().getLong("version"))
             data.deleteRecursively();if(backup.exists())check(backup.renameTo(data));table.delete()
