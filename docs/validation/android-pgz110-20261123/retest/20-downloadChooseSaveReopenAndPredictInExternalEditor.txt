@@ -1,0 +1,47 @@
+INSTRUMENTATION_STATUS: class=org.mywubi.ModelDownloadUiTest
+INSTRUMENTATION_STATUS: current=1
+INSTRUMENTATION_STATUS: id=AndroidJUnitRunner
+INSTRUMENTATION_STATUS: numtests=1
+INSTRUMENTATION_STATUS: stream=
+org.mywubi.ModelDownloadUiTest:
+INSTRUMENTATION_STATUS: test=downloadChooseSaveReopenAndPredictInExternalEditor
+INSTRUMENTATION_STATUS_CODE: 1
+INSTRUMENTATION_STATUS: class=org.mywubi.ModelDownloadUiTest
+INSTRUMENTATION_STATUS: current=1
+INSTRUMENTATION_STATUS: id=AndroidJUnitRunner
+INSTRUMENTATION_STATUS: numtests=1
+INSTRUMENTATION_STATUS: stack=java.lang.IllegalStateException: Missing settings control BySelector [TEXT='\Q预测模型与资源（实验性）\E']
+	at org.mywubi.SettingsTestNavigationKt.findSettingsControl(SettingsTestNavigation.kt:65)
+	at org.mywubi.SettingsTestNavigationKt.findSettingsControl$default(SettingsTestNavigation.kt:39)
+	at org.mywubi.ModelDownloadUiTest.downloadChooseSaveReopenAndPredictInExternalEditor$scrollFind(ModelDownloadUiTest.kt:30)
+	at org.mywubi.ModelDownloadUiTest.downloadChooseSaveReopenAndPredictInExternalEditor$text(ModelDownloadUiTest.kt:31)
+	at org.mywubi.ModelDownloadUiTest.downloadChooseSaveReopenAndPredictInExternalEditor(ModelDownloadUiTest.kt:87)
+
+INSTRUMENTATION_STATUS: stream=
+Error in downloadChooseSaveReopenAndPredictInExternalEditor(org.mywubi.ModelDownloadUiTest):
+java.lang.IllegalStateException: Missing settings control BySelector [TEXT='\Q预测模型与资源（实验性）\E']
+	at org.mywubi.SettingsTestNavigationKt.findSettingsControl(SettingsTestNavigation.kt:65)
+	at org.mywubi.SettingsTestNavigationKt.findSettingsControl$default(SettingsTestNavigation.kt:39)
+	at org.mywubi.ModelDownloadUiTest.downloadChooseSaveReopenAndPredictInExternalEditor$scrollFind(ModelDownloadUiTest.kt:30)
+	at org.mywubi.ModelDownloadUiTest.downloadChooseSaveReopenAndPredictInExternalEditor$text(ModelDownloadUiTest.kt:31)
+	at org.mywubi.ModelDownloadUiTest.downloadChooseSaveReopenAndPredictInExternalEditor(ModelDownloadUiTest.kt:87)
+
+INSTRUMENTATION_STATUS: test=downloadChooseSaveReopenAndPredictInExternalEditor
+INSTRUMENTATION_STATUS_CODE: -2
+INSTRUMENTATION_RESULT: stream=
+
+Time: 57.953
+There was 1 failure:
+1) downloadChooseSaveReopenAndPredictInExternalEditor(org.mywubi.ModelDownloadUiTest)
+java.lang.IllegalStateException: Missing settings control BySelector [TEXT='\Q预测模型与资源（实验性）\E']
+	at org.mywubi.SettingsTestNavigationKt.findSettingsControl(SettingsTestNavigation.kt:65)
+	at org.mywubi.SettingsTestNavigationKt.findSettingsControl$default(SettingsTestNavigation.kt:39)
+	at org.mywubi.ModelDownloadUiTest.downloadChooseSaveReopenAndPredictInExternalEditor$scrollFind(ModelDownloadUiTest.kt:30)
+	at org.mywubi.ModelDownloadUiTest.downloadChooseSaveReopenAndPredictInExternalEditor$text(ModelDownloadUiTest.kt:31)
+	at org.mywubi.ModelDownloadUiTest.downloadChooseSaveReopenAndPredictInExternalEditor(ModelDownloadUiTest.kt:87)
+
+FAILURES!!!
+Tests run: 1,  Failures: 1
+
+
+INSTRUMENTATION_CODE: -1

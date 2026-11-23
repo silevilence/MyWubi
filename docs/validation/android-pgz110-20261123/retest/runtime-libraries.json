@@ -1,0 +1,10 @@
+{
+  "before": {
+    "lib/arm64-v8a/libmywubi_android.so": "db21caa29b02cee598f04adaf4ac10fcfd3dac0d6ce74ba1a97505062f2c5fad",
+    "lib/x86_64/libmywubi_android.so": "c6a328b0a02428b3c33dca9ad16a14d7f678dc69994259af733b40de81397dad"
+  },
+  "after": {
+    "lib/arm64-v8a/libmywubi_android.so": "75120fcbc03660c323e5818fcb6dcfe2d086302659c58d9f534dfdcaa4e24188",
+    "lib/x86_64/libmywubi_android.so": "e00229b4f4132d214fd1ae3e48837fdfdec84cac28f10106dc4b5ba4ff8cc774"
+  }
+}

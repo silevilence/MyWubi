@@ -2,9 +2,25 @@ package org.mywubi.acceptancehost;
 
 /** Independent OS editor: no JNI, model, IME mocks, or connection overrides. */
 public final class EditorActivity extends android.app.Activity {
+    private android.widget.EditText editor;
+    private boolean showOnFirstFocus = true;
+
+    @Override public void onWindowFocusChanged(boolean focused) {
+        super.onWindowFocusChanged(focused);
+        if (focused && showOnFirstFocus && editor != null) {
+            showOnFirstFocus = false;
+            editor.post(() -> {
+                if (editor.hasWindowFocus() && editor.isFocused()) {
+                    getSystemService(android.view.inputmethod.InputMethodManager.class)
+                        .showSoftInput(editor, android.view.inputmethod.InputMethodManager.SHOW_IMPLICIT);
+                }
+            });
+        }
+    }
+
     @Override public void onCreate(android.os.Bundle state) {
         super.onCreate(state);
-        android.widget.EditText editor = new android.widget.EditText(this);
+        editor = new android.widget.EditText(this);
         editor.setId(1);
         editor.setInputType(getIntent().getIntExtra("inputType",
             android.text.InputType.TYPE_CLASS_TEXT | android.text.InputType.TYPE_TEXT_FLAG_MULTI_LINE));

@@ -1,0 +1,113 @@
+INSTRUMENTATION_STATUS: class=org.mywubi.ExpressionHostTest
+INSTRUMENTATION_STATUS: current=1
+INSTRUMENTATION_STATUS: id=AndroidJUnitRunner
+INSTRUMENTATION_STATUS: numtests=5
+INSTRUMENTATION_STATUS: stream=
+org.mywubi.ExpressionHostTest:
+INSTRUMENTATION_STATUS: test=kanaLiteralAliasUsesVisibleCategoryEntryAndCommitsOnlyTheResult
+INSTRUMENTATION_STATUS_CODE: 1
+INSTRUMENTATION_STATUS: class=org.mywubi.ExpressionHostTest
+INSTRUMENTATION_STATUS: current=1
+INSTRUMENTATION_STATUS: id=AndroidJUnitRunner
+INSTRUMENTATION_STATUS: numtests=5
+INSTRUMENTATION_STATUS: stack=java.lang.IllegalStateException: Missing BySelector [DESC='\Qa\E', PKG='\Qorg.mywubi\E', ENABLED='true']
+	at org.mywubi.ExpressionHostTest.fresh(ExpressionHostTest.kt:34)
+	at org.mywubi.ExpressionHostTest.kanaLiteralAliasUsesVisibleCategoryEntryAndCommitsOnlyTheResult(ExpressionHostTest.kt:117)
+
+INSTRUMENTATION_STATUS: stream=
+Error in kanaLiteralAliasUsesVisibleCategoryEntryAndCommitsOnlyTheResult(org.mywubi.ExpressionHostTest):
+java.lang.IllegalStateException: Missing BySelector [DESC='\Qa\E', PKG='\Qorg.mywubi\E', ENABLED='true']
+	at org.mywubi.ExpressionHostTest.fresh(ExpressionHostTest.kt:34)
+	at org.mywubi.ExpressionHostTest.kanaLiteralAliasUsesVisibleCategoryEntryAndCommitsOnlyTheResult(ExpressionHostTest.kt:117)
+
+INSTRUMENTATION_STATUS: test=kanaLiteralAliasUsesVisibleCategoryEntryAndCommitsOnlyTheResult
+INSTRUMENTATION_STATUS_CODE: -2
+INSTRUMENTATION_STATUS: class=org.mywubi.ExpressionHostTest
+INSTRUMENTATION_STATUS: current=2
+INSTRUMENTATION_STATUS: id=AndroidJUnitRunner
+INSTRUMENTATION_STATUS: numtests=5
+INSTRUMENTATION_STATUS: stream=
+INSTRUMENTATION_STATUS: test=realQueryEditsNeverTouchHostAndFinalEmojiAndLongKaomojiStayComplete
+INSTRUMENTATION_STATUS_CODE: 1
+INSTRUMENTATION_STATUS: class=org.mywubi.ExpressionHostTest
+INSTRUMENTATION_STATUS: current=2
+INSTRUMENTATION_STATUS: id=AndroidJUnitRunner
+INSTRUMENTATION_STATUS: numtests=5
+INSTRUMENTATION_STATUS: stack=java.lang.AssertionError
+	at org.junit.Assert.fail(Assert.java:87)
+	at org.junit.Assert.assertTrue(Assert.java:42)
+	at org.junit.Assert.assertTrue(Assert.java:53)
+	at org.mywubi.ExpressionHostTest.realQueryEditsNeverTouchHostAndFinalEmojiAndLongKaomojiStayComplete(ExpressionHostTest.kt:393)
+
+INSTRUMENTATION_STATUS: stream=
+Error in realQueryEditsNeverTouchHostAndFinalEmojiAndLongKaomojiStayComplete(org.mywubi.ExpressionHostTest):
+java.lang.AssertionError
+	at org.junit.Assert.fail(Assert.java:87)
+	at org.junit.Assert.assertTrue(Assert.java:42)
+	at org.junit.Assert.assertTrue(Assert.java:53)
+	at org.mywubi.ExpressionHostTest.realQueryEditsNeverTouchHostAndFinalEmojiAndLongKaomojiStayComplete(ExpressionHostTest.kt:393)
+
+INSTRUMENTATION_STATUS: test=realQueryEditsNeverTouchHostAndFinalEmojiAndLongKaomojiStayComplete
+INSTRUMENTATION_STATUS_CODE: -2
+INSTRUMENTATION_STATUS: class=org.mywubi.ExpressionHostTest
+INSTRUMENTATION_STATUS: current=3
+INSTRUMENTATION_STATUS: id=AndroidJUnitRunner
+INSTRUMENTATION_STATUS: numtests=5
+INSTRUMENTATION_STATUS: stream=
+INSTRUMENTATION_STATUS: test=browseWithoutTypingCommitsRepeatedSymbolsAndRetainsWindow
+INSTRUMENTATION_STATUS_CODE: 1
+INSTRUMENTATION_STATUS: class=org.mywubi.ExpressionHostTest
+INSTRUMENTATION_STATUS: current=3
+INSTRUMENTATION_STATUS: id=AndroidJUnitRunner
+INSTRUMENTATION_STATUS: numtests=5
+INSTRUMENTATION_STATUS: stream=.
+INSTRUMENTATION_STATUS: test=browseWithoutTypingCommitsRepeatedSymbolsAndRetainsWindow
+INSTRUMENTATION_STATUS_CODE: 0
+INSTRUMENTATION_STATUS: class=org.mywubi.ExpressionHostTest
+INSTRUMENTATION_STATUS: current=4
+INSTRUMENTATION_STATUS: id=AndroidJUnitRunner
+INSTRUMENTATION_STATUS: numtests=5
+INSTRUMENTATION_STATUS: stream=
+INSTRUMENTATION_STATUS: test=numericChoicesStayLocalAndResourceReloadRejectsAnOldAccessibilityClick
+INSTRUMENTATION_STATUS_CODE: 1
+INSTRUMENTATION_STATUS: class=org.mywubi.ExpressionHostTest
+INSTRUMENTATION_STATUS: current=4
+INSTRUMENTATION_STATUS: id=AndroidJUnitRunner
+INSTRUMENTATION_STATUS: numtests=5
+INSTRUMENTATION_STATUS: stream=.
+INSTRUMENTATION_STATUS: test=numericChoicesStayLocalAndResourceReloadRejectsAnOldAccessibilityClick
+INSTRUMENTATION_STATUS_CODE: 0
+INSTRUMENTATION_STATUS: class=org.mywubi.ExpressionHostTest
+INSTRUMENTATION_STATUS: current=5
+INSTRUMENTATION_STATUS: id=AndroidJUnitRunner
+INSTRUMENTATION_STATUS: numtests=5
+INSTRUMENTATION_STATUS: stream=
+INSTRUMENTATION_STATUS: test=fullLibraryTailSelectionAndModeReturnDoNotLeakPartialQueries
+INSTRUMENTATION_STATUS_CODE: 1
+INSTRUMENTATION_STATUS: class=org.mywubi.ExpressionHostTest
+INSTRUMENTATION_STATUS: current=5
+INSTRUMENTATION_STATUS: id=AndroidJUnitRunner
+INSTRUMENTATION_STATUS: numtests=5
+INSTRUMENTATION_STATUS: stream=.
+INSTRUMENTATION_STATUS: test=fullLibraryTailSelectionAndModeReturnDoNotLeakPartialQueries
+INSTRUMENTATION_STATUS_CODE: 0
+INSTRUMENTATION_RESULT: stream=
+
+Time: 177.134
+There were 2 failures:
+1) kanaLiteralAliasUsesVisibleCategoryEntryAndCommitsOnlyTheResult(org.mywubi.ExpressionHostTest)
+java.lang.IllegalStateException: Missing BySelector [DESC='\Qa\E', PKG='\Qorg.mywubi\E', ENABLED='true']
+	at org.mywubi.ExpressionHostTest.fresh(ExpressionHostTest.kt:34)
+	at org.mywubi.ExpressionHostTest.kanaLiteralAliasUsesVisibleCategoryEntryAndCommitsOnlyTheResult(ExpressionHostTest.kt:117)
+2) realQueryEditsNeverTouchHostAndFinalEmojiAndLongKaomojiStayComplete(org.mywubi.ExpressionHostTest)
+java.lang.AssertionError
+	at org.junit.Assert.fail(Assert.java:87)
+	at org.junit.Assert.assertTrue(Assert.java:42)
+	at org.junit.Assert.assertTrue(Assert.java:53)
+	at org.mywubi.ExpressionHostTest.realQueryEditsNeverTouchHostAndFinalEmojiAndLongKaomojiStayComplete(ExpressionHostTest.kt:393)
+
+FAILURES!!!
+Tests run: 5,  Failures: 2
+
+
+INSTRUMENTATION_CODE: -1

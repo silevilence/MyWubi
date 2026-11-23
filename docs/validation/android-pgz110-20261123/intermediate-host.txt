@@ -1,0 +1,283 @@
+INSTRUMENTATION_STATUS: class=org.mywubi.PersonalHostTest
+INSTRUMENTATION_STATUS: current=1
+INSTRUMENTATION_STATUS: id=AndroidJUnitRunner
+INSTRUMENTATION_STATUS: numtests=14
+INSTRUMENTATION_STATUS: stream=
+org.mywubi.PersonalHostTest:
+INSTRUMENTATION_STATUS: test=personalCandidateCommitsAndCollectionCanBeStoppedIndependently
+INSTRUMENTATION_STATUS_CODE: 1
+INSTRUMENTATION_STATUS: class=org.mywubi.PersonalHostTest
+INSTRUMENTATION_STATUS: current=1
+INSTRUMENTATION_STATUS: id=AndroidJUnitRunner
+INSTRUMENTATION_STATUS: numtests=14
+INSTRUMENTATION_STATUS: stream=.
+INSTRUMENTATION_STATUS: test=personalCandidateCommitsAndCollectionCanBeStoppedIndependently
+INSTRUMENTATION_STATUS_CODE: 0
+INSTRUMENTATION_STATUS: class=org.mywubi.KeyboardTouchTest
+INSTRUMENTATION_STATUS: current=2
+INSTRUMENTATION_STATUS: id=AndroidJUnitRunner
+INSTRUMENTATION_STATUS: numtests=14
+INSTRUMENTATION_STATUS: stream=
+org.mywubi.KeyboardTouchTest:
+INSTRUMENTATION_STATUS: test=overlappingAlternatingFingersDoNotDropRepeatedKeys
+INSTRUMENTATION_STATUS_CODE: 1
+INSTRUMENTATION_STATUS: class=org.mywubi.KeyboardTouchTest
+INSTRUMENTATION_STATUS: current=2
+INSTRUMENTATION_STATUS: id=AndroidJUnitRunner
+INSTRUMENTATION_STATUS: numtests=14
+INSTRUMENTATION_STATUS: stack=java.lang.AssertionError: Every release must commit once even while the other finger stays down expected:<[q, w, q, q, w, q, q, w, q, q, w, q, q, w, q, q, w, q, q, w, q, q, w, q, q, w, q, q, w, q]> but was:<[q, w, q, q, w, q, q, w, q, q, w, q, q, w, q, q, w, q, w]>
+	at org.junit.Assert.fail(Assert.java:89)
+	at org.junit.Assert.failNotEquals(Assert.java:835)
+	at org.junit.Assert.assertEquals(Assert.java:120)
+	at org.mywubi.KeyboardTouchTest.overlappingAlternatingFingersDoNotDropRepeatedKeys(KeyboardTouchTest.kt:108)
+
+INSTRUMENTATION_STATUS: stream=
+Error in overlappingAlternatingFingersDoNotDropRepeatedKeys(org.mywubi.KeyboardTouchTest):
+java.lang.AssertionError: Every release must commit once even while the other finger stays down expected:<[q, w, q, q, w, q, q, w, q, q, w, q, q, w, q, q, w, q, q, w, q, q, w, q, q, w, q, q, w, q]> but was:<[q, w, q, q, w, q, q, w, q, q, w, q, q, w, q, q, w, q, w]>
+	at org.junit.Assert.fail(Assert.java:89)
+	at org.junit.Assert.failNotEquals(Assert.java:835)
+	at org.junit.Assert.assertEquals(Assert.java:120)
+	at org.mywubi.KeyboardTouchTest.overlappingAlternatingFingersDoNotDropRepeatedKeys(KeyboardTouchTest.kt:108)
+
+INSTRUMENTATION_STATUS: test=overlappingAlternatingFingersDoNotDropRepeatedKeys
+INSTRUMENTATION_STATUS_CODE: -2
+INSTRUMENTATION_STATUS: class=org.mywubi.KeyboardTouchTest
+INSTRUMENTATION_STATUS: current=3
+INSTRUMENTATION_STATUS: id=AndroidJUnitRunner
+INSTRUMENTATION_STATUS: numtests=14
+INSTRUMENTATION_STATUS: stream=
+INSTRUMENTATION_STATUS: test=visualKeyGuttersStillAcceptTaps
+INSTRUMENTATION_STATUS_CODE: 1
+INSTRUMENTATION_STATUS: class=org.mywubi.KeyboardTouchTest
+INSTRUMENTATION_STATUS: current=3
+INSTRUMENTATION_STATUS: id=AndroidJUnitRunner
+INSTRUMENTATION_STATUS: numtests=14
+INSTRUMENTATION_STATUS: stream=.
+INSTRUMENTATION_STATUS: test=visualKeyGuttersStillAcceptTaps
+INSTRUMENTATION_STATUS_CODE: 0
+INSTRUMENTATION_STATUS: class=org.mywubi.KeyboardTouchTest
+INSTRUMENTATION_STATUS: current=4
+INSTRUMENTATION_STATUS: id=AndroidJUnitRunner
+INSTRUMENTATION_STATUS: numtests=14
+INSTRUMENTATION_STATUS: stream=
+INSTRUMENTATION_STATUS: test=eightDirectionsMergedUpAndReturnToCenterUseOneReleaseAction
+INSTRUMENTATION_STATUS_CODE: 1
+INSTRUMENTATION_STATUS: class=org.mywubi.KeyboardTouchTest
+INSTRUMENTATION_STATUS: current=4
+INSTRUMENTATION_STATUS: id=AndroidJUnitRunner
+INSTRUMENTATION_STATUS: numtests=14
+INSTRUMENTATION_STATUS: stream=.
+INSTRUMENTATION_STATUS: test=eightDirectionsMergedUpAndReturnToCenterUseOneReleaseAction
+INSTRUMENTATION_STATUS_CODE: 0
+INSTRUMENTATION_STATUS: class=org.mywubi.KeyboardTouchTest
+INSTRUMENTATION_STATUS: current=5
+INSTRUMENTATION_STATUS: id=AndroidJUnitRunner
+INSTRUMENTATION_STATUS: numtests=14
+INSTRUMENTATION_STATUS: stream=
+INSTRUMENTATION_STATUS: test=deleteHoldSwipeReleaseReturnAndContextCancellation
+INSTRUMENTATION_STATUS_CODE: 1
+INSTRUMENTATION_STATUS: class=org.mywubi.KeyboardTouchTest
+INSTRUMENTATION_STATUS: current=5
+INSTRUMENTATION_STATUS: id=AndroidJUnitRunner
+INSTRUMENTATION_STATUS: numtests=14
+INSTRUMENTATION_STATUS: stream=.
+INSTRUMENTATION_STATUS: test=deleteHoldSwipeReleaseReturnAndContextCancellation
+INSTRUMENTATION_STATUS_CODE: 0
+INSTRUMENTATION_STATUS: class=org.mywubi.KeyboardTouchTest
+INSTRUMENTATION_STATUS: current=6
+INSTRUMENTATION_STATUS: id=AndroidJUnitRunner
+INSTRUMENTATION_STATUS: numtests=14
+INSTRUMENTATION_STATUS: stream=
+INSTRUMENTATION_STATUS: test=modesUseFixedLabelAndSymbolsDoNotConsumeOneShotShift
+INSTRUMENTATION_STATUS_CODE: 1
+INSTRUMENTATION_STATUS: class=org.mywubi.KeyboardTouchTest
+INSTRUMENTATION_STATUS: current=6
+INSTRUMENTATION_STATUS: id=AndroidJUnitRunner
+INSTRUMENTATION_STATUS: numtests=14
+INSTRUMENTATION_STATUS: stack=org.json.JSONException: No value for InputSymbol
+	at org.json.JSONObject.get(JSONObject.java:398)
+	at org.json.JSONObject.getString(JSONObject.java:559)
+	at org.mywubi.KeyboardTouchTest.modesUseFixedLabelAndSymbolsDoNotConsumeOneShotShift(KeyboardTouchTest.kt:285)
+
+INSTRUMENTATION_STATUS: stream=
+Error in modesUseFixedLabelAndSymbolsDoNotConsumeOneShotShift(org.mywubi.KeyboardTouchTest):
+org.json.JSONException: No value for InputSymbol
+	at org.json.JSONObject.get(JSONObject.java:398)
+	at org.json.JSONObject.getString(JSONObject.java:559)
+	at org.mywubi.KeyboardTouchTest.modesUseFixedLabelAndSymbolsDoNotConsumeOneShotShift(KeyboardTouchTest.kt:285)
+
+INSTRUMENTATION_STATUS: test=modesUseFixedLabelAndSymbolsDoNotConsumeOneShotShift
+INSTRUMENTATION_STATUS_CODE: -2
+INSTRUMENTATION_STATUS: class=org.mywubi.KeyboardTouchTest
+INSTRUMENTATION_STATUS: current=7
+INSTRUMENTATION_STATUS: id=AndroidJUnitRunner
+INSTRUMENTATION_STATUS: numtests=14
+INSTRUMENTATION_STATUS: stream=
+INSTRUMENTATION_STATUS: test=previewDoesNotBlockRapidTypingAndHidingCancelsHeldKey
+INSTRUMENTATION_STATUS_CODE: 1
+INSTRUMENTATION_STATUS: class=org.mywubi.KeyboardTouchTest
+INSTRUMENTATION_STATUS: current=7
+INSTRUMENTATION_STATUS: id=AndroidJUnitRunner
+INSTRUMENTATION_STATUS: numtests=14
+INSTRUMENTATION_STATUS: stream=.
+INSTRUMENTATION_STATUS: test=previewDoesNotBlockRapidTypingAndHidingCancelsHeldKey
+INSTRUMENTATION_STATUS_CODE: 0
+INSTRUMENTATION_STATUS: class=org.mywubi.KeyboardTouchTest
+INSTRUMENTATION_STATUS: current=8
+INSTRUMENTATION_STATUS: id=AndroidJUnitRunner
+INSTRUMENTATION_STATUS: numtests=14
+INSTRUMENTATION_STATUS: stream=
+INSTRUMENTATION_STATUS: test=tapPreviewSwipeHoldAndCancellationCommitExactlyOnce
+INSTRUMENTATION_STATUS_CODE: 1
+INSTRUMENTATION_STATUS: class=org.mywubi.KeyboardTouchTest
+INSTRUMENTATION_STATUS: current=8
+INSTRUMENTATION_STATUS: id=AndroidJUnitRunner
+INSTRUMENTATION_STATUS: numtests=14
+INSTRUMENTATION_STATUS: stack=java.lang.AssertionError
+	at org.junit.Assert.fail(Assert.java:87)
+	at org.junit.Assert.assertTrue(Assert.java:42)
+	at org.junit.Assert.assertTrue(Assert.java:53)
+	at org.mywubi.KeyboardTouchTest.tapPreviewSwipeHoldAndCancellationCommitExactlyOnce(KeyboardTouchTest.kt:186)
+
+INSTRUMENTATION_STATUS: stream=
+Error in tapPreviewSwipeHoldAndCancellationCommitExactlyOnce(org.mywubi.KeyboardTouchTest):
+java.lang.AssertionError
+	at org.junit.Assert.fail(Assert.java:87)
+	at org.junit.Assert.assertTrue(Assert.java:42)
+	at org.junit.Assert.assertTrue(Assert.java:53)
+	at org.mywubi.KeyboardTouchTest.tapPreviewSwipeHoldAndCancellationCommitExactlyOnce(KeyboardTouchTest.kt:186)
+
+INSTRUMENTATION_STATUS: test=tapPreviewSwipeHoldAndCancellationCommitExactlyOnce
+INSTRUMENTATION_STATUS_CODE: -2
+INSTRUMENTATION_STATUS: class=org.mywubi.ExpressionFontTest
+INSTRUMENTATION_STATUS: current=9
+INSTRUMENTATION_STATUS: id=AndroidJUnitRunner
+INSTRUMENTATION_STATUS: numtests=14
+INSTRUMENTATION_STATUS: stream=
+org.mywubi.ExpressionFontTest:
+INSTRUMENTATION_STATUS: test=fullLibrariesKeepOriginalSequencesAndReportMissingSystemGlyphs
+INSTRUMENTATION_STATUS_CODE: 1
+INSTRUMENTATION_STATUS: class=org.mywubi.ExpressionFontTest
+INSTRUMENTATION_STATUS: current=9
+INSTRUMENTATION_STATUS: id=AndroidJUnitRunner
+INSTRUMENTATION_STATUS: numtests=14
+INSTRUMENTATION_STATUS: stream=.
+INSTRUMENTATION_STATUS: test=fullLibrariesKeepOriginalSequencesAndReportMissingSystemGlyphs
+INSTRUMENTATION_STATUS_CODE: 0
+INSTRUMENTATION_STATUS: class=org.mywubi.ExpressionHostTest
+INSTRUMENTATION_STATUS: current=10
+INSTRUMENTATION_STATUS: id=AndroidJUnitRunner
+INSTRUMENTATION_STATUS: numtests=14
+INSTRUMENTATION_STATUS: stream=
+org.mywubi.ExpressionHostTest:
+INSTRUMENTATION_STATUS: test=kanaLiteralAliasUsesVisibleCategoryEntryAndCommitsOnlyTheResult
+INSTRUMENTATION_STATUS_CODE: 1
+INSTRUMENTATION_STATUS: class=org.mywubi.ExpressionHostTest
+INSTRUMENTATION_STATUS: current=10
+INSTRUMENTATION_STATUS: id=AndroidJUnitRunner
+INSTRUMENTATION_STATUS: numtests=14
+INSTRUMENTATION_STATUS: stream=.
+INSTRUMENTATION_STATUS: test=kanaLiteralAliasUsesVisibleCategoryEntryAndCommitsOnlyTheResult
+INSTRUMENTATION_STATUS_CODE: 0
+INSTRUMENTATION_STATUS: class=org.mywubi.ExpressionHostTest
+INSTRUMENTATION_STATUS: current=11
+INSTRUMENTATION_STATUS: id=AndroidJUnitRunner
+INSTRUMENTATION_STATUS: numtests=14
+INSTRUMENTATION_STATUS: stream=
+INSTRUMENTATION_STATUS: test=realQueryEditsNeverTouchHostAndFinalEmojiAndLongKaomojiStayComplete
+INSTRUMENTATION_STATUS_CODE: 1
+INSTRUMENTATION_STATUS: class=org.mywubi.ExpressionHostTest
+INSTRUMENTATION_STATUS: current=11
+INSTRUMENTATION_STATUS: id=AndroidJUnitRunner
+INSTRUMENTATION_STATUS: numtests=14
+INSTRUMENTATION_STATUS: stack=java.lang.AssertionError
+	at org.junit.Assert.fail(Assert.java:87)
+	at org.junit.Assert.assertTrue(Assert.java:42)
+	at org.junit.Assert.assertTrue(Assert.java:53)
+	at org.mywubi.ExpressionHostTest.realQueryEditsNeverTouchHostAndFinalEmojiAndLongKaomojiStayComplete(ExpressionHostTest.kt:393)
+
+INSTRUMENTATION_STATUS: stream=
+Error in realQueryEditsNeverTouchHostAndFinalEmojiAndLongKaomojiStayComplete(org.mywubi.ExpressionHostTest):
+java.lang.AssertionError
+	at org.junit.Assert.fail(Assert.java:87)
+	at org.junit.Assert.assertTrue(Assert.java:42)
+	at org.junit.Assert.assertTrue(Assert.java:53)
+	at org.mywubi.ExpressionHostTest.realQueryEditsNeverTouchHostAndFinalEmojiAndLongKaomojiStayComplete(ExpressionHostTest.kt:393)
+
+INSTRUMENTATION_STATUS: test=realQueryEditsNeverTouchHostAndFinalEmojiAndLongKaomojiStayComplete
+INSTRUMENTATION_STATUS_CODE: -2
+INSTRUMENTATION_STATUS: class=org.mywubi.ExpressionHostTest
+INSTRUMENTATION_STATUS: current=12
+INSTRUMENTATION_STATUS: id=AndroidJUnitRunner
+INSTRUMENTATION_STATUS: numtests=14
+INSTRUMENTATION_STATUS: stream=
+INSTRUMENTATION_STATUS: test=browseWithoutTypingCommitsRepeatedSymbolsAndRetainsWindow
+INSTRUMENTATION_STATUS_CODE: 1
+INSTRUMENTATION_STATUS: class=org.mywubi.ExpressionHostTest
+INSTRUMENTATION_STATUS: current=12
+INSTRUMENTATION_STATUS: id=AndroidJUnitRunner
+INSTRUMENTATION_STATUS: numtests=14
+INSTRUMENTATION_STATUS: stream=.
+INSTRUMENTATION_STATUS: test=browseWithoutTypingCommitsRepeatedSymbolsAndRetainsWindow
+INSTRUMENTATION_STATUS_CODE: 0
+INSTRUMENTATION_STATUS: class=org.mywubi.ExpressionHostTest
+INSTRUMENTATION_STATUS: current=13
+INSTRUMENTATION_STATUS: id=AndroidJUnitRunner
+INSTRUMENTATION_STATUS: numtests=14
+INSTRUMENTATION_STATUS: stream=
+INSTRUMENTATION_STATUS: test=numericChoicesStayLocalAndResourceReloadRejectsAnOldAccessibilityClick
+INSTRUMENTATION_STATUS_CODE: 1
+INSTRUMENTATION_STATUS: class=org.mywubi.ExpressionHostTest
+INSTRUMENTATION_STATUS: current=13
+INSTRUMENTATION_STATUS: id=AndroidJUnitRunner
+INSTRUMENTATION_STATUS: numtests=14
+INSTRUMENTATION_STATUS: stream=.
+INSTRUMENTATION_STATUS: test=numericChoicesStayLocalAndResourceReloadRejectsAnOldAccessibilityClick
+INSTRUMENTATION_STATUS_CODE: 0
+INSTRUMENTATION_STATUS: class=org.mywubi.ExpressionHostTest
+INSTRUMENTATION_STATUS: current=14
+INSTRUMENTATION_STATUS: id=AndroidJUnitRunner
+INSTRUMENTATION_STATUS: numtests=14
+INSTRUMENTATION_STATUS: stream=
+INSTRUMENTATION_STATUS: test=fullLibraryTailSelectionAndModeReturnDoNotLeakPartialQueries
+INSTRUMENTATION_STATUS_CODE: 1
+INSTRUMENTATION_STATUS: class=org.mywubi.ExpressionHostTest
+INSTRUMENTATION_STATUS: current=14
+INSTRUMENTATION_STATUS: id=AndroidJUnitRunner
+INSTRUMENTATION_STATUS: numtests=14
+INSTRUMENTATION_STATUS: stream=.
+INSTRUMENTATION_STATUS: test=fullLibraryTailSelectionAndModeReturnDoNotLeakPartialQueries
+INSTRUMENTATION_STATUS_CODE: 0
+INSTRUMENTATION_RESULT: stream=
+
+Time: 264.451
+There were 4 failures:
+1) overlappingAlternatingFingersDoNotDropRepeatedKeys(org.mywubi.KeyboardTouchTest)
+java.lang.AssertionError: Every release must commit once even while the other finger stays down expected:<[q, w, q, q, w, q, q, w, q, q, w, q, q, w, q, q, w, q, q, w, q, q, w, q, q, w, q, q, w, q]> but was:<[q, w, q, q, w, q, q, w, q, q, w, q, q, w, q, q, w, q, w]>
+	at org.junit.Assert.fail(Assert.java:89)
+	at org.junit.Assert.failNotEquals(Assert.java:835)
+	at org.junit.Assert.assertEquals(Assert.java:120)
+	at org.mywubi.KeyboardTouchTest.overlappingAlternatingFingersDoNotDropRepeatedKeys(KeyboardTouchTest.kt:108)
+2) modesUseFixedLabelAndSymbolsDoNotConsumeOneShotShift(org.mywubi.KeyboardTouchTest)
+org.json.JSONException: No value for InputSymbol
+	at org.json.JSONObject.get(JSONObject.java:398)
+	at org.json.JSONObject.getString(JSONObject.java:559)
+	at org.mywubi.KeyboardTouchTest.modesUseFixedLabelAndSymbolsDoNotConsumeOneShotShift(KeyboardTouchTest.kt:285)
+3) tapPreviewSwipeHoldAndCancellationCommitExactlyOnce(org.mywubi.KeyboardTouchTest)
+java.lang.AssertionError
+	at org.junit.Assert.fail(Assert.java:87)
+	at org.junit.Assert.assertTrue(Assert.java:42)
+	at org.junit.Assert.assertTrue(Assert.java:53)
+	at org.mywubi.KeyboardTouchTest.tapPreviewSwipeHoldAndCancellationCommitExactlyOnce(KeyboardTouchTest.kt:186)
+4) realQueryEditsNeverTouchHostAndFinalEmojiAndLongKaomojiStayComplete(org.mywubi.ExpressionHostTest)
+java.lang.AssertionError
+	at org.junit.Assert.fail(Assert.java:87)
+	at org.junit.Assert.assertTrue(Assert.java:42)
+	at org.junit.Assert.assertTrue(Assert.java:53)
+	at org.mywubi.ExpressionHostTest.realQueryEditsNeverTouchHostAndFinalEmojiAndLongKaomojiStayComplete(ExpressionHostTest.kt:393)
+
+FAILURES!!!
+Tests run: 14,  Failures: 4
+
+
+INSTRUMENTATION_CODE: -1

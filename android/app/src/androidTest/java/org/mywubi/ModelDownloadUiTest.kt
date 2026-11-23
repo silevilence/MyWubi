@@ -27,25 +27,7 @@ class ModelDownloadUiTest {
             val old=store.readConfig()
             NativeHandle(old.getLong("version")).use {version->NativeHandle(store.activateConfig(config,version.value).getLong("version")).close()}
         }
-        fun scrollFind(selector:BySelector):UiObject2 {
-            // Reopening validates installed packages asynchronously. Reaching the
-            // bottom of the loading page does not mean the control is absent.
-            val deadline=SystemClock.uptimeMillis()+30000
-            do {
-                ins.uiAutomation.clearCache()
-                device.findObject(selector)?.let {return it}
-                for(up in listOf(true,false)) for(step in 0 until 30) {
-                    ins.uiAutomation.clearCache();device.findObject(selector)?.let {return it}
-                    if(up && device.hasObject(By.text("形码 · 拼音 · 英文"))) break
-                    if(!up && device.hasObject(By.text("编辑码表与用户词库"))) break
-                    val top=device.displayHeight/4;val bottom=device.displayHeight*3/4
-                    device.swipe(device.displayWidth/2,if(up) top else bottom,device.displayWidth/2,if(up) bottom else top,40)
-                    device.waitForIdle(1000)
-                }
-                SystemClock.sleep(250)
-            } while(SystemClock.uptimeMillis()<deadline)
-            error("Missing $selector")
-        }
+        fun scrollFind(selector: BySelector) = findSettingsControl(device, selector)
         fun text(value:String)=scrollFind(By.text(value))
         fun description(value:String)=scrollFind(By.desc(value))
         fun candidate(value:String,timeoutMs:Long=10000):UiObject2 {
@@ -71,9 +53,9 @@ class ModelDownloadUiTest {
                 ModelCatalog(context).call("Remove","selection" to selection)
             device.executeShellCommand("am start -W -f 0x10008000 -n org.mywubi/.MainActivity")
             selectSettingsTab(device,"预测")
-            text("预测模型与资源（实验性）").click()
+            expandSettingsControl(device,"预测模型与资源（实验性）", modelRoot = true)
             if(!reuse) {
-            text("下载模型").click()
+            expandSettingsControl(device,"下载模型")
             description("下载源").click()
             device.wait(Until.findObject(By.text("ModelScope")),5000).click()
             description("下载模型 qwen25-words @ q4km-v1").click()
@@ -96,19 +78,19 @@ class ModelDownloadUiTest {
             assertTrue(downloaded.getJSONObject("config").getJSONObject("prediction").isNull("model"))
             if(!reuse) text("校验通过，可选择；总开关未改变")
             device.takeScreenshot(File(context.filesDir,"mi30-download-ready.png"))
-            text("导入与选择模型").click()
+            expandSettingsControl(device,"导入与选择模型")
             val selectable=description("选择模型 qwen25-words @ q4km-v1")
             assertTrue("validated model can be selected",selectable.isEnabled)
             device.pressBack()
             device.executeShellCommand("am start -W -n org.mywubi/.MainActivity")
             selectSettingsTab(device,"预测")
-            text("预测模型与资源（实验性）").click()
-            text("导入与选择模型").click()
-            description("选择模型 qwen25-words @ q4km-v1").click()
-            text("运行状态与性能").click()
-            description("提前加载模型（隐藏或资源紧张时释放）").click()
-            description("上屏后显示字词预测（实验性）").click()
-            text("保存设置").click();text("没有未保存更改")
+            expandSettingsControl(device,"预测模型与资源（实验性）", modelRoot = true)
+            expandSettingsControl(device,"导入与选择模型")
+            clickSetting(device,"选择模型 qwen25-words @ q4km-v1",description = true)
+            expandSettingsControl(device,"运行状态与性能")
+            clickSetting(device,"提前加载模型（隐藏或资源紧张时释放）",description = true)
+            clickSetting(device,"上屏后显示字词预测（实验性）",description = true)
+            clickSetting(device,"保存设置");text("没有未保存更改")
             val saved=store.readConfig();NativeHandle(saved.getLong("version")).close()
             assertEquals("q4km-v1",saved.getJSONObject("config").getJSONObject("prediction").getJSONObject("model").getString("version"))
             val prediction=saved.getJSONObject("config").getJSONObject("prediction")
@@ -120,18 +102,18 @@ class ModelDownloadUiTest {
             device.pressBack()
             device.executeShellCommand("am start -W -f 0x10008000 -n org.mywubi/.MainActivity")
             selectSettingsTab(device,"预测")
-            assertTrue("saved master switch survives reopening",description("上屏后显示字词预测（实验性）").isChecked)
-            text("预测模型与资源（实验性）").click()
-            text("导入与选择模型").click()
+            assertTrue("saved master switch survives reopening",description("上屏后显示字词预测（实验性）").actionNode().isChecked)
+            expandSettingsControl(device,"预测模型与资源（实验性）", modelRoot = true)
+            expandSettingsControl(device,"导入与选择模型")
             text("当前选择：qwen25-words @ q4km-v1")
-            text("运行状态与性能").click()
-            assertTrue("saved preload survives reopening",description("提前加载模型（隐藏或资源紧张时释放）").isChecked)
+            expandSettingsControl(device,"运行状态与性能")
+            assertTrue("saved preload survives reopening",description("提前加载模型（隐藏或资源紧张时释放）").actionNode().isChecked)
             device.executeShellCommand("am force-stop org.mywubi.acceptancehost")
             device.executeShellCommand("ime enable org.mywubi/.MyWubiService")
             device.executeShellCommand("ime set org.mywubi/.MyWubiService")
             device.executeShellCommand("am start -W -f 0x10008000 -n org.mywubi.acceptancehost/.EditorActivity")
             val field=device.wait(Until.findObject(By.clazz("android.widget.EditText")),10000)
-            field.text="";field.click()
+            field.text="";focusExternalEditor(device)
             val readyBy=SystemClock.uptimeMillis()+60000
             var ready=false
             val phases=org.json.JSONArray()
@@ -147,7 +129,7 @@ class ModelDownloadUiTest {
             // Retry only with a fresh acknowledged host commit, as in MI-23;
             // never extend a request's 1000 ms budget or accept a late response.
             for(attempt in 1..3) {
-                field.text="";field.click();ins.uiAutomation.clearCache()
+                field.text="";focusExternalEditor(device);ins.uiAutomation.clearCache()
                 device.wait(Until.findObject(By.desc("v").pkg("org.mywubi")),10000).click()
                 candidate("北京").click()
                 assertTrue(device.wait(Until.hasObject(By.clazz("android.widget.EditText").text("北京")),5000))

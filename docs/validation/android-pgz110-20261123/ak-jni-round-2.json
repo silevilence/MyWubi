@@ -1,0 +1,31 @@
+{
+  "model": "PGZ110",
+  "api": 34,
+  "pss_before_kib": 83635,
+  "scope": "JNI Prepare\/Ack + candidate fetch; no screen latency",
+  "Main_exact": {
+    "count": 500,
+    "p50_us": 5129.231,
+    "p95_us": 8554.153,
+    "p99_us": 10584.231
+  },
+  "Main_groups": {
+    "count": 500,
+    "p50_us": 11396,
+    "p95_us": 15820,
+    "p99_us": 17686.384
+  },
+  "Pinyin_exact": {
+    "count": 500,
+    "p50_us": 2541.154,
+    "p95_us": 5345.538,
+    "p99_us": 7092.307
+  },
+  "Pinyin_groups": {
+    "count": 500,
+    "p50_us": 3706.538,
+    "p95_us": 7151.077,
+    "p99_us": 8392.308
+  },
+  "pss_after_kib": 135115
+}

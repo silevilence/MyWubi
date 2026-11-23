@@ -5,11 +5,15 @@ use std::path::{Path, PathBuf};
 use std::sync::Arc;
 
 /// 仅由主码表文件构建，不包含合并后的用户词库。
-#[derive(Debug, Default)]
-pub struct ReverseLookup(BTreeMap<String, Vec<String>>);
+#[derive(Debug, Default, Clone)]
+pub struct ReverseLookup(Arc<BTreeMap<String, Vec<String>>>);
 
 impl ReverseLookup {
     pub fn new(main: &Dictionary) -> Self {
+        main.reverse.get_or_init(|| Self::build(main)).clone()
+    }
+
+    fn build(main: &Dictionary) -> Self {
         let mut index: BTreeMap<String, Vec<String>> = BTreeMap::new();
         for entry in main.entries() {
             index
@@ -21,7 +25,7 @@ impl ReverseLookup {
             codes.sort_by(|a, b| a.chars().count().cmp(&b.chars().count()).then(a.cmp(b)));
             codes.dedup();
         }
-        Self(index)
+        Self(Arc::new(index))
     }
 
     pub fn codes(&self, word: &str) -> &[String] {

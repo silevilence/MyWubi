@@ -1,0 +1,26 @@
+{
+  "prior_version": "17",
+  "approved_sha256": "1830e2c4bc18b5c63514ba8a96b5b907c12d804dcb85b2cbab3881d6e0ff7caa",
+  "enabled_for_test": "REQUEST_INSTALL_PACKAGES: allow; time=+7m58s323ms ago",
+  "windows": [
+    "Window{35e5a11 u0 com.android.settings/com.android.settings.Settings$DisplaySettingsActivity}",
+    "null",
+    "Window{726c2b3 u0 org.mywubi/org.mywubi.UpdateActivity}",
+    "Window{2b944b5 u0 org.mywubi/org.mywubi.UpdateActivity}",
+    "Window{726c2b3 u0 org.mywubi/org.mywubi.UpdateActivity}",
+    "Window{47938a5 u0 com.oplus.appdetail/com.oplus.appdetail.modelv2.parsing.PackageParsingV2Activity}",
+    "Window{fa6eb8a u0 com.oplus.appdetail/com.oplus.appdetail.modelv2.parsing.PackageParsingV2Activity}",
+    "Window{f2c7033 u0 com.oplus.appdetail/com.oplus.appdetail.model.guide.ui.InstallGuideActivity}",
+    "Window{b49263e u0 com.oplus.appdetail/com.oplus.appdetail.model.guide.ui.InstallGuideActivity}",
+    "Window{76b2b7d u0 com.android.settings/com.android.settings.password.ConfirmLockPassword}"
+  ],
+  "verified_source_file": "files/app-update/MyWubi-19-1830e2c4bc18b5c63514ba8a96b5b907c12d804dcb85b2cbab3881d6e0ff7caa.apk",
+  "target_link": true,
+  "risk_dialog_confirmed": true,
+  "owner_required": true,
+  "system_version_after_confirmation": "19",
+  "installed_sha256": "1830e2c4bc18b5c63514ba8a96b5b907c12d804dcb85b2cbab3881d6e0ff7caa",
+  "post_upgrade_assertions": true,
+  "permission_after_test": "REQUEST_INSTALL_PACKAGES: deny; time=+4m13s257ms ago",
+  "final_version": "17"
+}

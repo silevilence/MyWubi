@@ -17,18 +17,28 @@ class SkinSettingsUiTest {
         val selector=if(description) By.desc(label) else By.text(label)
         instrumentation.uiAutomation.clearCache()
         device.findObject(selector)?.let {return it}
-        // Scroll in the settings padding: the live preview intentionally consumes
-        // key gestures, so swiping its centre does not scroll the settings page.
-        repeat(10) {
-            val bounds=device.findObject(By.desc("设置内容").scrollable(true))?.visibleBounds ?: return@repeat
-            device.swipe(bounds.left+8,bounds.top+bounds.height()/3,bounds.left+8,bounds.bottom-20,10)
-        }
-        repeat(15) {
+        fun scroll(forward:Boolean):Boolean {
             instrumentation.uiAutomation.clearCache()
-            device.findObject(selector)?.let {return it}
-            val bounds=device.findObject(By.desc("设置内容").scrollable(true))?.visibleBounds
-            if(bounds!=null) device.swipe(bounds.left+8,bounds.bottom-20,bounds.left+8,bounds.top+bounds.height()/3,20)
-            device.waitForIdle()
+            val root=instrumentation.uiAutomation.rootInActiveWindow ?: return false
+            val queue=java.util.ArrayDeque(listOf(root))
+            while(queue.isNotEmpty()) {
+                val n=queue.removeFirst()
+                if(n.packageName==context.packageName && n.contentDescription=="设置内容" && n.isScrollable) {
+                    val action=if(forward)android.view.accessibility.AccessibilityNodeInfo.ACTION_SCROLL_FORWARD
+                        else android.view.accessibility.AccessibilityNodeInfo.ACTION_SCROLL_BACKWARD
+                    return n.performAction(action)
+                }
+                for(i in 0 until n.childCount)n.getChild(i)?.let(queue::add)
+            }
+            return false
+        }
+        for(forward in listOf(false,true)) {
+            for(step in 0..45) {
+                instrumentation.uiAutomation.clearCache()
+                device.findObject(selector)?.let { return it }
+                if(!scroll(forward))break
+                android.os.SystemClock.sleep(180)
+            }
         }
         error("Missing $label")
     }
@@ -46,7 +56,7 @@ class SkinSettingsUiTest {
             }
             if(button!=null && button.visibleBounds.height() < 40*context.resources.displayMetrics.density) {
                 val bounds=device.findObject(By.desc("设置内容"))?.visibleBounds ?: error("Missing settings viewport")
-                device.swipe(bounds.left+8,bounds.bottom-20,bounds.left+8,bounds.centerY(),20)
+                device.swipe(bounds.left+bounds.width()/8,bounds.bottom-20,bounds.left+bounds.width()/8,bounds.centerY(),20)
             } else android.os.SystemClock.sleep(100)
         }
         error("Control stayed unavailable: $label")
@@ -70,7 +80,10 @@ class SkinSettingsUiTest {
             put(MediaStore.MediaColumns.DISPLAY_NAME,name);put(MediaStore.MediaColumns.MIME_TYPE,"application/zip")
             put(MediaStore.MediaColumns.RELATIVE_PATH,"Download")
         }) ?: error("Cannot prepare SAF fixture")
-        instrumentation.context.assets.open("skins/editor-jade.mywubi-skin").use {input -> context.contentResolver.openOutputStream(uri)!!.use {input.copyTo(it)} }
+        val packagePath = InstrumentationRegistry.getArguments().getString("keyboard_package")
+        val packageInput = packagePath?.let { File(it).inputStream() }
+            ?: instrumentation.context.assets.open("skins/editor-jade.mywubi-skin")
+        packageInput.use {input -> context.contentResolver.openOutputStream(uri)!!.use {input.copyTo(it)} }
         try {
             // A repeated run may start with this package already selected. Establish a
             // different preference so selection must create a real unsaved draft.
@@ -84,19 +97,19 @@ class SkinSettingsUiTest {
                 device.waitForIdle()
                 device.takeScreenshot(File(context.filesDir,"skin-before-picker.png"))
                 importButton.click()
-                val opened=device.wait(Until.hasObject(By.pkg("com.google.android.documentsui")),10000)
+                val opened=device.wait(Until.hasObject(By.pkg(java.util.regex.Pattern.compile("com(?:[.]google)?[.]android[.]documentsui"))),10000)
                 if(!opened) {
                     device.takeScreenshot(File(context.filesDir,"skin-picker-not-open.png"))
                     device.dumpWindowHierarchy(File(context.filesDir,"skin-picker-not-open.xml"))
                 }
                 assertTrue("System file picker did not open",opened)
                 device.waitForIdle();instrumentation.uiAutomation.clearCache()
-                device.findObject(By.desc("Show roots"))?.click();device.waitForIdle()
+                device.findObject(By.desc(java.util.regex.Pattern.compile("Show roots|显示根目录|显示根路径|显示根文件夹|显示导航栏|显示位置")))?.click();device.waitForIdle()
                 val rootDeadline=android.os.SystemClock.uptimeMillis()+10000
                 while(true) {
                     instrumentation.uiAutomation.clearCache()
                     try {
-                        val root=device.findObject(By.res("android","title").text("Downloads"))
+                        val root=device.findObject(By.res("android","title").text(java.util.regex.Pattern.compile("Downloads|下载(?:内容|项)?")))
                         if(root!=null) {root.click();break}
                     } catch (_:StaleObjectException) { /* DocumentsUI replaces its root nodes while loading. */ }
                     if(android.os.SystemClock.uptimeMillis()>=rootDeadline) {
@@ -134,10 +147,30 @@ class SkinSettingsUiTest {
                     if(!selected) android.os.SystemClock.sleep(100)
                 } while(!selected && android.os.SystemClock.uptimeMillis()<end)
                 assertTrue("Selection was not saved",selected)
+                val exports=File(context.cacheDir,"skin-exports")
+                val before=exports.listFiles().orEmpty().toSet()
                 clickReady("分享皮肤 jade 自定义副本 完整包",true)
                 assertTrue(device.wait(Until.hasObject(By.text("分享完整皮肤包")),10000) ||
-                    device.hasObject(By.res("android","chooser_header")))
-                device.takeScreenshot(File(context.filesDir,"skin-system-share.png"))
+                    device.hasObject(By.res("android","chooser_header")) ||
+                    device.executeShellCommand("dumpsys activity activities").lineSequence().filter { it.contains("mResumedActivity") || it.contains("topResumedActivity") }
+                        .any { it.contains("chooser",true) || it.contains("resolver",true) })
+                val exported=(exports.listFiles().orEmpty().toSet()-before).single()
+                fun fingerprints(input:java.io.InputStream)=java.util.zip.ZipInputStream(input).use { stream ->
+                    val contents=sortedMapOf<String,String>()
+                    while(true) {
+                        val entry=stream.nextEntry ?: break
+                        if(!entry.isDirectory) contents[entry.name]=java.security.MessageDigest.getInstance("SHA-256")
+                            .digest(stream.readBytes()).joinToString("") { "%02x".format(it) }
+                    }
+                    contents
+                }
+                val source=packagePath?.let { File(it).inputStream() } ?: instrumentation.context.assets.open("skins/editor-jade.mywubi-skin")
+                val hashes=fingerprints(exported.inputStream())
+                assertEquals(fingerprints(source),hashes)
+                val imported=NativeBridge.objectCall("ManageSkin","request" to org.json.JSONObject()
+                    .put("action","Import").put("path",store.configFile.path).put("source",exported.path).put("platform","android"))
+                assertTrue(imported.toString(),imported.getBoolean("already_present"))
+                File(context.filesDir,"skin-share-roundtrip.json").writeText(org.json.JSONObject(hashes).toString(2))
                 device.pressBack()
             }
         } finally {

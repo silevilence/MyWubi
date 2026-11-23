@@ -64,7 +64,7 @@ class ExpressionHostTest {
             device.executeShellCommand("ime set org.mywubi/.MyWubiService")
             device.executeShellCommand("am force-stop org.mywubi.acceptancehost")
             device.executeShellCommand("am start -W -n org.mywubi.acceptancehost/.EditorActivity")
-            device.waitForIdle();host().click();fresh(By.desc("a").pkg("org.mywubi").enabled(true))
+            device.waitForIdle();focusExternalEditor(device);fresh(By.desc("a").pkg("org.mywubi").enabled(true))
             if(device.hasObject(By.desc("英 → 中"))) key("英 → 中")
             val before=journal()
             key("特殊输入");button("Emoji");button("下一组")
@@ -114,7 +114,7 @@ class ExpressionHostTest {
             device.executeShellCommand("ime set org.mywubi/.MyWubiService")
             device.executeShellCommand("am force-stop org.mywubi.acceptancehost")
             device.executeShellCommand("am start -W -n org.mywubi.acceptancehost/.EditorActivity")
-            device.waitForIdle(); host().click(); fresh(By.desc("a").pkg("org.mywubi").enabled(true))
+            device.waitForIdle(); focusExternalEditor(device); fresh(By.desc("a").pkg("org.mywubi").enabled(true))
             if (device.hasObject(By.desc("英 → 中"))) key("英 → 中")
             val before = journal()
             key("特殊输入"); button("假名"); button("搜索"); button("切换为字面别名")
@@ -332,6 +332,7 @@ class ExpressionHostTest {
         val table=File(context.filesDir,"em-host-main.dict").apply {
             writeText("---\ndisplay_name: 表情验收\n---\na\t禁止\nb\t自行车\nc\t车\nd\t开心\nx\t龘靐齉\nf\t家庭\ng\t工\n")
         }
+        val revisedTable = File.createTempFile("em-host-revised-", ".dict", context.cacheDir)
         val long="(๑•̀ㅂ•́)و✧　".repeat(14)+"(╯°□°）╯︵ ┻━┻"
         val kaomoji=File(context.filesDir,"em-host-kaomoji.mwe").apply {
             writeText("# MyWubi Expressions 1\n"+JSONObject().put("kind","kaomoji").put("name","验收样本").put("version","1")
@@ -352,7 +353,7 @@ class ExpressionHostTest {
             device.executeShellCommand("ime set org.mywubi/.MyWubiService")
             device.executeShellCommand("am force-stop org.mywubi.acceptancehost")
             device.executeShellCommand("am start -n org.mywubi.acceptancehost/.EditorActivity")
-            host().click();fresh(By.desc("a").pkg("org.mywubi").enabled(true))
+            focusExternalEditor(device);fresh(By.desc("a").pkg("org.mywubi").enabled(true))
             if(device.hasObject(By.desc("英 → 中"))) key("英 → 中")
             for(second in listOf("b","c")) {
                 host().text="";host().click()
@@ -382,13 +383,16 @@ class ExpressionHostTest {
             device.pressHome()
             assertTrue(device.wait(Until.gone(By.desc("q").pkg("org.mywubi")),5000))
             device.executeShellCommand("am start --activity-single-top -n org.mywubi.acceptancehost/.EditorActivity")
-            host().click();fresh(By.desc("a").pkg("org.mywubi").enabled(true))
+            focusExternalEditor(device);fresh(By.desc("a").pkg("org.mywubi").enabled(true))
             assertTrue(device.wait(Until.gone(By.text("Emoji · 主码表组词").pkg("org.mywubi")),5000))
             assertEquals(before,journal());assertHost("")
             // A real config update cancels a displayed result; no old output may be committed.
             enter("Emoji");key("a");key("空格");key("c");button("查找")
             fresh(By.descStartsWith("候选 🚳").pkg("org.mywubi"))
-            config.getJSONObject("appearance").put("font_size",15)
+            // Appearance-only saves intentionally retain composition. Reload an
+            // actual dictionary before checking that its old query is invalidated.
+            revisedTable.writeText(table.readText() + "qqqq\t重载词条\n")
+            config.getJSONObject("dictionary").put("system_table", revisedTable.path)
             save(config,store.readConfig().getLong("version"))
             assertTrue(device.wait(Until.gone(By.descStartsWith("候选 🚳").pkg("org.mywubi")),10000))
             assertEquals(before,journal());assertHost("")
@@ -407,7 +411,7 @@ class ExpressionHostTest {
             enter("颜文字");key("d");button("查找");key("展开")
             val longCandidate=fresh(By.descStartsWith("候选 $long").pkg("org.mywubi"))
             val bounds=longCandidate.visibleBounds
-            device.swipe(bounds.right-12,bounds.centerY(),bounds.left+12,bounds.centerY(),100)
+            device.swipe(bounds.right-bounds.width()/5,bounds.centerY(),bounds.left+bounds.width()/5,bounds.centerY(),100)
             device.waitForIdle();SystemClock.sleep(500) // let scroll/fling finish before a separate tap
             assertEquals(before,journal());shot("long-kaomoji-scrolled")
             candidate(long);shot("long-kaomoji-after-tap");assertHost(long)
@@ -415,6 +419,7 @@ class ExpressionHostTest {
             shot("kaomoji-committed")
         } finally {
             val current=store.readConfig();save(original,current.getLong("version"))
+            revisedTable.delete()
             device.pressBack();device.pressBack()
         }
     }

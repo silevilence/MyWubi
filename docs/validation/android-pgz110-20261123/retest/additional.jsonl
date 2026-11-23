@@ -1,0 +1,1 @@
+{"id": 33, "result": "通过", "log": "normal-upgrade-final.json", "reason": "系统安装器从版本码17升级至19，批准与实装包的SHA-256一致，升级后数据和缓存检查通过。"}

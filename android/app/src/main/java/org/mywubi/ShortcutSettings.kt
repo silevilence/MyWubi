@@ -8,6 +8,7 @@ import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.focus.onFocusChanged
 import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.text.input.KeyboardType
@@ -24,6 +25,7 @@ fun shortcutExampleTime() = JSONObject().put("year",2026).put("month",11).put("d
     .put("timezone","Asia/Shanghai（固定示例）")
 
 /** Draft ownership stays in the ViewModel; all resource and date calculations use core. */
+@OptIn(ExperimentalFoundationApi::class)
 @Composable
 fun ShortcutSettings(model: SettingsModel, config: JSONObject, selected: Int) {
     val rules = config.optJSONObject("shortcuts")?.optJSONArray("rules") ?: JSONArray()
@@ -70,10 +72,18 @@ fun ShortcutSettings(model: SettingsModel, config: JSONObject, selected: Int) {
                 SettingToggle("用户启用",rule.optBoolean("enabled"),!model.busy) {update(index,"enabled",it)}
                 val position=rule.optString("position")
                 val invalidPosition=position.toLongOrNull()?.let {it !in 1L..10000L} ?: true
+                var editingPosition by remember { mutableStateOf(false) }
+                val positionError = remember { BringIntoViewRequester() }
+                LaunchedEffect(invalidPosition,editingPosition) {
+                    if (invalidPosition && editingPosition) {
+                        withFrameNanos { }
+                        positionError.bringIntoView()
+                    }
+                }
                 OutlinedTextField(position,{update(index,"position",it.toLongOrNull() ?: it)},label={Text("全局候选位置")},
                     isError=invalidPosition || error?.contains("rules[$index].position")==true,
-                    supportingText={if(invalidPosition)Text("请输入 1～10000 的整数") else if(error?.contains("rules[$index].position")==true)Text(error.orEmpty())},
-                    keyboardOptions=KeyboardOptions(keyboardType=KeyboardType.Number),singleLine=true,enabled=!model.busy,modifier=Modifier.fillMaxWidth().shortcutFieldFocus(model,index,"position"))
+                    supportingText={if(invalidPosition)Text("请输入 1～10000 的整数",Modifier.bringIntoViewRequester(positionError)) else if(error?.contains("rules[$index].position")==true)Text(error.orEmpty())},
+                    keyboardOptions=KeyboardOptions(keyboardType=KeyboardType.Number),singleLine=true,enabled=!model.busy,modifier=Modifier.fillMaxWidth().onFocusChanged { editingPosition = it.isFocused }.shortcutFieldFocus(model,index,"position"))
                 OutlinedTextField(rule.optString("format"),{update(index,"format",it)},label={Text("日期时间格式")},
                     enabled=!model.busy,modifier=Modifier.fillMaxWidth().shortcutFieldFocus(model,index,"format"),isError=error?.contains("rules[$index].format")==true,
                     supportingText={if(error?.contains("rules[$index].format")==true)Text(error.orEmpty())})

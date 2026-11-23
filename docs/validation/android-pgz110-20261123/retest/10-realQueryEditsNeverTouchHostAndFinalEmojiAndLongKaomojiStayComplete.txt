@@ -1,0 +1,44 @@
+INSTRUMENTATION_STATUS: class=org.mywubi.ExpressionHostTest
+INSTRUMENTATION_STATUS: current=1
+INSTRUMENTATION_STATUS: id=AndroidJUnitRunner
+INSTRUMENTATION_STATUS: numtests=1
+INSTRUMENTATION_STATUS: stream=
+org.mywubi.ExpressionHostTest:
+INSTRUMENTATION_STATUS: test=realQueryEditsNeverTouchHostAndFinalEmojiAndLongKaomojiStayComplete
+INSTRUMENTATION_STATUS_CODE: 1
+INSTRUMENTATION_STATUS: class=org.mywubi.ExpressionHostTest
+INSTRUMENTATION_STATUS: current=1
+INSTRUMENTATION_STATUS: id=AndroidJUnitRunner
+INSTRUMENTATION_STATUS: numtests=1
+INSTRUMENTATION_STATUS: stack=java.lang.AssertionError
+	at org.junit.Assert.fail(Assert.java:87)
+	at org.junit.Assert.assertTrue(Assert.java:42)
+	at org.junit.Assert.assertTrue(Assert.java:53)
+	at org.mywubi.ExpressionHostTest.realQueryEditsNeverTouchHostAndFinalEmojiAndLongKaomojiStayComplete(ExpressionHostTest.kt:394)
+
+INSTRUMENTATION_STATUS: stream=
+Error in realQueryEditsNeverTouchHostAndFinalEmojiAndLongKaomojiStayComplete(org.mywubi.ExpressionHostTest):
+java.lang.AssertionError
+	at org.junit.Assert.fail(Assert.java:87)
+	at org.junit.Assert.assertTrue(Assert.java:42)
+	at org.junit.Assert.assertTrue(Assert.java:53)
+	at org.mywubi.ExpressionHostTest.realQueryEditsNeverTouchHostAndFinalEmojiAndLongKaomojiStayComplete(ExpressionHostTest.kt:394)
+
+INSTRUMENTATION_STATUS: test=realQueryEditsNeverTouchHostAndFinalEmojiAndLongKaomojiStayComplete
+INSTRUMENTATION_STATUS_CODE: -2
+INSTRUMENTATION_RESULT: stream=
+
+Time: 65.414
+There was 1 failure:
+1) realQueryEditsNeverTouchHostAndFinalEmojiAndLongKaomojiStayComplete(org.mywubi.ExpressionHostTest)
+java.lang.AssertionError
+	at org.junit.Assert.fail(Assert.java:87)
+	at org.junit.Assert.assertTrue(Assert.java:42)
+	at org.junit.Assert.assertTrue(Assert.java:53)
+	at org.mywubi.ExpressionHostTest.realQueryEditsNeverTouchHostAndFinalEmojiAndLongKaomojiStayComplete(ExpressionHostTest.kt:394)
+
+FAILURES!!!
+Tests run: 1,  Failures: 1
+
+
+INSTRUMENTATION_CODE: -1

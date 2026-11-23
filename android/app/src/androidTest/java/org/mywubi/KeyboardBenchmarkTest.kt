@@ -14,6 +14,9 @@ class KeyboardBenchmarkTest {
         val context=InstrumentationRegistry.getInstrumentation().targetContext
         val defaults=Resources.prepare(context)
         val main=File(defaults.parentFile,"tables/wubi86.dict")
+        val expectedMain = main.useLines { lines ->
+            lines.first { it.startsWith("ggll\t") }.split('\t')[1]
+        }
         val root=File(context.cacheDir,"ak-jni-benchmark").apply {mkdirs()}
         val config=File(root,"config.toml").apply {writeText("[basic]\nauto_commit_unique=false\n[dictionary]\nsystem_table=\"${main.path}\"\nenable_user_dict=false\n")}
         val host=JSONObject("""{"editor":3,"epoch":1,"supports_preedit":false,"supports_insert":true,"owns_preedit":false,"purpose":"Text","selection_available":true,"surrounding_available":true,"enter_action":"Newline"}""")
@@ -39,7 +42,10 @@ class KeyboardBenchmarkTest {
                         }
                         val candidates=NativeBridge.objectCall("Candidates","session" to session.value,"offset" to 0,"count" to 50)
                         val duration=SystemClock.elapsedRealtimeNanos()-begin
-                        org.junit.Assert.assertTrue("Real table candidates must be queried",candidates.toString().contains(if(mode=="Main") "王" else "你"))
+                        val expected = if (mode == "Main") expectedMain else "你"
+                        val items = candidates.getJSONArray("candidates")
+                        org.junit.Assert.assertTrue("Missing $expected for $mode (grouped=$grouped)",
+                            (0 until items.length()).any { items.getJSONObject(it).getString("text") == expected })
                         if(iteration>=50) elapsed.add(duration)
                         action("Cancel")
                     }

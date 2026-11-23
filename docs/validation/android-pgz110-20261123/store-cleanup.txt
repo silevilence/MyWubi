@@ -1,0 +1,7 @@
+商店推荐页的通用安装控件被测试误点。
+com.phoenix.read
+firstInstallTime=2026-11-23 12:02:33
+installerPackageName=com.heytap.market
+notLaunched=true
+uninstall=Success
+remaining=

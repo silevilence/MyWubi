@@ -1,0 +1,21 @@
+--------- beginning of main
+11-23 13:12:03.785 22556 22556 D MyWubiQA: selection epoch=15 old=0,0 new=1,1 comp=0,1 own=0 pending=[1] preedit=true
+11-23 13:12:04.441 22556 22556 D MyWubiQA: selection epoch=15 old=1,1 new=2,2 comp=0,2 own=0 pending=[2] preedit=true
+11-23 13:12:05.134 22556 22556 D MyWubiQA: selection epoch=15 old=2,2 new=3,3 comp=0,3 own=0 pending=[3] preedit=true
+11-23 13:12:05.816 22556 22556 D MyWubiQA: selection epoch=15 old=3,3 new=4,4 comp=0,4 own=0 pending=[4] preedit=true
+11-23 13:12:09.746 22556 22556 D MyWubiQA: selection epoch=15 old=4,4 new=10,10 comp=-1,-1 own=0 pending=[10] preedit=false
+11-23 13:12:12.774 22556 22556 D MyWubiQA: selection epoch=17 old=0,0 new=1,1 comp=0,1 own=0 pending=[1] preedit=true
+11-23 13:12:13.444 22556 22556 D MyWubiQA: selection epoch=17 old=1,1 new=2,2 comp=0,2 own=0 pending=[2] preedit=true
+11-23 13:12:14.131 22556 22556 D MyWubiQA: selection epoch=17 old=2,2 new=3,3 comp=0,3 own=0 pending=[3] preedit=true
+11-23 13:12:14.828 22556 22556 D MyWubiQA: selection epoch=17 old=3,3 new=4,4 comp=0,4 own=0 pending=[4] preedit=true
+11-23 13:12:19.411 22556 22556 D MyWubiQA: selection epoch=17 old=4,4 new=10,10 comp=-1,-1 own=0 pending=[10] preedit=false
+11-23 13:12:22.570 22556 22556 D MyWubiQA: selection epoch=19 old=0,0 new=1,1 comp=0,1 own=0 pending=[1] preedit=true
+11-23 13:12:23.242 22556 22556 D MyWubiQA: selection epoch=19 old=1,1 new=2,2 comp=0,2 own=0 pending=[2] preedit=true
+11-23 13:12:23.976 22556 22556 D MyWubiQA: selection epoch=19 old=2,2 new=3,3 comp=0,3 own=0 pending=[3] preedit=true
+11-23 13:12:24.655 22556 22556 D MyWubiQA: selection epoch=19 old=3,3 new=4,4 comp=0,4 own=0 pending=[4] preedit=true
+11-23 13:12:29.794 22556 22556 D MyWubiQA: selection epoch=19 old=4,4 new=10,10 comp=-1,-1 own=0 pending=[10] preedit=false
+11-23 13:12:33.430 22556 22556 D MyWubiQA: selection epoch=21 old=0,0 new=1,1 comp=0,1 own=0 pending=[1] preedit=true
+11-23 13:12:34.123 22556 22556 D MyWubiQA: selection epoch=21 old=1,1 new=2,2 comp=0,2 own=0 pending=[2] preedit=true
+11-23 13:12:34.792 22556 22556 D MyWubiQA: selection epoch=21 old=2,2 new=3,3 comp=0,3 own=0 pending=[3] preedit=true
+11-23 13:12:35.537 22556 22556 D MyWubiQA: selection epoch=21 old=3,3 new=4,4 comp=0,4 own=0 pending=[4] preedit=true
+11-23 13:12:36.258 22556 22556 D MyWubiQA: selection epoch=21 old=4,4 new=5,5 comp=0,5 own=0 pending=[5] preedit=true

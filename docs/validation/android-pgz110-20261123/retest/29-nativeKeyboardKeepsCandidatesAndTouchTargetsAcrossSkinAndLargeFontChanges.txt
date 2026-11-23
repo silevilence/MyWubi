@@ -1,0 +1,44 @@
+INSTRUMENTATION_STATUS: class=org.mywubi.SkinContractTest
+INSTRUMENTATION_STATUS: current=1
+INSTRUMENTATION_STATUS: id=AndroidJUnitRunner
+INSTRUMENTATION_STATUS: numtests=1
+INSTRUMENTATION_STATUS: stream=
+org.mywubi.SkinContractTest:
+INSTRUMENTATION_STATUS: test=nativeKeyboardKeepsCandidatesAndTouchTargetsAcrossSkinAndLargeFontChanges
+INSTRUMENTATION_STATUS_CODE: 1
+INSTRUMENTATION_STATUS: class=org.mywubi.SkinContractTest
+INSTRUMENTATION_STATUS: current=1
+INSTRUMENTATION_STATUS: id=AndroidJUnitRunner
+INSTRUMENTATION_STATUS: numtests=1
+INSTRUMENTATION_STATUS: stack=java.lang.AssertionError: One release should dispatch one action expected:<1> but was:<0>
+	at org.junit.Assert.fail(Assert.java:89)
+	at org.junit.Assert.failNotEquals(Assert.java:835)
+	at org.junit.Assert.assertEquals(Assert.java:120)
+	at org.mywubi.SkinContractTest.nativeKeyboardKeepsCandidatesAndTouchTargetsAcrossSkinAndLargeFontChanges(SkinContractTest.kt:225)
+
+INSTRUMENTATION_STATUS: stream=
+Error in nativeKeyboardKeepsCandidatesAndTouchTargetsAcrossSkinAndLargeFontChanges(org.mywubi.SkinContractTest):
+java.lang.AssertionError: One release should dispatch one action expected:<1> but was:<0>
+	at org.junit.Assert.fail(Assert.java:89)
+	at org.junit.Assert.failNotEquals(Assert.java:835)
+	at org.junit.Assert.assertEquals(Assert.java:120)
+	at org.mywubi.SkinContractTest.nativeKeyboardKeepsCandidatesAndTouchTargetsAcrossSkinAndLargeFontChanges(SkinContractTest.kt:225)
+
+INSTRUMENTATION_STATUS: test=nativeKeyboardKeepsCandidatesAndTouchTargetsAcrossSkinAndLargeFontChanges
+INSTRUMENTATION_STATUS_CODE: -2
+INSTRUMENTATION_RESULT: stream=
+
+Time: 11.574
+There was 1 failure:
+1) nativeKeyboardKeepsCandidatesAndTouchTargetsAcrossSkinAndLargeFontChanges(org.mywubi.SkinContractTest)
+java.lang.AssertionError: One release should dispatch one action expected:<1> but was:<0>
+	at org.junit.Assert.fail(Assert.java:89)
+	at org.junit.Assert.failNotEquals(Assert.java:835)
+	at org.junit.Assert.assertEquals(Assert.java:120)
+	at org.mywubi.SkinContractTest.nativeKeyboardKeepsCandidatesAndTouchTargetsAcrossSkinAndLargeFontChanges(SkinContractTest.kt:225)
+
+FAILURES!!!
+Tests run: 1,  Failures: 1
+
+
+INSTRUMENTATION_CODE: -1

@@ -1,0 +1,5 @@
+{"id": 2, "driver": "ADB 实际触摸和本地 DOM 回读", "result": "失败", "reason": "缺少可用按键 拼音", "steps": []}
+{"id": 7, "driver": "ADB 实际触摸和本地 DOM 回读", "result": "失败", "reason": "缺少可用按键 退格", "steps": []}
+{"id": 3, "driver": "ADB 实际触摸和本地 DOM 回读", "result": "失败", "reason": "缺少可用按键 g", "steps": []}
+{"id": 5, "driver": "ADB 实际触摸和本地 DOM 回读", "result": "失败", "reason": "3: 缺少可用按键 g / 4: 缺少可用按键 1 / 5: 缺少可用按键 + / 6: 缺少可用按键 / / 7: 缺少可用按键 a / 8: 缺少可用按键 下一项", "steps": []}
+{"id": 1, "driver": "ADB 实际触摸和本地 DOM 回读", "result": "失败", "reason": "地址栏没有获得焦点", "steps": []}

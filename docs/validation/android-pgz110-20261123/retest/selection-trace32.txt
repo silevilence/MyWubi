@@ -1,0 +1,5 @@
+--------- beginning of main
+11-23 13:10:24.161 22115 22115 D MyWubiQA: selection epoch=1 old=0,0 new=1,1 comp=0,1 own=0 pending=[1] preedit=true
+11-23 13:10:28.023 22115 22115 D MyWubiQA: selection epoch=1 old=1,1 new=1,1 comp=-1,-1 own=0 pending=[1] preedit=false
+11-23 13:10:29.683 22115 22115 D MyWubiQA: start restart=true epoch=1
+11-23 13:10:41.962 22115 22115 D MyWubiQA: start restart=true epoch=5

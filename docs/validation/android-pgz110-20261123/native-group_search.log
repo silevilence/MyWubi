@@ -1,0 +1,9 @@
+
+running 4 tests
+test every_small_group_sequence_matches_exhaustive_reference_and_all_sources ... ok
+test explicit_letter_filters_without_destroying_original_group ... ok
+test insufficient_budget_never_claims_complete_or_unique ... ok
+test windows_across_long_tail_keep_order_and_identity ... ok
+
+test result: ok. 4 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.02s
+

@@ -1,0 +1,10 @@
+{"case":"C06-1-9","pass":true}
+{"case":"C06-1-10","pass":true}
+{"case":"C06-1-11","error":"java.lang.IllegalArgumentException: Missing 展开","host":"jjad","ime":["jjad","候选 普通0","候选 普通1","候选 普通2","候选 普通3","展开","收起键盘","q","w","e","r","t","y","u","i","o","p","a","s","d","f","g","h","j","k","l","z","x","c","v","b","n","m","小写","退格","123","符号","，","空格","。","中 → 英","换行","返回","切换输入法"]}
+{"case":"C06-9-9","error":"java.lang.IllegalArgumentException: Missing 展开","host":"jjad","ime":["jjad","候选 普通0","候选 普通1","候选 普通2","候选 普通3","展开","收起键盘","q","w","e","r","t","y","u","i","o","p","a","s","d","f","g","h","j","k","l","z","x","c","v","b","n","m","小写","退格","123","符号","，","空格","。","中 → 英","换行","返回","切换输入法"]}
+{"case":"C06-9-10","pass":true}
+{"case":"C06-9-11","pass":true}
+{"case":"C06-10-9","pass":true}
+{"case":"C06-10-10","pass":true}
+{"case":"C06-10-11","pass":true}
+{"case":"C11","error":"java.lang.IllegalArgumentException: Required value was null.","host":"jjaad","ime":["jjaad","候选 2026-11-23，日期时间","展开","收起键盘","q","w","e","r","t","y","u","i","o","p","a","s","d","f","g","h","j","k","l","z","x","c","v","b","n","m","小写","退格","123","符号","，","空格","。","中 → 英","换行","返回","切换输入法"]}

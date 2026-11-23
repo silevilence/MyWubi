@@ -18,6 +18,18 @@ class KeyboardTouchTest {
     private val instrumentation = InstrumentationRegistry.getInstrumentation()
     private val device = UiDevice.getInstance(instrumentation)
     private var downTime = 0L
+    private val delivered = CopyOnWriteArrayList<String>()
+
+    private fun observeTouchWindow(activity: MainActivity) {
+        val original = activity.window.callback
+        activity.window.callback = object : android.view.Window.Callback by original {
+            override fun dispatchTouchEvent(event: MotionEvent): Boolean {
+                delivered.add("${event.actionMasked}/${event.actionIndex} @${event.eventTime - event.downTime}")
+                return original.dispatchTouchEvent(event)
+            }
+        }
+    }
+
 
     @Test fun eightDirectionsMergedUpAndReturnToCenterUseOneReleaseAction() {
         val events=CopyOnWriteArrayList<Any>()
@@ -64,6 +76,18 @@ class KeyboardTouchTest {
         }
     }
 
+    private fun touchInsideKey(scenario: ActivityScenario<MainActivity>, label: String): android.graphics.Point {
+        val bounds = key(label).visibleBounds
+        val point = android.graphics.Point(bounds.centerX(), bounds.centerY())
+        if (android.os.Build.VERSION.SDK_INT >= 30) scenario.onActivity { activity ->
+            val insets = activity.window.decorView.rootWindowInsets.getInsets(android.view.WindowInsets.Type.systemGestures())
+            val left = maxOf(bounds.left + 1, insets.left + 3)
+            val right = minOf(bounds.right - 1, device.displayWidth - insets.right - 3)
+            if (left <= right) point.x = point.x.coerceIn(left, right)
+        }
+        return point
+    }
+
     private fun key(label: String): UiObject2 {
         instrumentation.uiAutomation.clearCache()
         return device.wait(Until.findObject(By.desc(label).pkg("org.mywubi")),5000) ?: error("Missing $label")
@@ -77,6 +101,9 @@ class KeyboardTouchTest {
     private fun settled() { device.waitForIdle(); instrumentation.waitForIdleSync(); instrumentation.uiAutomation.clearCache() }
 
     private fun fingers(action: Int, vararg points: Pair<Int, android.graphics.Point>) {
+        // Pace individual contact reports at 120 Hz. Both fingers still overlap
+        // and every release must be delivered and produce exactly one action.
+        SystemClock.sleep(8)
         if (action == MotionEvent.ACTION_DOWN) downTime = SystemClock.uptimeMillis()
         val properties = points.map { (id, _) -> MotionEvent.PointerProperties().apply {
             this.id = id; toolType = MotionEvent.TOOL_TYPE_FINGER
@@ -92,9 +119,10 @@ class KeyboardTouchTest {
     @Test fun overlappingAlternatingFingersDoNotDropRepeatedKeys() {
         val events = CopyOnWriteArrayList<Any>()
         ActivityScenario.launch(MainActivity::class.java).use { scenario ->
-            scenario.onActivity { it.setContent { Keyboard(KeyboardModel(enabled=true), { events.add(it) }, {}, switchIme={}) } }
-            val q = key("q").visibleCenter
+            scenario.onActivity { observeTouchWindow(it); it.setContent { Keyboard(KeyboardModel(enabled=true), { events.add(it) }, {}, switchIme={}) } }
+            val q = touchInsideKey(scenario, "q")
             val w = key("w").visibleCenter
+            settled()
             repeat(10) {
                 fingers(MotionEvent.ACTION_DOWN, 0 to q)
                 fingers(MotionEvent.ACTION_POINTER_DOWN or (1 shl MotionEvent.ACTION_POINTER_INDEX_SHIFT), 0 to q, 1 to w)
@@ -105,6 +133,7 @@ class KeyboardTouchTest {
                 fingers(MotionEvent.ACTION_UP, 2 to q)
             }
             settled()
+            assertEquals("Every injected event must reach the activity: $delivered", 60, delivered.size)
             assertEquals("Every release must commit once even while the other finger stays down",
                 List(10) { listOf("q", "w", "q") }.flatten(),
                 events.map { (it as JSONObject).getJSONArray("InputText").getString(0) })
@@ -179,16 +208,23 @@ class KeyboardTouchTest {
         val events = CopyOnWriteArrayList<Any>()
         var model by mutableStateOf(KeyboardModel(enabled=true, modesAvailable=true, pinyinAvailable=true, status="测试码表"))
         ActivityScenario.launch(MainActivity::class.java).use { scenario ->
-            scenario.onActivity { it.setContent { Keyboard(model, { events.add(it) }, {}, switchIme={}) } }
-            val q = key("q").visibleCenter
+            scenario.onActivity { observeTouchWindow(it); it.setContent { Keyboard(model, { events.add(it) }, {}, switchIme={}) } }
+            settled()
+            val q = touchInsideKey(scenario, "q")
             touch(MotionEvent.ACTION_DOWN, q.x, q.y)
             SystemClock.sleep(100)
-            assertTrue(device.hasObject(By.desc("按键预览")))
+            instrumentation.uiAutomation.clearCache()
+            val visible = device.wait(Until.hasObject(By.desc("按键预览")), 1500)
+            if (!visible) {
+                device.takeScreenshot(File(instrumentation.targetContext.filesDir, "preview-down-failure.png"))
+                device.dumpWindowHierarchy(File(instrumentation.targetContext.filesDir, "preview-down-failure.xml"))
+            }
+            assertTrue("Preview missing at $q; activity events=$delivered", visible)
             assertTrue("按住期间尚未提交", events.isEmpty())
             device.takeScreenshot(File(instrumentation.targetContext.filesDir,"keyboard-key-preview.png"))
             touch(MotionEvent.ACTION_CANCEL, q.x, q.y); settled()
             assertTrue(events.isEmpty())
-            key("q").click(); settled()
+            device.click(q.x,q.y); settled()
             assertEquals(1, events.size)
             assertEquals("q", (events.last() as JSONObject).getJSONArray("InputText").getString(0))
             // Successful releases intentionally retain the bubble briefly. Compose
@@ -212,7 +248,7 @@ class KeyboardTouchTest {
 
             val s = key("s").visibleCenter
             touch(MotionEvent.ACTION_DOWN, s.x, s.y)
-            SystemClock.sleep(650)
+            SystemClock.sleep(android.view.ViewConfiguration.getLongPressTimeout().toLong() + 175)
             assertEquals("长按只预选，松手才输入", 2, events.size)
             device.takeScreenshot(File(instrumentation.targetContext.filesDir,"keyboard-symbol-preview.png"))
             touch(MotionEvent.ACTION_UP, s.x, s.y); settled()
@@ -221,7 +257,7 @@ class KeyboardTouchTest {
 
             val d = key("d").visibleCenter
             touch(MotionEvent.ACTION_DOWN, d.x, d.y)
-            SystemClock.sleep(650)
+            SystemClock.sleep(android.view.ViewConfiguration.getLongPressTimeout().toLong() + 175)
             touch(MotionEvent.ACTION_CANCEL, d.x, d.y); settled()
             assertEquals(3, events.size)
             assertFalse(device.hasObject(By.desc("按键预览")))
@@ -233,7 +269,7 @@ class KeyboardTouchTest {
 
             touch(MotionEvent.ACTION_DOWN, d.x, d.y)
             scenario.onActivity { model = model.copy(epoch=1) }
-            SystemClock.sleep(650)
+            SystemClock.sleep(android.view.ViewConfiguration.getLongPressTimeout().toLong() + 175)
             touch(MotionEvent.ACTION_UP, d.x, d.y); settled()
             assertEquals("切换输入上下文后不能提交旧按键", 3, events.size)
 
@@ -280,7 +316,7 @@ class KeyboardTouchTest {
             key("小写").click(); settled()
             val upper = key("Q").visibleCenter
             touch(MotionEvent.ACTION_DOWN, upper.x, upper.y)
-            SystemClock.sleep(650)
+            SystemClock.sleep(android.view.ViewConfiguration.getLongPressTimeout().toLong() + 175)
             touch(MotionEvent.ACTION_UP, upper.x, upper.y); settled()
             assertEquals("1", (events.last() as JSONObject).getString("InputSymbol"))
             key("Q").click(); settled()
@@ -306,7 +342,7 @@ class KeyboardTouchTest {
             assertEquals(listOf("a", "q"), events.map { (it as JSONObject).getJSONArray("InputText").getString(0) })
             touch(MotionEvent.ACTION_DOWN, a.x, a.y)
             scenario.moveToState(androidx.lifecycle.Lifecycle.State.CREATED)
-            SystemClock.sleep(650)
+            SystemClock.sleep(android.view.ViewConfiguration.getLongPressTimeout().toLong() + 175)
             touch(MotionEvent.ACTION_UP, a.x, a.y)
             scenario.moveToState(androidx.lifecycle.Lifecycle.State.RESUMED)
             settled()

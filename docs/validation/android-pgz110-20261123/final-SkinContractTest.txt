@@ -1,0 +1,130 @@
+INSTRUMENTATION_STATUS: class=org.mywubi.SkinContractTest
+INSTRUMENTATION_STATUS: current=1
+INSTRUMENTATION_STATUS: id=AndroidJUnitRunner
+INSTRUMENTATION_STATUS: numtests=6
+INSTRUMENTATION_STATUS: stream=
+org.mywubi.SkinContractTest:
+INSTRUMENTATION_STATUS: test=actualImageSkinSupportsDarkLandscapeAndLargeFont
+INSTRUMENTATION_STATUS_CODE: 1
+INSTRUMENTATION_STATUS: class=org.mywubi.SkinContractTest
+INSTRUMENTATION_STATUS: current=1
+INSTRUMENTATION_STATUS: id=AndroidJUnitRunner
+INSTRUMENTATION_STATUS: numtests=6
+INSTRUMENTATION_STATUS: stack=java.lang.AssertionError: Bottom row must be fully visible: Rect(1018, 895 - 1429, 996)
+	at org.junit.Assert.fail(Assert.java:89)
+	at org.junit.Assert.assertTrue(Assert.java:42)
+	at org.mywubi.SkinContractTest.actualImageSkinSupportsDarkLandscapeAndLargeFont(SkinContractTest.kt:147)
+
+INSTRUMENTATION_STATUS: stream=
+Error in actualImageSkinSupportsDarkLandscapeAndLargeFont(org.mywubi.SkinContractTest):
+java.lang.AssertionError: Bottom row must be fully visible: Rect(1018, 895 - 1429, 996)
+	at org.junit.Assert.fail(Assert.java:89)
+	at org.junit.Assert.assertTrue(Assert.java:42)
+	at org.mywubi.SkinContractTest.actualImageSkinSupportsDarkLandscapeAndLargeFont(SkinContractTest.kt:147)
+
+INSTRUMENTATION_STATUS: test=actualImageSkinSupportsDarkLandscapeAndLargeFont
+INSTRUMENTATION_STATUS_CODE: -2
+INSTRUMENTATION_STATUS: class=org.mywubi.SkinContractTest
+INSTRUMENTATION_STATUS: current=2
+INSTRUMENTATION_STATUS: id=AndroidJUnitRunner
+INSTRUMENTATION_STATUS: numtests=6
+INSTRUMENTATION_STATUS: stream=
+INSTRUMENTATION_STATUS: test=imageVariantsShareDecodedResourcesAndRejectCorruption
+INSTRUMENTATION_STATUS_CODE: 1
+INSTRUMENTATION_STATUS: class=org.mywubi.SkinContractTest
+INSTRUMENTATION_STATUS: current=2
+INSTRUMENTATION_STATUS: id=AndroidJUnitRunner
+INSTRUMENTATION_STATUS: numtests=6
+INSTRUMENTATION_STATUS: stream=.
+INSTRUMENTATION_STATUS: test=imageVariantsShareDecodedResourcesAndRejectCorruption
+INSTRUMENTATION_STATUS_CODE: 0
+INSTRUMENTATION_STATUS: class=org.mywubi.SkinContractTest
+INSTRUMENTATION_STATUS: current=3
+INSTRUMENTATION_STATUS: id=AndroidJUnitRunner
+INSTRUMENTATION_STATUS: numtests=6
+INSTRUMENTATION_STATUS: stream=
+INSTRUMENTATION_STATUS: test=resolvingBothVariantsPreservesCandidateIdentityAndPendingCommit
+INSTRUMENTATION_STATUS_CODE: 1
+INSTRUMENTATION_STATUS: class=org.mywubi.SkinContractTest
+INSTRUMENTATION_STATUS: current=3
+INSTRUMENTATION_STATUS: id=AndroidJUnitRunner
+INSTRUMENTATION_STATUS: numtests=6
+INSTRUMENTATION_STATUS: stream=.
+INSTRUMENTATION_STATUS: test=resolvingBothVariantsPreservesCandidateIdentityAndPendingCommit
+INSTRUMENTATION_STATUS_CODE: 0
+INSTRUMENTATION_STATUS: class=org.mywubi.SkinContractTest
+INSTRUMENTATION_STATUS: current=4
+INSTRUMENTATION_STATUS: id=AndroidJUnitRunner
+INSTRUMENTATION_STATUS: numtests=6
+INSTRUMENTATION_STATUS: stream=
+INSTRUMENTATION_STATUS: test=realImeKeepsPendingCandidateAcrossAppearanceSave
+INSTRUMENTATION_STATUS_CODE: 1
+INSTRUMENTATION_STATUS: class=org.mywubi.SkinContractTest
+INSTRUMENTATION_STATUS: current=4
+INSTRUMENTATION_STATUS: id=AndroidJUnitRunner
+INSTRUMENTATION_STATUS: numtests=6
+INSTRUMENTATION_STATUS: stream=.
+INSTRUMENTATION_STATUS: test=realImeKeepsPendingCandidateAcrossAppearanceSave
+INSTRUMENTATION_STATUS_CODE: 0
+INSTRUMENTATION_STATUS: class=org.mywubi.SkinContractTest
+INSTRUMENTATION_STATUS: current=5
+INSTRUMENTATION_STATUS: id=AndroidJUnitRunner
+INSTRUMENTATION_STATUS: numtests=6
+INSTRUMENTATION_STATUS: stream=
+INSTRUMENTATION_STATUS: test=nativeKeyboardKeepsCandidatesAndTouchTargetsAcrossSkinAndLargeFontChanges
+INSTRUMENTATION_STATUS_CODE: 1
+INSTRUMENTATION_STATUS: class=org.mywubi.SkinContractTest
+INSTRUMENTATION_STATUS: current=5
+INSTRUMENTATION_STATUS: id=AndroidJUnitRunner
+INSTRUMENTATION_STATUS: numtests=6
+INSTRUMENTATION_STATUS: stack=java.lang.AssertionError: One release should dispatch one action expected:<1> but was:<0>
+	at org.junit.Assert.fail(Assert.java:89)
+	at org.junit.Assert.failNotEquals(Assert.java:835)
+	at org.junit.Assert.assertEquals(Assert.java:120)
+	at org.mywubi.SkinContractTest.nativeKeyboardKeepsCandidatesAndTouchTargetsAcrossSkinAndLargeFontChanges(SkinContractTest.kt:225)
+
+INSTRUMENTATION_STATUS: stream=
+Error in nativeKeyboardKeepsCandidatesAndTouchTargetsAcrossSkinAndLargeFontChanges(org.mywubi.SkinContractTest):
+java.lang.AssertionError: One release should dispatch one action expected:<1> but was:<0>
+	at org.junit.Assert.fail(Assert.java:89)
+	at org.junit.Assert.failNotEquals(Assert.java:835)
+	at org.junit.Assert.assertEquals(Assert.java:120)
+	at org.mywubi.SkinContractTest.nativeKeyboardKeepsCandidatesAndTouchTargetsAcrossSkinAndLargeFontChanges(SkinContractTest.kt:225)
+
+INSTRUMENTATION_STATUS: test=nativeKeyboardKeepsCandidatesAndTouchTargetsAcrossSkinAndLargeFontChanges
+INSTRUMENTATION_STATUS_CODE: -2
+INSTRUMENTATION_STATUS: class=org.mywubi.SkinContractTest
+INSTRUMENTATION_STATUS: current=6
+INSTRUMENTATION_STATUS: id=AndroidJUnitRunner
+INSTRUMENTATION_STATUS: numtests=6
+INSTRUMENTATION_STATUS: stream=
+INSTRUMENTATION_STATUS: test=actualWindowsEditorExportResolvesAndRoundtripsWithoutChangingWindows
+INSTRUMENTATION_STATUS_CODE: 1
+INSTRUMENTATION_STATUS: class=org.mywubi.SkinContractTest
+INSTRUMENTATION_STATUS: current=6
+INSTRUMENTATION_STATUS: id=AndroidJUnitRunner
+INSTRUMENTATION_STATUS: numtests=6
+INSTRUMENTATION_STATUS: stream=.
+INSTRUMENTATION_STATUS: test=actualWindowsEditorExportResolvesAndRoundtripsWithoutChangingWindows
+INSTRUMENTATION_STATUS_CODE: 0
+INSTRUMENTATION_RESULT: stream=
+
+Time: 26.563
+There were 2 failures:
+1) actualImageSkinSupportsDarkLandscapeAndLargeFont(org.mywubi.SkinContractTest)
+java.lang.AssertionError: Bottom row must be fully visible: Rect(1018, 895 - 1429, 996)
+	at org.junit.Assert.fail(Assert.java:89)
+	at org.junit.Assert.assertTrue(Assert.java:42)
+	at org.mywubi.SkinContractTest.actualImageSkinSupportsDarkLandscapeAndLargeFont(SkinContractTest.kt:147)
+2) nativeKeyboardKeepsCandidatesAndTouchTargetsAcrossSkinAndLargeFontChanges(org.mywubi.SkinContractTest)
+java.lang.AssertionError: One release should dispatch one action expected:<1> but was:<0>
+	at org.junit.Assert.fail(Assert.java:89)
+	at org.junit.Assert.failNotEquals(Assert.java:835)
+	at org.junit.Assert.assertEquals(Assert.java:120)
+	at org.mywubi.SkinContractTest.nativeKeyboardKeepsCandidatesAndTouchTargetsAcrossSkinAndLargeFontChanges(SkinContractTest.kt:225)
+
+FAILURES!!!
+Tests run: 6,  Failures: 2
+
+
+INSTRUMENTATION_CODE: -1

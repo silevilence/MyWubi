@@ -222,7 +222,7 @@ class SkinContractTest {
                 key.click(); device.waitForIdle()
                 val deadline=android.os.SystemClock.uptimeMillis()+5000
                 while(events.size==count && android.os.SystemClock.uptimeMillis()<deadline) android.os.SystemClock.sleep(50)
-                assertEquals("One release should dispatch one action",count+1,events.size)
+                assertEquals("One release on $preset at font scale $fontScale should dispatch one action, bounds=${key.visibleBounds}",count+1,events.size)
                 assertTrue(events.last().toString().contains("q"))
                 device.takeScreenshot(File(instrumentation.targetContext.filesDir,"skin-$preset-$fontScale.png"))
             }

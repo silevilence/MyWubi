@@ -25,7 +25,17 @@ class UpdateDownload internal constructor(context: Context,
     private val mutable = MutableStateFlow(UpdateDownloadState())
     val state = mutable.asStateFlow()
     private var job: Job? = null
-    private val apk get() = File(directory, "update.apk")
+    // A different verified payload must also have a different FileProvider URI.
+    private fun apk(update: AppUpdate): File {
+        require(update.sha256.matches(Regex("[a-f0-9]{64}")))
+        return File(directory, "MyWubi-${update.versionCode}-${update.sha256}.apk")
+    }
+    private val legacyApk get() = File(directory, "update.apk")
+    private fun removeObsoleteApks(keep: File? = null) {
+        val name = Regex("MyWubi-[0-9]+-[a-f0-9]{64}[.]apk")
+        directory.listFiles()?.filter { it != keep && (it == legacyApk || it.name.matches(name)) }
+            ?.forEach { check(it.delete()) { "无法清理旧安装包" } }
+    }
     private val partial get() = File(directory, "update.part")
     private val record get() = File(directory, "update.json")
 
@@ -41,9 +51,16 @@ class UpdateDownload internal constructor(context: Context,
                     val installed = packageVersion(app.packageManager.getPackageInfo(app.packageName, 0))
                     if (update.versionCode <= installed) {
                         check(record.delete())
-                        if (apk.exists()) check(apk.delete())
+                        removeObsoleteApks()
                         null
-                    } else update.also { verifyApk(app, apk, it) }
+                    } else update.also {
+                        val current = apk(it)
+                        if (!current.exists() && legacyApk.isFile) {
+                            verifyApk(app, legacyApk, it)
+                            java.nio.file.Files.move(legacyApk.toPath(), current.toPath())
+                        }
+                        verifyApk(app, current, it)
+                    }
                 }
             } }
             mutable.value = result.fold(
@@ -73,9 +90,11 @@ class UpdateDownload internal constructor(context: Context,
                     mutable.value = mutable.value.copy(phase=DownloadPhase.Verifying, message="正在校验安装包…")
                     verifyApk(app, partial, update)
                     ensureActive()
-                    java.nio.file.Files.move(partial.toPath(), apk.toPath(), java.nio.file.StandardCopyOption.REPLACE_EXISTING)
+                    val verified = apk(update)
+                    java.nio.file.Files.move(partial.toPath(), verified.toPath(), java.nio.file.StandardCopyOption.REPLACE_EXISTING)
                     // A missing/partial receipt after process death fails closed on restore.
                     record.writeText(update.json().toString())
+                    removeObsoleteApks(verified)
                 }
                 completed = UpdateDownloadState(DownloadPhase.Ready, update, message="下载完成，安装包已校验")
             } catch (_: CancellationException) {
@@ -108,8 +127,8 @@ class UpdateDownload internal constructor(context: Context,
         val ready = state.value
         check(ready.phase == DownloadPhase.Ready && job == null) { "安装包尚未准备好" }
         return withContext(Dispatchers.IO) {
-            verifyApk(app, apk, requireNotNull(ready.update))
-            apk
+            val update = requireNotNull(ready.update)
+            apk(update).also { verifyApk(app, it, update) }
         }
     }
 

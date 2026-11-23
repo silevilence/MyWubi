@@ -1,0 +1,15 @@
+{"layout":"full26","code":"wqvb","expected":"你好","error":"java.lang.IllegalArgumentException: Missing key w"}
+{"layout":"full26","code":"uegd","expected":"龘","first_key_width_px":106,"error":"java.lang.IllegalArgumentException: Missing key 展开"}
+{"layout":"full26","code":"aaaa","expected":"恭恭敬敬","first_key_width_px":106,"error":"java.lang.IllegalArgumentException: Missing key 展开"}
+{"layout":"full26","code":"kwwl","expected":"中华人民共和国","first_key_width_px":106,"error":"androidx.test.uiautomator.StaleObjectException"}
+{"layout":"full26","code":"mmaa","expected":"联调用词","first_key_width_px":106,"through_commit_ms":4239,"result":"pass"}
+{"layout":"shape14","code":"wqvb","expected":"你好","first_key_width_px":212,"through_commit_ms":3984,"result":"pass"}
+{"layout":"shape14","code":"uegd","expected":"龘","first_key_width_px":212,"error":"java.lang.IllegalArgumentException: Missing key 展开"}
+{"layout":"shape14","code":"aaaa","expected":"恭恭敬敬","first_key_width_px":212,"through_commit_ms":5370,"result":"pass"}
+{"layout":"shape14","code":"kwwl","expected":"中华人民共和国","first_key_width_px":212,"through_commit_ms":3404,"result":"pass"}
+{"layout":"shape14","code":"mmaa","expected":"联调用词","first_key_width_px":212,"through_commit_ms":7473,"result":"pass"}
+{"layout":"shape9","code":"wqvb","expected":"你好","error":"java.lang.IllegalArgumentException: Missing key WXYZ"}
+{"layout":"shape9","code":"uegd","expected":"龘","error":"java.lang.IllegalArgumentException: Missing key TUV"}
+{"layout":"shape9","code":"aaaa","expected":"恭恭敬敬","first_key_width_px":354,"error":"java.lang.IllegalArgumentException: Missing key 展开"}
+{"layout":"shape9","code":"kwwl","expected":"中华人民共和国","first_key_width_px":354,"error":"java.lang.IllegalArgumentException: Missing key WXYZ"}
+{"layout":"shape9","code":"mmaa","expected":"联调用词","first_key_width_px":354,"error":"java.lang.IllegalArgumentException: Missing key 展开"}

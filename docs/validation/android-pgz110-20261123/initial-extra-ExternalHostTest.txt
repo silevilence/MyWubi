@@ -1,0 +1,74 @@
+INSTRUMENTATION_STATUS: class=org.mywubi.ExternalHostTest
+INSTRUMENTATION_STATUS: current=1
+INSTRUMENTATION_STATUS: id=AndroidJUnitRunner
+INSTRUMENTATION_STATUS: numtests=2
+INSTRUMENTATION_STATUS: stream=
+org.mywubi.ExternalHostTest:
+INSTRUMENTATION_STATUS: test=shapeInputInSystemSettings
+INSTRUMENTATION_STATUS_CODE: 1
+INSTRUMENTATION_STATUS: class=org.mywubi.ExternalHostTest
+INSTRUMENTATION_STATUS: current=1
+INSTRUMENTATION_STATUS: id=AndroidJUnitRunner
+INSTRUMENTATION_STATUS: numtests=2
+INSTRUMENTATION_STATUS: stack=java.lang.AssertionError: System IME switch button
+	at org.junit.Assert.fail(Assert.java:89)
+	at org.junit.Assert.assertTrue(Assert.java:42)
+	at org.junit.Assert.assertNotNull(Assert.java:713)
+	at org.mywubi.ExternalHostTest.shapeInputInSystemSettings(ExternalHostTest.kt:160)
+
+INSTRUMENTATION_STATUS: stream=
+Error in shapeInputInSystemSettings(org.mywubi.ExternalHostTest):
+java.lang.AssertionError: System IME switch button
+	at org.junit.Assert.fail(Assert.java:89)
+	at org.junit.Assert.assertTrue(Assert.java:42)
+	at org.junit.Assert.assertNotNull(Assert.java:713)
+	at org.mywubi.ExternalHostTest.shapeInputInSystemSettings(ExternalHostTest.kt:160)
+
+INSTRUMENTATION_STATUS: test=shapeInputInSystemSettings
+INSTRUMENTATION_STATUS_CODE: -2
+INSTRUMENTATION_STATUS: class=org.mywubi.ExternalHostTest
+INSTRUMENTATION_STATUS: current=2
+INSTRUMENTATION_STATUS: id=AndroidJUnitRunner
+INSTRUMENTATION_STATUS: numtests=2
+INSTRUMENTATION_STATUS: stream=
+INSTRUMENTATION_STATUS: test=composeExpansionAndRepeatStopsOnRelease
+INSTRUMENTATION_STATUS_CODE: 1
+INSTRUMENTATION_STATUS: class=org.mywubi.ExternalHostTest
+INSTRUMENTATION_STATUS: current=2
+INSTRUMENTATION_STATUS: id=AndroidJUnitRunner
+INSTRUMENTATION_STATUS: numtests=2
+INSTRUMENTATION_STATUS: stack=androidx.test.uiautomator.StaleObjectException
+	at androidx.test.uiautomator.UiObject2.getAccessibilityNodeInfo(UiObject2.java:1018)
+	at androidx.test.uiautomator.UiObject2.click(UiObject2.java:516)
+	at org.mywubi.ExternalHostTest.composeExpansionAndRepeatStopsOnRelease(ExternalHostTest.kt:89)
+
+INSTRUMENTATION_STATUS: stream=
+Error in composeExpansionAndRepeatStopsOnRelease(org.mywubi.ExternalHostTest):
+androidx.test.uiautomator.StaleObjectException
+	at androidx.test.uiautomator.UiObject2.getAccessibilityNodeInfo(UiObject2.java:1018)
+	at androidx.test.uiautomator.UiObject2.click(UiObject2.java:516)
+	at org.mywubi.ExternalHostTest.composeExpansionAndRepeatStopsOnRelease(ExternalHostTest.kt:89)
+
+INSTRUMENTATION_STATUS: test=composeExpansionAndRepeatStopsOnRelease
+INSTRUMENTATION_STATUS_CODE: -2
+INSTRUMENTATION_RESULT: stream=
+
+Time: 20.18
+There were 2 failures:
+1) shapeInputInSystemSettings(org.mywubi.ExternalHostTest)
+java.lang.AssertionError: System IME switch button
+	at org.junit.Assert.fail(Assert.java:89)
+	at org.junit.Assert.assertTrue(Assert.java:42)
+	at org.junit.Assert.assertNotNull(Assert.java:713)
+	at org.mywubi.ExternalHostTest.shapeInputInSystemSettings(ExternalHostTest.kt:160)
+2) composeExpansionAndRepeatStopsOnRelease(org.mywubi.ExternalHostTest)
+androidx.test.uiautomator.StaleObjectException
+	at androidx.test.uiautomator.UiObject2.getAccessibilityNodeInfo(UiObject2.java:1018)
+	at androidx.test.uiautomator.UiObject2.click(UiObject2.java:516)
+	at org.mywubi.ExternalHostTest.composeExpansionAndRepeatStopsOnRelease(ExternalHostTest.kt:89)
+
+FAILURES!!!
+Tests run: 2,  Failures: 2
+
+
+INSTRUMENTATION_CODE: -1

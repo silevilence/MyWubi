@@ -199,62 +199,74 @@ internal fun KeyTouchSurface(label: String, enabled: Boolean, epoch: Long, modif
         }
         .pointerInput(enabled, active, lifecycleRevision, epoch, label, alternate, previewEnabled, bindingRevision, choices.mapValues { it.value.name }) {
             if (!enabled || !active) return@pointerInput
-            awaitEachGesture {
-                val down = awaitFirstDown()
-                down.consume()
-                val token = Any()
-                val revision = lifecycleRevision
-                owner = token
-                pressed = true
-                val gesture=DirectionalGesture(currentChoices.keys, alternate != null)
-                var committed = false
-                fun preview() {
-                    val text=when {
-                        gesture.cancelled -> null
-                        gesture.holding -> alternate
-                        gesture.sliding -> currentChoices[gesture.direction]?.name
-                        else -> label
-                    }
-                    if(previewEnabled && text != null) previews.current=KeyPreview(token,text,bounds)
-                    else previews.clear(token)
-                }
-                preview()
-                val longPress = if (alternate != null) scope.launch {
-                    delay(viewConfiguration.longPressTimeoutMillis)
-                    if (active && revision == lifecycleRevision) { gesture.hold(); preview() }
-                } else null
-                longPressJob = longPress
-                try {
-                    while (true) {
+            awaitPointerEventScope {
+                while (true) {
+                    var incoming: androidx.compose.ui.input.pointer.PointerInputChange?
+                    do {
                         val event = awaitPointerEvent()
-                        val change = event.changes.firstOrNull { it.id == down.id } ?: break
-                        if (change.isConsumed || !active || revision != lifecycleRevision) { gesture.cancel(); break }
-                        // Independent keys retain two-thumb typing; a second finger on this key cancels it.
-                        if(event.changes.any { it.id != down.id && it.pressed &&
-                            it.position.x in 0f..size.width.toFloat() && it.position.y in 0f..size.height.toFloat() }) {
-                            gesture.cancel(); break
+                        incoming = event.changes.firstOrNull {
+                            it.pressed && !it.previousPressed && !it.isConsumed &&
+                                it.position.x in 0f..size.width.toFloat() && it.position.y in 0f..size.height.toFloat()
                         }
-                        val delta=change.position-down.position
-                        gesture.move(delta.x/density,delta.y/density)
-                        if(gesture.sliding || gesture.cancelled) longPress?.cancel()
-                        preview()
-                        if (!change.pressed) {
-                            change.consume()
-                            when(val selected=gesture.release()) {
-                                -1 -> { primary(); committed=true }
-                                -2 -> { secondary(); committed=true }
-                                null -> Unit
-                                else -> currentChoices[selected]?.let { it.action();committed=true }
-                            }
-                            break
+                    } while (incoming == null)
+                    val down = incoming
+                    down.consume()
+                    val token = Any()
+                    val revision = lifecycleRevision
+                    owner = token
+                    pressed = true
+                    val gesture=DirectionalGesture(currentChoices.keys, alternate != null)
+                    var committed = false
+                    fun preview() {
+                        val text=when {
+                            gesture.cancelled -> null
+                            gesture.holding -> alternate
+                            gesture.sliding -> currentChoices[gesture.direction]?.name
+                            else -> label
                         }
-                        change.consume()
+                        if(previewEnabled && text != null) previews.current=KeyPreview(token,text,bounds)
+                        else previews.clear(token)
                     }
-                } finally {
-                    longPress?.cancel()
-                    pressed = false
-                    if (committed && previewEnabled) scope.launch { delay(80); previews.clear(token) }
-                    else previews.clear(token)
+                    preview()
+                    val longPress = if (alternate != null) scope.launch {
+                        delay(viewConfiguration.longPressTimeoutMillis)
+                        if (active && revision == lifecycleRevision) { gesture.hold(); preview() }
+                    } else null
+                    longPressJob = longPress
+                    try {
+                        while (true) {
+                            val event = awaitPointerEvent()
+                            val change = event.changes.firstOrNull { it.id == down.id } ?: break
+                            if (change.isConsumed || !active || revision != lifecycleRevision) { gesture.cancel(); break }
+                            // Independent keys retain two-thumb typing; a second finger on this key cancels it.
+                            if(event.changes.any { it.id != down.id && it.pressed &&
+                                it.position.x in 0f..size.width.toFloat() && it.position.y in 0f..size.height.toFloat() }) {
+                                gesture.cancel(); break
+                            }
+                            val delta=change.position-down.position
+                            gesture.move(delta.x/density,delta.y/density)
+                            if(gesture.sliding || gesture.cancelled) longPress?.cancel()
+                            preview()
+                            if (!change.pressed) {
+                                change.consume()
+                                if (change.uptimeMillis - down.uptimeMillis >= viewConfiguration.longPressTimeoutMillis)
+                                    gesture.hold()
+                                when(val selected=gesture.release()) {
+                                    -1 -> { primary(); committed=true }
+                                    -2 -> { secondary(); committed=true }
+                                    null -> Unit
+                                    else -> currentChoices[selected]?.let { it.action();committed=true }
+                                }
+                                break
+                            }
+                            change.consume()
+                        }
+                    } finally {
+                        longPress?.cancel()
+                        pressed = false
+                        if (committed && previewEnabled) scope.launch { delay(80); previews.clear(token) }
+                        else previews.clear(token)
+                    }
                 }
             }
         }

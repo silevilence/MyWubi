@@ -1,0 +1,1 @@
+{"skin":"parameters","profile":"eight","layout":"full26","night":"no","orientation":"portrait","named_actions":["上滑：a","右上滑：b","右滑：c","右下滑：d","下滑：e","左下滑：f","左滑：g","左上滑：h"],"observations":[{"direction":0,"name":"候选 甲"},{"direction":1,"name":"候选 乙"}],"host":"甲乙","result":"pass"}

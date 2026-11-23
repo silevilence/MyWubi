@@ -1,0 +1,61 @@
+Passed 10 JNI groups; 1168 protocol/control requests; C:\code\rust\MyWubi\docs\validation\android-pgz110-20261123\art-si-cases.json
+C:\code\rust\MyWubi\target\pgz110-20261123\si-art\bridge.jar: 1 file pushed, 0 skipped. 0.2 MB/s (1898 bytes in 0.011s)
+C:\code\rust\MyWubi\target\pgz110-20261123\si-art\libmywubi_android.so: 1 file pushed, 0 skipped. 48.4 MB/s (11714232 bytes in 0.231s)
+C:\code\rust\MyWubi\target\pgz110-20261123\si-art\libonnxruntime.so: 1 file pushed, 0 skipped. 78.5 MB/s (34208672 bytes in 0.416s)
+C:\code\rust\MyWubi\expressions\kana.mwe: 1 file pushed, 0 skipped. 99.1 MB/s (85311 bytes in 0.001s)
+C:\Users\silev\AppData\Local\Temp\mywubi-si-jni-3lktmmyh\c01-False\config.toml: 1 file pushed, 0 skipped.
+C:\Users\silev\AppData\Local\Temp\mywubi-si-jni-3lktmmyh\c01-False\main.dict: 1 file pushed, 0 skipped. 0.3 MB/s (79 bytes in 0.000s)
+C:\Users\silev\AppData\Local\Temp\mywubi-si-jni-3lktmmyh\c01-False\symbols.mwe: 1 file pushed, 0 skipped. 1.2 MB/s (324 bytes in 0.000s)
+C:\Users\silev\AppData\Local\Temp\mywubi-si-jni-3lktmmyh\c01-True\config.toml: 1 file pushed, 0 skipped.
+C:\Users\silev\AppData\Local\Temp\mywubi-si-jni-3lktmmyh\c01-True\main.dict: 1 file pushed, 0 skipped. 0.2 MB/s (79 bytes in 0.000s)
+C:\Users\silev\AppData\Local\Temp\mywubi-si-jni-3lktmmyh\c01-True\symbols.mwe: 1 file pushed, 0 skipped. 0.6 MB/s (324 bytes in 0.001s)
+C:\Users\silev\AppData\Local\Temp\mywubi-si-jni-3lktmmyh\c02-1\config.toml: 1 file pushed, 0 skipped.
+C:\Users\silev\AppData\Local\Temp\mywubi-si-jni-3lktmmyh\c02-1\main.dict: 1 file pushed, 0 skipped. 0.1 MB/s (79 bytes in 0.001s)
+C:\Users\silev\AppData\Local\Temp\mywubi-si-jni-3lktmmyh\c02-1\symbols.mwe: 1 file pushed, 0 skipped. 0.8 MB/s (324 bytes in 0.000s)
+C:\Users\silev\AppData\Local\Temp\mywubi-si-jni-3lktmmyh\c02-3\config.toml: 1 file pushed, 0 skipped.
+C:\Users\silev\AppData\Local\Temp\mywubi-si-jni-3lktmmyh\c02-3\main.dict: 1 file pushed, 0 skipped. 0.3 MB/s (79 bytes in 0.000s)
+C:\Users\silev\AppData\Local\Temp\mywubi-si-jni-3lktmmyh\c02-3\symbols.mwe: 1 file pushed, 0 skipped. 1.1 MB/s (324 bytes in 0.000s)
+C:\Users\silev\AppData\Local\Temp\mywubi-si-jni-3lktmmyh\c02-4\config.toml: 1 file pushed, 0 skipped.
+C:\Users\silev\AppData\Local\Temp\mywubi-si-jni-3lktmmyh\c02-4\main.dict: 1 file pushed, 0 skipped. 0.2 MB/s (79 bytes in 0.000s)
+C:\Users\silev\AppData\Local\Temp\mywubi-si-jni-3lktmmyh\c02-4\symbols.mwe: 1 file pushed, 0 skipped. 0.6 MB/s (324 bytes in 0.001s)
+C:\Users\silev\AppData\Local\Temp\mywubi-si-jni-3lktmmyh\c02-5\config.toml: 1 file pushed, 0 skipped.
+C:\Users\silev\AppData\Local\Temp\mywubi-si-jni-3lktmmyh\c02-5\main.dict: 1 file pushed, 0 skipped. 0.2 MB/s (79 bytes in 0.000s)
+C:\Users\silev\AppData\Local\Temp\mywubi-si-jni-3lktmmyh\c02-5\symbols.mwe: 1 file pushed, 0 skipped. 0.6 MB/s (324 bytes in 0.001s)
+C:\Users\silev\AppData\Local\Temp\mywubi-si-jni-3lktmmyh\c03-0\config.toml: 1 file pushed, 0 skipped.
+C:\Users\silev\AppData\Local\Temp\mywubi-si-jni-3lktmmyh\c03-0\main.dict: 1 file pushed, 0 skipped.
+C:\Users\silev\AppData\Local\Temp\mywubi-si-jni-3lktmmyh\c03-1\config.toml: 1 file pushed, 0 skipped.
+C:\Users\silev\AppData\Local\Temp\mywubi-si-jni-3lktmmyh\c03-1\main.dict: 1 file pushed, 0 skipped. 0.0 MB/s (27 bytes in 0.001s)
+C:\Users\silev\AppData\Local\Temp\mywubi-si-jni-3lktmmyh\SI-C04\config.toml: 1 file pushed, 0 skipped.
+C:\Users\silev\AppData\Local\Temp\mywubi-si-jni-3lktmmyh\SI-C04\main.dict: 1 file pushed, 0 skipped. 0.1 MB/s (47 bytes in 0.000s)
+C:\Users\silev\AppData\Local\Temp\mywubi-si-jni-3lktmmyh\SI-C05\config.toml: 1 file pushed, 0 skipped.
+C:\Users\silev\AppData\Local\Temp\mywubi-si-jni-3lktmmyh\SI-C05\main.dict: 1 file pushed, 0 skipped. 0.0 MB/s (14 bytes in 0.000s)
+C:\Users\silev\AppData\Local\Temp\mywubi-si-jni-3lktmmyh\SI-C05\symbols.mwe: 1 file pushed, 0 skipped. 1.1 MB/s (322 bytes in 0.000s)
+C:\Users\silev\AppData\Local\Temp\mywubi-si-jni-3lktmmyh\c06-1-9\config.toml: 1 file pushed, 0 skipped.
+C:\Users\silev\AppData\Local\Temp\mywubi-si-jni-3lktmmyh\c06-1-9\main.dict: 1 file pushed, 0 skipped. 0.6 MB/s (207 bytes in 0.000s)
+C:\Users\silev\AppData\Local\Temp\mywubi-si-jni-3lktmmyh\c06-1-10\config.toml: 1 file pushed, 0 skipped.
+C:\Users\silev\AppData\Local\Temp\mywubi-si-jni-3lktmmyh\c06-1-10\main.dict: 1 file pushed, 0 skipped. 0.3 MB/s (207 bytes in 0.001s)
+C:\Users\silev\AppData\Local\Temp\mywubi-si-jni-3lktmmyh\c06-1-11\config.toml: 1 file pushed, 0 skipped.
+C:\Users\silev\AppData\Local\Temp\mywubi-si-jni-3lktmmyh\c06-1-11\main.dict: 1 file pushed, 0 skipped. 0.7 MB/s (207 bytes in 0.000s)
+C:\Users\silev\AppData\Local\Temp\mywubi-si-jni-3lktmmyh\c06-9-9\config.toml: 1 file pushed, 0 skipped.
+C:\Users\silev\AppData\Local\Temp\mywubi-si-jni-3lktmmyh\c06-9-9\main.dict: 1 file pushed, 0 skipped. 1.0 MB/s (207 bytes in 0.000s)
+C:\Users\silev\AppData\Local\Temp\mywubi-si-jni-3lktmmyh\c06-9-10\config.toml: 1 file pushed, 0 skipped.
+C:\Users\silev\AppData\Local\Temp\mywubi-si-jni-3lktmmyh\c06-9-10\main.dict: 1 file pushed, 0 skipped. 0.7 MB/s (207 bytes in 0.000s)
+C:\Users\silev\AppData\Local\Temp\mywubi-si-jni-3lktmmyh\c06-9-11\config.toml: 1 file pushed, 0 skipped.
+C:\Users\silev\AppData\Local\Temp\mywubi-si-jni-3lktmmyh\c06-9-11\main.dict: 1 file pushed, 0 skipped. 1.0 MB/s (207 bytes in 0.000s)
+C:\Users\silev\AppData\Local\Temp\mywubi-si-jni-3lktmmyh\c06-10-9\config.toml: 1 file pushed, 0 skipped.
+C:\Users\silev\AppData\Local\Temp\mywubi-si-jni-3lktmmyh\c06-10-9\main.dict: 1 file pushed, 0 skipped. 0.9 MB/s (207 bytes in 0.000s)
+C:\Users\silev\AppData\Local\Temp\mywubi-si-jni-3lktmmyh\c06-10-10\config.toml: 1 file pushed, 0 skipped.
+C:\Users\silev\AppData\Local\Temp\mywubi-si-jni-3lktmmyh\c06-10-10\main.dict: 1 file pushed, 0 skipped. 0.7 MB/s (207 bytes in 0.000s)
+C:\Users\silev\AppData\Local\Temp\mywubi-si-jni-3lktmmyh\c06-10-11\config.toml: 1 file pushed, 0 skipped.
+C:\Users\silev\AppData\Local\Temp\mywubi-si-jni-3lktmmyh\c06-10-11\main.dict: 1 file pushed, 0 skipped. 0.9 MB/s (207 bytes in 0.000s)
+C:\Users\silev\AppData\Local\Temp\mywubi-si-jni-3lktmmyh\c07\config.toml: 1 file pushed, 0 skipped.
+C:\Users\silev\AppData\Local\Temp\mywubi-si-jni-3lktmmyh\c07\main.dict: 1 file pushed, 0 skipped.
+C:\Users\silev\AppData\Local\Temp\mywubi-si-jni-3lktmmyh\clock\config.toml: 1 file pushed, 0 skipped.
+C:\Users\silev\AppData\Local\Temp\mywubi-si-jni-3lktmmyh\clock\main.dict: 1 file pushed, 0 skipped.
+C:\Users\silev\AppData\Local\Temp\mywubi-si-jni-3lktmmyh\c10\config.toml: 1 file pushed, 0 skipped.
+C:\Users\silev\AppData\Local\Temp\mywubi-si-jni-3lktmmyh\c10\main.dict: 1 file pushed, 0 skipped.
+C:\Users\silev\AppData\Local\Temp\mywubi-si-jni-3lktmmyh\c11\config.toml: 1 file pushed, 0 skipped.
+C:\Users\silev\AppData\Local\Temp\mywubi-si-jni-3lktmmyh\c11\main.dict: 1 file pushed, 0 skipped.
+C:\Users\silev\AppData\Local\Temp\mywubi-si-jni-3lktmmyh\c11\main.dict: 1 file pushed, 0 skipped. 0.0 MB/s (13 bytes in 0.000s)
+C:\Users\silev\AppData\Local\Temp\mywubi-si-jni-3lktmmyh\c11-overlap\config.toml: 1 file pushed, 0 skipped.
+C:\Users\silev\AppData\Local\Temp\mywubi-si-jni-3lktmmyh\c11-overlap\main.dict: 1 file pushed, 0 skipped. 0.0 MB/s (17 bytes in 0.000s)

@@ -18,9 +18,12 @@
 <output>提交次数：0</output></form>
 <script>
 window.submits=0;
-const selected=new URLSearchParams(location.search).get('field');
+const params=new URLSearchParams(location.search);
+const route=/^(\d+)-(\d+)$/.exec(params.get('case') || '');
+const selected=route ? route[1] : params.get('field');
+const run=route ? route[2] : params.get('run');
 const marker=document.createElement('p');
-marker.textContent='场景 '+selected+' · '+new URLSearchParams(location.search).get('run');
+marker.textContent='场景 '+selected+' · '+run;
 document.querySelector('h1').after(marker);
 // DOM value oracle preserves trailing newlines that accessibility may normalize.
 const value = document.createElement('p');

@@ -1,0 +1,163 @@
+INSTRUMENTATION_STATUS: class=org.mywubi.KeyboardTouchTest
+INSTRUMENTATION_STATUS: current=1
+INSTRUMENTATION_STATUS: id=AndroidJUnitRunner
+INSTRUMENTATION_STATUS: numtests=7
+INSTRUMENTATION_STATUS: stream=
+org.mywubi.KeyboardTouchTest:
+INSTRUMENTATION_STATUS: test=overlappingAlternatingFingersDoNotDropRepeatedKeys
+INSTRUMENTATION_STATUS_CODE: 1
+INSTRUMENTATION_STATUS: class=org.mywubi.KeyboardTouchTest
+INSTRUMENTATION_STATUS: current=1
+INSTRUMENTATION_STATUS: id=AndroidJUnitRunner
+INSTRUMENTATION_STATUS: numtests=7
+INSTRUMENTATION_STATUS: stack=java.lang.AssertionError: Every release must commit once even while the other finger stays down expected:<[q, w, q, q, w, q, q, w, q, q, w, q, q, w, q, q, w, q, q, w, q, q, w, q, q, w, q, q, w, q]> but was:<[w, w, q, q, w, q, q, w, q, q, w, q, q, w, q, q, w, q]>
+	at org.junit.Assert.fail(Assert.java:89)
+	at org.junit.Assert.failNotEquals(Assert.java:835)
+	at org.junit.Assert.assertEquals(Assert.java:120)
+	at org.mywubi.KeyboardTouchTest.overlappingAlternatingFingersDoNotDropRepeatedKeys(KeyboardTouchTest.kt:108)
+
+INSTRUMENTATION_STATUS: stream=
+Error in overlappingAlternatingFingersDoNotDropRepeatedKeys(org.mywubi.KeyboardTouchTest):
+java.lang.AssertionError: Every release must commit once even while the other finger stays down expected:<[q, w, q, q, w, q, q, w, q, q, w, q, q, w, q, q, w, q, q, w, q, q, w, q, q, w, q, q, w, q]> but was:<[w, w, q, q, w, q, q, w, q, q, w, q, q, w, q, q, w, q]>
+	at org.junit.Assert.fail(Assert.java:89)
+	at org.junit.Assert.failNotEquals(Assert.java:835)
+	at org.junit.Assert.assertEquals(Assert.java:120)
+	at org.mywubi.KeyboardTouchTest.overlappingAlternatingFingersDoNotDropRepeatedKeys(KeyboardTouchTest.kt:108)
+
+INSTRUMENTATION_STATUS: test=overlappingAlternatingFingersDoNotDropRepeatedKeys
+INSTRUMENTATION_STATUS_CODE: -2
+INSTRUMENTATION_STATUS: class=org.mywubi.KeyboardTouchTest
+INSTRUMENTATION_STATUS: current=2
+INSTRUMENTATION_STATUS: id=AndroidJUnitRunner
+INSTRUMENTATION_STATUS: numtests=7
+INSTRUMENTATION_STATUS: stream=
+INSTRUMENTATION_STATUS: test=visualKeyGuttersStillAcceptTaps
+INSTRUMENTATION_STATUS_CODE: 1
+INSTRUMENTATION_STATUS: class=org.mywubi.KeyboardTouchTest
+INSTRUMENTATION_STATUS: current=2
+INSTRUMENTATION_STATUS: id=AndroidJUnitRunner
+INSTRUMENTATION_STATUS: numtests=7
+INSTRUMENTATION_STATUS: stream=.
+INSTRUMENTATION_STATUS: test=visualKeyGuttersStillAcceptTaps
+INSTRUMENTATION_STATUS_CODE: 0
+INSTRUMENTATION_STATUS: class=org.mywubi.KeyboardTouchTest
+INSTRUMENTATION_STATUS: current=3
+INSTRUMENTATION_STATUS: id=AndroidJUnitRunner
+INSTRUMENTATION_STATUS: numtests=7
+INSTRUMENTATION_STATUS: stream=
+INSTRUMENTATION_STATUS: test=eightDirectionsMergedUpAndReturnToCenterUseOneReleaseAction
+INSTRUMENTATION_STATUS_CODE: 1
+INSTRUMENTATION_STATUS: class=org.mywubi.KeyboardTouchTest
+INSTRUMENTATION_STATUS: current=3
+INSTRUMENTATION_STATUS: id=AndroidJUnitRunner
+INSTRUMENTATION_STATUS: numtests=7
+INSTRUMENTATION_STATUS: stream=.
+INSTRUMENTATION_STATUS: test=eightDirectionsMergedUpAndReturnToCenterUseOneReleaseAction
+INSTRUMENTATION_STATUS_CODE: 0
+INSTRUMENTATION_STATUS: class=org.mywubi.KeyboardTouchTest
+INSTRUMENTATION_STATUS: current=4
+INSTRUMENTATION_STATUS: id=AndroidJUnitRunner
+INSTRUMENTATION_STATUS: numtests=7
+INSTRUMENTATION_STATUS: stream=
+INSTRUMENTATION_STATUS: test=deleteHoldSwipeReleaseReturnAndContextCancellation
+INSTRUMENTATION_STATUS_CODE: 1
+INSTRUMENTATION_STATUS: class=org.mywubi.KeyboardTouchTest
+INSTRUMENTATION_STATUS: current=4
+INSTRUMENTATION_STATUS: id=AndroidJUnitRunner
+INSTRUMENTATION_STATUS: numtests=7
+INSTRUMENTATION_STATUS: stream=.
+INSTRUMENTATION_STATUS: test=deleteHoldSwipeReleaseReturnAndContextCancellation
+INSTRUMENTATION_STATUS_CODE: 0
+INSTRUMENTATION_STATUS: class=org.mywubi.KeyboardTouchTest
+INSTRUMENTATION_STATUS: current=5
+INSTRUMENTATION_STATUS: id=AndroidJUnitRunner
+INSTRUMENTATION_STATUS: numtests=7
+INSTRUMENTATION_STATUS: stream=
+INSTRUMENTATION_STATUS: test=modesUseFixedLabelAndSymbolsDoNotConsumeOneShotShift
+INSTRUMENTATION_STATUS_CODE: 1
+INSTRUMENTATION_STATUS: class=org.mywubi.KeyboardTouchTest
+INSTRUMENTATION_STATUS: current=5
+INSTRUMENTATION_STATUS: id=AndroidJUnitRunner
+INSTRUMENTATION_STATUS: numtests=7
+INSTRUMENTATION_STATUS: stack=org.json.JSONException: No value for InputSymbol
+	at org.json.JSONObject.get(JSONObject.java:398)
+	at org.json.JSONObject.getString(JSONObject.java:559)
+	at org.mywubi.KeyboardTouchTest.modesUseFixedLabelAndSymbolsDoNotConsumeOneShotShift(KeyboardTouchTest.kt:285)
+
+INSTRUMENTATION_STATUS: stream=
+Error in modesUseFixedLabelAndSymbolsDoNotConsumeOneShotShift(org.mywubi.KeyboardTouchTest):
+org.json.JSONException: No value for InputSymbol
+	at org.json.JSONObject.get(JSONObject.java:398)
+	at org.json.JSONObject.getString(JSONObject.java:559)
+	at org.mywubi.KeyboardTouchTest.modesUseFixedLabelAndSymbolsDoNotConsumeOneShotShift(KeyboardTouchTest.kt:285)
+
+INSTRUMENTATION_STATUS: test=modesUseFixedLabelAndSymbolsDoNotConsumeOneShotShift
+INSTRUMENTATION_STATUS_CODE: -2
+INSTRUMENTATION_STATUS: class=org.mywubi.KeyboardTouchTest
+INSTRUMENTATION_STATUS: current=6
+INSTRUMENTATION_STATUS: id=AndroidJUnitRunner
+INSTRUMENTATION_STATUS: numtests=7
+INSTRUMENTATION_STATUS: stream=
+INSTRUMENTATION_STATUS: test=previewDoesNotBlockRapidTypingAndHidingCancelsHeldKey
+INSTRUMENTATION_STATUS_CODE: 1
+INSTRUMENTATION_STATUS: class=org.mywubi.KeyboardTouchTest
+INSTRUMENTATION_STATUS: current=6
+INSTRUMENTATION_STATUS: id=AndroidJUnitRunner
+INSTRUMENTATION_STATUS: numtests=7
+INSTRUMENTATION_STATUS: stream=.
+INSTRUMENTATION_STATUS: test=previewDoesNotBlockRapidTypingAndHidingCancelsHeldKey
+INSTRUMENTATION_STATUS_CODE: 0
+INSTRUMENTATION_STATUS: class=org.mywubi.KeyboardTouchTest
+INSTRUMENTATION_STATUS: current=7
+INSTRUMENTATION_STATUS: id=AndroidJUnitRunner
+INSTRUMENTATION_STATUS: numtests=7
+INSTRUMENTATION_STATUS: stream=
+INSTRUMENTATION_STATUS: test=tapPreviewSwipeHoldAndCancellationCommitExactlyOnce
+INSTRUMENTATION_STATUS_CODE: 1
+INSTRUMENTATION_STATUS: class=org.mywubi.KeyboardTouchTest
+INSTRUMENTATION_STATUS: current=7
+INSTRUMENTATION_STATUS: id=AndroidJUnitRunner
+INSTRUMENTATION_STATUS: numtests=7
+INSTRUMENTATION_STATUS: stack=java.lang.AssertionError
+	at org.junit.Assert.fail(Assert.java:87)
+	at org.junit.Assert.assertTrue(Assert.java:42)
+	at org.junit.Assert.assertTrue(Assert.java:53)
+	at org.mywubi.KeyboardTouchTest.tapPreviewSwipeHoldAndCancellationCommitExactlyOnce(KeyboardTouchTest.kt:186)
+
+INSTRUMENTATION_STATUS: stream=
+Error in tapPreviewSwipeHoldAndCancellationCommitExactlyOnce(org.mywubi.KeyboardTouchTest):
+java.lang.AssertionError
+	at org.junit.Assert.fail(Assert.java:87)
+	at org.junit.Assert.assertTrue(Assert.java:42)
+	at org.junit.Assert.assertTrue(Assert.java:53)
+	at org.mywubi.KeyboardTouchTest.tapPreviewSwipeHoldAndCancellationCommitExactlyOnce(KeyboardTouchTest.kt:186)
+
+INSTRUMENTATION_STATUS: test=tapPreviewSwipeHoldAndCancellationCommitExactlyOnce
+INSTRUMENTATION_STATUS_CODE: -2
+INSTRUMENTATION_RESULT: stream=
+
+Time: 33.109
+There were 3 failures:
+1) overlappingAlternatingFingersDoNotDropRepeatedKeys(org.mywubi.KeyboardTouchTest)
+java.lang.AssertionError: Every release must commit once even while the other finger stays down expected:<[q, w, q, q, w, q, q, w, q, q, w, q, q, w, q, q, w, q, q, w, q, q, w, q, q, w, q, q, w, q]> but was:<[w, w, q, q, w, q, q, w, q, q, w, q, q, w, q, q, w, q]>
+	at org.junit.Assert.fail(Assert.java:89)
+	at org.junit.Assert.failNotEquals(Assert.java:835)
+	at org.junit.Assert.assertEquals(Assert.java:120)
+	at org.mywubi.KeyboardTouchTest.overlappingAlternatingFingersDoNotDropRepeatedKeys(KeyboardTouchTest.kt:108)
+2) modesUseFixedLabelAndSymbolsDoNotConsumeOneShotShift(org.mywubi.KeyboardTouchTest)
+org.json.JSONException: No value for InputSymbol
+	at org.json.JSONObject.get(JSONObject.java:398)
+	at org.json.JSONObject.getString(JSONObject.java:559)
+	at org.mywubi.KeyboardTouchTest.modesUseFixedLabelAndSymbolsDoNotConsumeOneShotShift(KeyboardTouchTest.kt:285)
+3) tapPreviewSwipeHoldAndCancellationCommitExactlyOnce(org.mywubi.KeyboardTouchTest)
+java.lang.AssertionError
+	at org.junit.Assert.fail(Assert.java:87)
+	at org.junit.Assert.assertTrue(Assert.java:42)
+	at org.junit.Assert.assertTrue(Assert.java:53)
+	at org.mywubi.KeyboardTouchTest.tapPreviewSwipeHoldAndCancellationCommitExactlyOnce(KeyboardTouchTest.kt:186)
+
+FAILURES!!!
+Tests run: 7,  Failures: 3
+
+
+INSTRUMENTATION_CODE: -1

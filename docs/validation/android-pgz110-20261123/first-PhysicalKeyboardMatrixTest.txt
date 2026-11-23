@@ -1,0 +1,44 @@
+INSTRUMENTATION_STATUS: class=org.mywubi.PhysicalKeyboardMatrixTest
+INSTRUMENTATION_STATUS: current=1
+INSTRUMENTATION_STATUS: id=AndroidJUnitRunner
+INSTRUMENTATION_STATUS: numtests=1
+INSTRUMENTATION_STATUS: stream=
+org.mywubi.PhysicalKeyboardMatrixTest:
+INSTRUMENTATION_STATUS: test=gesturesCommitWithEachSkinLayoutThemeAndOrientation
+INSTRUMENTATION_STATUS_CODE: 1
+INSTRUMENTATION_STATUS: class=org.mywubi.PhysicalKeyboardMatrixTest
+INSTRUMENTATION_STATUS: current=1
+INSTRUMENTATION_STATUS: id=AndroidJUnitRunner
+INSTRUMENTATION_STATUS: numtests=1
+INSTRUMENTATION_STATUS: stack=java.lang.AssertionError: See physical-matrix.jsonl expected:<0> but was:<48>
+	at org.junit.Assert.fail(Assert.java:89)
+	at org.junit.Assert.failNotEquals(Assert.java:835)
+	at org.junit.Assert.assertEquals(Assert.java:120)
+	at org.mywubi.PhysicalKeyboardMatrixTest.gesturesCommitWithEachSkinLayoutThemeAndOrientation(PhysicalKeyboardMatrixTest.kt:135)
+
+INSTRUMENTATION_STATUS: stream=
+Error in gesturesCommitWithEachSkinLayoutThemeAndOrientation(org.mywubi.PhysicalKeyboardMatrixTest):
+java.lang.AssertionError: See physical-matrix.jsonl expected:<0> but was:<48>
+	at org.junit.Assert.fail(Assert.java:89)
+	at org.junit.Assert.failNotEquals(Assert.java:835)
+	at org.junit.Assert.assertEquals(Assert.java:120)
+	at org.mywubi.PhysicalKeyboardMatrixTest.gesturesCommitWithEachSkinLayoutThemeAndOrientation(PhysicalKeyboardMatrixTest.kt:135)
+
+INSTRUMENTATION_STATUS: test=gesturesCommitWithEachSkinLayoutThemeAndOrientation
+INSTRUMENTATION_STATUS_CODE: -2
+INSTRUMENTATION_RESULT: stream=
+
+Time: 436.043
+There was 1 failure:
+1) gesturesCommitWithEachSkinLayoutThemeAndOrientation(org.mywubi.PhysicalKeyboardMatrixTest)
+java.lang.AssertionError: See physical-matrix.jsonl expected:<0> but was:<48>
+	at org.junit.Assert.fail(Assert.java:89)
+	at org.junit.Assert.failNotEquals(Assert.java:835)
+	at org.junit.Assert.assertEquals(Assert.java:120)
+	at org.mywubi.PhysicalKeyboardMatrixTest.gesturesCommitWithEachSkinLayoutThemeAndOrientation(PhysicalKeyboardMatrixTest.kt:135)
+
+FAILURES!!!
+Tests run: 1,  Failures: 1
+
+
+INSTRUMENTATION_CODE: -1

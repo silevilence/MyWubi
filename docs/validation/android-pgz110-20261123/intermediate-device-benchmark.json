@@ -1,0 +1,60 @@
+{
+  "model": "PGZ110",
+  "api": 34,
+  "abis": [
+    "arm64-v8a",
+    "armeabi-v7a",
+    "armeabi"
+  ],
+  "page_size": 4096,
+  "main_sha256": "63802db622c7ddbb252dbbaa369bbd6f43027449b2abdc0dc71a10e63176d145",
+  "main_entries": 136239,
+  "initial_runtime_build_ms": 223.955384,
+  "pss_before_kib": 196189,
+  "Main": {
+    "prepare_ack": {
+      "count": 1000,
+      "p50_us": 1316.308,
+      "p95_us": 1602.231,
+      "p99_us": 4155.77
+    },
+    "expanded_candidates": {
+      "count": 1000,
+      "p50_us": 4993.846,
+      "p95_us": 8619.461,
+      "p99_us": 10355.769
+    },
+    "pss_kib": 192412
+  },
+  "Pinyin": {
+    "prepare_ack": {
+      "count": 1000,
+      "p50_us": 660.693,
+      "p95_us": 920.846,
+      "p99_us": 2821.539
+    },
+    "expanded_candidates": {
+      "count": 1000,
+      "p50_us": 3697.846,
+      "p95_us": 4656.923,
+      "p99_us": 7268.923
+    },
+    "pss_kib": 192525
+  },
+  "English": {
+    "prepare_ack": {
+      "count": 1000,
+      "p50_us": 882.769,
+      "p95_us": 1081.615,
+      "p99_us": 2357.154
+    },
+    "expanded_candidates": {
+      "count": 1000,
+      "p50_us": 3041.23,
+      "p95_us": 3322.154,
+      "p99_us": 6213.923
+    },
+    "pss_kib": 193719
+  },
+  "pss_after_release_kib": 193719
+}

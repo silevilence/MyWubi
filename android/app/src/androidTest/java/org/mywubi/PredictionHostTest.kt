@@ -27,7 +27,7 @@ class PredictionHostTest {
         // Use a normal dictionary with both a single character and its complete word.
         fixture.writeText("---\ndisplay_name: 预测验收\n---\nb\t北\t100\nbj\t北京\t50\nt\t天气\t100\np\t预报\t100\nf\t五一\t100\nm\t分钟\t100\nw\t明天去\t100\n")
         val config=JSONObject(original.toString())
-        if(generated) fixture.appendText("v\t北京\t100\nz\t工作结束了。\t100\n")
+        if(generated) fixture.appendText("v\t北京\t100\nz\t工作结束了。\t100\nd\t图书\t100\n")
         config.getJSONObject("dictionary").put("system_table",fixture.absolutePath).put("enable_user_dict",false)
         config.getJSONObject("basic").put("auto_commit_unique",false)
         config.put("prediction",JSONObject().put("enabled",true))
@@ -46,17 +46,25 @@ class PredictionHostTest {
             NativeHandle(version).use { v -> NativeHandle(store.saveConfig(value,v.value).getLong("version")).close() }
         }
         fun key(label:String) {
-            instrumentation.uiAutomation.clearCache()
-            device.wait(Until.findObject(By.desc(label).pkg("org.mywubi").clickable(true)),10000).click()
+            requireNotNull(findFresh(device,By.desc(label).pkg("org.mywubi").clickable(true),10000)) { "Missing key $label" }.click()
         }
         fun candidate(text:String) {
-            instrumentation.uiAutomation.clearCache()
             val selector=By.desc(Pattern.compile("候选 ${Pattern.quote(text)}(?:，.*)?")).pkg("org.mywubi")
-            assertTrue("candidate $text",device.wait(Until.hasObject(selector),10000))
-            device.findObject(selector).click()
+            val item=findFresh(device,selector,10000)
+            if (item==null) {
+                val visible=device.findObjects(By.pkg("org.mywubi").descStartsWith("候选 ")).map { it.contentDescription }
+                error("Missing candidate $text. Visible candidates: $visible, editor: ${device.findObject(By.clazz("android.widget.EditText"))?.text}")
+            }
+            item.click()
+        }
+        val externalHost=InstrumentationRegistry.getArguments().getString("prediction_host")=="editor"
+        val editorSelector=By.clazz("android.widget.EditText").apply { if(externalHost) pkg("org.mywubi.acceptancehost") }
+        fun resetEditor(text:String="") {
+            requireNotNull(findFresh(device,editorSelector,10000)).text=text
+            if(externalHost) focusExternalEditor(device) else requireNotNull(findFresh(device,editorSelector,10000)).click()
         }
         fun expect(text:String) {
-            assertTrue("host text $text",device.wait(Until.hasObject(By.clazz("android.widget.EditText").text(text)),10000))
+            assertTrue("host text $text",awaitHostText(device,editorSelector,text,10000))
         }
         fun expectPrediction(visible:Boolean) {
             val end=android.os.SystemClock.uptimeMillis()+10000
@@ -76,7 +84,7 @@ class PredictionHostTest {
             save(config,loaded.getLong("version"))
             device.executeShellCommand("ime enable org.mywubi/.MyWubiService")
             device.executeShellCommand("ime set org.mywubi/.MyWubiService")
-            if(InstrumentationRegistry.getArguments().getString("prediction_host")=="editor") {
+            if(externalHost) {
                 device.executeShellCommand("am force-stop org.mywubi.acceptancehost")
                 device.executeShellCommand("am start -n org.mywubi.acceptancehost/.EditorActivity")
             } else {
@@ -87,10 +95,10 @@ class PredictionHostTest {
                 assertNotNull("Settings search must be available before IME acceptance",search)
                 search.click()
             }
-            val field=device.wait(Until.findObject(By.clazz("android.widget.EditText")),15000)
-            field.text="";field.click()
+            val field=requireNotNull(findFresh(device,editorSelector,15000))
+            resetEditor()
+            assertNotNull(findFresh(device,By.desc("b").pkg("org.mywubi").enabled(true),15000))
             if(device.hasObject(By.desc("英 → 中"))) key("英 → 中")
-            assertTrue(device.wait(Until.hasObject(By.desc("b").pkg("org.mywubi").enabled(true)),15000))
             if(generated) {
                 val readyDeadline=android.os.SystemClock.uptimeMillis()+30000
                 var ready=false
@@ -103,7 +111,7 @@ class PredictionHostTest {
                 // Each attempt is a fresh acknowledged commit; late responses
                 // from a cold load must not be used to pass this assertion.
                 for(attempt in 0..2) {
-                    field.text="";field.click();key("v");candidate("北京");expect("北京")
+                    resetEditor();key("v");candidate("北京");expect("北京")
                     if(!device.wait(Until.hasObject(By.desc("字词预测")),1500)) android.os.SystemClock.sleep(1000)
                     else break
                 }
@@ -114,13 +122,17 @@ class PredictionHostTest {
                 candidate("北");expect("北京市北")
                 field.text="外部编辑";device.pressKeyCode(android.view.KeyEvent.KEYCODE_MOVE_END)
                 expectPrediction(false)
-                field.text="";field.click();key("t");candidate("天气");expect("天气")
-                expectPrediction(true);candidate("晴朗");expect("天气晴朗")
-                expectPrediction(true);candidate("多云");expect("天气晴朗多云")
+                // Quantized decoding differs between CPU backends. Both fixtures require
+                // two model-only selections and exact readback from the independent editor.
+                val books = InstrumentationRegistry.getArguments().getString("generation_chain") == "books"
+                val seed = if (books) "图书" else "天气"
+                val first = if (books) "作者" else "晴朗"
+                val second = if (books) "出版社" else "多云"
+                resetEditor();key(if (books) "d" else "t");candidate(seed);expect(seed)
+                expectPrediction(true);candidate(first);expect(seed + first)
+                expectPrediction(true);candidate(second);expect(seed + first + second)
                 device.takeScreenshot(File(context.filesDir,"generation-chain-host.png"))
-                // This proves append mechanics only: the contradictory phrase
-                // is deliberately retained as a model-quality failure.
-                field.text="";field.click();key("z");candidate("工作结束了。");expect("工作结束了。")
+                resetEditor();key("z");candidate("工作结束了。");expect("工作结束了。")
                 android.os.SystemClock.sleep(1100);expectPrediction(false)
                 key("空格");key("b");expect("工作结束了。 b")
                 candidate("北");expect("工作结束了。 北")

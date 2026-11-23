@@ -1,0 +1,35 @@
+INSTRUMENTATION_STATUS: class=org.mywubi.UpdateInstallTest
+INSTRUMENTATION_STATUS: current=1
+INSTRUMENTATION_STATUS: id=AndroidJUnitRunner
+INSTRUMENTATION_STATUS: numtests=1
+INSTRUMENTATION_STATUS: stream=
+org.mywubi.UpdateInstallTest:
+INSTRUMENTATION_STATUS: test=completeSystemUpgrade
+INSTRUMENTATION_STATUS_CODE: 1
+INSTRUMENTATION_STATUS: class=org.mywubi.UpdateInstallTest
+INSTRUMENTATION_STATUS: current=1
+INSTRUMENTATION_STATUS: id=AndroidJUnitRunner
+INSTRUMENTATION_STATUS: numtests=1
+INSTRUMENTATION_STATUS: stack=java.lang.IllegalStateException: System update confirmation missing
+	at org.mywubi.UpdateInstallTest.completeSystemUpgrade(UpdateInstallTest.kt:107)
+
+INSTRUMENTATION_STATUS: stream=
+Error in completeSystemUpgrade(org.mywubi.UpdateInstallTest):
+java.lang.IllegalStateException: System update confirmation missing
+	at org.mywubi.UpdateInstallTest.completeSystemUpgrade(UpdateInstallTest.kt:107)
+
+INSTRUMENTATION_STATUS: test=completeSystemUpgrade
+INSTRUMENTATION_STATUS_CODE: -2
+INSTRUMENTATION_RESULT: stream=
+
+Time: 26.889
+There was 1 failure:
+1) completeSystemUpgrade(org.mywubi.UpdateInstallTest)
+java.lang.IllegalStateException: System update confirmation missing
+	at org.mywubi.UpdateInstallTest.completeSystemUpgrade(UpdateInstallTest.kt:107)
+
+FAILURES!!!
+Tests run: 1,  Failures: 1
+
+
+INSTRUMENTATION_CODE: -1

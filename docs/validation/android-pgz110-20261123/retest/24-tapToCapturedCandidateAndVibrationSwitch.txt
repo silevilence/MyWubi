@@ -1,0 +1,41 @@
+INSTRUMENTATION_STATUS: class=org.mywubi.PhysicalPresentationTest
+INSTRUMENTATION_STATUS: current=1
+INSTRUMENTATION_STATUS: id=AndroidJUnitRunner
+INSTRUMENTATION_STATUS: numtests=1
+INSTRUMENTATION_STATUS: stream=
+org.mywubi.PhysicalPresentationTest:
+INSTRUMENTATION_STATUS: test=tapToCapturedCandidateAndVibrationSwitch
+INSTRUMENTATION_STATUS_CODE: 1
+INSTRUMENTATION_STATUS: class=org.mywubi.PhysicalPresentationTest
+INSTRUMENTATION_STATUS: current=1
+INSTRUMENTATION_STATUS: id=AndroidJUnitRunner
+INSTRUMENTATION_STATUS: numtests=1
+INSTRUMENTATION_STATUS: stack=java.lang.AssertionError: Haptics enabled must create an OS record
+	at org.junit.Assert.fail(Assert.java:89)
+	at org.junit.Assert.assertTrue(Assert.java:42)
+	at org.mywubi.PhysicalPresentationTest.tapToCapturedCandidateAndVibrationSwitch(PhysicalPresentationTest.kt:146)
+
+INSTRUMENTATION_STATUS: stream=
+Error in tapToCapturedCandidateAndVibrationSwitch(org.mywubi.PhysicalPresentationTest):
+java.lang.AssertionError: Haptics enabled must create an OS record
+	at org.junit.Assert.fail(Assert.java:89)
+	at org.junit.Assert.assertTrue(Assert.java:42)
+	at org.mywubi.PhysicalPresentationTest.tapToCapturedCandidateAndVibrationSwitch(PhysicalPresentationTest.kt:146)
+
+INSTRUMENTATION_STATUS: test=tapToCapturedCandidateAndVibrationSwitch
+INSTRUMENTATION_STATUS_CODE: -2
+INSTRUMENTATION_RESULT: stream=
+
+Time: 192.627
+There was 1 failure:
+1) tapToCapturedCandidateAndVibrationSwitch(org.mywubi.PhysicalPresentationTest)
+java.lang.AssertionError: Haptics enabled must create an OS record
+	at org.junit.Assert.fail(Assert.java:89)
+	at org.junit.Assert.assertTrue(Assert.java:42)
+	at org.mywubi.PhysicalPresentationTest.tapToCapturedCandidateAndVibrationSwitch(PhysicalPresentationTest.kt:146)
+
+FAILURES!!!
+Tests run: 1,  Failures: 1
+
+
+INSTRUMENTATION_CODE: -1

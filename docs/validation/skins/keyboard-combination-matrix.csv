@@ -1,49 +1,49 @@
-﻿skin,keys,variant,orientation,directions,result,reason
-parameters,26,light,portrait,eight-independent,not_run,AK-17 incomplete; existing 26-key gesture tests are not custom-layout acceptance
-parameters,26,light,portrait,merged-directions,not_run,AK-17 incomplete; existing 26-key gesture tests are not custom-layout acceptance
-parameters,26,light,landscape,eight-independent,not_run,AK-17 incomplete; existing 26-key gesture tests are not custom-layout acceptance
-parameters,26,light,landscape,merged-directions,not_run,AK-17 incomplete; existing 26-key gesture tests are not custom-layout acceptance
-parameters,26,dark,portrait,eight-independent,not_run,AK-17 incomplete; existing 26-key gesture tests are not custom-layout acceptance
-parameters,26,dark,portrait,merged-directions,not_run,AK-17 incomplete; existing 26-key gesture tests are not custom-layout acceptance
-parameters,26,dark,landscape,eight-independent,not_run,AK-17 incomplete; existing 26-key gesture tests are not custom-layout acceptance
-parameters,26,dark,landscape,merged-directions,not_run,AK-17 incomplete; existing 26-key gesture tests are not custom-layout acceptance
-parameters,14,light,portrait,eight-independent,not_run,AK-17 incomplete; existing 26-key gesture tests are not custom-layout acceptance
-parameters,14,light,portrait,merged-directions,not_run,AK-17 incomplete; existing 26-key gesture tests are not custom-layout acceptance
-parameters,14,light,landscape,eight-independent,not_run,AK-17 incomplete; existing 26-key gesture tests are not custom-layout acceptance
-parameters,14,light,landscape,merged-directions,not_run,AK-17 incomplete; existing 26-key gesture tests are not custom-layout acceptance
-parameters,14,dark,portrait,eight-independent,not_run,AK-17 incomplete; existing 26-key gesture tests are not custom-layout acceptance
-parameters,14,dark,portrait,merged-directions,not_run,AK-17 incomplete; existing 26-key gesture tests are not custom-layout acceptance
-parameters,14,dark,landscape,eight-independent,not_run,AK-17 incomplete; existing 26-key gesture tests are not custom-layout acceptance
-parameters,14,dark,landscape,merged-directions,not_run,AK-17 incomplete; existing 26-key gesture tests are not custom-layout acceptance
-parameters,9,light,portrait,eight-independent,not_run,AK-17 incomplete; existing 26-key gesture tests are not custom-layout acceptance
-parameters,9,light,portrait,merged-directions,not_run,AK-17 incomplete; existing 26-key gesture tests are not custom-layout acceptance
-parameters,9,light,landscape,eight-independent,not_run,AK-17 incomplete; existing 26-key gesture tests are not custom-layout acceptance
-parameters,9,light,landscape,merged-directions,not_run,AK-17 incomplete; existing 26-key gesture tests are not custom-layout acceptance
-parameters,9,dark,portrait,eight-independent,not_run,AK-17 incomplete; existing 26-key gesture tests are not custom-layout acceptance
-parameters,9,dark,portrait,merged-directions,not_run,AK-17 incomplete; existing 26-key gesture tests are not custom-layout acceptance
-parameters,9,dark,landscape,eight-independent,not_run,AK-17 incomplete; existing 26-key gesture tests are not custom-layout acceptance
-parameters,9,dark,landscape,merged-directions,not_run,AK-17 incomplete; existing 26-key gesture tests are not custom-layout acceptance
-images,26,light,portrait,eight-independent,not_run,AK-17 incomplete; existing 26-key gesture tests are not custom-layout acceptance
-images,26,light,portrait,merged-directions,not_run,AK-17 incomplete; existing 26-key gesture tests are not custom-layout acceptance
-images,26,light,landscape,eight-independent,not_run,AK-17 incomplete; existing 26-key gesture tests are not custom-layout acceptance
-images,26,light,landscape,merged-directions,not_run,AK-17 incomplete; existing 26-key gesture tests are not custom-layout acceptance
-images,26,dark,portrait,eight-independent,not_run,AK-17 incomplete; existing 26-key gesture tests are not custom-layout acceptance
-images,26,dark,portrait,merged-directions,not_run,AK-17 incomplete; existing 26-key gesture tests are not custom-layout acceptance
-images,26,dark,landscape,eight-independent,not_run,AK-17 incomplete; existing 26-key gesture tests are not custom-layout acceptance
-images,26,dark,landscape,merged-directions,not_run,AK-17 incomplete; existing 26-key gesture tests are not custom-layout acceptance
-images,14,light,portrait,eight-independent,not_run,AK-17 incomplete; existing 26-key gesture tests are not custom-layout acceptance
-images,14,light,portrait,merged-directions,not_run,AK-17 incomplete; existing 26-key gesture tests are not custom-layout acceptance
-images,14,light,landscape,eight-independent,not_run,AK-17 incomplete; existing 26-key gesture tests are not custom-layout acceptance
-images,14,light,landscape,merged-directions,not_run,AK-17 incomplete; existing 26-key gesture tests are not custom-layout acceptance
-images,14,dark,portrait,eight-independent,not_run,AK-17 incomplete; existing 26-key gesture tests are not custom-layout acceptance
-images,14,dark,portrait,merged-directions,not_run,AK-17 incomplete; existing 26-key gesture tests are not custom-layout acceptance
-images,14,dark,landscape,eight-independent,not_run,AK-17 incomplete; existing 26-key gesture tests are not custom-layout acceptance
-images,14,dark,landscape,merged-directions,not_run,AK-17 incomplete; existing 26-key gesture tests are not custom-layout acceptance
-images,9,light,portrait,eight-independent,not_run,AK-17 incomplete; existing 26-key gesture tests are not custom-layout acceptance
-images,9,light,portrait,merged-directions,not_run,AK-17 incomplete; existing 26-key gesture tests are not custom-layout acceptance
-images,9,light,landscape,eight-independent,not_run,AK-17 incomplete; existing 26-key gesture tests are not custom-layout acceptance
-images,9,light,landscape,merged-directions,not_run,AK-17 incomplete; existing 26-key gesture tests are not custom-layout acceptance
-images,9,dark,portrait,eight-independent,not_run,AK-17 incomplete; existing 26-key gesture tests are not custom-layout acceptance
-images,9,dark,portrait,merged-directions,not_run,AK-17 incomplete; existing 26-key gesture tests are not custom-layout acceptance
-images,9,dark,landscape,eight-independent,not_run,AK-17 incomplete; existing 26-key gesture tests are not custom-layout acceptance
-images,9,dark,landscape,merged-directions,not_run,AK-17 incomplete; existing 26-key gesture tests are not custom-layout acceptance
+skin,keys,variant,orientation,directions,result,reason
+parameters,26,light,portrait,eight-independent,passed,PGZ110 Android 14; 8 named accessibility actions; 8 physical-direction inputs committed to independent focused editor: 甲乙丙丁戊己庚辛
+parameters,26,light,portrait,merged-directions,passed,PGZ110 Android 14; 8 named accessibility actions; 8 physical-direction inputs committed to independent focused editor: 甲甲丙戊戊戊庚甲
+parameters,26,light,landscape,eight-independent,passed,PGZ110 Android 14; 8 named accessibility actions; 8 physical-direction inputs committed to independent focused editor: 甲乙丙丁戊己庚辛
+parameters,26,light,landscape,merged-directions,passed,PGZ110 Android 14; 8 named accessibility actions; 8 physical-direction inputs committed to independent focused editor: 甲甲丙戊戊戊庚甲
+parameters,26,dark,portrait,eight-independent,passed,PGZ110 Android 14; 8 named accessibility actions; 8 physical-direction inputs committed to independent focused editor: 甲乙丙丁戊己庚辛
+parameters,26,dark,portrait,merged-directions,passed,PGZ110 Android 14; 8 named accessibility actions; 8 physical-direction inputs committed to independent focused editor: 甲甲丙戊戊戊庚甲
+parameters,26,dark,landscape,eight-independent,passed,PGZ110 Android 14; 8 named accessibility actions; 8 physical-direction inputs committed to independent focused editor: 甲乙丙丁戊己庚辛
+parameters,26,dark,landscape,merged-directions,passed,PGZ110 Android 14; 8 named accessibility actions; 8 physical-direction inputs committed to independent focused editor: 甲甲丙戊戊戊庚甲
+parameters,14,light,portrait,eight-independent,passed,PGZ110 Android 14; 8 named accessibility actions; 8 physical-direction inputs committed to independent focused editor: 甲乙丙丁戊己庚辛
+parameters,14,light,portrait,merged-directions,passed,PGZ110 Android 14; 8 named accessibility actions; 8 physical-direction inputs committed to independent focused editor: 甲甲丙戊戊戊庚甲
+parameters,14,light,landscape,eight-independent,passed,PGZ110 Android 14; 8 named accessibility actions; 8 physical-direction inputs committed to independent focused editor: 甲乙丙丁戊己庚辛
+parameters,14,light,landscape,merged-directions,passed,PGZ110 Android 14; 8 named accessibility actions; 8 physical-direction inputs committed to independent focused editor: 甲甲丙戊戊戊庚甲
+parameters,14,dark,portrait,eight-independent,passed,PGZ110 Android 14; 8 named accessibility actions; 8 physical-direction inputs committed to independent focused editor: 甲乙丙丁戊己庚辛
+parameters,14,dark,portrait,merged-directions,passed,PGZ110 Android 14; 8 named accessibility actions; 8 physical-direction inputs committed to independent focused editor: 甲甲丙戊戊戊庚甲
+parameters,14,dark,landscape,eight-independent,passed,PGZ110 Android 14; 8 named accessibility actions; 8 physical-direction inputs committed to independent focused editor: 甲乙丙丁戊己庚辛
+parameters,14,dark,landscape,merged-directions,passed,PGZ110 Android 14; 8 named accessibility actions; 8 physical-direction inputs committed to independent focused editor: 甲甲丙戊戊戊庚甲
+parameters,9,light,portrait,eight-independent,passed,PGZ110 Android 14; 8 named accessibility actions; 8 physical-direction inputs committed to independent focused editor: 甲乙丙丁戊己庚辛
+parameters,9,light,portrait,merged-directions,passed,PGZ110 Android 14; 8 named accessibility actions; 8 physical-direction inputs committed to independent focused editor: 甲甲丙戊戊戊庚甲
+parameters,9,light,landscape,eight-independent,passed,PGZ110 Android 14; 8 named accessibility actions; 8 physical-direction inputs committed to independent focused editor: 甲乙丙丁戊己庚辛
+parameters,9,light,landscape,merged-directions,passed,PGZ110 Android 14; 8 named accessibility actions; 8 physical-direction inputs committed to independent focused editor: 甲甲丙戊戊戊庚甲
+parameters,9,dark,portrait,eight-independent,passed,PGZ110 Android 14; 8 named accessibility actions; 8 physical-direction inputs committed to independent focused editor: 甲乙丙丁戊己庚辛
+parameters,9,dark,portrait,merged-directions,passed,PGZ110 Android 14; 8 named accessibility actions; 8 physical-direction inputs committed to independent focused editor: 甲甲丙戊戊戊庚甲
+parameters,9,dark,landscape,eight-independent,passed,PGZ110 Android 14; 8 named accessibility actions; 8 physical-direction inputs committed to independent focused editor: 甲乙丙丁戊己庚辛
+parameters,9,dark,landscape,merged-directions,passed,PGZ110 Android 14; 8 named accessibility actions; 8 physical-direction inputs committed to independent focused editor: 甲甲丙戊戊戊庚甲
+images,26,light,portrait,eight-independent,passed,PGZ110 Android 14; 8 named accessibility actions; 8 physical-direction inputs committed to independent focused editor: 甲乙丙丁戊己庚辛
+images,26,light,portrait,merged-directions,passed,PGZ110 Android 14; 8 named accessibility actions; 8 physical-direction inputs committed to independent focused editor: 甲甲丙戊戊戊庚甲
+images,26,light,landscape,eight-independent,passed,PGZ110 Android 14; 8 named accessibility actions; 8 physical-direction inputs committed to independent focused editor: 甲乙丙丁戊己庚辛
+images,26,light,landscape,merged-directions,passed,PGZ110 Android 14; 8 named accessibility actions; 8 physical-direction inputs committed to independent focused editor: 甲甲丙戊戊戊庚甲
+images,26,dark,portrait,eight-independent,passed,PGZ110 Android 14; 8 named accessibility actions; 8 physical-direction inputs committed to independent focused editor: 甲乙丙丁戊己庚辛
+images,26,dark,portrait,merged-directions,passed,PGZ110 Android 14; 8 named accessibility actions; 8 physical-direction inputs committed to independent focused editor: 甲甲丙戊戊戊庚甲
+images,26,dark,landscape,eight-independent,passed,PGZ110 Android 14; 8 named accessibility actions; 8 physical-direction inputs committed to independent focused editor: 甲乙丙丁戊己庚辛
+images,26,dark,landscape,merged-directions,passed,PGZ110 Android 14; 8 named accessibility actions; 8 physical-direction inputs committed to independent focused editor: 甲甲丙戊戊戊庚甲
+images,14,light,portrait,eight-independent,passed,PGZ110 Android 14; 8 named accessibility actions; 8 physical-direction inputs committed to independent focused editor: 甲乙丙丁戊己庚辛
+images,14,light,portrait,merged-directions,passed,PGZ110 Android 14; 8 named accessibility actions; 8 physical-direction inputs committed to independent focused editor: 甲甲丙戊戊戊庚甲
+images,14,light,landscape,eight-independent,passed,PGZ110 Android 14; 8 named accessibility actions; 8 physical-direction inputs committed to independent focused editor: 甲乙丙丁戊己庚辛
+images,14,light,landscape,merged-directions,passed,PGZ110 Android 14; 8 named accessibility actions; 8 physical-direction inputs committed to independent focused editor: 甲甲丙戊戊戊庚甲
+images,14,dark,portrait,eight-independent,passed,PGZ110 Android 14; 8 named accessibility actions; 8 physical-direction inputs committed to independent focused editor: 甲乙丙丁戊己庚辛
+images,14,dark,portrait,merged-directions,passed,PGZ110 Android 14; 8 named accessibility actions; 8 physical-direction inputs committed to independent focused editor: 甲甲丙戊戊戊庚甲
+images,14,dark,landscape,eight-independent,passed,PGZ110 Android 14; 8 named accessibility actions; 8 physical-direction inputs committed to independent focused editor: 甲乙丙丁戊己庚辛
+images,14,dark,landscape,merged-directions,passed,PGZ110 Android 14; 8 named accessibility actions; 8 physical-direction inputs committed to independent focused editor: 甲甲丙戊戊戊庚甲
+images,9,light,portrait,eight-independent,passed,PGZ110 Android 14; 8 named accessibility actions; 8 physical-direction inputs committed to independent focused editor: 甲乙丙丁戊己庚辛
+images,9,light,portrait,merged-directions,passed,PGZ110 Android 14; 8 named accessibility actions; 8 physical-direction inputs committed to independent focused editor: 甲甲丙戊戊戊庚甲
+images,9,light,landscape,eight-independent,passed,PGZ110 Android 14; 8 named accessibility actions; 8 physical-direction inputs committed to independent focused editor: 甲乙丙丁戊己庚辛
+images,9,light,landscape,merged-directions,passed,PGZ110 Android 14; 8 named accessibility actions; 8 physical-direction inputs committed to independent focused editor: 甲甲丙戊戊戊庚甲
+images,9,dark,portrait,eight-independent,passed,PGZ110 Android 14; 8 named accessibility actions; 8 physical-direction inputs committed to independent focused editor: 甲乙丙丁戊己庚辛
+images,9,dark,portrait,merged-directions,passed,PGZ110 Android 14; 8 named accessibility actions; 8 physical-direction inputs committed to independent focused editor: 甲甲丙戊戊戊庚甲
+images,9,dark,landscape,eight-independent,passed,PGZ110 Android 14; 8 named accessibility actions; 8 physical-direction inputs committed to independent focused editor: 甲乙丙丁戊己庚辛
+images,9,dark,landscape,merged-directions,passed,PGZ110 Android 14; 8 named accessibility actions; 8 physical-direction inputs committed to independent focused editor: 甲甲丙戊戊戊庚甲

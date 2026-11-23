@@ -63,6 +63,7 @@ class MyWubiService : InputMethodService() {
     private var error: String? = null
     private var state = JSONObject()
     private var candidates = JSONObject()
+    private var displayedCandidates = emptyList<CandidateItem>()
     private var tableLabel = ""
     private var pinyinMode = KeyMode.Off
     private val loads = LoadGeneration()
@@ -189,10 +190,16 @@ class MyWubiService : InputMethodService() {
     override fun onStartInput(attribute: EditorInfo?, restarting: Boolean) {
         super.onStartInput(attribute, restarting)
         val nextConnection = currentInputConnection
-        val sameEditor = restarting && active && connection === nextConnection &&
-            editorInfo?.packageName == attribute?.packageName && editorInfo?.fieldId == attribute?.fieldId &&
-            editorInfo?.inputType == attribute?.inputType && editorInfo?.imeOptions == attribute?.imeOptions
-        if (sameEditor) { refresh(); return }
+        val restartingEditor = restarting && active && attribute != null &&
+            editorInfo?.packageName == attribute.packageName && editorInfo?.fieldId == attribute.fieldId &&
+            editorInfo?.inputType == attribute.inputType && editorInfo?.imeOptions == attribute.imeOptions
+        if (restartingEditor) {
+            // A host replacing the document may retain the cursor offset but hand
+            // Android a new connection wrapper. Observe the old session's last change
+            // before invalidating its handles. PersonalCapture enforces collection gates.
+            personalCapture.observe(nextConnection, attribute!!.initialSelStart, attribute.initialSelEnd, true)
+            if (connection === nextConnection) { refresh(); return }
+        }
         clipboardSuggestion.dismiss()
         inputQueue.invalidate()
         connection = nextConnection
@@ -260,7 +267,7 @@ class MyWubiService : InputMethodService() {
             setContent { Keyboard(keyboard, ::dispatch, { keyboardActivity(); candidateOffset = it; refresh() }, onTouch = { pressed ->
                 keyTouches = (keyTouches + if(pressed) 1 else -1).coerceAtLeast(0)
                 idle.touch(pressed, android.os.SystemClock.elapsedRealtime())
-                if(keyTouches == 0) main.post { refresh() }
+                if (keyTouches == 0 && hasPendingCombination) main.post { if (hasPendingCombination) refresh() }
                 keyboardActivity()
             }, hideKeyboard = { requestHideSelf(0) }, openSettings = {
                 startActivity(android.content.Intent(this@MyWubiService, MainActivity::class.java)
@@ -308,12 +315,11 @@ class MyWubiService : InputMethodService() {
 
     private fun render() {
         if (destroyed) return
-        val items = candidates.optJSONArray("candidates") ?: JSONArray()
         val spelling = state.optJSONObject("view")?.optString("spelling") ?: ""
         val shortcutError = state.optJSONObject("view")?.optString("shortcut_error")?.takeIf { it.isNotBlank() && it != "null" }?.let { "日期时间不可用：$it" }
         val temporary = state.optString("temporary").takeIf { it in (listOf("Pinyin", "English") + specialModes.map { it.first }) }
         val stableIdle = active && viewVisible && session != null && idle.isIdle(
-            android.os.SystemClock.elapsedRealtime(), spelling, items.length() > 0 || state.optBoolean("prediction_waiting"), editor.ownsPreedit, temporary != null)
+            android.os.SystemClock.elapsedRealtime(), spelling, displayedCandidates.isNotEmpty() || state.optBoolean("prediction_waiting"), editor.ownsPreedit, temporary != null)
         keyboard = KeyboardModel(
             mainKeyboards = mainKeyboards,
             mainKeyboardSelection = combination?.takeIf { it.mode == "Main" }?.selection(),
@@ -353,27 +359,7 @@ class MyWubiService : InputMethodService() {
             enterLabel = inputPolicy.enterLabel,
             privateInput = inputPolicy.purpose == "Password",
             prediction = state.optJSONObject("view")?.optBoolean("prediction") == true,
-            candidates = (0 until items.length()).map { i ->
-                val item = items.getJSONObject(i)
-                val hints = item.getJSONArray("hints")
-                val hint = (0 until hints.length()).joinToString(" ") { n ->
-                    val h = hints.getJSONObject(n)
-                    when {
-                        h.has("CodeSuffix") -> h.getString("CodeSuffix")
-                        h.has("ExpressionName") -> h.getString("ExpressionName")
-                        h.has("ExpressionMatch") -> h.getString("ExpressionMatch")
-                        h.has("DateTime") -> "日期时间"
-                        h.has("ReverseCodes") -> {
-                            val codes = h.getJSONArray("ReverseCodes")
-                            (0 until codes.length()).joinToString("/") { codes.getString(it) }
-                        }
-                        else -> ""
-                    }
-                }
-                CandidateItem(item.getLong("id"),item.getString("text"),hint,
-                    item.optString("expression_kind").takeIf { it in specialKinds },
-                    (0 until hints.length()).any { hints.getJSONObject(it).has("DateTime") })
-            },
+            candidates = displayedCandidates,
             query = candidates.optJSONObject("query_revision")?.toString() ?: "{}",
             total = candidates.optInt("total"), offset = candidates.optInt("offset")
         )
@@ -600,7 +586,7 @@ class MyWubiService : InputMethodService() {
         }
     }
 
-    private fun publishKeyboard() {
+    private fun publishKeyboard(): Boolean {
         val mode=if(state.optString("temporary")=="Pinyin") "Pinyin" else if(state.optString("base")=="English") "English" else "Main"
         if(mode!=activeKeyboardMode) {activeKeyboardMode=mode;pendingCombination=keyboardModes[mode];hasPendingCombination=true}
         val spelling=state.optJSONObject("view")?.optString("spelling").orEmpty()
@@ -613,13 +599,40 @@ class MyWubiService : InputMethodService() {
                 if(!sameInput) boundMapping=null
             }
         }
-        val current=combination ?: return
-        val identity=current.identity ?: return
-        val s=session ?: return
+        val current=combination ?: return false
+        val identity=current.identity ?: return false
+        val s=session ?: return false
         if(spelling.isEmpty() && active && inputPolicy.purpose=="Text" && boundMapping!=identity.toString()) {
             val plan=NativeBridge.objectCall("Prepare","session" to s.value,"action" to JSONObject()
                 .put("BindMapping",JSONArray().put(identity).put(current.definition)))
             if(applyPlan(plan) && plan.optString("disposition")!="Rejected") boundMapping=identity.toString()
+            return true
+        }
+        return false
+    }
+
+    private fun decodeCandidates(page: JSONObject): List<CandidateItem> {
+        val items = page.optJSONArray("candidates") ?: return emptyList()
+        return (0 until items.length()).map { i ->
+            val item = items.getJSONObject(i)
+            val hints = item.getJSONArray("hints")
+            val hint = (0 until hints.length()).joinToString(" ") { n ->
+                val h = hints.getJSONObject(n)
+                when {
+                    h.has("CodeSuffix") -> h.getString("CodeSuffix")
+                    h.has("ExpressionName") -> h.getString("ExpressionName")
+                    h.has("ExpressionMatch") -> h.getString("ExpressionMatch")
+                    h.has("DateTime") -> "日期时间"
+                    h.has("ReverseCodes") -> {
+                        val codes = h.getJSONArray("ReverseCodes")
+                        (0 until codes.length()).joinToString("/") { codes.getString(it) }
+                    }
+                    else -> ""
+                }
+            }
+            CandidateItem(item.getLong("id"),item.getString("text"),hint,
+                item.optString("expression_kind").takeIf { it in specialKinds },
+                (0 until hints.length()).any { hints.getJSONObject(it).has("DateTime") })
         }
     }
 
@@ -627,9 +640,9 @@ class MyWubiService : InputMethodService() {
         if (destroyed) return
         session?.let {
             state = NativeBridge.objectCall("State", "session" to it.value)
-            publishKeyboard()
-            state = NativeBridge.objectCall("State", "session" to it.value)
+            if (publishKeyboard()) state = NativeBridge.objectCall("State", "session" to it.value)
             candidates = NativeBridge.objectCall("Candidates", "session" to it.value, "offset" to candidateOffset, "count" to 256)
+            displayedCandidates = decodeCandidates(candidates)
         }
         render()
         personalCapture.display(state, candidates, predictionController.personalVersion)

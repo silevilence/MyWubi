@@ -44,10 +44,15 @@ class ModeHostTest {
         val device=UiDevice.getInstance(InstrumentationRegistry.getInstrumentation())
         device.executeShellCommand("ime enable org.mywubi/.MyWubiService")
         device.executeShellCommand("ime set org.mywubi/.MyWubiService")
-        device.executeShellCommand("am force-stop com.android.settings")
-        device.executeShellCommand("am force-stop com.google.android.settings.intelligence")
-        device.executeShellCommand("am start -a android.settings.SETTINGS")
-        device.wait(Until.findObject(By.res("com.android.settings","search_action_bar")),15000).click()
+        if (InstrumentationRegistry.getArguments().getString("prediction_host") == "editor") {
+            device.executeShellCommand("am force-stop org.mywubi.acceptancehost")
+            device.executeShellCommand("am start -W -n org.mywubi.acceptancehost/.EditorActivity")
+        } else {
+            device.executeShellCommand("am force-stop com.android.settings")
+            device.executeShellCommand("am force-stop com.google.android.settings.intelligence")
+            device.executeShellCommand("am start -a android.settings.SETTINGS")
+            device.wait(Until.findObject(By.res("com.android.settings","search_action_bar")),15000).click()
+        }
         val field=device.wait(Until.findObject(By.clazz("android.widget.EditText")),15000)
         field.text="";field.click()
         fun key(label:String) {
@@ -72,7 +77,13 @@ class ModeHostTest {
             } while(android.os.SystemClock.uptimeMillis()<deadline)
             throw AssertionError("Expected Settings text: $value")
         }
-        assertTrue("输入服务应已显示并可用", device.wait(Until.hasObject(By.desc("q").pkg("org.mywubi").enabled(true)),15000))
+        val ready = By.desc("q").pkg("org.mywubi").enabled(true)
+        if (!device.wait(Until.hasObject(ready), 5000)) {
+            val editor = device.wait(Until.findObject(By.clazz("android.widget.EditText")), 5000)
+            editor.click()
+            InstrumentationRegistry.getInstrumentation().uiAutomation.clearCache()
+        }
+        assertTrue("输入服务应已显示并可用", device.wait(Until.hasObject(ready), 10000))
         if(device.hasObject(By.desc("英 → 中"))) key("英 → 中")
         val context = InstrumentationRegistry.getInstrumentation().targetContext
         // Idle spelling is blank; the toolbar can show either tools or a clipboard suggestion.
@@ -80,7 +91,7 @@ class ModeHostTest {
         device.takeScreenshot(java.io.File(context.filesDir,"keyboard-current-table.png"))
         key("中 → 英")
         text("hello");key("空格");expect("hello ")
-        key("拼音");key("空格");key("搜索");expect("hello ")
+        key("拼音");key("空格");key(if (InstrumentationRegistry.getArguments().getString("prediction_host")=="editor") "换行" else "搜索");expect("hello ")
         text("ni");expect("hello ni")
         InstrumentationRegistry.getInstrumentation().uiAutomation.clearCache()
         device.wait(Until.findObject(By.descStartsWith("候选 你，").pkg("org.mywubi")),3000)?.click()

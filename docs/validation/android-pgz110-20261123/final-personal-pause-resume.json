@@ -1,0 +1,1 @@
+{"paused_rejected":true,"before":"681216c7bdc8dc967c458ce8212f58a5","after":"dc6eff28c8f4a00e49e228878f15cfde","status":{"batch_seconds":2,"elapsed_ms":0,"last_update":0,"max_model_mb":8,"observed_ms":1795403830353,"phase":"waiting","reason":"等待输入空闲 30 秒","threads":1}}

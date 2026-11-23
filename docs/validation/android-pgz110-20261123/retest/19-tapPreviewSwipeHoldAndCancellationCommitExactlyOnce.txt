@@ -1,0 +1,44 @@
+INSTRUMENTATION_STATUS: class=org.mywubi.KeyboardTouchTest
+INSTRUMENTATION_STATUS: current=1
+INSTRUMENTATION_STATUS: id=AndroidJUnitRunner
+INSTRUMENTATION_STATUS: numtests=1
+INSTRUMENTATION_STATUS: stream=
+org.mywubi.KeyboardTouchTest:
+INSTRUMENTATION_STATUS: test=tapPreviewSwipeHoldAndCancellationCommitExactlyOnce
+INSTRUMENTATION_STATUS_CODE: 1
+INSTRUMENTATION_STATUS: class=org.mywubi.KeyboardTouchTest
+INSTRUMENTATION_STATUS: current=1
+INSTRUMENTATION_STATUS: id=AndroidJUnitRunner
+INSTRUMENTATION_STATUS: numtests=1
+INSTRUMENTATION_STATUS: stack=java.lang.AssertionError
+	at org.junit.Assert.fail(Assert.java:87)
+	at org.junit.Assert.assertTrue(Assert.java:42)
+	at org.junit.Assert.assertTrue(Assert.java:53)
+	at org.mywubi.KeyboardTouchTest.tapPreviewSwipeHoldAndCancellationCommitExactlyOnce(KeyboardTouchTest.kt:187)
+
+INSTRUMENTATION_STATUS: stream=
+Error in tapPreviewSwipeHoldAndCancellationCommitExactlyOnce(org.mywubi.KeyboardTouchTest):
+java.lang.AssertionError
+	at org.junit.Assert.fail(Assert.java:87)
+	at org.junit.Assert.assertTrue(Assert.java:42)
+	at org.junit.Assert.assertTrue(Assert.java:53)
+	at org.mywubi.KeyboardTouchTest.tapPreviewSwipeHoldAndCancellationCommitExactlyOnce(KeyboardTouchTest.kt:187)
+
+INSTRUMENTATION_STATUS: test=tapPreviewSwipeHoldAndCancellationCommitExactlyOnce
+INSTRUMENTATION_STATUS_CODE: -2
+INSTRUMENTATION_RESULT: stream=
+
+Time: 5.599
+There was 1 failure:
+1) tapPreviewSwipeHoldAndCancellationCommitExactlyOnce(org.mywubi.KeyboardTouchTest)
+java.lang.AssertionError
+	at org.junit.Assert.fail(Assert.java:87)
+	at org.junit.Assert.assertTrue(Assert.java:42)
+	at org.junit.Assert.assertTrue(Assert.java:53)
+	at org.mywubi.KeyboardTouchTest.tapPreviewSwipeHoldAndCancellationCommitExactlyOnce(KeyboardTouchTest.kt:187)
+
+FAILURES!!!
+Tests run: 1,  Failures: 1
+
+
+INSTRUMENTATION_CODE: -1

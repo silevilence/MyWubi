@@ -1,0 +1,94 @@
+INSTRUMENTATION_STATUS: class=org.mywubi.SettingsNavigationTest
+INSTRUMENTATION_STATUS: current=1
+INSTRUMENTATION_STATUS: id=AndroidJUnitRunner
+INSTRUMENTATION_STATUS: numtests=5
+INSTRUMENTATION_STATUS: stream=
+org.mywubi.SettingsNavigationTest:
+INSTRUMENTATION_STATUS: test=skinHasItsOwnPageAndKeepsAppearanceDraftAcrossNavigationAndRecreation
+INSTRUMENTATION_STATUS_CODE: 1
+INSTRUMENTATION_STATUS: class=org.mywubi.SettingsNavigationTest
+INSTRUMENTATION_STATUS: current=1
+INSTRUMENTATION_STATUS: id=AndroidJUnitRunner
+INSTRUMENTATION_STATUS: numtests=5
+INSTRUMENTATION_STATUS: stream=.
+INSTRUMENTATION_STATUS: test=skinHasItsOwnPageAndKeepsAppearanceDraftAcrossNavigationAndRecreation
+INSTRUMENTATION_STATUS_CODE: 0
+INSTRUMENTATION_STATUS: class=org.mywubi.SettingsNavigationTest
+INSTRUMENTATION_STATUS: current=2
+INSTRUMENTATION_STATUS: id=AndroidJUnitRunner
+INSTRUMENTATION_STATUS: numtests=5
+INSTRUMENTATION_STATUS: stream=
+INSTRUMENTATION_STATUS: test=finalUnicodeCategoryIsSearchableAndKeepsItsOwnDraft
+INSTRUMENTATION_STATUS_CODE: 1
+INSTRUMENTATION_STATUS: class=org.mywubi.SettingsNavigationTest
+INSTRUMENTATION_STATUS: current=2
+INSTRUMENTATION_STATUS: id=AndroidJUnitRunner
+INSTRUMENTATION_STATUS: numtests=5
+INSTRUMENTATION_STATUS: stream=.
+INSTRUMENTATION_STATUS: test=finalUnicodeCategoryIsSearchableAndKeepsItsOwnDraft
+INSTRUMENTATION_STATUS_CODE: 0
+INSTRUMENTATION_STATUS: class=org.mywubi.SettingsNavigationTest
+INSTRUMENTATION_STATUS: current=3
+INSTRUMENTATION_STATUS: id=AndroidJUnitRunner
+INSTRUMENTATION_STATUS: numtests=5
+INSTRUMENTATION_STATUS: stream=
+INSTRUMENTATION_STATUS: test=specialInputRecreationRetainsSelectionSearchAndQueryDraft
+INSTRUMENTATION_STATUS_CODE: 1
+INSTRUMENTATION_STATUS: class=org.mywubi.SettingsNavigationTest
+INSTRUMENTATION_STATUS: current=3
+INSTRUMENTATION_STATUS: id=AndroidJUnitRunner
+INSTRUMENTATION_STATUS: numtests=5
+INSTRUMENTATION_STATUS: stream=.
+INSTRUMENTATION_STATUS: test=specialInputRecreationRetainsSelectionSearchAndQueryDraft
+INSTRUMENTATION_STATUS_CODE: 0
+INSTRUMENTATION_STATUS: class=org.mywubi.SettingsNavigationTest
+INSTRUMENTATION_STATUS: current=4
+INSTRUMENTATION_STATUS: id=AndroidJUnitRunner
+INSTRUMENTATION_STATUS: numtests=5
+INSTRUMENTATION_STATUS: stream=
+INSTRUMENTATION_STATUS: test=categoriesKeepDraftAndSaveVisibleAfterScrollAndRotation
+INSTRUMENTATION_STATUS_CODE: 1
+INSTRUMENTATION_STATUS: class=org.mywubi.SettingsNavigationTest
+INSTRUMENTATION_STATUS: current=4
+INSTRUMENTATION_STATUS: id=AndroidJUnitRunner
+INSTRUMENTATION_STATUS: numtests=5
+INSTRUMENTATION_STATUS: stream=.
+INSTRUMENTATION_STATUS: test=categoriesKeepDraftAndSaveVisibleAfterScrollAndRotation
+INSTRUMENTATION_STATUS_CODE: 0
+INSTRUMENTATION_STATUS: class=org.mywubi.SettingsNavigationTest
+INSTRUMENTATION_STATUS: current=5
+INSTRUMENTATION_STATUS: id=AndroidJUnitRunner
+INSTRUMENTATION_STATUS: numtests=5
+INSTRUMENTATION_STATUS: stream=
+INSTRUMENTATION_STATUS: test=standardPackageExplainsModelLimitAndOffersWorkingDictionaryPath
+INSTRUMENTATION_STATUS_CODE: 1
+INSTRUMENTATION_STATUS: class=org.mywubi.SettingsNavigationTest
+INSTRUMENTATION_STATUS: current=5
+INSTRUMENTATION_STATUS: id=AndroidJUnitRunner
+INSTRUMENTATION_STATUS: numtests=5
+INSTRUMENTATION_STATUS: stack=java.lang.IllegalStateException: Text is not visible inside the settings viewport: 当前版本仅支持词典预测
+	at org.mywubi.SettingsNavigationTest.scrollToText(SettingsNavigationTest.kt:130)
+	at org.mywubi.SettingsNavigationTest.standardPackageExplainsModelLimitAndOffersWorkingDictionaryPath(SettingsNavigationTest.kt:177)
+
+INSTRUMENTATION_STATUS: stream=
+Error in standardPackageExplainsModelLimitAndOffersWorkingDictionaryPath(org.mywubi.SettingsNavigationTest):
+java.lang.IllegalStateException: Text is not visible inside the settings viewport: 当前版本仅支持词典预测
+	at org.mywubi.SettingsNavigationTest.scrollToText(SettingsNavigationTest.kt:130)
+	at org.mywubi.SettingsNavigationTest.standardPackageExplainsModelLimitAndOffersWorkingDictionaryPath(SettingsNavigationTest.kt:177)
+
+INSTRUMENTATION_STATUS: test=standardPackageExplainsModelLimitAndOffersWorkingDictionaryPath
+INSTRUMENTATION_STATUS_CODE: -2
+INSTRUMENTATION_RESULT: stream=
+
+Time: 98.852
+There was 1 failure:
+1) standardPackageExplainsModelLimitAndOffersWorkingDictionaryPath(org.mywubi.SettingsNavigationTest)
+java.lang.IllegalStateException: Text is not visible inside the settings viewport: 当前版本仅支持词典预测
+	at org.mywubi.SettingsNavigationTest.scrollToText(SettingsNavigationTest.kt:130)
+	at org.mywubi.SettingsNavigationTest.standardPackageExplainsModelLimitAndOffersWorkingDictionaryPath(SettingsNavigationTest.kt:177)
+
+FAILURES!!!
+Tests run: 5,  Failures: 1
+
+
+INSTRUMENTATION_CODE: -1

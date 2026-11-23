@@ -1,0 +1,178 @@
+{
+  "font_settings_options": [
+    [
+      "ImageButton",
+      "",
+      "转到上一层级",
+      "[12,154][156,304]"
+    ],
+    [
+      "TextView",
+      "显示与亮度",
+      "",
+      "[168,191][1059,264]"
+    ],
+    [
+      "TextView",
+      "亮色模式",
+      "",
+      "[198,768][504,825]"
+    ],
+    [
+      "TextView",
+      "暗色模式",
+      "",
+      "[576,768][882,825]"
+    ],
+    [
+      "TextView",
+      "定时切换",
+      "",
+      "[96,984][288,1049]"
+    ],
+    [
+      "TextView",
+      "已关闭",
+      "",
+      "[96,1058][222,1115]"
+    ],
+    [
+      "TextView",
+      "亮度",
+      "",
+      "[96,1223][984,1272]"
+    ],
+    [
+      "RelativeLayout",
+      "",
+      "761,亮度",
+      "[96,1302][984,1506]"
+    ],
+    [
+      "SeekBar",
+      "",
+      "761,亮度",
+      "[96,1362][984,1470]"
+    ],
+    [
+      "TextView",
+      "自动调节",
+      "",
+      "[96,1545][822,1610]"
+    ],
+    [
+      "Switch",
+      "开启",
+      "",
+      "[870,1542][984,1614]"
+    ],
+    [
+      "TextView",
+      "屏幕色彩模式",
+      "",
+      "[96,1719][864,1844]"
+    ],
+    [
+      "TextView",
+      "护眼模式",
+      "",
+      "[96,1884][288,1949]"
+    ],
+    [
+      "TextView",
+      "已关闭",
+      "",
+      "[96,1958][222,2015]"
+    ],
+    [
+      "TextView",
+      "字体",
+      "",
+      "[96,2114][864,2239]"
+    ],
+    [
+      "TextView",
+      "显示大小",
+      "",
+      "[96,2258][864,2383]"
+    ]
+  ],
+  "font_real_scale": "1.0",
+  "font_theme": "Night mode: yes",
+  "rule_editor": {
+    "font_scale": 1
+  },
+  "font_after": "1.0",
+  "oem_browser": {
+    "packages": [
+      "com.heytap.browser"
+    ],
+    "controls": []
+  },
+  "kiwi_install": "Performing Streamed Install\r\nadb: failed to install target\\pgz110-20261123\\kiwi-arm64.apk: Failure [-99]",
+  "hashes_full_before": {
+    "files/engine/config.toml": "51aa96c8286f87252bafa0d6f36f53ca2d672f234f441c65ef001ff8bc211def",
+    "files/engine/user.dict": "54ba4d04ad6e26df95968801048270ecae4fc61e133abbdc36254cfeebc1d57f",
+    "files/engine/tables/wubi86.dict": "63802db622c7ddbb252dbbaa369bbd6f43027449b2abdc0dc71a10e63176d145",
+    "files/engine/tables/pinyin.dict": "234008541b549a2906c2879d8a9537400e82c5dd6b030f6440674c6b451d693b",
+    "files/engine/tables/english.dict": "fe4a45b9325fbb53311da1978362fe6c3f29cb4a3185729deb99b68421e7f3e7",
+    "files/engine/models/qwen25-words--q4km-v1/manifest.json": "00e13fa839ff1e6c6864f95d8ff43eaa9f97fa7ac52b439e5e98d7e3ae9e53a4",
+    "files/engine/models/qwen25-words--q4km-v1/model.gguf": "74a4da8c9fdbcd15bd1f6d01d621410d31c6fc00986f5eb687824e7b93d7a9db"
+  },
+  "base_install": "Performing Streamed Install\r\nSuccess",
+  "hashes_base_after_install": {
+    "files/engine/config.toml": "51aa96c8286f87252bafa0d6f36f53ca2d672f234f441c65ef001ff8bc211def",
+    "files/engine/user.dict": "54ba4d04ad6e26df95968801048270ecae4fc61e133abbdc36254cfeebc1d57f",
+    "files/engine/tables/wubi86.dict": "63802db622c7ddbb252dbbaa369bbd6f43027449b2abdc0dc71a10e63176d145",
+    "files/engine/tables/pinyin.dict": "234008541b549a2906c2879d8a9537400e82c5dd6b030f6440674c6b451d693b",
+    "files/engine/tables/english.dict": "fe4a45b9325fbb53311da1978362fe6c3f29cb4a3185729deb99b68421e7f3e7",
+    "files/engine/models/qwen25-words--q4km-v1/manifest.json": "00e13fa839ff1e6c6864f95d8ff43eaa9f97fa7ac52b439e5e98d7e3ae9e53a4",
+    "files/engine/models/qwen25-words--q4km-v1/model.gguf": "74a4da8c9fdbcd15bd1f6d01d621410d31c6fc00986f5eb687824e7b93d7a9db"
+  },
+  "full_restore": "Performing Streamed Install\r\nSuccess",
+  "hashes_full_restored": {
+    "files/engine/config.toml": "51aa96c8286f87252bafa0d6f36f53ca2d672f234f441c65ef001ff8bc211def",
+    "files/engine/user.dict": "54ba4d04ad6e26df95968801048270ecae4fc61e133abbdc36254cfeebc1d57f",
+    "files/engine/tables/wubi86.dict": "63802db622c7ddbb252dbbaa369bbd6f43027449b2abdc0dc71a10e63176d145",
+    "files/engine/tables/pinyin.dict": "234008541b549a2906c2879d8a9537400e82c5dd6b030f6440674c6b451d693b",
+    "files/engine/tables/english.dict": "fe4a45b9325fbb53311da1978362fe6c3f29cb4a3185729deb99b68421e7f3e7",
+    "files/engine/models/qwen25-words--q4km-v1/manifest.json": "00e13fa839ff1e6c6864f95d8ff43eaa9f97fa7ac52b439e5e98d7e3ae9e53a4",
+    "files/engine/models/qwen25-words--q4km-v1/model.gguf": "74a4da8c9fdbcd15bd1f6d01d621410d31c6fc00986f5eb687824e7b93d7a9db"
+  },
+  "install_appop_start": "REQUEST_INSTALL_PACKAGES: allow; time=+1h6m17s578ms ago",
+  "version_after_system_flow": "17",
+  "install_system_controls": [
+    [
+      "com.oplus.appdetail:id/alertTitle",
+      "个人信息收集提醒"
+    ],
+    [
+      "android:id/message",
+      "本次安装的应用由第三方提供，相关服务与责任将由提供方承担"
+    ],
+    [
+      "com.oplus.appdetail:id/card_title",
+      "信息收集风险"
+    ],
+    [
+      "com.oplus.appdetail:id/card_desc",
+      "个人信息将被第三方收集"
+    ],
+    [
+      "com.oplus.appdetail:id/checkbox_risk_aware",
+      "已知悉风险"
+    ],
+    [
+      "android:id/button2",
+      "取消安装"
+    ],
+    [
+      "android:id/button1",
+      "继续安装"
+    ]
+  ],
+  "adb_upgrade_fallback": "Performing Streamed Install\r\nSuccess",
+  "restore_version": "Performing Streamed Install\r\nSuccess",
+  "version_final": "17",
+  "third_complete": true
+}

@@ -1,0 +1,306 @@
+{
+  "scope": "Android ART loader, JNI and bitmap decode; no touch-to-visible measurement",
+  "device": "PGZ110",
+  "abi": "arm64-v8a",
+  "warmup": 20,
+  "switches": 1000,
+  "p50_ns": 147155307,
+  "p95_ns": 170179923,
+  "p99_ns": 178814154,
+  "curve": [
+    {
+      "switch": 0,
+      "pss_kib": 83779,
+      "private_dirty_kib": 70112,
+      "native_allocated_bytes": 14038048,
+      "retired_bitmaps_alive": 0
+    },
+    {
+      "switch": 5,
+      "pss_kib": 83860,
+      "private_dirty_kib": 70200,
+      "native_allocated_bytes": 13709904,
+      "retired_bitmaps_alive": 0
+    },
+    {
+      "switch": 30,
+      "pss_kib": 83908,
+      "private_dirty_kib": 70244,
+      "native_allocated_bytes": 13874912,
+      "retired_bitmaps_alive": 0
+    },
+    {
+      "switch": 55,
+      "pss_kib": 83884,
+      "private_dirty_kib": 70220,
+      "native_allocated_bytes": 13802336,
+      "retired_bitmaps_alive": 0
+    },
+    {
+      "switch": 80,
+      "pss_kib": 83900,
+      "private_dirty_kib": 70220,
+      "native_allocated_bytes": 13709264,
+      "retired_bitmaps_alive": 0
+    },
+    {
+      "switch": 105,
+      "pss_kib": 83900,
+      "private_dirty_kib": 70216,
+      "native_allocated_bytes": 13946128,
+      "retired_bitmaps_alive": 0
+    },
+    {
+      "switch": 130,
+      "pss_kib": 84255,
+      "private_dirty_kib": 70556,
+      "native_allocated_bytes": 14090256,
+      "retired_bitmaps_alive": 0
+    },
+    {
+      "switch": 155,
+      "pss_kib": 84259,
+      "private_dirty_kib": 70560,
+      "native_allocated_bytes": 14032144,
+      "retired_bitmaps_alive": 0
+    },
+    {
+      "switch": 180,
+      "pss_kib": 84267,
+      "private_dirty_kib": 70568,
+      "native_allocated_bytes": 14266496,
+      "retired_bitmaps_alive": 0
+    },
+    {
+      "switch": 205,
+      "pss_kib": 84271,
+      "private_dirty_kib": 70572,
+      "native_allocated_bytes": 14091648,
+      "retired_bitmaps_alive": 0
+    },
+    {
+      "switch": 230,
+      "pss_kib": 84271,
+      "private_dirty_kib": 70572,
+      "native_allocated_bytes": 14033296,
+      "retired_bitmaps_alive": 0
+    },
+    {
+      "switch": 255,
+      "pss_kib": 84335,
+      "private_dirty_kib": 70632,
+      "native_allocated_bytes": 14551216,
+      "retired_bitmaps_alive": 0
+    },
+    {
+      "switch": 280,
+      "pss_kib": 84351,
+      "private_dirty_kib": 70640,
+      "native_allocated_bytes": 14386272,
+      "retired_bitmaps_alive": 0
+    },
+    {
+      "switch": 305,
+      "pss_kib": 84351,
+      "private_dirty_kib": 70640,
+      "native_allocated_bytes": 14318544,
+      "retired_bitmaps_alive": 0
+    },
+    {
+      "switch": 330,
+      "pss_kib": 84355,
+      "private_dirty_kib": 70644,
+      "native_allocated_bytes": 14549488,
+      "retired_bitmaps_alive": 0
+    },
+    {
+      "switch": 355,
+      "pss_kib": 84355,
+      "private_dirty_kib": 70644,
+      "native_allocated_bytes": 14358960,
+      "retired_bitmaps_alive": 0
+    },
+    {
+      "switch": 380,
+      "pss_kib": 84359,
+      "private_dirty_kib": 70648,
+      "native_allocated_bytes": 14318032,
+      "retired_bitmaps_alive": 0
+    },
+    {
+      "switch": 405,
+      "pss_kib": 84359,
+      "private_dirty_kib": 70648,
+      "native_allocated_bytes": 14553264,
+      "retired_bitmaps_alive": 0
+    },
+    {
+      "switch": 430,
+      "pss_kib": 84367,
+      "private_dirty_kib": 70652,
+      "native_allocated_bytes": 14380688,
+      "retired_bitmaps_alive": 0
+    },
+    {
+      "switch": 455,
+      "pss_kib": 84375,
+      "private_dirty_kib": 70660,
+      "native_allocated_bytes": 14334912,
+      "retired_bitmaps_alive": 0
+    },
+    {
+      "switch": 480,
+      "pss_kib": 84375,
+      "private_dirty_kib": 70660,
+      "native_allocated_bytes": 14550496,
+      "retired_bitmaps_alive": 0
+    },
+    {
+      "switch": 505,
+      "pss_kib": 84375,
+      "private_dirty_kib": 70652,
+      "native_allocated_bytes": 14316688,
+      "retired_bitmaps_alive": 0
+    },
+    {
+      "switch": 530,
+      "pss_kib": 84379,
+      "private_dirty_kib": 70652,
+      "native_allocated_bytes": 14335600,
+      "retired_bitmaps_alive": 0
+    },
+    {
+      "switch": 555,
+      "pss_kib": 84387,
+      "private_dirty_kib": 70656,
+      "native_allocated_bytes": 14548672,
+      "retired_bitmaps_alive": 0
+    },
+    {
+      "switch": 580,
+      "pss_kib": 84391,
+      "private_dirty_kib": 70660,
+      "native_allocated_bytes": 14317376,
+      "retired_bitmaps_alive": 0
+    },
+    {
+      "switch": 605,
+      "pss_kib": 84395,
+      "private_dirty_kib": 70660,
+      "native_allocated_bytes": 14336480,
+      "retired_bitmaps_alive": 0
+    },
+    {
+      "switch": 630,
+      "pss_kib": 84395,
+      "private_dirty_kib": 70660,
+      "native_allocated_bytes": 14553248,
+      "retired_bitmaps_alive": 0
+    },
+    {
+      "switch": 655,
+      "pss_kib": 84399,
+      "private_dirty_kib": 70664,
+      "native_allocated_bytes": 14317104,
+      "retired_bitmaps_alive": 0
+    },
+    {
+      "switch": 680,
+      "pss_kib": 84403,
+      "private_dirty_kib": 70664,
+      "native_allocated_bytes": 14332752,
+      "retired_bitmaps_alive": 0
+    },
+    {
+      "switch": 705,
+      "pss_kib": 84411,
+      "private_dirty_kib": 70664,
+      "native_allocated_bytes": 14554784,
+      "retired_bitmaps_alive": 0
+    },
+    {
+      "switch": 730,
+      "pss_kib": 84411,
+      "private_dirty_kib": 70664,
+      "native_allocated_bytes": 14318512,
+      "retired_bitmaps_alive": 0
+    },
+    {
+      "switch": 755,
+      "pss_kib": 84419,
+      "private_dirty_kib": 70668,
+      "native_allocated_bytes": 14351664,
+      "retired_bitmaps_alive": 0
+    },
+    {
+      "switch": 780,
+      "pss_kib": 84423,
+      "private_dirty_kib": 70672,
+      "native_allocated_bytes": 14540864,
+      "retired_bitmaps_alive": 0
+    },
+    {
+      "switch": 805,
+      "pss_kib": 84431,
+      "private_dirty_kib": 70680,
+      "native_allocated_bytes": 14320912,
+      "retired_bitmaps_alive": 0
+    },
+    {
+      "switch": 830,
+      "pss_kib": 84431,
+      "private_dirty_kib": 70676,
+      "native_allocated_bytes": 14368368,
+      "retired_bitmaps_alive": 0
+    },
+    {
+      "switch": 855,
+      "pss_kib": 84435,
+      "private_dirty_kib": 70680,
+      "native_allocated_bytes": 14530928,
+      "retired_bitmaps_alive": 0
+    },
+    {
+      "switch": 880,
+      "pss_kib": 84443,
+      "private_dirty_kib": 70688,
+      "native_allocated_bytes": 14321456,
+      "retired_bitmaps_alive": 0
+    },
+    {
+      "switch": 905,
+      "pss_kib": 84451,
+      "private_dirty_kib": 70688,
+      "native_allocated_bytes": 14364944,
+      "retired_bitmaps_alive": 0
+    },
+    {
+      "switch": 930,
+      "pss_kib": 84451,
+      "private_dirty_kib": 70688,
+      "native_allocated_bytes": 14531248,
+      "retired_bitmaps_alive": 0
+    },
+    {
+      "switch": 955,
+      "pss_kib": 84445,
+      "private_dirty_kib": 70696,
+      "native_allocated_bytes": 14321088,
+      "retired_bitmaps_alive": 0
+    },
+    {
+      "switch": 980,
+      "pss_kib": 84441,
+      "private_dirty_kib": 70692,
+      "native_allocated_bytes": 14364224,
+      "retired_bitmaps_alive": 0
+    },
+    {
+      "switch": 1000,
+      "pss_kib": 84449,
+      "private_dirty_kib": 70696,
+      "native_allocated_bytes": 14557456,
+      "retired_bitmaps_alive": 0
+    }
+  ]
+}

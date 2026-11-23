@@ -1,0 +1,24 @@
+
+running 19 tests
+test a_superseded_legacy_prepare_cannot_publish_an_old_query_or_submit_it ... ok
+test automatic_full_code_and_overflow_only_accumulate_local_words ... ok
+test backspace_and_escape_are_stage_aware_and_grapheme_safe_across_word_boundaries ... ok
+test browsing_preserves_unfinished_search_and_invalidates_previous_candidates ... ok
+test browsing_respects_disabled_and_missing_resources ... ok
+test browsing_without_keywords_exposes_every_entry_and_keeps_palette_after_commit ... ok
+test disabled_or_private_modes_reject_entry_and_literal_actions_cannot_leak_text ... ok
+test entry_and_mode_changes_preserve_nonempty_input_and_restore_previous_mode ... ok
+test exit_focus_gate_reload_and_privacy_never_flush_query_to_host ... ok
+test find_confirms_pending_word_and_invalid_code_is_preserved ... ok
+test literal_editing_keeps_digits_symbols_graphemes_and_requires_clear_before_switch ... ok
+test literal_kana_alias_round_is_local_and_commits_only_selected_result ... ok
+test mode_chooser_uses_versioned_clicks_without_a_main_table_trigger ... ok
+test multiword_lookup_never_edits_host_until_result_confirmation ... ok
+test paging_and_large_windows_keep_all_results_reachable_and_old_clicks_stale ... ok
+test partial_search_is_explicit_in_header_and_candidate_hints_but_never_in_output ... ok
+test rejected_commit_retries_once_and_unconfirmed_results_are_not_published ... ok
+test settings_trial_replays_word_building_and_literal_queries_without_a_host ... ok
+test uncertain_result_commit_never_replays_or_finishes_an_unowned_host_composition ... ok
+
+test result: ok. 19 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.45s
+

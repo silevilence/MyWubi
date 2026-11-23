@@ -1,0 +1,9 @@
+
+running 4 tests
+test all_eight_and_merged_groups_round_trip_without_neighbor_fallback ... ok
+test sectors_have_clockwise_boundaries_and_hysteresis ... ok
+test shared_android_gesture_traces_and_editing_keep_semantics ... ok
+test unknown_overlap_and_disabled_override_are_rejected ... ok
+
+test result: ok. 4 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.01s
+

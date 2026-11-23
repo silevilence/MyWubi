@@ -33,7 +33,8 @@ class ExternalHostTest {
         val deadline=SystemClock.uptimeMillis()+10000
         do {
             InstrumentationRegistry.getInstrumentation().uiAutomation.clearCache()
-            if(device.hasObject(By.clazz("android.widget.EditText").text(text))) return
+            val editor = device.findObject(By.clazz("android.widget.EditText"))
+            if (editor != null && editor.text.orEmpty() == text) return
             SystemClock.sleep(100)
         } while(SystemClock.uptimeMillis()<deadline)
         throw AssertionError("Expected Settings text: $text")
@@ -62,10 +63,15 @@ class ExternalHostTest {
         val device=UiDevice.getInstance(InstrumentationRegistry.getInstrumentation())
         device.executeShellCommand("ime enable org.mywubi/.MyWubiService")
         device.executeShellCommand("ime set org.mywubi/.MyWubiService")
-        device.executeShellCommand("am force-stop com.android.settings")
-        device.executeShellCommand("am force-stop com.google.android.settings.intelligence")
-        device.executeShellCommand("am start -a android.settings.SETTINGS")
-        device.wait(Until.findObject(By.res("com.android.settings","search_action_bar")),15000).click()
+        if (InstrumentationRegistry.getArguments().getString("prediction_host") == "editor") {
+            device.executeShellCommand("am force-stop org.mywubi.acceptancehost")
+            device.executeShellCommand("am start -W -n org.mywubi.acceptancehost/.EditorActivity")
+        } else {
+            device.executeShellCommand("am force-stop com.android.settings")
+            device.executeShellCommand("am force-stop com.google.android.settings.intelligence")
+            device.executeShellCommand("am start -a android.settings.SETTINGS")
+            device.wait(Until.findObject(By.res("com.android.settings","search_action_bar")),15000).click()
+        }
         val field=device.wait(Until.findObject(By.clazz("android.widget.EditText")),15000)
         field.text="";field.click()
         fun button(label:String) = freshKey(device, By.desc(label))
@@ -80,11 +86,13 @@ class ExternalHostTest {
         button("g").click()
         awaitHostText(device,"g")
         button("展开").click()
-        val candidate = device.wait(Until.findObject(By.descStartsWith("候选 王").pkg("org.mywubi")),5000)
-        assertNotNull(candidate);candidate.click()
-        awaitHostText(device,"王")
+        val candidate = device.wait(Until.findObject(By.descStartsWith("候选 一").pkg("org.mywubi")),5000)
+        assertNotNull(candidate)
+        val firstWord = freshKey(device, By.descStartsWith("候选 一")).visibleCenter
+        device.click(firstWord.x, firstWord.y)
+        awaitHostText(device,"一")
         // A successful commit clears composition and collapses the candidate grid.
-        assertTrue(device.wait(Until.gone(By.descStartsWith("候选 王").pkg("org.mywubi")),5000))
+        assertTrue(device.wait(Until.gone(By.descStartsWith("候选 一").pkg("org.mywubi")),5000))
         device.waitForIdle()
         button("小写").click();device.waitForIdle()
         assertNotNull(button("Q"))
@@ -96,10 +104,10 @@ class ExternalHostTest {
         val p=backspace.visibleCenter
         device.swipe(p.x,p.y,p.x,p.y,180)
         SystemClock.sleep(400)
-        val after=field.text
+        val after=field.text.orEmpty()
         assertTrue("repeat removes multiple characters", after.length < 22)
         SystemClock.sleep(500)
-        assertEquals("repeat stops after release",after,field.text)
+        assertEquals("repeat stops after release",after,field.text.orEmpty())
         field.text="abcdefghijklmnopqrstuvwxyzabcdefghijklmnopqrstuvwxyz"
         device.pressKeyCode(android.view.KeyEvent.KEYCODE_MOVE_END);device.waitForIdle()
         val held=button("退格").visibleCenter
@@ -138,34 +146,48 @@ class ExternalHostTest {
         device.wait(Until.findObject(By.text("常用")),5000)?.click()
         assertTrue(device.wait(Until.hasObject(By.text("MyWubi 已就绪")),15000))
         device.pressBack()
-        device.executeShellCommand("am force-stop com.android.settings")
-        device.executeShellCommand("am force-stop com.google.android.settings.intelligence")
-        device.executeShellCommand("am start -a android.settings.SETTINGS")
-        val search=device.wait(Until.findObject(By.res("com.android.settings","search_action_bar")),15000)
-        assertNotNull("Settings search entry",search);search.click()
+        if (InstrumentationRegistry.getArguments().getString("prediction_host")=="editor") {
+            device.executeShellCommand("am force-stop org.mywubi.acceptancehost")
+            device.executeShellCommand("am start -W -n org.mywubi.acceptancehost/.EditorActivity")
+        } else {
+            device.executeShellCommand("am force-stop com.android.settings")
+            device.executeShellCommand("am force-stop com.google.android.settings.intelligence")
+            device.executeShellCommand("am start -a android.settings.SETTINGS")
+            val search=device.wait(Until.findObject(By.res("com.android.settings","search_action_bar")),15000)
+            assertNotNull("Settings search entry",search);search.click()
+        }
         val field=device.wait(Until.findObject(By.clazz("android.widget.EditText")),15000)
         assertNotNull("Settings editor",field);field.text="";field.click()
         freshKey(device, By.desc("q"))
         val switcher = device.wait(Until.findObject(By.res("android", "input_method_nav_ime_switcher")),5000)
-        assertNotNull("System IME switch button", switcher)
-        val bottomKey = freshKey(device, By.desc("搜索")).visibleBounds
+        // ColorOS exposes its navigation bar as a WindowManager inset even
+        // when it omits the AOSP switch-button accessibility resource.
+        val navigationBar = Regex("""type=navigationBars frame=\[(\d+),(\d+)\]\[(\d+),(\d+)\] visible=true""")
+        val switcherTop = switcher?.visibleBounds?.top ?: navigationBar
+            .findAll(device.executeShellCommand("dumpsys window displays"))
+            .map { m -> m.groupValues.drop(1).map(String::toInt) }
+            .filter { (left, top, right, bottom) -> top > 0 && right-left > bottom-top }
+            .minOfOrNull { it[1] }
+        val action = if (InstrumentationRegistry.getArguments().getString("prediction_host")=="editor") "换行" else "搜索"
+        val bottomKey = freshKey(device, By.desc(action)).visibleBounds
         val safeGap = 32 * InstrumentationRegistry.getInstrumentation().targetContext.resources.displayMetrics.density
-        assertTrue("Bottom keys must leave a safe band above the system IME controls",
-            switcher.visibleBounds.top - bottomKey.bottom >= safeGap)
+
         device.takeScreenshot(java.io.File(InstrumentationRegistry.getInstrumentation().targetContext.filesDir,"keyboard-system-clearance.png"))
         device.dumpWindowHierarchy(java.io.File(InstrumentationRegistry.getInstrumentation().targetContext.filesDir,"keyboard-system-clearance.xml"))
-        val emptyText = field.text
+        val emptyText = field.text.orEmpty()
         fun key(label:String) {
-            val selector = if(label == "王") By.descStartsWith("候选 王") else By.desc(label)
+            val selector = if(label == "一") By.descStartsWith("候选 一") else By.desc(label)
             val k=freshKey(device,selector)
             assertNotNull("IME key $label",k);k.click();device.waitForIdle()
         }
         key("g");key("g");key("l");key("l")
         awaitHostText(device,"ggll")
-        key("王")
-        awaitHostText(device,"王")
+        key("一")
+        awaitHostText(device,"一")
         key("退格")
         awaitHostText(device,emptyText)
         device.pressBack();device.pressBack()
+        assertNotNull("Host commit/delete passed; system did not expose the IME switch button for clearance measurement", switcherTop)
+        assertTrue("Bottom keys must leave a safe band above the system IME controls", switcherTop!! - bottomKey.bottom >= safeGap)
     }
 }

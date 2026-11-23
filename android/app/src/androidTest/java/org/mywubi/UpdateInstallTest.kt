@@ -14,8 +14,14 @@ class UpdateInstallTest {
     private val instrumentation = InstrumentationRegistry.getInstrumentation()
     private val context = instrumentation.targetContext
     private val device = UiDevice.getInstance(instrumentation)
+    private fun systemLabel(label:String) = By.text(java.util.regex.Pattern.compile(when(label) {
+        "Allow from this source" -> "Allow from this source|允许来自此来源的应用|允许安装应用|允许此来源安装应用|允许来自此来源"
+        "Cancel" -> "Cancel|取消|取消安装"
+        "Update" -> "Update|更新|安装|继续安装"
+        else -> java.util.regex.Pattern.quote(label)
+    }))
     private fun press(text: String) {
-        val node = device.wait(Until.findObject(By.text(text)), 10000) ?: error("Missing $text")
+        val node = device.wait(Until.findObject(systemLabel(text)), 10000) ?: error("Missing $text")
         node.click(); device.waitForIdle()
     }
     private fun prepare() {
@@ -52,7 +58,7 @@ class UpdateInstallTest {
         assertFalse("Revoke permission before starting instrumentation; revocation kills the app process", context.packageManager.canRequestPackageInstalls())
         ActivityScenario.launch(UpdateActivity::class.java).use { scenario ->
             press("安装更新"); press("继续安装")
-            assertTrue(device.wait(Until.hasObject(By.text("Allow from this source")), 10000))
+            assertTrue(device.wait(Until.hasObject(systemLabel("Allow from this source")), 10000))
             device.pressBack()
             assertTrue(device.wait(Until.hasObject(By.textContains("未授予安装权限")), 10000))
             press("安装更新"); press("继续安装")
@@ -60,7 +66,7 @@ class UpdateInstallTest {
             device.pressBack()
             assertTrue(device.wait(Until.hasObject(By.textContains("已允许安装")), 10000))
             press("安装更新"); press("继续安装")
-            assertTrue(device.wait(Until.hasObject(By.text("Cancel").pkg("com.google.android.packageinstaller")), 10000))
+            assertTrue(device.wait(Until.hasObject(systemLabel("Cancel").pkg(java.util.regex.Pattern.compile("com[.](?:android|google[.]android|oplus|coloros)[.](?:packageinstaller|safecenter|securitypermission|appdetail)"))), 10000))
             device.takeScreenshot(File(context.filesDir,"au-install-confirmation.png"))
             press("Cancel")
             assertTrue(device.wait(Until.hasObject(By.textContains("安装未完成或已取消")), 10000))
@@ -93,11 +99,31 @@ class UpdateInstallTest {
         val hashes = JSONObject()
         engine.walkTopDown().filter { it.isFile }.forEach { hashes.put(it.relativeTo(engine).path,sha256(it)) }
         File(context.filesDir,"au-data-before.json").writeText(hashes.toString())
-        context.startActivity(Intent(context,UpdateActivity::class.java).addFlags(Intent.FLAG_ACTIVITY_NEW_TASK))
+        ActivityScenario.launch(UpdateActivity::class.java)
         press("安装更新"); press("继续安装")
         // Updating this package ends its instrumentation process; post-upgrade assertions run separately.
-        press("Update")
-        Thread.sleep(15000)
+        val allowedInstaller = java.util.regex.Pattern.compile("com[.](?:android|google[.]android)[.]packageinstaller")
+        val confirm = By.text(java.util.regex.Pattern.compile("Update|更新")).pkg(allowedInstaller)
+        val standard = findFresh(device,confirm,5000)
+        if (standard != null) {
+            val actions = device.findObjects(confirm)
+            val targetLabel = context.packageManager.getApplicationLabel(context.applicationInfo).toString()
+            check(device.hasObject(By.pkg(allowedInstaller).text(targetLabel)) && actions.size == 1) {
+                "No unique system confirmation for $targetLabel"
+            }
+            actions.single().click()
+        } else {
+            // ColorOS hands the same request to its own installer. Owner authentication
+            // can take longer than the Android dialog. Never click a store recommendation.
+            check(findFresh(device,By.pkg("com.oplus.appdetail"),10000) != null) {
+                "System update confirmation missing"
+            }
+        }
+        // Replacement kills this instrumentation. The separate post-upgrade case
+        // verifies the installed APK and data. Finishing this wait cannot mean success.
+        Thread.sleep(5 * 60 * 1000L)
+        error("System installer did not replace MyWubi")
+
     }
 
     @Test fun upgradePreservedUserData() {
@@ -107,15 +133,25 @@ class UpdateInstallTest {
         @Suppress("DEPRECATION")
         val expected = requireNotNull(context.packageManager.getPackageArchiveInfo("/data/local/tmp/au-new.apk",0))
         assertEquals(packageVersion(expected), packageVersion(installed))
+        assertEquals("Installed APK must match the approved fixture", sha256(File("/data/local/tmp/au-new.apk")),
+            sha256(File(context.applicationInfo.sourceDir)))
         val hashes = JSONObject(File(context.filesDir,"au-data-before.json").readText())
         val engine = File(context.filesDir,"engine")
-        for (path in hashes.keys()) assertEquals(path, hashes.getString(path), sha256(File(engine,path)))
+        for (path in hashes.keys()) {
+            val file = File(engine, path)
+            if (path == "personal/learning-status.json") {
+                // The service writes a new observation timestamp on startup.
+                assertTrue("Persisted learning status must remain readable", JSONObject(file.readText()).length() > 0)
+            } else {
+                assertEquals(path, hashes.getString(path), sha256(file))
+            }
+        }
         lateinit var download: UpdateDownload
         instrumentation.runOnMainSync { download = UpdateDownload.get(context) }
         val end = android.os.SystemClock.uptimeMillis() + 15000
         while(download.state.value.busy && android.os.SystemClock.uptimeMillis()<end) Thread.sleep(50)
         assertEquals(DownloadPhase.Idle,download.state.value.phase)
-        assertFalse(File(context.filesDir,"app-update/update.apk").exists())
+        assertFalse(File(context.filesDir,"app-update").listFiles().orEmpty().any { it.extension == "apk" })
         assertNull(AppUpdates.get(context).state.value.available)
     }
 }

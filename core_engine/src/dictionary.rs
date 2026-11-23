@@ -15,7 +15,9 @@ use std::cmp::Ordering;
 use std::collections::{BTreeMap, HashSet};
 use std::io::{BufRead, BufReader};
 use std::path::{Path, PathBuf};
-use std::sync::Arc;
+use std::sync::{Arc, LazyLock, OnceLock, Weak};
+
+use sha2::{Digest, Sha256};
 
 use crate::table_options::{TableType, TemporaryConfig};
 use serde::{Deserialize, Deserializer, Serialize, Serializer};
@@ -214,6 +216,7 @@ impl Default for LoadOptions {
 /// 不可变、可被多线程共享的码表。
 #[derive(Debug)]
 pub struct Dictionary {
+    pub(crate) reverse: OnceLock<crate::ReverseLookup>,
     prediction: std::sync::OnceLock<crate::assistance::prediction::Lexicon>,
     pinyin_index: Option<crate::pinyin::PinyinIndex>,
     /// 按编码有序排列的扁平条目数组，便于二分查找前缀区间。
@@ -242,6 +245,7 @@ impl Dictionary {
     /// Empty startup fallback without filesystem access or a fallible parser.
     pub fn empty() -> Arc<Self> {
         Arc::new(Self {
+            reverse: OnceLock::new(),
             prediction: std::sync::OnceLock::new(),
             pinyin_index: None,
             entries: Vec::new(),
@@ -257,7 +261,42 @@ impl Dictionary {
     }
     /// 从文件全量加载并构建索引。
     pub fn load<P: AsRef<Path>>(path: P) -> Result<Arc<Self>, DictError> {
-        Self::load_with(path, LoadOptions::default())
+        // A reload may coexist with an active input session. Share immutable tables
+        // only when the bytes read for this request match, including same-size edits.
+        struct LoadedFile {
+            digest: [u8; 32],
+            table: Weak<Dictionary>,
+        }
+        static LIVE: LazyLock<parking_lot::Mutex<BTreeMap<PathBuf, LoadedFile>>> =
+            LazyLock::new(Default::default);
+        let path = path.as_ref();
+        let text = std::fs::read_to_string(path)
+            .map_err(|e| DictError::Io(path.to_path_buf(), e.to_string()))?;
+        let digest: [u8; 32] = Sha256::digest(text.as_bytes()).into();
+        let reuse = |entry: &LoadedFile| {
+            (entry.digest == digest)
+                .then(|| entry.table.upgrade())
+                .flatten()
+        };
+        if let Some(table) = LIVE.lock().get(path).and_then(reuse) {
+            return Ok(table);
+        }
+        let opts = LoadOptions::default();
+        let (config, entries) = parse_dictionary(&text, opts.chunk_lines)?;
+        let table = Self::from_entries_and_config(entries, Some(path.to_owned()), opts, config)?;
+        let mut live = LIVE.lock();
+        if let Some(existing) = live.get(path).and_then(reuse) {
+            return Ok(existing);
+        }
+        live.retain(|_, entry| entry.table.strong_count() > 0);
+        live.insert(
+            path.to_owned(),
+            LoadedFile {
+                digest,
+                table: Arc::downgrade(&table),
+            },
+        );
+        Ok(table)
     }
 
     /// 带选项加载。
@@ -300,6 +339,7 @@ impl Dictionary {
         };
 
         Ok(Arc::new(Self {
+            reverse: OnceLock::new(),
             prediction: std::sync::OnceLock::new(),
             pinyin_index: (table_config.table_type == TableType::Pinyin)
                 .then(|| crate::pinyin::PinyinIndex::new(&entries)),
@@ -966,6 +1006,20 @@ mod tests {
             },
         ];
         Dictionary::from_entries(entries, None, LoadOptions::default()).unwrap()
+    }
+
+    #[test]
+    fn live_file_tables_share_only_unchanged_contents() {
+        let dir = tempfile::tempdir().unwrap();
+        let path = dir.path().join("shared.dict");
+        std::fs::write(&path, "a\t甲\n").unwrap();
+        let first = Dictionary::load(&path).unwrap();
+        assert!(Arc::ptr_eq(&first, &Dictionary::load(&path).unwrap()));
+        std::fs::write(&path, "a\t乙\n").unwrap();
+        let changed = Dictionary::load(&path).unwrap();
+        assert!(!Arc::ptr_eq(&first, &changed));
+        assert_eq!(changed.entries[0].word, "乙");
+        assert_eq!(first.entries[0].word, "甲");
     }
 
     #[test]

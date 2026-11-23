@@ -1,0 +1,41 @@
+INSTRUMENTATION_STATUS: class=org.mywubi.ExpressionHostTest
+INSTRUMENTATION_STATUS: current=1
+INSTRUMENTATION_STATUS: id=AndroidJUnitRunner
+INSTRUMENTATION_STATUS: numtests=1
+INSTRUMENTATION_STATUS: stream=
+org.mywubi.ExpressionHostTest:
+INSTRUMENTATION_STATUS: test=realQueryEditsNeverTouchHostAndFinalEmojiAndLongKaomojiStayComplete
+INSTRUMENTATION_STATUS_CODE: 1
+INSTRUMENTATION_STATUS: class=org.mywubi.ExpressionHostTest
+INSTRUMENTATION_STATUS: current=1
+INSTRUMENTATION_STATUS: id=AndroidJUnitRunner
+INSTRUMENTATION_STATUS: numtests=1
+INSTRUMENTATION_STATUS: stack=java.lang.IllegalStateException: Missing BySelector [DESC='候选 \Q(๑•̀ㅂ•́)و✧　(๑•̀ㅂ•́)و✧　(๑•̀ㅂ•́)و✧　(๑•̀ㅂ•́)و✧　(๑•̀ㅂ•́)و✧　(๑•̀ㅂ•́)و✧　(๑•̀ㅂ•́)و✧　(๑•̀ㅂ•́)و✧　(๑•̀ㅂ•́)و✧　(๑•̀ㅂ•́)و✧　(๑•̀ㅂ•́)و✧　(๑•̀ㅂ•́)و✧　(๑•̀ㅂ•́)و✧　(๑•̀ㅂ•́)و✧　(╯°□°）╯︵ ┻━┻\E(?:，.*)?', PKG='\Qorg.mywubi\E']
+	at org.mywubi.ExpressionHostTest.fresh(ExpressionHostTest.kt:34)
+	at org.mywubi.ExpressionHostTest.candidate(ExpressionHostTest.kt:38)
+	at org.mywubi.ExpressionHostTest.realQueryEditsNeverTouchHostAndFinalEmojiAndLongKaomojiStayComplete(ExpressionHostTest.kt:417)
+
+INSTRUMENTATION_STATUS: stream=
+Error in realQueryEditsNeverTouchHostAndFinalEmojiAndLongKaomojiStayComplete(org.mywubi.ExpressionHostTest):
+java.lang.IllegalStateException: Missing BySelector [DESC='候选 \Q(๑•̀ㅂ•́)و✧　(๑•̀ㅂ•́)و✧　(๑•̀ㅂ•́)و✧　(๑•̀ㅂ•́)و✧　(๑•̀ㅂ•́)و✧　(๑•̀ㅂ•́)و✧　(๑•̀ㅂ•́)و✧　(๑•̀ㅂ•́)و✧　(๑•̀ㅂ•́)و✧　(๑•̀ㅂ•́)و✧　(๑•̀ㅂ•́)و✧　(๑•̀ㅂ•́)و✧　(๑•̀ㅂ•́)و✧　(๑•̀ㅂ•́)و✧　(╯°□°）╯︵ ┻━┻\E(?:，.*)?', PKG='\Qorg.mywubi\E']
+	at org.mywubi.ExpressionHostTest.fresh(ExpressionHostTest.kt:34)
+	at org.mywubi.ExpressionHostTest.candidate(ExpressionHostTest.kt:38)
+	at org.mywubi.ExpressionHostTest.realQueryEditsNeverTouchHostAndFinalEmojiAndLongKaomojiStayComplete(ExpressionHostTest.kt:417)
+
+INSTRUMENTATION_STATUS: test=realQueryEditsNeverTouchHostAndFinalEmojiAndLongKaomojiStayComplete
+INSTRUMENTATION_STATUS_CODE: -2
+INSTRUMENTATION_RESULT: stream=
+
+Time: 84.362
+There was 1 failure:
+1) realQueryEditsNeverTouchHostAndFinalEmojiAndLongKaomojiStayComplete(org.mywubi.ExpressionHostTest)
+java.lang.IllegalStateException: Missing BySelector [DESC='候选 \Q(๑•̀ㅂ•́)و✧　(๑•̀ㅂ•́)و✧　(๑•̀ㅂ•́)و✧　(๑•̀ㅂ•́)و✧　(๑•̀ㅂ•́)و✧　(๑•̀ㅂ•́)و✧　(๑•̀ㅂ•́)و✧　(๑•̀ㅂ•́)و✧　(๑•̀ㅂ•́)و✧　(๑•̀ㅂ•́)و✧　(๑•̀ㅂ•́)و✧　(๑•̀ㅂ•́)و✧　(๑•̀ㅂ•́)و✧　(๑•̀ㅂ•́)و✧　(╯°□°）╯︵ ┻━┻\E(?:，.*)?', PKG='\Qorg.mywubi\E']
+	at org.mywubi.ExpressionHostTest.fresh(ExpressionHostTest.kt:34)
+	at org.mywubi.ExpressionHostTest.candidate(ExpressionHostTest.kt:38)
+	at org.mywubi.ExpressionHostTest.realQueryEditsNeverTouchHostAndFinalEmojiAndLongKaomojiStayComplete(ExpressionHostTest.kt:417)
+
+FAILURES!!!
+Tests run: 1,  Failures: 1
+
+
+INSTRUMENTATION_CODE: -1

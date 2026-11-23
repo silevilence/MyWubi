@@ -1,0 +1,117 @@
+INSTRUMENTATION_STATUS: class=org.mywubi.KeyboardLayoutTest
+INSTRUMENTATION_STATUS: current=1
+INSTRUMENTATION_STATUS: id=AndroidJUnitRunner
+INSTRUMENTATION_STATUS: numtests=6
+INSTRUMENTATION_STATUS: stream=
+org.mywubi.KeyboardLayoutTest:
+INSTRUMENTATION_STATUS: test=staggeredLettersAndSeparatePanelsPreserveActions
+INSTRUMENTATION_STATUS_CODE: 1
+INSTRUMENTATION_STATUS: class=org.mywubi.KeyboardLayoutTest
+INSTRUMENTATION_STATUS: current=1
+INSTRUMENTATION_STATUS: id=AndroidJUnitRunner
+INSTRUMENTATION_STATUS: numtests=6
+INSTRUMENTATION_STATUS: stream=.
+INSTRUMENTATION_STATUS: test=staggeredLettersAndSeparatePanelsPreserveActions
+INSTRUMENTATION_STATUS_CODE: 0
+INSTRUMENTATION_STATUS: class=org.mywubi.KeyboardLayoutTest
+INSTRUMENTATION_STATUS: current=2
+INSTRUMENTATION_STATUS: id=AndroidJUnitRunner
+INSTRUMENTATION_STATUS: numtests=6
+INSTRUMENTATION_STATUS: stream=
+INSTRUMENTATION_STATUS: test=largeFontCompositionKeepsKeyboardHeightAndKeyPositionsStable
+INSTRUMENTATION_STATUS_CODE: 1
+INSTRUMENTATION_STATUS: class=org.mywubi.KeyboardLayoutTest
+INSTRUMENTATION_STATUS: current=2
+INSTRUMENTATION_STATUS: id=AndroidJUnitRunner
+INSTRUMENTATION_STATUS: numtests=6
+INSTRUMENTATION_STATUS: stream=.
+INSTRUMENTATION_STATUS: test=largeFontCompositionKeepsKeyboardHeightAndKeyPositionsStable
+INSTRUMENTATION_STATUS_CODE: 0
+INSTRUMENTATION_STATUS: class=org.mywubi.KeyboardLayoutTest
+INSTRUMENTATION_STATUS: current=3
+INSTRUMENTATION_STATUS: id=AndroidJUnitRunner
+INSTRUMENTATION_STATUS: numtests=6
+INSTRUMENTATION_STATUS: stream=
+INSTRUMENTATION_STATUS: test=compositionKeepsKeyboardHeightAndKeyPositionsStable
+INSTRUMENTATION_STATUS_CODE: 1
+INSTRUMENTATION_STATUS: class=org.mywubi.KeyboardLayoutTest
+INSTRUMENTATION_STATUS: current=3
+INSTRUMENTATION_STATUS: id=AndroidJUnitRunner
+INSTRUMENTATION_STATUS: numtests=6
+INSTRUMENTATION_STATUS: stream=.
+INSTRUMENTATION_STATUS: test=compositionKeepsKeyboardHeightAndKeyPositionsStable
+INSTRUMENTATION_STATUS_CODE: 0
+INSTRUMENTATION_STATUS: class=org.mywubi.KeyboardLayoutTest
+INSTRUMENTATION_STATUS: current=4
+INSTRUMENTATION_STATUS: id=AndroidJUnitRunner
+INSTRUMENTATION_STATUS: numtests=6
+INSTRUMENTATION_STATUS: stream=
+INSTRUMENTATION_STATUS: test=hideKeyboardIsAvailableAcrossInputStatesAndDoesNotDispatchText
+INSTRUMENTATION_STATUS_CODE: 1
+INSTRUMENTATION_STATUS: class=org.mywubi.KeyboardLayoutTest
+INSTRUMENTATION_STATUS: current=4
+INSTRUMENTATION_STATUS: id=AndroidJUnitRunner
+INSTRUMENTATION_STATUS: numtests=6
+INSTRUMENTATION_STATUS: stream=.
+INSTRUMENTATION_STATUS: test=hideKeyboardIsAvailableAcrossInputStatesAndDoesNotDispatchText
+INSTRUMENTATION_STATUS_CODE: 0
+INSTRUMENTATION_STATUS: class=org.mywubi.KeyboardLayoutTest
+INSTRUMENTATION_STATUS: current=5
+INSTRUMENTATION_STATUS: id=AndroidJUnitRunner
+INSTRUMENTATION_STATUS: numtests=6
+INSTRUMENTATION_STATUS: stream=
+INSTRUMENTATION_STATUS: test=directFieldsUseAsciiSymbolsAndExpandedCandidatesKeepBackspace
+INSTRUMENTATION_STATUS_CODE: 1
+INSTRUMENTATION_STATUS: class=org.mywubi.KeyboardLayoutTest
+INSTRUMENTATION_STATUS: current=5
+INSTRUMENTATION_STATUS: id=AndroidJUnitRunner
+INSTRUMENTATION_STATUS: numtests=6
+INSTRUMENTATION_STATUS: stream=.
+INSTRUMENTATION_STATUS: test=directFieldsUseAsciiSymbolsAndExpandedCandidatesKeepBackspace
+INSTRUMENTATION_STATUS_CODE: 0
+INSTRUMENTATION_STATUS: class=org.mywubi.KeyboardLayoutTest
+INSTRUMENTATION_STATUS: current=6
+INSTRUMENTATION_STATUS: id=AndroidJUnitRunner
+INSTRUMENTATION_STATUS: numtests=6
+INSTRUMENTATION_STATUS: stream=
+INSTRUMENTATION_STATUS: test=landscapeCandidatesStayAboveProportionalKeys
+INSTRUMENTATION_STATUS_CODE: 1
+INSTRUMENTATION_STATUS: class=org.mywubi.KeyboardLayoutTest
+INSTRUMENTATION_STATUS: current=6
+INSTRUMENTATION_STATUS: id=AndroidJUnitRunner
+INSTRUMENTATION_STATUS: numtests=6
+INSTRUMENTATION_STATUS: stack=java.lang.AssertionError: State was not rendered: clipboard
+	at org.junit.Assert.fail(Assert.java:89)
+	at org.junit.Assert.assertTrue(Assert.java:42)
+	at org.mywubi.KeyboardLayoutTest.checkCompositionLayout(KeyboardLayoutTest.kt:84)
+	at org.mywubi.KeyboardLayoutTest.checkCompositionLayout$default(KeyboardLayoutTest.kt:31)
+	at org.mywubi.KeyboardLayoutTest.landscapeCandidatesStayAboveProportionalKeys(KeyboardLayoutTest.kt:29)
+
+INSTRUMENTATION_STATUS: stream=
+Error in landscapeCandidatesStayAboveProportionalKeys(org.mywubi.KeyboardLayoutTest):
+java.lang.AssertionError: State was not rendered: clipboard
+	at org.junit.Assert.fail(Assert.java:89)
+	at org.junit.Assert.assertTrue(Assert.java:42)
+	at org.mywubi.KeyboardLayoutTest.checkCompositionLayout(KeyboardLayoutTest.kt:84)
+	at org.mywubi.KeyboardLayoutTest.checkCompositionLayout$default(KeyboardLayoutTest.kt:31)
+	at org.mywubi.KeyboardLayoutTest.landscapeCandidatesStayAboveProportionalKeys(KeyboardLayoutTest.kt:29)
+
+INSTRUMENTATION_STATUS: test=landscapeCandidatesStayAboveProportionalKeys
+INSTRUMENTATION_STATUS_CODE: -2
+INSTRUMENTATION_RESULT: stream=
+
+Time: 55.753
+There was 1 failure:
+1) landscapeCandidatesStayAboveProportionalKeys(org.mywubi.KeyboardLayoutTest)
+java.lang.AssertionError: State was not rendered: clipboard
+	at org.junit.Assert.fail(Assert.java:89)
+	at org.junit.Assert.assertTrue(Assert.java:42)
+	at org.mywubi.KeyboardLayoutTest.checkCompositionLayout(KeyboardLayoutTest.kt:84)
+	at org.mywubi.KeyboardLayoutTest.checkCompositionLayout$default(KeyboardLayoutTest.kt:31)
+	at org.mywubi.KeyboardLayoutTest.landscapeCandidatesStayAboveProportionalKeys(KeyboardLayoutTest.kt:29)
+
+FAILURES!!!
+Tests run: 6,  Failures: 1
+
+
+INSTRUMENTATION_CODE: -1

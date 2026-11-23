@@ -1,0 +1,18 @@
+
+running 13 tests
+test active_mode_switch_waits_for_success_and_rejection_preserves_old_input ... ok
+test changed_context_adopts_latest_waiting_runtime_without_waiting_for_stale_ack ... ok
+test context_change_and_close_interrupt_pending_and_do_not_delete_new_selection ... ok
+test deferred_runtime_is_applied_after_ack_and_only_latest_is_adopted ... ok
+test legacy_nested_input_advances_processing_before_ack_and_outer_cannot_publish ... ok
+test legacy_only_temporary_handle_rolls_back_not_switch_or_runtime_adoption ... ok
+test local_base_preedit_is_committed_raw_before_focus_loss_or_runtime_update ... ok
+test local_preedit_host_uses_current_selection_and_unknown_result_is_not_retried ... ok
+test none_keeps_view_and_overflow_has_one_edit_operation_with_converted_attribute ... ok
+test partial_and_unknown_results_never_replay_commits_and_recovery_preserves_intent ... ok
+test password_input_is_literal_without_candidate_previews ... ok
+test touch_preview_is_not_published_busy_does_not_consume_next_key_and_ack_is_unique ... ok
+test unknown_ownership_is_not_inferred_from_a_previous_successful_preedit ... ok
+
+test result: ok. 13 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.02s
+

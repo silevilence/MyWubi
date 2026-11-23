@@ -1,0 +1,35 @@
+INSTRUMENTATION_STATUS: class=org.mywubi.CustomKeyboardHostTest
+INSTRUMENTATION_STATUS: current=1
+INSTRUMENTATION_STATUS: id=AndroidJUnitRunner
+INSTRUMENTATION_STATUS: numtests=1
+INSTRUMENTATION_STATUS: stream=
+org.mywubi.CustomKeyboardHostTest:
+INSTRUMENTATION_STATUS: test=realTemplatesKeepGroupsLocalAndReturnToRememberedMode
+INSTRUMENTATION_STATUS_CODE: 1
+INSTRUMENTATION_STATUS: class=org.mywubi.CustomKeyboardHostTest
+INSTRUMENTATION_STATUS: current=1
+INSTRUMENTATION_STATUS: id=AndroidJUnitRunner
+INSTRUMENTATION_STATUS: numtests=1
+INSTRUMENTATION_STATUS: stack=java.util.NoSuchElementException: Sequence contains no element matching the predicate.
+	at org.mywubi.CustomKeyboardHostTest.realTemplatesKeepGroupsLocalAndReturnToRememberedMode(CustomKeyboardHostTest.kt:165)
+
+INSTRUMENTATION_STATUS: stream=
+Error in realTemplatesKeepGroupsLocalAndReturnToRememberedMode(org.mywubi.CustomKeyboardHostTest):
+java.util.NoSuchElementException: Sequence contains no element matching the predicate.
+	at org.mywubi.CustomKeyboardHostTest.realTemplatesKeepGroupsLocalAndReturnToRememberedMode(CustomKeyboardHostTest.kt:165)
+
+INSTRUMENTATION_STATUS: test=realTemplatesKeepGroupsLocalAndReturnToRememberedMode
+INSTRUMENTATION_STATUS_CODE: -2
+INSTRUMENTATION_RESULT: stream=
+
+Time: 55.973
+There was 1 failure:
+1) realTemplatesKeepGroupsLocalAndReturnToRememberedMode(org.mywubi.CustomKeyboardHostTest)
+java.util.NoSuchElementException: Sequence contains no element matching the predicate.
+	at org.mywubi.CustomKeyboardHostTest.realTemplatesKeepGroupsLocalAndReturnToRememberedMode(CustomKeyboardHostTest.kt:165)
+
+FAILURES!!!
+Tests run: 1,  Failures: 1
+
+
+INSTRUMENTATION_CODE: -1

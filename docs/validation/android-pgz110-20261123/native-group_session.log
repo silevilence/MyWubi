@@ -1,0 +1,11 @@
+
+running 6 tests
+test ambiguous_full_code_never_autocommits_or_overflows_but_explicit_resolution_can ... ok
+test group_shortcut_prefix_protection_is_pure_and_ends_on_wrong_prefix ... ok
+test reject_before_write_keeps_groups_and_stale_selection_cannot_commit ... ok
+test runtime_and_mapping_switch_wait_for_group_input_to_finish ... ok
+test undo_and_backspace_preserve_raw_positions_and_enter_requires_resolution ... ok
+test unknown_host_result_never_replays_the_candidate_or_group_hint ... ok
+
+test result: ok. 6 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.01s
+

@@ -10,6 +10,10 @@
 /docs/validation/cp10/*.dict -text
 /docs/validation/cp10/engine.log -text
 
+# Keep adb and instrumentation transcripts byte-for-byte, including device line endings.
+/docs/validation/android-pgz110-20261123/**/*.log -text -whitespace
+/docs/validation/android-pgz110-20261123/**/*.txt -text -whitespace
+
 # Keep Android launchers portable.
 /android/gradlew text eol=lf
 /android/gradlew.bat text eol=crlf

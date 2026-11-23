@@ -53,7 +53,7 @@ class SettingsUiTest {
         device.waitForIdle()
     }
     private fun clickDocumentRoot() {
-        val selector = By.res("android", "title").text("Downloads")
+        val selector = By.res("android", "title").text(java.util.regex.Pattern.compile("Downloads|下载(?:内容|项)?"))
         val deadline = SystemClock.uptimeMillis() + 10000
         while (SystemClock.uptimeMillis() < deadline) {
             instrumentation.uiAutomation.clearCache()
@@ -115,7 +115,7 @@ class SettingsUiTest {
             selectSettingsTab(device,"码表")
             text("从手机导入码表").click()
             device.waitForIdle()
-            device.wait(Until.findObject(By.desc("Show roots")), 5000)?.click()
+            device.wait(Until.findObject(By.desc(java.util.regex.Pattern.compile("Show roots|显示根目录|显示根路径|显示根文件夹|显示导航栏|显示位置"))), 5000)?.click()
             device.waitForIdle()
             // The toolbar and breadcrumb can also say Downloads. Select the
             // drawer's root row, not whichever matching text is returned first.
@@ -151,7 +151,7 @@ class SettingsUiTest {
             device.executeShellCommand("am start -W -f 0x10008000 -n org.mywubi/.MainActivity")
             selectSettingsTab(device,"码表")
             text("从手机导入码表").click()
-            device.wait(Until.findObject(By.desc("Show roots")), 5000)?.click()
+            device.wait(Until.findObject(By.desc(java.util.regex.Pattern.compile("Show roots|显示根目录|显示根路径|显示根文件夹|显示导航栏|显示位置"))), 5000)?.click()
             device.waitForIdle()
             clickDocumentRoot()
             device.waitForIdle()

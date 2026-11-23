@@ -36,6 +36,7 @@ class KeyboardLayoutTest {
         val ready = KeyboardModel(enabled=true, modesAvailable=true, pinyinAvailable=true)
         var model by mutableStateOf(ready)
         var layoutState by mutableStateOf("idle")
+        val rendered = java.util.concurrent.atomic.AtomicReference<String>()
         ActivityScenario.launch(MainActivity::class.java).use { scenario ->
             if (landscape) {
                 scenario.onActivity { it.requestedOrientation = android.content.pm.ActivityInfo.SCREEN_ORIENTATION_LANDSCAPE }
@@ -53,6 +54,8 @@ class KeyboardLayoutTest {
                         Box(Modifier.onSizeChanged { height.set(it.height) }
                             .semantics { contentDescription = "layout:$layoutState" }) {
                             Keyboard(model, {}, {}, switchIme={})
+                            val state = layoutState
+                            SideEffect { rendered.set(state) }
                         }
                     }
                 }
@@ -81,8 +84,11 @@ class KeyboardLayoutTest {
             )
             for ((label, next) in states) {
                 scenario.onActivity { model = next; layoutState = label }
-                assertTrue("State was not rendered: $label",
-                    device.wait(Until.hasObject(By.desc("layout:$label")), 5000))
+                instrumentation.waitForIdleSync()
+                val deadline = android.os.SystemClock.uptimeMillis() + 5000
+                while (rendered.get() != label && android.os.SystemClock.uptimeMillis() < deadline)
+                    android.os.SystemClock.sleep(20)
+                assertEquals("State was not rendered", label, rendered.get())
                 val bounds = keyBounds()
                 if (label == "composing") {
                     assertTrue(device.wait(Until.hasObject(By.desc("候选 是，编码提示 j")), 5000))

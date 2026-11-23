@@ -1,0 +1,44 @@
+INSTRUMENTATION_STATUS: class=org.mywubi.SkinSettingsUiTest
+INSTRUMENTATION_STATUS: current=1
+INSTRUMENTATION_STATUS: id=AndroidJUnitRunner
+INSTRUMENTATION_STATUS: numtests=1
+INSTRUMENTATION_STATUS: stream=
+org.mywubi.SkinSettingsUiTest:
+INSTRUMENTATION_STATUS: test=safImportNativePreviewDraftSaveAndSystemShare
+INSTRUMENTATION_STATUS_CODE: 1
+INSTRUMENTATION_STATUS: class=org.mywubi.SkinSettingsUiTest
+INSTRUMENTATION_STATUS: current=1
+INSTRUMENTATION_STATUS: id=AndroidJUnitRunner
+INSTRUMENTATION_STATUS: numtests=1
+INSTRUMENTATION_STATUS: stack=java.lang.IllegalStateException: Missing 预览当前草稿
+	at org.mywubi.SkinSettingsUiTest.text(SkinSettingsUiTest.kt:33)
+	at org.mywubi.SkinSettingsUiTest.clickReady(SkinSettingsUiTest.kt:36)
+	at org.mywubi.SkinSettingsUiTest.clickReady$default(SkinSettingsUiTest.kt:35)
+	at org.mywubi.SkinSettingsUiTest.safImportNativePreviewDraftSaveAndSystemShare(SkinSettingsUiTest.kt:125)
+
+INSTRUMENTATION_STATUS: stream=
+Error in safImportNativePreviewDraftSaveAndSystemShare(org.mywubi.SkinSettingsUiTest):
+java.lang.IllegalStateException: Missing 预览当前草稿
+	at org.mywubi.SkinSettingsUiTest.text(SkinSettingsUiTest.kt:33)
+	at org.mywubi.SkinSettingsUiTest.clickReady(SkinSettingsUiTest.kt:36)
+	at org.mywubi.SkinSettingsUiTest.clickReady$default(SkinSettingsUiTest.kt:35)
+	at org.mywubi.SkinSettingsUiTest.safImportNativePreviewDraftSaveAndSystemShare(SkinSettingsUiTest.kt:125)
+
+INSTRUMENTATION_STATUS: test=safImportNativePreviewDraftSaveAndSystemShare
+INSTRUMENTATION_STATUS_CODE: -2
+INSTRUMENTATION_RESULT: stream=
+
+Time: 38.268
+There was 1 failure:
+1) safImportNativePreviewDraftSaveAndSystemShare(org.mywubi.SkinSettingsUiTest)
+java.lang.IllegalStateException: Missing 预览当前草稿
+	at org.mywubi.SkinSettingsUiTest.text(SkinSettingsUiTest.kt:33)
+	at org.mywubi.SkinSettingsUiTest.clickReady(SkinSettingsUiTest.kt:36)
+	at org.mywubi.SkinSettingsUiTest.clickReady$default(SkinSettingsUiTest.kt:35)
+	at org.mywubi.SkinSettingsUiTest.safImportNativePreviewDraftSaveAndSystemShare(SkinSettingsUiTest.kt:125)
+
+FAILURES!!!
+Tests run: 1,  Failures: 1
+
+
+INSTRUMENTATION_CODE: -1

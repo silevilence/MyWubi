@@ -1,0 +1,38 @@
+INSTRUMENTATION_STATUS: class=org.mywubi.PhysicalRuleEditorTest
+INSTRUMENTATION_STATUS: current=1
+INSTRUMENTATION_STATUS: id=AndroidJUnitRunner
+INSTRUMENTATION_STATUS: numtests=1
+INSTRUMENTATION_STATUS: stream=
+org.mywubi.PhysicalRuleEditorTest:
+INSTRUMENTATION_STATUS: test=errorAndSaveAreReachableAboveTheNumericKeyboard
+INSTRUMENTATION_STATUS_CODE: 1
+INSTRUMENTATION_STATUS: class=org.mywubi.PhysicalRuleEditorTest
+INSTRUMENTATION_STATUS: current=1
+INSTRUMENTATION_STATUS: id=AndroidJUnitRunner
+INSTRUMENTATION_STATUS: numtests=1
+INSTRUMENTATION_STATUS: stack=java.lang.IllegalStateException: Missing settings tab 特殊输入
+	at org.mywubi.SettingsTestNavigationKt.selectSettingsTab(SettingsTestNavigation.kt:54)
+	at org.mywubi.PhysicalRuleEditorTest.errorAndSaveAreReachableAboveTheNumericKeyboard(PhysicalRuleEditorTest.kt:35)
+
+INSTRUMENTATION_STATUS: stream=
+Error in errorAndSaveAreReachableAboveTheNumericKeyboard(org.mywubi.PhysicalRuleEditorTest):
+java.lang.IllegalStateException: Missing settings tab 特殊输入
+	at org.mywubi.SettingsTestNavigationKt.selectSettingsTab(SettingsTestNavigation.kt:54)
+	at org.mywubi.PhysicalRuleEditorTest.errorAndSaveAreReachableAboveTheNumericKeyboard(PhysicalRuleEditorTest.kt:35)
+
+INSTRUMENTATION_STATUS: test=errorAndSaveAreReachableAboveTheNumericKeyboard
+INSTRUMENTATION_STATUS_CODE: -2
+INSTRUMENTATION_RESULT: stream=
+
+Time: 21.183
+There was 1 failure:
+1) errorAndSaveAreReachableAboveTheNumericKeyboard(org.mywubi.PhysicalRuleEditorTest)
+java.lang.IllegalStateException: Missing settings tab 特殊输入
+	at org.mywubi.SettingsTestNavigationKt.selectSettingsTab(SettingsTestNavigation.kt:54)
+	at org.mywubi.PhysicalRuleEditorTest.errorAndSaveAreReachableAboveTheNumericKeyboard(PhysicalRuleEditorTest.kt:35)
+
+FAILURES!!!
+Tests run: 1,  Failures: 1
+
+
+INSTRUMENTATION_CODE: -1

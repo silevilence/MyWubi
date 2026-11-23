@@ -1,0 +1,55 @@
+INSTRUMENTATION_STATUS: class=org.mywubi.ModelTrialTest
+INSTRUMENTATION_STATUS: current=1
+INSTRUMENTATION_STATUS: id=AndroidJUnitRunner
+INSTRUMENTATION_STATUS: numtests=2
+INSTRUMENTATION_STATUS: stream=
+org.mywubi.ModelTrialTest:
+INSTRUMENTATION_STATUS: test=importAndTrialShareFailureDiagnosticsAndPreserveConfiguration
+INSTRUMENTATION_STATUS_CODE: 1
+INSTRUMENTATION_STATUS: class=org.mywubi.ModelTrialTest
+INSTRUMENTATION_STATUS: current=1
+INSTRUMENTATION_STATUS: id=AndroidJUnitRunner
+INSTRUMENTATION_STATUS: numtests=2
+INSTRUMENTATION_STATUS: stream=.
+INSTRUMENTATION_STATUS: test=importAndTrialShareFailureDiagnosticsAndPreserveConfiguration
+INSTRUMENTATION_STATUS_CODE: 0
+INSTRUMENTATION_STATUS: class=org.mywubi.ModelTrialTest
+INSTRUMENTATION_STATUS: current=2
+INSTRUMENTATION_STATUS: id=AndroidJUnitRunner
+INSTRUMENTATION_STATUS: numtests=2
+INSTRUMENTATION_STATUS: stream=
+INSTRUMENTATION_STATUS: test=explicitUiSampleRunsWithoutSelectingOrEnablingModel
+INSTRUMENTATION_STATUS_CODE: 1
+INSTRUMENTATION_STATUS: class=org.mywubi.ModelTrialTest
+INSTRUMENTATION_STATUS: current=2
+INSTRUMENTATION_STATUS: id=AndroidJUnitRunner
+INSTRUMENTATION_STATUS: numtests=2
+INSTRUMENTATION_STATUS: stack=java.lang.IllegalStateException: Missing BySelector [TEXT='\Q自定义模型指南与试运行（实验性）\E']
+	at org.mywubi.ModelTrialTest.explicitUiSampleRunsWithoutSelectingOrEnablingModel$find(ModelTrialTest.kt:87)
+	at org.mywubi.ModelTrialTest.explicitUiSampleRunsWithoutSelectingOrEnablingModel$find$default(ModelTrialTest.kt:73)
+	at org.mywubi.ModelTrialTest.explicitUiSampleRunsWithoutSelectingOrEnablingModel(ModelTrialTest.kt:94)
+
+INSTRUMENTATION_STATUS: stream=
+Error in explicitUiSampleRunsWithoutSelectingOrEnablingModel(org.mywubi.ModelTrialTest):
+java.lang.IllegalStateException: Missing BySelector [TEXT='\Q自定义模型指南与试运行（实验性）\E']
+	at org.mywubi.ModelTrialTest.explicitUiSampleRunsWithoutSelectingOrEnablingModel$find(ModelTrialTest.kt:87)
+	at org.mywubi.ModelTrialTest.explicitUiSampleRunsWithoutSelectingOrEnablingModel$find$default(ModelTrialTest.kt:73)
+	at org.mywubi.ModelTrialTest.explicitUiSampleRunsWithoutSelectingOrEnablingModel(ModelTrialTest.kt:94)
+
+INSTRUMENTATION_STATUS: test=explicitUiSampleRunsWithoutSelectingOrEnablingModel
+INSTRUMENTATION_STATUS_CODE: -2
+INSTRUMENTATION_RESULT: stream=
+
+Time: 45.628
+There was 1 failure:
+1) explicitUiSampleRunsWithoutSelectingOrEnablingModel(org.mywubi.ModelTrialTest)
+java.lang.IllegalStateException: Missing BySelector [TEXT='\Q自定义模型指南与试运行（实验性）\E']
+	at org.mywubi.ModelTrialTest.explicitUiSampleRunsWithoutSelectingOrEnablingModel$find(ModelTrialTest.kt:87)
+	at org.mywubi.ModelTrialTest.explicitUiSampleRunsWithoutSelectingOrEnablingModel$find$default(ModelTrialTest.kt:73)
+	at org.mywubi.ModelTrialTest.explicitUiSampleRunsWithoutSelectingOrEnablingModel(ModelTrialTest.kt:94)
+
+FAILURES!!!
+Tests run: 2,  Failures: 1
+
+
+INSTRUMENTATION_CODE: -1

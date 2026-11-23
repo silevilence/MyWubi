@@ -70,36 +70,22 @@ class ModelTrialTest {
         val store=EngineStore(context);Resources.prepare(context)
         val before=store.configFile.readBytes();val draft=File(context.filesDir,"settings-draft.json");val draftBytes=if(draft.exists())draft.readBytes() else null;draft.delete()
         val device=UiDevice.getInstance(ins);Configurator.getInstance().waitForIdleTimeout=500
-        fun find(selector:BySelector,timeoutMs:Long=30000):UiObject2 {
-            val deadline=SystemClock.uptimeMillis()+timeoutMs
-            do {
-                ins.uiAutomation.clearCache();device.findObject(selector)?.let{return it}
-                for(up in listOf(true,false)) for(step in 0 until 30) {
-                    if(SystemClock.uptimeMillis()>=deadline) break
-                    ins.uiAutomation.clearCache();device.findObject(selector)?.let{return it}
-                    if(up && device.hasObject(By.text("形码 · 拼音 · 英文"))) break
-                    if(!up && device.hasObject(By.text("编辑码表与用户词库"))) break
-                    val top=device.displayHeight/4;val bottom=device.displayHeight*3/4
-                    device.swipe(device.displayWidth/2,if(up)top else bottom,device.displayWidth/2,if(up)bottom else top,40);device.waitForIdle(1000)
-                }
-                SystemClock.sleep(250)
-            } while(SystemClock.uptimeMillis()<deadline)
-            error("Missing $selector")
-        }
+        fun find(selector: BySelector) = findSettingsControl(device, selector)
         try {
             assertTrue(File(store.configFile.parentFile,"models/qwen25-words--q4km-v1/manifest.json").isFile)
             device.executeShellCommand("am start -W -f 0x10008000 -n org.mywubi/.MainActivity")
             selectSettingsTab(device,"预测")
-            find(By.text("预测模型与资源（实验性）")).click()
-            find(By.text("自定义模型指南与试运行（实验性）")).click()
+            expandSettingsControl(device,"预测模型与资源（实验性）", modelRoot = true)
+            expandSettingsControl(device,"自定义模型指南与试运行（实验性）")
             find(By.text("接入指南（离线可读）")).click();assertTrue(device.wait(Until.hasObject(By.text("自定义模型接入")),5000))
             device.findObject(By.text("关闭指南")).click()
-            find(By.desc("试运行模型")).click();device.wait(Until.findObject(By.text("qwen25-words--q4km-v1")),5000).click()
+            clickSetting(device,"试运行模型",description = true)
+            clickSetting(device,"qwen25-words--q4km-v1")
             // Accessibility setText does not open the IME. Back would finish
             // this clean settings activity instead of hiding a keyboard.
             val sampleField=By.clazz("android.widget.EditText").hasDescendant(By.desc("测试前文"))
             val field=find(sampleField);field.text="北京"
-            find(By.text("试运行（1000 ms，4 线程）")).click()
+            clickSetting(device,"试运行（1000 ms，4 线程）")
             // Keep the UI still while measuring inference. Scrolling the entire
             // software-rendered settings page competes with the CPU model.
             lateinit var settings:SettingsModel

@@ -1,0 +1,1 @@
+Kiwi ARM64 本地包与缓存的同版本官方 x64 包签名一致。ColorOS 正常安装向导最后进入 com.android.settings.password.ConfirmLockPassword，需要机主输入系统凭据。本轮返回退出，未输入凭据。

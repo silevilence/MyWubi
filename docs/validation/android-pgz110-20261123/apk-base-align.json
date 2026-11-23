@@ -1,0 +1,56 @@
+{
+  "apk": "target\\pgz110-20261123\\base-0.11.0.apk",
+  "sha256": "a3c77597270940824857a29bb0be67d55d5f1b1c9a35b06c7c39399fc8ca047e",
+  "libraries": [
+    {
+      "name": "lib/arm64-v8a/libandroidx.graphics.path.so",
+      "bytes": 10096,
+      "elf_load_alignments": [
+        16384,
+        16384,
+        16384
+      ],
+      "zip_offset": 8749056,
+      "compressed": false,
+      "sha256": "41e9a793c43a0f4fddb19e33f346bace464f30f888ba7b9eaf96294ea115bfb6"
+    },
+    {
+      "name": "lib/arm64-v8a/libmywubi_android.so",
+      "bytes": 7084336,
+      "elf_load_alignments": [
+        16384,
+        16384,
+        16384,
+        16384
+      ],
+      "zip_offset": 8765440,
+      "compressed": false,
+      "sha256": "5bca51be488fd4ac2e7b0db2cfc7a445582f89051eba5fd757cd8941615c9244"
+    },
+    {
+      "name": "lib/x86_64/libandroidx.graphics.path.so",
+      "bytes": 10760,
+      "elf_load_alignments": [
+        16384,
+        16384,
+        16384
+      ],
+      "zip_offset": 15859712,
+      "compressed": false,
+      "sha256": "4e56c996f13670e70082658de7880c4020eabf4f25e43387f88ed78a713fc9f0"
+    },
+    {
+      "name": "lib/x86_64/libmywubi_android.so",
+      "bytes": 8235512,
+      "elf_load_alignments": [
+        16384,
+        16384,
+        16384,
+        16384
+      ],
+      "zip_offset": 15876096,
+      "compressed": false,
+      "sha256": "88a16565099bdc4af6e338536eb11057c10c5b53ed29eea87c9183f0675f719f"
+    }
+  ]
+}

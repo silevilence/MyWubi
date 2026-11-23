@@ -1,0 +1,8 @@
+
+running 3 tests
+test digit_groups_match_independent_enumeration_for_multisyllable_codes ... ok
+test normalized_groups_respect_explicit_syllable_boundaries_and_no_initials ... ok
+test pinyin_group_session_commits_without_exposing_hint_and_returns_to_main ... ok
+
+test result: ok. 3 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+

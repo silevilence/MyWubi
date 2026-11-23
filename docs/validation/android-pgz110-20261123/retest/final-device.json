@@ -1,0 +1,18 @@
+{
+  "default_input_method": "com.baidu.input_oppo/.ImeService",
+  "enabled_input_methods": "com.baidu.input_oppo/.ImeService",
+  "enabled_accessibility_services": "null",
+  "font_scale": "1.0",
+  "screen_off_timeout": "30000",
+  "accelerometer_rotation": "1",
+  "stay_on_while_plugged_in": "15",
+  "night": "Night mode: no",
+  "rotation": "free",
+  "permission": "REQUEST_INSTALL_PACKAGES: deny; time=+38m13s952ms ago",
+  "config_restored": true,
+  "remaining_test_port": "",
+  "package_version": "17",
+  "owned_companions_installed": true,
+  "retained_model_sha256": "74a4da8c9fdbcd15bd1f6d01d621410d31c6fc00986f5eb687824e7b93d7a9db",
+  "restored_config_sha256": "51aa96c8286f87252bafa0d6f36f53ca2d672f234f441c65ef001ff8bc211def"
+}

@@ -77,10 +77,15 @@ class UpdateDownloadTest {
         awaitIdle(download)
         assertEquals(DownloadPhase.Ready, download.state.value.phase)
         assertEquals(2, calls.get())
+        val namedApk = runBlocking { download.fileForInstall() }
+        assertTrue("Installer URI must identify the actual bytes", namedApk.name.contains(info.sha256))
+        val legacyApk = File(directory, "update.apk")
+        assertTrue("Simulate the previous version's saved package", namedApk.renameTo(legacyApk))
         val restored = create(directory) { _, _, _ -> error("Restore must not download") }
         assertEquals(DownloadPhase.Ready, restored.state.value.phase)
-        runBlocking { assertTrue(restored.fileForInstall().isFile) }
-        File(directory, "update.apk").appendBytes(byteArrayOf(1))
+        assertEquals(namedApk, runBlocking { restored.fileForInstall() })
+        assertFalse("Reopening a legacy receipt migrates the verified APK", legacyApk.exists())
+        runBlocking { restored.fileForInstall() }.appendBytes(byteArrayOf(1))
         assertTrue(runCatching { runBlocking { restored.fileForInstall() } }.isFailure)
         val tampered = create(directory) { _, _, _ -> error("Must not download") }
         assertEquals(DownloadPhase.Failed, tampered.state.value.phase)

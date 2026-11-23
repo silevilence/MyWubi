@@ -1,0 +1,59 @@
+INSTRUMENTATION_STATUS: class=org.mywubi.ExternalHostTest
+INSTRUMENTATION_STATUS: current=1
+INSTRUMENTATION_STATUS: id=AndroidJUnitRunner
+INSTRUMENTATION_STATUS: numtests=2
+INSTRUMENTATION_STATUS: stream=
+org.mywubi.ExternalHostTest:
+INSTRUMENTATION_STATUS: test=shapeInputInSystemSettings
+INSTRUMENTATION_STATUS_CODE: 1
+INSTRUMENTATION_STATUS: class=org.mywubi.ExternalHostTest
+INSTRUMENTATION_STATUS: current=1
+INSTRUMENTATION_STATUS: id=AndroidJUnitRunner
+INSTRUMENTATION_STATUS: numtests=2
+INSTRUMENTATION_STATUS: stack=java.lang.NullPointerException
+	at org.mywubi.ExternalHostTest.shapeInputInSystemSettings(ExternalHostTest.kt:180)
+
+INSTRUMENTATION_STATUS: stream=
+Error in shapeInputInSystemSettings(org.mywubi.ExternalHostTest):
+java.lang.NullPointerException
+	at org.mywubi.ExternalHostTest.shapeInputInSystemSettings(ExternalHostTest.kt:180)
+
+INSTRUMENTATION_STATUS: test=shapeInputInSystemSettings
+INSTRUMENTATION_STATUS_CODE: -2
+INSTRUMENTATION_STATUS: class=org.mywubi.ExternalHostTest
+INSTRUMENTATION_STATUS: current=2
+INSTRUMENTATION_STATUS: id=AndroidJUnitRunner
+INSTRUMENTATION_STATUS: numtests=2
+INSTRUMENTATION_STATUS: stream=
+INSTRUMENTATION_STATUS: test=composeExpansionAndRepeatStopsOnRelease
+INSTRUMENTATION_STATUS_CODE: 1
+INSTRUMENTATION_STATUS: class=org.mywubi.ExternalHostTest
+INSTRUMENTATION_STATUS: current=2
+INSTRUMENTATION_STATUS: id=AndroidJUnitRunner
+INSTRUMENTATION_STATUS: numtests=2
+INSTRUMENTATION_STATUS: stack=java.lang.NullPointerException: Attempt to invoke virtual method 'int java.lang.String.length()' on a null object reference
+	at org.mywubi.ExternalHostTest.composeExpansionAndRepeatStopsOnRelease(ExternalHostTest.kt:107)
+
+INSTRUMENTATION_STATUS: stream=
+Error in composeExpansionAndRepeatStopsOnRelease(org.mywubi.ExternalHostTest):
+java.lang.NullPointerException: Attempt to invoke virtual method 'int java.lang.String.length()' on a null object reference
+	at org.mywubi.ExternalHostTest.composeExpansionAndRepeatStopsOnRelease(ExternalHostTest.kt:107)
+
+INSTRUMENTATION_STATUS: test=composeExpansionAndRepeatStopsOnRelease
+INSTRUMENTATION_STATUS_CODE: -2
+INSTRUMENTATION_RESULT: stream=
+
+Time: 31.902
+There were 2 failures:
+1) shapeInputInSystemSettings(org.mywubi.ExternalHostTest)
+java.lang.NullPointerException
+	at org.mywubi.ExternalHostTest.shapeInputInSystemSettings(ExternalHostTest.kt:180)
+2) composeExpansionAndRepeatStopsOnRelease(org.mywubi.ExternalHostTest)
+java.lang.NullPointerException: Attempt to invoke virtual method 'int java.lang.String.length()' on a null object reference
+	at org.mywubi.ExternalHostTest.composeExpansionAndRepeatStopsOnRelease(ExternalHostTest.kt:107)
+
+FAILURES!!!
+Tests run: 2,  Failures: 2
+
+
+INSTRUMENTATION_CODE: -1

@@ -1,0 +1,10 @@
+{
+  "default_input_method": "com.baidu.input_oppo/.ImeService",
+  "enabled_input_methods": "com.baidu.input_oppo/.ImeService",
+  "enabled_accessibility_services": "null",
+  "font_scale": "1.0",
+  "accelerometer_rotation": "1",
+  "user_rotation": "0",
+  "stay_on_while_plugged_in": "15",
+  "night": "Night mode: no"
+}

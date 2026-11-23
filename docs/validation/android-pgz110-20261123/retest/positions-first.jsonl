@@ -1,0 +1,10 @@
+{"case":"C06-1-9","error":"org.junit.ComparisonFailure: expected:<[14210735-3219-40a8-a9e1-2f24dff1c4af]> but was:<[b444c074-92b8-4da3-99fd-3356185a1065]>"}
+{"case":"C06-1-10","error":"org.junit.ComparisonFailure: expected:<[606f39f1-134d-44f1-a7b9-fa37bba730a2]> but was:<[b444c074-92b8-4da3-99fd-3356185a1065]>"}
+{"case":"C06-1-11","error":"org.junit.ComparisonFailure: expected:<[3228dd14-e57b-46de-8782-87df0039f624]> but was:<[b444c074-92b8-4da3-99fd-3356185a1065]>"}
+{"case":"C06-9-9","error":"java.lang.IllegalArgumentException: Missing 展开"}
+{"case":"C06-9-10","pass":true}
+{"case":"C06-9-11","error":"java.lang.IllegalArgumentException: Missing 展开"}
+{"case":"C06-10-9","pass":true}
+{"case":"C06-10-10","error":"java.lang.IllegalArgumentException: Missing 展开"}
+{"case":"C06-10-11","pass":true}
+{"case":"C11","error":"java.lang.IllegalArgumentException: Required value was null."}

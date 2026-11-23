@@ -1,0 +1,155 @@
+INSTRUMENTATION_STATUS: class=org.mywubi.ExpressionLayoutTest
+INSTRUMENTATION_STATUS: current=1
+INSTRUMENTATION_STATUS: id=AndroidJUnitRunner
+INSTRUMENTATION_STATUS: numtests=6
+INSTRUMENTATION_STATUS: stream=
+org.mywubi.ExpressionLayoutTest:
+INSTRUMENTATION_STATUS: test=browserLargeLandscape
+INSTRUMENTATION_STATUS_CODE: 1
+INSTRUMENTATION_STATUS: class=org.mywubi.ExpressionLayoutTest
+INSTRUMENTATION_STATUS: current=1
+INSTRUMENTATION_STATUS: id=AndroidJUnitRunner
+INSTRUMENTATION_STATUS: numtests=6
+INSTRUMENTATION_STATUS: stack=java.lang.AssertionError
+	at org.junit.Assert.fail(Assert.java:87)
+	at org.junit.Assert.assertTrue(Assert.java:42)
+	at org.junit.Assert.assertTrue(Assert.java:53)
+	at org.mywubi.ExpressionLayoutTest.checkBrowser(ExpressionLayoutTest.kt:84)
+	at org.mywubi.ExpressionLayoutTest.browserLargeLandscape(ExpressionLayoutTest.kt:58)
+
+INSTRUMENTATION_STATUS: stream=
+Error in browserLargeLandscape(org.mywubi.ExpressionLayoutTest):
+java.lang.AssertionError
+	at org.junit.Assert.fail(Assert.java:87)
+	at org.junit.Assert.assertTrue(Assert.java:42)
+	at org.junit.Assert.assertTrue(Assert.java:53)
+	at org.mywubi.ExpressionLayoutTest.checkBrowser(ExpressionLayoutTest.kt:84)
+	at org.mywubi.ExpressionLayoutTest.browserLargeLandscape(ExpressionLayoutTest.kt:58)
+
+INSTRUMENTATION_STATUS: test=browserLargeLandscape
+INSTRUMENTATION_STATUS_CODE: -2
+INSTRUMENTATION_STATUS: class=org.mywubi.ExpressionLayoutTest
+INSTRUMENTATION_STATUS: current=2
+INSTRUMENTATION_STATUS: id=AndroidJUnitRunner
+INSTRUMENTATION_STATUS: numtests=6
+INSTRUMENTATION_STATUS: stream=
+INSTRUMENTATION_STATUS: test=portraitNormalFont
+INSTRUMENTATION_STATUS_CODE: 1
+INSTRUMENTATION_STATUS: class=org.mywubi.ExpressionLayoutTest
+INSTRUMENTATION_STATUS: current=2
+INSTRUMENTATION_STATUS: id=AndroidJUnitRunner
+INSTRUMENTATION_STATUS: numtests=6
+INSTRUMENTATION_STATUS: stream=.
+INSTRUMENTATION_STATUS: test=portraitNormalFont
+INSTRUMENTATION_STATUS_CODE: 0
+INSTRUMENTATION_STATUS: class=org.mywubi.ExpressionLayoutTest
+INSTRUMENTATION_STATUS: current=3
+INSTRUMENTATION_STATUS: id=AndroidJUnitRunner
+INSTRUMENTATION_STATUS: numtests=6
+INSTRUMENTATION_STATUS: stream=
+INSTRUMENTATION_STATUS: test=portraitLargeFont
+INSTRUMENTATION_STATUS_CODE: 1
+INSTRUMENTATION_STATUS: class=org.mywubi.ExpressionLayoutTest
+INSTRUMENTATION_STATUS: current=3
+INSTRUMENTATION_STATUS: id=AndroidJUnitRunner
+INSTRUMENTATION_STATUS: numtests=6
+INSTRUMENTATION_STATUS: stream=.
+INSTRUMENTATION_STATUS: test=portraitLargeFont
+INSTRUMENTATION_STATUS_CODE: 0
+INSTRUMENTATION_STATUS: class=org.mywubi.ExpressionLayoutTest
+INSTRUMENTATION_STATUS: current=4
+INSTRUMENTATION_STATUS: id=AndroidJUnitRunner
+INSTRUMENTATION_STATUS: numtests=6
+INSTRUMENTATION_STATUS: stream=
+INSTRUMENTATION_STATUS: test=landscapeLargeFont
+INSTRUMENTATION_STATUS_CODE: 1
+INSTRUMENTATION_STATUS: class=org.mywubi.ExpressionLayoutTest
+INSTRUMENTATION_STATUS: current=4
+INSTRUMENTATION_STATUS: id=AndroidJUnitRunner
+INSTRUMENTATION_STATUS: numtests=6
+INSTRUMENTATION_STATUS: stack=java.lang.AssertionError: Bottom keys must remain fully visible
+	at org.junit.Assert.fail(Assert.java:89)
+	at org.junit.Assert.assertTrue(Assert.java:42)
+	at org.mywubi.ExpressionLayoutTest.checkLayout(ExpressionLayoutTest.kt:141)
+	at org.mywubi.ExpressionLayoutTest.landscapeLargeFont(ExpressionLayoutTest.kt:55)
+
+INSTRUMENTATION_STATUS: stream=
+Error in landscapeLargeFont(org.mywubi.ExpressionLayoutTest):
+java.lang.AssertionError: Bottom keys must remain fully visible
+	at org.junit.Assert.fail(Assert.java:89)
+	at org.junit.Assert.assertTrue(Assert.java:42)
+	at org.mywubi.ExpressionLayoutTest.checkLayout(ExpressionLayoutTest.kt:141)
+	at org.mywubi.ExpressionLayoutTest.landscapeLargeFont(ExpressionLayoutTest.kt:55)
+
+INSTRUMENTATION_STATUS: test=landscapeLargeFont
+INSTRUMENTATION_STATUS_CODE: -2
+INSTRUMENTATION_STATUS: class=org.mywubi.ExpressionLayoutTest
+INSTRUMENTATION_STATUS: current=5
+INSTRUMENTATION_STATUS: id=AndroidJUnitRunner
+INSTRUMENTATION_STATUS: numtests=6
+INSTRUMENTATION_STATUS: stream=
+INSTRUMENTATION_STATUS: test=landscapeNormalFont
+INSTRUMENTATION_STATUS_CODE: 1
+INSTRUMENTATION_STATUS: class=org.mywubi.ExpressionLayoutTest
+INSTRUMENTATION_STATUS: current=5
+INSTRUMENTATION_STATUS: id=AndroidJUnitRunner
+INSTRUMENTATION_STATUS: numtests=6
+INSTRUMENTATION_STATUS: stack=java.lang.AssertionError: Bottom keys must remain fully visible
+	at org.junit.Assert.fail(Assert.java:89)
+	at org.junit.Assert.assertTrue(Assert.java:42)
+	at org.mywubi.ExpressionLayoutTest.checkLayout(ExpressionLayoutTest.kt:141)
+	at org.mywubi.ExpressionLayoutTest.landscapeNormalFont(ExpressionLayoutTest.kt:54)
+
+INSTRUMENTATION_STATUS: stream=
+Error in landscapeNormalFont(org.mywubi.ExpressionLayoutTest):
+java.lang.AssertionError: Bottom keys must remain fully visible
+	at org.junit.Assert.fail(Assert.java:89)
+	at org.junit.Assert.assertTrue(Assert.java:42)
+	at org.mywubi.ExpressionLayoutTest.checkLayout(ExpressionLayoutTest.kt:141)
+	at org.mywubi.ExpressionLayoutTest.landscapeNormalFont(ExpressionLayoutTest.kt:54)
+
+INSTRUMENTATION_STATUS: test=landscapeNormalFont
+INSTRUMENTATION_STATUS_CODE: -2
+INSTRUMENTATION_STATUS: class=org.mywubi.ExpressionLayoutTest
+INSTRUMENTATION_STATUS: current=6
+INSTRUMENTATION_STATUS: id=AndroidJUnitRunner
+INSTRUMENTATION_STATUS: numtests=6
+INSTRUMENTATION_STATUS: stream=
+INSTRUMENTATION_STATUS: test=browserPortrait
+INSTRUMENTATION_STATUS_CODE: 1
+INSTRUMENTATION_STATUS: class=org.mywubi.ExpressionLayoutTest
+INSTRUMENTATION_STATUS: current=6
+INSTRUMENTATION_STATUS: id=AndroidJUnitRunner
+INSTRUMENTATION_STATUS: numtests=6
+INSTRUMENTATION_STATUS: stream=.
+INSTRUMENTATION_STATUS: test=browserPortrait
+INSTRUMENTATION_STATUS_CODE: 0
+INSTRUMENTATION_RESULT: stream=
+
+Time: 72.058
+There were 3 failures:
+1) browserLargeLandscape(org.mywubi.ExpressionLayoutTest)
+java.lang.AssertionError
+	at org.junit.Assert.fail(Assert.java:87)
+	at org.junit.Assert.assertTrue(Assert.java:42)
+	at org.junit.Assert.assertTrue(Assert.java:53)
+	at org.mywubi.ExpressionLayoutTest.checkBrowser(ExpressionLayoutTest.kt:84)
+	at org.mywubi.ExpressionLayoutTest.browserLargeLandscape(ExpressionLayoutTest.kt:58)
+2) landscapeLargeFont(org.mywubi.ExpressionLayoutTest)
+java.lang.AssertionError: Bottom keys must remain fully visible
+	at org.junit.Assert.fail(Assert.java:89)
+	at org.junit.Assert.assertTrue(Assert.java:42)
+	at org.mywubi.ExpressionLayoutTest.checkLayout(ExpressionLayoutTest.kt:141)
+	at org.mywubi.ExpressionLayoutTest.landscapeLargeFont(ExpressionLayoutTest.kt:55)
+3) landscapeNormalFont(org.mywubi.ExpressionLayoutTest)
+java.lang.AssertionError: Bottom keys must remain fully visible
+	at org.junit.Assert.fail(Assert.java:89)
+	at org.junit.Assert.assertTrue(Assert.java:42)
+	at org.mywubi.ExpressionLayoutTest.checkLayout(ExpressionLayoutTest.kt:141)
+	at org.mywubi.ExpressionLayoutTest.landscapeNormalFont(ExpressionLayoutTest.kt:54)
+
+FAILURES!!!
+Tests run: 6,  Failures: 3
+
+
+INSTRUMENTATION_CODE: -1

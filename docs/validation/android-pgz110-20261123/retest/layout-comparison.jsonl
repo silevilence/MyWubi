@@ -1,0 +1,15 @@
+{"layout":"full26","code":"wqvb","expected":"你好","first_key_width_px":106,"through_commit_ms":4331,"result":"pass"}
+{"layout":"full26","code":"uegd","expected":"龘","first_key_width_px":106,"through_commit_ms":4791,"result":"pass"}
+{"layout":"full26","code":"aaaa","expected":"恭恭敬敬","first_key_width_px":106,"through_commit_ms":5704,"result":"pass"}
+{"layout":"full26","code":"kwwl","expected":"中华人民共和国","first_key_width_px":106,"through_commit_ms":5350,"result":"pass"}
+{"layout":"full26","code":"mmaa","expected":"联调用词","first_key_width_px":106,"through_commit_ms":4892,"result":"pass"}
+{"layout":"shape14","code":"wqvb","expected":"你好","first_key_width_px":212,"through_commit_ms":2894,"result":"pass"}
+{"layout":"shape14","code":"uegd","expected":"龘","first_key_width_px":212,"through_commit_ms":5511,"result":"pass"}
+{"layout":"shape14","code":"aaaa","expected":"恭恭敬敬","first_key_width_px":212,"through_commit_ms":5771,"result":"pass"}
+{"layout":"shape14","code":"kwwl","expected":"中华人民共和国","first_key_width_px":212,"through_commit_ms":2280,"result":"pass"}
+{"layout":"shape14","code":"mmaa","expected":"联调用词","first_key_width_px":212,"through_commit_ms":2600,"result":"pass"}
+{"layout":"shape9","code":"wqvb","expected":"你好","first_key_width_px":354,"through_commit_ms":2571,"result":"pass"}
+{"layout":"shape9","code":"uegd","expected":"龘","first_key_width_px":354,"through_commit_ms":23019,"result":"pass"}
+{"layout":"shape9","code":"aaaa","expected":"恭恭敬敬","first_key_width_px":354,"through_commit_ms":8021,"result":"pass"}
+{"layout":"shape9","code":"kwwl","expected":"中华人民共和国","first_key_width_px":354,"through_commit_ms":2363,"result":"pass"}
+{"layout":"shape9","code":"mmaa","expected":"联调用词","first_key_width_px":354,"through_commit_ms":2157,"result":"pass"}

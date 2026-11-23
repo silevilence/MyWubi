@@ -1,0 +1,38 @@
+INSTRUMENTATION_STATUS: class=org.mywubi.ExpressionHostTest
+INSTRUMENTATION_STATUS: current=1
+INSTRUMENTATION_STATUS: id=AndroidJUnitRunner
+INSTRUMENTATION_STATUS: numtests=1
+INSTRUMENTATION_STATUS: stream=
+org.mywubi.ExpressionHostTest:
+INSTRUMENTATION_STATUS: test=kanaLiteralAliasUsesVisibleCategoryEntryAndCommitsOnlyTheResult
+INSTRUMENTATION_STATUS_CODE: 1
+INSTRUMENTATION_STATUS: class=org.mywubi.ExpressionHostTest
+INSTRUMENTATION_STATUS: current=1
+INSTRUMENTATION_STATUS: id=AndroidJUnitRunner
+INSTRUMENTATION_STATUS: numtests=1
+INSTRUMENTATION_STATUS: stack=java.lang.IllegalStateException: Missing BySelector [DESC='\Qa\E', PKG='\Qorg.mywubi\E', ENABLED='true']
+	at org.mywubi.ExpressionHostTest.fresh(ExpressionHostTest.kt:34)
+	at org.mywubi.ExpressionHostTest.kanaLiteralAliasUsesVisibleCategoryEntryAndCommitsOnlyTheResult(ExpressionHostTest.kt:117)
+
+INSTRUMENTATION_STATUS: stream=
+Error in kanaLiteralAliasUsesVisibleCategoryEntryAndCommitsOnlyTheResult(org.mywubi.ExpressionHostTest):
+java.lang.IllegalStateException: Missing BySelector [DESC='\Qa\E', PKG='\Qorg.mywubi\E', ENABLED='true']
+	at org.mywubi.ExpressionHostTest.fresh(ExpressionHostTest.kt:34)
+	at org.mywubi.ExpressionHostTest.kanaLiteralAliasUsesVisibleCategoryEntryAndCommitsOnlyTheResult(ExpressionHostTest.kt:117)
+
+INSTRUMENTATION_STATUS: test=kanaLiteralAliasUsesVisibleCategoryEntryAndCommitsOnlyTheResult
+INSTRUMENTATION_STATUS_CODE: -2
+INSTRUMENTATION_RESULT: stream=
+
+Time: 14.49
+There was 1 failure:
+1) kanaLiteralAliasUsesVisibleCategoryEntryAndCommitsOnlyTheResult(org.mywubi.ExpressionHostTest)
+java.lang.IllegalStateException: Missing BySelector [DESC='\Qa\E', PKG='\Qorg.mywubi\E', ENABLED='true']
+	at org.mywubi.ExpressionHostTest.fresh(ExpressionHostTest.kt:34)
+	at org.mywubi.ExpressionHostTest.kanaLiteralAliasUsesVisibleCategoryEntryAndCommitsOnlyTheResult(ExpressionHostTest.kt:117)
+
+FAILURES!!!
+Tests run: 1,  Failures: 1
+
+
+INSTRUMENTATION_CODE: -1

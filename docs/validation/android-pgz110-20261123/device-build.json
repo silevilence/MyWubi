@@ -1,0 +1,20 @@
+{
+  "org.mywubi": {
+    "sha256": "3fbc1d149fb8b91945de67dcbd26da3d946a012e6900c808914003dc30e50f16",
+    "file": "base.apk"
+  },
+  "org.mywubi.test": {
+    "sha256": "afa321a6b3524fd78a7efd054d2f696d9af630ae01dd8b96244c5b5d3f0e27ce",
+    "file": "base.apk"
+  },
+  "org.mywubi.acceptancehost": {
+    "sha256": "eb9340f2c742ab18976c291fdda6a3a6c93b906062ff0940650706dc0ae89ed6",
+    "file": "base.apk"
+  },
+  "font": {
+    "config_sha256": "7ebfa28f2d1cb2e25ae700b7fa72ab31beb4554acc5e63397d4517d06ca07485",
+    "font_scale": "1.0"
+  },
+  "soc": "MT6895Z_A/TCZA",
+  "display": "Physical size: 1080x2412; Physical density: 480"
+}

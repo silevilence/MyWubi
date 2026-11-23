@@ -1,0 +1,11 @@
+
+running 6 tests
+test definitions_reject_empty_repeated_invalid_and_oversized_groups ... ok
+test direct_and_password_hosts_reject_group_protocol_before_editing ... ok
+test group_is_one_position_and_hint_never_enters_host ... ok
+test json_facade_exposes_protocol_limits_without_handles ... ok
+test rust_and_jni_share_position_fixtures ... ok
+test stale_and_invalid_events_preserve_state_and_resolution_can_be_undone ... ok
+
+test result: ok. 6 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.01s
+

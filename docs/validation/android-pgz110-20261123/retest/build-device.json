@@ -1,0 +1,66 @@
+{
+  "serial": "<device-serial>",
+  "device": "PGZ110",
+  "product_apk_sha256": "2b86418039cc29619faed127366d0a70745184253f85d48152dce926063042d8",
+  "installed_apk_sha256": "2b86418039cc29619faed127366d0a70745184253f85d48152dce926063042d8",
+  "test_apk_sha256": "ccde3dfabe891d0263f108b70932abbff0a83e27d7d07759ddb80325cbefbc81",
+  "host_apk_sha256": "e1ef43f944230ad1032c9f5cdf3ba46ca46755bff0ef76532a682f069d288458",
+  "services": "null",
+  "unit_suites": [
+    {
+      "name": "org.mywubi.DirectionalGestureTest",
+      "tests": "3",
+      "failures": "0",
+      "errors": "0",
+      "skipped": "0"
+    },
+    {
+      "name": "org.mywubi.InputPolicyTest",
+      "tests": "2",
+      "failures": "0",
+      "errors": "0",
+      "skipped": "0"
+    },
+    {
+      "name": "org.mywubi.KeyboardIdleTest",
+      "tests": "2",
+      "failures": "0",
+      "errors": "0",
+      "skipped": "0"
+    },
+    {
+      "name": "org.mywubi.KeyboardLayoutModelTest",
+      "tests": "1",
+      "failures": "0",
+      "errors": "0",
+      "skipped": "0"
+    },
+    {
+      "name": "org.mywubi.KeyboardPublicationTest",
+      "tests": "2",
+      "failures": "0",
+      "errors": "0",
+      "skipped": "0"
+    },
+    {
+      "name": "org.mywubi.MainKeyboardChoicesTest",
+      "tests": "3",
+      "failures": "0",
+      "errors": "0",
+      "skipped": "0"
+    },
+    {
+      "name": "org.mywubi.PredictionPrefixTest",
+      "tests": "1",
+      "failures": "0",
+      "errors": "0",
+      "skipped": "0"
+    }
+  ],
+  "installed_test_apk_sha256": "ccde3dfabe891d0263f108b70932abbff0a83e27d7d07759ddb80325cbefbc81",
+  "installed_host_apk_sha256": "e1ef43f944230ad1032c9f5cdf3ba46ca46755bff0ef76532a682f069d288458",
+  "host_rust_tests": {
+    "core_library": 94,
+    "related_integrations": 23
+  }
+}

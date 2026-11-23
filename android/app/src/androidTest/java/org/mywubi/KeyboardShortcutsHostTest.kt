@@ -33,6 +33,7 @@ class KeyboardShortcutsHostTest {
         val preferences = ins.targetContext.getSharedPreferences("android-ui", 0)
         val original = preferences.getBoolean("clipboard_suggestion", true)
         preferences.edit().putBoolean("clipboard_suggestion", true).commit()
+        var fixtureWritten=false
         try {
             device.executeShellCommand("ime enable org.mywubi/.MyWubiService")
             device.executeShellCommand("ime set org.mywubi/.MyWubiService")
@@ -42,7 +43,10 @@ class KeyboardShortcutsHostTest {
                 val paste = By.desc("粘贴剪贴板内容")
                 val hide = By.desc("收起键盘")
                 scenario.onActivity { activity ->
-                    activity.getSystemService(ClipboardManager::class.java).setPrimaryClip(ClipData.newPlainText("", text))
+                    val clipboard=activity.getSystemService(ClipboardManager::class.java)
+                    org.junit.Assume.assumeTrue("Test requires an empty clipboard", !clipboard.hasPrimaryClip())
+                    clipboard.setPrimaryClip(ClipData.newPlainText("MyWubi acceptance", text))
+                    fixtureWritten=true
                     editor = EditText(activity).apply { inputType = InputType.TYPE_CLASS_TEXT or InputType.TYPE_TEXT_FLAG_MULTI_LINE }
                     activity.setContentView(editor)
                 }
@@ -110,6 +114,10 @@ class KeyboardShortcutsHostTest {
                 assertTrue("密码框没有剪贴板预览", gone(paste))
             }
         } finally {
+            if(fixtureWritten && android.os.Build.VERSION.SDK_INT>=28) {
+                val clipboard=ins.targetContext.getSystemService(ClipboardManager::class.java)
+                if(clipboard.primaryClipDescription?.label=="MyWubi acceptance") clipboard.clearPrimaryClip()
+            }
             preferences.edit().putBoolean("clipboard_suggestion", original).commit()
             if (previous.isNotEmpty() && previous != "null") device.executeShellCommand("ime set $previous")
         }

@@ -31,7 +31,7 @@ class CustomKeyboardHostTest {
         fun save(value: JSONObject,version:Long) {NativeHandle(version).use {NativeHandle(store.saveConfig(value,it.value).getLong("version")).close()}}
         fun settle(){device.waitForIdle();instrumentation.waitForIdleSync();instrumentation.uiAutomation.clearCache()}
         fun key(name:String){settle();device.wait(Until.findObject(By.desc(name).pkg("org.mywubi").enabled(true)),10000)?.click() ?: error("Missing $name");settle()}
-        fun expect(text:String){assertTrue("Host expected $text",device.wait(Until.hasObject(By.clazz("android.widget.EditText").text(text)),10000))}
+        fun expect(text:String){assertTrue("Host expected $text",awaitHostText(device,By.pkg("org.mywubi.acceptancehost").clazz("android.widget.EditText"),text,10000))}
         fun normalized(value:Any?):Any? = when(value) {
             is JSONObject -> value.keys().asSequence().associateWith {normalized(value.get(it))}
             is org.json.JSONArray -> (0 until value.length()).map {normalized(value.get(it))}
@@ -39,7 +39,9 @@ class CustomKeyboardHostTest {
         }
         fun select(id:String,mode:String) {
             val items=NativeBridge.objectCall("ManageKeyboard","request" to keyboardRequest(store.configFile,"List").put("mode",mode)).getJSONArray("items")
-            val selection=(0 until items.length()).map {items.getJSONObject(it).getJSONObject("selection")}.first {it.getString("component")==id}
+            val selection=(0 until items.length()).map {items.getJSONObject(it).getJSONObject("selection")}.single {
+                it.getString("id") == "mywubi.keyboards" && it.getString("version") == "4" && it.getString("component") == id
+            }
             val choice=JSONObject().put("layout",selection).put("mapping",JSONObject.NULL).put("appearance",config.getJSONObject("skins").getJSONObject("android"))
             val prepared=KeyboardCombination.decode(NativeBridge.objectCall("ManageKeyboard","request" to keyboardRequest(store.configFile,"Prepare")
                 .put("choice",choice).put("mode",mode).put("charset",keyboardCharset(store.configFile,config,mode))))
@@ -74,27 +76,28 @@ class CustomKeyboardHostTest {
             device.executeShellCommand("am force-stop org.mywubi.acceptancehost")
             device.executeShellCommand("am start -n org.mywubi.acceptancehost/.EditorActivity")
             val field=device.wait(Until.findObject(By.clazz("android.widget.EditText").pkg("org.mywubi.acceptancehost")),15000)
-            field.click()
+            focusExternalEditor(device)
             assertTrue(device.wait(Until.hasObject(By.desc("GH").pkg("org.mywubi").enabled(true)),15000))
             key("切换形码键盘")
-            val selected=device.wait(Until.findObject(By.desc("形码布局 shape14，当前布局")),5000).actionNode()
+            val option = device.wait(Until.findObject(By.desc("形码布局 shape14，当前布局")),5000)
             device.dumpWindowHierarchy(File(context.filesDir,"keyboard-switch-host-menu.xml"))
+            val selected = requireNotNull(option) { "Current layout is missing from the opened keyboard menu" }.actionNode()
             assertTrue(selected.isChecked || selected.isSelected)
             device.pressBack();expect("")
             switchLayout("full26","q")
-            key("g");key("g");key("l");key("l");candidate("王");expect("王")
+            key("g");key("g");key("l");key("l");candidate("一");expect("一")
             key("退格");expect("")
             switchLayout("shape14","GH")
             val idleBounds=device.findObject(By.desc("GH").pkg("org.mywubi")).visibleBounds
             key("GH");expect("")
             assertFalse("A composing group must not be reinterpreted by a layout switch",device.hasObject(By.desc("切换形码键盘")))
             assertEquals("Group controls must not move keys while typing",idleBounds,device.findObject(By.desc("GH").pkg("org.mywubi")).visibleBounds)
-            key("GH");key("L");key("L");expect("");candidate("王");expect("王")
+            key("GH");key("L");key("L");expect("");candidate("一");expect("一")
             device.takeScreenshot(File(context.filesDir,"ak14-real-host.png"))
-            key("中 → 英");key("a");key("b");key("c");expect("王abc");key("英 → 中")
+            key("中 → 英");key("a");key("b");key("c");expect("一abc");key("英 → 中")
             switchLayout("shape9","GHI")
             assertTrue(device.wait(Until.hasObject(By.desc("GHI").pkg("org.mywubi").enabled(true)),10000))
-            key("GHI");key("GHI");key("JKL");key("JKL");expect("王abc");candidate("王");expect("王abc王")
+            key("GHI");key("GHI");key("JKL");key("JKL");expect("一abc");candidate("一");expect("一abc一")
             key("123")
             assertFalse(device.hasObject(By.desc("切换形码键盘")))
             key("ABC")
@@ -105,18 +108,31 @@ class CustomKeyboardHostTest {
             val savedConfig=store.readConfig();NativeHandle(savedConfig.getLong("version")).close()
             assertEquals(normalized(config.getJSONObject("skins")),normalized(savedConfig.getJSONObject("config").getJSONObject("skins")))
             key("拼音")
-            key("MNO");key("GHI");expect("王abc王");candidate("你");expect("王abc王你")
+            key("MNO");key("GHI");expect("一abc一");candidate("你");expect("一abc一你")
             assertTrue(device.wait(Until.hasObject(By.desc("PQR").pkg("org.mywubi").enabled(true)),10000))
             device.takeScreenshot(File(context.filesDir,"ak9-pinyin-real-host.png"))
             val journal=device.executeShellCommand("cat /sdcard/Android/data/org.mywubi.acceptancehost/files/edits.jsonl")
             assertFalse("Internal group markers leaked into real host",journal.contains("[") || journal.contains("]"))
             File(context.filesDir,"ak-host-edits.jsonl").writeText(journal)
             // Saved group layouts must never enter password, number, URI or email fields.
-            for((inputType,label) in listOf(129 to "q",2 to "1",17 to "q",33 to "q")) {
-                device.executeShellCommand("am force-stop org.mywubi.acceptancehost")
-                device.executeShellCommand("am start -n org.mywubi.acceptancehost/.EditorActivity --ei inputType $inputType")
-                device.wait(Until.findObject(By.clazz("android.widget.EditText").pkg("org.mywubi.acceptancehost")),10000).click()
-                key(label)
+            val directFailures = mutableListOf<String>()
+            val editor = By.pkg("org.mywubi.acceptancehost").clazz("android.widget.EditText")
+            for ((inputType,label) in listOf(2 to "1",17 to "q",33 to "q",129 to "q")) {
+                device.executeShellCommand("am start -W -f 0x10008000 -n org.mywubi.acceptancehost/.EditorActivity --ei inputType $inputType")
+                val fieldBounds = requireNotNull(findFresh(device,editor,5000)).visibleBounds
+                device.click(fieldBounds.centerX(),fieldBounds.top + 24)
+                val target = findFresh(device,By.pkg("org.mywubi").desc(label).enabled(true),5000)
+                if (target == null) {
+                    directFailures += "inputType=$inputType: MyWubi key $label unavailable"
+                    continue
+                }
+                val box = target.visibleBounds
+                // The lower-case q occupies the leftmost key beside Android's back gesture.
+                device.click(if (label == "q") box.right-box.width()/8 else box.centerX(),box.centerY())
+                if (!awaitHostText(device,editor,label,4000)) {
+                    directFailures += "inputType=$inputType: host did not receive $label"
+                    continue
+                }
                 assertFalse("Shape layout menu leaked into direct field",device.hasObject(By.desc("切换形码键盘")))
                 assertFalse("Group keyboard leaked into inputType $inputType",device.hasObject(By.desc("GHI").pkg("org.mywubi")))
                 val edits=device.executeShellCommand("cat /sdcard/Android/data/org.mywubi.acceptancehost/files/edits.jsonl")
@@ -124,10 +140,11 @@ class CustomKeyboardHostTest {
             }
             device.executeShellCommand("am force-stop org.mywubi.acceptancehost")
             device.executeShellCommand("am start -n org.mywubi.acceptancehost/.EditorActivity")
-            device.wait(Until.findObject(By.clazz("android.widget.EditText").pkg("org.mywubi.acceptancehost")),10000).click()
+            focusExternalEditor(device)
             assertTrue(device.wait(Until.hasObject(By.desc("GHI").pkg("org.mywubi")),10000))
             val restore=device.wait(Until.findObject(By.text("取消输入并恢复全键布局").pkg("org.mywubi")),5000)
             restore.click();assertTrue(device.wait(Until.hasObject(By.desc("q").pkg("org.mywubi").enabled(true)),10000))
+            assertTrue(directFailures.joinToString("; "), directFailures.isEmpty())
         } finally {
             ui.edit().apply { if(previousClipboard==null) remove("clipboard_suggestion") else putBoolean("clipboard_suggestion",previousClipboard) }.commit()
             device.pressBack()

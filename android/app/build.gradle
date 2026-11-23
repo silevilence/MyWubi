@@ -14,8 +14,8 @@ android {
         applicationId 'org.mywubi'
         minSdk 26
         targetSdk 35
-        versionCode providers.gradleProperty('versionCode').getOrElse('17').toInteger()
-        versionName '0.11.0'
+        versionCode providers.gradleProperty('versionCode').getOrElse('18').toInteger()
+        versionName '0.11.1'
         testInstrumentationRunner 'androidx.test.runner.AndroidJUnitRunner'
         ndk { abiFilters 'arm64-v8a', 'x86_64' }
     }

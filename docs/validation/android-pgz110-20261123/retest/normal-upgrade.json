@@ -1,0 +1,31 @@
+{
+  "prior_version": "17",
+  "enabled_for_test": "REQUEST_INSTALL_PACKAGES: allow; time=+1h15m45s661ms ago",
+  "windows": [
+    "Window{790678f u0 com.android.settings/com.android.settings.Settings$DisplaySettingsActivity}",
+    "null",
+    "Window{3e5658e u0 org.mywubi/org.mywubi.UpdateActivity}",
+    "Window{37c623f u0 org.mywubi/org.mywubi.UpdateActivity}",
+    "null",
+    "Window{152a925 u0 com.oplus.appdetail/com.oplus.appdetail.modelv2.parsing.PackageParsingV2Activity}",
+    "Window{d441fde u0 com.oplus.appdetail/com.oplus.appdetail.model.guide.ui.InstallGuideActivity}",
+    "Window{44941c3 u0 com.android.settings/com.android.settings.password.ConfirmLockPassword}"
+  ],
+  "oplus_labels": [
+    "个人信息收集提醒",
+    "本次安装的应用由第三方提供，相关服务与责任将由提供方承担",
+    "信息收集风险",
+    "个人信息将被第三方收集",
+    "已知悉风险",
+    "取消安装",
+    "继续安装"
+  ],
+  "target_link": true,
+  "risk_dialog_confirmed": true,
+  "owner_required": true,
+  "system_version_after_confirmation": "18",
+  "installed_sha256": "ce10bd3bff9c27c4c4e713a2cc4f9f4befabf60d815d529dd1a1280e3211b9a2",
+  "post_upgrade_assertions": true,
+  "permission_after_test": "REQUEST_INSTALL_PACKAGES: deny; time=+2m59s445ms ago",
+  "final_version": "17"
+}

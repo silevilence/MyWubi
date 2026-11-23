@@ -1,0 +1,15 @@
+{
+  "permission_for_this_update": "REQUEST_INSTALL_PACKAGES: allow; time=+4m32s962ms ago",
+  "system_controls": [
+    [
+      "安装",
+      "安装",
+      "安装",
+      "安装"
+    ]
+  ],
+  "system_version_after_normal_confirmation": "17",
+  "existing_adb_evidence": "system-upgrade-final.json",
+  "permission_final": "REQUEST_INSTALL_PACKAGES: deny; time=+5m17s171ms ago",
+  "version_final": "17"
+}

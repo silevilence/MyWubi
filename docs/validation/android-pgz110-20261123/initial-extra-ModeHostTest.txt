@@ -1,0 +1,41 @@
+INSTRUMENTATION_STATUS: class=org.mywubi.ModeHostTest
+INSTRUMENTATION_STATUS: current=1
+INSTRUMENTATION_STATUS: id=AndroidJUnitRunner
+INSTRUMENTATION_STATUS: numtests=1
+INSTRUMENTATION_STATUS: stream=
+org.mywubi.ModeHostTest:
+INSTRUMENTATION_STATUS: test=englishTemporaryPinyinAndDigitsInExternalHost
+INSTRUMENTATION_STATUS_CODE: 1
+INSTRUMENTATION_STATUS: class=org.mywubi.ModeHostTest
+INSTRUMENTATION_STATUS: current=1
+INSTRUMENTATION_STATUS: id=AndroidJUnitRunner
+INSTRUMENTATION_STATUS: numtests=1
+INSTRUMENTATION_STATUS: stack=java.lang.AssertionError: 输入服务应已显示并可用
+	at org.junit.Assert.fail(Assert.java:89)
+	at org.junit.Assert.assertTrue(Assert.java:42)
+	at org.mywubi.ModeHostTest.englishTemporaryPinyinAndDigitsInExternalHost(ModeHostTest.kt:80)
+
+INSTRUMENTATION_STATUS: stream=
+Error in englishTemporaryPinyinAndDigitsInExternalHost(org.mywubi.ModeHostTest):
+java.lang.AssertionError: 输入服务应已显示并可用
+	at org.junit.Assert.fail(Assert.java:89)
+	at org.junit.Assert.assertTrue(Assert.java:42)
+	at org.mywubi.ModeHostTest.englishTemporaryPinyinAndDigitsInExternalHost(ModeHostTest.kt:80)
+
+INSTRUMENTATION_STATUS: test=englishTemporaryPinyinAndDigitsInExternalHost
+INSTRUMENTATION_STATUS_CODE: -2
+INSTRUMENTATION_RESULT: stream=
+
+Time: 16.837
+There was 1 failure:
+1) englishTemporaryPinyinAndDigitsInExternalHost(org.mywubi.ModeHostTest)
+java.lang.AssertionError: 输入服务应已显示并可用
+	at org.junit.Assert.fail(Assert.java:89)
+	at org.junit.Assert.assertTrue(Assert.java:42)
+	at org.mywubi.ModeHostTest.englishTemporaryPinyinAndDigitsInExternalHost(ModeHostTest.kt:80)
+
+FAILURES!!!
+Tests run: 1,  Failures: 1
+
+
+INSTRUMENTATION_CODE: -1

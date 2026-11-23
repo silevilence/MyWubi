@@ -1,0 +1,102 @@
+{
+  "apk": "target\\pgz110-20261123\\update-fixtures\\au-old.apk",
+  "sha256": "3fbc1d149fb8b91945de67dcbd26da3d946a012e6900c808914003dc30e50f16",
+  "libraries": [
+    {
+      "name": "lib/arm64-v8a/libandroidx.graphics.path.so",
+      "bytes": 10096,
+      "elf_load_alignments": [
+        16384,
+        16384,
+        16384
+      ],
+      "zip_offset": 8808446,
+      "compressed": true,
+      "sha256": "41e9a793c43a0f4fddb19e33f346bace464f30f888ba7b9eaf96294ea115bfb6"
+    },
+    {
+      "name": "lib/arm64-v8a/libmywubi_android.so",
+      "bytes": 11714232,
+      "elf_load_alignments": [
+        16384,
+        16384,
+        16384,
+        16384
+      ],
+      "zip_offset": 8813094,
+      "compressed": true,
+      "sha256": "db21caa29b02cee598f04adaf4ac10fcfd3dac0d6ce74ba1a97505062f2c5fad"
+    },
+    {
+      "name": "lib/arm64-v8a/libonnxruntime.so",
+      "bytes": 34208672,
+      "elf_load_alignments": [
+        16384,
+        16384,
+        16384
+      ],
+      "zip_offset": 14454823,
+      "compressed": true,
+      "sha256": "417140158bcf02eaf67fb2947cc973b2e15e6cb199b968c335ac18c8514ef84b"
+    },
+    {
+      "name": "lib/arm64-v8a/libonnxruntime4j_jni.so",
+      "bytes": 92064,
+      "elf_load_alignments": [
+        16384,
+        16384
+      ],
+      "zip_offset": 28361354,
+      "compressed": true,
+      "sha256": "b8c0a745937293ce3d63b70b9687ae8ec44e33a6c9dcf00dd1294e67e13131c5"
+    },
+    {
+      "name": "lib/x86_64/libandroidx.graphics.path.so",
+      "bytes": 10760,
+      "elf_load_alignments": [
+        16384,
+        16384,
+        16384
+      ],
+      "zip_offset": 28394108,
+      "compressed": true,
+      "sha256": "4e56c996f13670e70082658de7880c4020eabf4f25e43387f88ed78a713fc9f0"
+    },
+    {
+      "name": "lib/x86_64/libmywubi_android.so",
+      "bytes": 13401520,
+      "elf_load_alignments": [
+        16384,
+        16384,
+        16384,
+        16384
+      ],
+      "zip_offset": 28399046,
+      "compressed": true,
+      "sha256": "c6a328b0a02428b3c33dca9ad16a14d7f678dc69994259af733b40de81397dad"
+    },
+    {
+      "name": "lib/x86_64/libonnxruntime.so",
+      "bytes": 40827936,
+      "elf_load_alignments": [
+        16384,
+        16384,
+        16384
+      ],
+      "zip_offset": 34589750,
+      "compressed": true,
+      "sha256": "8d145fa0a3c10f0f01f17b6d732184c1d35f807d5654ef03b94c5b3d8c2bf58d"
+    },
+    {
+      "name": "lib/x86_64/libonnxruntime4j_jni.so",
+      "bytes": 88584,
+      "elf_load_alignments": [
+        16384,
+        16384
+      ],
+      "zip_offset": 51136351,
+      "compressed": true,
+      "sha256": "f1be65ea670688ebc95eba0337aa6ae7b90f307e05a56c7ca29bf3a009552fda"
+    }
+  ]
+}

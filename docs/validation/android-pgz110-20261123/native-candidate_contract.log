@@ -1,0 +1,8 @@
+
+running 3 tests
+test stale_cross_session_and_invalidated_queries_cannot_select_same_position ... ok
+test structured_hint_is_never_committed_and_none_keeps_view_revision ... ok
+test window_is_bounded_and_does_not_change_page_or_query_identity ... ok
+
+test result: ok. 3 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+

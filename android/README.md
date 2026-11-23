@@ -133,7 +133,7 @@ python android/check_apk.py android/app/build/outputs/apk/debug/app-debug.apk --
 adb install -r android/app/build/outputs/apk/debug/app-debug.apk
 ```
 
-当前 versionName 为 0.6.0、默认 versionCode 为 5。`install -r` 使用相同签名保留应用数据；卸载再安装不会保留。Debug APK 可直接安装，
+当前版本名和默认升级序号见 [app/build.gradle](app/build.gradle)。`install -r` 使用相同签名保留应用数据；卸载再安装不会保留。Debug APK 可直接安装，
 默认 Release 输出 `app-release-unsigned.apk`，需签名后安装。发布构建通过环境变量
 MYWUBI_KEYSTORE、MYWUBI_STORE_PASSWORD、MYWUBI_KEY_ALIAS、MYWUBI_KEY_PASSWORD
 配置签名，四者必须同时提供；密钥不入仓库。`-PversionCode=<递增整数>` 设置升级序号。

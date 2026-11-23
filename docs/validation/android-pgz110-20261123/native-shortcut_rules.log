@@ -1,0 +1,15 @@
+
+running 10 tests
+test active_table_projection_does_not_require_a_matching_word_or_obey_main_code_length ... ok
+test canonicalization_preserves_drafts_and_reports_disabled_duplicate_row ... ok
+test code_and_global_position_boundaries_are_explicit ... ok
+test configuration_save_normalizes_both_frontends_and_invalid_rules_preserve_disk ... ok
+test effective_index_keeps_rule_identity_and_excludes_disabled_or_incompatible_prefixes ... ok
+test format_length_counts_unicode_scalars_and_roundtrips_without_normalization ... ok
+test format_tokens_and_quoted_literals_have_one_cross_platform_grammar ... ok
+test frozen_c07_validation_and_pause_contract ... ok
+test table_conflicts_pause_and_restore_without_mutating_enable_intent ... ok
+test total_and_per_code_limits_include_disabled_rules ... ok
+
+test result: ok. 10 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.02s
+

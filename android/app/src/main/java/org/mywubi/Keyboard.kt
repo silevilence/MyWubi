@@ -2,6 +2,7 @@ package org.mywubi
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.horizontalScroll
+import androidx.compose.foundation.systemGestureExclusion
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.BorderStroke
@@ -96,7 +97,7 @@ fun Keyboard(model: KeyboardModel, dispatch: (Any) -> Unit, window: (Int) -> Uni
     val parameters = variant?.takeUnless { it.optBoolean("legacy") }?.optJSONObject("parameters")
     val preferredHeight = parameters?.optDouble("keyboard_height", 216.0)?.toFloat()?.div(4f)
     val baseHeight = (preferredHeight?.times(if (landscape) 48f/54f else 1f) ?: if (landscape) 48f else 54f)
-    val keyHeight = maxOf(baseHeight, ((parameters?.optDouble("key_text_size",20.0)?.toFloat() ?: 16f)+12f)*LocalDensity.current.fontScale+16f).dp
+    val keyHeight = maxOf(48f, baseHeight, ((parameters?.optDouble("key_text_size",20.0)?.toFloat() ?: 16f)+12f)*LocalDensity.current.fontScale+16f).dp
     var shift by remember(model.epoch) { mutableStateOf(KeyMode.Off) }
     val pinyinLabel = when (model.pinyinMode) {
         KeyMode.Locked -> "拼音 · 锁定"
@@ -315,7 +316,11 @@ fun Keyboard(model: KeyboardModel, dispatch: (Any) -> Unit, window: (Int) -> Uni
                     if(model.groupPositions.isNotEmpty()) GroupConstraints(model.groupPositions,model.query,model.enabled,dispatch)
                 }
                 if (model.customLayout != null) TextButton(modifier=Modifier.height(48.dp),onClick={dispatch("RestoreKeyboard"); useCustom=false; panel="letters"}) { Text("取消输入并恢复全键布局") }
-                BoxWithConstraints(Modifier.fillMaxWidth().height(LocalKeyboardKeyHeight.current*layout.height)) {
+                // On gesture-navigation devices the side strips may cover the first
+                // and last key centres. Protect only the typing grid, within Android's
+                // exclusion quota. The navigation band remains available below it.
+                BoxWithConstraints(Modifier.fillMaxWidth().height(LocalKeyboardKeyHeight.current*layout.height)
+                    .systemGestureExclusion()) {
                     val unit=maxWidth/layout.width
                     for (key in layout.keys) {
                         val character=key.action.value.singleOrNull()
@@ -392,9 +397,21 @@ fun Keyboard(model: KeyboardModel, dispatch: (Any) -> Unit, window: (Int) -> Uni
             maxOf(WindowInsets.navigationBarsIgnoringVisibility.getBottom(this),
                 WindowInsets.mandatorySystemGestures.getBottom(this)).toDp().coerceAtLeast(if (landscape) 8.dp else 32.dp)
         }
+        val backgroundPadding = skinContent("background")
+        val keyRows = when {
+            showExpanded -> 4f
+            panel == "symbols" -> 5f
+            model.customLayout != null && useCustom && panel == "letters" && !model.privateInput ->
+                model.customLayout.height + 1f
+            else -> 4f
+        }
+        val auxiliaryRows = if (showExpanded) 0 else
+            (if (model.customLayout != null) 1 else 0) + (if (groupControls) 1 else 0)
+        val minimumHeight = 48.dp * (keyRows + auxiliaryRows + 1f) + bottom + 4.dp +
+            backgroundPadding.calculateTopPadding() + backgroundPadding.calculateBottomPadding()
         val heightLimit = if (landscape && configuration.screenHeightDp > 0)
-            Modifier.heightIn(max=configuration.screenHeightDp.dp * 2 / 3) else Modifier
-        val container=Modifier.fillMaxWidth().then(heightLimit).background(colors.surface).skinImage("background").padding(skinContent("background"))
+            Modifier.heightIn(max = maxOf(configuration.screenHeightDp.dp * 2 / 3, minimumHeight)) else Modifier
+        val container=Modifier.fillMaxWidth().then(heightLimit).background(colors.surface).skinImage("background").padding(backgroundPadding)
             .windowInsetsPadding(WindowInsets.navigationBars.union(WindowInsets.displayCutout).only(WindowInsetsSides.Horizontal))
             .padding(start=3.dp, end=3.dp, top=4.dp, bottom=bottom)
             .pointerInput(Unit) {
@@ -412,10 +429,8 @@ fun Keyboard(model: KeyboardModel, dispatch: (Any) -> Unit, window: (Int) -> Uni
         CompositionLocalProvider(LocalKeyPreview provides preview, LocalKeyboardKeyHeight provides keyHeight) {
             Box(Modifier.fillMaxWidth().onGloballyPositioned { origin=it.positionInRoot(); keyboardWidth=it.size.width.toFloat() }) {
                 BoxWithConstraints(container, contentAlignment=androidx.compose.ui.Alignment.TopCenter) {
-                    val customRows = model.customLayout?.takeIf {panel=="letters" && useCustom && !model.privateInput && model.layout=="letters" && !showExpanded}?.height
-                    val rows = customRows?.plus(1f) ?: if (panel == "symbols" && !showExpanded) 5f else 4f
-                    val customControls = if(showExpanded) 0.dp else
-                        (if(model.customLayout!=null) 48.dp else 0.dp) + (if(groupControls) 48.dp else 0.dp)
+                    val rows = keyRows
+                    val customControls = 48.dp * auxiliaryRows
                     val gridExtra = if (showExpanded) expandedExtra else 0.dp
                     // Keep candidates above every panel in either orientation. Capping the
                     // shared width avoids stretching keys and moving controls on expansion.

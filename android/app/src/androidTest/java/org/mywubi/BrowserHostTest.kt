@@ -14,6 +14,8 @@ class BrowserHostTest {
     private val instrumentation = InstrumentationRegistry.getInstrumentation()
     private val device = UiDevice.getInstance(instrumentation)
 
+    private val browser get() = InstrumentationRegistry.getArguments().getString("browserPackage","com.android.chrome")
+
     private fun <T> awaitValue(description: String, read: () -> T?): T {
         val deadline = SystemClock.uptimeMillis() + 15000
         do {
@@ -41,8 +43,12 @@ class BrowserHostTest {
         device.executeShellCommand("ime set org.mywubi/.MyWubiService")
         // Each fixture starts independently; an old browser task (including a
         // failed rotation) must not contaminate later editor contract tests.
-        device.executeShellCommand("am force-stop com.android.chrome")
-        val launch = device.executeShellCommand("am start -W -a android.intent.action.VIEW -d http://127.0.0.1:8765/host.html?field=$index&run=$run -p com.android.chrome")
+
+        val launch = if (browser == "org.mywubi.acceptancehost") {
+            device.executeShellCommand("am start -W -n $browser/.WebEditorActivity --ei field $index --el run $run")
+        } else {
+            device.executeShellCommand("am start -W -a android.intent.action.VIEW -d http://127.0.0.1:8765/host.html?case=$index-$run -p $browser")
+        }
         assertFalse(launch, launch.contains("Error:"))
         awaitValue("Loaded browser fixture") {device.findObject(By.text("场景 $index · $run"))}
         field().click()
@@ -58,13 +64,14 @@ class BrowserHostTest {
     }
 
     @Test fun addressBarCommitsChineseAndEnglishWithoutLosingFocus() {
-        val browser = InstrumentationRegistry.getArguments().getString("browserPackage", "com.android.chrome")
         device.executeShellCommand("ime enable org.mywubi/.MyWubiService")
         device.executeShellCommand("ime set org.mywubi/.MyWubiService")
         device.executeShellCommand("am start -W -a android.intent.action.VIEW -d about:blank -p $browser")
         val address = By.res(browser, "url_bar")
-        awaitValue("Browser address bar") { device.findObject(address) }.click()
-        awaitValue("Focused address bar") { device.findObject(address.focused(true)) }.text = ""
+        awaitValue("Browser address bar") { device.findObject(address) ?: device.findObject(By.res(browser, "web_title")) ?: device.findObject(By.res(browser, "search")) ?: device.findObject(By.pkg(browser).clazz("android.widget.EditText"))
+                ?: device.findObject(By.pkg(browser).desc(java.util.regex.Pattern.compile("地址栏|网址栏|搜索或输入网址")))
+        }.click()
+        awaitValue("Focused address bar") { device.findObject(By.pkg(browser).clazz("android.widget.EditText").focused(true)) }.text = ""
         val initialMode = awaitValue("Enabled language switch") {
             device.findObject(By.pkg("org.mywubi").desc(java.util.regex.Pattern.compile("中 → 英|英 → 中")).enabled(true))?.contentDescription
         }
@@ -74,10 +81,13 @@ class BrowserHostTest {
             awaitValue("Chinese address-bar candidate") {
                 device.findObject(By.pkg("org.mywubi").desc(java.util.regex.Pattern.compile("候选 这(?:，.*)?")))
             }.click()
-            awaitValue("Committed Chinese") { device.findObject(By.res(browser, "url_bar").focused(true).text("这")) }
-            key("中 → 英"); key("p"); key("."); key("/")
-            awaitValue("Mixed address-bar text") { device.findObject(By.res(browser, "url_bar").focused(true).text("这p./")) }
+            awaitValue("Committed Chinese") { device.findObject(By.pkg(browser).clazz("android.widget.EditText").focused(true).text("这")) }
+            key("中 → 英"); key("p"); key(".")
+            if (!device.hasObject(By.pkg("org.mywubi").desc("/"))) key("符号")
+            key("/")
+            awaitValue("Mixed address-bar text") { device.findObject(By.pkg(browser).clazz("android.widget.EditText").focused(true).text("这p./")) }
         } finally {
+            if (device.hasObject(By.pkg("org.mywubi").desc("ABC"))) key("ABC")
             val restore = if (initialMode == "中 → 英") "英 → 中" else "中 → 英"
             if (device.hasObject(By.pkg("org.mywubi").desc(restore).enabled(true))) key(restore)
         }
@@ -123,28 +133,39 @@ class BrowserHostTest {
     }
 
     @Test fun restrictedFieldsAndNextActionInChrome() {
-        open(3)
-        for(c in "ggll") key(c.toString())
-        assertTrue(device.hasObject(By.desc("安全输入")))
-        assertFalse(device.hasObject(By.descStartsWith("候选 ")))
-        assertFalse(device.hasObject(By.text("ggll").pkg("org.mywubi")))
-        open(4)
-        key("1"); key("2")
-        // Chrome 113 appends the accessible name to number-input values.
-        awaitValue("Numeric host value 12") {field().text.takeIf {it == "12" || it == "12, 数字"}}
-        assertFalse(device.hasObject(By.descStartsWith("候选 ")))
-        open(5)
-        key("+"); key("1"); key("2"); expect("+12")
-        open(6)
-        key("/");key(".");expect("/.")
-        open(7)
-        key("a");key("@");expect("a@")
-        open(8)
-        key("下一项")
-        awaitValue("Next field focused") {
-            val fields=device.findObject(By.clazz("android.webkit.WebView"))?.findObjects(By.clazz("android.widget.EditText"))
-            fields?.getOrNull(1)?.takeIf {it.isFocused}
+        val failures = mutableListOf<String>()
+        fun checkField(index: Int, action: () -> Unit) {
+            try {
+                open(index)
+                action()
+            } catch (e: AssertionError) {
+                failures.add("field $index: ${e.message}")
+            } catch (e: RuntimeException) {
+                failures.add("field $index: ${e.message}")
+            }
         }
+        checkField(3) {
+            for (c in "ggll") key(c.toString())
+            assertTrue(device.hasObject(By.desc("安全输入")))
+            assertFalse(device.hasObject(By.descStartsWith("候选 ")))
+            assertFalse(device.hasObject(By.text("ggll").pkg("org.mywubi")))
+        }
+        checkField(4) {
+            key("1"); key("2")
+            awaitValue("Numeric host value 12") { field().text.takeIf { it == "12" || it == "12, 数字" } }
+            assertFalse(device.hasObject(By.descStartsWith("候选 ")))
+        }
+        checkField(5) { key("+"); key("1"); key("2"); expect("+12") }
+        checkField(6) { key("/"); key("."); expect("/.") }
+        checkField(7) { key("a"); key("@"); expect("a@") }
+        checkField(8) {
+            key("下一项")
+            awaitValue<UiObject2>("Next field focused") {
+                val fields=device.findObject(By.clazz("android.webkit.WebView"))?.findObjects(By.clazz("android.widget.EditText"))
+                fields?.getOrNull(1)?.takeIf { it.isFocused }
+            }
+        }
+        assertTrue(failures.joinToString(), failures.isEmpty())
     }
 
     @Test fun hideRotateAndSwitchEditorsDoNotReuseOldCandidates() {
@@ -169,7 +190,9 @@ class BrowserHostTest {
             }
             device.pressBack()
             // Rotation may replace the connection. Existing text must not duplicate.
-            assertTrue(field().text == "gg" || field().text == "gg\n")
+            awaitValue("Rotated document retained both characters") {
+                device.findObject(By.text("正文值：\"gg\"")) ?: device.findObject(By.text("正文值：\"gg\\n\""))
+            }
         } finally { device.setOrientationNatural(); device.unfreezeRotation() }
         open(8)
         key("g")

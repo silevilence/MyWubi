@@ -1,0 +1,3 @@
+{"id": 1, "driver": "ADB 实际触摸和本地 DOM 回读", "result": "通过", "steps": []}
+{"id": 3, "driver": "ADB 实际触摸和本地 DOM 回读", "result": "通过", "steps": ["正文 'g'", "正文 'gg'", "正文 'a'", "正文 'g'"]}
+{"id": 5, "driver": "ADB 实际触摸和本地 DOM 回读", "result": "失败", "reason": "3: 缺少可用按键 g", "steps": ["密码场景系统窗口包 com.android.systemui, com.heytap.browser, com.oplus.securitykeyboard", "正文 '12'", "字段 4 通过", "正文 '+12'", "字段 5 通过", "正文 '/.'", "字段 6 通过", "正文 'a@'", "字段 7 通过", "字段 8 通过"]}

@@ -21,6 +21,7 @@ import androidx.compose.foundation.selection.toggleable
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.runtime.saveable.rememberSaveable
+import androidx.compose.ui.layout.onSizeChanged
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.semantics.contentDescription
@@ -66,12 +67,17 @@ private fun SettingsScreen(model: SettingsModel, enable: () -> Unit, choose: () 
     val modelPicker = rememberLauncherForActivityResult(ActivityResultContracts.OpenDocumentTree()) { uri ->
         uri?.let(model::importModel)
     }
+    val density = androidx.compose.ui.platform.LocalDensity.current
+    var viewportHeight by remember { mutableIntStateOf(Int.MAX_VALUE) }
+    val compactHeight = with(density) { 460.dp.roundToPx() }
+    val editingRule = section == 4 && model.specialDetail &&
+        (WindowInsets.ime.getBottom(density) > 0 || viewportHeight < compactHeight)
     BackHandler(model.dirty) { confirmLeave = true }
-    Scaffold(modifier = Modifier.safeDrawingPadding().imePadding(),
+    Scaffold(modifier = Modifier.safeDrawingPadding().imePadding().onSizeChanged { viewportHeight = it.height },
         snackbarHost = { SnackbarHost(snackbar) },
         topBar = {
             Column {
-                Row(Modifier.fillMaxWidth().padding(horizontal = 20.dp, vertical = 12.dp),
+                if (!editingRule) Row(Modifier.fillMaxWidth().padding(horizontal = 20.dp, vertical = 12.dp),
                     verticalAlignment = androidx.compose.ui.Alignment.CenterVertically,
                     horizontalArrangement = Arrangement.spacedBy(12.dp)) {
                     Image(painterResource(R.drawable.mywubi_brand), null, Modifier.size(36.dp))
@@ -91,7 +97,7 @@ private fun SettingsScreen(model: SettingsModel, enable: () -> Unit, choose: () 
                     verticalArrangement = Arrangement.spacedBy(4.dp)) {
                     Text(if (model.dirty) "有未保存更改 · 草稿会保留" else "没有未保存更改",
                         style = MaterialTheme.typography.bodySmall)
-                    ApplyStatus(model)
+                    if (!editingRule) ApplyStatus(model)
                     if (model.pack != null) TextButton(onClick = { section = 2 }) { Text("请先完成或取消码表导入") }
                     Row(horizontalArrangement = Arrangement.spacedBy(12.dp)) {
                         OutlinedButton(onClick = { confirmReload = true }, enabled = !model.busy) { Text("重新载入") }
@@ -104,7 +110,7 @@ private fun SettingsScreen(model: SettingsModel, enable: () -> Unit, choose: () 
         // Each category keeps its position; changing tabs never discards the ViewModel draft.
         val scrollStates = List(6) { rememberScrollState() }
         Column(Modifier.fillMaxSize().padding(padding).then(if(section == 4) Modifier else Modifier.verticalScroll(scrollStates[section]))
-            .semantics { contentDescription = "设置内容" }.padding(20.dp), verticalArrangement = Arrangement.spacedBy(12.dp)) {
+            .semantics { contentDescription = "设置内容" }.padding(horizontal = 20.dp, vertical = if (editingRule) 4.dp else 20.dp), verticalArrangement = Arrangement.spacedBy(12.dp)) {
             if (model.busy && !model.trialRunning) LinearProgressIndicator(Modifier.fillMaxWidth())
             if (model.message.isNotEmpty()) Text(model.message, color = MaterialTheme.colorScheme.primary,
                 modifier = Modifier.semantics { liveRegion = LiveRegionMode.Polite })

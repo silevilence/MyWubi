@@ -1,0 +1,20 @@
+{
+  "prior_permission_disabled": "REQUEST_INSTALL_PACKAGES: deny; time=+11m46s438ms ago",
+  "permission_for_this_update": "REQUEST_INSTALL_PACKAGES: allow; time=+7s294ms ago",
+  "system_controls": [
+    [
+      "个人信息收集提醒",
+      "已知悉风险",
+      "取消安装",
+      "继续安装"
+    ],
+    [
+      "取消安装"
+    ]
+  ],
+  "system_version_after_normal_confirmation": "17",
+  "adb_fallback": "Performing Streamed Install\r\nSuccess",
+  "restore_original_apk": "Performing Streamed Install\r\nSuccess",
+  "permission_final": "REQUEST_INSTALL_PACKAGES: deny; time=+42s252ms ago",
+  "version_final": "17"
+}

@@ -1,0 +1,25 @@
+[
+  {
+    "Hash": "3FBC1D149FB8B91945DE67DCBD26DA3D946A012E6900C808914003DC30E50F16",
+    "Path": "C:\\code\\rust\\MyWubi\\android\\app\\build\\outputs\\apk\\debug\\app-debug.apk"
+  },
+  {
+    "Hash": "8F3B58026FEE962145A478730B3246D1B78FE6501977F97A7B5AFB9EE0777131",
+    "Path": "C:\\code\\rust\\MyWubi\\android\\app\\build\\outputs\\apk\\androidTest\\debug\\app-debug-androidTest.apk",
+    "use": "initial instrumentation"
+  },
+  {
+    "Hash": "EB9340F2C742AB18976C291FDDA6A3A6C93B906062FF0940650706DC0AE89ED6",
+    "Path": "C:\\code\\rust\\MyWubi\\android\\acceptance-host\\build\\outputs\\apk\\debug\\acceptance-host-debug.apk"
+  },
+  {
+    "Hash": "8678355C9A798DC87D5A12F42E15D9A03F814F6797BD53977B2A927D014F8414",
+    "Path": "C:\\code\\rust\\MyWubi\\android\\app\\build\\outputs\\apk\\androidTest\\debug\\app-debug-androidTest.apk",
+    "use": "localized picker and matrix instrumentation"
+  },
+  {
+    "Hash": "AFA321A6B3524FD78A7EFD054D2F696D9AF630AE01DD8B96244C5B5D3F0E27CE",
+    "Path": "android/app/build/outputs/apk/androidTest/debug/app-debug-androidTest.apk",
+    "use": "实机前台、后台推理、设置及 OEM 界面测试"
+  }
+]

@@ -1,0 +1,8 @@
+{
+  "source": "https://github.com/kiwibrowser/src.next/releases/download/14310011181/com.kiwibrowser.browser-arm64-14310011181-github.apk",
+  "size": 244256017,
+  "sha256": "3e34f950b3907b867af4a64ca060ca480480f16581071b036615eb1d399043f8",
+  "cert_sha256": "829b930e919cd56c9a67617c312e3b425a38894b929e735c3d391d9c51b9e4c0",
+  "abi": "arm64-v8a",
+  "existing_local_reference": "same publisher x64 APK"
+}

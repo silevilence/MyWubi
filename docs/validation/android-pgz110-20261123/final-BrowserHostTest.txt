@@ -1,0 +1,158 @@
+INSTRUMENTATION_STATUS: class=org.mywubi.BrowserHostTest
+INSTRUMENTATION_STATUS: current=1
+INSTRUMENTATION_STATUS: id=AndroidJUnitRunner
+INSTRUMENTATION_STATUS: numtests=5
+INSTRUMENTATION_STATUS: stream=
+org.mywubi.BrowserHostTest:
+INSTRUMENTATION_STATUS: test=addressBarCommitsChineseAndEnglishWithoutLosingFocus
+INSTRUMENTATION_STATUS_CODE: 1
+INSTRUMENTATION_STATUS: class=org.mywubi.BrowserHostTest
+INSTRUMENTATION_STATUS: current=1
+INSTRUMENTATION_STATUS: id=AndroidJUnitRunner
+INSTRUMENTATION_STATUS: numtests=5
+INSTRUMENTATION_STATUS: stack=java.lang.AssertionError: Browser address bar
+	at org.mywubi.BrowserHostTest.awaitValue(BrowserHostTest.kt:26)
+	at org.mywubi.BrowserHostTest.addressBarCommitsChineseAndEnglishWithoutLosingFocus(BrowserHostTest.kt:67)
+
+INSTRUMENTATION_STATUS: stream=
+Error in addressBarCommitsChineseAndEnglishWithoutLosingFocus(org.mywubi.BrowserHostTest):
+java.lang.AssertionError: Browser address bar
+	at org.mywubi.BrowserHostTest.awaitValue(BrowserHostTest.kt:26)
+	at org.mywubi.BrowserHostTest.addressBarCommitsChineseAndEnglishWithoutLosingFocus(BrowserHostTest.kt:67)
+
+INSTRUMENTATION_STATUS: test=addressBarCommitsChineseAndEnglishWithoutLosingFocus
+INSTRUMENTATION_STATUS_CODE: -2
+INSTRUMENTATION_STATUS: class=org.mywubi.BrowserHostTest
+INSTRUMENTATION_STATUS: current=2
+INSTRUMENTATION_STATUS: id=AndroidJUnitRunner
+INSTRUMENTATION_STATUS: numtests=5
+INSTRUMENTATION_STATUS: stream=
+INSTRUMENTATION_STATUS: test=hideRotateAndSwitchEditorsDoNotReuseOldCandidates
+INSTRUMENTATION_STATUS_CODE: 1
+INSTRUMENTATION_STATUS: class=org.mywubi.BrowserHostTest
+INSTRUMENTATION_STATUS: current=2
+INSTRUMENTATION_STATUS: id=AndroidJUnitRunner
+INSTRUMENTATION_STATUS: numtests=5
+INSTRUMENTATION_STATUS: stack=java.lang.AssertionError: Loaded browser fixture
+	at org.mywubi.BrowserHostTest.awaitValue(BrowserHostTest.kt:26)
+	at org.mywubi.BrowserHostTest.open(BrowserHostTest.kt:49)
+	at org.mywubi.BrowserHostTest.hideRotateAndSwitchEditorsDoNotReuseOldCandidates(BrowserHostTest.kt:154)
+
+INSTRUMENTATION_STATUS: stream=
+Error in hideRotateAndSwitchEditorsDoNotReuseOldCandidates(org.mywubi.BrowserHostTest):
+java.lang.AssertionError: Loaded browser fixture
+	at org.mywubi.BrowserHostTest.awaitValue(BrowserHostTest.kt:26)
+	at org.mywubi.BrowserHostTest.open(BrowserHostTest.kt:49)
+	at org.mywubi.BrowserHostTest.hideRotateAndSwitchEditorsDoNotReuseOldCandidates(BrowserHostTest.kt:154)
+
+INSTRUMENTATION_STATUS: test=hideRotateAndSwitchEditorsDoNotReuseOldCandidates
+INSTRUMENTATION_STATUS_CODE: -2
+INSTRUMENTATION_STATUS: class=org.mywubi.BrowserHostTest
+INSTRUMENTATION_STATUS: current=3
+INSTRUMENTATION_STATUS: id=AndroidJUnitRunner
+INSTRUMENTATION_STATUS: numtests=5
+INSTRUMENTATION_STATUS: stream=
+INSTRUMENTATION_STATUS: test=enterCommitsBeforeSendAndEmptyTemporaryDoesNotSubmit
+INSTRUMENTATION_STATUS_CODE: 1
+INSTRUMENTATION_STATUS: class=org.mywubi.BrowserHostTest
+INSTRUMENTATION_STATUS: current=3
+INSTRUMENTATION_STATUS: id=AndroidJUnitRunner
+INSTRUMENTATION_STATUS: numtests=5
+INSTRUMENTATION_STATUS: stack=java.lang.AssertionError: Loaded browser fixture
+	at org.mywubi.BrowserHostTest.awaitValue(BrowserHostTest.kt:26)
+	at org.mywubi.BrowserHostTest.open(BrowserHostTest.kt:49)
+	at org.mywubi.BrowserHostTest.enterCommitsBeforeSendAndEmptyTemporaryDoesNotSubmit(BrowserHostTest.kt:90)
+
+INSTRUMENTATION_STATUS: stream=
+Error in enterCommitsBeforeSendAndEmptyTemporaryDoesNotSubmit(org.mywubi.BrowserHostTest):
+java.lang.AssertionError: Loaded browser fixture
+	at org.mywubi.BrowserHostTest.awaitValue(BrowserHostTest.kt:26)
+	at org.mywubi.BrowserHostTest.open(BrowserHostTest.kt:49)
+	at org.mywubi.BrowserHostTest.enterCommitsBeforeSendAndEmptyTemporaryDoesNotSubmit(BrowserHostTest.kt:90)
+
+INSTRUMENTATION_STATUS: test=enterCommitsBeforeSendAndEmptyTemporaryDoesNotSubmit
+INSTRUMENTATION_STATUS_CODE: -2
+INSTRUMENTATION_STATUS: class=org.mywubi.BrowserHostTest
+INSTRUMENTATION_STATUS: current=4
+INSTRUMENTATION_STATUS: id=AndroidJUnitRunner
+INSTRUMENTATION_STATUS: numtests=5
+INSTRUMENTATION_STATUS: stream=
+INSTRUMENTATION_STATUS: test=unicodeSelectionAndCompositionCursorInChrome
+INSTRUMENTATION_STATUS_CODE: 1
+INSTRUMENTATION_STATUS: class=org.mywubi.BrowserHostTest
+INSTRUMENTATION_STATUS: current=4
+INSTRUMENTATION_STATUS: id=AndroidJUnitRunner
+INSTRUMENTATION_STATUS: numtests=5
+INSTRUMENTATION_STATUS: stack=java.lang.AssertionError: Loaded browser fixture
+	at org.mywubi.BrowserHostTest.awaitValue(BrowserHostTest.kt:26)
+	at org.mywubi.BrowserHostTest.open(BrowserHostTest.kt:49)
+	at org.mywubi.BrowserHostTest.unicodeSelectionAndCompositionCursorInChrome(BrowserHostTest.kt:108)
+
+INSTRUMENTATION_STATUS: stream=
+Error in unicodeSelectionAndCompositionCursorInChrome(org.mywubi.BrowserHostTest):
+java.lang.AssertionError: Loaded browser fixture
+	at org.mywubi.BrowserHostTest.awaitValue(BrowserHostTest.kt:26)
+	at org.mywubi.BrowserHostTest.open(BrowserHostTest.kt:49)
+	at org.mywubi.BrowserHostTest.unicodeSelectionAndCompositionCursorInChrome(BrowserHostTest.kt:108)
+
+INSTRUMENTATION_STATUS: test=unicodeSelectionAndCompositionCursorInChrome
+INSTRUMENTATION_STATUS_CODE: -2
+INSTRUMENTATION_STATUS: class=org.mywubi.BrowserHostTest
+INSTRUMENTATION_STATUS: current=5
+INSTRUMENTATION_STATUS: id=AndroidJUnitRunner
+INSTRUMENTATION_STATUS: numtests=5
+INSTRUMENTATION_STATUS: stream=
+INSTRUMENTATION_STATUS: test=restrictedFieldsAndNextActionInChrome
+INSTRUMENTATION_STATUS_CODE: 1
+INSTRUMENTATION_STATUS: class=org.mywubi.BrowserHostTest
+INSTRUMENTATION_STATUS: current=5
+INSTRUMENTATION_STATUS: id=AndroidJUnitRunner
+INSTRUMENTATION_STATUS: numtests=5
+INSTRUMENTATION_STATUS: stack=java.lang.AssertionError: Loaded browser fixture
+	at org.mywubi.BrowserHostTest.awaitValue(BrowserHostTest.kt:26)
+	at org.mywubi.BrowserHostTest.open(BrowserHostTest.kt:49)
+	at org.mywubi.BrowserHostTest.restrictedFieldsAndNextActionInChrome(BrowserHostTest.kt:129)
+
+INSTRUMENTATION_STATUS: stream=
+Error in restrictedFieldsAndNextActionInChrome(org.mywubi.BrowserHostTest):
+java.lang.AssertionError: Loaded browser fixture
+	at org.mywubi.BrowserHostTest.awaitValue(BrowserHostTest.kt:26)
+	at org.mywubi.BrowserHostTest.open(BrowserHostTest.kt:49)
+	at org.mywubi.BrowserHostTest.restrictedFieldsAndNextActionInChrome(BrowserHostTest.kt:129)
+
+INSTRUMENTATION_STATUS: test=restrictedFieldsAndNextActionInChrome
+INSTRUMENTATION_STATUS_CODE: -2
+INSTRUMENTATION_RESULT: stream=
+
+Time: 78.05
+There were 5 failures:
+1) addressBarCommitsChineseAndEnglishWithoutLosingFocus(org.mywubi.BrowserHostTest)
+java.lang.AssertionError: Browser address bar
+	at org.mywubi.BrowserHostTest.awaitValue(BrowserHostTest.kt:26)
+	at org.mywubi.BrowserHostTest.addressBarCommitsChineseAndEnglishWithoutLosingFocus(BrowserHostTest.kt:67)
+2) hideRotateAndSwitchEditorsDoNotReuseOldCandidates(org.mywubi.BrowserHostTest)
+java.lang.AssertionError: Loaded browser fixture
+	at org.mywubi.BrowserHostTest.awaitValue(BrowserHostTest.kt:26)
+	at org.mywubi.BrowserHostTest.open(BrowserHostTest.kt:49)
+	at org.mywubi.BrowserHostTest.hideRotateAndSwitchEditorsDoNotReuseOldCandidates(BrowserHostTest.kt:154)
+3) enterCommitsBeforeSendAndEmptyTemporaryDoesNotSubmit(org.mywubi.BrowserHostTest)
+java.lang.AssertionError: Loaded browser fixture
+	at org.mywubi.BrowserHostTest.awaitValue(BrowserHostTest.kt:26)
+	at org.mywubi.BrowserHostTest.open(BrowserHostTest.kt:49)
+	at org.mywubi.BrowserHostTest.enterCommitsBeforeSendAndEmptyTemporaryDoesNotSubmit(BrowserHostTest.kt:90)
+4) unicodeSelectionAndCompositionCursorInChrome(org.mywubi.BrowserHostTest)
+java.lang.AssertionError: Loaded browser fixture
+	at org.mywubi.BrowserHostTest.awaitValue(BrowserHostTest.kt:26)
+	at org.mywubi.BrowserHostTest.open(BrowserHostTest.kt:49)
+	at org.mywubi.BrowserHostTest.unicodeSelectionAndCompositionCursorInChrome(BrowserHostTest.kt:108)
+5) restrictedFieldsAndNextActionInChrome(org.mywubi.BrowserHostTest)
+java.lang.AssertionError: Loaded browser fixture
+	at org.mywubi.BrowserHostTest.awaitValue(BrowserHostTest.kt:26)
+	at org.mywubi.BrowserHostTest.open(BrowserHostTest.kt:49)
+	at org.mywubi.BrowserHostTest.restrictedFieldsAndNextActionInChrome(BrowserHostTest.kt:129)
+
+FAILURES!!!
+Tests run: 5,  Failures: 5
+
+
+INSTRUMENTATION_CODE: -1

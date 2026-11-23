@@ -1,0 +1,42 @@
+{"threads": 2, "input": "北京", "ms": 360, "reply": {"Ok": {"key": {"config": 1, "context": 1, "edit": {"editor": 1, "epoch": 1, "generation": 1, "runtime": 1, "session": 9183}, "model": 1, "query": {"engine": 1, "version": 1}, "request": 1, "view": 1}, "protocol": 1, "words": ["市"]}}, "seed": "北京", "step": 1}
+{"threads": 2, "input": "北京市", "ms": 390, "reply": {"Err": "Empty"}, "seed": "北京", "step": 2}
+{"threads": 2, "input": "上海", "ms": 360, "reply": {"Ok": {"key": {"config": 1, "context": 1, "edit": {"editor": 1, "epoch": 1, "generation": 1, "runtime": 1, "session": 9183}, "model": 1, "query": {"engine": 1, "version": 1}, "request": 3, "view": 1}, "protocol": 1, "words": ["市"]}}, "seed": "上海", "step": 1}
+{"threads": 2, "input": "上海市", "ms": 359, "reply": {"Err": "Empty"}, "seed": "上海", "step": 2}
+{"threads": 2, "input": "中国", "ms": 359, "reply": {"Err": "LowConfidence"}, "seed": "中国", "step": 1}
+{"threads": 2, "input": "我想", "ms": 266, "reply": {"Err": "LowConfidence"}, "seed": "我想", "step": 1}
+{"threads": 2, "input": "明天", "ms": 375, "reply": {"Err": "Empty"}, "seed": "明天", "step": 1}
+{"threads": 2, "input": "中华", "ms": 406, "reply": {"Err": "Empty"}, "seed": "中华", "step": 1}
+{"threads": 2, "input": "中华人民", "ms": 375, "reply": {"Err": "LowConfidence"}, "seed": "中华人民", "step": 1}
+{"threads": 2, "input": "今天", "ms": 375, "reply": {"Err": "Empty"}, "seed": "今天", "step": 1}
+{"threads": 2, "input": "人工", "ms": 328, "reply": {"Err": "LowConfidence"}, "seed": "人工", "step": 1}
+{"threads": 2, "input": "电脑", "ms": 359, "reply": {"Err": "LowConfidence"}, "seed": "电脑", "step": 1}
+{"threads": 2, "input": "大学", "ms": 375, "reply": {"Err": "Empty"}, "seed": "大学", "step": 1}
+{"threads": 2, "input": "苹果", "ms": 172, "reply": {"Err": "Empty"}, "seed": "苹果", "step": 1}
+{"threads": 2, "input": "我喜欢", "ms": 375, "reply": {"Ok": {"key": {"config": 1, "context": 1, "edit": {"editor": 1, "epoch": 1, "generation": 1, "runtime": 1, "session": 9183}, "model": 1, "query": {"engine": 1, "version": 1}, "request": 15, "view": 1}, "protocol": 1, "words": ["电影"]}}, "seed": "我喜欢", "step": 1}
+{"threads": 2, "input": "我喜欢电影", "ms": 203, "reply": {"Err": "Empty"}, "seed": "我喜欢", "step": 2}
+{"threads": 2, "input": "明天去", "ms": 391, "reply": {"Ok": {"key": {"config": 1, "context": 1, "edit": {"editor": 1, "epoch": 1, "generation": 1, "runtime": 1, "session": 9183}, "model": 1, "query": {"engine": 1, "version": 1}, "request": 17, "view": 1}, "protocol": 1, "words": ["出差"]}}, "seed": "明天去", "step": 1}
+{"threads": 2, "input": "明天去出差", "ms": 234, "reply": {"Err": "Empty"}, "seed": "明天去", "step": 2}
+{"threads": 2, "input": "人民", "ms": 360, "reply": {"Err": "LowConfidence"}, "seed": "人民", "step": 1}
+{"threads": 2, "input": "火车", "ms": 375, "reply": {"Err": "Empty"}, "seed": "火车", "step": 1}
+{"threads": 2, "input": "天气", "ms": 437, "reply": {"Ok": {"key": {"config": 1, "context": 1, "edit": {"editor": 1, "epoch": 1, "generation": 1, "runtime": 1, "session": 9183}, "model": 1, "query": {"engine": 1, "version": 1}, "request": 21, "view": 1}, "protocol": 1, "words": ["晴朗"]}}, "seed": "天气", "step": 1}
+{"threads": 2, "input": "天气晴朗", "ms": 219, "reply": {"Err": "Empty"}, "seed": "天气", "step": 2}
+{"threads": 2, "input": "祝你", "ms": 250, "reply": {"Err": "LowConfidence"}, "seed": "祝你", "step": 1}
+{"threads": 2, "input": "我们", "ms": 375, "reply": {"Err": "LowConfidence"}, "seed": "我们", "step": 1}
+{"threads": 2, "input": "图书", "ms": 375, "reply": {"Ok": {"key": {"config": 1, "context": 1, "edit": {"editor": 1, "epoch": 1, "generation": 1, "runtime": 1, "session": 9183}, "model": 1, "query": {"engine": 1, "version": 1}, "request": 25, "view": 1}, "protocol": 1, "words": ["作者"]}}, "seed": "图书", "step": 1}
+{"threads": 2, "input": "图书作者", "ms": 375, "reply": {"Ok": {"key": {"config": 1, "context": 1, "edit": {"editor": 1, "epoch": 1, "generation": 1, "runtime": 1, "session": 9183}, "model": 1, "query": {"engine": 1, "version": 1}, "request": 26, "view": 1}, "protocol": 1, "words": ["出版社"]}}, "seed": "图书", "step": 2}
+{"threads": 2, "input": "输入", "ms": 188, "reply": {"Err": "Empty"}, "seed": "输入", "step": 1}
+{"threads": 2, "input": "北京大学", "ms": 406, "reply": {"Ok": {"key": {"config": 1, "context": 1, "edit": {"editor": 1, "epoch": 1, "generation": 1, "runtime": 1, "session": 9183}, "model": 1, "query": {"engine": 1, "version": 1}, "request": 28, "view": 1}, "protocol": 1, "words": ["中国科学院"]}}, "seed": "北京大学", "step": 1}
+{"threads": 2, "input": "北京大学中国科学院", "ms": 375, "reply": {"Err": "LowConfidence"}, "seed": "北京大学", "step": 2}
+{"threads": 2, "input": "三十", "ms": 187, "reply": {"Err": "LowConfidence"}, "seed": "三十", "step": 1}
+{"threads": 2, "input": "数据", "ms": 375, "reply": {"Err": "LowConfidence"}, "seed": "数据", "step": 1}
+{"threads": 2, "input": "计算", "ms": 360, "reply": {"Ok": {"key": {"config": 1, "context": 1, "edit": {"editor": 1, "epoch": 1, "generation": 1, "runtime": 1, "session": 9183}, "model": 1, "query": {"engine": 1, "version": 1}, "request": 32, "view": 1}, "protocol": 1, "words": ["函数"]}}, "seed": "计算", "step": 1}
+{"threads": 2, "input": "计算函数", "ms": 406, "reply": {"Err": "Empty"}, "seed": "计算", "step": 2}
+{"threads": 2, "input": "早上", "ms": 469, "reply": {"Ok": {"key": {"config": 1, "context": 1, "edit": {"editor": 1, "epoch": 1, "generation": 1, "runtime": 1, "session": 9183}, "model": 1, "query": {"engine": 1, "version": 1}, "request": 34, "view": 1}, "protocol": 1, "words": ["吃早饭"]}}, "seed": "早上", "step": 1}
+{"threads": 2, "input": "早上吃早饭", "ms": 437, "reply": {"Ok": {"key": {"config": 1, "context": 1, "edit": {"editor": 1, "epoch": 1, "generation": 1, "runtime": 1, "session": 9183}, "model": 1, "query": {"engine": 1, "version": 1}, "request": 35, "view": 1}, "protocol": 1, "words": ["早餐"]}}, "seed": "早上", "step": 2}
+{"threads": 2, "input": "春天", "ms": 406, "reply": {"Ok": {"key": {"config": 1, "context": 1, "edit": {"editor": 1, "epoch": 1, "generation": 1, "runtime": 1, "session": 9183}, "model": 1, "query": {"engine": 1, "version": 1}, "request": 36, "view": 1}, "protocol": 1, "words": ["花儿"]}}, "seed": "春天", "step": 1}
+{"threads": 2, "input": "春天花儿", "ms": 235, "reply": {"Err": "Empty"}, "seed": "春天", "step": 2}
+{"threads": 2, "input": "音乐", "ms": 375, "reply": {"Err": "Empty"}, "seed": "音乐", "step": 1}
+{"threads": 2, "input": "重庆", "ms": 375, "reply": {"Ok": {"key": {"config": 1, "context": 1, "edit": {"editor": 1, "epoch": 1, "generation": 1, "runtime": 1, "session": 9183}, "model": 1, "query": {"engine": 1, "version": 1}, "request": 39, "view": 1}, "protocol": 1, "words": ["市"]}}, "seed": "重庆", "step": 1}
+{"threads": 2, "input": "重庆市", "ms": 359, "reply": {"Err": "Empty"}, "seed": "重庆", "step": 2}
+{"threads": 2, "input": "深圳", "ms": 360, "reply": {"Ok": {"key": {"config": 1, "context": 1, "edit": {"editor": 1, "epoch": 1, "generation": 1, "runtime": 1, "session": 9183}, "model": 1, "query": {"engine": 1, "version": 1}, "request": 41, "view": 1}, "protocol": 1, "words": ["市"]}}, "seed": "深圳", "step": 1}
+{"threads": 2, "input": "深圳市", "ms": 218, "reply": {"Err": "Empty"}, "seed": "深圳", "step": 2}

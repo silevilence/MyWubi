@@ -1,0 +1,148 @@
+{
+  "insert": true,
+  "replace": true,
+  "reconnect": true,
+  "commit_count": 3,
+  "insert_event": {
+    "format": 1,
+    "id": "28ddeedb538f2f103049214f08aa11e0:9",
+    "source": "28ddeedb538f2f103049214f08aa11e0",
+    "session": "2",
+    "sequence": 9,
+    "time_ms": 1795406308027,
+    "mode": "android",
+    "evidence": "Observed",
+    "before": {
+      "revision": 1,
+      "left": "甲😀",
+      "right": "乙",
+      "selected": "",
+      "selection": {
+        "start": 3,
+        "end": 3,
+        "unit": "Utf16",
+        "absolute": true
+      },
+      "truncated": true,
+      "discontinuity": false
+    },
+    "after": {
+      "revision": 3,
+      "left": "甲😀测试",
+      "right": "乙",
+      "selected": "",
+      "selection": {
+        "start": 5,
+        "end": 5,
+        "unit": "Utf16",
+        "absolute": true
+      },
+      "truncated": true,
+      "discontinuity": false
+    },
+    "change": {
+      "kind": "Commit",
+      "text": "测试",
+      "source": "Code",
+      "method": "Space",
+      "outcome": "Confirmed",
+      "request": "{\"engine\":1,\"version\":3}",
+      "candidate": "0"
+    }
+  },
+  "replace_event": {
+    "format": 1,
+    "id": "28ddeedb538f2f103049214f08aa11e0:15",
+    "source": "28ddeedb538f2f103049214f08aa11e0",
+    "session": "2",
+    "sequence": 15,
+    "time_ms": 1795406310347,
+    "mode": "android",
+    "evidence": "Observed",
+    "before": {
+      "revision": 4,
+      "left": "甲😀",
+      "right": "乙",
+      "selected": "测试",
+      "selection": {
+        "start": 3,
+        "end": 5,
+        "unit": "Utf16",
+        "absolute": true
+      },
+      "truncated": true,
+      "discontinuity": false
+    },
+    "after": {
+      "revision": 6,
+      "left": "甲😀回读",
+      "right": "乙",
+      "selected": "",
+      "selection": {
+        "start": 5,
+        "end": 5,
+        "unit": "Utf16",
+        "absolute": true
+      },
+      "truncated": true,
+      "discontinuity": false
+    },
+    "change": {
+      "kind": "Commit",
+      "text": "回读",
+      "source": "Code",
+      "method": "Space",
+      "outcome": "Confirmed",
+      "request": "{\"engine\":1,\"version\":5}",
+      "candidate": "0"
+    }
+  },
+  "final_event": {
+    "format": 1,
+    "id": "28ddeedb538f2f103049214f08aa11e0:26",
+    "source": "28ddeedb538f2f103049214f08aa11e0",
+    "session": "5",
+    "sequence": 26,
+    "time_ms": 1795406315337,
+    "mode": "android",
+    "evidence": "Observed",
+    "before": {
+      "revision": 1,
+      "left": "",
+      "right": "",
+      "selected": "",
+      "selection": {
+        "start": 0,
+        "end": 0,
+        "unit": "Utf16",
+        "absolute": true
+      },
+      "truncated": true,
+      "discontinuity": false
+    },
+    "after": {
+      "revision": 10,
+      "left": "测试",
+      "right": "",
+      "selected": "",
+      "selection": {
+        "start": 2,
+        "end": 2,
+        "unit": "Utf16",
+        "absolute": true
+      },
+      "truncated": true,
+      "discontinuity": false
+    },
+    "change": {
+      "kind": "Commit",
+      "text": "测试",
+      "source": "Code",
+      "method": "Space",
+      "outcome": "Confirmed",
+      "request": "{\"engine\":1,\"version\":13}",
+      "candidate": "0"
+    }
+  },
+  "external_observed": false
+}

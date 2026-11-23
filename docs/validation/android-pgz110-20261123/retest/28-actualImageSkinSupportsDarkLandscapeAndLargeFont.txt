@@ -1,0 +1,41 @@
+INSTRUMENTATION_STATUS: class=org.mywubi.SkinContractTest
+INSTRUMENTATION_STATUS: current=1
+INSTRUMENTATION_STATUS: id=AndroidJUnitRunner
+INSTRUMENTATION_STATUS: numtests=1
+INSTRUMENTATION_STATUS: stream=
+org.mywubi.SkinContractTest:
+INSTRUMENTATION_STATUS: test=actualImageSkinSupportsDarkLandscapeAndLargeFont
+INSTRUMENTATION_STATUS_CODE: 1
+INSTRUMENTATION_STATUS: class=org.mywubi.SkinContractTest
+INSTRUMENTATION_STATUS: current=1
+INSTRUMENTATION_STATUS: id=AndroidJUnitRunner
+INSTRUMENTATION_STATUS: numtests=1
+INSTRUMENTATION_STATUS: stack=java.lang.AssertionError: Bottom row must be fully visible: Rect(928, 858 - 1487, 996)
+	at org.junit.Assert.fail(Assert.java:89)
+	at org.junit.Assert.assertTrue(Assert.java:42)
+	at org.mywubi.SkinContractTest.actualImageSkinSupportsDarkLandscapeAndLargeFont(SkinContractTest.kt:147)
+
+INSTRUMENTATION_STATUS: stream=
+Error in actualImageSkinSupportsDarkLandscapeAndLargeFont(org.mywubi.SkinContractTest):
+java.lang.AssertionError: Bottom row must be fully visible: Rect(928, 858 - 1487, 996)
+	at org.junit.Assert.fail(Assert.java:89)
+	at org.junit.Assert.assertTrue(Assert.java:42)
+	at org.mywubi.SkinContractTest.actualImageSkinSupportsDarkLandscapeAndLargeFont(SkinContractTest.kt:147)
+
+INSTRUMENTATION_STATUS: test=actualImageSkinSupportsDarkLandscapeAndLargeFont
+INSTRUMENTATION_STATUS_CODE: -2
+INSTRUMENTATION_RESULT: stream=
+
+Time: 9.414
+There was 1 failure:
+1) actualImageSkinSupportsDarkLandscapeAndLargeFont(org.mywubi.SkinContractTest)
+java.lang.AssertionError: Bottom row must be fully visible: Rect(928, 858 - 1487, 996)
+	at org.junit.Assert.fail(Assert.java:89)
+	at org.junit.Assert.assertTrue(Assert.java:42)
+	at org.mywubi.SkinContractTest.actualImageSkinSupportsDarkLandscapeAndLargeFont(SkinContractTest.kt:147)
+
+FAILURES!!!
+Tests run: 1,  Failures: 1
+
+
+INSTRUMENTATION_CODE: -1

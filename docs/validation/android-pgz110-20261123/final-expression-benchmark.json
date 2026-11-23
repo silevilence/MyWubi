@@ -1,0 +1,21 @@
+{
+  "sdk": 34,
+  "fingerprint": "OnePlus\/PGZ110\/OP5911:14\/UKQ1.230924.001\/S.1695fcb_1-5637:user\/release-keys",
+  "scope": "BuildRuntime; InputCode+Ack+Candidates through JNI, excludes UI and host",
+  "disabled": {
+    "runtime_build_ms": 10.153539,
+    "candidates": 1,
+    "samples": 100,
+    "warmup": 10,
+    "p50_us": 1511.077,
+    "p95_us": 1788.923
+  },
+  "enabled": {
+    "runtime_build_ms": 257.874539,
+    "candidates": 858,
+    "samples": 100,
+    "warmup": 10,
+    "p50_us": 16979.385,
+    "p95_us": 26824.846
+  }
+}
