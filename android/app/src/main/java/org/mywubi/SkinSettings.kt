@@ -18,11 +18,47 @@ import kotlinx.coroutines.withContext
 import org.json.JSONArray
 import org.json.JSONObject
 import java.io.File
+import java.io.InputStream
 import java.util.UUID
+import java.util.zip.ZipFile
+
+internal fun importSkinDocument(config: File, cacheDir: File, input: InputStream): JSONObject {
+    val temporary = File.createTempFile("skin-import-", ".zip", cacheDir)
+    return try {
+        temporary.outputStream().use { output ->
+            val buffer = ByteArray(65536)
+            var total = 0L
+            while (true) {
+                val count = input.read(buffer)
+                if (count < 0) break
+                total += count
+                require(total <= 64L * 1024 * 1024) {
+                    "所选文件超过 64 MiB。如果选了整套下载包，请先解压，再选择里面的 .mywubi-skin 文件。"
+                }
+                output.write(buffer, 0, count)
+            }
+        }
+
+        try {
+            NativeBridge.objectCall("ManageSkin", "request" to JSONObject().put("action", "Import").put("path", config.path)
+                .put("source", temporary.path).put("platform", "android"))
+        } catch (error: ProtocolException) {
+            val isBundle = runCatching {
+                ZipFile(temporary).use { zip ->
+                    zip.getEntry("metadata.toml") == null && zip.entries().asSequence().any {
+                        !it.isDirectory && it.name.endsWith(".mywubi-skin", ignoreCase = true)
+                    }
+                }
+            }.getOrDefault(false)
+            if (isBundle) throw IllegalArgumentException("选中的是整套下载包。请先解压，再选择里面的 .mywubi-skin 文件。", error)
+            throw error
+        }
+    } finally { temporary.delete() }
+}
 
 /** The library imports immutable versions. Selection changes only the persisted settings draft. */
 @Composable
-internal fun SkinManagement(model: SettingsModel, config: JSONObject) {
+internal fun SkinManagement(model: SettingsModel, config: JSONObject, onImport: () -> Unit) {
     val context = LocalContext.current
     val scope = rememberCoroutineScope()
     var items by remember { mutableStateOf(JSONArray()) }
@@ -43,36 +79,22 @@ internal fun SkinManagement(model: SettingsModel, config: JSONObject) {
         if (uri != null) scope.launch {
             busy = true
             runCatching {
-                withContext(Dispatchers.IO) {
-                    val temporary = File.createTempFile("skin-import-", ".zip", context.cacheDir)
-                    try {
-                        context.contentResolver.openInputStream(uri).use { input ->
-                            requireNotNull(input) { "无法读取所选文件" }
-                            temporary.outputStream().use { output ->
-                                val buffer = ByteArray(65536)
-                                var total = 0L
-                                while (true) {
-                                    val count = input.read(buffer)
-                                    if (count < 0) break
-                                    total += count
-                                    require(total <= 64L * 1024 * 1024) { "皮肤包超过 64 MiB" }
-                                    output.write(buffer, 0, count)
-                                }
-                            }
-                        }
-                        NativeBridge.objectCall("ManageSkin", "request" to request("Import")
-                            .put("source", temporary.path).put("platform", "android"))
-                    } finally { temporary.delete() }
+                val result = withContext(Dispatchers.IO) {
+                    context.contentResolver.openInputStream(uri).use { input ->
+                        importSkinDocument(model.store.configFile, context.cacheDir, requireNotNull(input) { "无法读取所选文件" })
+                    }
                 }
                 refresh()
-                message = "已导入皮肤库。选择 Android 组件后预览并保存设置。"
-            }.onFailure { message = it.message ?: "导入失败，当前皮肤未改变" }
+                onImport()
+                val name = result.getJSONObject("item").getString("name")
+                message = if (result.getBoolean("already_present")) "皮肤库中已有「$name」。" else "已导入「$name」。"
+            }.onFailure { message = "此次导入失败。${it.message.orEmpty()}" }
             busy = false
         }
     }
     HorizontalDivider()
     Text("皮肤包", style = MaterialTheme.typography.titleMedium)
-    Text("导入只添加到皮肤库；选择后为草稿，点击底部「保存设置」应用。", style = MaterialTheme.typography.bodySmall)
+    Text("选择 .mywubi-skin 文件。若下载的是整套 ZIP，请先解压。导入后选用外观，再点底部「保存设置」。", style = MaterialTheme.typography.bodySmall)
     val selection = preference.optJSONObject("selection")
     Text(if (selection == null) "草稿选择：内置方案" else "草稿选择：${selection.optString("id")} @ ${selection.optString("version")} / ${selection.optString("component")}")
     if (message.isNotBlank()) Text(message, modifier = Modifier.fillMaxWidth())
@@ -86,14 +108,22 @@ internal fun SkinManagement(model: SettingsModel, config: JSONObject) {
                 Text("已导入 · 支持 ${item.optJSONArray("platforms")?.let { a -> (0 until a.length()).joinToString(" / ") { a.getString(it) } } ?: "未知"}")
                 if (!item.isNull("reason")) Text(item.getString("reason"))
                 val components = item.getJSONArray("components")
+                val layouts = mutableListOf<String>()
+                val mappings = mutableListOf<String>()
                 for (c in 0 until components.length()) {
                     val component = components.getJSONObject(c)
+                    when (component.getString("kind")) {
+                        "layout" -> { layouts.add(component.getString("id")); continue }
+                        "mapping" -> { mappings.add(component.getString("id")); continue }
+                    }
                     TextButton(onClick = {
                         val selected = JSONObject().put("id", item.getString("id")).put("version", item.getString("version")).put("component", component.getString("id"))
                         model.change("skins", "android", JSONObject(preference.toString()).put("selection", selected))
-                    }, modifier=Modifier.semantics { contentDescription="选用皮肤 ${item.getString("name")}，组件 ${component.getString("id")}" }, enabled = component.getBoolean("enabled") && !busy && !model.busy) { Text("选用 ${component.getString("id")}") }
+                    }, modifier=Modifier.semantics { contentDescription="选用皮肤 ${item.getString("name")}，组件 ${component.getString("id")}" }, enabled = component.getBoolean("enabled") && !busy && !model.busy) { Text("选用外观 ${component.getString("id")}") }
                     if (!component.isNull("reason")) Text(component.getString("reason"), style = MaterialTheme.typography.bodySmall)
                 }
+                if (layouts.isNotEmpty()) Text("键盘布局：${layouts.joinToString("、")}。在本页「自定义键盘」中预览并应用。")
+                if (mappings.isNotEmpty()) Text("字母映射：${mappings.joinToString("、")}。在「自定义键盘」选择布局后可查看映射。")
                 OutlinedButton(onClick = {
                     scope.launch {
                         busy = true

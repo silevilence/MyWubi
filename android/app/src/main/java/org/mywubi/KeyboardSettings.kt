@@ -12,7 +12,7 @@ import org.json.JSONArray
 import org.json.JSONObject
 
 @Composable
-internal fun KeyboardManagement(model: SettingsModel, config: JSONObject) {
+internal fun KeyboardManagement(model: SettingsModel, config: JSONObject, libraryRevision: Int) {
     val context=LocalContext.current
     val scope=rememberCoroutineScope()
     var mappings by remember { mutableStateOf(JSONArray()) }
@@ -31,7 +31,7 @@ internal fun KeyboardManagement(model: SettingsModel, config: JSONObject) {
         message=if(value.optJSONObject("choice")==null) "当前使用内置全键布局" else "已保存自定义组合；输入未结束时等待生效"
     }
     LaunchedEffect(config.getJSONObject("skins").toString()) { preview=null }
-    LaunchedEffect(mode) { runCatching { list() }.onFailure { message="读取失败：${it.message}" } }
+    LaunchedEffect(mode, libraryRevision) { runCatching { list() }.onFailure { message="读取失败：${it.message}" } }
     HorizontalDivider()
     Text("自定义键盘",style=MaterialTheme.typography.titleMedium)
     Row { for((value,label) in listOf("Main" to "形码","Pinyin" to "拼音","English" to "英文")) {

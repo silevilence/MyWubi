@@ -57,7 +57,7 @@ fn describe(package: &Package, platform: &str) -> Value {
                 } else {
                     Err(Error::Invalid(state.reasons.join("；")))
                 };
-                components.push(json!({"id":component.id,"enabled":resolution.is_ok(),"reason":resolution.err().map(|e|e.to_string())}));
+                components.push(json!({"id":component.id,"kind":component.kind,"enabled":resolution.is_ok(),"reason":resolution.err().map(|e|e.to_string())}));
             }
         }
         Err(e) => reason = Some(e.to_string()),

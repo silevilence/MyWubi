@@ -7,6 +7,33 @@ import org.junit.Test
 import java.io.File
 
 class KeyboardPackageTest {
+    @Test fun bundleImportExplainsHowToFindTheSkinAndPreservesTheLibrary() {
+        val instrumentation = InstrumentationRegistry.getInstrumentation()
+        val root = java.nio.file.Files.createTempDirectory(instrumentation.targetContext.cacheDir.toPath(), "skin-import-").toFile()
+        try {
+            val config = File(root, "config.toml").apply { writeText("") }
+            val skin = instrumentation.context.assets.open("skins/editor-jade.mywubi-skin").use { it.readBytes() }
+            fun importFile(bytes: ByteArray) = bytes.inputStream().use { importSkinDocument(config, root, it) }
+            val item = importFile(skin).getJSONObject("item")
+            assertEquals("appearance", item.getJSONArray("components").getJSONObject(0).getString("kind"))
+            val output = java.io.ByteArrayOutputStream()
+            java.util.zip.ZipOutputStream(output).use { zip ->
+                zip.putNextEntry(java.util.zip.ZipEntry("下载/测试.mywubi-skin"))
+                zip.write(skin)
+            }
+            val nested = assertThrows(IllegalArgumentException::class.java) { importFile(output.toByteArray()) }
+            assertTrue(nested.message.orEmpty().contains("先解压"))
+            val large = File(root, "large.zip")
+            java.io.RandomAccessFile(large, "rw").use { it.setLength(64L * 1024 * 1024 + 1) }
+            val oversized = assertThrows(IllegalArgumentException::class.java) {
+                large.inputStream().use { importSkinDocument(config, root, it) }
+            }
+            assertTrue(oversized.message.orEmpty().contains("64 MiB"))
+            assertTrue(importFile(skin).getBoolean("already_present"))
+            assertTrue(root.listFiles().orEmpty().none { it.name.startsWith("skin-import-") })
+        } finally { root.deleteRecursively() }
+    }
+
     /** Optional artifact from an actual Windows editor session, supplied without downloading. */
     @Test fun windowsEditorArtifactPreservesEveryEntryAcrossAndroidExport() {
         val source=InstrumentationRegistry.getArguments().getString("keyboard_package")
