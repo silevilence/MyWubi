@@ -13,54 +13,17 @@ class SkinSettingsUiTest {
     private val instrumentation=InstrumentationRegistry.getInstrumentation()
     private val context=instrumentation.targetContext
     private val device=UiDevice.getInstance(instrumentation)
-    private fun text(label:String, description:Boolean=false):UiObject2 {
-        val selector=if(description) By.desc(label) else By.text(label)
-        instrumentation.uiAutomation.clearCache()
-        device.findObject(selector)?.let {return it}
-        fun scroll(forward:Boolean):Boolean {
-            instrumentation.uiAutomation.clearCache()
-            val root=instrumentation.uiAutomation.rootInActiveWindow ?: return false
-            val queue=java.util.ArrayDeque(listOf(root))
-            while(queue.isNotEmpty()) {
-                val n=queue.removeFirst()
-                if(n.packageName==context.packageName && n.contentDescription=="设置内容" && n.isScrollable) {
-                    val action=if(forward)android.view.accessibility.AccessibilityNodeInfo.ACTION_SCROLL_FORWARD
-                        else android.view.accessibility.AccessibilityNodeInfo.ACTION_SCROLL_BACKWARD
-                    return n.performAction(action)
-                }
-                for(i in 0 until n.childCount)n.getChild(i)?.let(queue::add)
-            }
-            return false
+    private fun text(label: String, description: Boolean = false): UiObject2 {
+        val selector = if (description) By.desc(label) else By.text(label)
+        return try {
+            findSettingsControl(device, selector)
+        } catch (failure: IllegalStateException) {
+            device.dumpWindowHierarchy(File(context.filesDir, "skin-control-failure.xml"))
+            throw failure
         }
-        for(forward in listOf(false,true)) {
-            for(step in 0..45) {
-                instrumentation.uiAutomation.clearCache()
-                device.findObject(selector)?.let { return it }
-                if(!scroll(forward))break
-                android.os.SystemClock.sleep(180)
-            }
-        }
-        error("Missing $label")
     }
-    private fun clickReady(label:String, description:Boolean=false) {
-        text(label,description)
-        val target=if(description) By.desc(label) else By.text(label)
-        val deadline=android.os.SystemClock.uptimeMillis()+10000
-        while(android.os.SystemClock.uptimeMillis()<deadline) {
-            device.waitForIdle()
-            instrumentation.uiAutomation.clearCache()
-            val button=device.findObject(target)?.actionNode()
-            if(button!=null && button.isEnabled && button.visibleBounds.height() >= 40*context.resources.displayMetrics.density) {
-                button.click();device.waitForIdle();instrumentation.uiAutomation.clearCache()
-                return
-            }
-            if(button!=null && button.visibleBounds.height() < 40*context.resources.displayMetrics.density) {
-                val bounds=device.findObject(By.desc("设置内容"))?.visibleBounds ?: error("Missing settings viewport")
-                device.swipe(bounds.left+bounds.width()/8,bounds.bottom-20,bounds.left+bounds.width()/8,bounds.centerY(),20)
-            } else android.os.SystemClock.sleep(100)
-        }
-        error("Control stayed unavailable: $label")
-    }
+    private fun clickReady(label: String, description: Boolean = false) = clickSetting(device, label, description)
+
     @get:org.junit.Rule val evidence=object:org.junit.rules.TestWatcher() {
         override fun failed(error:Throwable,description:org.junit.runner.Description) {
             device.takeScreenshot(File(context.filesDir,"skin-settings-failure.png"))
@@ -68,7 +31,7 @@ class SkinSettingsUiTest {
         }
     }
 
-    @Test fun safImportNativePreviewDraftSaveAndSystemShare() {
+    @Test fun importPreviewSwitchShareAndDeleteFromLibrary() {
         val store=EngineStore(context)
         val original=store.readConfig()
         NativeHandle(original.getLong("version")).close()
@@ -86,18 +49,45 @@ class SkinSettingsUiTest {
         packageInput.use {input -> context.contentResolver.openOutputStream(uri)!!.use {input.copyTo(it)} }
         try {
             // A repeated run may start with this package already selected. Establish a
-            // different preference so selection must create a real unsaved draft.
+            // different preference so enabling a skin must persist a real change.
             val baseline=org.json.JSONObject(original.getJSONObject("config").toString())
             baseline.getJSONObject("skins").getJSONObject("android").put("preset","legacy").remove("selection")
             val current=store.readConfig()
             NativeHandle(current.getLong("version")).use {NativeHandle(store.saveConfig(baseline,it.value).getLong("version")).close()}
+            val otherVersion = System.nanoTime().toString()
+            val skinBytes = java.io.ByteArrayOutputStream()
+            instrumentation.context.assets.open("skins/editor-bamboo.mywubi-skin").use { source ->
+                java.util.zip.ZipInputStream(source).use { input ->
+                    java.util.zip.ZipOutputStream(skinBytes).use { output ->
+                        while (true) {
+                            val entry = input.nextEntry ?: break
+                            output.putNextEntry(java.util.zip.ZipEntry(entry.name))
+                            val bytes = input.readBytes()
+                            if (entry.name == "metadata.toml") {
+                                output.write(bytes.toString(Charsets.UTF_8).replace("version = \"1\"", "version = \"$otherVersion\"").toByteArray())
+                            } else output.write(bytes)
+                            output.closeEntry()
+                        }
+                    }
+                }
+            }
+            val bambooItem = skinBytes.toByteArray().inputStream().use { importSkinDocument(store.configFile, context.cacheDir, it) }.getJSONObject("item")
+            assertEquals(otherVersion, bambooItem.getString("version"))
+            val bamboo = "竹纸 · $otherVersion"
+            val args = InstrumentationRegistry.getArguments()
+            val skinId = args.getString("skin_id") ?: "mywubi.jade.copy"
+            val firstSkin = args.getString("skin_title") ?: "jade 自定义副本 · 1"
+            fun savedSkin(): org.json.JSONObject {
+                val result = store.readConfig()
+                NativeHandle(result.getLong("version")).close()
+                return result.getJSONObject("config").getJSONObject("skins").getJSONObject("android")
+            }
             ActivityScenario.launch(MainActivity::class.java).use { scenario ->
                 text("皮肤").click()
-                val importButton=text("从文件导入皮肤包")
-                device.waitForIdle()
+                text("导入皮肤")
                 device.takeScreenshot(File(context.filesDir,"skin-before-picker.png"))
-                importButton.click()
-                val opened=device.wait(Until.hasObject(By.pkg(java.util.regex.Pattern.compile("com(?:[.]google)?[.]android[.]documentsui"))),10000)
+                clickReady("导入皮肤")
+                val opened=device.wait(Until.hasObject(By.pkg(java.util.regex.Pattern.compile("com(?:[.]google)?[.]android[.]documentsui"))),30000)
                 if(!opened) {
                     device.takeScreenshot(File(context.filesDir,"skin-picker-not-open.png"))
                     device.dumpWindowHierarchy(File(context.filesDir,"skin-picker-not-open.xml"))
@@ -122,34 +112,48 @@ class SkinSettingsUiTest {
                 // MediaStore may append the MIME extension to the supplied display name.
                 device.wait(Until.findObject(By.textStartsWith(name)),10000)?.click() ?: error("SAF fixture not listed")
                 device.waitForIdle()
-                clickReady("选用皮肤 jade 自定义副本，组件 jade",true)
-                device.takeScreenshot(File(context.filesDir,"skin-selected-component.png"))
-                device.dumpWindowHierarchy(File(context.filesDir,"skin-selected-component.xml"))
+                clickReady("预览「$firstSkin」", true)
+                text("q", true); text("空格", true)
+                device.takeScreenshot(File(context.filesDir,"skin-library-preview.png"))
+                assertFalse(savedSkin().has("selection") && !savedSkin().isNull("selection"))
+                clickReady("关闭预览")
+                clickReady("启用「$firstSkin」", true)
+                text("正在使用「$firstSkin」", true)
+                device.takeScreenshot(File(context.filesDir,"skin-library.png"))
+                assertEquals(skinId, savedSkin().getJSONObject("selection").getString("id"))
+                // A display draft must survive switching without being saved implicitly.
+                val diskMode = savedSkin().getString("mode")
+                val draftMode = if (diskMode == "dark") "light" else "dark"
                 scenario.onActivity {
-                    val model=androidx.lifecycle.ViewModelProvider(it)[SettingsModel::class.java]
-                    File(context.filesDir,"skin-selected-state.json").writeText(org.json.JSONObject()
-                        .put("dirty",model.dirty).put("skin",model.config?.getJSONObject("skins")?.getJSONObject("android")).toString())
-                    assertTrue("Selecting the imported component must create a draft",model.dirty)
+                    val model = androidx.lifecycle.ViewModelProvider(it)[SettingsModel::class.java]
+                    val skin = org.json.JSONObject(model.config!!.getJSONObject("skins").getJSONObject("android").toString())
+                    model.change("skins", "android", skin.put("mode", draftMode))
                 }
-                text("有未保存更改 · 草稿会保留")
-                clickReady("预览当前草稿");text("Android 原生键盘预览")
-                text("q",true);text("空格",true)
-                scenario.recreate();text("皮肤").click();text("预览当前草稿")
-                assertTrue(text("草稿选择：mywubi.jade.copy @ 1 / jade").isEnabled)
-                // Save validates the selected package before any persistent activation.
-                text("保存设置").click()
-                val end=android.os.SystemClock.uptimeMillis()+10000
-                var selected=false
-                do {
-                    val read=store.readConfig();NativeHandle(read.getLong("version")).close()
-                    selected=read.getJSONObject("config").getJSONObject("skins").getJSONObject("android")
-                        .optJSONObject("selection")?.optString("id")=="mywubi.jade.copy"
-                    if(!selected) android.os.SystemClock.sleep(100)
-                } while(!selected && android.os.SystemClock.uptimeMillis()<end)
-                assertTrue("Selection was not saved",selected)
+                clickReady("启用「$bamboo」", true); text("正在使用「$bamboo」", true)
+                assertEquals(otherVersion, savedSkin().getJSONObject("selection").getString("version"))
+                assertEquals(diskMode, savedSkin().getString("mode"))
+                scenario.recreate()
+                text("我的皮肤")
+                text("正在使用「$bamboo」", true)
+                scenario.onActivity {
+                    val model = androidx.lifecycle.ViewModelProvider(it)[SettingsModel::class.java]
+                    assertTrue(model.dirty)
+                    assertEquals(draftMode, model.config!!.getJSONObject("skins").getJSONObject("android").getString("mode"))
+                }
+                clickReady("删除皮肤 $bamboo", true)
+                clickReady("知道了")
+                clickReady("启用「素简」", true); text("正在使用「素简」", true)
+                assertEquals("plain", savedSkin().getString("preset"))
+                assertTrue(savedSkin().isNull("selection"))
+                clickReady("启用「$firstSkin」", true); text("正在使用「$firstSkin」", true)
+                clickReady("删除皮肤 $bamboo", true); clickReady("取消")
+                clickReady("删除皮肤 $bamboo", true); clickReady("确认删除")
+                text("已删除「$bamboo」。")
+                assertFalse(File(store.configFile.parentFile, "skins/mywubi.bamboo@$otherVersion.mywubi-skin").exists())
+                assertEquals(skinId, savedSkin().getJSONObject("selection").getString("id"))
                 val exports=File(context.cacheDir,"skin-exports")
                 val before=exports.listFiles().orEmpty().toSet()
-                clickReady("分享皮肤 jade 自定义副本 完整包",true)
+                clickReady("分享皮肤 $firstSkin",true)
                 assertTrue(device.wait(Until.hasObject(By.text("分享完整皮肤包")),10000) ||
                     device.hasObject(By.res("android","chooser_header")) ||
                     device.executeShellCommand("dumpsys activity activities").lineSequence().filter { it.contains("mResumedActivity") || it.contains("topResumedActivity") }

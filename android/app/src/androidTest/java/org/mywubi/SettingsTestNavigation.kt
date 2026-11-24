@@ -41,6 +41,9 @@ internal fun selectSettingsTab(device: UiDevice, label: String) {
                             (label == "特殊输入" && (device.hasObject(By.desc("特殊输入项目列表")) ||
                                 device.hasObject(By.desc("特殊输入项目详情")))) ||
                             (label == "常用" && device.hasObject(By.text("输入习惯"))) ||
+                            (label == "键盘" && device.hasObject(By.text("手机键盘"))) ||
+                            (label == "皮肤" && device.hasObject(By.text("我的皮肤"))) ||
+                            (label == "码表" && device.hasObject(By.textStartsWith("当前码表："))) ||
                             (label == "预测" && device.hasObject(By.text("字词预测")))) return
                         android.os.SystemClock.sleep(60)
                     }

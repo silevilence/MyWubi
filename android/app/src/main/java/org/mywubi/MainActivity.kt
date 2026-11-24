@@ -196,9 +196,6 @@ private fun SettingsScreen(model: SettingsModel, enable: () -> Unit, choose: () 
                 Text("轻点删除一个字；长按连续删除；长按后向上滑，看到「松手清空」再松手，可清空当前输入框。滑回按键可取消清空。")
             }
             if (section == 5) {
-                Text("皮肤与布局", style = MaterialTheme.typography.titleLarge)
-                Text("选择外观、导入皮肤包和配置键盘布局。外观修改后点击底部「保存设置」。",
-                    style = MaterialTheme.typography.bodySmall)
                 if (config == null) Text("正在读取设置…") else SkinPreferences(model, config)
             }
             Spacer(Modifier.height(24.dp))
@@ -214,21 +211,17 @@ private fun SkinPreferences(model: SettingsModel, config: JSONObject) {
     val preference = skins.optJSONObject("android") ?: JSONObject()
     fun update(key: String, value: Any) {
         val copy = JSONObject(preference.toString()).put(key, value)
-        if (key == "preset") copy.remove("selection")
         model.change("skins", "android", copy)
     }
-    Text("键盘皮肤", style = MaterialTheme.typography.titleMedium)
-    val presets = listOf("保留旧外观" to "legacy", "墨绿" to "jade", "素简" to "plain", "高对比" to "contrast")
-    val preset = preference.optString("preset", "legacy")
-    TableChoice("皮肤方案", presets.firstOrNull { it.second == preset }?.first ?: preset, presets, !model.busy) { update("preset", it) }
+    var libraryRevision by remember { mutableIntStateOf(0) }
+    SkinManagement(model, config, onLibraryChange = { libraryRevision++ })
+    HorizontalDivider()
+    Text("显示设置", style = MaterialTheme.typography.titleMedium)
     val modes = listOf("跟随系统" to "system", "浅色" to "light", "深色" to "dark")
     val mode = preference.optString("mode", "system")
     TableChoice("明暗模式", modes.firstOrNull { it.second == mode }?.first ?: mode, modes, !model.busy) { update("mode", it) }
     SettingToggle("采用皮肤推荐字号", preference.optBoolean("use_skin_metrics"), !model.busy) { update("use_skin_metrics", it) }
-    Text("保存后应用；换肤保留输入习惯、键位和手势。", style = MaterialTheme.typography.bodySmall)
-    var libraryRevision by remember { mutableIntStateOf(0) }
     KeyboardManagement(model, config, libraryRevision)
-    SkinManagement(model, config, onImport = { libraryRevision++ })
 }
 
 @Composable

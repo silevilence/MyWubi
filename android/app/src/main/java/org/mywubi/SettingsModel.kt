@@ -29,6 +29,7 @@ class SettingsModel(application: Application) : AndroidViewModel(application) {
     private var closed = false
     var config by mutableStateOf<JSONObject?>(null); private set
     var dirty by mutableStateOf(false); private set
+    var savedAndroidSkin by mutableStateOf<JSONObject?>(null); private set
     var busy by mutableStateOf(false); private set
     var message by mutableStateOf(""); private set
     var pack by mutableStateOf<EngineStore.ImportSet?>(null); private set
@@ -301,6 +302,7 @@ class SettingsModel(application: Application) : AndroidViewModel(application) {
         val publish: () -> Unit = {
             expected?.close(); expected = version
             baseline = saved?.optString("baseline") ?: disk
+            savedAndroidSkin = loaded.getJSONObject("config").getJSONObject("skins").getJSONObject("android")
             config = restored; dirty = saved != null; pack = imported
             tables = available
             expressionResources = expressions.getOrDefault(emptyMap())
@@ -321,6 +323,28 @@ class SettingsModel(application: Application) : AndroidViewModel(application) {
         config = copy; dirty = true
         shortcutError = null
         persistDraft()
+    }
+
+    internal fun enableSkin(option: SkinOption) {
+        val version = expected ?: return
+        work {
+            check(baseline == fingerprint()) { "磁盘设置已变更，请重新载入后再启用皮肤。" }
+            val disk = store.readConfig()
+            val result = NativeHandle(disk.getLong("version")).use {
+                store.activateConfig(option.inConfig(disk.getJSONObject("config")), version.value)
+            }
+            val next = NativeHandle(result.getLong("version"))
+            val saved = result.getJSONObject("config")
+            val hash = fingerprint()
+            val publish: () -> Unit = {
+                expected?.close(); expected = next; baseline = hash
+                savedAndroidSkin = saved.getJSONObject("skins").getJSONObject("android")
+                config = if (dirty) option.inConfig(checkNotNull(config)) else saved
+                if (dirty) persistDraft()
+                message = "已启用「${option.name}」"
+            }
+            publish
+        }
     }
 
     private fun persistDraft() {
@@ -358,7 +382,10 @@ class SettingsModel(application: Application) : AndroidViewModel(application) {
             val disk = fingerprint()
             val publish: () -> Unit = {
                 expected?.close(); expected = next; baseline = disk
-                result.optJSONObject("config")?.let { config = JSONObject(it.toString()) }
+                result.optJSONObject("config")?.let {
+                    config = JSONObject(it.toString())
+                    savedAndroidSkin = it.getJSONObject("skins").getJSONObject("android")
+                }
                 dirty = false; pack = null; draftFile.delete()
                 message = "已保存；输入法启动或重载后应用"
             }

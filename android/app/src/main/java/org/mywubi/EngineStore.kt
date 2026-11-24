@@ -9,6 +9,12 @@ import java.util.UUID
 
 /** Private import generations; selecting a table uses one atomic config replacement. */
 class EngineStore(private val context: Context) {
+    private companion object { val skinFiles = Any() }
+
+    internal fun deleteSkin(id: String, version: String) = synchronized(skinFiles) {
+        NativeBridge.objectCall("ManageSkin", "request" to JSONObject().put("action", "Delete")
+            .put("path", configFile.path).put("id", id).put("version", version))
+    }
     val configFile get() = Resources.prepare(context)
 
     fun readConfig() = NativeBridge.objectCall("ReadConfig", "path" to configFile.path)
@@ -93,7 +99,10 @@ class EngineStore(private val context: Context) {
         }
     }
 
-    fun activateConfig(config: JSONObject, expected: Long, checkpoint: (String) -> Unit = {}): JSONObject {
+    fun activateConfig(config: JSONObject, expected: Long, checkpoint: (String) -> Unit = {}): JSONObject =
+        synchronized(skinFiles) { activateChecked(config, expected, checkpoint) }
+
+    private fun activateChecked(config: JSONObject, expected: Long, checkpoint: (String) -> Unit): JSONObject {
         loadSkinAppearance(configFile, config)
         val previous = readConfig()
         NativeHandle(previous.getLong("version")).use {

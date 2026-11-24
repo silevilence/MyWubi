@@ -18,10 +18,10 @@ class SettingsNavigationTest {
             ActivityScenario.launch(MainActivity::class.java).use { scenario ->
                 find(By.text("键盘")).click()
                 find(By.text("手机键盘"))
-                assertFalse(device.hasObject(By.text("皮肤方案")))
+                assertFalse(device.hasObject(By.text("导入皮肤")))
                 find(By.text("皮肤")).click()
-                find(By.text("皮肤与布局"))
-                find(By.text("皮肤方案"))
+                find(By.text("我的皮肤"))
+                find(By.text("导入皮肤"))
                 scenario.onActivity {
                     val model=ViewModelProvider(it)[SettingsModel::class.java]
                     val preference=org.json.JSONObject(model.config!!.getJSONObject("skins").getJSONObject("android").toString())
@@ -33,7 +33,7 @@ class SettingsNavigationTest {
                 find(By.text("手机键盘"))
                 find(By.text("皮肤")).click()
                 scenario.recreate()
-                find(By.text("皮肤与布局"))
+                find(By.text("我的皮肤"))
                 find(By.text("有未保存更改 · 草稿会保留"))
                 device.takeScreenshot(java.io.File(ins.targetContext.filesDir,"settings-skin-page.png"))
                 device.dumpWindowHierarchy(java.io.File(ins.targetContext.filesDir,"settings-skin-page.xml"))

@@ -71,3 +71,62 @@ fn windows_only_is_importable_but_cannot_be_selected_on_android() {
         .unwrap()
         .contains("android"));
 }
+
+#[test]
+fn delete_protects_active_skin_and_keyboard_then_removes_only_the_selected_version() {
+    use core_engine::skin::{combination::Choice, runtime::store_path};
+    use core_engine::Config;
+    use std::fs;
+
+    let dir = tempfile::tempdir().unwrap();
+    let path = dir.path().join("config.toml");
+    let library = store_path(&path);
+    fs::create_dir_all(&library).unwrap();
+    let selected = Selection {
+        id: "test.skin".into(),
+        version: "1".into(),
+        component: "appearance".into(),
+    };
+    let target = library.join("test.skin@1.mywubi-skin");
+    let neighbor = library.join("test.skin@2.mywubi-skin");
+    fs::write(&target, b"first").unwrap();
+    fs::write(&neighbor, b"second").unwrap();
+    let catalog = execute(Request::List {
+        path: path.clone(),
+        platform: "android".into(),
+    })
+    .unwrap();
+    assert_eq!(catalog["items"][0]["unreadable"], true);
+    assert_eq!(catalog["items"][0]["id"], selected.id);
+    assert_eq!(catalog["items"][0]["version"], selected.version);
+    let remove = || {
+        execute(Request::Delete {
+            path: path.clone(),
+            id: selected.id.clone(),
+            version: selected.version.clone(),
+        })
+    };
+    let mut config = Config::default();
+    config.skins.android.selection = Some(selected.clone());
+    fs::write(&path, config.to_string_toml().unwrap()).unwrap();
+    assert!(remove().unwrap_err().to_string().contains("正在使用"));
+    config.skins.android.selection = None;
+    fs::write(&path, config.to_string_toml().unwrap()).unwrap();
+    let receipt = path.with_file_name("keyboard-selection-English.json");
+    let choice = Choice {
+        layout: selected.clone(),
+        appearance: Default::default(),
+        mapping: None,
+    };
+    fs::write(
+        &receipt,
+        serde_json::json!({"active":choice, "digest":"test", "previous":null}).to_string(),
+    )
+    .unwrap();
+    assert!(remove().unwrap_err().to_string().contains("英文"));
+    assert!(target.is_file());
+    fs::remove_file(receipt).unwrap();
+    assert_eq!(remove().unwrap()["deleted"], true);
+    assert!(!target.exists());
+    assert_eq!(fs::read(neighbor).unwrap(), b"second");
+}

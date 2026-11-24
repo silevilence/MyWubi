@@ -367,7 +367,7 @@ pub fn restore(path: &Path, mode: Mode, charset: &str) -> Result<Snapshot, Error
 pub fn current_choice(path: &Path) -> Result<Option<Choice>, Error> {
     current_choice_mode(path, &Mode::Main)
 }
-fn current_choice_mode(path: &Path, mode: &Mode) -> Result<Option<Choice>, Error> {
+pub(super) fn current_choice_mode(path: &Path, mode: &Mode) -> Result<Option<Choice>, Error> {
     match std::fs::read(selection_path(path, mode)) {
         Ok(bytes) => Ok(serde_json::from_slice::<Receipt>(&bytes)
             .map_err(|e| Error::Invalid(e.to_string()))?
@@ -430,6 +430,9 @@ pub enum Request {
         path: std::path::PathBuf,
     },
 }
+// A layout must still exist when its receipt is published or a skin is removed.
+pub(super) static LIBRARY_WRITE: parking_lot::Mutex<()> = parking_lot::Mutex::new(());
+
 pub fn execute(request: Request) -> Result<serde_json::Value, Error> {
     use serde_json::json;
     match request {
@@ -454,6 +457,7 @@ pub fn execute(request: Request) -> Result<serde_json::Value, Error> {
             charset,
             digest,
         } => {
+            let _guard = LIBRARY_WRITE.lock();
             let snapshot = resolve(&path, &choice, mode.clone(), &charset)?;
             if snapshot.digest != digest {
                 return Err(Error::Invalid("待应用组合已变化，请重新预览".into()));
