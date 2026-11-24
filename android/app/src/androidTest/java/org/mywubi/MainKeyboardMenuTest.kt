@@ -87,7 +87,7 @@ class MainKeyboardMenuTest {
             device.waitForIdle(); ins.uiAutomation.clearCache()
             assertFalse(node("切换形码键盘").isEnabled)
             scenario.onActivity { model=model.copy(switchingKeyboard=false) }
-            for (next in listOf(model.copy(mainKeyboards=options.take(1)), model.copy(base="English"),
+            for (next in listOf(model.copy(mainKeyboards=emptyList(), mainKeyboardSelection=null), model.copy(base="English"),
                 model.copy(temporary="Pinyin"), model.copy(privateInput=true), model.copy(layout="number"),
                 model.copy(spelling="g"))) {
                 scenario.onActivity { model=next }
@@ -95,6 +95,14 @@ class MainKeyboardMenuTest {
                 device.waitForIdle(); ins.uiAutomation.clearCache()
                 assertFalse(device.hasObject(By.desc("切换形码键盘")))
             }
+            scenario.onActivity {
+                model=KeyboardModel(enabled=true, modesAvailable=true,
+                    mainKeyboards=options.take(1), mainKeyboardSelection=options.first().selection)
+            }
+            node("切换形码键盘").click()
+            requireNotNull(device.wait(Until.findObject(By.text("原始全键盘")),5000)).click()
+            ins.waitForIdleSync()
+            assertEquals("RestoreKeyboard",events.last())
             scenario.onActivity { model=KeyboardModel(enabled=true,modesAvailable=true,mainKeyboards=options) }
             node("切换形码键盘").click()
             node("形码键盘布局列表")

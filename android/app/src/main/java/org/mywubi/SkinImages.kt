@@ -69,9 +69,9 @@ internal fun decodeSkinImages(variant: JSONObject, bitmaps: MutableMap<String,Bi
                 }
                 "nine_slice"->{
                     val (l,t,r,b)=image.slice
-                    val sx=minOf(density,size.width/(l+r).coerceAtLeast(1));val sy=minOf(density,size.height/(t+b).coerceAtLeast(1))
+                    val scale=minOf(density,size.width/(l+r).coerceAtLeast(1),size.height/(t+b).coerceAtLeast(1))
                     val xs=intArrayOf(0,l,sw-r,sw);val ys=intArrayOf(0,t,sh-b,sh)
-                    val dx=floatArrayOf(0f,l*sx,size.width-r*sx,size.width);val dy=floatArrayOf(0f,t*sy,size.height-b*sy,size.height)
+                    val dx=floatArrayOf(0f,l*scale,size.width-r*scale,size.width);val dy=floatArrayOf(0f,t*scale,size.height-b*scale,size.height)
                     for(y in 0..2) for(x in 0..2) part(xs[x],ys[y],xs[x+1],ys[y+1],dx[x],dy[y],dx[x+1],dy[y+1])
                 }
             }

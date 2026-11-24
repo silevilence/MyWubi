@@ -105,13 +105,13 @@ opacity = 1.0
 
 `images` 位于外观组件文件，变体必须有同名参数变体。缺少角色时使用该角色的参数背景；
 缺少图片变体不会借用另一变体的图片。Windows 支持 background、selected；Android 另支持
-candidate、key、function、pressed、disabled、bubble。它们是语义角色，不包含固定键位底图或输入动作。
+candidate、key、space（空格键，缺省沿用 key）、function、pressed、disabled、bubble。它们是语义角色，不包含固定键位底图或输入动作。
 `shared:id` 查根资源表，`platform:id` 查当前平台资源表，不允许同名遮蔽或另一平台私有引用。
 
 `slice` 按左、上、右、下指定源图片像素，仅 nine_slice 可非零；左右/上下之和须小于图片对应边长。
 九宫格四角按 DIP/dp 缩放，边伸缩，中间伸缩；目标过小时等比收缩相对两边，不重叠。
 `stretch` 整图拉伸；`tile` 按源像素对应 DIP/dp 重复并裁切末端，纹理至少 8×8。
-`content` 是四边最小内容留白（0～64 DIP/dp），文字仍由原生组件绘制；它不扩大点击区域。
+`content` 是四边最小内容留白（Windows 背景每边 0～192 DIP，其他角色每边 0～64 DIP/dp），文字仍由原生组件绘制；它不扩大点击区域。
 `opacity` 为 0～1，先与图片 alpha 相乘，再按预乘 alpha 合成。高对比模式禁用图片。
 
 单图 1～2048 像素；一个平台两变体引用的不同图片按 RGBA 合计最多 32 MiB，重复引用只计一次。

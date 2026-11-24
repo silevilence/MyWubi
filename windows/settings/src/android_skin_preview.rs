@@ -198,6 +198,8 @@ fn draw_row(
             egui::pos2(x + gap + (key_width + gap) * index as f32, y),
             egui::vec2(key_width, height),
         );
+        let space = key == "空格";
+        let function = function && !space;
         let down = pressed && index == keys.len() / 2;
         let background = if down {
             "pressed_background"
@@ -228,6 +230,8 @@ fn draw_row(
                 "disabled"
             } else if down {
                 "pressed"
+            } else if space && images.contains_key("space") {
+                "space"
             } else if function {
                 "function"
             } else {

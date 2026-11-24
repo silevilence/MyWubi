@@ -372,12 +372,22 @@ class MyWubiService : InputMethodService() {
             return
         }
         if(action == "RestoreKeyboard") {
-            dispatch("Cancel")
-            val resetMode=activeKeyboardMode
+            if (switchingKeyboard || state.optJSONObject("view")?.optString("spelling").orEmpty().isNotEmpty()) return
+            val resetMode = activeKeyboardMode
+            switchingKeyboard = true
+            render()
             loader.execute {
-                val result=runCatching { NativeBridge.objectCall("ManageKeyboard","request" to keyboardRequest(Resources.prepare(this),"Reset").put("mode",resetMode)) }
-                main.post { result.onSuccess { keyboardModes[resetMode]=null;pendingCombination=null;hasPendingCombination=true;refresh() }
-                    .onFailure {error="恢复失败：${it.message}";render()} }
+                val result = runCatching { NativeBridge.objectCall("ManageKeyboard", "request" to
+                    keyboardRequest(Resources.prepare(this), "Reset").put("mode", resetMode)) }
+                main.post {
+                    if (!destroyed) {
+                        result.onSuccess { EngineUpdates.request(this) }.onFailure {
+                            switchingKeyboard = false
+                            error = "恢复失败：${it.message}"
+                            render()
+                        }
+                    }
+                }
             }
             return
         }

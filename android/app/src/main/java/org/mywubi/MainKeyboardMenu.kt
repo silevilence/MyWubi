@@ -12,14 +12,21 @@ import androidx.compose.ui.semantics.selected
 import androidx.compose.ui.unit.dp
 
 @Composable
-internal fun MainKeyboardMenu(model: KeyboardModel, expanded: Boolean, dismiss: () -> Unit,
+internal fun MainKeyboardMenu(model: KeyboardModel, expanded: Boolean, mainMode: Boolean,
+                              dismiss: () -> Unit, restore: () -> Unit,
                               choose: (KeyboardSelection) -> Unit) {
     DropdownMenu(expanded = expanded, onDismissRequest = dismiss, modifier = Modifier.widthIn(max = 304.dp)) {
         Column(Modifier.heightIn(max = 288.dp).verticalScroll(rememberScrollState())
             .semantics { contentDescription = "形码键盘布局列表" }) {
-            Text("切换形码键盘", Modifier.padding(horizontal = 16.dp, vertical = 8.dp),
+            Text(if (mainMode) "切换形码键盘" else "切换键盘布局", Modifier.padding(horizontal = 16.dp, vertical = 8.dp),
                 style = MaterialTheme.typography.labelLarge)
-            for (option in model.mainKeyboards) {
+            val builtin = model.customLayout == null && (!mainMode || model.mainKeyboardSelection == null)
+            DropdownMenuItem(
+                text = { Text(if (builtin) "原始全键盘（当前）" else "原始全键盘") },
+                enabled = model.enabled && !model.switchingKeyboard,
+                modifier = Modifier.semantics { selected = builtin },
+                onClick = { dismiss(); if (!builtin) restore() })
+            if (mainMode) for (option in model.mainKeyboards) {
                 val active = model.mainKeyboardSelection == option.selection
                 DropdownMenuItem(
                     text = { Column {

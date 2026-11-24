@@ -7,6 +7,10 @@ data class LayoutKey(val id: String, val label: String, val x: Float, val y: Flo
     val role: String = "key", val alternate: String? = null,
     val directions: Map<Int,LayoutAction> = emptyMap(),val hold: LayoutAction? = null)
 data class KeyboardLayout(val id: String, val width: Float, val height: Float, val keys: List<LayoutKey>) {
+    val isNineKeyGrid: Boolean
+        get() = width == 3f && height == 3f && keys.size == 9 &&
+            keys.all { it.width == 1f && it.height == 1f && it.x % 1f == 0f && it.y % 1f == 0f }
+
     companion object {
         /** Call on the loader thread. Only the shared validator can admit package geometry. */
         fun validated(id: String, source: org.json.JSONObject, mapping: org.json.JSONObject?, landscape: Boolean): KeyboardLayout {

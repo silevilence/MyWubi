@@ -112,11 +112,7 @@ fun Keyboard(model: KeyboardModel, dispatch: (Any) -> Unit, window: (Int) -> Uni
     var panel by remember(model.epoch, model.layout) {
         mutableStateOf(if (model.layout in listOf("number", "phone")) "numbers" else "letters")
     }
-    var useCustom by remember(model.epoch, model.customLayout?.id) { mutableStateOf(true) }
-    val groupControls = !model.privateInput && (model.groupPositions.isNotEmpty() ||
-        (useCustom && model.customLayout?.keys?.any { key ->
-            key.action.kind == "Group" || key.hold?.kind == "Group" || key.directions.values.any { it.kind == "Group" }
-        } == true))
+    val groupControls = !model.privateInput && model.groupPositions.isNotEmpty()
     var expanded by remember(model.epoch) { mutableStateOf(false) }
     var specialMenu by remember(model.epoch) { mutableStateOf(false) }
     var keyboardMenu by remember(model.epoch, model.mainKeyboards, model.base, model.temporary, panel) { mutableStateOf(false) }
@@ -242,12 +238,16 @@ fun Keyboard(model: KeyboardModel, dispatch: (Any) -> Unit, window: (Int) -> Uni
                                 val label = if (showUpdate) "设置，有可用更新" else "设置"
                                 ToolbarIconButton(R.drawable.ic_settings, label,
                                     badge={ if (showUpdate) Badge() }, action=openSettings)
-                                if (model.mainKeyboards.size > 1 && model.base == "Main" && model.temporary == null &&
+                                val mainMode = model.base == "Main" && model.temporary == null
+                                if (((mainMode && model.mainKeyboards.isNotEmpty()) || model.customLayout != null) &&
                                     model.modesAvailable && !model.privateInput && model.layout == "letters" && panel == "letters") Box {
-                                    ToolbarIconButton(R.drawable.ic_keyboard_layout, "切换形码键盘",
+                                    val menuLabel = if (mainMode) "切换形码键盘" else "切换键盘布局"
+                                    ToolbarIconButton(R.drawable.ic_keyboard_layout, menuLabel,
                                         enabled=model.enabled && !model.switchingKeyboard) { keyboardMenu=true }
                                     MainKeyboardMenu(model, keyboardMenu && model.enabled && !model.switchingKeyboard,
-                                        dismiss={keyboardMenu=false}) { dispatch(SwitchMainKeyboard(it)) }
+                                        mainMode=mainMode, dismiss={keyboardMenu=false}, restore={dispatch("RestoreKeyboard")}) {
+                                        dispatch(SwitchMainKeyboard(it))
+                                    }
                                 }
                                 Box {
                                     ToolbarIconButton(R.drawable.ic_emoji, "特殊输入", enabled=baseEnabled) { specialMenu=true }
@@ -264,6 +264,7 @@ fun Keyboard(model: KeyboardModel, dispatch: (Any) -> Unit, window: (Int) -> Uni
                             }
                         }
                     }
+                    if (groupControls) GroupConstraints(model.groupPositions,model.query,model.enabled,dispatch)
                     IconButton(onClick=hideKeyboard,
                         modifier=Modifier.size(48.dp).imeAction("收起键盘", true, hideKeyboard)) {
                         Icon(androidx.compose.ui.res.painterResource(R.drawable.ic_hide_keyboard), null,
@@ -304,18 +305,14 @@ fun Keyboard(model: KeyboardModel, dispatch: (Any) -> Unit, window: (Int) -> Uni
                         modifier=Modifier.imeAction("下一组",canNext,next)) {Text("下一组", maxLines=1)}
                 }
             } else {
-                val layout = remember(panel, asciiSymbols, model.layout, model.enterLabel, model.customLayout, useCustom, model.privateInput) {
+                val layout = remember(panel, asciiSymbols, model.layout, model.enterLabel, model.customLayout, model.privateInput) {
                     when(panel) {
-                        "letters" -> model.customLayout?.takeIf { useCustom && !model.privateInput && model.layout == "letters" }
+                        "letters" -> model.customLayout?.takeIf { !model.privateInput && model.layout == "letters" }
                             ?: BuiltinKeyboardLayouts.letters()
                         "numbers" -> BuiltinKeyboardLayouts.numbers(model.layout == "phone", model.enterLabel)
                         else -> BuiltinKeyboardLayouts.symbols(asciiSymbols)
                     }
                 }
-                if(groupControls) Box(Modifier.fillMaxWidth().height(48.dp)) {
-                    if(model.groupPositions.isNotEmpty()) GroupConstraints(model.groupPositions,model.query,model.enabled,dispatch)
-                }
-                if (model.customLayout != null) TextButton(modifier=Modifier.height(48.dp),onClick={dispatch("RestoreKeyboard"); useCustom=false; panel="letters"}) { Text("取消输入并恢复全键布局") }
                 // On gesture-navigation devices the side strips may cover the first
                 // and last key centres. Protect only the typing grid, within Android's
                 // exclusion quota. The navigation band remains available below it.
@@ -357,7 +354,7 @@ fun Keyboard(model: KeyboardModel, dispatch: (Any) -> Unit, window: (Int) -> Uni
                                 "Backspace" -> "退格"
                                 "Shift" -> when(shift) { KeyMode.Off -> "小写"; KeyMode.Once -> "大写 · 本次"; KeyMode.Locked -> "大写 · 锁定" }
                                 else -> label
-                            }, function=key.role == "function",accent=key.role == "selected",
+                            }, space=key.action.kind == "Space",function=key.role == "function",accent=key.role == "selected",
                             selected=key.action.kind == "Shift" && shift != KeyMode.Off,
                             alternate=key.hold?.let(::actionName) ?: symbol,previewEnabled=!model.privateInput,
                             bindingRevision=layout, directions=if(layout.id == "builtin.26") null else key.directions.mapValues { (_,action) -> TouchChoice(actionName(action)) {perform(action)} },
@@ -382,7 +379,7 @@ fun Keyboard(model: KeyboardModel, dispatch: (Any) -> Unit, window: (Int) -> Uni
                     Key(if(asciiSymbols) "英符" else "中符",model.enabled,model.epoch,Modifier.weight(1.3f),
                         description=if(asciiSymbols) "切换为中文符号" else "切换为英文符号",function=true) {asciiSymbols=!asciiSymbols}
                 } else Key(punctuation,model.enabled,model.epoch,Modifier.weight(0.9f),previewEnabled=!model.privateInput) {input(punctuation)}
-                Key("空格",model.enabled,model.epoch,Modifier.weight(3.4f)) {dispatch("Space")}
+                Key("空格",model.enabled,model.epoch,Modifier.weight(3.4f),space=true) {dispatch("Space")}
                 Key(if(model.base=="Main" && model.layout=="letters" && !model.privateInput) "。" else ".",model.enabled,model.epoch,Modifier.weight(0.9f),previewEnabled=!model.privateInput) {
                     input(if(model.base=="Main" && model.layout=="letters" && !model.privateInput) "。" else ".")
                 }
@@ -401,16 +398,12 @@ fun Keyboard(model: KeyboardModel, dispatch: (Any) -> Unit, window: (Int) -> Uni
         val keyRows = when {
             showExpanded -> 4f
             panel == "symbols" -> 5f
-            model.customLayout != null && useCustom && panel == "letters" && !model.privateInput ->
+            model.customLayout != null && panel == "letters" && !model.privateInput ->
                 model.customLayout.height + 1f
             else -> 4f
         }
-        val auxiliaryRows = if (showExpanded) 0 else
-            (if (model.customLayout != null) 1 else 0) + (if (groupControls) 1 else 0)
-        val minimumHeight = 48.dp * (keyRows + auxiliaryRows + 1f) + bottom + 4.dp +
-            backgroundPadding.calculateTopPadding() + backgroundPadding.calculateBottomPadding()
         val heightLimit = if (landscape && configuration.screenHeightDp > 0)
-            Modifier.heightIn(max = maxOf(configuration.screenHeightDp.dp * 2 / 3, minimumHeight)) else Modifier
+            Modifier.heightIn(max = configuration.screenHeightDp.dp * 2 / 3) else Modifier
         val container=Modifier.fillMaxWidth().then(heightLimit).background(colors.surface).skinImage("background").padding(backgroundPadding)
             .windowInsetsPadding(WindowInsets.navigationBars.union(WindowInsets.displayCutout).only(WindowInsetsSides.Horizontal))
             .padding(start=3.dp, end=3.dp, top=4.dp, bottom=bottom)
@@ -430,10 +423,8 @@ fun Keyboard(model: KeyboardModel, dispatch: (Any) -> Unit, window: (Int) -> Uni
             Box(Modifier.fillMaxWidth().onGloballyPositioned { origin=it.positionInRoot(); keyboardWidth=it.size.width.toFloat() }) {
                 BoxWithConstraints(container, contentAlignment=androidx.compose.ui.Alignment.TopCenter) {
                     val rows = keyRows
-                    val customControls = 48.dp * auxiliaryRows
                     val gridExtra = if (showExpanded) expandedExtra else 0.dp
-                    // Keep candidates above every panel in either orientation. Capping the
-                    // shared width avoids stretching keys and moving controls on expansion.
+                    // The toolbar keeps its place when a keyboard panel or candidate page changes.
                     if (model.expression?.browsing == true && !model.privateInput) {
                         SpecialInputBrowser(model, dispatch, window, hideKeyboard,
                             Modifier.widthIn(max=600.dp).fillMaxWidth()
@@ -442,7 +433,7 @@ fun Keyboard(model: KeyboardModel, dispatch: (Any) -> Unit, window: (Int) -> Uni
                         // Query controls must not consume the typing area's vertical budget.
                         // On short screens the left pane scrolls; all four key rows remain visible.
                         val paneHeight=minOf(maxHeight,keyHeight*4+28.dp)
-                        val fittedHeight = minOf(keyHeight, (maxHeight-gridExtra-customControls).coerceAtLeast(0.dp) / rows)
+                        val fittedHeight = minOf(keyHeight, (maxHeight-gridExtra).coerceAtLeast(0.dp) / rows)
                         Row(Modifier.widthIn(max=1100.dp).fillMaxWidth()) {
                             Column(Modifier.weight(0.36f).height(paneHeight)
                                 .verticalScroll(rememberScrollState()).semantics { contentDescription="表情查询与操作" }) { controls() }
@@ -452,24 +443,32 @@ fun Keyboard(model: KeyboardModel, dispatch: (Any) -> Unit, window: (Int) -> Uni
                         }
                     } else {
                         val availableHeight = maxHeight
-                        val panelWidth = if (landscape) minOf(600.dp, ((availableHeight-48.dp).coerceAtLeast(0.dp)/4)*12.5f) else 600.dp
+                        val panelWidth = if (landscape) 1040.dp else 600.dp
                         Column(Modifier.widthIn(max=panelWidth).fillMaxWidth()) {
                             // Keep a 48 dp row budget before scaling text in a short window.
                             val controlScale = minOf(density.fontScale,
-                                ((availableHeight.value - rows*48f - 24f - customControls.value)/48f).coerceAtLeast(1f))
-                            CompositionLocalProvider(LocalDensity provides androidx.compose.ui.unit.Density(density.density,controlScale)) {
+                                ((availableHeight.value - rows*48f - 24f)/48f).coerceAtLeast(1f))
+                            CompositionLocalProvider(LocalDensity provides remember(density, controlScale) { androidx.compose.ui.unit.Density(density.density, controlScale) }) {
                                 controls()
                             }
                             BoxWithConstraints(if (availableHeight == androidx.compose.ui.unit.Dp.Infinity) Modifier else Modifier.weight(1f, fill=false)) {
                                 // Large fonts must not push the last key rows out of a
                                 // short window. Fit all rows into the space left by controls.
-                                val fittedHeight = minOf(keyHeight, (maxHeight-gridExtra-customControls).coerceAtLeast(0.dp) / rows)
+                                val fittedHeight = minOf(keyHeight, (maxHeight-gridExtra).coerceAtLeast(0.dp) / rows)
                                 val fittedScale = minOf(density.fontScale,
                                     ((fittedHeight.value - 16f) /
                                         ((parameters?.optDouble("key_text_size",20.0)?.toFloat() ?: 16f) + 12f)).coerceAtLeast(0.5f))
                                 CompositionLocalProvider(LocalKeyboardKeyHeight provides fittedHeight,
-                                    LocalDensity provides androidx.compose.ui.unit.Density(density.density, fittedScale)) {
-                                    Column { keys() }
+                                    LocalDensity provides remember(density, fittedScale) { androidx.compose.ui.unit.Density(density.density, fittedScale) }) {
+                                    val split = landscape && maxWidth >= 560.dp && !showExpanded &&
+                                        !model.privateInput && model.layout !in listOf("number", "phone") &&
+                                        (panel == "numbers" || (panel == "letters" && model.customLayout?.isNineKeyGrid == true))
+                                    if (split) {
+                                        Row(Modifier.fillMaxWidth(), horizontalArrangement=Arrangement.spacedBy(12.dp)) {
+                                            QuickSymbols(Modifier.weight(0.4f), asciiSymbols, model.enabled, model.epoch, ::input)
+                                            Column(Modifier.weight(0.6f)) { keys() }
+                                        }
+                                    } else Column { keys() }
                                 }
                             }
                         }
@@ -479,6 +478,23 @@ fun Keyboard(model: KeyboardModel, dispatch: (Any) -> Unit, window: (Int) -> Uni
             }
         }
     } }
+}
+
+private val chineseQuickSymbols = listOf("，。！？", "、：；…", "（）《》", "“”—～")
+private val asciiQuickSymbols = listOf(",.!?", "/:;@", "()[]", "+-*_")
+
+@Composable
+private fun QuickSymbols(modifier: Modifier, ascii: Boolean, enabled: Boolean, epoch: Long, input: (String) -> Unit) {
+    Column(modifier.semantics { contentDescription = "常用符号" }) {
+        for (row in if (ascii) asciiQuickSymbols else chineseQuickSymbols) {
+            Row(Modifier.fillMaxWidth()) {
+                for (symbol in row) {
+                    val label = symbol.toString()
+                    Key(label, enabled, epoch, Modifier.weight(1f), description="常用符号 $label") { input(label) }
+                }
+            }
+        }
+    }
 }
 
 @Composable
@@ -549,7 +565,7 @@ private fun ExpandedCandidateButton(item: CandidateItem, enabled: Boolean, showH
 
 @Composable
 private fun Key(label:String,enabled:Boolean,epoch:Long,modifier:Modifier,repeat:Boolean=false,
-                description:String=label,function:Boolean=false,accent:Boolean=false,selected:Boolean=false,
+                description:String=label,space:Boolean=false,function:Boolean=false,accent:Boolean=false,selected:Boolean=false,
                 alternate:String?=null,previewEnabled:Boolean=false,heightFactor:Float=1f,directions:Map<Int,TouchChoice>? = null,bindingRevision:Any=epoch,alternateAction:()->Unit={},clearAction:()->Unit={},action:()->Unit) {
     // The entire column is touchable. KeyTouch draws the inset keycap inside it.
     val keyModifier=modifier.height(LocalKeyboardKeyHeight.current*heightFactor)
@@ -566,7 +582,7 @@ private fun Key(label:String,enabled:Boolean,epoch:Long,modifier:Modifier,repeat
     // their column instead of letting Material expand them over adjacent keys.
     CompositionLocalProvider(LocalMinimumInteractiveComponentSize provides 0.dp, LocalViewConfiguration provides keyViewConfiguration) {
     if (!repeat) {
-        KeyTouchSurface(label,enabled,epoch,keyModifier,description,background,foreground,if(accent || selected) "selected" else if(function) "function" else "key",alternate,
+        KeyTouchSurface(label,enabled,epoch,keyModifier,description,background,foreground,if(accent || selected) "selected" else if(function) "function" else if(space && "space" in LocalSkinImages.current.roles) "space" else "key",alternate,
             previewEnabled,alternateAction,action,directions,bindingRevision) { KeyLabel(label) }
     } else {
         DeleteKeySurface(enabled, epoch, keyModifier, background, foreground, action, clearAction) { KeyLabel(label) }
@@ -603,19 +619,30 @@ internal fun Modifier.imeAction(label:String,enabled:Boolean,action:()->Unit) = 
 
 @Composable
 private fun GroupConstraints(positions: List<Pair<String,String?>>,query: String,enabled: Boolean,dispatch: (Any)->Unit) {
-    var selected by remember(query) { mutableStateOf<Int?>(null) }
-    LazyRow(Modifier.fillMaxWidth().height(48.dp)) {
-        items(positions.size) { index ->
-            val position=positions[index]
-            TextButton(enabled=enabled && position.first.length>1,onClick={selected=index}) {
-                Text("${index+1}: ${position.second ?: position.first}")
+    var open by remember(query) { mutableStateOf(false) }
+    var position by remember(query) { mutableStateOf<Int?>(null) }
+    Box {
+        TextButton(onClick={position=null; open=true}, enabled=enabled) { Text("筛选", maxLines=1) }
+        DropdownMenu(expanded=open, onDismissRequest={open=false}) {
+            val index = position
+            if (index == null) {
+                positions.forEachIndexed { i, (letters, resolved) ->
+                    DropdownMenuItem(text={Text("第 ${i+1} 位 · ${resolved ?: letters}")},
+                        enabled=letters.length > 1, onClick={position=i})
+                }
+                DropdownMenuItem(text={Text("撤回筛选")}, onClick={
+                    open=false
+                    dispatch(JSONObject().put("UndoGroupResolution",JSONObject(query)))
+                })
+                DropdownMenuItem(text={Text("取消当前输入")}, onClick={open=false; dispatch("Cancel")})
+            } else {
+                positions.getOrNull(index)?.first?.forEach { letter ->
+                    DropdownMenuItem(text={Text(letter.uppercaseChar().toString())}, onClick={
+                        open=false
+                        dispatch(JSONObject().put("ResolveGroup", JSONArray().put(JSONObject(query)).put(index).put(letter.toString())))
+                    })
+                }
             }
         }
-        item {TextButton(enabled=enabled,onClick={dispatch(JSONObject().put("UndoGroupResolution",JSONObject(query)))}) {Text("撤回筛选")}}
-        item {TextButton(enabled=enabled,onClick={dispatch("Cancel")}) {Text("取消当前输入")}}
     }
-    selected?.let {index -> AlertDialog(onDismissRequest={selected=null},title={Text("明确第 ${index+1} 位字母")},
-        text={Row {for(c in positions[index].first) TextButton(onClick={
-            dispatch(JSONObject().put("ResolveGroup",org.json.JSONArray().put(JSONObject(query)).put(index).put(c.toString())));selected=null
-        }) {Text(c.toString())}}},confirmButton={TextButton(onClick={selected=null}) {Text("取消")}}) }
 }

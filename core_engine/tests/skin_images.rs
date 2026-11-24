@@ -166,6 +166,9 @@ fn nine_slice_preserves_corners_and_never_overlaps_when_small() {
     let normal = patches(&style, [16.0; 2], [100.0, 40.0], 2.0);
     assert_eq!(normal.len(), 9);
     assert_eq!(normal[0], ([0.0, 0.0, 4.0, 4.0], [0.0, 0.0, 8.0, 8.0]));
+    // A short, wide panel must preserve a portrait embedded in its corner.
+    let short = patches(&style, [16.0; 2], [100.0, 6.0], 2.0);
+    assert_eq!(short[0].1, [0.0, 0.0, 3.0, 3.0]);
     let tiny = patches(&style, [16.0; 2], [6.0; 2], 2.0);
     assert_eq!(tiny.len(), 4);
     let area: f32 = tiny

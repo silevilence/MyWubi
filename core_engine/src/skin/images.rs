@@ -12,6 +12,7 @@ pub const ROLES: &[&str] = &[
     "selected",
     "key",
     "function",
+    "space",
     "pressed",
     "disabled",
     "bubble",
@@ -114,6 +115,14 @@ pub fn resource_path(package: &Package, platform: &str, reference: &str) -> Resu
         .ok_or_else(|| Error::Invalid(format!("图片资源引用不存在：{reference}")))
 }
 
+pub fn max_content_inset(platform: &str, role: &str) -> u32 {
+    if platform == "windows" && role == "background" {
+        192
+    } else {
+        64
+    }
+}
+
 pub fn resolve(
     package: &Package,
     platform: &str,
@@ -158,7 +167,10 @@ pub fn resolve(
             }
             if !style.opacity.is_finite()
                 || !(0.0..=1.0).contains(&style.opacity)
-                || style.content.iter().any(|v| *v > 64)
+                || style
+                    .content
+                    .iter()
+                    .any(|v| *v > max_content_inset(platform, &role))
             {
                 return Err(Error::Invalid("图片透明度或内容留白超限".into()));
             }
@@ -238,10 +250,9 @@ pub fn patches(
     let [l, t, r, b] = style.slice.map(|v| v as f32);
     let xs = [0.0, l, sw - r, sw];
     let ys = [0.0, t, sh - b, sh];
-    let sx = scale.min(tw / (l + r).max(1.0));
-    let sy = scale.min(th / (t + b).max(1.0));
-    let dx = [0.0, l * sx, tw - r * sx, tw];
-    let dy = [0.0, t * sy, th - b * sy, th];
+    let border_scale = scale.min(tw / (l + r).max(1.0)).min(th / (t + b).max(1.0));
+    let dx = [0.0, l * border_scale, tw - r * border_scale, tw];
+    let dy = [0.0, t * border_scale, th - b * border_scale, th];
     let mut out = Vec::with_capacity(9);
     for y in 0..3 {
         for x in 0..3 {

@@ -69,6 +69,31 @@ fn compositing_preserves_premultiplication_across_dpi_and_narrow_sizes() {
 }
 
 #[test]
+fn panel_insets_apply_once_and_empty_controls_add_no_row() {
+    use text_render::candidate_data::CandidateData;
+    use text_render::candidate_layout::Scene;
+    let (package, mut images) = fixture();
+    images.remove("selected");
+    images.get_mut("background").unwrap().style.content = [8, 28, 96, 12];
+    let mut data = CandidateData {
+        spelling: "a".into(),
+        ..Default::default()
+    };
+    data.theme.images = Arc::new(decode(&package, &images).unwrap());
+    let size = f32::from(data.theme.font_size) * 96.0 / 72.0;
+    let scene = Scene::build(&mut TextSystem::new().unwrap(), &data, size, 600.0).unwrap();
+    let line = &scene.blocks[0];
+    assert!(line.x < 20.0);
+    assert_eq!(line.y, 28.0);
+    assert_eq!(scene.height, (line.y + line.layout.height + 12.0).ceil());
+    let narrow = Scene::build(&mut TextSystem::new().unwrap(), &data, size, 100.0).unwrap();
+    assert!(narrow
+        .blocks
+        .iter()
+        .all(|b| b.x + b.layout.width <= narrow.width));
+}
+
+#[test]
 fn shipped_bamboo_template_uses_native_layout_and_rejects_bad_png() {
     let root = std::path::Path::new(env!("CARGO_MANIFEST_DIR")).join("../../examples/skins");
     let package = core_engine::skin::Package::open(&root.join("bamboo-dual.mywubi-skin")).unwrap();

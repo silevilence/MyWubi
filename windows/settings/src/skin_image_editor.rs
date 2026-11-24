@@ -79,7 +79,7 @@ pub fn form(
                 });
                 if style.mode==Mode::NineSlice {ui.horizontal(|ui|{ui.label("切片 px");for value in &mut style.slice {changed|=ui.add(egui::DragValue::new(value).clamp_range(0..=2047)).changed();}});}
                 else {style.slice=[0;4];}
-                ui.horizontal(|ui|{ui.label("内容留白");for value in &mut style.content {changed|=ui.add(egui::DragValue::new(value).clamp_range(0..=64)).changed();}});
+                ui.horizontal(|ui|{ui.label("内容留白");for value in &mut style.content {changed|=ui.add(egui::DragValue::new(value).clamp_range(0..=images::max_content_inset(platform, role))).changed();}});
             });
         }
     });

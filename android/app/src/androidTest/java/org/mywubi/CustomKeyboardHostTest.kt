@@ -142,7 +142,8 @@ class CustomKeyboardHostTest {
             device.executeShellCommand("am start -n org.mywubi.acceptancehost/.EditorActivity")
             focusExternalEditor(device)
             assertTrue(device.wait(Until.hasObject(By.desc("GHI").pkg("org.mywubi")),10000))
-            val restore=device.wait(Until.findObject(By.text("取消输入并恢复全键布局").pkg("org.mywubi")),5000)
+            key("切换形码键盘")
+            val restore=device.wait(Until.findObject(By.text("原始全键盘").pkg("org.mywubi")),5000)
             restore.click();assertTrue(device.wait(Until.hasObject(By.desc("q").pkg("org.mywubi").enabled(true)),10000))
             assertTrue(directFailures.joinToString("; "), directFailures.isEmpty())
         } finally {

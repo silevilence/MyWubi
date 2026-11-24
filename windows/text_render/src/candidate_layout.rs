@@ -57,19 +57,22 @@ impl Scene {
             .map_or((size * 0.4).ceil().max(6.0), |p| {
                 p.number("padding_x") * dip + density
             })
-            .max(2.0)
-            .max(background_insets[0])
-            .max(background_insets[2])
-            .max(selected_insets[0])
-            .max(selected_insets[2]);
+            .max(2.0);
         let gap = parameters
             .map_or(pad, |p| p.number("padding_y") * dip + density)
             .max(2.0)
-            .max(background_insets[1])
-            .max(background_insets[3])
             .max(selected_insets[1] + selected_insets[3]);
+        let spacing = pad.max(selected_insets[0] + selected_insets[2]);
+        let left = pad.max(background_insets[0]).max(selected_insets[0]);
+        let right = pad.max(background_insets[2]).max(selected_insets[2]);
+        // On a narrow monitor, leave room for the candidate before allocating artwork margins.
+        let inset_budget = (max_width - size * 2.0 - 6.0).max(0.0);
+        let inset_scale = (inset_budget / (left + right)).min(1.0);
+        let (left, right) = (left * inset_scale, right * inset_scale);
+        let top = gap.max(background_insets[1]);
+        let bottom = gap.max(background_insets[3]);
         let font = parameters.map_or("Segoe UI", |p| p.text("font_family"));
-        let content_width = (max_width - pad * 2.0 - 6.0).max(size * 2.0);
+        let content_width = (max_width - left - right - 6.0).max(1.0);
         let color = parameters.map_or_else(
             || foreground(data.theme.background_color),
             |p| p.color("text"),
@@ -77,7 +80,7 @@ impl Scene {
         let mut scene = Self {
             blocks: Vec::new(),
             width: 200.0_f32.min(max_width),
-            height: gap,
+            height: top,
             vertical: false,
         };
         let mut header = Vec::new();
@@ -119,13 +122,13 @@ impl Scene {
             scene.push(
                 Block {
                     layout,
-                    x: pad,
+                    x: left,
                     y: scene.height,
                     color: data.theme.primary_color,
                     background: None,
                     id: None,
                 },
-                pad,
+                right,
                 gap,
             );
         }
@@ -228,34 +231,34 @@ impl Scene {
         }
         let total = items
             .iter()
-            .map(|item| item.layout.width + pad)
+            .map(|item| item.layout.width + spacing)
             .sum::<f32>();
         let layout = parameters.map_or("auto", |p| p.text("layout"));
         scene.vertical = layout == "vertical" || (layout == "auto" && total > content_width);
         if scene.vertical {
             for mut block in items {
-                block.x = pad;
+                block.x = left;
                 block.y = scene.height;
-                scene.push(block, pad, gap);
+                scene.push(block, right, gap);
             }
-        } else {
-            let mut x = pad;
+        } else if !items.is_empty() {
+            let mut x = left;
             let mut height = 0.0_f32;
             for mut block in items {
                 block.x = x;
                 block.y = scene.height;
-                if x > pad && x + block.layout.width > max_width - pad {
+                if x > left && x + block.layout.width > max_width - right {
                     scene.height += height + gap;
-                    x = pad;
+                    x = left;
                     height = 0.0;
                     block.x = x;
                     block.y = scene.height;
                 }
-                x += block.layout.width + pad;
+                scene.width = scene.width.max(x + block.layout.width + right);
+                x += block.layout.width + spacing;
                 height = height.max(block.layout.height);
                 scene.blocks.push(block);
             }
-            scene.width = scene.width.max(x + pad);
             scene.height += height + gap;
         }
         for notice in &data.notices {
@@ -263,13 +266,13 @@ impl Scene {
             scene.push(
                 Block {
                     layout,
-                    x: pad,
+                    x: left,
                     y: scene.height,
                     color: parameters.map_or(color, |p| p.color("status")),
                     background: None,
                     id: None,
                 },
-                pad,
+                right,
                 gap,
             );
         }
@@ -283,17 +286,17 @@ impl Scene {
             scene.push(
                 Block {
                     layout,
-                    x: pad,
+                    x: left,
                     y: scene.height,
                     color: parameters.map_or(color, |p| p.color("status")),
                     background: None,
                     id: None,
                 },
-                pad,
+                right,
                 gap,
             );
         }
-        let mut x = pad;
+        let mut x = left;
         let mut row_height = 0.0_f32;
         for control in &data.controls {
             let layout = system.layout(
@@ -302,9 +305,9 @@ impl Scene {
                 size,
                 content_width,
             )?;
-            if x > pad && x + layout.width + pad > max_width {
+            if x > left && x + layout.width + right > max_width {
                 scene.height += row_height + gap;
-                x = pad;
+                x = left;
                 row_height = 0.0;
             }
             let width = layout.width;
@@ -317,10 +320,16 @@ impl Scene {
                 background: None,
                 id: Some(control.id),
             });
-            x += width + pad;
-            scene.width = scene.width.max(x + pad);
+            scene.width = scene.width.max(x + width + right);
+            x += width + spacing;
         }
-        scene.height += row_height + gap;
+        if !data.controls.is_empty() {
+            scene.height += row_height + gap;
+        }
+        if !scene.blocks.is_empty() {
+            scene.height -= gap;
+        }
+        scene.height += bottom;
         scene.width = scene.width.min(max_width).ceil();
         scene.height = scene.height.ceil();
         Ok(scene)
