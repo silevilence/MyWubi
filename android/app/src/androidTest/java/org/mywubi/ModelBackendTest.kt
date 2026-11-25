@@ -78,8 +78,10 @@ class ModelBackendTest {
         File(root,"manifest.json").writeText(manifest.toString());return root
     }
     private fun score(source:File) {
-        UiDevice.getInstance(instrumentation).pressHome()
-        instrumentation.waitForIdleSync()
+        if (context.packageName != "org.mywubi.miaccept") {
+            UiDevice.getInstance(instrumentation).pressHome()
+            instrumentation.waitForIdleSync()
+        }
         if (JSONObject(File(source, "manifest.json").readText()).getString("backend") == "OnnxRuntime") {
             OnnxRuntime.refresh(context)
             val readyBy = SystemClock.uptimeMillis() + 10_000

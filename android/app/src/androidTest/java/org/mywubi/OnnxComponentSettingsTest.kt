@@ -24,7 +24,11 @@ class OnnxComponentSettingsTest {
             it.getJSONObject("config").getJSONObject("prediction")
         }
         try {
-            ModelCatalog(app).call("Import", "source" to ModelBackendTest().fixture().absolutePath)
+            val catalog = ModelCatalog(app)
+            val entries = catalog.call("List")
+            if ((0 until entries.length()).none { entries.getJSONObject(it).getString("id") == "instrumented-counts" }) {
+                catalog.call("Import", "source" to ModelBackendTest().fixture().absolutePath)
+            }
             device.executeShellCommand("am start -W -f 0x10008000 -n ${app.packageName}/org.mywubi.MainActivity")
             selectSettingsTab(device, "预测")
             expandSettingsControl(device, "预测模型与资源（实验性）", modelRoot = true)
@@ -33,7 +37,7 @@ class OnnxComponentSettingsTest {
             if (!OnnxComponent.location(app).isFile) {
                 assertFalse(findSettingsControl(device, By.desc(choice)).actionNode().isEnabled)
                 clickSetting(device, "获取 ONNX 运行组件")
-                val end = SystemClock.elapsedRealtime() + 120000
+                val end = SystemClock.elapsedRealtime() + 20 * 60_000
                 while (OnnxRuntime.status.value != OnnxRuntime.State.Ready && SystemClock.elapsedRealtime() < end) {
                     val transfer = OnnxTransfers.status.value
                     assertNotEquals(transfer.toString(), "failed", transfer.phase)
@@ -53,6 +57,7 @@ class OnnxComponentSettingsTest {
         } finally {
             val version = store.readConfig().getLong("version")
             NativeHandle(version).use { NativeHandle(store.saveConfig(original, it.value).getLong("version")).close() }
+            ModelCatalog(app).call("Remove", "selection" to org.json.JSONObject().put("id", "instrumented-counts").put("version", "v1"))
             device.pressBack()
         }
     }

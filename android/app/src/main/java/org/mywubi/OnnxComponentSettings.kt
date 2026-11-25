@@ -6,6 +6,9 @@ import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 
 @Composable
 internal fun OnnxComponentSettings() {
@@ -44,11 +47,31 @@ internal fun OnnxComponentSettings() {
             OutlinedButton(onClick = { confirmRemove = true }) { Text("移除 ONNX 运行组件") }
         }
         if (!bundled && (state == OnnxRuntime.State.Failed || transfer.phase == "failed")) {
-            Text("也可在正式发布页安装同版本 Android-full.apk。完整包内置 ONNX，后续更新沿用完整包。")
+            Text("完整安装包内置 ONNX，后续更新沿用完整包。安装时保留配置和模型。")
             val uri = androidx.compose.ui.platform.LocalUriHandler.current
-            OutlinedButton(onClick = { uri.openUri("https://github.com/silevilence/MyWubi/releases") }) {
-                Text("查看完整安装包")
-            }
+            val scope = rememberCoroutineScope()
+            var lookingUp by remember { mutableStateOf(false) }
+            OutlinedButton(enabled = !lookingUp, onClick = {
+                lookingUp = true
+                scope.launch {
+                    try {
+                        val update = withContext(Dispatchers.IO) {
+                            val manifest = releaseManifestUrl(readUpdateJson(RELEASE_API), full = true)
+                                ?: error("发布页尚无正式完整包")
+                            parseReleaseUpdate(manifest, readUpdateJson(manifest))
+                        }
+                        check(update.versionCode >= AppUpdates.get(context).installedCode &&
+                            update.minSdk <= android.os.Build.VERSION.SDK_INT && payload.abi in update.abis) {
+                            "正式完整包版本或架构与本机不兼容"
+                        }
+                        uri.openUri(update.apkUrl)
+                    } catch (cancelled: kotlinx.coroutines.CancellationException) {
+                        throw cancelled
+                    } catch (error: Exception) {
+                        feedback = error.localizedMessage ?: "无法获取正式完整包，请稍后重试"
+                    } finally { lookingUp = false }
+                }
+            }) { Text(if (lookingUp) "正在查询完整包" else "下载正式完整安装包") }
         }
         if (transfer.message.isNotEmpty()) Text(transfer.message)
         if (feedback.isNotEmpty()) Text(feedback)
