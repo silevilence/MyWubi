@@ -19,7 +19,7 @@ internal class MyWubiApplication : Application() {
 /** Serializes verification, process-lifetime native activation and removal. */
 internal object OnnxRuntime {
     enum class State(val label: String) {
-        Checking("正在检查组件"), Missing("未安装"), Ready("已安装，可加载"),
+        Checking("正在检查组件"), Missing("未安装"), UpdateAvailable("当前应用需要更新组件"), Ready("已安装，可加载"),
         Corrupt("校验失败，请重新获取"), Failed("已安装，加载失败"),
         PendingRemoval("待重启移除"), Unsupported("未编入 ONNX 适配器")
     }
@@ -58,7 +58,14 @@ internal object OnnxRuntime {
             if (!selected(app)) Files.deleteIfExists(path.toPath())
             Files.deleteIfExists(marker.toPath())
         }
-        if (!path.isFile) return State.Missing
+        if (!path.isFile) {
+            val components = File(app.noBackupFilesDir, "components")
+            val older = components.listFiles()?.any { dir ->
+                dir.name.startsWith("onnx-") && dir.name != "onnx-${OnnxComponent.version}" &&
+                    File(dir, "${OnnxComponent.payload().abi}/${OnnxComponent.library}").isFile
+            } == true
+            return if (older) State.UpdateAvailable else State.Missing
+        }
         if (active == path) return State.Ready
         val payload = OnnxComponent.payload()
         if (path != bundled && !OnnxInstaller.matches(path, payload.bytes, payload.hash)) return State.Corrupt

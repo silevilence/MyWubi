@@ -42,7 +42,7 @@ internal fun focusExternalEditor(device: UiDevice) {
         while (SystemClock.elapsedRealtime() < until) {
             instrumentation.uiAutomation.clearCache()
             if (device.hasObject(By.copy(selector).focused(true)) &&
-                device.hasObject(By.pkg("org.mywubi").desc("退格").enabled(true))) return
+                device.hasObject(By.pkg(instrumentation.targetContext.packageName).desc("退格").enabled(true))) return
             SystemClock.sleep(80)
         }
     }

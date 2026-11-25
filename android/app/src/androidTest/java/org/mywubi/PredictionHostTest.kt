@@ -46,13 +46,13 @@ class PredictionHostTest {
             NativeHandle(version).use { v -> NativeHandle(store.saveConfig(value,v.value).getLong("version")).close() }
         }
         fun key(label:String) {
-            requireNotNull(findFresh(device,By.desc(label).pkg("org.mywubi").clickable(true),10000)) { "Missing key $label" }.click()
+            requireNotNull(findFresh(device,By.desc(label).pkg(context.packageName).clickable(true),10000)) { "Missing key $label" }.click()
         }
         fun candidate(text:String) {
-            val selector=By.desc(Pattern.compile("候选 ${Pattern.quote(text)}(?:，.*)?")).pkg("org.mywubi")
+            val selector=By.desc(Pattern.compile("候选 ${Pattern.quote(text)}(?:，.*)?")).pkg(context.packageName)
             val item=findFresh(device,selector,10000)
             if (item==null) {
-                val visible=device.findObjects(By.pkg("org.mywubi").descStartsWith("候选 ")).map { it.contentDescription }
+                val visible=device.findObjects(By.pkg(context.packageName).descStartsWith("候选 ")).map { it.contentDescription }
                 error("Missing candidate $text. Visible candidates: $visible, editor: ${device.findObject(By.clazz("android.widget.EditText"))?.text}")
             }
             item.click()
@@ -82,8 +82,8 @@ class PredictionHostTest {
         }
         try {
             save(config,loaded.getLong("version"))
-            device.executeShellCommand("ime enable org.mywubi/.MyWubiService")
-            device.executeShellCommand("ime set org.mywubi/.MyWubiService")
+            device.executeShellCommand("ime enable ${context.packageName}/org.mywubi.MyWubiService")
+            device.executeShellCommand("ime set ${context.packageName}/org.mywubi.MyWubiService")
             if(externalHost) {
                 device.executeShellCommand("am force-stop org.mywubi.acceptancehost")
                 device.executeShellCommand("am start -n org.mywubi.acceptancehost/.EditorActivity")
@@ -97,7 +97,7 @@ class PredictionHostTest {
             }
             val field=requireNotNull(findFresh(device,editorSelector,15000))
             resetEditor()
-            assertNotNull(findFresh(device,By.desc("b").pkg("org.mywubi").enabled(true),15000))
+            assertNotNull(findFresh(device,By.desc("b").pkg(context.packageName).enabled(true),15000))
             if(device.hasObject(By.desc("英 → 中"))) key("英 → 中")
             if(generated) {
                 val readyDeadline=android.os.SystemClock.uptimeMillis()+30000
@@ -163,10 +163,10 @@ class PredictionHostTest {
             expectPrediction(true)
             if(lifecycle) {
                 device.pressBack()
-                assertTrue(device.wait(Until.gone(By.desc("b").pkg("org.mywubi")),5000))
+                assertTrue(device.wait(Until.gone(By.desc("b").pkg(context.packageName)),5000))
                 field.click()
-                assertTrue(device.wait(Until.hasObject(By.desc("b").pkg("org.mywubi")),5000))
-                device.executeShellCommand("am send-trim-memory org.mywubi RUNNING_LOW")
+                assertTrue(device.wait(Until.hasObject(By.desc("b").pkg(context.packageName)),5000))
+                device.executeShellCommand("am send-trim-memory ${context.packageName} RUNNING_LOW")
                 android.os.SystemClock.sleep(200)
             }
             key("b"); expect("北京天气b")

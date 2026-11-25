@@ -53,6 +53,10 @@ fun DownloadModels(model:SettingsModel) {
                     Text("当前版本无法运行此模型。请收起模型资源，选用词典预测并保存；如需实验模型，请先安装包含运行组件的模型版。")
                     ModelBuildGuide()
                 }
+                if (backend && p.getString("backend") == "OnnxRuntime") {
+                    val component by OnnxRuntime.status.collectAsState()
+                    if (component != OnnxRuntime.State.Ready) OnnxComponentSettings()
+                }
                 if(!mapped) Text("此源没有同版本制品映射，请选择其他源。")
                 if (backend && !model.modelsLoaded) {
                     Text(if (model.busy) "正在确认已安装模型；校验完成后可下载。" else "模型校验未完成，请重试。")

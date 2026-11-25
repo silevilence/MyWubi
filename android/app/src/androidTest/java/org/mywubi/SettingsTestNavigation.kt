@@ -81,7 +81,7 @@ internal fun clickSetting(device: UiDevice, label: String, description: Boolean 
         while (nodes.isNotEmpty()) {
             val node = nodes.removeFirst()
             val value = if (description) node.contentDescription else node.text
-            if (node.packageName == "org.mywubi" && value?.toString() == label) {
+            if (node.packageName == InstrumentationRegistry.getInstrumentation().targetContext.packageName && value?.toString() == label) {
                 var target: android.view.accessibility.AccessibilityNodeInfo? = node
                 while (target != null && !target.isClickable) target = target.parent
                 if (target != null && target.isEnabled &&
@@ -111,7 +111,7 @@ internal fun findSettingsControl(device: UiDevice, selector: BySelector, timeout
                 var scrolled = false
                 while (nodes.isNotEmpty()) {
                     val node = nodes.removeFirst()
-                    if (node.packageName == "org.mywubi" && node.contentDescription == "设置内容" && node.isScrollable) {
+                    if (node.packageName == InstrumentationRegistry.getInstrumentation().targetContext.packageName && node.contentDescription == "设置内容" && node.isScrollable) {
                         scrolled = node.performAction(if (forward) android.view.accessibility.AccessibilityNodeInfo.ACTION_SCROLL_FORWARD
                             else android.view.accessibility.AccessibilityNodeInfo.ACTION_SCROLL_BACKWARD)
                         break

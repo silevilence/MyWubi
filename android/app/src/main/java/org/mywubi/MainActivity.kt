@@ -327,6 +327,10 @@ private fun PredictionModels(model:SettingsModel, prediction:JSONObject, import:
             }
         }
     }
+    if (model.modelBackends.optBoolean("onnx")) {
+        Text("GGUF 运行组件随应用提供，模型可从下方下载或导入。")
+        SettingsDisclosure("ONNX 运行组件 · ${runtimeState.label}") { OnnxComponentSettings() }
+    }
     SettingsDisclosure("下载模型") { DownloadModels(model) }
     SettingsDisclosure("导入与选择模型") {
         LaunchedEffect(Unit) {
@@ -352,6 +356,10 @@ private fun PredictionModels(model:SettingsModel, prediction:JSONObject, import:
             val active=selected?.optString("id")==p.getString("id") && selected?.optString("version")==p.getString("version")
             val caps=p.getJSONObject("capabilities")
             val backendAvailable=if(p.getString("backend")=="OnnxRuntime") runtimeState == OnnxRuntime.State.Ready else model.modelBackends.optBoolean("llama")
+            if (p.getString("backend") == "OnnxRuntime" && !backendAvailable && model.modelBackends.optBoolean("onnx")) {
+                Text("${p.getString("id")} 的模型文件已就绪，还需准备运行组件。")
+                OnnxComponentSettings()
+            }
             val hasPolicy=(!p.isNull("prediction_policy") && p.optString("prediction_policy").isNotEmpty()) ||
                 (!p.isNull("generation_policy") && p.optString("generation_policy").isNotEmpty())
             val supported=backendAvailable && hasPolicy && (0 until caps.getJSONArray("tasks").length()).any {caps.getJSONArray("tasks").getString(it)=="Predict"}

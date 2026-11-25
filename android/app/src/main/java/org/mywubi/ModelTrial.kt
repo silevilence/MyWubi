@@ -33,7 +33,11 @@ fun ModelTrial(model:SettingsModel) {
         OutlinedTextField(value=sample,onValueChange={if(it.codePointCount(0,it.length)<=256) {sample=it;model.clearTrialResult()}},
             enabled=!model.busy,label={Text("测试前文")},modifier=Modifier.fillMaxWidth().semantics {contentDescription="测试前文"})
         Text("仅测试明确输入的样例，不读取编辑器或更改活动模型。")
-        Button(onClick={model.trialModel(selected,sample)},enabled=!model.busy && choices.any {it.second==selected} && sample.isNotBlank()) {
+        val runtime by OnnxRuntime.status.collectAsState()
+        val needsOnnx = model.models.any { "${it.getString("id")}--${it.getString("version")}" == selected &&
+            it.getString("backend") == "OnnxRuntime" } && runtime != OnnxRuntime.State.Ready
+        if (needsOnnx) OnnxComponentSettings()
+        Button(onClick={model.trialModel(selected,sample)},enabled=!model.busy && !needsOnnx && choices.any {it.second==selected} && sample.isNotBlank()) {
             Text("试运行（1000 ms，4 线程）")
         }
         if(model.busy) Text("正在校验、加载或试运行…")
