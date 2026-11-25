@@ -21,7 +21,10 @@ Thumbs.db
 
 .superpowers/
 deploy/
-.agents/
+.agents/*
+!.agents/skills/
+.agents/skills/*
+!.agents/skills/mywubi-release/
 skills-lock.json
 
 # Velopack 打包产物

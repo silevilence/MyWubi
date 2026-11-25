@@ -91,7 +91,8 @@ def assemble(root, identity, dist):
             raise ValueError(f"Unexpected or empty {platform} artifact")
         for name in files:
             shutil.copyfile(directory / name, dist / name)
-    (dist / marker(scope)).write_text(json.dumps(identity, indent=2) + "\n")
+    inventory = {p.name: {"size": p.stat().st_size, "digest": "sha256:" + digest(p)} for p in dist.iterdir()}
+    (dist / marker(scope)).write_text(json.dumps(identity | {"assets": inventory}, indent=2) + "\n")
     hashes = [f"{digest(p)}  {p.name}" for p in sorted(dist.iterdir())]
     (dist / "SHA256SUMS.txt").write_text("\n".join(hashes) + "\n")
 

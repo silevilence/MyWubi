@@ -13,7 +13,11 @@ on:
         type: choice
         options: [both, windows, android]
 
-run-name: Release ${{ inputs.tag }} (${{ inputs.scope }})
+      request_id:
+        description: Optional correlation ID returned in the workflow run name
+        type: string
+
+run-name: Release ${{ inputs.tag }} (${{ inputs.scope }}) ${{ inputs.request_id }}
 
 concurrency:
   group: release-${{ inputs.tag }}
