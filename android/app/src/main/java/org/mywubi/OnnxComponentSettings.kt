@@ -57,16 +57,12 @@ internal fun OnnxComponentSettings() {
                 lookingUp = true
                 scope.launch {
                     try {
-                        val update = withContext(Dispatchers.IO) {
-                            val manifest = releaseManifestUrl(readUpdateJson(RELEASE_API), full = true)
-                                ?: error("发布页尚无正式完整包")
-                            parseReleaseUpdate(manifest, readUpdateJson(manifest))
-                        }
                         val requiredAbi = if (state == OnnxRuntime.State.NativeApkRequired)
                             android.os.Build.SUPPORTED_ABIS.first() else payload.abi
-                        check(update.versionCode >= AppUpdates.get(context).installedCode &&
-                            update.minSdk <= android.os.Build.VERSION.SDK_INT && requiredAbi in update.abis) {
-                            "正式完整包版本或架构与本机不兼容"
+                        val minimumCode = AppUpdates.get(context).installedCode
+                        val update = withContext(Dispatchers.IO) {
+                            discoverAndroidUpdate(true, minimumCode, android.os.Build.VERSION.SDK_INT, listOf(requiredAbi))
+                                ?: error("尚无兼容本机的正式完整包")
                         }
                         uri.openUri(update.apkUrl)
                     } catch (cancelled: kotlinx.coroutines.CancellationException) {

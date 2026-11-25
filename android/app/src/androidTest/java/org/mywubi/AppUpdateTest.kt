@@ -37,7 +37,27 @@ class AppUpdateTest {
         assertNull(releaseManifestUrl(release().put("draft", true)))
         assertNull(releaseManifestUrl(release().put("prerelease", true)))
         assertTrue(runCatching { releaseManifestUrl(release().put("published_at", JSONObject.NULL)) }.isFailure)
-        assertTrue(runCatching { releaseManifestUrl(release().put("assets", org.json.JSONArray())) }.isFailure)
+        assertNull(releaseManifestUrl(release().put("assets", org.json.JSONArray())))
+        val declared = org.json.JSONArray().put(JSONObject().put("name", "release-scope-android.json"))
+        assertTrue(runCatching { releaseManifestUrl(release().put("assets", declared)) }.isFailure)
+    }
+
+    @Test fun paginatesPastOtherPlatformAndPinsChosenDownload() {
+        fun entry(asset: String) = JSONObject().put("draft", false).put("prerelease", false)
+            .put("published_at", "2026-11-01").put("tag_name", "v0.5.2")
+            .put("assets", org.json.JSONArray().put(JSONObject().put("name", asset)
+                .put("browser_download_url", "${RELEASE_ROOT}v0.5.2/$asset")))
+        val first = org.json.JSONArray()
+        repeat(10) { first.put(entry("release-scope-windows.json")) }
+        val second = org.json.JSONArray().put(entry("release-scope-windows.json")).put(entry("android-update.json"))
+        fun find(code: Long) = discoverAndroidUpdate(false, code, 34, listOf("x86_64"),
+            page = { if (it == 1) first else second }, manifest = { update().json() })
+        val chosen = find(5)
+        first.put(0, entry("android-update.json"))
+        assertEquals(update().apkUrl, chosen!!.apkUrl)
+        assertNull(find(6))
+        assertTrue(runCatching { discoverAndroidUpdate(false, 5, 34, listOf("x86_64"),
+            page = { if (it == 1) org.json.JSONArray(List(10) { entry("release-scope-windows.json") }) else error("offline") }) }.isFailure)
     }
 
     @Test fun throttleBackoffAndClockRecovery() {

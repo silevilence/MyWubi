@@ -5,12 +5,13 @@ import android.os.Build
 import kotlinx.coroutines.*
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import org.json.JSONArray
 import org.json.JSONObject
 import java.net.URL
 import javax.net.ssl.HttpsURLConnection
 
 internal const val RELEASE_ROOT = "https://github.com/silevilence/MyWubi/releases/download/"
-internal const val RELEASE_API = "https://api.github.com/repos/silevilence/MyWubi/releases/latest"
+internal const val RELEASE_API = "https://api.github.com/repos/silevilence/MyWubi/releases"
 
 data class AppUpdate(
     val versionName: String, val versionCode: Long, val minSdk: Int,
@@ -47,9 +48,20 @@ internal fun releaseManifestUrl(release: JSONObject, full: Boolean = false): Str
     if (release.getBoolean("draft") || release.getBoolean("prerelease")) return null
     require(!release.isNull("published_at") && release.getString("published_at").isNotBlank())
     val tag = release.getString("tag_name")
-    require(tag.matches(Regex("[vV][0-9]+\\.[0-9]+\\.[0-9]+")))
+    if (!tag.matches(Regex("[vV][0-9]+\\.[0-9]+\\.[0-9]+"))) return null
     val assets = release.getJSONArray("assets")
     val name = if (full) "android-update-full.json" else "android-update.json"
+    val names = (0 until assets.length()).map { assets.getJSONObject(it).getString("name") }
+    val scopes = names.filter { it.startsWith("release-scope-") }
+    when (scopes) {
+        listOf("release-scope-windows.json") -> return null
+        listOf("release-scope-android.json"), listOf("release-scope-both.json") -> {
+            val suffix = if (full) "-full" else ""
+            require("MyWubi-${tag.drop(1)}-Android$suffix.apk" in names) { "Android 发布缺少对应安装包" }
+        }
+        emptyList<String>() -> if (name !in names) return null
+        else -> error("发布范围记录无效")
+    }
     val urls = (0 until assets.length()).map(assets::getJSONObject)
         .filter { it.getString("name") == name }
         .map { it.getString("browser_download_url") }
@@ -64,14 +76,14 @@ internal fun parseReleaseUpdate(manifestUrl: String, json: JSONObject): AppUpdat
     }
 }
 
-internal fun readUpdateJson(address: String): JSONObject {
+private fun readUpdateText(address: String, maxBytes: Int): String {
     val connection = URL(address).openConnection() as HttpsURLConnection
     connection.connectTimeout = 10_000
     connection.readTimeout = 10_000
     connection.setRequestProperty("Accept", "application/json")
     connection.setRequestProperty("User-Agent", "MyWubi-Android-Updater")
     try {
-        require(connection.responseCode == 200) { "更新服务暂不可用（HTTP ${connection.responseCode}），请重试" }
+        if (connection.responseCode != 200) throw java.io.IOException("更新服务暂不可用（HTTP ${connection.responseCode}），请重试")
         val bytes = connection.inputStream.use { input ->
             val output = java.io.ByteArrayOutputStream()
             val buffer = ByteArray(8192)
@@ -80,13 +92,42 @@ internal fun readUpdateJson(address: String): JSONObject {
                 require(android.os.SystemClock.elapsedRealtime() < deadline) { "检查超时" }
                 val count = input.read(buffer)
                 if (count < 0) break
-                require(output.size() + count <= 256 * 1024) { "更新信息过大" }
+                require(output.size() + count <= maxBytes) { "更新信息过大" }
                 output.write(buffer, 0, count)
             }
             output.toByteArray()
         }
-        return JSONObject(bytes.toString(Charsets.UTF_8))
+        return bytes.toString(Charsets.UTF_8)
     } finally { connection.disconnect() }
+}
+
+private const val PAGE_SIZE = 10
+
+internal fun discoverAndroidUpdate(
+    full: Boolean, minimumCode: Long, sdk: Int, abis: List<String>,
+    page: (Int) -> JSONArray = { JSONArray(readUpdateText("$RELEASE_API?per_page=$PAGE_SIZE&page=$it", 2 * 1024 * 1024)) },
+    manifest: (String) -> JSONObject = { JSONObject(readUpdateText(it, 256 * 1024)) },
+): AppUpdate? {
+    var index = 1
+    while (true) {
+        val releases = page(index)
+        for (i in 0 until releases.length()) {
+            val release = releases.getJSONObject(i)
+            val url = releaseManifestUrl(release, full) ?: continue
+            val update = try {
+                parseReleaseUpdate(url, manifest(url))
+            } catch (e: org.json.JSONException) {
+                throw IllegalArgumentException("Android 更新清单损坏（${release.getString("tag_name")}）", e)
+            } catch (e: IllegalArgumentException) {
+                throw IllegalArgumentException("Android 更新清单无效（${release.getString("tag_name")}）：${e.message}", e)
+            }
+            // Stable releases and Android versionCode are published in increasing order.
+            if (update.versionCode < minimumCode) return null
+            if (update.minSdk <= sdk && update.abis.any { it in abis }) return update
+        }
+        if (releases.length() < PAGE_SIZE) return null
+        index++
+    }
 }
 
 internal data class CheckSchedule(val next: Long = 0, val failures: Int = 0) {
@@ -101,9 +142,7 @@ internal data class CheckSchedule(val next: Long = 0, val failures: Int = 0) {
 data class UpdateCheckState(val checking: Boolean = false, val available: AppUpdate? = null, val message: String = "尚未检查更新")
 
 class AppUpdates internal constructor(context: Context, preferencesName: String = "app-updates",
-    private val fetch: () -> AppUpdate? = {
-        releaseManifestUrl(readUpdateJson(RELEASE_API), BuildConfig.BUNDLED_ONNX)?.let { parseReleaseUpdate(it, readUpdateJson(it)) }
-    }) {
+    private val fetch: (() -> AppUpdate?)? = null) {
     private val app = context.applicationContext
     private val prefs = app.getSharedPreferences(preferencesName, Context.MODE_PRIVATE)
     private val scope = CoroutineScope(SupervisorJob() + Dispatchers.Main.immediate)
@@ -127,7 +166,11 @@ class AppUpdates internal constructor(context: Context, preferencesName: String 
         mutable.value = mutable.value.copy(checking = true, message = "正在检查更新…")
         scope.launch {
             val result = runCatching { withContext(Dispatchers.IO) {
-                fetch()?.takeIf {
+                val abis = Build.SUPPORTED_ABIS.toList()
+                val candidate = if (fetch == null) discoverAndroidUpdate(
+                    BuildConfig.BUNDLED_ONNX, installedCode + 1, Build.VERSION.SDK_INT, abis
+                ) else fetch.invoke()
+                candidate?.takeIf {
                     applicableUpdate(it, installedCode, Build.VERSION.SDK_INT, Build.SUPPORTED_ABIS.toList())
                 }
             } }
@@ -137,7 +180,7 @@ class AppUpdates internal constructor(context: Context, preferencesName: String 
                 prefs.edit().putString("available", update?.json()?.toString()).apply()
                 mutable.value = UpdateCheckState(available = update, message = if (update == null) "当前没有适合此设备的新版本" else "发现新版本 ${update.versionName}")
             }, onFailure = {
-                mutable.value = mutable.value.copy(checking = false, message = "检查失败，请重试；未能确认最新版本")
+                mutable.value = mutable.value.copy(checking = false, message = "检查失败，未能确认最新版本。${it.localizedMessage ?: "请重试"}")
             })
         }
     }
