@@ -15,7 +15,7 @@ fn main() {
         settings::personal_panel::run_background(std::path::Path::new(&personal_args[1]));
         return;
     }
-    if std::env::args().any(|arg| arg == "--component-catalog") {
+    if personal_args.iter().any(|arg| arg == "--component-catalog") {
         use std::io::Write;
         if let Ok(catalog) = runtime_components::catalog() {
             if let Ok(bytes) = serde_json::to_vec(&catalog) {
@@ -33,7 +33,19 @@ fn main() {
 
     log_mod::init();
 
-    let args: Vec<_> = std::env::args_os().skip(1).collect();
+    let args = personal_args;
+    let skin = match args.as_slice() {
+        [flag, path] if flag == "--import-skin" => Some(std::path::Path::new(path)),
+        [path] => Some(std::path::Path::new(path)).filter(|p| {
+            p.extension()
+                .is_some_and(|ext| ext.eq_ignore_ascii_case("mywubi-skin"))
+        }),
+        _ => None,
+    };
+    if let Some(path) = skin {
+        settings::skin_file::open(path);
+        return;
+    }
     if args.len() == 2 && args[0] == "--prepare-model" {
         if let Err(error) = settings::model_catalog::run_saved_model(std::path::Path::new(&args[1]))
         {

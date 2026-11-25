@@ -80,7 +80,7 @@ pub enum UpdateState {
 /// Velopack 以特殊命令行参数触发本进程时，本函数处理其内部事务后可能直接退出。
 /// 正常启动时本函数直接返回，继续执行后续 GUI 逻辑。
 ///
-/// 注：钩子仅准备 DLL 的只读/执行权限，不注册或卸载 TIP。安装器在非提升上下文运行，
+/// 安装/更新钩子准备 DLL 的读取权限并注册当前用户的皮肤打开方式。安装器在非提升上下文运行，
 /// 而 TIP 注册需要管理员权限——若由安装器自动调用会触发提升冲突。TIP 注册
 /// 改由用户安装完成后手动运行 settings.exe，在「输入法管理」面板完成。
 pub fn init_velopack() {
@@ -89,7 +89,11 @@ pub fn init_velopack() {
     {
         app = app
             .on_after_install_fast_callback(|_| prepare_tip_access_for_hook())
-            .on_after_update_fast_callback(|_| prepare_tip_access_for_hook());
+            .on_after_update_fast_callback(|_| prepare_tip_access_for_hook())
+            .on_before_uninstall_fast_callback(|_| {
+                crate::log::init();
+                update_skin_association(false);
+            });
     }
     app.run();
 }
@@ -102,8 +106,22 @@ pub fn prepare_tip_access() -> Result<(), String> {
 }
 
 #[cfg(windows)]
+fn update_skin_association(enable: bool) {
+    match UpdateManager::new(NoneSource {}, None, None) {
+        Ok(manager) if !manager.get_is_portable() => {
+            if let Err(error) = crate::skin_association::set_registered(false, enable) {
+                log::error!("更新皮肤打开方式失败: {error}");
+            }
+        }
+        Ok(_) => {}
+        Err(error) => log::warn!("无法定位安装目录以更新皮肤打开方式: {error}"),
+    }
+}
+
+#[cfg(windows)]
 fn prepare_tip_access_for_hook() {
     crate::log::init();
+    update_skin_association(true);
     if let Err(error) = prepare_tip_access() {
         log::error!("安装/更新后准备搜索输入权限失败: {error}");
     }

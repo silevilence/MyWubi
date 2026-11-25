@@ -25,7 +25,19 @@ pub fn show(ui: &mut Ui, state: &mut AppState) {
                 Err(e) => format!("[ERR] {e}"),
             });
         }
-        ui.small("制作、导入、导出和应用皮肤，在独立编辑器中完成。");
+        ui.small("可直接打开皮肤文件导入，也可在编辑器中制作、导出和应用。");
+        #[cfg(windows)]
+        if ui.button("注册皮肤文件打开方式").clicked() {
+            let portable =
+                velopack::UpdateManager::new(velopack::sources::NoneSource {}, None, None)
+                    .map_or(true, |manager| manager.get_is_portable());
+            state.status_msg = Some(
+                match crate::skin_association::set_registered(portable, true) {
+                    Ok(()) => "已注册。可在皮肤文件的「打开方式」中选择 MyWubi 设置。".into(),
+                    Err(error) => format!("注册皮肤打开方式失败：{error}"),
+                },
+            );
+        }
     });
     crate::ui_style::card(ui, "字号与颜色", |ui| {
         ui.add_enabled_ui(!state.config.skins.windows.use_skin_metrics, |ui| {

@@ -20,7 +20,10 @@ mod model_downloads;
 pub mod panels;
 pub mod personal_panel;
 pub mod save;
+#[cfg(windows)]
+pub mod skin_association;
 pub mod skin_editor;
+pub mod skin_file;
 mod skin_image_editor;
 pub mod state;
 pub mod vpk;

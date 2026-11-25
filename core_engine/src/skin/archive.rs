@@ -179,7 +179,11 @@ pub struct Imported {
 
 /// Keeps every installed version immutable, so active readers and rollback remain valid.
 pub fn import(store: &Path, reader: impl Read + Seek) -> Result<Imported, Error> {
-    let package = Package::read(reader)?;
+    install_package(store, &Package::read(reader)?)
+}
+
+/// Install exactly the contents that were inspected in the confirmation dialog.
+pub fn install_package(store: &Path, package: &Package) -> Result<Imported, Error> {
     fs::create_dir_all(store)?;
     let base = fs::canonicalize(store)?;
     // One flat filename avoids following package-controlled subdirectory links.
@@ -189,7 +193,7 @@ pub fn import(store: &Path, reader: impl Read + Seek) -> Result<Imported, Error>
     );
     let target = base.join(filename);
     if target.exists() {
-        return existing(&package, &target);
+        return existing(package, &target);
     }
     match package.export_new(&target) {
         Ok(()) => Ok(Imported {
@@ -197,7 +201,7 @@ pub fn import(store: &Path, reader: impl Read + Seek) -> Result<Imported, Error>
             already_present: false,
         }),
         Err(Error::Io(e)) if e.kind() == std::io::ErrorKind::AlreadyExists => {
-            existing(&package, &target)
+            existing(package, &target)
         }
         Err(e) => Err(e),
     }
