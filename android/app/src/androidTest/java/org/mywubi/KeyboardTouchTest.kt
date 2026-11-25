@@ -100,6 +100,38 @@ class KeyboardTouchTest {
     }
     private fun settled() { device.waitForIdle(); instrumentation.waitForIdleSync(); instrumentation.uiAutomation.clearCache() }
 
+    @Test fun holdPickerFollowsTheCurrentBindingsOfTheSameKey() {
+        val events = CopyOnWriteArrayList<Any>()
+        val pair = LayoutKey("pair", "QW", 2f, 1f, 1f, action = LayoutAction("Group", "pair"),
+            groupCharacters = listOf("q", "w"))
+        val symbol = LayoutAction("Character", "☆")
+        var layout by mutableStateOf(KeyboardLayout("custom", 3f, 3f,
+            listOf(pair.copy(directions = mapOf(0 to symbol, 1 to symbol)))))
+        ActivityScenario.launch(MainActivity::class.java).use { scenario ->
+            scenario.onActivity { it.setContent {
+                Keyboard(KeyboardModel(customLayout = layout, enabled = true), { events.add(it) }, {}, switchIme = {})
+            } }
+            fun pick(options: List<String>, target: String, slide: Boolean) {
+                val key = key("QW").visibleCenter
+                touch(MotionEvent.ACTION_DOWN, key.x, key.y)
+                val strip = requireNotNull(findFresh(device, By.desc("长按选择"), 5000))
+                val items = strip.findObjects(By.text(java.util.regex.Pattern.compile(".+")))
+                assertEquals(options, items.sortedBy { it.visibleCenter.x }.map { it.text })
+                val x = if (slide) items.single { it.text == target }.visibleCenter.x else key.x
+                if (slide) touch(MotionEvent.ACTION_MOVE, x, key.y)
+                val beforeRelease = events.size
+                touch(MotionEvent.ACTION_UP, x, key.y); settled()
+                assertEquals(beforeRelease + 1, events.size)
+                assertEquals(target, (events.last() as JSONObject).getJSONArray("InputText").getString(0))
+            }
+            pick(listOf("q", "☆", "w"), "☆", slide = false)
+            pick(listOf("q", "☆", "w"), "w", slide = true)
+            scenario.onActivity { layout = layout.copy(keys = listOf(pair.copy(groupCharacters = listOf("j", "k")))) }
+            settled()
+            pick(listOf("j", "k"), "k", slide = true)
+        }
+    }
+
     private fun fingers(action: Int, vararg points: Pair<Int, android.graphics.Point>) {
         // Pace individual contact reports at 120 Hz. Both fingers still overlap
         // and every release must be delivered and produce exactly one action.
@@ -214,7 +246,13 @@ class KeyboardTouchTest {
             touch(MotionEvent.ACTION_DOWN, q.x, q.y)
             SystemClock.sleep(100)
             instrumentation.uiAutomation.clearCache()
-            val visible = device.wait(Until.hasObject(By.desc("按键预览")), 1500)
+            // Read the tap preview before the long-press deadline changes it into a picker.
+            val config = Configurator.getInstance()
+            val idleTimeout = config.waitForIdleTimeout
+            val visible = try {
+                config.waitForIdleTimeout = 0
+                device.hasObject(By.desc("按键预览"))
+            } finally { config.waitForIdleTimeout = idleTimeout }
             if (!visible) {
                 device.takeScreenshot(File(instrumentation.targetContext.filesDir, "preview-down-failure.png"))
                 device.dumpWindowHierarchy(File(instrumentation.targetContext.filesDir, "preview-down-failure.xml"))

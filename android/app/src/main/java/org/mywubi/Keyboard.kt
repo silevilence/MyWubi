@@ -333,6 +333,7 @@ fun Keyboard(model: KeyboardModel, dispatch: (Any) -> Unit, window: (Int) -> Uni
                             letterSymbol(character, !model.privateInput && model.layout == "letters" && (model.base == "Main" || model.temporary == "Pinyin")) else null
                         fun perform(action: LayoutAction) {
                             when(action.kind) {
+                                "InputSymbol" -> dispatch(JSONObject().put("InputSymbol",action.value))
                                 "Character" -> {input(if(action == key.action) value else action.value); if(isLetter) shift=shift.consumed()}
                                 "Group" -> model.mappingIdentity?.let { identity -> dispatch(JSONObject().put("InputGroup",org.json.JSONArray().put(identity).put(action.value))) }
                                 "Shift" -> shift=shift.next()
@@ -346,7 +347,12 @@ fun Keyboard(model: KeyboardModel, dispatch: (Any) -> Unit, window: (Int) -> Uni
                                 "Backspace", "Space", "Enter", "Cancel" -> dispatch(action.kind)
                             }
                         }
-                        fun actionName(action: LayoutAction)=if(action.kind == "Group") "字符组 ${action.value}" else action.value.ifEmpty { action.kind }
+                        fun actionName(action: LayoutAction)=when {
+                            action.kind == "Group" -> "字符组 ${action.value}"
+                            action.kind == "Character" && action == key.action -> value
+                            else -> action.value.ifEmpty { action.kind }
+                        }
+                        val holdOptions = remember(key, symbol) { key.holdOptions(symbol) }
                         Key(label,model.enabled,model.epoch,
                             Modifier.offset(x=unit*key.x,y=LocalKeyboardKeyHeight.current*key.y).width(unit*key.width),
                             heightFactor=key.height,
@@ -356,9 +362,11 @@ fun Keyboard(model: KeyboardModel, dispatch: (Any) -> Unit, window: (Int) -> Uni
                                 else -> label
                             }, space=key.action.kind == "Space",function=key.role == "function",accent=key.role == "selected",
                             selected=key.action.kind == "Shift" && shift != KeyMode.Off,
-                            alternate=key.hold?.let(::actionName) ?: symbol,previewEnabled=!model.privateInput,
+                            alternate=holdOptions.firstOrNull()?.takeIf {
+                                key.hold != null || it.isSymbol
+                            }?.let(::actionName),previewEnabled=!model.privateInput,
+                            holdChoices=holdOptions.distinctBy(::actionName).map { TouchChoice(actionName(it)) { perform(it) } },
                             bindingRevision=layout, directions=if(layout.id == "builtin.26") null else key.directions.mapValues { (_,action) -> TouchChoice(actionName(action)) {perform(action)} },
-                            alternateAction={key.hold?.let(::perform) ?: run {if(symbol != null) dispatch(JSONObject().put("InputSymbol",symbol))}},
                             clearAction={dispatch("ClearEditor")}) {
                             perform(key.action)
                         }
@@ -420,7 +428,10 @@ fun Keyboard(model: KeyboardModel, dispatch: (Any) -> Unit, window: (Int) -> Uni
                 } finally { if (pressed) currentTouch(false) }
             }
         CompositionLocalProvider(LocalKeyPreview provides preview, LocalKeyboardKeyHeight provides keyHeight) {
-            Box(Modifier.fillMaxWidth().onGloballyPositioned { origin=it.positionInRoot(); keyboardWidth=it.size.width.toFloat() }) {
+            Box(Modifier.fillMaxWidth().onGloballyPositioned {
+                origin=it.positionInRoot(); keyboardWidth=it.size.width.toFloat()
+                preview.keyboardBounds = androidx.compose.ui.geometry.Rect(origin, androidx.compose.ui.geometry.Size(keyboardWidth, it.size.height.toFloat()))
+            }) {
                 BoxWithConstraints(container, contentAlignment=androidx.compose.ui.Alignment.TopCenter) {
                     val rows = keyRows
                     val gridExtra = if (showExpanded) expandedExtra else 0.dp
@@ -566,7 +577,7 @@ private fun ExpandedCandidateButton(item: CandidateItem, enabled: Boolean, showH
 @Composable
 private fun Key(label:String,enabled:Boolean,epoch:Long,modifier:Modifier,repeat:Boolean=false,
                 description:String=label,space:Boolean=false,function:Boolean=false,accent:Boolean=false,selected:Boolean=false,
-                alternate:String?=null,previewEnabled:Boolean=false,heightFactor:Float=1f,directions:Map<Int,TouchChoice>? = null,bindingRevision:Any=epoch,alternateAction:()->Unit={},clearAction:()->Unit={},action:()->Unit) {
+                alternate:String?=null,previewEnabled:Boolean=false,heightFactor:Float=1f,directions:Map<Int,TouchChoice>? = null,bindingRevision:Any=epoch,holdChoices:List<TouchChoice> = emptyList(),clearAction:()->Unit={},action:()->Unit) {
     // The entire column is touchable. KeyTouch draws the inset keycap inside it.
     val keyModifier=modifier.height(LocalKeyboardKeyHeight.current*heightFactor)
     val colors=MaterialTheme.colorScheme
@@ -583,7 +594,7 @@ private fun Key(label:String,enabled:Boolean,epoch:Long,modifier:Modifier,repeat
     CompositionLocalProvider(LocalMinimumInteractiveComponentSize provides 0.dp, LocalViewConfiguration provides keyViewConfiguration) {
     if (!repeat) {
         KeyTouchSurface(label,enabled,epoch,keyModifier,description,background,foreground,if(accent || selected) "selected" else if(function) "function" else if(space && "space" in LocalSkinImages.current.roles) "space" else "key",alternate,
-            previewEnabled,alternateAction,action,directions,bindingRevision) { KeyLabel(label) }
+            previewEnabled,holdChoices,action,directions,bindingRevision) { KeyLabel(label) }
     } else {
         DeleteKeySurface(enabled, epoch, keyModifier, background, foreground, action, clearAction) { KeyLabel(label) }
     }

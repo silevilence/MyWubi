@@ -14,10 +14,9 @@ internal class DirectionalGesture(private val bound: Set<Int>, private val canHo
     fun hold() { if(phase==Phase.Tracking && canHold) phase=Phase.Holding }
     fun cancel() { phase=Phase.Cancelled; direction=null }
     fun move(dx: Float, dy: Float) {
-        if(phase==Phase.Cancelled || phase==Phase.Finished) return
+        if(phase==Phase.Cancelled || phase==Phase.Finished || phase==Phase.Holding) return
         val distance=hypot(dx,dy)
         if(!distance.isFinite() || distance>160f) { cancel();return }
-        if(phase==Phase.Holding) return
         if(phase==Phase.Tracking && distance<24f) return
         if(distance<12f) { cancel();return }
         phase=Phase.Sliding

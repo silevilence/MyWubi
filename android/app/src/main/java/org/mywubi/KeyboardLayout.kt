@@ -2,10 +2,30 @@ package org.mywubi
 
 /** Geometry and actions are independent of labels and decoration. Coordinates are logical units. */
 data class LayoutAction(val kind: String, val value: String = "")
+internal val LayoutAction.isSymbol: Boolean
+    get() = kind == "InputSymbol" || (kind == "Character" && value.codePoints().noneMatch(Character::isLetter))
 data class LayoutKey(val id: String, val label: String, val x: Float, val y: Float,
     val width: Float, val height: Float = 1f, val action: LayoutAction,
     val role: String = "key", val alternate: String? = null,
-    val directions: Map<Int,LayoutAction> = emptyMap(),val hold: LayoutAction? = null)
+    val directions: Map<Int,LayoutAction> = emptyMap(),val hold: LayoutAction? = null,
+    val groupCharacters: List<String> = emptyList())
+
+/** Default first. A group tap remains ambiguous, while each picker entry is a precise input. */
+internal fun LayoutKey.holdOptions(symbol: String?): List<LayoutAction> {
+    val characters = buildList {
+        if (action.kind == "Character") add(action)
+        groupCharacters.forEach { add(LayoutAction("Character", it)) }
+        addAll(directions.values.filter { it.kind == "Character" })
+    }.distinct()
+    val literal = symbol?.let { LayoutAction("InputSymbol", it) }
+    val inputs = listOfNotNull(hold, literal, directions[0]?.takeIf { it.kind == "Character" }) + characters
+    val default = inputs.firstOrNull { it.isSymbol } ?: inputs.firstOrNull()
+    if (default == null || (hold == null && literal == null && characters == listOf(action))) return emptyList()
+    return (listOf(default) + inputs).distinctBy {
+        if (it.kind == "InputSymbol") LayoutAction("Character", it.value) else it
+    }
+}
+
 data class KeyboardLayout(val id: String, val width: Float, val height: Float, val keys: List<LayoutKey>) {
     val isNineKeyGrid: Boolean
         get() = width == 3f && height == 3f && keys.size == 9 &&
@@ -24,11 +44,19 @@ data class KeyboardLayout(val id: String, val width: Float, val height: Float, v
                     val key=keys.getJSONObject(index);val action=key.getJSONObject("action")
                     fun parseAction(value: org.json.JSONObject)=LayoutAction(value.getString("kind"),value.optString("value"))
                     val directions=bindings.getJSONObject(key.getString("id"))
+                    val primary = parseAction(action)
+                    val hold = key.optJSONObject("long_press")?.let(::parseAction)
+                    val swipes = directionIds.mapIndexedNotNull { direction,name ->
+                        directions.optJSONObject(name)?.getJSONObject("action")?.let { direction to parseAction(it) }
+                    }.toMap()
+                    val groupCharacters = (listOfNotNull(primary, hold) + swipes.values)
+                        .filter { it.kind == "Group" }.distinct().flatMap {
+                            mapping!!.getJSONObject("groups").getString(it.value).codePoints().toArray()
+                                .map { codePoint -> String(Character.toChars(codePoint)) }
+                        }.distinct()
                     LayoutKey(key.getString("id"),key.getString("label"),key.getDouble("x").toFloat(),key.getDouble("y").toFloat(),
                         key.getDouble("width").toFloat(),key.getDouble("height").toFloat(),
-                        parseAction(action),key.getString("role"),directions=directionIds.mapIndexedNotNull { direction,name ->
-                            directions.optJSONObject(name)?.getJSONObject("action")?.let { direction to parseAction(it) }
-                        }.toMap(),hold=key.optJSONObject("long_press")?.let(::parseAction))
+                        primary,key.getString("role"),directions=swipes,hold=hold,groupCharacters=groupCharacters)
                 })
         }
     }

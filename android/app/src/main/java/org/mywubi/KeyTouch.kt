@@ -31,9 +31,11 @@ import kotlinx.coroutines.launch
 import kotlinx.coroutines.Job
 import kotlin.math.roundToInt
 
-internal data class KeyPreview(val owner: Any, val text: String, val bounds: Rect, val deletion: Boolean = false)
+internal data class KeyPreview(val owner: Any, val text: String, val bounds: Rect, val deletion: Boolean = false,
+    val picker: HoldPicker? = null, val selectedSlot: Int? = null)
 internal class KeyPreviewState {
     var current by mutableStateOf<KeyPreview?>(null)
+    var keyboardBounds = Rect.Zero
     fun clear(owner: Any) { if (current?.owner === owner) current = null }
 }
 internal val LocalKeyPreview = staticCompositionLocalOf { KeyPreviewState() }
@@ -52,6 +54,7 @@ internal fun letterSymbol(letter: Char, chinese: Boolean): String {
 @Composable
 internal fun KeyPreviewBubble(preview: KeyPreview?, origin: Offset, widthPx: Float) {
     if (preview == null) return
+    preview.picker?.let { HoldPickerBubble(it, preview.selectedSlot, origin); return }
     val density = LocalDensity.current
     val fontSize = if (preview.deletion) 16.sp else skinNumber("bubble_text_size",30f).sp
     val available = with(density) { widthPx.toDp() }
@@ -164,11 +167,12 @@ internal fun DeleteKeySurface(enabled: Boolean, epoch: Long, modifier: Modifier,
 @Composable
 internal fun KeyTouchSurface(label: String, enabled: Boolean, epoch: Long, modifier: Modifier,
     description: String, background: Color, foreground: Color, imageRole: String, alternate: String?, previewEnabled: Boolean,
-    alternateAction: () -> Unit, action: () -> Unit, directions: Map<Int, TouchChoice>? = null,
+    holdChoices: List<TouchChoice>, action: () -> Unit, directions: Map<Int, TouchChoice>? = null,
     bindingRevision: Any = epoch, content: @Composable () -> Unit) {
     val primary by rememberUpdatedState(action)
-    val secondary by rememberUpdatedState(alternateAction)
-    val choices = directions ?: if(alternate != null) mapOf(0 to TouchChoice(alternate, alternateAction)) else emptyMap()
+    val currentHold by rememberUpdatedState(holdChoices)
+    val holdLabels = holdChoices.map { it.name }
+    val choices = directions ?: holdChoices.firstOrNull()?.let { mapOf(0 to it) }.orEmpty()
     val currentChoices by rememberUpdatedState(choices)
     val previews = LocalKeyPreview.current
     val scope = rememberCoroutineScope()
@@ -194,10 +198,14 @@ internal fun KeyTouchSurface(label: String, enabled: Boolean, epoch: Long, modif
             contentDescription = description
             if (!enabled) disabled()
             onClick { if (enabled) primary(); enabled }
-            if (alternate != null) onLongClick("输入 $alternate") { if (enabled) secondary(); enabled }
-            customActions = choices.map { (direction, choice) -> CustomAccessibilityAction("${directionNames[direction]}滑：${choice.name}") { if(enabled) choice.action(); enabled } }
+            holdChoices.firstOrNull()?.let { onLongClick("输入 ${it.name}") { if (enabled) it.action(); enabled } }
+            customActions = choices.map { (direction, choice) -> CustomAccessibilityAction("${directionNames[direction]}滑：${choice.name}") { if(enabled) choice.action(); enabled } } +
+                holdChoices.filter { it.name != label && it.name != holdLabels.firstOrNull() && choices.values.none { choice -> choice.name == it.name } }
+                    // Compose rejects 32 or more accessibility actions on a single node.
+                    .take(31 - choices.size)
+                    .map { CustomAccessibilityAction("输入 ${it.name}") { if (enabled) it.action(); enabled } }
         }
-        .pointerInput(enabled, active, lifecycleRevision, epoch, label, alternate, previewEnabled, bindingRevision, choices.mapValues { it.value.name }) {
+        .pointerInput(enabled, active, lifecycleRevision, epoch, label, holdLabels, previewEnabled, bindingRevision, choices.mapValues { it.value.name }) {
             if (!enabled || !active) return@pointerInput
             awaitPointerEventScope {
                 while (true) {
@@ -215,22 +223,33 @@ internal fun KeyTouchSurface(label: String, enabled: Boolean, epoch: Long, modif
                     val revision = lifecycleRevision
                     owner = token
                     pressed = true
-                    val gesture=DirectionalGesture(currentChoices.keys, alternate != null)
+                    val gesture=DirectionalGesture(currentChoices.keys, holdLabels.isNotEmpty())
+                    var finger = bounds.topLeft + down.position
+                    var picker: HoldPicker? = null
+                    var selectedSlot: Int? = null
+                    fun startHold() {
+                        gesture.hold()
+                        if (gesture.holding && picker == null && previewEnabled && holdLabels.size > 1 && previews.keyboardBounds.width > 0) {
+                            picker = HoldPicker.place(holdLabels, previews.keyboardBounds, bounds, finger,
+                                maxOf(36.dp.toPx(), 24.sp.toPx()), maxOf(44.dp.toPx(), 30.sp.toPx()), 4.dp.toPx())
+                            selectedSlot = picker?.defaultSlot
+                        }
+                    }
                     var committed = false
                     fun preview() {
                         val text=when {
                             gesture.cancelled -> null
-                            gesture.holding -> alternate
+                            gesture.holding -> holdLabels.first()
                             gesture.sliding -> currentChoices[gesture.direction]?.name
                             else -> label
                         }
-                        if(previewEnabled && text != null) previews.current=KeyPreview(token,text,bounds)
+                        if(previewEnabled && text != null) previews.current=KeyPreview(token,text,bounds,picker=picker,selectedSlot=selectedSlot)
                         else previews.clear(token)
                     }
                     preview()
-                    val longPress = if (alternate != null) scope.launch {
+                    val longPress = if (holdLabels.isNotEmpty()) scope.launch {
                         delay(viewConfiguration.longPressTimeoutMillis)
-                        if (active && revision == lifecycleRevision) { gesture.hold(); preview() }
+                        if (active && revision == lifecycleRevision) { startHold(); preview() }
                     } else null
                     longPressJob = longPress
                     try {
@@ -244,16 +263,22 @@ internal fun KeyTouchSurface(label: String, enabled: Boolean, epoch: Long, modif
                                 gesture.cancel(); break
                             }
                             val delta=change.position-down.position
-                            gesture.move(delta.x/density,delta.y/density)
+                            if (!gesture.holding && change.uptimeMillis - down.uptimeMillis >= viewConfiguration.longPressTimeoutMillis) startHold()
+                            finger = bounds.topLeft + change.position
+                            if (gesture.holding && picker != null) selectedSlot = picker?.hit(finger)
+                            else if (gesture.holding && delta.getDistance() > 160.dp.toPx()) gesture.cancel()
+                            else gesture.move(delta.x/density,delta.y/density)
                             if(gesture.sliding || gesture.cancelled) longPress?.cancel()
                             preview()
                             if (!change.pressed) {
                                 change.consume()
-                                if (change.uptimeMillis - down.uptimeMillis >= viewConfiguration.longPressTimeoutMillis)
-                                    gesture.hold()
                                 when(val selected=gesture.release()) {
                                     -1 -> { primary(); committed=true }
-                                    -2 -> { secondary(); committed=true }
+                                    -2 -> {
+                                        val menu = picker
+                                        val index = if (menu == null) 0 else selectedSlot?.let(menu::option)
+                                        if (index != null) { currentHold[index].action(); committed = true }
+                                    }
                                     null -> Unit
                                     else -> currentChoices[selected]?.let { it.action();committed=true }
                                 }
@@ -264,7 +289,7 @@ internal fun KeyTouchSurface(label: String, enabled: Boolean, epoch: Long, modif
                     } finally {
                         longPress?.cancel()
                         pressed = false
-                        if (committed && previewEnabled) scope.launch { delay(80); previews.clear(token) }
+                        if (committed && previewEnabled && picker == null) scope.launch { delay(80); previews.clear(token) }
                         else previews.clear(token)
                     }
                 }

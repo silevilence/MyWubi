@@ -2,6 +2,9 @@ package org.mywubi
 
 import androidx.test.platform.app.InstrumentationRegistry
 import androidx.test.uiautomator.*
+import android.os.SystemClock
+import android.view.InputDevice
+import android.view.MotionEvent
 import org.json.JSONObject
 import org.junit.Assert.*
 import org.junit.Test
@@ -32,6 +35,51 @@ class CustomKeyboardHostTest {
         fun settle(){device.waitForIdle();instrumentation.waitForIdleSync();instrumentation.uiAutomation.clearCache()}
         fun key(name:String){settle();device.wait(Until.findObject(By.desc(name).pkg("org.mywubi").enabled(true)),10000)?.click() ?: error("Missing $name");settle()}
         fun expect(text:String){assertTrue("Host expected $text",awaitHostText(device,By.pkg("org.mywubi.acceptancehost").clazz("android.widget.EditText"),text,10000))}
+        fun hold(label: String, options: List<String>, chosen: String, cancel: Boolean = false) {
+            val center = requireNotNull(findFresh(device, By.desc(label).pkg("org.mywubi"), 5000)).visibleCenter
+            val start = SystemClock.uptimeMillis()
+            fun touch(action: Int, x: Int) {
+                val event = MotionEvent.obtain(start, SystemClock.uptimeMillis(), action, x.toFloat(), center.y.toFloat(), 0)
+                event.source = InputDevice.SOURCE_TOUCHSCREEN
+                try { assertTrue(instrumentation.uiAutomation.injectInputEvent(event, true)) } finally { event.recycle() }
+            }
+            touch(MotionEvent.ACTION_DOWN, center.x)
+            var x = center.x
+            var released = false
+            try {
+                val strip = requireNotNull(findFresh(device, By.desc("长按选择"), 5000)) { "No picker for $label" }
+                for (option in options) assertNotNull("Missing option $option", strip.findObject(By.text(option)))
+                assertEquals(options.size, strip.findObjects(By.text(java.util.regex.Pattern.compile(".+"))).size)
+                fun highlighted(option: String): Boolean {
+                    // Compose exposes selection as either checked or selected, depending on the node role.
+                    val node = findFresh(device, By.desc("长按选择").hasDescendant(By.text(option)), 2000)
+                        ?.findObject(By.text(option)) ?: return false
+                    return node.isSelected || node.isChecked
+                }
+                assertTrue("Default highlight for $label", highlighted(options.first()))
+                if (chosen != options.first()) {
+                    x = strip.findObject(By.text(chosen)).visibleCenter.x
+                    touch(MotionEvent.ACTION_MOVE, x)
+                    instrumentation.waitForIdleSync()
+                    assertTrue("Sliding highlight for $chosen", highlighted(chosen))
+                }
+                if (!cancel && chosen == options.last()) {
+                    device.takeScreenshot(File(context.filesDir, "hold-picker-$label.png"))
+                    device.dumpWindowHierarchy(File(context.filesDir, "hold-picker-$label.xml"))
+                }
+                touch(if (cancel) MotionEvent.ACTION_CANCEL else MotionEvent.ACTION_UP, x)
+                released = true
+            } finally { if (!released) touch(MotionEvent.ACTION_CANCEL, x) }
+            val deadline = SystemClock.uptimeMillis() + 3000
+            while (SystemClock.uptimeMillis() < deadline) {
+                instrumentation.uiAutomation.clearCache()
+                if (!device.hasObject(By.desc("长按选择"))) return
+                SystemClock.sleep(40)
+            }
+            device.dumpWindowHierarchy(File(context.filesDir, "hold-picker-after-release.xml"))
+            device.takeScreenshot(File(context.filesDir, "hold-picker-after-release.png"))
+            fail("Picker still visible after releasing $label (cancel=$cancel)")
+        }
         fun normalized(value:Any?):Any? = when(value) {
             is JSONObject -> value.keys().asSequence().associateWith {normalized(value.get(it))}
             is org.json.JSONArray -> (0 until value.length()).map {normalized(value.get(it))}
@@ -88,6 +136,11 @@ class CustomKeyboardHostTest {
             key("g");key("g");key("l");key("l");candidate("一");expect("一")
             key("退格");expect("")
             switchLayout("shape14","GH")
+            val paired = listOf("q", "w")
+            hold("QW", paired, "w", cancel = true); expect("")
+            hold("QW", paired, "w"); expect("w")
+            hold("QW", paired, "q"); expect("wq")
+            key("退格"); key("退格"); expect("")
             val idleBounds=device.findObject(By.desc("GH").pkg("org.mywubi")).visibleBounds
             key("GH");expect("")
             assertFalse("A composing group must not be reinterpreted by a layout switch",device.hasObject(By.desc("切换形码键盘")))
@@ -145,6 +198,9 @@ class CustomKeyboardHostTest {
             key("切换形码键盘")
             val restore=device.wait(Until.findObject(By.text("原始全键盘").pkg("org.mywubi")),5000)
             restore.click();assertTrue(device.wait(Until.hasObject(By.desc("q").pkg("org.mywubi").enabled(true)),10000))
+            hold("q", listOf("1", "q"), "1"); expect("1")
+            hold("q", listOf("1", "q"), "q"); expect("1q")
+            assertTrue(device.findObject(By.copy(editor).focused(true)).isFocused)
             assertTrue(directFailures.joinToString("; "), directFailures.isEmpty())
         } finally {
             ui.edit().apply { if(previousClipboard==null) remove("clipboard_suggestion") else putBoolean("clipboard_suggestion",previousClipboard) }.commit()
