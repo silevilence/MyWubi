@@ -48,6 +48,27 @@ def digest(path):
         return hashlib.file_digest(stream, "sha256").hexdigest()
 
 
+def component_names(directory, tag):
+    catalog = json.loads((directory / "components.json").read_text(encoding="utf-8-sig"))
+    names = set()
+    for entry in catalog:
+        archive = entry["archive"]
+        name = archive["path"]
+        source = f"https://github.com/silevilence/MyWubi/releases/download/{tag}/{name}"
+        if (not name.startswith("MyWubi-components-") or not name.endswith(f"-{tag[1:]}-windows-x86_64.zip")
+                or "/" in name or "\\" in name or entry["source"] != source or name in names
+                or entry["os"] != "windows" or entry["architecture"] != "x86_64"
+                or entry["application"] != "=" + tag[1:]):
+            raise ValueError(f"Component not bound to this Windows release: {name}")
+        path = directory / name
+        if not path.is_file() or path.stat().st_size != archive["bytes"] or digest(path) != archive["sha256"]:
+            raise ValueError(f"Missing or corrupt authorized component: {name}")
+        names.add(name)
+    if f"MyWubi-components-cpu-{tag[1:]}-windows-x86_64.zip" not in names:
+        raise ValueError("Missing CPU component in application catalog")
+    return names
+
+
 def assemble(root, identity, dist):
     scope, tag = identity["scope"], identity["tag"]
     dist.mkdir()
@@ -59,8 +80,7 @@ def assemble(root, identity, dist):
             raise ValueError(f"Missing {platform} assets: {expected - files}")
         allowed = set(expected)
         if platform == "windows":
-            catalog = json.loads((directory / "components.json").read_text(encoding="utf-8-sig"))
-            allowed.update(c["archive"]["path"] for c in catalog)
+            allowed.update(component_names(directory, tag))
             allowed.add(f"MyWubi-{tag[1:]}-delta.nupkg")
         else:
             for suffix in ("", "-full"):
