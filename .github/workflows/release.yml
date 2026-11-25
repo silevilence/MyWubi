@@ -1,12 +1,22 @@
 name: 🚀 Release
 
 on:
-  push:
-    tags: ['v*.*.*', 'V*.*.*']
   workflow_dispatch:
+    inputs:
+      tag:
+        description: Existing stable release tag
+        required: true
+        type: string
+      scope:
+        description: Platforms to deliver
+        required: true
+        type: choice
+        options: [both, windows, android]
+
+run-name: Release ${{ inputs.tag }} (${{ inputs.scope }})
 
 concurrency:
-  group: release-${{ github.ref }}
+  group: release-${{ inputs.tag }}
   cancel-in-progress: false
 
 permissions:
@@ -15,6 +25,8 @@ permissions:
 env:
   CARGO_TERM_COLOR: always
   CARGO_INCREMENTAL: 0
+  RELEASE_TAG: ${{ inputs.tag }}
+  RELEASE_SCOPE: ${{ inputs.scope }}
 
 jobs:
   metadata:
@@ -23,15 +35,27 @@ jobs:
     outputs:
       version: ${{ steps.meta.outputs.version }}
       tag: ${{ steps.meta.outputs.tag }}
+      commit: ${{ steps.meta.outputs.commit }}
     steps:
+      - name: Check dispatch and tag
+        env:
+          DEFAULT_BRANCH: ${{ github.event.repository.default_branch }}
+        run: |
+          [[ "$GITHUB_REF" == "refs/heads/$DEFAULT_BRANCH" ]]
+          [[ "$RELEASE_TAG" =~ ^[vV][0-9]+[.][0-9]+[.][0-9]+$ ]]
+          [[ "$RELEASE_SCOPE" =~ ^(windows|android|both)$ ]]
       - uses: actions/checkout@v4
+        with:
+          ref: refs/tags/${{ inputs.tag }}
       - uses: actions/setup-python@v5
         with:
           python-version: '3.12'
       - id: meta
+        env:
+          GH_TOKEN: ${{ github.token }}
         run: |
           python -m unittest discover -s scripts -p 'test_*.py' -v
-          python scripts/release_metadata.py
+          python scripts/publish_release.py prepare
       - uses: actions/upload-artifact@v4
         with:
           name: release-metadata
@@ -39,11 +63,14 @@ jobs:
           if-no-files-found: error
 
   windows:
+    if: inputs.scope == 'both' || inputs.scope == 'windows'
     name: Windows packages
     needs: metadata
     runs-on: windows-2022
     steps:
       - uses: actions/checkout@v4
+        with:
+          ref: ${{ needs.metadata.outputs.commit }}
       - uses: dtolnay/rust-toolchain@master
         with:
           toolchain: '1.99.1'
@@ -82,6 +109,7 @@ jobs:
           if-no-files-found: error
 
   android:
+    if: inputs.scope == 'both' || inputs.scope == 'android'
     name: Signed Android APK
     needs: metadata
     runs-on: ubuntu-24.04
@@ -92,6 +120,8 @@ jobs:
       MYWUBI_KEY_PASSWORD: ${{ secrets.MYWUBI_KEY_PASSWORD }}
     steps:
       - uses: actions/checkout@v4
+        with:
+          ref: ${{ needs.metadata.outputs.commit }}
       - uses: actions/setup-java@v4
         with:
           distribution: temurin
@@ -189,49 +219,30 @@ jobs:
           if-no-files-found: error
 
   publish:
-    name: Publish both platforms
-    if: github.event_name == 'push' && startsWith(github.ref, 'refs/tags/')
+    name: Publish selected platforms
     needs: [metadata, windows, android]
+    if: >-
+      always() && !cancelled() && needs.metadata.result == 'success' &&
+      needs.windows.result == ((inputs.scope == 'android' && 'skipped') || 'success') &&
+      needs.android.result == ((inputs.scope == 'windows' && 'skipped') || 'success')
+    concurrency:
+      group: publish-stable-release
+      cancel-in-progress: false
     runs-on: ubuntu-24.04
     permissions:
       contents: write
     steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ needs.metadata.outputs.commit }}
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
       - uses: actions/download-artifact@v4
         with:
           pattern: release-*
           path: artifacts
-      - name: Check complete asset set and generate checksums
-        run: |
-          python - <<'PY'
-          import hashlib, shutil
-          from pathlib import Path
-          windows = Path('artifacts/release-windows')
-          android = Path('artifacts/release-android')
-          for root, pattern in ((windows, '*-Setup.exe'), (windows, '*-Portable.zip'), (windows, 'MyWubi-components-*.zip'), (windows, 'components.json'), (windows, '*.nupkg'), (windows, 'releases.*.json'), (android, '*-Android.apk'), (android, '*-Android-full.apk'), (android, 'android-update.json'), (android, 'android-update-full.json')):
-              if not list(root.glob(pattern)):
-                  raise SystemExit(f'Missing release assets: {pattern}')
-          destination = Path('dist')
-          destination.mkdir()
-          for root in (windows, android):
-              for asset in root.iterdir():
-                  if not asset.is_file() or (destination / asset.name).exists():
-                      raise SystemExit(f'Unexpected/duplicate asset: {asset}')
-                  shutil.copy2(asset, destination / asset.name)
-          checksums = [f'{hashlib.sha256(p.read_bytes()).hexdigest()}  {p.name}' for p in sorted(destination.iterdir())]
-          (destination / 'SHA256SUMS.txt').write_text('\n'.join(checksums) + '\n')
-          PY
-      - name: Upload all assets to a draft release
-        uses: softprops/action-gh-release@v2
-        with:
-          tag_name: ${{ needs.metadata.outputs.tag }}
-          name: MyWubi ${{ needs.metadata.outputs.version }}
-          body_path: artifacts/release-metadata/release-notes.md
-          draft: true
-          fail_on_unmatched_files: true
-          files: dist/*
-      - name: Publish completed release
+      - name: Verify artifacts, resume matching draft and publish
         env:
           GH_TOKEN: ${{ github.token }}
-          GH_REPO: ${{ github.repository }}
-          RELEASE_TAG: ${{ needs.metadata.outputs.tag }}
-        run: gh release edit "$RELEASE_TAG" --draft=false --latest
+        run: python scripts/publish_release.py publish
