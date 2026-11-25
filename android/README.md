@@ -50,6 +50,8 @@ org.mywubi.test/androidx.test.runner.AndroidJUnitRunner`。当前已验证的宿
 adb shell am instrument -w -e browserPackage com.kiwibrowser.browser -e class 'org.mywubi.BrowserHostTest#addressBarCommitsChineseAndEnglishWithoutLosingFocus' org.mywubi.test/androidx.test.runner.AndroidJUnitRunner
 ```
 
+安装验收宿主后，可用同一条命令把测试类改为 `org.mywubi.CustomKeyboardHostTest`，验证地址栏沿用九键、切换到十四键并实际选词上屏。
+
 本机 Pixel 5 / API 34 AVD 的默认图形后端启动失败，软件渲染可启动：
 
 ```powershell
@@ -65,7 +67,7 @@ adb shell am instrument -w -e browserPackage com.kiwibrowser.browser -e class 'o
 files/engine/config.toml；首次启动只补缺失文件，后续启动不覆盖用户文件。
 
 持续中英模式与一次性拼音使用共享核心规则；数字符号按钮只切布局。
-网址栏支持中文选词和英文输入，保留 `/`、`.` 快捷键，不启用上下文预测或个性化学习。密码、数字、电话和邮箱仍直接输入。回车动作由 EditorInfo 决定。非空回车先提交本轮，
+网址栏沿用当前输入模式的键盘布局，形码模式下也可从工具栏切换布局。网址栏保留 `/`、`.` 快捷键，不启用上下文预测或个性化学习。密码、数字、电话和邮箱仍直接输入。回车动作由 EditorInfo 决定。非空回车先提交本轮，
 再次回车才执行发送/搜索；空临时模式不会发送。密码不显示预编辑与候选。
 无预编辑时退格按 ICU 字素边界删除，已有宿主选区优先删除；光标移出预编辑后保留
 宿主正文并放弃旧范围，不用旧长度回删。Android 使用 UTF-16 范围，JNI 传输标准 UTF-8。

@@ -37,7 +37,7 @@ internal fun KeyboardManagement(model: SettingsModel, config: JSONObject, librar
     Row { for((value,label) in listOf("Main" to "形码","Pinyin" to "拼音","English" to "英文")) {
         FilterChip(selected=mode==value,onClick={drafts[mode]=draft;mode=value;preview=null;draft=drafts[value]},label={Text(label)})
     } }
-    Text("从皮肤库选择布局，预览后明确应用。数字、电话、英文、网址和密码使用确定字符布局。")
+    Text("从皮肤库选择布局，预览后点「应用布局」。浏览器地址栏沿用所选布局。数字、电话、英文和密码使用确定字符布局。")
     Text("形码输入空闲时，点工具栏「切换形码键盘」可选当前皮肤的布局，也可回到原始全键盘。")
     Text(message)
     OutlinedButton(enabled=!busy,onClick={scope.launch {

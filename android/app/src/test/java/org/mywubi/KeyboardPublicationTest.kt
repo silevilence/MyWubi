@@ -14,7 +14,7 @@ class KeyboardPublicationTest {
     @Test fun editorRestrictionsAreCheckedBeforeCustomActions() {
         assertTrue(customKeyboardAllowed("Text","letters","Main",null))
         for(purpose in listOf("Password","Direct")) assertFalse(customKeyboardAllowed(purpose,"letters","Main",null))
-        for(layout in listOf("number","phone","url","email")) assertFalse(customKeyboardAllowed("Text",layout,"Main",null))
+        for(layout in listOf("number","phone","email")) assertFalse(customKeyboardAllowed("Text",layout,"Main",null))
         assertFalse(customKeyboardAllowed("Text","letters","English",null))
         assertFalse(customKeyboardAllowed("Text","letters","Main","Pinyin"))
         assertTrue(customKeyboardAllowed("Text","letters","Main","Pinyin","Pinyin"))

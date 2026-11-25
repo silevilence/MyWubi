@@ -240,7 +240,7 @@ fun Keyboard(model: KeyboardModel, dispatch: (Any) -> Unit, window: (Int) -> Uni
                                     badge={ if (showUpdate) Badge() }, action=openSettings)
                                 val mainMode = model.base == "Main" && model.temporary == null
                                 if (((mainMode && model.mainKeyboards.isNotEmpty()) || model.customLayout != null) &&
-                                    model.modesAvailable && !model.privateInput && model.layout == "letters" && panel == "letters") Box {
+                                    model.modesAvailable && !model.privateInput && supportsTextKeyboard(model.layout) && panel == "letters") Box {
                                     val menuLabel = if (mainMode) "切换形码键盘" else "切换键盘布局"
                                     ToolbarIconButton(R.drawable.ic_keyboard_layout, menuLabel,
                                         enabled=model.enabled && !model.switchingKeyboard) { keyboardMenu=true }
@@ -307,7 +307,7 @@ fun Keyboard(model: KeyboardModel, dispatch: (Any) -> Unit, window: (Int) -> Uni
             } else {
                 val layout = remember(panel, asciiSymbols, model.layout, model.enterLabel, model.customLayout, model.privateInput) {
                     when(panel) {
-                        "letters" -> model.customLayout?.takeIf { !model.privateInput && model.layout == "letters" }
+                        "letters" -> model.customLayout?.takeIf { !model.privateInput && supportsTextKeyboard(model.layout) }
                             ?: BuiltinKeyboardLayouts.letters()
                         "numbers" -> BuiltinKeyboardLayouts.numbers(model.layout == "phone", model.enterLabel)
                         else -> BuiltinKeyboardLayouts.symbols(asciiSymbols)

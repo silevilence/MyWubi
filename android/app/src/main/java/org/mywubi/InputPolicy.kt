@@ -6,6 +6,8 @@ import android.view.inputmethod.InputConnection
 import android.icu.text.BreakIterator
 import java.util.Locale
 
+internal fun supportsTextKeyboard(layout: String): Boolean = layout == "letters" || layout == "url"
+
 data class InputPolicy(val layout: String, val purpose: String, val action: String, val actionId: Int, val allowsAssistance: Boolean) {
     companion object {
         fun from(inputType: Int, imeOptions: Int): InputPolicy {
@@ -27,7 +29,7 @@ data class InputPolicy(val layout: String, val purpose: String, val action: Stri
             val purpose = when {
                 password -> "Password"
                 inputType == InputType.TYPE_NULL -> "Direct"
-                layout == "letters" || layout == "url" -> "Text"
+                supportsTextKeyboard(layout) -> "Text"
                 else -> "Direct"
             }
             val allowsAssistance = purpose == "Text" && layout != "url" && imeOptions and EditorInfo.IME_FLAG_NO_PERSONALIZED_LEARNING == 0

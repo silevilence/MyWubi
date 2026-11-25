@@ -13,6 +13,9 @@ class InputPolicyTest {
         val policy = InputPolicy.from(type, EditorInfo.IME_ACTION_GO)
         assertEquals("Text", policy.purpose)
         assertEquals("url", policy.layout)
+        assertTrue(customKeyboardAllowed(policy.purpose, policy.layout, "Main", null))
+        assertTrue(customKeyboardAllowed(policy.purpose, policy.layout, "Main", "Pinyin", "Pinyin"))
+        assertTrue(customKeyboardAllowed(policy.purpose, policy.layout, "English", null, "English"))
         assertEquals(EditorInfo.IME_ACTION_GO, policy.actionId)
         assertFalse(policy.allowsAssistance)
     }

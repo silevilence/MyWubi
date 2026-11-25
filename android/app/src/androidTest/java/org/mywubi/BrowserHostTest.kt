@@ -4,10 +4,35 @@ import android.os.SystemClock
 import android.view.KeyEvent
 import androidx.test.platform.app.InstrumentationRegistry
 import androidx.test.uiautomator.By
+import androidx.test.uiautomator.BySelector
 import androidx.test.uiautomator.UiDevice
 import androidx.test.uiautomator.UiObject2
 import org.junit.Assert.*
 import org.junit.Test
+
+private fun <T> awaitValue(description: String, read: () -> T?): T {
+    val deadline = SystemClock.uptimeMillis() + 15000
+    do {
+        InstrumentationRegistry.getInstrumentation().uiAutomation.clearCache()
+        read()?.let { return it }
+        SystemClock.sleep(100)
+    } while (SystemClock.uptimeMillis() < deadline)
+    throw AssertionError(description)
+}
+
+internal fun focusBrowserAddressBar(device: UiDevice, browser: String): BySelector {
+    device.executeShellCommand("am start -W -a android.intent.action.VIEW -d about:blank -p $browser")
+    val address = By.res(browser, "url_bar")
+    awaitValue("Browser address bar") {
+        device.findObject(address) ?: device.findObject(By.res(browser, "web_title"))
+            ?: device.findObject(By.res(browser, "search"))
+            ?: device.findObject(By.pkg(browser).clazz("android.widget.EditText"))
+            ?: device.findObject(By.pkg(browser).desc(java.util.regex.Pattern.compile("地址栏|网址栏|搜索或输入网址")))
+    }.click()
+    val editor = By.pkg(browser).clazz("android.widget.EditText").focused(true)
+    awaitValue("Focused address bar") { device.findObject(editor) }.text = ""
+    return editor
+}
 
 /** Real Chrome InputConnection. Serve android/tests on localhost:8765 and adb reverse it. */
 class BrowserHostTest {
@@ -15,16 +40,6 @@ class BrowserHostTest {
     private val device = UiDevice.getInstance(instrumentation)
 
     private val browser get() = InstrumentationRegistry.getArguments().getString("browserPackage","com.android.chrome")
-
-    private fun <T> awaitValue(description: String, read: () -> T?): T {
-        val deadline = SystemClock.uptimeMillis() + 15000
-        do {
-            instrumentation.uiAutomation.clearCache()
-            read()?.let { return it }
-            SystemClock.sleep(100)
-        } while (SystemClock.uptimeMillis() < deadline)
-        throw AssertionError(description)
-    }
 
     private fun key(label: String) {
         awaitValue("IME key $label") {
@@ -66,12 +81,7 @@ class BrowserHostTest {
     @Test fun addressBarCommitsChineseAndEnglishWithoutLosingFocus() {
         device.executeShellCommand("ime enable org.mywubi/.MyWubiService")
         device.executeShellCommand("ime set org.mywubi/.MyWubiService")
-        device.executeShellCommand("am start -W -a android.intent.action.VIEW -d about:blank -p $browser")
-        val address = By.res(browser, "url_bar")
-        awaitValue("Browser address bar") { device.findObject(address) ?: device.findObject(By.res(browser, "web_title")) ?: device.findObject(By.res(browser, "search")) ?: device.findObject(By.pkg(browser).clazz("android.widget.EditText"))
-                ?: device.findObject(By.pkg(browser).desc(java.util.regex.Pattern.compile("地址栏|网址栏|搜索或输入网址")))
-        }.click()
-        awaitValue("Focused address bar") { device.findObject(By.pkg(browser).clazz("android.widget.EditText").focused(true)) }.text = ""
+        focusBrowserAddressBar(device, browser)
         val initialMode = awaitValue("Enabled language switch") {
             device.findObject(By.pkg("org.mywubi").desc(java.util.regex.Pattern.compile("中 → 英|英 → 中")).enabled(true))?.contentDescription
         }

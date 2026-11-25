@@ -52,5 +52,5 @@ internal fun restoreKeyboard(path: File, config: JSONObject, mode: String): Keyb
 internal fun canPublishKeyboard(touches: Int, spelling: String, sameInput: Boolean): Boolean =
     touches == 0 && (spelling.isEmpty() || sameInput)
 internal fun customKeyboardAllowed(purpose: String, layout: String, base: String, temporary: String?, mode: String = "Main"): Boolean =
-    purpose == "Text" && layout == "letters" &&
+    purpose == "Text" && supportsTextKeyboard(layout) &&
         (if(mode=="Pinyin") temporary=="Pinyin" else if(mode=="English") base=="English" && temporary==null else base == "Main" && temporary == null)
