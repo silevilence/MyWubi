@@ -192,7 +192,7 @@ MYWUBI_KEYSTORE、MYWUBI_STORE_PASSWORD、MYWUBI_KEY_ALIAS、MYWUBI_KEY_PASSWORD
 
 推送 `V0.6.0` 形式的版本标签后，Release 工作流同时构建 Windows Velopack 包和
 包含 arm64-v8a / x86_64 的通用 Android APK。两平台通过检查后才公开同一个 Release，
-APK 名为 `MyWubi-<版本>-Android.apk`，附带原生库检查报告和 SHA256SUMS.txt。
+标准 APK 名为 `MyWubi-<版本>-Android.apk`，完整 ONNX 包名为 `MyWubi-<版本>-Android-full.apk`。两者使用同一签名，各自提供更新清单与原生库检查报告。组件准备、安装和切换见 [Android 预测组件](../docs/android-onnx-component.md)。
 手动运行 Release 工作流只做构建预检，不发布版本。
 
 Android 签名必须配置 MYWUBI_KEYSTORE_BASE64、MYWUBI_STORE_PASSWORD、MYWUBI_KEY_ALIAS、

@@ -16,6 +16,7 @@ data class AppUpdate(
     val versionName: String, val versionCode: Long, val minSdk: Int,
     val notes: String, val apkUrl: String, val sha256: String, val abis: List<String>
 ) {
+    val fullRuntime get() = apkUrl.endsWith("-Android-full.apk")
     fun json() = JSONObject().put("schema", 1).put("versionName", versionName)
         .put("versionCode", versionCode).put("minSdk", minSdk).put("notes", notes)
         .put("apkUrl", apkUrl).put("sha256", sha256).put("abis", org.json.JSONArray(abis))
@@ -31,7 +32,7 @@ data class AppUpdate(
             val array = json.getJSONArray("abis")
             val abis = (0 until array.length()).map(array::getString)
             require(name.matches(Regex("[0-9]+\\.[0-9]+\\.[0-9]+")) && code in 1..2_100_000_000L && min >= 26)
-            require(url.matches(Regex(Regex.escape(RELEASE_ROOT) + "[vV]" + Regex.escape(name) + "/MyWubi-" + Regex.escape(name) + "-Android\\.apk")))
+            require(url.matches(Regex(Regex.escape(RELEASE_ROOT) + "[vV]" + Regex.escape(name) + "/MyWubi-" + Regex.escape(name) + "-Android(?:-full)?\\.apk")))
             require(sha.matches(Regex("[a-f0-9]{64}")) && abis.isNotEmpty())
             return AppUpdate(name, code, min, json.getString("notes"), url, sha, abis)
         }
@@ -42,20 +43,22 @@ internal fun applicableUpdate(update: AppUpdate, installed: Long, sdk: Int, abis
     update.versionCode > installed && update.minSdk <= sdk && update.abis.any { it in abis }
 
 /** No editor text, input state, or engine handles cross this boundary. */
-internal fun releaseManifestUrl(release: JSONObject): String? {
+internal fun releaseManifestUrl(release: JSONObject, full: Boolean = false): String? {
     if (release.getBoolean("draft") || release.getBoolean("prerelease")) return null
     require(!release.isNull("published_at") && release.getString("published_at").isNotBlank())
     val tag = release.getString("tag_name")
     require(tag.matches(Regex("[vV][0-9]+\\.[0-9]+\\.[0-9]+")))
     val assets = release.getJSONArray("assets")
+    val name = if (full) "android-update-full.json" else "android-update.json"
     val urls = (0 until assets.length()).map(assets::getJSONObject)
-        .filter { it.getString("name") == "android-update.json" }
+        .filter { it.getString("name") == name }
         .map { it.getString("browser_download_url") }
     require(urls.size == 1) { "此版本尚未提供应用内更新信息，请前往发布页手动升级" }
-    return urls.single().also { require(it == "${RELEASE_ROOT}$tag/android-update.json") }
+    return urls.single().also { require(it == "${RELEASE_ROOT}$tag/$name") }
 }
 
 internal fun parseReleaseUpdate(manifestUrl: String, json: JSONObject): AppUpdate = AppUpdate.parse(json).also {
+    require(it.fullRuntime == manifestUrl.endsWith("/android-update-full.json")) { "更新包类型不匹配" }
     require(it.apkUrl.substringBeforeLast('/') == manifestUrl.substringBeforeLast('/')) {
         "安装包不属于已确认的正式发布版本"
     }
@@ -99,7 +102,7 @@ data class UpdateCheckState(val checking: Boolean = false, val available: AppUpd
 
 class AppUpdates internal constructor(context: Context, preferencesName: String = "app-updates",
     private val fetch: () -> AppUpdate? = {
-        releaseManifestUrl(readUpdateJson(RELEASE_API))?.let { parseReleaseUpdate(it, readUpdateJson(it)) }
+        releaseManifestUrl(readUpdateJson(RELEASE_API), BuildConfig.BUNDLED_ONNX)?.let { parseReleaseUpdate(it, readUpdateJson(it)) }
     }) {
     private val app = context.applicationContext
     private val prefs = app.getSharedPreferences(preferencesName, Context.MODE_PRIVATE)
@@ -111,7 +114,7 @@ class AppUpdates internal constructor(context: Context, preferencesName: String 
     val installedName = installed.versionName ?: installedCode.toString()
     private var schedule = CheckSchedule(prefs.getLong("next", 0), prefs.getInt("failures", 0))
     private val cached = runCatching { AppUpdate.parse(JSONObject(prefs.getString("available", "")!!)) }.getOrNull()
-        ?.takeIf { applicableUpdate(it, installedCode, Build.VERSION.SDK_INT, Build.SUPPORTED_ABIS.toList()) }
+        ?.takeIf { it.fullRuntime == BuildConfig.BUNDLED_ONNX && applicableUpdate(it, installedCode, Build.VERSION.SDK_INT, Build.SUPPORTED_ABIS.toList()) }
     private val mutable = MutableStateFlow(UpdateCheckState(available = cached))
     val state = mutable.asStateFlow()
 

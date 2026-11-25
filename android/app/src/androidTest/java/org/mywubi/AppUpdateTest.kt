@@ -27,6 +27,13 @@ class AppUpdateTest {
         assertNotNull(releaseManifestUrl(release()))
         assertEquals(update(), parseReleaseUpdate(releaseManifestUrl(release())!!,update().json()))
         assertTrue(runCatching { parseReleaseUpdate("${RELEASE_ROOT}v0.5.1/android-update.json",update().json()) }.isFailure)
+        val both = release()
+        val fullManifest = "${RELEASE_ROOT}v0.5.2/android-update-full.json"
+        both.getJSONArray("assets").put(JSONObject().put("name", "android-update-full.json").put("browser_download_url", fullManifest))
+        assertEquals(fullManifest, releaseManifestUrl(both, full = true))
+        assertTrue(runCatching { parseReleaseUpdate(fullManifest, update().json()) }.isFailure)
+        val full = update().copy(apkUrl = update().apkUrl.replace("-Android.apk", "-Android-full.apk"))
+        assertEquals(full, parseReleaseUpdate(fullManifest, full.json()))
         assertNull(releaseManifestUrl(release().put("draft", true)))
         assertNull(releaseManifestUrl(release().put("prerelease", true)))
         assertTrue(runCatching { releaseManifestUrl(release().put("published_at", JSONObject.NULL)) }.isFailure)

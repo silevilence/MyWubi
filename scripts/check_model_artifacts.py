@@ -9,7 +9,7 @@ from pathlib import Path
 ROOT = Path(__file__).resolve().parents[1]
 
 
-def check(apk=None, windows_dir=None, gpu_dir=None):
+def check(apk=None, windows_dir=None, gpu_dir=None, bundled_onnx=True):
     source = ROOT / 'model_input/licenses'
     manifest = json.loads((source / 'sources.json').read_text(encoding='utf-8'))
     for name, expected in manifest['files'].items():
@@ -18,8 +18,11 @@ def check(apk=None, windows_dir=None, gpu_dir=None):
         with zipfile.ZipFile(apk) as archive:
             names = set(archive.namelist())
             for abi in ('arm64-v8a', 'x86_64'):
-                for library in ('libmywubi_android.so', 'libonnxruntime.so'):
-                    assert f'lib/{abi}/{library}' in names, (abi, library)
+                native = archive.read(f'lib/{abi}/libmywubi_android.so')
+                assert b'llama_model_loader' in native and b'OrtGetApiBase' in native, abi
+                assert (f'lib/{abi}/libonnxruntime.so' in names) == bundled_onnx, abi
+            if not bundled_onnx:
+                assert not any('libonnxruntime' in name for name in names)
             assert not any(n.endswith(('.gguf', '.onnx')) for n in names), 'weights must be optional'
             for name, expected in manifest['files'].items():
                 assert hashlib.sha256(archive.read('assets/licenses/models/' + name)).hexdigest() == expected, name
@@ -65,7 +68,8 @@ def check(apk=None, windows_dir=None, gpu_dir=None):
 if __name__ == '__main__':
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument('--apk', type=Path)
+    parser.add_argument('--optional-onnx', action='store_true')
     parser.add_argument('--windows-dir', type=Path)
     parser.add_argument('--gpu-dir', type=Path)
     args = parser.parse_args()
-    print(json.dumps(check(args.apk, args.windows_dir, args.gpu_dir), indent=2))
+    print(json.dumps(check(args.apk, args.windows_dir, args.gpu_dir, not args.optional_onnx), indent=2))

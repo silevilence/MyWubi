@@ -46,6 +46,7 @@ internal fun compatibleSignatures(installed: PackageInfo, archive: PackageInfo):
 
 @Suppress("DEPRECATION")
 internal fun verifyApk(context: Context, file: File, update: AppUpdate) {
+    require(update.fullRuntime == BuildConfig.BUNDLED_ONNX) { "更新包类型与当前安装不符" }
     require(file.isFile && file.length() in 1..MAX_APK_BYTES) { "安装包不存在或大小异常，请重新下载" }
     require(sha256(file) == update.sha256) { "安装包校验和不符，请重新下载" }
     val pm = context.packageManager
@@ -59,6 +60,7 @@ internal fun verifyApk(context: Context, file: File, update: AppUpdate) {
     require(minSdk == update.minSdk && minSdk <= Build.VERSION.SDK_INT) { "安装包不兼容当前系统" }
     require(compatibleSignatures(installed, archive)) { "安装包签名与当前应用不兼容" }
     ZipFile(file).use { zip ->
+        require(update.abis.all { abi -> (zip.getEntry("lib/$abi/libonnxruntime.so") != null) == update.fullRuntime }) { "安装包运行库与更新类型不符" }
         require(Build.SUPPORTED_ABIS.any { abi -> abi in update.abis && zip.getEntry("lib/$abi/libmywubi_android.so") != null }) { "安装包不兼容此设备架构" }
     }
 }

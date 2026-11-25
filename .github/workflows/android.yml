@@ -27,6 +27,16 @@ jobs:
           log-accepted-android-sdk-licenses: false
       - name: Install fixed Android build dependencies
         run: sdkmanager 'platforms;android-35' 'build-tools;35.0.0' 'ndk;27.2.12479018'
+      - name: Configure native model toolchain
+        run: |
+          echo "ANDROID_NDK=$ANDROID_HOME/ndk/27.2.12479018" >> "$GITHUB_ENV"
+          echo "ANDROID_API_LEVEL=26" >> "$GITHUB_ENV"
+          echo "CMAKE_GENERATOR=Ninja" >> "$GITHUB_ENV"
+          for arch in aarch64 x86_64; do
+            for flags in CFLAGS CXXFLAGS; do
+              echo "${flags}_${arch}_linux_android=--target=${arch}-linux-android26" >> "$GITHUB_ENV"
+            done
+          done
       - name: Core and native protocol
         run: |
           cargo fmt --all -- --check

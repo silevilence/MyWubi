@@ -83,10 +83,10 @@ Windows 构建先产生独立 CPU 组件和可信清单，再编译统一轻量�
 # Android arm64-v8a + x86_64；固定 NDK 27.2.12479018、Rust 1.99.1、JDK 21。
 ./android/build-models.ps1
 python android/check_apk.py android/app/build/outputs/apk/debug/app-debug.apk
-python scripts/check_model_artifacts.py --apk android/app/build/outputs/apk/debug/app-debug.apk
+python scripts/check_model_artifacts.py --optional-onnx --apk android/app/build/outputs/apk/debug/app-debug.apk
 ```
 
-Android 模型版使用官方 `onnxruntime-android:1.31.1` AAR，提取原生库供 Rust 动态加载；
+Android 标准包从预测设置按需获取官方 `onnxruntime-android:1.31.1` AAR，校验后提取当前架构的运行库。完整包内置运行库。两种构建和更新规则见 [Android 预测组件](android-onnx-component.md)。
 llama.cpp 静态链接 C++ 运行库。Windows 将两个后端、ORT DLL 和 Visual Studio x64
 可再分发 CRT 放在独立服务旁；采用微软支持的[应用本地部署](https://learn.microsoft.com/en-us/cpp/windows/redistributing-visual-cpp-files)，无需用户另装开发环境。
 `model-native-runtime.json` 记录实际 DLL 版本与哈希，CRT 遵循微软分发条款。包中不收集

@@ -112,6 +112,16 @@ jobs:
           log-accepted-android-sdk-licenses: false
       - name: Install fixed SDK and NDK
         run: sdkmanager 'platforms;android-35' 'build-tools;35.0.0' 'ndk;27.2.12479018'
+      - name: Configure native model toolchain
+        run: |
+          echo "ANDROID_NDK=$ANDROID_HOME/ndk/27.2.12479018" >> "$GITHUB_ENV"
+          echo "ANDROID_API_LEVEL=26" >> "$GITHUB_ENV"
+          echo "CMAKE_GENERATOR=Ninja" >> "$GITHUB_ENV"
+          for arch in aarch64 x86_64; do
+            for flags in CFLAGS CXXFLAGS; do
+              echo "${flags}_${arch}_linux_android=--target=${arch}-linux-android26" >> "$GITHUB_ENV"
+            done
+          done
       - name: Restore release signing key
         run: |
           python - <<'PY'
@@ -144,6 +154,18 @@ jobs:
           mkdir -p android-release
           cp "$apk" "android-release/MyWubi-$RELEASE_VERSION-Android.apk"
           python android/check_apk.py "android-release/MyWubi-$RELEASE_VERSION-Android.apk" --output "android-release/MyWubi-$RELEASE_VERSION-Android-native.json"
+          python scripts/check_model_artifacts.py --optional-onnx --apk "$apk"
+      - name: Build and verify same-signature full runtime fallback
+        env:
+          RELEASE_VERSION: ${{ needs.metadata.outputs.version }}
+        run: |
+          bash android/gradlew -p android -PbundleOnnx=true :app:assembleRelease --console=plain
+          apk="android-release/MyWubi-$RELEASE_VERSION-Android-full.apk"
+          cp android/app/build/outputs/apk/release/app-release.apk "$apk"
+          "$ANDROID_HOME/build-tools/35.0.0/apksigner" verify --verbose "$apk"
+          "$ANDROID_HOME/build-tools/35.0.0/zipalign" -c -P 16 4 "$apk"
+          python android/check_apk.py "$apk" --output "android-release/MyWubi-$RELEASE_VERSION-Android-full-native.json"
+          python scripts/check_model_artifacts.py --apk "$apk"
       - uses: actions/download-artifact@v4
         with:
           name: release-metadata
@@ -151,13 +173,15 @@ jobs:
       - name: Generate Android update manifest from signed APK
         env:
           RELEASE_TAG: ${{ needs.metadata.outputs.tag }}
-        run: >-
-          python scripts/android_update_metadata.py
-          --apk android/app/build/outputs/apk/release/app-release.apk
-          --aapt "$ANDROID_HOME/build-tools/35.0.0/aapt"
-          --tag "$RELEASE_TAG"
-          --notes release-metadata/release-notes.md
-          --output android-release/android-update.json
+        run: |
+          for variant in standard full; do
+            suffix=""; flags=()
+            if [[ "$variant" == full ]]; then suffix=-full; flags=(--full); fi
+            python scripts/android_update_metadata.py "${flags[@]}" \
+              --apk "android-release/MyWubi-${RELEASE_TAG:1}-Android$suffix.apk" \
+              --aapt "$ANDROID_HOME/build-tools/35.0.0/aapt" --tag "$RELEASE_TAG" \
+              --notes release-metadata/release-notes.md --output "android-release/android-update$suffix.json"
+          done
       - uses: actions/upload-artifact@v4
         with:
           name: release-android
@@ -183,7 +207,7 @@ jobs:
           from pathlib import Path
           windows = Path('artifacts/release-windows')
           android = Path('artifacts/release-android')
-          for root, pattern in ((windows, '*-Setup.exe'), (windows, '*-Portable.zip'), (windows, 'MyWubi-components-*.zip'), (windows, 'components.json'), (windows, '*.nupkg'), (windows, 'releases.*.json'), (android, '*.apk'), (android, 'android-update.json')):
+          for root, pattern in ((windows, '*-Setup.exe'), (windows, '*-Portable.zip'), (windows, 'MyWubi-components-*.zip'), (windows, 'components.json'), (windows, '*.nupkg'), (windows, 'releases.*.json'), (android, '*-Android.apk'), (android, '*-Android-full.apk'), (android, 'android-update.json'), (android, 'android-update-full.json')):
               if not list(root.glob(pattern)):
                   raise SystemExit(f'Missing release assets: {pattern}')
           destination = Path('dist')
