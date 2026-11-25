@@ -8,33 +8,23 @@ use std::{
     sync::{Arc, OnceLock},
 };
 
-static ENVIRONMENT: OnceLock<Result<Environment, Unavailable>> = OnceLock::new();
-static RUNTIME_DIRECTORY: OnceLock<std::path::PathBuf> = OnceLock::new();
-/// Application bootstrap only records its installed nativeLibraryDir. Loading
-/// remains on the inference thread; model packages never set this directory.
-pub fn set_runtime_directory(path: &Path) {
-    if path.is_absolute() {
-        let _ = RUNTIME_DIRECTORY.set(path.to_path_buf());
-    }
-}
-
-/// Initialize the application-bundled runtime, never a model-supplied native library.
-/// Android must pass its nativeLibraryDir/libonnxruntime.so before loading a model.
+static ENVIRONMENT: OnceLock<Environment> = OnceLock::new();
+/// Initialize a trusted application runtime. Only successful loads persist.
 pub fn initialize_runtime(path: &Path) -> Result<(), Unavailable> {
     if !path.is_absolute() || !path.is_file() {
         return Err(Unavailable::Load);
     }
-    ENVIRONMENT
-        .get_or_init(|| {
-            ort::init_from(path)
-                .map_err(|_| Unavailable::Load)?
-                .with_logger(Arc::new(|_, _, _, _, _| {}))
-                .build()
-                .map_err(|_| Unavailable::Load)
-        })
-        .as_ref()
-        .map(|_| ())
-        .map_err(|error| *error)
+    static INITIALIZE: std::sync::Mutex<()> = std::sync::Mutex::new(());
+    let _guard = INITIALIZE.lock().map_err(|_| Unavailable::Load)?;
+    if ENVIRONMENT.get().is_none() {
+        let environment = ort::init_from(path)
+            .map_err(|_| Unavailable::Load)?
+            .with_logger(Arc::new(|_, _, _, _, _| {}))
+            .build()
+            .map_err(|_| Unavailable::Load)?;
+        let _ = ENVIRONMENT.set(environment);
+    }
+    Ok(())
 }
 
 /// Fixed vocabulary: index 0 is unknown, index 1 is BOS, other tokens are single scalars.
@@ -101,6 +91,7 @@ impl OnnxScorer {
         {
             return Err(Unavailable::UnsupportedModel);
         }
+        #[cfg(not(target_os = "android"))]
         if ENVIRONMENT.get().is_none() {
             let executable = std::env::current_exe().map_err(|_| Unavailable::Load)?;
             let directory = executable.parent().ok_or(Unavailable::Load)?;
@@ -109,18 +100,9 @@ impl OnnxScorer {
             } else {
                 "libonnxruntime.so"
             };
-            initialize_runtime(
-                &RUNTIME_DIRECTORY
-                    .get()
-                    .map_or(directory, |p| p.as_path())
-                    .join(name),
-            )?;
+            initialize_runtime(&directory.join(name))?;
         }
-        let environment = ENVIRONMENT
-            .get()
-            .ok_or(Unavailable::Load)?
-            .as_ref()
-            .map_err(|e| *e)?;
+        let environment = ENVIRONMENT.get().ok_or(Unavailable::Load)?;
         // Memory loading deliberately has no model-directory base for external weights.
         // character-step-v1 packages require embedded tensors; no arbitrary filesystem reads.
         let model_bytes = std::fs::read(model).map_err(|_| Unavailable::Load)?;

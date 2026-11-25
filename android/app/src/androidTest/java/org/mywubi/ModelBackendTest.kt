@@ -80,7 +80,14 @@ class ModelBackendTest {
     private fun score(source:File) {
         UiDevice.getInstance(instrumentation).pressHome()
         instrumentation.waitForIdleSync()
-        NativeBridge.runtimeDirectory(context.applicationInfo.nativeLibraryDir)
+        if (JSONObject(File(source, "manifest.json").readText()).getString("backend") == "OnnxRuntime") {
+            OnnxRuntime.refresh(context)
+            val readyBy = SystemClock.uptimeMillis() + 10_000
+            while (OnnxRuntime.status.value != OnnxRuntime.State.Ready && SystemClock.uptimeMillis() < readyBy) {
+                SystemClock.sleep(25)
+            }
+            assertEquals(OnnxRuntime.State.Ready, OnnxRuntime.status.value)
+        }
         val manifest=JSONObject(File(source,"manifest.json").readText())
         val root=File(context.cacheDir,"backend-store-${System.nanoTime()}").apply{mkdirs()}
         try {

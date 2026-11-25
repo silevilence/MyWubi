@@ -16,7 +16,6 @@ object NativeBridge {
     @JvmStatic external fun modelGuide(): String
     @JvmStatic external fun inference(request: ByteArray): ByteArray
     @JvmStatic external fun probeOnnx(path: String): Boolean
-    @JvmStatic external fun runtimeDirectory(path: String)
 
     fun call(op: String, vararg fields: Pair<String, Any?>): Any? {
         val request = JSONObject().put("op", op)

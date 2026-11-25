@@ -172,23 +172,6 @@ pub extern "system" fn Java_org_mywubi_NativeBridge_probeOnnx(
     }
 }
 
-#[no_mangle]
-pub extern "system" fn Java_org_mywubi_NativeBridge_runtimeDirectory(
-    mut env: JNIEnv,
-    _class: JClass,
-    path: JString,
-) {
-    let _ = std::panic::catch_unwind(std::panic::AssertUnwindSafe(|| {
-        if let Ok(path) = env.get_string(&path) {
-            let path: String = path.into();
-            #[cfg(feature = "onnx")]
-            model_input::onnx::set_runtime_directory(std::path::Path::new(&path));
-            #[cfg(not(feature = "onnx"))]
-            let _ = path;
-        }
-    }));
-}
-
 /// Protocol is carried in byte arrays: standard UTF-8, never JNI Modified UTF-8.
 #[no_mangle]
 pub extern "system" fn Java_org_mywubi_NativeBridge_version(_env: JNIEnv, _class: JClass) -> jint {
