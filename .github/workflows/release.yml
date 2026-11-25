@@ -34,6 +34,8 @@ env:
 
 jobs:
   metadata:
+    permissions:
+      contents: write
     name: Validate release version and notes
     runs-on: ubuntu-24.04
     outputs:
@@ -225,10 +227,10 @@ jobs:
   publish:
     name: Publish selected platforms
     needs: [metadata, windows, android]
-    if: >-
-      always() && !cancelled() && needs.metadata.result == 'success' &&
-      needs.windows.result == ((inputs.scope == 'android' && 'skipped') || 'success') &&
-      needs.android.result == ((inputs.scope == 'windows' && 'skipped') || 'success')
+    if: always() && !cancelled() && needs.metadata.result == 'success'
+    env:
+      WINDOWS_RESULT: ${{ needs.windows.result }}
+      ANDROID_RESULT: ${{ needs.android.result }}
     concurrency:
       group: publish-stable-release
       cancel-in-progress: false

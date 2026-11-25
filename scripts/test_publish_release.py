@@ -1,10 +1,11 @@
+import itertools
 import json
 from pathlib import Path
 import tempfile
 import unittest
 from unittest.mock import patch
 
-from publish_release import assemble, digest, publish, remaining
+from publish_release import assemble, check_jobs, digest, publish, remaining
 from release_contract import marker, required, SCOPES
 
 
@@ -22,6 +23,14 @@ class PublishTests(unittest.TestCase):
             path.mkdir(exist_ok=True)
             for name in required(platform, identity["tag"]):
                 (path / name).write_text('{"versionCode":3}')
+            if platform == "android":
+                for suffix in ("", "-full"):
+                    name = f"MyWubi-1.2.3-Android{suffix}.apk"
+                    sha = digest(path / name)
+                    (path / f"MyWubi-1.2.3-Android{suffix}-native.json").write_text(json.dumps(dict(sha256=sha)))
+                    (path / f"android-update{suffix}.json").write_text(json.dumps(dict(
+                        sha256=sha, versionName="1.2.3", versionCode=3, notes="新版输入法 ✨",
+                        apkUrl=f"https://github.com/silevilence/MyWubi/releases/download/V1.2.3/{name}"), ensure_ascii=False), encoding="utf-8")
             if platform == "windows":
                 name = "MyWubi-components-cpu-1.2.3-windows-x86_64.zip"
                 component = dict(os="windows", architecture="x86_64", application="=1.2.3",
@@ -29,6 +38,17 @@ class PublishTests(unittest.TestCase):
                                  archive=dict(path=name, bytes=(path / name).stat().st_size, sha256=digest(path / name)))
                 (path / "components.json").write_text(json.dumps([component]))
         return identity
+
+    def test_workflow_only_publishes_the_exact_selected_results(self):
+        states = ("success", "skipped", "failure", "cancelled")
+        for scope, selected in SCOPES.items():
+            for win, android in itertools.product(states, repeat=2):
+                results = {"windows": win, "android": android}
+                if all(results[p] == ("success" if p in selected else "skipped") for p in results):
+                    check_jobs(scope, results)
+                else:
+                    with self.assertRaises(ValueError):
+                        check_jobs(scope, results)
 
     def test_stage_each_scope(self):
         for scope in SCOPES:
@@ -65,6 +85,48 @@ class PublishTests(unittest.TestCase):
         for change in [dict(size=1), dict(digest="wrong"), dict(state="starter"), dict(name="other")]:
             with self.assertRaises(ValueError):
                 remaining([asset | change], self.root)
+
+    def test_resume_original_run_after_partial_upload(self):
+        identity = self.stage("android")
+        dist = self.root / "dist"
+        assemble(self.root, identity, dist)
+        draft = {}
+        uploaded = []
+
+        def fake_api(path, *args):
+            if path.startswith("releases?"):
+                return [[draft]] if draft else [[]]
+            if path == "releases":
+                field = lambda name: next(a.split("=", 1)[1] for a in args if a.startswith(name + "="))
+                draft.update(id=1, tag_name=field("tag_name"), body=field("body"),
+                             target_commitish=field("target_commitish"), draft=True)
+            elif path.startswith("releases/1/assets"):
+                return [uploaded]
+            elif path == "releases/1":
+                draft["draft"] = False
+            else:
+                self.fail(path)
+            return draft
+
+        def upload(*args):
+            path = args[-1]
+            uploaded.append(dict(name=path.name, size=path.stat().st_size, state="uploaded",
+                                 digest="sha256:" + digest(path)))
+
+        with patch("publish_release.api", side_effect=fake_api):
+            def interrupted(*args):
+                if uploaded:
+                    raise OSError("offline")
+                upload(*args)
+            with patch("publish_release.gh", side_effect=interrupted), self.assertRaises(OSError):
+                publish(identity, "notes", dist)
+            self.assertTrue(draft["draft"])
+            with self.assertRaises(ValueError):
+                publish(identity | {"run_id": "different"}, "notes", dist)
+            with patch("publish_release.gh", side_effect=upload):
+                publish(identity, "notes", dist)
+            self.assertFalse(draft["draft"])
+            self.assertEqual(len(uploaded), len(list(dist.iterdir())))
 
     def test_existing_public_or_mismatched_draft_rejected(self):
         identity = self.stage("android")

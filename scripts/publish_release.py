@@ -69,6 +69,12 @@ def component_names(directory, tag):
     return names
 
 
+def check_jobs(scope, results):
+    expected = {p: "success" if p in SCOPES[scope] else "skipped" for p in ("windows", "android")}
+    if expected != results:
+        raise ValueError(f"Build outcomes {results}, expected {expected}")
+
+
 def assemble(root, identity, dist):
     scope, tag = identity["scope"], identity["tag"]
     dist.mkdir()
@@ -84,16 +90,24 @@ def assemble(root, identity, dist):
             allowed.add(f"MyWubi-{tag[1:]}-delta.nupkg")
         else:
             for suffix in ("", "-full"):
-                manifest = json.loads((directory / f"android-update{suffix}.json").read_text())
-                if manifest["versionCode"] != identity["platforms"]["android"]["versionCode"]:
-                    raise ValueError("Android APK versionCode differs from the recorded version")
+                manifest = json.loads((directory / f"android-update{suffix}.json").read_text(encoding="utf-8"))
+                name = f"MyWubi-{tag[1:]}-Android{suffix}.apk"
+                report = json.loads((directory / f"MyWubi-{tag[1:]}-Android{suffix}-native.json").read_text(encoding="utf-8"))
+                sha = digest(directory / name)
+                if (manifest["versionCode"] != identity["platforms"]["android"]["versionCode"]
+                        or manifest["versionName"] != tag[1:] or report["sha256"] != sha
+                        or manifest["sha256"] != sha or manifest["apkUrl"] !=
+                        f"https://github.com/silevilence/MyWubi/releases/download/{tag}/{name}"):
+                    raise ValueError(f"Android manifest or native report differs from {name}")
         if files - allowed or any(p.name not in files for p in directory.iterdir()):
             raise ValueError(f"Unexpected or empty {platform} artifact")
         for name in files:
             shutil.copyfile(directory / name, dist / name)
-    inventory = {p.name: {"size": p.stat().st_size, "digest": "sha256:" + digest(p)} for p in dist.iterdir()}
+    sums = {p.name: digest(p) for p in sorted(dist.iterdir())}
+    inventory = {name: {"size": (dist / name).stat().st_size, "digest": "sha256:" + sha} for name, sha in sums.items()}
     (dist / marker(scope)).write_text(json.dumps(identity | {"assets": inventory}, indent=2) + "\n")
-    hashes = [f"{digest(p)}  {p.name}" for p in sorted(dist.iterdir())]
+    sums[marker(scope)] = digest(dist / marker(scope))
+    hashes = [f"{sums[name]}  {name}" for name in sorted(sums)]
     (dist / "SHA256SUMS.txt").write_text("\n".join(hashes) + "\n")
 
 
@@ -109,7 +123,7 @@ def remaining(assets, dist):
     return sorted(pending)
 
 
-def publish(identity, notes, dist):
+def matching_draft(identity, notes):
     tag = identity["tag"]
     stamp = json.dumps({key: identity[key] for key in ("tag", "scope", "commit", "run_id")}, sort_keys=True)
     body = notes.rstrip() + f"\n\n<!-- mywubi-release {stamp} -->"
@@ -121,6 +135,13 @@ def publish(identity, notes, dist):
                     "-f", f"name=MyWubi {tag}", "-f", f"body={body}", "-F", "draft=true")
     if not draft["draft"] or draft["body"] != body or draft["target_commitish"] != identity["commit"]:
         raise ValueError("Release is public or draft identity differs; recover the original run")
+    return draft
+
+
+def publish(identity, notes, dist):
+    tag = identity["tag"]
+    draft = matching_draft(identity, notes)
+
     def assets():
         return [a for page in api(f"releases/{draft['id']}/assets?per_page=100", "--paginate", "--slurp") for a in page]
     for name in remaining(assets(), dist):
@@ -141,17 +162,23 @@ def main():
     if args.step == "prepare":
         metadata = prepare(Path.cwd(), "refs/tags/" + tag, root, scope)
     else:
-        metadata = json.loads((root / "version.json").read_text())
+        check_jobs(scope, {"windows": os.environ["WINDOWS_RESULT"], "android": os.environ["ANDROID_RESULT"]})
+        metadata = json.loads((root / "version.json").read_text(encoding="utf-8"))
     identity = record(tag, scope, commit, os.environ["GITHUB_RUN_ID"], metadata["version_code"])
     path = root / marker(scope)
     if args.step == "prepare":
+        matching_draft(identity, (root / "release-notes.md").read_text(encoding="utf-8"))
         path.write_text(json.dumps(identity, indent=2) + "\n")
         with open(os.environ["GITHUB_OUTPUT"], "a") as out:
             for key, value in dict(tag=tag, scope=scope, commit=commit, version=tag[1:]).items():
                 print(f"{key}={value}", file=out)
     else:
-        if identity != json.loads(path.read_text()):
-            raise ValueError("Release history or identity changed during the build")
+        prepared = json.loads(path.read_text(encoding="utf-8"))
+        unchanged = ("schema", "tag", "scope", "commit", "run_id")
+        if (any(identity[key] != prepared[key] for key in unchanged)
+                or any(identity["platforms"][p] != prepared["platforms"][p] for p in SCOPES[scope])):
+            raise ValueError("Selected release identity changed during the build")
+        # An unselected platform may have advanced since preparation. Publish its actual baseline.
         dist = Path("dist")
         assemble(root.parent, identity, dist)
         publish(identity, (root / "release-notes.md").read_text(encoding="utf-8"), dist)
