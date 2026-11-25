@@ -30,7 +30,8 @@ class UpdateInstallTest {
         @Suppress("DEPRECATION")
         val info = requireNotNull(context.packageManager.getPackageArchiveInfo(file.path,0))
         val name = info.versionName!!
-        val update = AppUpdate(name, packageVersion(info), info.applicationInfo!!.minSdkVersion, "签名覆盖安装验收", "${RELEASE_ROOT}v$name/MyWubi-$name-Android.apk", sha256(file), listOf("x86_64", "arm64-v8a"))
+        val suffix = if (BuildConfig.BUNDLED_ONNX) "-Android-full.apk" else "-Android.apk"
+        val update = AppUpdate(name, packageVersion(info), info.applicationInfo!!.minSdkVersion, "签名覆盖安装验收", "${RELEASE_ROOT}v$name/MyWubi-$name$suffix", sha256(file), listOf("x86_64", "arm64-v8a"))
         lateinit var checks: AppUpdates
         lateinit var download: UpdateDownload
         instrumentation.runOnMainSync {

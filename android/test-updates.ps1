@@ -62,6 +62,18 @@ try {
             Start-Sleep -Milliseconds 500
         }
         if ($packageState -notmatch "versionCode=$nextCode\b") { throw 'System installation did not finish' }
+        # PackageManager can report the new version while the replacing package is still frozen.
+        $ready = $false
+        for ($attempt = 0; $attempt -lt 30; $attempt++) {
+            $frozen = (& $adb -s $Serial shell "dumpsys package | sed -n '/^Frozen packages:/,/^$/p'") -join "`n"
+            if ($frozen -notmatch '\borg\.mywubi\b') {
+                $launch = (& $adb -s $Serial shell am start -W -n org.mywubi/.MainActivity 2>&1) -join "`n"
+                $running = & $adb -s $Serial shell pidof org.mywubi
+                if ($launch -match 'Status: ok' -and $running) { $ready = $true; break }
+            }
+            Start-Sleep -Milliseconds 500
+        }
+        if (-not $ready) { throw 'Updated app is not ready for data verification' }
         $verification = & $adb -s $Serial shell am instrument -w -e class 'org.mywubi.UpdateInstallTest#upgradePreservedUserData' -e verify_upgrade true org.mywubi.test/androidx.test.runner.AndroidJUnitRunner
         $verification
         if (($verification -join "`n") -notmatch 'OK \(1 test\)') { throw 'Post-upgrade verification failed' }
