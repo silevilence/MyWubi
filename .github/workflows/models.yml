@@ -39,7 +39,7 @@ jobs:
           python scripts/check_model_artifacts.py
       - name: Android optional model APK and unit tests
         shell: pwsh
-        run: ./android/build-models.ps1 -Sdk $env:ANDROID_HOME
+        run: ./android/build-models.ps1 -Sdk $env:ANDROID_HOME -Tasks @('-PbundleOnnx=true', ':app:assembleDebug', ':app:testDebugUnitTest', ':app:assembleDebugAndroidTest')
       - name: Inspect payloads and 16 KiB alignment
         shell: pwsh
         run: |

@@ -4,14 +4,15 @@ plugins {
     id 'org.jetbrains.kotlin.plugin.compose'
     id 'org.mozilla.rust-android-gradle.rust-android'
 }
-def modelBackends = providers.gradleProperty('modelBackends').getOrElse('false').toBoolean()
+def modelBackends = providers.gradleProperty('modelBackends').getOrElse('true').toBoolean()
+def bundledOnnx = modelBackends && providers.gradleProperty('bundleOnnx').getOrElse('false').toBoolean()
 android {
     namespace 'org.mywubi'
     compileSdk 35
     buildToolsVersion '35.0.0'
     ndkVersion '27.2.12479018'
     defaultConfig {
-        applicationId 'org.mywubi'
+        applicationId providers.gradleProperty('testApplicationId').getOrElse('org.mywubi')
         minSdk 26
         targetSdk 35
         versionCode providers.gradleProperty('versionCode').getOrElse('20').toInteger()
@@ -20,7 +21,7 @@ android {
         ndk { abiFilters 'arm64-v8a', 'x86_64' }
     }
     buildFeatures { compose true }
-    packaging { jniLibs { useLegacyPackaging = modelBackends } }
+    packaging { jniLibs { useLegacyPackaging = true } }
     compileOptions {
         sourceCompatibility JavaVersion.VERSION_17
         targetCompatibility JavaVersion.VERSION_17
@@ -86,7 +87,10 @@ tasks.register('verifyRustVersion') {
     }
 }
 tasks.configureEach { task ->
-    if (task.name.startsWith('cargoBuild')) task.dependsOn 'verifyRustVersion'
+    if (task.name.startsWith('cargoBuild')) {
+        task.dependsOn 'verifyRustVersion'
+        task.inputs.property('modelBackends', modelBackends)
+    }
     if (task.name == 'preBuild') task.dependsOn 'cargoBuild', 'prepareTables', 'prepareProtocolFixtures', 'prepareLicenses', 'prepareExpressions'
     if (task.name.startsWith('merge') && task.name.endsWith('JniLibFolders')) task.dependsOn 'cargoBuild'
     if (task.name == 'assembleDebug') task.doLast {
@@ -95,14 +99,14 @@ tasks.configureEach { task ->
             ['arm64-v8a', 'x86_64'].each { abi ->
                 if (zip.getEntry("lib/${abi}/libmywubi_android.so") == null)
                     throw new GradleException("APK 缺少 ${abi} 原生库")
-                if (modelBackends && zip.getEntry("lib/${abi}/libonnxruntime.so") == null)
-                    throw new GradleException("APK 缺少 ${abi} ONNX Runtime")
+                if (bundledOnnx != (zip.getEntry("lib/${abi}/libonnxruntime.so") != null))
+                    throw new GradleException("APK 中 ${abi} ONNX Runtime 与构建选项不符")
             }
         }
     }
 }
 dependencies {
-    if (modelBackends) implementation 'com.microsoft.onnxruntime:onnxruntime-android:1.31.1'
+    if (bundledOnnx) implementation 'com.microsoft.onnxruntime:onnxruntime-android:1.31.1'
     implementation platform('androidx.compose:compose-bom:2024.09.03')
     implementation 'androidx.compose.material3:material3'
     implementation 'androidx.compose.ui:ui'

@@ -211,6 +211,26 @@ class SettingsModel(application: Application) : AndroidViewModel(application) {
     fun startDownload(model:JSONObject, source:String)=downloadCommand("Start",model,source)
     fun cancelDownload()=downloadCommand("Cancel")
     val modelBackends = JSONObject(NativeBridge.inference("{\"op\":\"Features\"}".toByteArray()).toString(Charsets.UTF_8)).getJSONObject("value")
+    var onnxUsable by mutableStateOf(false); private set
+    var onnxStatus by mutableStateOf("尚未检查"); private set
+    fun refreshOnnx() {
+        downloadControl.execute {
+            val bundled = OnnxComponent.bundled(app)
+            val installed = bundled.isFile
+            val usable = installed && modelBackends.optBoolean("onnx") && NativeBridge.probeOnnx(bundled.path)
+            main.post {
+                if (!closed) {
+                    onnxUsable = usable
+                    onnxStatus = when {
+                        !modelBackends.optBoolean("onnx") -> "未编入适配器"
+                        !installed -> "缺少 ONNX Runtime，请获取组件"
+                        usable -> "随 APK 提供，可用"
+                        else -> "已安装，加载失败"
+                    }
+                }
+            }
+        }
+    }
     var modelStatus by mutableStateOf("尚未查询运行状态"); private set
     fun refreshModelStatus() {
         if(closed) return
@@ -264,7 +284,7 @@ class SettingsModel(application: Application) : AndroidViewModel(application) {
         return TableCatalog(app).label(path, tables)
     }
 
-    init { reload() }
+    init { reload(); refreshOnnx() }
 
     private fun fingerprint() = MessageDigest.getInstance("SHA-256").digest(store.configFile.readBytes()).joinToString("") { "%02x".format(it) }
 

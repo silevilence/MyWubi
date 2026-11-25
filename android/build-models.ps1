@@ -25,6 +25,6 @@ foreach ($triple in @('aarch64-linux-android', 'x86_64-linux-android')) {
 }
 Push-Location $PSScriptRoot
 try {
-    & ./gradlew.bat '-PmodelBackends=true' @Tasks
+    & ./gradlew.bat @Tasks
     if ($LASTEXITCODE -ne 0) { throw "Model-enabled Android build failed: $LASTEXITCODE" }
 } finally { Pop-Location }

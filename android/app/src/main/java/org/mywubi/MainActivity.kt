@@ -350,7 +350,7 @@ private fun PredictionModels(model:SettingsModel, prediction:JSONObject, import:
             val identity=JSONObject().put("id",p.getString("id")).put("version",p.getString("version"))
             val active=selected?.optString("id")==p.getString("id") && selected?.optString("version")==p.getString("version")
             val caps=p.getJSONObject("capabilities")
-            val backendAvailable=model.modelBackends.optBoolean(if(p.getString("backend")=="OnnxRuntime") "onnx" else "llama")
+            val backendAvailable=if(p.getString("backend")=="OnnxRuntime") model.onnxUsable else model.modelBackends.optBoolean("llama")
             val hasPolicy=(!p.isNull("prediction_policy") && p.optString("prediction_policy").isNotEmpty()) ||
                 (!p.isNull("generation_policy") && p.optString("generation_policy").isNotEmpty())
             val supported=backendAvailable && hasPolicy && (0 until caps.getJSONArray("tasks").length()).any {caps.getJSONArray("tasks").getString(it)=="Predict"}
@@ -368,7 +368,7 @@ private fun PredictionModels(model:SettingsModel, prediction:JSONObject, import:
         }
     }
     SettingsDisclosure("运行状态与性能") {
-        Text("本安装包运行库：GGUF ${if(model.modelBackends.optBoolean("llama")) "可用" else "未包含"}；ONNX ${if(model.modelBackends.optBoolean("onnx")) "可用" else "未包含"}")
+        Text("本安装包运行库：GGUF ${if(model.modelBackends.optBoolean("llama")) "可用" else "未包含"}；ONNX ${model.onnxStatus}")
         OutlinedButton(onClick=model::refreshModelStatus,enabled=!model.busy) {Text("刷新运行状态")}
         Text(model.modelStatus)
         SettingToggle("提前加载模型（隐藏或资源紧张时释放）", prediction.optString("loading","on_demand")=="preload_keep", !model.busy) {

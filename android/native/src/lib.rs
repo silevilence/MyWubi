@@ -150,6 +150,28 @@ pub extern "system" fn Java_org_mywubi_NativeBridge_modelDownloads(
     }
 }
 
+/// Called on a background thread with the app-selected, verified runtime path.
+#[no_mangle]
+pub extern "system" fn Java_org_mywubi_NativeBridge_probeOnnx(
+    mut env: JNIEnv,
+    _class: JClass,
+    path: JString,
+) -> jni::sys::jboolean {
+    #[cfg(feature = "onnx")]
+    return std::panic::catch_unwind(std::panic::AssertUnwindSafe(|| {
+        let path: String = env.get_string(&path).ok()?.into();
+        model_input::onnx::initialize_runtime(std::path::Path::new(&path)).ok()
+    }))
+    .ok()
+    .flatten()
+    .is_some() as _;
+    #[cfg(not(feature = "onnx"))]
+    {
+        let _ = (&mut env, path);
+        0
+    }
+}
+
 #[no_mangle]
 pub extern "system" fn Java_org_mywubi_NativeBridge_runtimeDirectory(
     mut env: JNIEnv,
