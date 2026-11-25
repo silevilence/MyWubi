@@ -60,6 +60,29 @@ class AppUpdateTest {
             page = { if (it == 1) org.json.JSONArray(List(10) { entry("release-scope-windows.json") }) else error("offline") }) }.isFailure)
     }
 
+    @Test fun incompatibleAndroidReleaseFallsBackButBrokenDeclaredManifestStopsScan() {
+        fun published(version: String): JSONObject {
+            val tag = "v$version"
+            val manifest = JSONObject().put("name", "android-update.json")
+                .put("browser_download_url", "${RELEASE_ROOT}$tag/android-update.json")
+            return JSONObject().put("published_at", "2026-11-01").put("tag_name", tag)
+                .put("draft", false).put("prerelease", false).put("assets", org.json.JSONArray()
+                    .put(JSONObject().put("name", "release-scope-both.json"))
+                    .put(JSONObject().put("name", "MyWubi-$version-Android.apk")).put(manifest))
+        }
+        val history = org.json.JSONArray().put(published("0.6.0")).put(published("0.5.2"))
+        val found = discoverAndroidUpdate(false, 5, 34, listOf("x86_64"), page = { history }) { url ->
+            if (url.contains("v0.6.0/")) update().copy(versionName = "0.6.0", versionCode = 6,
+                apkUrl = update().apkUrl.replace("0.5.2", "0.6.0"), minSdk = 35).json()
+            else update().json()
+        }
+        assertEquals(update(), found)
+        val error = runCatching {
+            discoverAndroidUpdate(false, 5, 34, listOf("x86_64"), page = { history }) { JSONObject() }
+        }.exceptionOrNull()
+        assertTrue(error?.message.orEmpty().contains("清单损坏"))
+    }
+
     @Test fun throttleBackoffAndClockRecovery() {
         val initial = CheckSchedule()
         val failed = initial.completed(1000, false)

@@ -27,13 +27,6 @@ impl Release {
     }
 
     fn has_feed(&self, channel: &str) -> Result<bool, Error> {
-        let tag = self.tag_name.strip_prefix(['v', 'V']).unwrap_or("");
-        if self.draft
-            || self.prerelease
-            || !Version::parse(tag).is_ok_and(|v| v.pre.is_empty() && v.build.is_empty())
-        {
-            return Ok(false);
-        }
         let scopes: Vec<_> = self
             .assets
             .iter()
@@ -92,28 +85,61 @@ fn discover(
     channel: &str,
     page: impl Fn(usize) -> Result<Vec<Release>, Error>,
 ) -> Result<Option<Release>, Error> {
-    for index in 1.. {
-        let releases = page(index)?;
-        let last_page = releases.len() < PAGE_SIZE;
-        for release in releases {
-            if release.has_feed(channel)? {
-                return Ok(Some(release));
+    let mut releases = Vec::new();
+    let mut index = 1;
+    loop {
+        let batch = page(index)?;
+        let last_page = batch.len() < PAGE_SIZE;
+        for release in batch {
+            if release.draft || release.prerelease {
+                continue;
+            }
+            let Some(version) = release
+                .tag_name
+                .strip_prefix(['v', 'V'])
+                .and_then(|v| Version::parse(v).ok())
+            else {
+                continue;
+            };
+            if version.pre.is_empty() && version.build.is_empty() {
+                releases.push((version, release));
             }
         }
         if last_page {
-            return Ok(None);
+            break;
+        }
+        index += 1;
+    }
+    releases.sort_by(|a, b| b.0.cmp(&a.0));
+    for (_, release) in releases {
+        if release.has_feed(channel)? {
+            return Ok(Some(release));
         }
     }
-    unreachable!()
+    Ok(None)
 }
 
-pub(super) fn pinned(tag: &str) -> HttpSource {
-    HttpSource::new(format!("{RELEASES_PAGE_URL}/download/{tag}/"))
-}
-
-#[derive(Clone, Default)]
+#[derive(Clone)]
 pub(super) struct WindowsSource {
     pub tag: Arc<OnceLock<String>>,
+    api: String,
+    downloads: String,
+}
+
+impl Default for WindowsSource {
+    fn default() -> Self {
+        Self {
+            tag: Arc::default(),
+            api: "https://api.github.com/repos/silevilence/MyWubi/releases".into(),
+            downloads: format!("{RELEASES_PAGE_URL}/download"),
+        }
+    }
+}
+
+impl WindowsSource {
+    pub(super) fn package_source(&self, tag: &str) -> HttpSource {
+        HttpSource::new(format!("{}/{tag}/", self.downloads))
+    }
 }
 
 impl UpdateSource for WindowsSource {
@@ -121,10 +147,13 @@ impl UpdateSource for WindowsSource {
         &self,
         channel: &str,
         app: &Manifest,
-        user: &str,
+        _: &str,
     ) -> Result<VelopackAssetFeed, Error> {
+        if std::env::consts::ARCH != "x86_64" {
+            return Ok(VelopackAssetFeed { Assets: vec![] });
+        }
         let release = discover(channel, |index| {
-            let url = format!("https://api.github.com/repos/silevilence/MyWubi/releases?per_page={PAGE_SIZE}&page={index}");
+            let url = format!("{}?per_page={PAGE_SIZE}&page={index}", self.api);
             let text = velopack::download::download_url_as_string_with_headers(
                 &url,
                 &[("User-Agent", "MyWubi-Updater")],
@@ -134,7 +163,11 @@ impl UpdateSource for WindowsSource {
         let Some(release) = release else {
             return Ok(VelopackAssetFeed { Assets: vec![] });
         };
-        let feed = pinned(&release.tag_name).get_release_feed(channel, app, user)?;
+        let url = format!(
+            "{}/{}/releases.{channel}.json",
+            self.downloads, release.tag_name
+        );
+        let feed = serde_json::from_str(&velopack::download::download_url_as_string(&url)?)?;
         release.validate(&feed, &app.id)?;
         self.tag
             .set(release.tag_name)
@@ -152,7 +185,8 @@ impl UpdateSource for WindowsSource {
             .tag
             .get()
             .ok_or_else(|| Error::Other("尚未选定 Windows 发布".into()))?;
-        pinned(tag).download_release_entry(asset, path, progress)
+        self.package_source(tag)
+            .download_release_entry(asset, path, progress)
     }
 }
 
@@ -194,6 +228,22 @@ mod tests {
     }
 
     #[test]
+    fn higher_version_wins_even_if_its_draft_was_created_first() {
+        let found = discover("win", |_| {
+            Ok(vec![
+                release(&["releases.win.json"]),
+                Release {
+                    tag_name: "v10.2.0".into(),
+                    ..release(&["releases.win.json"])
+                },
+            ])
+        })
+        .unwrap()
+        .unwrap();
+        assert_eq!(found.tag_name, "v10.2.0");
+    }
+
+    #[test]
     fn broken_windows_feed_or_offline_page_is_an_error() {
         assert!(release(&["release-scope-windows.json"])
             .has_feed("win")
@@ -204,3 +254,6 @@ mod tests {
             .is_err());
     }
 }
+
+#[cfg(all(test, windows))]
+mod upgrade_fixture;

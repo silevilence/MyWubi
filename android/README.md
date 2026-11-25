@@ -190,12 +190,9 @@ MYWUBI_KEYSTORE、MYWUBI_STORE_PASSWORD、MYWUBI_KEY_ALIAS、MYWUBI_KEY_PASSWORD
 当前 ARM64 真机、16 KB 设备、TalkBack 实操及完整联合验收仍有未完成项，详见
 [`android-delivery-validation.md`](../docs/android-delivery-validation.md)。
 
-## GitHub 双平台发布
+## GitHub 正式发布
 
-推送 `V0.6.0` 形式的版本标签后，Release 工作流同时构建 Windows Velopack 包和
-包含 arm64-v8a / x86_64 的通用 Android APK。两平台通过检查后才公开同一个 Release，
-标准 APK 名为 `MyWubi-<版本>-Android.apk`，完整 ONNX 包名为 `MyWubi-<版本>-Android-full.apk`。两者使用同一签名，各自提供更新清单与原生库检查报告。组件准备、安装和切换见 [Android 预测组件](../docs/android-onnx-component.md)。
-手动运行 Release 工作流只做构建预检，不发布版本。
+确认发布范围后，维护者通过手动工作流构建 Windows、Android 或双端。Android 正式发布提供双架构标准包 `MyWubi-<版本>-Android.apk` 和完整包 `MyWubi-<版本>-Android-full.apk`，两者使用同一签名，各自提供更新清单与原生库检查报告。新版客户端会跨过仅发布 Windows 的版本，选择适合设备及当前安装通道的更新。旧客户端手动覆盖升级见[发布维护](../docs/releasing.md)，组件安装和切换见 [Android 预测组件](../docs/android-onnx-component.md)。
 
 Android 签名必须配置 MYWUBI_KEYSTORE_BASE64、MYWUBI_STORE_PASSWORD、MYWUBI_KEY_ALIAS、
 MYWUBI_KEY_PASSWORD 四个仓库 Actions Secrets；缺少任意值即失败，不回退到开发签名。

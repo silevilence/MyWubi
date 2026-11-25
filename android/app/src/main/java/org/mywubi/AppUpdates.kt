@@ -101,33 +101,37 @@ private fun readUpdateText(address: String, maxBytes: Int): String {
     } finally { connection.disconnect() }
 }
 
-private const val PAGE_SIZE = 10
 
 internal fun discoverAndroidUpdate(
     full: Boolean, minimumCode: Long, sdk: Int, abis: List<String>,
     page: (Int) -> JSONArray = { JSONArray(readUpdateText("$RELEASE_API?per_page=$PAGE_SIZE&page=$it", 2 * 1024 * 1024)) },
     manifest: (String) -> JSONObject = { JSONObject(readUpdateText(it, 256 * 1024)) },
 ): AppUpdate? {
-    var index = 1
-    while (true) {
-        val releases = page(index)
-        for (i in 0 until releases.length()) {
-            val release = releases.getJSONObject(i)
-            val url = releaseManifestUrl(release, full) ?: continue
-            val update = try {
-                parseReleaseUpdate(url, manifest(url))
-            } catch (e: org.json.JSONException) {
-                throw IllegalArgumentException("Android 更新清单损坏（${release.getString("tag_name")}）", e)
-            } catch (e: IllegalArgumentException) {
-                throw IllegalArgumentException("Android 更新清单无效（${release.getString("tag_name")}）：${e.message}", e)
+    val history = orderedStableReleases(
+        page = { index ->
+            val releases = try {
+                page(index)
+            } catch (e: java.io.IOException) {
+                val reason = if (index == 1) "无法连接更新服务" else "发布列表扫描未完成（第 $index 页）"
+                throw java.io.IOException("$reason：${e.localizedMessage}", e)
             }
-            // Stable releases and Android versionCode are published in increasing order.
-            if (update.versionCode < minimumCode) return null
-            if (update.minSdk <= sdk && update.abis.any { it in abis }) return update
+            List(releases.length(), releases::getJSONObject)
+        },
+        tag = { if (it.getBoolean("draft") || it.getBoolean("prerelease")) null else it.getString("tag_name") },
+    )
+    for (release in history) {
+        val url = releaseManifestUrl(release, full) ?: continue
+        val update = try {
+            parseReleaseUpdate(url, manifest(url))
+        } catch (e: org.json.JSONException) {
+            throw IllegalArgumentException("Android 更新清单损坏（${release.getString("tag_name")}）", e)
+        } catch (e: IllegalArgumentException) {
+            throw IllegalArgumentException("Android 更新清单无效（${release.getString("tag_name")}）：${e.message}", e)
         }
-        if (releases.length() < PAGE_SIZE) return null
-        index++
+        if (update.versionCode < minimumCode) return null
+        if (update.minSdk <= sdk && update.abis.any { it in abis }) return update
     }
+    return null
 }
 
 internal data class CheckSchedule(val next: Long = 0, val failures: Int = 0) {

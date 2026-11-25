@@ -103,10 +103,7 @@ fn show_update_ui(ui: &mut Ui, state: &mut AppState) {
             }
             if *portable {
                 ui.label("当前为便携版，采用被动更新策略。");
-                ui.hyperlink_to(
-                    "前往下载页",
-                    format!("{RELEASES_PAGE_URL}/tag/{}", selected.tag),
-                );
+                ui.hyperlink_to("前往下载页", selected.release_page());
             } else {
                 // 输入法 DLL 会被 TSF 宿主进程加载锁定，更新前必须先卸载 TIP 释放文件。
                 let tip_installed = matches!(

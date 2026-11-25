@@ -7,7 +7,7 @@
 use std::sync::mpsc::{self, Receiver};
 use std::thread;
 mod source;
-use source::{pinned, WindowsSource};
+use source::WindowsSource;
 use velopack::sources::NoneSource;
 use velopack::{UpdateCheck, UpdateManager, VelopackAsset};
 
@@ -15,6 +15,12 @@ use velopack::{UpdateCheck, UpdateManager, VelopackAsset};
 pub struct SelectedUpdate {
     pub tag: String,
     pub info: Box<velopack::UpdateInfo>,
+}
+
+impl SelectedUpdate {
+    pub fn release_page(&self) -> String {
+        format!("{RELEASES_PAGE_URL}/tag/{}", self.tag)
+    }
 }
 
 /// 发布页 URL（便携版被动更新时打开）。
@@ -155,7 +161,11 @@ pub fn start_check() -> UpdateWorker {
 pub fn start_download(selected: SelectedUpdate) -> UpdateWorker {
     let (tx, rx) = mpsc::channel();
     thread::spawn(move || {
-        let mgr = match UpdateManager::new(pinned(&selected.tag), None, None) {
+        let mgr = match UpdateManager::new(
+            WindowsSource::default().package_source(&selected.tag),
+            None,
+            None,
+        ) {
             Ok(m) => m,
             Err(e) => {
                 let _ = tx.send(UpdateEvent::Error(format!("初始化更新管理器失败: {e}")));
@@ -192,4 +202,21 @@ pub fn apply_and_restart(asset: VelopackAsset) {
             }
         }
     });
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn portable_download_link_keeps_the_selected_tag_including_case() {
+        let update = SelectedUpdate {
+            tag: "V1.3.0".into(),
+            info: Box::default(),
+        };
+        assert_eq!(
+            update.release_page(),
+            "https://github.com/silevilence/MyWubi/releases/tag/V1.3.0"
+        );
+    }
 }

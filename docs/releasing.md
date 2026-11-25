@@ -1,18 +1,16 @@
-# 双平台版本发布
+# 分平台版本发布
 
-1. 修改 Cargo.toml 的 workspace.package.version，以及 android/app/build.gradle 的
-   versionName；Android versionCode 必须递增。用 Cargo 更新本项目 lockfile 版本，
-   在 CHANGELOG.md 顶部添加唯一的 `## Vx.y.z` 更新说明。
-2. 提交并推送分支，在 GitHub Actions 手动运行 **Release**。该路径运行同样的
-   Windows/Android 构建与检查，输出 artifacts，但不会创建 Release。
-3. 预检成功后，在该提交创建并推送 `Vx.y.z` 标签。标签、Cargo 与 Android 版本不符
-   会被拒绝。Windows 测试/Velopack 打包、Android 核心测试/Clippy/Release Lint/
-   签名与双 ABI 对齐检查全部通过后，先上传至草稿 Release，再公开发布。
+维护者可调用仓库技能 `$mywubi-release`。先从 Windows、Android 各自上次正式交付的提交起草变更说明，选定版本、源码和平台后由用户确认。标签和制品规则见[发布契约](release-contract.md)。
 
-发布资产包括 Windows Setup.exe、Portable.zip、Velopack nupkg/更新索引，以及
-`MyWubi-x.y.z-Android.apk`、原生库检查 JSON 和 `SHA256SUMS.txt`。APK 包含 ARM64
-与 x86_64 两种架构，可直接安装；不要求用户自行从 AAB 转换。
-Windows 打包仅包含内置三份码表及许可证，不收集本地自定义/未跟踪词表。
+在默认分支部署手动工作流后，推送已确认提交和对应的全局标签。由代理通过 `gh workflow run release.yml --ref <默认分支> -f tag=<标签> -f scope=<windows|android|both> -f request_id=<UUID>` 发起构建。工作流将标签、范围和运行 ID 写入草稿，只构建选中的平台。全部选中任务成功且资产齐全时公开。通过该 UUID 定位准确运行，暂时失败时重跑原运行的失败任务。
+
+首次切换先交付双端过渡版本，再开放单端发布。过渡版本发布后，在其发布说明中写明两端均包含新版检查器，并保留该版本链接。旧 Android 客户端只检查仓库 Latest，旧 Windows 客户端只搜索最近十条。如果提示已是最新版或找不到更新，可按下面步骤手动升级。
+
+- 在[正式发布列表](https://github.com/silevilence/MyWubi/releases)打开双端过渡版本，或之后明确包含本平台的正式版本。展开该版本的 Assets。
+- Android 选择原通道的 `MyWubi-<版本>-Android.apk` 或 `-Android-full.apk`，打开 APK，确认系统显示更新已有应用。保留原应用即可继续使用配置、词库和模型。
+- Windows 安装版运行该版本的 `MyWubi-win-Setup.exe` 完成覆盖升级。便携版下载 `MyWubi-win-Portable.zip`，退出设置程序后替换程序文件，保留便携目录里的个人配置、码表、词库和模型。
+
+Windows 打包仅包含内置三份码表及许可证。Android 两种 APK 均包含 ARM64 与 x86_64，沿用相同应用签名。每次发布附带范围记录和校验和，Windows 另提供 Velopack 索引及受信组件，Android 另提供两种更新清单与原生库报告。旧版本的标签和组件继续保留。
 
 `.github/workflows/android.yml` 继续承担日常 Android 模拟器契约测试。
 发布工作流通过不代表 ARM64 真机、16 KB 设备、TalkBack 或最终 TSF 手工验收已完成；
