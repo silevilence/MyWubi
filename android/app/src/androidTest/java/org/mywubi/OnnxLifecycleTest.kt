@@ -49,6 +49,59 @@ class OnnxLifecycleTest {
         assertFalse(file.exists())
     }
 
+    @Test fun installCachedComponentForProcessAbi() {
+        isolated()
+        val expected = InstrumentationRegistry.getArguments().getString("expected_abi")
+        assumeTrue("Supply expected_abi and the pinned AAR", expected != null)
+        val payload = OnnxComponent.payload()
+        assertEquals(expected, payload.abi)
+        val translated = OnnxComponent.requiresNativeApk()
+        OnnxRuntime.refresh(app)
+        await(if (translated) OnnxRuntime.State.NativeApkRequired else OnnxRuntime.State.Missing)
+        val archive = java.io.File(app.noBackupFilesDir, "components/onnx-${OnnxComponent.version}.aar.part")
+        assertTrue(OnnxInstaller.matches(archive, OnnxComponent.archiveBytes, OnnxComponent.archiveHash))
+        val installed = CountDownLatch(1)
+        OnnxTransfers.start(app) { OnnxRuntime.refresh(app); installed.countDown() }
+        val completed = installed.await(30, TimeUnit.SECONDS)
+        assertTrue("Component installation failed: ${OnnxTransfers.status.value}", completed)
+        await(if (translated) OnnxRuntime.State.NativeApkRequired else OnnxRuntime.State.Ready)
+        val library = OnnxComponent.installed(app)
+        assertEquals(expected, library.parentFile!!.name)
+        assertTrue(OnnxInstaller.matches(library, payload.bytes, payload.hash))
+    }
+
+    @Test fun rejectedUpdatePreservesInstalledRuntime() {
+        isolated()
+        val payload = OnnxComponent.payload()
+        val installed = OnnxComponent.installed(app)
+        assertFalse(OnnxComponent.bundled(app).isFile)
+        assertTrue(OnnxInstaller.matches(installed, payload.bytes, payload.hash))
+        val part = java.io.File(app.noBackupFilesDir, "components/onnx-${OnnxComponent.version}.aar.part")
+        assertFalse(part.exists())
+        try {
+            // A complete-length, invalid archive exercises verification without a second download.
+            java.io.RandomAccessFile(part, "rw").use { it.setLength(OnnxComponent.archiveBytes) }
+            OnnxTransfers.start(app) { OnnxRuntime.refresh(app) }
+            val deadline = android.os.SystemClock.elapsedRealtime() + 30000
+            while (OnnxTransfers.status.value.phase in setOf("downloading", "verifying") &&
+                android.os.SystemClock.elapsedRealtime() < deadline) android.os.SystemClock.sleep(30)
+            val result = OnnxTransfers.status.value
+            assertEquals("failed", result.phase)
+            assertTrue(result.message, result.message.contains("AAR 校验失败"))
+            assertFalse(part.exists())
+            assertTrue(OnnxInstaller.matches(installed, payload.bytes, payload.hash))
+        } finally { part.delete() }
+    }
+
+    @Test fun translatedRuntimeRequiresNativeApkBeforeLoadingOnnx() {
+        isolated()
+        assumeTrue(OnnxComponent.requiresNativeApk())
+        assertEquals("arm64-v8a", OnnxComponent.payload().abi)
+        OnnxRuntime.refresh(app)
+        await(OnnxRuntime.State.NativeApkRequired)
+        NativeHandle(EngineStore(app).readConfig().getLong("version")).close()
+    }
+
     @Test fun protectSelectedModelThenDeferRemovalUntilRestart() {
         isolated()
         OnnxRuntime.refresh(app)

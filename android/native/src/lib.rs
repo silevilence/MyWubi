@@ -172,6 +172,21 @@ pub extern "system" fn Java_org_mywubi_NativeBridge_probeOnnx(
     }
 }
 
+/// A translated Android process may run a different ABI from the device's preferred ABI.
+#[no_mangle]
+pub extern "system" fn Java_org_mywubi_NativeBridge_runtimeAbi(
+    env: JNIEnv,
+    _class: JClass,
+) -> jni::sys::jstring {
+    let abi = match std::env::consts::ARCH {
+        "aarch64" => "arm64-v8a",
+        arch => arch,
+    };
+    env.new_string(abi)
+        .map(|s| s.into_raw())
+        .unwrap_or(std::ptr::null_mut())
+}
+
 /// Protocol is carried in byte arrays: standard UTF-8, never JNI Modified UTF-8.
 #[no_mangle]
 pub extern "system" fn Java_org_mywubi_NativeBridge_version(_env: JNIEnv, _class: JClass) -> jint {

@@ -6,6 +6,7 @@ import org.json.JSONObject
 object NativeBridge {
     init { System.loadLibrary("mywubi_android"); check(version() == 1) }
     @JvmStatic external fun version(): Int
+    @JvmStatic external fun runtimeAbi(): String
     @JvmStatic external fun personalCapture(request: ByteArray): ByteArray
     @JvmStatic external fun personalManage(request: ByteArray): ByteArray
     @JvmStatic external fun personalRuntime(request: ByteArray): ByteArray

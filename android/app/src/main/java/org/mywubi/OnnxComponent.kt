@@ -17,7 +17,13 @@ internal object OnnxComponent {
         Payload("arm64-v8a", 34_208_680, "46e0c16cd515c62a1dd6c5994448b5413705478354bc20a756a5a82634c3ca03"),
         Payload("x86_64", 40_827_944, "cfd9ede9b5a168750af260027a4dd012345bb407933156b9d4738c62d3454607")
     )
-    fun payload(): Payload = Build.SUPPORTED_ABIS.firstNotNullOf { abi -> payloads.find { it.abi == abi } }
+    fun payload(): Payload {
+        val abi = NativeBridge.runtimeAbi()
+        return payloads.first { it.abi == abi }
+    }
+    // ORT 1.31.1 crashes during initialization under ARM64 translation on x86_64.
+    fun requiresNativeApk() = Build.SUPPORTED_ABIS.firstOrNull() == "x86_64" &&
+        NativeBridge.runtimeAbi() == "arm64-v8a"
     fun bundled(context: Context) = File(context.applicationInfo.nativeLibraryDir, library)
     fun installed(context: Context) = File(context.noBackupFilesDir, "components/onnx-$version/${payload().abi}/$library")
     fun location(context: Context): File = bundled(context).takeIf(File::isFile) ?: installed(context)

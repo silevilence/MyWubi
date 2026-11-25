@@ -20,7 +20,7 @@ internal class MyWubiApplication : Application() {
 internal object OnnxRuntime {
     enum class State(val label: String) {
         Checking("正在检查组件"), Missing("未安装"), UpdateAvailable("当前应用需要更新组件"), Ready("已安装，可加载"),
-        Corrupt("校验失败，请重新获取"), Failed("已安装，加载失败"),
+        Corrupt("校验失败，请重新获取"), Failed("已安装，加载失败"), NativeApkRequired("当前 ARM64 转译环境需要 x86_64 安装包"),
         PendingRemoval("待重启移除"), Unsupported("未编入 ONNX 适配器")
     }
     private val worker = Executors.newSingleThreadExecutor()
@@ -50,6 +50,7 @@ internal object OnnxRuntime {
     private fun activate(app: Context): State {
         val features = JSONObject(NativeBridge.inference("""{"op":"Features"}""".toByteArray()).toString(Charsets.UTF_8))
         if (!features.getJSONObject("value").getBoolean("onnx")) return State.Unsupported
+        if (OnnxComponent.requiresNativeApk()) return State.NativeApkRequired
         val bundled = OnnxComponent.bundled(app)
         val path = OnnxComponent.location(app)
         val marker = marker(app)

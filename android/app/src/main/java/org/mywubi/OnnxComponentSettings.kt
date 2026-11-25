@@ -46,8 +46,10 @@ internal fun OnnxComponentSettings() {
         if (!busy && !bundled && state in listOf(OnnxRuntime.State.Ready, OnnxRuntime.State.Corrupt, OnnxRuntime.State.Failed)) {
             OutlinedButton(onClick = { confirmRemove = true }) { Text("移除 ONNX 运行组件") }
         }
-        if (!bundled && (state == OnnxRuntime.State.Failed || transfer.phase == "failed")) {
-            Text("完整安装包内置 ONNX，后续更新沿用完整包。安装时保留配置和模型。")
+        if (state == OnnxRuntime.State.NativeApkRequired || !bundled && (state == OnnxRuntime.State.Failed || transfer.phase == "failed")) {
+            Text(if (state == OnnxRuntime.State.NativeApkRequired)
+                "请按系统默认方式覆盖安装双架构完整包，使用本机的 x86_64 运行库。配置和模型会保留。"
+            else "完整安装包内置 ONNX，后续更新沿用完整包。安装时保留配置和模型。")
             val uri = androidx.compose.ui.platform.LocalUriHandler.current
             val scope = rememberCoroutineScope()
             var lookingUp by remember { mutableStateOf(false) }
@@ -60,8 +62,10 @@ internal fun OnnxComponentSettings() {
                                 ?: error("发布页尚无正式完整包")
                             parseReleaseUpdate(manifest, readUpdateJson(manifest))
                         }
+                        val requiredAbi = if (state == OnnxRuntime.State.NativeApkRequired)
+                            android.os.Build.SUPPORTED_ABIS.first() else payload.abi
                         check(update.versionCode >= AppUpdates.get(context).installedCode &&
-                            update.minSdk <= android.os.Build.VERSION.SDK_INT && payload.abi in update.abis) {
+                            update.minSdk <= android.os.Build.VERSION.SDK_INT && requiredAbi in update.abis) {
                             "正式完整包版本或架构与本机不兼容"
                         }
                         uri.openUri(update.apkUrl)
