@@ -230,32 +230,3 @@ internal fun SkinManagement(model: SettingsModel, config: JSONObject, onLibraryC
         SkinPreviewDialog(option, config, model, onDismiss = { preview = null })
     }
 }
-
-@Composable
-private fun SkinPreviewDialog(option: SkinOption, config: JSONObject, model: SettingsModel, onDismiss: () -> Unit) {
-    var skin by remember(option) { mutableStateOf<JSONObject?>(null) }
-    var error by remember(option) { mutableStateOf("") }
-    LaunchedEffect(option, config) {
-        skin = null
-        runCatching { withContext(Dispatchers.IO) { loadSkinAppearance(model.store.configFile, option.inConfig(config)) } }
-            .onSuccess { skin = it }.onFailure { error = it.message ?: "预览加载失败" }
-    }
-    androidx.compose.ui.window.Dialog(onDismissRequest = onDismiss,
-        properties = androidx.compose.ui.window.DialogProperties(usePlatformDefaultWidth = false)) {
-        Surface(modifier = Modifier.fillMaxWidth().padding(8.dp), shape = MaterialTheme.shapes.large) {
-            Column(Modifier.verticalScroll(rememberScrollState()).padding(8.dp)) {
-                Text("预览 · ${option.name}", style = MaterialTheme.typography.titleMedium)
-                if (skin != null) Keyboard(KeyboardModel(skin = skin, enabled = true, modesAvailable = true,
-                    spelling = "a", candidates = listOf(CandidateItem(1, "工", "aaaa"), CandidateItem(2, "工作", "aa"))),
-                    dispatch = {}, window = {}, switchIme = {})
-                else if (error.isNotBlank()) Text(error) else LinearProgressIndicator()
-                Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.End) {
-                    TextButton(onClick = onDismiss) { Text("关闭预览") }
-                    if (!option.matches(model.savedAndroidSkin)) TextButton(onClick = {
-                        model.enableSkin(option); onDismiss()
-                    }, enabled = skin != null && !model.busy) { Text("启用此皮肤") }
-                }
-            }
-        }
-    }
-}

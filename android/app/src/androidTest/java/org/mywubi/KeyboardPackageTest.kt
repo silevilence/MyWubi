@@ -63,6 +63,37 @@ class KeyboardPackageTest {
             .put("source",output.path).put("platform","android")).getBoolean("already_present"))
         File(context.filesDir,"ak-windows-roundtrip.json").writeText(JSONObject(entries(output)).toString(2))
     }
+    @Test fun previewResolvesEveryBundledModeWithoutSavingASelection() {
+        val context = InstrumentationRegistry.getInstrumentation().targetContext
+        val root = java.nio.file.Files.createTempDirectory(context.cacheDir.toPath(), "skin-preview-").toFile()
+        try {
+            val path = File(root, "config.toml")
+            Resources.prepare(context).copyTo(path)
+            val read = NativeBridge.objectCall("ReadConfig", "path" to path.path)
+            NativeHandle(read.getLong("version")).close()
+            val config = read.getJSONObject("config")
+            config.getJSONObject("dictionary").put("system_table", File(Resources.prepare(context).parentFile, "tables/wubi86.dict").path)
+            NativeBridge.objectCall("ManageKeyboard", "request" to keyboardRequest(path, "InstallTemplates"))
+            val item = NativeBridge.objectCall("ManageSkin", "request" to keyboardRequest(path, "List")
+                .put("platform", "android")).getJSONArray("items").getJSONObject(0)
+            val components = item.getJSONArray("components")
+            val appearance = (0 until components.length()).map(components::getJSONObject).first { it.getString("kind") == "appearance" }
+            val option = SkinOption("模板", selection = KeyboardSelection(item.getString("id"), item.getString("version"), appearance.getString("id")))
+            val choices = previewKeyboards(path, option)
+            assertEquals(setOf("full26", "shape14", "shape9", "pinyin9"), choices.map { it.layout!!.component }.toSet())
+            for (choice in choices) {
+                val prepared = requireNotNull(prepareSkinPreview(path, config, option, choice).combination)
+                assertEquals(choice.mode, prepared.mode)
+                assertTrue(prepared.portrait.keys.isNotEmpty() && prepared.landscape.keys.isNotEmpty())
+            }
+            val preset = SkinOption("素简", "plain")
+            val fallback = previewKeyboards(path, preset).single()
+            assertNull(fallback.layout)
+            assertNull(prepareSkinPreview(path, config, preset, fallback).combination)
+            assertTrue(NativeBridge.objectCall("ManageKeyboard", "request" to keyboardRequest(path, "List")).isNull("choice"))
+        } finally { root.deleteRecursively() }
+    }
+
     @Test fun templateImportDecodeSaveExportAndReimportPreserveCombination() {
         val context=InstrumentationRegistry.getInstrumentation().targetContext
         val root=File(context.cacheDir,"keyboard-roundtrip-${System.nanoTime()}").apply {mkdirs()}
