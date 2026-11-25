@@ -91,6 +91,22 @@ class KeyboardPackageTest {
             assertNull(fallback.layout)
             assertNull(prepareSkinPreview(path, config, preset, fallback).combination)
             assertTrue(NativeBridge.objectCall("ManageKeyboard", "request" to keyboardRequest(path, "List")).isNull("choice"))
+
+            val grouped = choices.first { it.layout?.component == "shape14" && it.mode == "Main" }
+            val layout = requireNotNull(grouped.layout)
+            val mapping = layout.copy(component = "shape14.mapping")
+            val daily = JSONObject().put("layout", layout.json()).put("mapping", mapping.json())
+                .put("appearance", config.getJSONObject("skins").getJSONObject("android"))
+            val request = keyboardRequest(path, "Prepare").put("choice", daily).put("mode", "Main")
+                .put("charset", keyboardCharset(path, config, "Main"))
+            val prepared = KeyboardCombination.decode(NativeBridge.objectCall("ManageKeyboard", "request" to request))
+            NativeBridge.objectCall("ManageKeyboard", "request" to request.put("action", "Save").put("digest", prepared.digest))
+            val saved = path.readBytes()
+            val current = previewKeyboards(path, preset).single()
+            assertEquals(layout, current.layout)
+            assertEquals(mapping, current.mapping)
+            assertEquals(prepared.portrait.keys, prepareSkinPreview(path, config, preset, current).combination!!.portrait.keys)
+            assertArrayEquals(saved, path.readBytes())
         } finally { root.deleteRecursively() }
     }
 

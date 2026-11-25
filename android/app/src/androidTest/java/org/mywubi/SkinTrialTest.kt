@@ -20,7 +20,7 @@ class SkinTrialTest {
         }
         val before = choices()
         val previousIme = device.executeShellCommand("settings get secure default_input_method").trim()
-        val ime = "${context.packageName}/org.mywubi.MyWubiService"
+        val ime = android.content.ComponentName(context, MyWubiService::class.java).flattenToShortString()
         val wasEnabled = device.executeShellCommand("ime list -s").lineSequence().any { it.substringBefore('/') == context.packageName }
         fun node(selector: BySelector) = requireNotNull(findFresh(device, selector, 10000)) { "Missing $selector" }
         fun key(label: String) = node(By.desc(label).pkg(context.packageName).enabled(true)).click()
@@ -29,6 +29,7 @@ class SkinTrialTest {
         try {
             device.executeShellCommand("ime enable $ime")
             device.executeShellCommand("ime set $ime")
+            assertEquals(ime, device.executeShellCommand("settings get secure default_input_method").trim())
             ActivityScenario.launch(MainActivity::class.java).use {
                 clickSetting(device, "皮肤")
                 clickSetting(device, "预览「内置键盘作者模板 · 4」", true)
@@ -39,9 +40,12 @@ class SkinTrialTest {
                 for ((label, firstKey) in listOf("full26 · 形码" to "q", "pinyin9 · 拼音" to "ABC",
                         "shape9 · 形码" to "ABC", "shape14 · 形码" to "GH")) {
                     choose(label)
+                    var portraitHeight = 0
                     for (direction in listOf("竖屏", "横屏")) {
                         text(direction)
-                        node(By.desc(firstKey).pkg(context.packageName))
+                        val height = node(By.desc(firstKey).pkg(context.packageName)).visibleBounds.height()
+                        if (direction == "竖屏") portraitHeight = height
+                        else assertTrue("Landscape preview should fit the wider frame", height in 1 until portraitHeight)
                         node(By.descStartsWith("候选 工"))
                     }
                 }
@@ -50,7 +54,8 @@ class SkinTrialTest {
                 node(By.descStartsWith("候选 一")).click()
                 assertTrue(awaitHostText(device, editor, "一", 5000))
                 key("退格")
-                assertTrue(node(editor).isFocused)
+                // Accessibility exposes the hint as text once EditText is empty.
+                node(By.copy(editor).text("在这里试打").focused(true))
                 fun field(label: String) {
                     node(By.textStartsWith("文本框类型 · ")).actionNode().click()
                     text(label)
@@ -76,6 +81,10 @@ class SkinTrialTest {
                 node(By.text("皮肤试打"))
                 text("返回预览")
                 node(By.textStartsWith("预览 · "))
+                assertEquals(before, choices())
+                assertArrayEquals(configBefore, path.readBytes())
+            }
+            ActivityScenario.launch(MainActivity::class.java).use {
                 assertEquals(before, choices())
                 assertArrayEquals(configBefore, path.readBytes())
             }

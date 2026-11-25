@@ -54,6 +54,7 @@ private enum class TrialField(val label: String, val type: Int) {
 
 class SkinTrialActivity : ComponentActivity() {
     private val id get() = intent.getStringExtra("trial")
+    private var editor: EditText? = null
     private var currentIme by mutableStateOf("")
     private var imeEnabled by mutableStateOf(false)
 
@@ -102,8 +103,8 @@ class SkinTrialActivity : ComponentActivity() {
                             imeOptions = if (type == TrialField.Multiline) EditorInfo.IME_FLAG_NO_ENTER_ACTION
                                 else EditorInfo.IME_ACTION_DONE
                             isSaveEnabled = false
-                            requestFocus()
-                            post { if (isAttachedToWindow && hasFocus()) imm.showSoftInput(this, InputMethodManager.SHOW_IMPLICIT) }
+                            editor = this
+                            post { if (hasWindowFocus()) focusEditor() }
                         } }, modifier = Modifier.fillMaxWidth())
                     }
                 }
@@ -111,9 +112,18 @@ class SkinTrialActivity : ComponentActivity() {
         } }
     }
 
+    private fun focusEditor() {
+        val field = editor ?: return
+        if (field.isAttachedToWindow && field.requestFocus()) {
+            androidx.core.view.WindowCompat.getInsetsController(window, field)
+                .show(androidx.core.view.WindowInsetsCompat.Type.ime())
+        }
+    }
+
     override fun onWindowFocusChanged(hasFocus: Boolean) {
         super.onWindowFocusChanged(hasFocus)
         if (hasFocus) {
+            editor?.post { focusEditor() }
             currentIme = Settings.Secure.getString(contentResolver, Settings.Secure.DEFAULT_INPUT_METHOD)
                 ?.substringBefore('/').orEmpty()
             imeEnabled = getSystemService(InputMethodManager::class.java).enabledInputMethodList.any { it.packageName == packageName }
