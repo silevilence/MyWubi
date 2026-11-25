@@ -25,6 +25,9 @@ class MyWubiService : InputMethodService() {
     private var destroyed = false
     private var runtime: NativeHandle? = null
     private var session: NativeHandle? = null
+    private var trial: SkinPreview? = null
+    private var dailySession: NativeHandle? = null
+    private var dailyRuntimeChanged = false
     private var editorEpoch = 0L
     private var active = false
     private var inputPolicy = InputPolicy.from(0, 0)
@@ -128,6 +131,7 @@ class MyWubiService : InputMethodService() {
                         personalCapture.configure(path, config.getJSONObject("config").optJSONObject("personal") ?: JSONObject(),config.getJSONObject("config").optJSONObject("prediction") ?: JSONObject())
                         predictionController.configurePersonal(path)
                         val previous = runtime
+                        if (dailySession != null) dailyRuntimeChanged = true
                         runtime = result
                         lastConfig = nextConfig
                         boundMapping = null
@@ -174,6 +178,29 @@ class MyWubiService : InputMethodService() {
         .put("allows_assistance", inputPolicy.allowsAssistance)
         .put("enter_action", inputPolicy.action)
 
+    private fun setTrial(next: SkinPreview?) {
+        if (trial === next) return
+        if (trial == null) {
+            dailySession = session
+            session = null
+        } else {
+            session?.close()
+            session = if (next == null) dailySession else null
+            if (next == null) dailySession = null
+        }
+        trial = next
+        combination = null
+        boundMapping = null
+        pendingCombination = effectiveKeyboard(activeKeyboardMode)
+        hasPendingCombination = true
+        keyTouches = 0
+    }
+
+    private fun effectiveKeyboard(mode: String): KeyboardCombination? {
+        val preview = trial ?: return keyboardModes[mode]
+        return preview.combination?.takeIf { it.mode == mode }
+    }
+
     private fun attachEditor() {
         personalCapture.gate(active && inputPolicy.allowsAssistance, editorEpoch.toString())
         pinyinMode = KeyMode.Off
@@ -185,12 +212,26 @@ class MyWubiService : InputMethodService() {
         val s = session
         if (s == null) session = NativeHandle(NativeBridge.objectCall("CreateSession", "runtime" to r.value, "context" to hostContext()).getLong("handle"))
         else NativeBridge.call("Context", "session" to s.value, "context" to hostContext(), "preserve_base" to true)
+        val attached = requireNotNull(session)
+        if (trial == null && dailyRuntimeChanged) {
+            dailyRuntimeChanged = false
+            (NativeBridge.call("ApplyRuntime", "session" to attached.value, "runtime" to r.value) as? JSONObject)?.let(::applyPlan)
+        }
+        val mode = trial?.keyboard?.mode ?: return
+        if (inputPolicy.purpose == "Text") {
+            val action = if (mode == "Pinyin") JSONObject().put("BeginTemporary", "Pinyin")
+                else JSONObject().put("SetBaseMode", mode)
+            val plan = NativeBridge.objectCall("Prepare", "session" to attached.value, "action" to action)
+            if (applyPlan(plan) && mode == "Pinyin" && plan.optString("disposition") != "Rejected") pinyinMode = KeyMode.Locked
+            else if (plan.optString("disposition") == "Rejected") error = "当前码表配置不支持所选输入模式"
+        }
     }
 
     override fun onStartInput(attribute: EditorInfo?, restarting: Boolean) {
         super.onStartInput(attribute, restarting)
         val nextConnection = currentInputConnection
-        val restartingEditor = restarting && active && attribute != null &&
+        val nextTrial = SkinTrials.forEditor(attribute, packageName)
+        val restartingEditor = restarting && active && trial === nextTrial && attribute != null &&
             editorInfo?.packageName == attribute.packageName && editorInfo?.fieldId == attribute.fieldId &&
             editorInfo?.inputType == attribute.inputType && editorInfo?.imeOptions == attribute.imeOptions
         if (restartingEditor) {
@@ -204,6 +245,7 @@ class MyWubiService : InputMethodService() {
         inputQueue.invalidate()
         connection = nextConnection
         editorInfo = attribute
+        setTrial(nextTrial)
         supportsPreedit = attribute?.inputType != android.text.InputType.TYPE_NULL &&
             !getSharedPreferences("android-ui", 0).getBoolean("local_preedit", false)
         inputPolicy = InputPolicy.from(attribute?.inputType ?: 0, attribute?.imeOptions ?: 0)
@@ -222,6 +264,7 @@ class MyWubiService : InputMethodService() {
         active = false; editorEpoch++; editor.abandon()
         pinyinMode = KeyMode.Off
         session?.let { NativeBridge.call("Context", "session" to it.value, "context" to hostContext(), "preserve_base" to true) }
+        setTrial(null)
         refresh(); super.onFinishInput()
     }
 
@@ -324,7 +367,8 @@ class MyWubiService : InputMethodService() {
             mainKeyboards = mainKeyboards,
             mainKeyboardSelection = combination?.takeIf { it.mode == "Main" }?.selection(),
             switchingKeyboard = switchingKeyboard,
-            skin = combination?.appearance ?: skinAppearance,
+            allowKeyboardSwitch = trial == null,
+            skin = trial?.appearance ?: combination?.appearance ?: skinAppearance,
             customLayout = combination?.takeIf { customKeyboardAllowed(inputPolicy.purpose,inputPolicy.layout,state.optString("base","Main"),temporary,it.mode) }?.let {
                 if(resources.configuration.orientation == android.content.res.Configuration.ORIENTATION_LANDSCAPE) it.landscape else it.portrait
             },
@@ -372,6 +416,7 @@ class MyWubiService : InputMethodService() {
             return
         }
         if(action == "RestoreKeyboard") {
+            if (trial != null) return
             if (switchingKeyboard || state.optJSONObject("view")?.optString("spelling").orEmpty().isNotEmpty()) return
             val resetMode = activeKeyboardMode
             switchingKeyboard = true
@@ -548,11 +593,11 @@ class MyWubiService : InputMethodService() {
     private fun queueKeyboard(results: Map<String,Result<KeyboardCombination?>>) {
         results.forEach { (mode,result) -> result.onSuccess { keyboardModes[mode]=it }
             .onFailure { updates.edit().putString("error","$mode 键盘加载失败，保留原组合：${it.message}").apply() } }
-        pendingCombination=keyboardModes[activeKeyboardMode];hasPendingCombination=true
+        pendingCombination=effectiveKeyboard(activeKeyboardMode);hasPendingCombination=true
     }
 
     private fun switchMainKeyboard(selection: KeyboardSelection) {
-        if (switchingKeyboard || keyTouches != 0 ||
+        if (trial != null || switchingKeyboard || keyTouches != 0 ||
             !customKeyboardAllowed(inputPolicy.purpose, inputPolicy.layout, state.optString("base", "Main"),
                 state.optString("temporary").takeIf { it != "null" && it.isNotEmpty() }) ||
             state.optJSONObject("view")?.optString("spelling").orEmpty().isNotEmpty() ||
@@ -598,7 +643,7 @@ class MyWubiService : InputMethodService() {
 
     private fun publishKeyboard(): Boolean {
         val mode=if(state.optString("temporary")=="Pinyin") "Pinyin" else if(state.optString("base")=="English") "English" else "Main"
-        if(mode!=activeKeyboardMode) {activeKeyboardMode=mode;pendingCombination=keyboardModes[mode];hasPendingCombination=true}
+        if(mode!=activeKeyboardMode) {activeKeyboardMode=mode;pendingCombination=effectiveKeyboard(mode);hasPendingCombination=true}
         val spelling=state.optJSONObject("view")?.optString("spelling").orEmpty()
         if(hasPendingCombination) {
             val next=pendingCombination
@@ -682,6 +727,7 @@ class MyWubiService : InputMethodService() {
         loads.next(); updates.unregisterOnSharedPreferenceChangeListener(updateListener)
         session?.let { NativeBridge.call("Close", "session" to it.value); it.close() }
         session = null
+        dailySession?.close(); dailySession = null
         runtime?.close(); runtime = null; loader.shutdown(); viewOwner?.destroy(); viewOwner = null
         super.onDestroy()
     }

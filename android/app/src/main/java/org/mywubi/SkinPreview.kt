@@ -22,7 +22,7 @@ import java.io.File
 internal data class PreviewKeyboard(val label: String, val mode: String, val layout: KeyboardSelection?,
     val mapping: KeyboardSelection? = null, val reason: String? = null)
 
-internal data class SkinPreview(val keyboard: PreviewKeyboard, val appearance: JSONObject,
+internal data class SkinPreview(val name: String, val keyboard: PreviewKeyboard, val appearance: JSONObject,
     val combination: KeyboardCombination?)
 
 private val modeLabels = mapOf("Main" to "形码", "Pinyin" to "拼音", "English" to "英文")
@@ -59,11 +59,12 @@ internal fun prepareSkinPreview(path: File, config: JSONObject, option: SkinOpti
         KeyboardCombination.decode(NativeBridge.objectCall("ManageKeyboard", "request" to keyboardRequest(path, "Prepare")
             .put("choice", choice).put("mode", keyboard.mode).put("charset", keyboardCharset(path, previewConfig, keyboard.mode))))
     }
-    return SkinPreview(keyboard, combination?.appearance ?: loadSkinAppearance(path, previewConfig), combination)
+    return SkinPreview(option.name, keyboard, combination?.appearance ?: loadSkinAppearance(path, previewConfig), combination)
 }
 
 @Composable
 internal fun SkinPreviewDialog(option: SkinOption, config: JSONObject, model: SettingsModel, onDismiss: () -> Unit) {
+    val context = androidx.compose.ui.platform.LocalContext.current
     val path = model.store.configFile
     var keyboards by remember(option, config) { mutableStateOf(emptyList<PreviewKeyboard>()) }
     var selected by rememberSaveable(option.name) { mutableIntStateOf(0) }
@@ -113,6 +114,7 @@ internal fun SkinPreviewDialog(option: SkinOption, config: JSONObject, model: Se
                     else -> LinearProgressIndicator()
                 }
                 Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.End) {
+                    TextButton(onClick = { ready?.let { SkinTrials.start(context, it) } }, enabled = ready != null) { Text("试打") }
                     TextButton(onClick = onDismiss) { Text("关闭预览") }
                     if (!option.matches(model.savedAndroidSkin)) TextButton(onClick = {
                         model.enableSkin(option); onDismiss()

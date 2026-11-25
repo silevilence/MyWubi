@@ -56,6 +56,7 @@ data class KeyboardModel(
     val mainKeyboards: List<MainKeyboardOption> = emptyList(),
     val mainKeyboardSelection: KeyboardSelection? = null,
     val switchingKeyboard: Boolean = false,
+    val allowKeyboardSwitch: Boolean = true,
     val mappingIdentity: JSONObject? = null,
     val groupPositions: List<Pair<String,String?>> = emptyList(),
     val skin: JSONObject? = null,
@@ -240,7 +241,7 @@ fun Keyboard(model: KeyboardModel, dispatch: (Any) -> Unit, window: (Int) -> Uni
                                 ToolbarIconButton(R.drawable.ic_settings, label,
                                     badge={ if (showUpdate) Badge() }, action=openSettings)
                                 val mainMode = model.base == "Main" && model.temporary == null
-                                if (((mainMode && model.mainKeyboards.isNotEmpty()) || model.customLayout != null) &&
+                                if (model.allowKeyboardSwitch && ((mainMode && model.mainKeyboards.isNotEmpty()) || model.customLayout != null) &&
                                     model.modesAvailable && !model.privateInput && supportsTextKeyboard(model.layout) && panel == "letters") Box {
                                     val menuLabel = if (mainMode) "切换形码键盘" else "切换键盘布局"
                                     ToolbarIconButton(R.drawable.ic_keyboard_layout, menuLabel,
