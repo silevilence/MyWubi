@@ -1,0 +1,35 @@
+Windows · 普通登录账户 · 全新安装以及卸载
+clean installer OK
+clean install open command OK
+clean install OpenWith OK
+PASS shell invocation, cancel, confirm and duplicate
+uninstall removed this handler OK
+uninstall removed app OK
+ShellExecute and real dialog OK
+
+Windows · 旧版安装后升级并打开另一份皮肤
+old installer OK
+local upgrade OK
+upgrade open command OK
+upgrade OpenWith OK
+new version OK
+PASS shell invocation, cancel, confirm and duplicate
+upgraded ShellExecute and dialog OK
+uninstall removed this handler OK
+
+Android 14 · 设备测试
+INSTRUMENTATION_STATUS: test=systemFilesOpensADownloadIntoTheSameConfirmationPage
+INSTRUMENTATION_STATUS: test=openShareAndChatHandoffsRequireConfirmationAndPreserveTheActiveSkin
+INSTRUMENTATION_STATUS: test=previewAndTrialKeepLayoutLocalToTheMarkedEditor
+INSTRUMENTATION_STATUS: test=previewResolvesEveryBundledModeWithoutSavingASelection
+Time: 133.703
+OK (4 tests)
+
+Android 14 · 输入法进程重建
+INSTRUMENTATION_RESULT: stream=PASS: trial GH, new IME process, daily q, unchanged configuration
+INSTRUMENTATION_CODE: -1
+
+Android 14 · 深色模式、1.3 倍字号 · SkinTrialTest
+Time: 76.743
+OK (1 test)
+INSTRUMENTATION_CODE: -1

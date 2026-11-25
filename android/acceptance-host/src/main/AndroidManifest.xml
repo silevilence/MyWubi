@@ -1,4 +1,5 @@
 <manifest xmlns:android="http://schemas.android.com/apk/res/android">
+    <instrumentation android:name=".SkinTrialRestartCheck" android:targetPackage="org.mywubi.acceptancehost" />
     <application android:label="MyWubi 验收宿主" android:theme="@android:style/Theme.Material.Light.NoActionBar" android:allowBackup="false">
         <provider android:name=".SkinFixtureProvider" android:authorities="${applicationId}.skins"
             android:exported="false" android:grantUriPermissions="true" />
