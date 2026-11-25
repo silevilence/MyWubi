@@ -206,7 +206,9 @@ class ModelBackendTest {
         command("Configure","root" to File(root,"models").absolutePath,"config" to configJson)
     }
     @Test fun onnxCpuLoadsScoresAndReleasesThroughNativeWorker() {
-        assumeTrue(command("Features").getJSONObject("value").getBoolean("onnx"));score(fixture())
+        assumeTrue(command("Features").getJSONObject("value").getBoolean("onnx"))
+        assumeTrue("install the pinned ONNX component first", OnnxComponent.location(context).isFile)
+        score(fixture())
     }
     @Test fun catalogUsesTheEngineDirectoryAndProtectsSavedSelection() {
         val store=EngineStore(context)

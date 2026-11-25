@@ -170,14 +170,17 @@ class SettingsNavigationTest {
         }
     }
 
-    @Test fun standardPackageExplainsModelLimitAndOffersWorkingDictionaryPath() {
+    @Test fun packageExplainsBackendAvailabilityAndOffersWorkingDictionaryPath() {
         ActivityScenario.launch(MainActivity::class.java).use { scenario ->
             selectSettingsTab(device,"预测")
             scrollToText("预测模型与资源（实验性）").click()
-            scrollToText("当前版本仅支持词典预测")
-            assertTrue(device.hasObject(By.text("当前版本仅支持词典预测")))
+            val features = org.json.JSONObject(NativeBridge.inference("""{"op":"Features"}""".toByteArray()).toString(Charsets.UTF_8))
+            val explanation = if (features.getJSONObject("value").getBoolean("llama"))
+                "GGUF 运行组件随应用提供，模型可从下方下载或导入。" else "当前版本仅支持词典预测"
+            scrollToText(explanation)
+            assertTrue(device.hasObject(By.text(explanation)))
             assertTrue(device.hasObject(By.text("保存设置")))
-            device.takeScreenshot(java.io.File(ins.targetContext.filesDir, "settings-model-unavailable.png"))
+            device.takeScreenshot(java.io.File(ins.targetContext.filesDir, "settings-model-availability.png"))
             scrollToText("选用词典预测").click()
             device.waitForIdle()
             scenario.onActivity {

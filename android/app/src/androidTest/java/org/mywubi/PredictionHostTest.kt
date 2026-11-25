@@ -34,6 +34,7 @@ class PredictionHostTest {
         if(withModel) {
             val features=JSONObject(NativeBridge.inference("{\"op\":\"Features\"}".toByteArray()).toString(Charsets.UTF_8)).getJSONObject("value")
             org.junit.Assume.assumeTrue(features.getBoolean(if(generated) "llama" else "onnx"))
+            if (!generated) org.junit.Assume.assumeTrue("install the pinned ONNX component first", OnnxComponent.location(context).isFile)
             val source=if(generated) File(context.filesDir,"mi-generation-package") else ModelBackendTest().fixture(if(rejectModel) 0.0 else -100.0)
             org.junit.Assume.assumeTrue("provision licensed generation package",File(source,"manifest.json").isFile)
             ModelCatalog(context).call("Import","source" to source.absolutePath)
