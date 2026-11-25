@@ -90,7 +90,7 @@ fn show_update_ui(ui: &mut Ui, state: &mut AppState) {
             version,
             notes,
             portable,
-            asset,
+            selected,
         } => {
             ui.colored_label(
                 egui::Color32::from_rgb(33, 150, 243),
@@ -103,9 +103,10 @@ fn show_update_ui(ui: &mut Ui, state: &mut AppState) {
             }
             if *portable {
                 ui.label("当前为便携版，采用被动更新策略。");
-                if ui.button("前往下载页").clicked() {
-                    crate::vpk::open_releases_page();
-                }
+                ui.hyperlink_to(
+                    "前往下载页",
+                    format!("{RELEASES_PAGE_URL}/tag/{}", selected.tag),
+                );
             } else {
                 // 输入法 DLL 会被 TSF 宿主进程加载锁定，更新前必须先卸载 TIP 释放文件。
                 let tip_installed = matches!(
@@ -124,7 +125,7 @@ fn show_update_ui(ui: &mut Ui, state: &mut AppState) {
                     }
                 } else {
                     if ui.button("下载并安装").clicked() {
-                        state.update_worker = Some(crate::vpk::start_download(asset.clone()));
+                        state.update_worker = Some(crate::vpk::start_download(selected.clone()));
                         state.update_state = UpdateState::Downloading { progress: 0 };
                     }
                 }

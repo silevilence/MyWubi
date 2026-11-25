@@ -29,7 +29,7 @@ rfd = "0.14"
 dirs = "5"
 simplelog = "0.12"
 wgpu = "0.19"
-velopack = "1.2"
+velopack = { version = "1.2", features = ["public-utils"] }
 semver = "1"
 model_input = { version = "0.12.1", path = "../../model_input" }
 model_ipc = { version = "0.12.1", path = "../model_ipc" }

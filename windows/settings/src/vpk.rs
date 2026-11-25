@@ -6,11 +6,17 @@
 
 use std::sync::mpsc::{self, Receiver};
 use std::thread;
-use velopack::sources::GithubSource;
+mod source;
+use source::{pinned, WindowsSource};
+use velopack::sources::NoneSource;
 use velopack::{UpdateCheck, UpdateManager, VelopackAsset};
 
-/// GitHub 发布源 URL（与 workspace `repository` 一致）。
-const RELEASE_REPO: &str = "https://github.com/silevilence/MyWubi";
+#[derive(Debug, Clone)]
+pub struct SelectedUpdate {
+    pub tag: String,
+    pub info: Box<velopack::UpdateInfo>,
+}
+
 /// 发布页 URL（便携版被动更新时打开）。
 pub const RELEASES_PAGE_URL: &str = "https://github.com/silevilence/MyWubi/releases";
 
@@ -24,7 +30,7 @@ pub enum UpdateEvent {
         version: String,
         notes: String,
         portable: bool,
-        asset: VelopackAsset,
+        selected: SelectedUpdate,
     },
     /// 下载进度（0–100）。
     DownloadProgress(i16),
@@ -52,7 +58,7 @@ pub enum UpdateState {
         version: String,
         notes: String,
         portable: bool,
-        asset: VelopackAsset,
+        selected: SelectedUpdate,
     },
     Downloading {
         progress: i16,
@@ -101,8 +107,8 @@ fn prepare_tip_access_for_hook() {
 pub fn start_check() -> UpdateWorker {
     let (tx, rx) = mpsc::channel();
     thread::spawn(move || {
-        let mgr = match UpdateManager::new(GithubSource::new(RELEASE_REPO, None, false), None, None)
-        {
+        let source = WindowsSource::default();
+        let mgr = match UpdateManager::new(source.clone(), None, None) {
             Ok(m) => m,
             Err(e) => {
                 log::info!("[vpk] UpdateManager 不可用（非 Velopack 安装）: {e}");
@@ -126,14 +132,18 @@ pub fn start_check() -> UpdateWorker {
                 let _ = tx.send(UpdateEvent::NoUpdate);
             }
             UpdateCheck::UpdateAvailable(info) => {
-                let asset = info.TargetFullRelease.clone();
+                let Some(tag) = source.tag.get().cloned() else {
+                    let _ = tx.send(UpdateEvent::Error("缺少目标发布标签".into()));
+                    return;
+                };
+                let asset = &info.TargetFullRelease;
                 let version = asset.Version.clone();
                 let notes = asset.NotesMarkdown.clone();
                 let _ = tx.send(UpdateEvent::Available {
                     version,
                     notes,
                     portable,
-                    asset,
+                    selected: SelectedUpdate { tag, info },
                 });
             }
         }
@@ -142,12 +152,10 @@ pub fn start_check() -> UpdateWorker {
 }
 
 /// 启动后台下载线程。`asset` 为检查阶段返回的目标资产。
-pub fn start_download(asset: VelopackAsset) -> UpdateWorker {
+pub fn start_download(selected: SelectedUpdate) -> UpdateWorker {
     let (tx, rx) = mpsc::channel();
-    let asset_clone = asset.clone();
     thread::spawn(move || {
-        let mgr = match UpdateManager::new(GithubSource::new(RELEASE_REPO, None, false), None, None)
-        {
+        let mgr = match UpdateManager::new(pinned(&selected.tag), None, None) {
             Ok(m) => m,
             Err(e) => {
                 let _ = tx.send(UpdateEvent::Error(format!("初始化更新管理器失败: {e}")));
@@ -164,17 +172,13 @@ pub fn start_download(asset: VelopackAsset) -> UpdateWorker {
             }
         });
 
-        let info = velopack::UpdateInfo {
-            TargetFullRelease: asset_clone,
-            BaseRelease: None,
-            DeltasToTarget: vec![],
-            IsDowngrade: false,
-        };
-        if let Err(e) = mgr.download_updates(&info, Some(ptx)) {
+        if let Err(e) = mgr.download_updates(&selected.info, Some(ptx)) {
             let _ = tx.send(UpdateEvent::Error(format!("下载更新失败: {e}")));
             return;
         }
-        let _ = tx.send(UpdateEvent::DownloadDone { asset });
+        let _ = tx.send(UpdateEvent::DownloadDone {
+            asset: selected.info.TargetFullRelease,
+        });
     });
     UpdateWorker { rx }
 }
@@ -182,29 +186,10 @@ pub fn start_download(asset: VelopackAsset) -> UpdateWorker {
 /// 应用已下载的更新并重启进程。调用后进程会立即退出。
 pub fn apply_and_restart(asset: VelopackAsset) {
     thread::spawn(move || {
-        if let Ok(mgr) =
-            UpdateManager::new(GithubSource::new(RELEASE_REPO, None, false), None, None)
-        {
+        if let Ok(mgr) = UpdateManager::new(NoneSource {}, None, None) {
             if let Err(e) = mgr.apply_updates_and_restart(&asset) {
                 log::error!("[vpk] 应用更新失败: {e}");
             }
         }
     });
-}
-
-/// 在系统默认浏览器中打开发布页（便携版被动更新策略）。
-pub fn open_releases_page() {
-    #[cfg(windows)]
-    {
-        // 通过 shell 的 start 命令打开 URL，避免直接调用 ShellExecuteW 的类型绑定问题。
-        let _ = std::process::Command::new("cmd")
-            .args(["/C", "start", "", RELEASES_PAGE_URL])
-            .spawn();
-    }
-    #[cfg(not(windows))]
-    {
-        let _ = std::process::Command::new("xdg-open")
-            .arg(RELEASES_PAGE_URL)
-            .spawn();
-    }
 }
