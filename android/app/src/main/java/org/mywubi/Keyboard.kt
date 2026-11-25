@@ -23,6 +23,7 @@ import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
 import androidx.compose.foundation.lazy.grid.items
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.RectangleShape
 import androidx.compose.ui.input.pointer.pointerInput
@@ -331,7 +332,15 @@ fun Keyboard(model: KeyboardModel, dispatch: (Any) -> Unit, window: (Int) -> Uni
                         }
                         val symbol=key.alternate ?: if(layout.id == "builtin.26" && character != null)
                             letterSymbol(character, !model.privateInput && model.layout == "letters" && (model.base == "Main" || model.temporary == "Pinyin")) else null
+                        val up = key.directions[0]?.takeIf { it.isSymbol }?.value
+                        val down = key.directions[4]?.takeIf { it.isSymbol }?.value
+                        val pairedHints = if (key.action.kind == "Group" && key.groupCharacters.size == 2 &&
+                            up != null && down != null) up to down else null
                         fun perform(action: LayoutAction) {
+                            if (pairedHints != null && action.isSymbol && (action.value == up || action.value == down)) {
+                                dispatch(JSONObject().put("InputSymbol", action.value))
+                                return
+                            }
                             when(action.kind) {
                                 "InputSymbol" -> dispatch(JSONObject().put("InputSymbol",action.value))
                                 "Character" -> {input(if(action == key.action) value else action.value); if(isLetter) shift=shift.consumed()}
@@ -364,7 +373,7 @@ fun Keyboard(model: KeyboardModel, dispatch: (Any) -> Unit, window: (Int) -> Uni
                             selected=key.action.kind == "Shift" && shift != KeyMode.Off,
                             alternate=holdOptions.firstOrNull()?.takeIf {
                                 key.hold != null || it.isSymbol
-                            }?.let(::actionName),previewEnabled=!model.privateInput,
+                            }?.let(::actionName), pairedHints=pairedHints, previewEnabled=!model.privateInput,
                             holdChoices=holdOptions.distinctBy(::actionName).map { TouchChoice(actionName(it)) { perform(it) } },
                             bindingRevision=layout, directions=if(layout.id == "builtin.26") null else key.directions.mapValues { (_,action) -> TouchChoice(actionName(action)) {perform(action)} },
                             clearAction={dispatch("ClearEditor")}) {
@@ -577,7 +586,7 @@ private fun ExpandedCandidateButton(item: CandidateItem, enabled: Boolean, showH
 @Composable
 private fun Key(label:String,enabled:Boolean,epoch:Long,modifier:Modifier,repeat:Boolean=false,
                 description:String=label,space:Boolean=false,function:Boolean=false,accent:Boolean=false,selected:Boolean=false,
-                alternate:String?=null,previewEnabled:Boolean=false,heightFactor:Float=1f,directions:Map<Int,TouchChoice>? = null,bindingRevision:Any=epoch,holdChoices:List<TouchChoice> = emptyList(),clearAction:()->Unit={},action:()->Unit) {
+                alternate:String?=null,pairedHints:Pair<String,String>?=null,previewEnabled:Boolean=false,heightFactor:Float=1f,directions:Map<Int,TouchChoice>? = null,bindingRevision:Any=epoch,holdChoices:List<TouchChoice> = emptyList(),clearAction:()->Unit={},action:()->Unit) {
     // The entire column is touchable. KeyTouch draws the inset keycap inside it.
     val keyModifier=modifier.height(LocalKeyboardKeyHeight.current*heightFactor)
     val colors=MaterialTheme.colorScheme
@@ -593,12 +602,37 @@ private fun Key(label:String,enabled:Boolean,epoch:Long,modifier:Modifier,repeat
     // their column instead of letting Material expand them over adjacent keys.
     CompositionLocalProvider(LocalMinimumInteractiveComponentSize provides 0.dp, LocalViewConfiguration provides keyViewConfiguration) {
     if (!repeat) {
-        KeyTouchSurface(label,enabled,epoch,keyModifier,description,background,foreground,if(accent || selected) "selected" else if(function) "function" else if(space && "space" in LocalSkinImages.current.roles) "space" else "key",alternate,
-            previewEnabled,holdChoices,action,directions,bindingRevision) { KeyLabel(label) }
+        KeyTouchSurface(label,enabled,epoch,keyModifier,description,background,foreground,if(accent || selected) "selected" else if(function) "function" else if(space && "space" in LocalSkinImages.current.roles) "space" else "key",alternate.takeIf { pairedHints == null },
+            previewEnabled,holdChoices,action,directions,bindingRevision) {
+            if (pairedHints == null) KeyLabel(label) else PairedSymbolLabel(label, pairedHints.first, pairedHints.second)
+        }
     } else {
         DeleteKeySurface(enabled, epoch, keyModifier, background, foreground, action, clearAction) { KeyLabel(label) }
     }
 }
+}
+
+@Composable
+private fun PairedSymbolLabel(label: String, up: String, down: String) {
+    val landscape = LocalConfiguration.current.orientation == android.content.res.Configuration.ORIENTATION_LANDSCAPE
+    val density = LocalDensity.current
+    BoxWithConstraints(Modifier.fillMaxSize().padding(horizontal = 5.dp, vertical = 2.dp), contentAlignment = Alignment.Center) {
+        // Short keys use the horizontal space for hints. On taller keys all three labels share a centreline.
+        val corners = landscape || maxHeight < 36.dp
+        val hintHeight = maxHeight * if (corners) .44f else .24f
+        val labelHeight = maxHeight * if (corners) .8f else .48f
+        val labelWidth = maxWidth * if (corners) .42f else .65f
+        val hintSize = minOf(11f, with(density) { hintHeight.toSp().value }).sp
+        val mainSize = minOf(skinNumber("key_text_size", 16f), with(density) {
+            minOf(labelHeight, labelWidth).toSp().value
+        }).sp
+        val hintColor = LocalContentColor.current.copy(alpha = LocalContentColor.current.alpha * .78f)
+        Text(label, fontSize = mainSize, lineHeight = mainSize, maxLines = 1, softWrap = false)
+        Text(up, Modifier.align(if (corners) Alignment.TopStart else Alignment.TopCenter),
+            color = hintColor, fontSize = hintSize, lineHeight = hintSize, maxLines = 1, softWrap = false)
+        Text(down, Modifier.align(if (corners) Alignment.BottomEnd else Alignment.BottomCenter),
+            color = hintColor, fontSize = hintSize, lineHeight = hintSize, maxLines = 1, softWrap = false)
+    }
 }
 
 @Composable
