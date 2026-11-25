@@ -7,6 +7,10 @@ use std::{collections::BTreeSet, fs::File, path::PathBuf};
 #[derive(Deserialize)]
 #[serde(tag = "action", deny_unknown_fields)]
 pub enum Request {
+    Inspect {
+        source: PathBuf,
+        platform: String,
+    },
     List {
         path: PathBuf,
         platform: String,
@@ -73,6 +77,7 @@ fn describe(package: &Package, platform: &str) -> Value {
 
 pub fn execute(request: Request) -> Result<Value, Error> {
     match request {
+        Request::Inspect { source, platform } => Ok(describe(&Package::open(&source)?, &platform)),
         Request::List { path, platform } => {
             let store = runtime::store_path(&path);
             if !store.exists() {

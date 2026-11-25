@@ -22,6 +22,13 @@ fn mobile_catalog_roundtrip_keeps_other_platform_and_does_not_activate() {
         .insert("shared/assets/proof.bin".into(), vec![1, 2, 3, 4]);
     let source = dir.path().join("source.mywubi-skin");
     draft.package.export_new(&source).unwrap();
+    let preview = execute(Request::Inspect {
+        source: source.clone(),
+        platform: "android".into(),
+    })
+    .unwrap();
+    assert_eq!(preview["name"], draft.package.metadata.name);
+    assert!(!core_engine::skin::runtime::store_path(&path).exists());
     execute(Request::Import {
         path: path.clone(),
         source,

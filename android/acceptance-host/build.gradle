@@ -12,3 +12,10 @@ android {
         versionName '1'
     }
 }
+
+// Reuse the shipped skin fixture for cross-application file handoff tests.
+def skinFixture = tasks.register('prepareSkinFixture', Copy) {
+    from('../../examples/skins') { include 'bamboo-android.mywubi-skin' }
+    into layout.buildDirectory.dir('generated/skin-fixture')
+}
+android.sourceSets.main.assets.srcDir(skinFixture)

@@ -31,10 +31,25 @@ import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.unit.dp
 
 class MainActivity : ComponentActivity() {
+    private var requestedSkin by mutableStateOf<SkinOption?>(null)
+
+    private fun readPreview(intent: Intent) {
+        val name = intent.getStringExtra("skin.name") ?: return
+        val selection = KeyboardSelection(intent.getStringExtra("skin.id") ?: return,
+            intent.getStringExtra("skin.version") ?: return, intent.getStringExtra("skin.component") ?: return)
+        requestedSkin = SkinOption(name, selection = selection)
+    }
+
+    override fun onNewIntent(intent: Intent) {
+        super.onNewIntent(intent)
+        readPreview(intent)
+    }
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+        if (savedInstanceState == null) readPreview(intent)
         val model = ViewModelProvider(this)[SettingsModel::class.java]
-        setContent { MyWubiTheme { SettingsScreen(model,
+        setContent { MyWubiTheme { SettingsScreen(model, requestedSkin, { requestedSkin = null },
             { startActivity(Intent(Settings.ACTION_INPUT_METHOD_SETTINGS)) },
             { getSystemService(InputMethodManager::class.java).showInputMethodPicker() },
             { finish() }) } }
@@ -43,7 +58,7 @@ class MainActivity : ComponentActivity() {
 
 @Composable
 @OptIn(ExperimentalMaterial3Api::class)
-private fun SettingsScreen(model: SettingsModel, enable: () -> Unit, choose: () -> Unit, leave: () -> Unit) {
+private fun SettingsScreen(model: SettingsModel, requestedSkin: SkinOption?, onPreviewOpened: () -> Unit, enable: () -> Unit, choose: () -> Unit, leave: () -> Unit) {
     var confirmLeave by remember { mutableStateOf(false) }
     var confirmReload by remember { mutableStateOf(false) }
     var main by rememberSaveable { mutableIntStateOf(-1) }
@@ -53,6 +68,7 @@ private fun SettingsScreen(model: SettingsModel, enable: () -> Unit, choose: () 
     var localPreedit by remember { mutableStateOf(model.ui.getBoolean("local_preedit", false)) }
     var clipboard by remember { mutableStateOf(model.ui.getBoolean("clipboard_suggestion", true)) }
     var section by rememberSaveable { mutableIntStateOf(0) }
+    LaunchedEffect(requestedSkin) { if (requestedSkin != null) section = 5 }
     val sections = listOf(0 to "常用", 1 to "键盘", 5 to "皮肤", 2 to "码表", 3 to "预测", 4 to "特殊输入")
     LaunchedEffect(model.shortcutError) {
         if (model.shortcutError != null) section = 4
@@ -196,7 +212,7 @@ private fun SettingsScreen(model: SettingsModel, enable: () -> Unit, choose: () 
                 Text("轻点删除一个字；长按连续删除；长按后向上滑，看到「松手清空」再松手，可清空当前输入框。滑回按键可取消清空。")
             }
             if (section == 5) {
-                if (config == null) Text("正在读取设置…") else SkinPreferences(model, config)
+                if (config == null) Text("正在读取设置…") else SkinPreferences(model, config, requestedSkin, onPreviewOpened)
             }
             Spacer(Modifier.height(24.dp))
         }
@@ -206,7 +222,7 @@ private fun SettingsScreen(model: SettingsModel, enable: () -> Unit, choose: () 
 }
 
 @Composable
-private fun SkinPreferences(model: SettingsModel, config: JSONObject) {
+private fun SkinPreferences(model: SettingsModel, config: JSONObject, requestedSkin: SkinOption?, onPreviewOpened: () -> Unit) {
     val skins = config.optJSONObject("skins") ?: JSONObject()
     val preference = skins.optJSONObject("android") ?: JSONObject()
     fun update(key: String, value: Any) {
@@ -214,7 +230,7 @@ private fun SkinPreferences(model: SettingsModel, config: JSONObject) {
         model.change("skins", "android", copy)
     }
     var libraryRevision by remember { mutableIntStateOf(0) }
-    SkinManagement(model, config, onLibraryChange = { libraryRevision++ })
+    SkinManagement(model, config, requestedSkin, onPreviewOpened, onLibraryChange = { libraryRevision++ })
     HorizontalDivider()
     Text("显示设置", style = MaterialTheme.typography.titleMedium)
     val modes = listOf("跟随系统" to "system", "浅色" to "light", "深色" to "dark")

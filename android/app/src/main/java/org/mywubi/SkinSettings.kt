@@ -17,6 +17,7 @@ import androidx.core.content.FileProvider
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
+import androidx.lifecycle.repeatOnLifecycle
 import org.json.JSONArray
 import org.json.JSONObject
 import java.io.File
@@ -24,37 +25,48 @@ import java.io.InputStream
 import java.util.UUID
 import java.util.zip.ZipFile
 
+internal const val SKIN_MIME = "application/vnd.mywubi.skin"
+
+internal fun stageSkinDocument(temporary: File, input: InputStream) {
+    temporary.outputStream().use { output ->
+        val buffer = ByteArray(65536)
+        var total = 0L
+        while (true) {
+            val count = input.read(buffer)
+            if (count < 0) break
+            total += count
+            require(total <= 64L * 1024 * 1024) {
+                "所选文件超过 64 MiB。如果选了整套下载包，请先解压，再选择里面的 .mywubi-skin 文件。"
+            }
+            output.write(buffer, 0, count)
+        }
+    }
+}
+
+internal fun readSkinDocument(source: File, config: File? = null): JSONObject {
+    val request = JSONObject().put("source", source.path).put("platform", "android")
+    if (config == null) request.put("action", "Inspect")
+    else request.put("action", "Import").put("path", config.path)
+    try {
+        return NativeBridge.objectCall("ManageSkin", "request" to request)
+    } catch (error: ProtocolException) {
+        val bundle = runCatching {
+            ZipFile(source).use { zip ->
+                zip.getEntry("metadata.toml") == null && zip.entries().asSequence().any {
+                    !it.isDirectory && it.name.endsWith(".mywubi-skin", ignoreCase = true)
+                }
+            }
+        }.getOrDefault(false)
+        if (bundle) throw IllegalArgumentException("选中的是整套下载包。请先解压，再选择里面的 .mywubi-skin 文件。", error)
+        throw error
+    }
+}
+
 internal fun importSkinDocument(config: File, cacheDir: File, input: InputStream): JSONObject {
     val temporary = File.createTempFile("skin-import-", ".zip", cacheDir)
     return try {
-        temporary.outputStream().use { output ->
-            val buffer = ByteArray(65536)
-            var total = 0L
-            while (true) {
-                val count = input.read(buffer)
-                if (count < 0) break
-                total += count
-                require(total <= 64L * 1024 * 1024) {
-                    "所选文件超过 64 MiB。如果选了整套下载包，请先解压，再选择里面的 .mywubi-skin 文件。"
-                }
-                output.write(buffer, 0, count)
-            }
-        }
-
-        try {
-            NativeBridge.objectCall("ManageSkin", "request" to JSONObject().put("action", "Import").put("path", config.path)
-                .put("source", temporary.path).put("platform", "android"))
-        } catch (error: ProtocolException) {
-            val isBundle = runCatching {
-                ZipFile(temporary).use { zip ->
-                    zip.getEntry("metadata.toml") == null && zip.entries().asSequence().any {
-                        !it.isDirectory && it.name.endsWith(".mywubi-skin", ignoreCase = true)
-                    }
-                }
-            }.getOrDefault(false)
-            if (isBundle) throw IllegalArgumentException("选中的是整套下载包。请先解压，再选择里面的 .mywubi-skin 文件。", error)
-            throw error
-        }
+        stageSkinDocument(temporary, input)
+        readSkinDocument(temporary, config)
     } finally { temporary.delete() }
 }
 
@@ -94,7 +106,8 @@ private fun SkinActions(option: SkinOption, model: SettingsModel, enabled: Boole
 }
 
 @Composable
-internal fun SkinManagement(model: SettingsModel, config: JSONObject, onLibraryChange: () -> Unit) {
+internal fun SkinManagement(model: SettingsModel, config: JSONObject, requested: SkinOption?, onPreviewOpened: () -> Unit,
+                            onLibraryChange: () -> Unit) {
     val context = LocalContext.current
     val scope = rememberCoroutineScope()
     var items by remember { mutableStateOf(JSONArray()) }
@@ -111,7 +124,15 @@ internal fun SkinManagement(model: SettingsModel, config: JSONObject, onLibraryC
         }
         loaded = true
     }
-    LaunchedEffect(Unit) { runCatching { refresh() }.onFailure { message = it.message ?: "读取皮肤库失败" } }
+    val owner = androidx.lifecycle.compose.LocalLifecycleOwner.current
+    LaunchedEffect(owner) {
+        owner.lifecycle.repeatOnLifecycle(androidx.lifecycle.Lifecycle.State.RESUMED) {
+            runCatching { refresh(); onLibraryChange() }.onFailure { message = it.message ?: "读取皮肤库失败" }
+        }
+    }
+    LaunchedEffect(requested) {
+        if (requested != null) { preview = requested; onPreviewOpened() }
+    }
     val picker = rememberLauncherForActivityResult(ActivityResultContracts.OpenDocument()) { uri ->
         if (uri != null) scope.launch {
             busy = true
@@ -187,7 +208,7 @@ internal fun SkinManagement(model: SettingsModel, config: JSONObject, onLibraryC
                                     file
                                 }
                                 val uri = FileProvider.getUriForFile(context, "${context.packageName}.skins", target)
-                                context.startActivity(Intent.createChooser(Intent(Intent.ACTION_SEND).setType("application/zip")
+                                context.startActivity(Intent.createChooser(Intent(Intent.ACTION_SEND).setType(SKIN_MIME)
                                     .putExtra(Intent.EXTRA_STREAM, uri).addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION), "分享完整皮肤包"))
                             }.onFailure { message = it.message ?: "导出失败" }
                             busy = false
