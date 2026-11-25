@@ -7,6 +7,42 @@ import org.junit.Test
 import java.io.File
 
 class ExternalSkinImportTest {
+    @Test fun systemFilesOpensADownloadIntoTheSameConfirmationPage() {
+        val ins = InstrumentationRegistry.getInstrumentation()
+        val context = ins.targetContext
+        val device = UiDevice.getInstance(ins)
+        val name = "MyWubi-test-${System.nanoTime()}.mywubi-skin"
+        val resolver = context.contentResolver
+        val uri = requireNotNull(resolver.insert(android.provider.MediaStore.Downloads.EXTERNAL_CONTENT_URI,
+            android.content.ContentValues().apply {
+                put(android.provider.MediaStore.MediaColumns.DISPLAY_NAME, name)
+                put(android.provider.MediaStore.MediaColumns.RELATIVE_PATH, "Download")
+                put(android.provider.MediaStore.MediaColumns.MIME_TYPE, "application/octet-stream")
+            }))
+        try {
+            ins.context.assets.open("skins/editor-jade.mywubi-skin").use { source ->
+                requireNotNull(resolver.openOutputStream(uri)).use { source.copyTo(it) }
+            }
+            val downloads = android.provider.DocumentsContract.buildDocumentUri("com.android.externalstorage.documents", "primary:Download")
+            context.startActivity(android.content.Intent(android.content.Intent.ACTION_VIEW)
+                .setDataAndType(downloads, android.provider.DocumentsContract.Document.MIME_TYPE_DIR)
+                .addFlags(android.content.Intent.FLAG_ACTIVITY_NEW_TASK))
+            requireNotNull(findFresh(device, By.textStartsWith(name), 12000)) { "Download missing from system Files" }.click()
+            val end = android.os.SystemClock.uptimeMillis() + 15000
+            while (android.os.SystemClock.uptimeMillis() < end && !device.hasObject(By.text("确认导入"))) {
+                device.findObject(By.text("MyWubi"))?.actionNode()?.click()
+                device.findObject(By.res("android", "button_once"))?.click()
+                android.os.SystemClock.sleep(150)
+                ins.uiAutomation.clearCache()
+            }
+            requireNotNull(findFresh(device, By.text("确认导入"), 10000))
+            requireNotNull(findFresh(device, By.text("取消"), 5000)).actionNode().click()
+        } catch (failure: Throwable) {
+            device.dumpWindowHierarchy(File(context.filesDir, "skin-files-failure.xml"))
+            throw failure
+        } finally { resolver.delete(uri, null, null) }
+    }
+
     @Test fun openShareAndChatHandoffsRequireConfirmationAndPreserveTheActiveSkin() {
         val ins = InstrumentationRegistry.getInstrumentation()
         val context = ins.targetContext
@@ -16,7 +52,7 @@ class ExternalSkinImportTest {
         val installed = File(path.parentFile, "skins/mywubi.bamboo.android@1.mywubi-skin")
         val before = installed.takeIf { it.exists() }?.readBytes()
         fun send(mime: String, share: Boolean = false, chooser: Boolean = false, deny: Boolean = false) {
-            device.executeShellCommand("am start -n org.mywubi.acceptancehost/.SkinSenderActivity --es mime $mime" +
+            device.executeShellCommand("am start -W -f 0x18000000 -n org.mywubi.acceptancehost/.SkinSenderActivity --es mime $mime" +
                 " --ez share $share --ez chooser $chooser --ez deny $deny")
         }
         fun node(label: String) = requireNotNull(findFresh(device, By.text(label), 12000)) { "Missing $label" }

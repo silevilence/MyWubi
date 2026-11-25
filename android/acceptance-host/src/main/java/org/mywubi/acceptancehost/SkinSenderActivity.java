@@ -24,7 +24,7 @@ public final class SkinSenderActivity extends Activity {
                 byte[] buffer = new byte[8192];
                 for (int count; (count = input.read(buffer)) != -1;) output.write(buffer, 0, count);
             }
-            Uri uri = Uri.parse("content://" + getPackageName() + ".skins/attachments/42");
+            Uri uri = Uri.parse("content://" + getPackageName() + ".skins/attachments/" + java.util.UUID.randomUUID());
             String mime = getIntent().getStringExtra("mime");
             boolean share = getIntent().getBooleanExtra("share", false);
             Intent send = share ? new Intent(Intent.ACTION_SEND).setType(mime).putExtra(Intent.EXTRA_STREAM, uri)

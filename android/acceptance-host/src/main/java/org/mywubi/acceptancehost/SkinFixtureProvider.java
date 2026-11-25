@@ -13,7 +13,8 @@ public final class SkinFixtureProvider extends ContentProvider {
     @Override public boolean onCreate() { return true; }
     @Override public String getType(Uri uri) { return "application/octet-stream"; }
     @Override public ParcelFileDescriptor openFile(Uri uri, String mode) throws FileNotFoundException {
-        if (!"r".equals(mode) || !"/attachments/42".equals(uri.getPath())) throw new FileNotFoundException();
+        if (!"r".equals(mode) || uri.getPathSegments().size() != 2 || !"attachments".equals(uri.getPathSegments().get(0)))
+            throw new FileNotFoundException();
         return ParcelFileDescriptor.open(new File(getContext().getCacheDir(), "skin-fixture/聊天附件 竹纸.mywubi-skin"),
             ParcelFileDescriptor.MODE_READ_ONLY);
     }

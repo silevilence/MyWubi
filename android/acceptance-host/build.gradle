@@ -18,4 +18,5 @@ def skinFixture = tasks.register('prepareSkinFixture', Copy) {
     from('../../examples/skins') { include 'bamboo-android.mywubi-skin' }
     into layout.buildDirectory.dir('generated/skin-fixture')
 }
-android.sourceSets.main.assets.srcDir(skinFixture)
+android.sourceSets.main.assets.srcDir(layout.buildDirectory.dir('generated/skin-fixture'))
+tasks.named('preBuild') { dependsOn skinFixture }
