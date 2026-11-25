@@ -5,7 +5,7 @@
 | 场景 | 执行与结果 |
 | --- | --- |
 | 双端 → Windows → Android → 双端 | Python 发布契约测试得到两端最新版本 1/1、2/1、2/3、4/4。重复标签、倒退、错误范围、Android versionCode 重用及首次直接单端发布均被拒绝。 |
-| 选择、取消、失败与恢复 | 三种范围分别枚举两端 success、skipped、failure、cancelled 共 48 种结果。正常选中组合才能公开。模拟部分上传中断后原运行补齐缺件，同名不同摘要、不同运行和已公开版本均被拒绝。正式 GitHub Actions 运行待授权。 |
+| 选择、取消、失败与恢复 | 三种范围分别枚举两端 success、skipped、failure、cancelled 共 48 种结果。正常选中组合才能公开。模拟部分上传中断后原运行补齐缺件，同名不同摘要、不同运行和已公开版本均被拒绝。正式双端运行结果见下方。 |
 | 资产与组件 | 把本地 V0.7.3 Windows 包、受信 CPU 组件和本地签名的 V0.12.1 Android 标准／完整包硬链接到各自的验收输入，分别经过生产 assemble，每端得到 8 个文件。发布端校验暴露了中文说明在 Windows 默认编码下读取失败，改为 UTF-8 后复测通过。篡改组件、另一端混入增量包、缺失清单及缺失平台记录均有失败样例。 |
 | 发布技能 | 独立离线演练以 Windows V2、Android V3 为基线准备 V4，覆盖共享改动、单端积压、用户改选、仅草稿、补传和必需资产缺失。元数据核验测试限制可访问的 API 端点，安装包、组件和模型均无需回下载。 |
 | 客户端发现 | 两端均覆盖跨过 11 条其他平台记录、按标签绑定下载和损坏清单。最终复核增加“草稿创建顺序和版本顺序不同”的回归，按完整分页记录的数字版本排序。Android 同时覆盖最新版本不兼容时回退及分页中断，Windows 便携入口保留原标签大小写。 |
@@ -32,4 +32,25 @@
 
 ## 真实发布
 
-两端最近的正式版本均为 V0.12.1，提交 `4cc33995f1fd797058e3a450bbd88e513d91ac69`，Android versionCode 为 20。首次拟发双端过渡版 V0.13.0，Android versionCode 21。正式授权、发布标签、Actions 运行及公开资产清单待确认后记录。旧客户端的手动覆盖升级步骤见[发布维护](../releasing.md)。
+两端的上次正式版本均为 V0.12.1（提交 `4cc3399`，Android versionCode 20）。为使旧客户端能先升级到支持分平台检查的版本，推荐首次双端发布。用户确认以 `1f021e5` 为源码基础发布 V0.13.0。发布准备提交 `6dfbbb4413cee1aa17b0a828244e28f35eba1b86` 仅同步版本、锁文件及说明。
+
+2026-11-25 14:03（北京时间），GitHub 公开双端正式版。标签、两端交付记录均指向上述发布提交，Android versionCode 为 21。四个任务全部成功，CI 留有元数据、Windows 和 Android 三份上传记录。[正式 Release](https://github.com/silevilence/MyWubi/releases/tag/V0.13.0) · [Actions 运行 45556246552](https://github.com/silevilence/MyWubi/actions/runs/45556246552)
+
+`scripts/verify_release.py` 已核对发布说明、范围、标签提交、运行身份、资产上传状态，以及构建清单与平台元数据的大小和摘要。共 14 项资产，缺失 0 项。旧客户端可按[发布维护](../releasing.md)覆盖升级。
+
+| 已公开资产 | 字节 |
+| --- | ---: |
+| `MyWubi-0.13.0-Android-full-native.json` | 2,657 |
+| `MyWubi-0.13.0-Android-full.apk` | 49,914,172 |
+| `MyWubi-0.13.0-Android-native.json` | 1,442 |
+| `MyWubi-0.13.0-Android.apk` | 21,911,916 |
+| `MyWubi-0.13.0-full.nupkg` | 40,240,645 |
+| `MyWubi-components-cpu-0.13.0-windows-x86_64.zip` | 10,454,012 |
+| `MyWubi-win-Portable.zip` | 40,167,164 |
+| `MyWubi-win-Setup.exe` | 44,774,917 |
+| `SHA256SUMS.txt` | 1,209 |
+| `android-update-full.json` | 917 |
+| `android-update.json` | 912 |
+| `components.json` | 5,219 |
+| `release-scope-both.json` | 2,279 |
+| `releases.win.json` | 1,516 |

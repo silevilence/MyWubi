@@ -4,7 +4,7 @@
 
 在默认分支部署手动工作流后，推送已确认提交和对应的全局标签。由代理通过 `gh workflow run release.yml --ref <默认分支> -f tag=<标签> -f scope=<windows|android|both> -f request_id=<UUID>` 发起构建。工作流将标签、范围和运行 ID 写入草稿，只构建选中的平台。全部选中任务成功且资产齐全时公开。通过该 UUID 定位准确运行，暂时失败时重跑原运行的失败任务。
 
-首次切换先交付双端过渡版本，再开放单端发布。过渡版本发布后，在其发布说明中写明两端均包含新版检查器，并保留该版本链接。旧 Android 客户端只检查仓库 Latest，旧 Windows 客户端只搜索最近十条。如果提示已是最新版或找不到更新，可按下面步骤手动升级。
+首个双端过渡版 [V0.13.0](https://github.com/silevilence/MyWubi/releases/tag/V0.13.0) 包含两端的新版更新检查器。旧 Android 客户端只检查仓库 Latest，旧 Windows 客户端只搜索最近十条。如果提示已是最新版或找不到更新，可按下面步骤手动升级。
 
 - 在[正式发布列表](https://github.com/silevilence/MyWubi/releases)打开双端过渡版本，或之后明确包含本平台的正式版本。展开该版本的 Assets。
 - Android 选择原通道的 `MyWubi-<版本>-Android.apk` 或 `-Android-full.apk`，打开 APK，确认系统显示更新已有应用。保留原应用即可继续使用配置、词库和模型。
