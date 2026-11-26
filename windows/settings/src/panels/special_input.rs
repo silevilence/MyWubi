@@ -235,7 +235,18 @@ mod tests {
                         egui::CentralPanel::default().show(ctx, |ui| show(ui, &mut state));
                     },
                 );
-                assert!(!output.shapes.is_empty());
+                for label in [
+                    "普通输入时追加",
+                    "专用模式可用",
+                    "打开任一开关会将这份词库载入内存",
+                ] {
+                    assert!(
+                        output.shapes.iter().any(|shape| matches!(&shape.shape,
+                        egui::Shape::Text(text) if text.galley.job.text.starts_with(label))),
+                        "Missing {label} in the {width}-point {:?} details",
+                        kind
+                    );
+                }
                 assert_eq!(state.special_input.selected, Item::Table(kind));
             }
         }

@@ -206,6 +206,7 @@ impl ExpressionCatalog {
                         .checkbox(&mut selection.append, "普通输入时追加")
                         .changed();
                     changed |= ui.checkbox(&mut selection.search, "专用模式可用").changed();
+                    ui.add(egui::Label::new("打开任一开关会将这份词库载入内存。同时启用多个大词库，重新加载时会短暂占用更多内存。").wrap(true));
                     let selected = selection.path(path, kind);
                     let current = self.entries[index]
                         .iter()
