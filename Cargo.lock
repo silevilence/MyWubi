@@ -811,7 +811,7 @@ dependencies = [
 
 [[package]]
 name = "core_engine"
-version = "0.15.0"
+version = "0.15.1"
 dependencies = [
  "arc-swap",
  "base64",
@@ -1814,7 +1814,7 @@ dependencies = [
 
 [[package]]
 name = "im_engine"
-version = "0.15.0"
+version = "0.15.1"
 dependencies = [
  "arc-swap",
  "core_engine",
@@ -2212,7 +2212,7 @@ dependencies = [
 
 [[package]]
 name = "model_input"
-version = "0.15.0"
+version = "0.15.1"
 dependencies = [
  "core_engine",
  "fs2",
@@ -2232,14 +2232,14 @@ dependencies = [
 
 [[package]]
 name = "model_ipc"
-version = "0.15.0"
+version = "0.15.1"
 dependencies = [
  "windows 0.62.2",
 ]
 
 [[package]]
 name = "mywubi_android"
-version = "0.15.0"
+version = "0.15.1"
 dependencies = [
  "core_engine",
  "jni",
@@ -2686,7 +2686,7 @@ checksum = "9b4f627cb1b25917193a259e49bdad08f671f8d9708acfd5fe0a8c1455d87220"
 
 [[package]]
 name = "personal_input"
-version = "0.15.0"
+version = "0.15.1"
 dependencies = [
  "core_engine",
  "fs2",
@@ -3111,7 +3111,7 @@ dependencies = [
 
 [[package]]
 name = "runtime_components"
-version = "0.15.0"
+version = "0.15.1"
 dependencies = [
  "fs2",
  "semver",
@@ -3318,7 +3318,7 @@ dependencies = [
 
 [[package]]
 name = "settings"
-version = "0.15.0"
+version = "0.15.1"
 dependencies = [
  "core_engine",
  "dirs 5.0.1",
@@ -3592,7 +3592,7 @@ dependencies = [
 
 [[package]]
 name = "text_render"
-version = "0.15.0"
+version = "0.15.1"
 dependencies = [
  "core_engine",
  "png",
@@ -3696,7 +3696,7 @@ dependencies = [
 
 [[package]]
 name = "tip_manager"
-version = "0.15.0"
+version = "0.15.1"
 dependencies = [
  "log",
  "tempfile",
