@@ -183,6 +183,7 @@ struct PlanParts {
 /// A caller serializes access, releases its lock for host calls, then acknowledges.
 /// Legacy permits nested prepares; only the newest generation may publish.
 pub struct Session {
+    ranked_locally: bool,
     retry_time: Option<RetryTime>,
     clock: Arc<dyn crate::shortcut_time::Clock>,
     personal_right: Option<String>,
@@ -237,6 +238,7 @@ impl Session {
                 && context.allows_assistance,
         );
         Self {
+            ranked_locally: false,
             retry_time: None,
             clock,
             prediction_wait: None,
@@ -294,6 +296,87 @@ impl Session {
     pub fn last_outcome(&self) -> Option<HostOutcome> {
         self.last_outcome
     }
+    /// Resolve the displayed identity again after a menu closes or focus changes.
+    fn rank_candidate(&self, query: QueryRevision, id: CandidateId) -> Option<Candidate> {
+        if self.closed
+            || self.pending.is_some()
+            || self.has_prediction()
+            || self.context.purpose != InputPurpose::Text
+            || self.state_machine().mode() != InputMode::Main
+            || self.state_machine().group_sequence().is_some()
+        {
+            return None;
+        }
+        let window = self.candidate_window(id.0, 1);
+        let candidate = window.candidates.into_iter().next()?;
+        (window.query_revision == query
+            && candidate.id == id
+            && candidate.exact
+            && candidate.expression_kind.is_none()
+            && !candidate
+                .hints
+                .iter()
+                .any(|hint| matches!(hint, CandidateHint::DateTime(_)))
+            && self
+                .resources
+                .dict
+                .exact(self.state_machine().spelling())
+                .iter()
+                .any(|e| e.word == candidate.text))
+        .then_some(candidate)
+    }
+
+    pub fn rank_count(&self, query: QueryRevision, id: CandidateId) -> usize {
+        if self.rank_candidate(query, id).is_none() {
+            return 0;
+        }
+        self.resources
+            .dict
+            .exact(self.state_machine().spelling())
+            .iter()
+            .map(|e| &e.word)
+            .collect::<std::collections::HashSet<_>>()
+            .len()
+    }
+
+    pub fn move_candidate(
+        &mut self,
+        query: QueryRevision,
+        id: CandidateId,
+        rank: usize,
+    ) -> Result<(), String> {
+        let candidate = self.rank_candidate(query, id).ok_or("候选已更新")?;
+        if !self.config.dictionary.enable_user_dict {
+            return Err("请在设置中启用用户词库".into());
+        }
+        let code = self.state_machine().spelling().to_owned();
+        let mut user = UserDictionary::for_edit(
+            &self.resources.user_table_path,
+            Some(&self.resources.system_table_path),
+        )
+        .map_err(|e| e.to_string())?;
+        user.move_to_rank(&self.resources.dict, &code, &candidate.text, rank)
+            .map_err(|e| e.to_string())?;
+        let dict = runtime::load_dictionary(
+            &self.resources.system_table_path,
+            &self.resources.user_table_path,
+            &self.config,
+        )?;
+        Arc::make_mut(&mut self.resources).dict = dict.clone();
+        self.prediction_dict = dict.clone();
+        let transition = self.engine.refresh_ranked_dictionary(dict);
+        self.view = plan(
+            self.engine.state_machine(),
+            self.config.basic.show_code_hints,
+            transition,
+            &self.view,
+        )
+        .view;
+        self.published_engine = self.engine.clone();
+        self.ranked_locally = true;
+        Ok(())
+    }
+
     pub fn candidate_window(&self, offset: usize, count: usize) -> CandidateWindow {
         if let Some(prediction) = &self
             .prediction
@@ -1313,6 +1396,7 @@ impl Session {
             && self.retry_time.is_none()
             && self.only_prediction_changed(&runtime)
         {
+            self.ranked_locally = false;
             self.config = runtime.config.clone();
             self.revision = runtime.revision;
             self.resources = Arc::clone(&runtime);
@@ -1359,7 +1443,8 @@ impl Session {
         self.cleared(next, op, false).map(Some)
     }
     fn only_prediction_changed(&self, runtime: &RuntimeSnapshot) -> bool {
-        if self.config.prediction == runtime.config.prediction
+        if !self.ranked_locally
+            && self.config.prediction == runtime.config.prediction
             && self.config.personal == runtime.config.personal
         {
             return false;

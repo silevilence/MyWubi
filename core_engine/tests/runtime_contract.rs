@@ -201,3 +201,28 @@ fn moving_a_word_can_split_ties_and_reuses_its_adjustment() {
         );
     }
 }
+
+#[test]
+fn moving_by_query_keeps_preedit_and_invalidates_old_clicks() {
+    use core_engine::session::*;
+    let f = Files::new();
+    f.write("main.dict", "a\t甲\t10\na\t乙\t9\naa\t丙\t20\n");
+    let snapshot = f.build(LoadPolicy::Reload).unwrap();
+    let mut s = Session::new(&snapshot, BehaviorProfile::TouchV1, HostContext::default());
+    let p = s.prepare(Action::InputCode('a')).unwrap();
+    s.acknowledge(p.token, HostOutcome::Applied);
+    let w = s.candidate_window(0, 3);
+    assert_eq!(s.rank_count(w.query_revision, w.candidates[2].id), 0);
+    s.move_candidate(w.query_revision, w.candidates[1].id, 1)
+        .unwrap();
+    assert_eq!(s.snapshot().spelling, "a");
+    assert_eq!(s.snapshot().items[0].text, "乙");
+    assert!(s
+        .move_candidate(w.query_revision, w.candidates[0].id, 1)
+        .is_err());
+    assert!(s
+        .apply_runtime(std::sync::Arc::new(f.build(LoadPolicy::Reload).unwrap()))
+        .unwrap()
+        .is_none());
+    assert_eq!(s.snapshot().spelling, "a");
+}

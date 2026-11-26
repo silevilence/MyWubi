@@ -1,5 +1,6 @@
 package org.mywubi
 
+import androidx.compose.foundation.combinedClickable
 import androidx.compose.foundation.clickable
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.drawWithContent
@@ -50,6 +51,8 @@ import androidx.savedstate.SavedStateRegistryOwner
 import org.json.JSONArray
 import org.json.JSONObject
 
+internal data class RankOptions(val query: String, val id: Long, val show: (Int, Boolean) -> Unit)
+internal data class MoveCandidate(val query: String, val id: Long, val rank: Int)
 internal data class LoadCandidateWindow(val query: String)
 
 data class CandidateItem(val id: Long, val text: String, val hint: String, val expressionKind: String? = null, val dateTime: Boolean = false) {
@@ -277,7 +280,7 @@ private fun KeyboardSurface(model: KeyboardModel, latest: State<KeyboardModel>, 
                                             if (model.partialWindow && index == items.size - 3) {
                                                 LaunchedEffect(model.query) { dispatch(LoadCandidateWindow(model.query)) }
                                             }
-                                            CandidateButton(item, model.query, showCandidates && model.enabled, stackHints, barHeight) {
+                                            CandidateButton(item, model.query, showCandidates && model.enabled, stackHints, barHeight, dispatch) {
                                                 choose(item, model.query)
                                             }
                                         }
@@ -368,7 +371,7 @@ private fun KeyboardSurface(model: KeyboardModel, latest: State<KeyboardModel>, 
                             .semantics { contentDescription = "全部候选" }) {
                         items(model.candidates, key={it.id}, span={item ->
                             GridItemSpan(if (item.expressionKind != null || item.text.codePointCount(0, item.text.length) > 4) maxLineSpan else 1)
-                        }) { item -> ExpandedCandidateButton(item,model.enabled,showHints,landscape) {choose(item, model.query)} }
+                        }) { item -> ExpandedCandidateButton(item,model.query,model.enabled,showHints,landscape,dispatch) {choose(item, model.query)} }
                     }
                 }
                 if (hasPages) Row(Modifier.fillMaxWidth().heightIn(min=48.dp), horizontalArrangement=Arrangement.SpaceBetween,
@@ -658,7 +661,7 @@ private fun CandidateToolbarSlot(modifier: Modifier, showCandidates: Boolean,
 
 @Composable
 private fun CandidateButton(item: CandidateItem, query: String, enabled: Boolean, stackHints: Boolean,
-                            minHeight: Dp, choose: () -> Unit) {
+                            minHeight: Dp, dispatch: (Any) -> Unit, choose: () -> Unit) {
     val display = remember(item) { ExpressionDisplay.display(item.text, item.hint, item.expressionKind) }
     val description = "候选 ${item.text}" + (if(item.hint.isEmpty()) "" else "，${item.spokenHint}") +
         (if(display.fallback) "，字体不支持完整显示，选择后输入原始表情" else "")
@@ -673,24 +676,54 @@ private fun CandidateButton(item: CandidateItem, query: String, enabled: Boolean
         }
         // Rebind the hit target to the confirmed query. The label and its text layout stay mounted.
         key(query, item.id) {
-            Box(Modifier.matchParentSize().clip(ButtonDefaults.textShape).clickable(enabled=enabled, onClick=choose))
+            RankTarget(item, query, enabled, dispatch, choose, Modifier.matchParentSize().clip(ButtonDefaults.textShape))
         }
     }
 }
 
 @Composable
-private fun ExpandedCandidateButton(item: CandidateItem, enabled: Boolean, showHints: Boolean, landscape: Boolean, choose: () -> Unit) {
+private fun ExpandedCandidateButton(item: CandidateItem, query: String, enabled: Boolean, showHints: Boolean, landscape: Boolean, dispatch: (Any) -> Unit, choose: () -> Unit) {
     val colors = MaterialTheme.colorScheme
     val display = remember(item) { ExpressionDisplay.display(item.text, item.hint, item.expressionKind) }
     val description = "候选 ${item.text}" + (if(item.hint.isEmpty()) "" else "，${item.spokenHint}") +
         (if(display.fallback) "，字体不支持完整显示，选择后输入原始表情" else "")
-    Surface(onClick=choose, enabled=enabled, shape=RectangleShape, color=colors.surface,
+    Surface(shape=RectangleShape, color=colors.surface,
         contentColor=if(enabled) colors.onSurface else colors.onSurface.copy(alpha=0.38f),
         border=BorderStroke(0.5.dp, colors.onSurface.copy(alpha=0.22f)),
         modifier=Modifier.fillMaxWidth().heightIn(min=72.dp).horizontalScroll(rememberScrollState()).imeAction(description,enabled,choose)) {
-        Box(Modifier.padding(horizontal=8.dp, vertical=8.dp), contentAlignment=Alignment.Center) {
+        Box(contentAlignment=Alignment.Center) {
+            Box(Modifier.padding(horizontal=8.dp, vertical=8.dp)) {
             CandidateLabel(item, display, stackHints=!landscape, expanded=true, showHints=showHints,
                 wordColor=LocalContentColor.current, hintColor=skinColor("hint", colors.onSurfaceVariant))
+            }
+            key(query, item.id) { RankTarget(item, query, enabled, dispatch, choose, Modifier.matchParentSize()) }
+        }
+    }
+}
+
+@Composable
+@OptIn(androidx.compose.foundation.ExperimentalFoundationApi::class)
+private fun RankTarget(item: CandidateItem, query: String, enabled: Boolean, dispatch: (Any) -> Unit, choose: () -> Unit, modifier: Modifier) {
+    var count by remember { mutableIntStateOf(0) }
+    var allowed by remember { mutableStateOf(false) }
+    var offset by remember { mutableIntStateOf(0) }
+    Box(modifier.combinedClickable(enabled = enabled, onClick = choose, onLongClick = {
+        dispatch(RankOptions(query, item.id) { size, canWrite -> count = size; allowed = canWrite; offset = 0 })
+    })) {
+        DropdownMenu(expanded = count > 0, onDismissRequest = { count = 0 },
+            properties = androidx.compose.ui.window.PopupProperties(focusable = false)) {
+            if (!allowed) {
+                DropdownMenuItem(text = { Text("请在设置中启用用户词库") }, onClick = { count = 0 })
+            } else {
+                if (offset > 0) DropdownMenuItem(text = { Text("上一组名次") }, onClick = { offset -= 8 })
+                for (rank in offset + 1..minOf(count, offset + 8)) {
+                    DropdownMenuItem(text = { Text("移到第 $rank 位") }, onClick = {
+                        count = 0
+                        dispatch(MoveCandidate(query, item.id, rank))
+                    })
+                }
+                if (offset + 8 < count) DropdownMenuItem(text = { Text("下一组名次") }, onClick = { offset += 8 })
+            }
         }
     }
 }

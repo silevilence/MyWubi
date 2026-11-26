@@ -206,6 +206,21 @@ impl SemanticEngine {
         &self.sm
     }
 
+    pub(crate) fn refresh_ranked_dictionary(&mut self, dict: Arc<crate::Dictionary>) -> Transition {
+        self.sm.dict = dict;
+        self.sm.page = 0;
+        self.sm.appended = None;
+        self.sm.candidates_snapshot();
+        self.invalidate_query();
+        Transition::Candidates {
+            spelling: self.sm.spelling.clone(),
+            candidates: self.sm.candidates.clone(),
+            code_hints: self.sm.code_hints.clone(),
+            page: self.sm.page,
+            total_pages: self.sm.total_pages(),
+        }
+    }
+
     /// Refresh auxiliary candidates when the host's privacy policy changes.
     pub(crate) fn set_expression_context(&mut self, allowed: bool) -> Option<Transition> {
         if self.sm.expressions_allowed == allowed {

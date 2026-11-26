@@ -418,6 +418,23 @@ class MyWubiService : InputMethodService() {
 
     private fun dispatch(action: Any) {
         if (!active || !viewVisible) return
+        if (action is RankOptions || action is MoveCandidate) {
+            val current = session ?: return
+            if (trial != null) return
+            try {
+                if (action is RankOptions) {
+                    val options = NativeBridge.objectCall("CandidateRank", "session" to current.value, "query" to JSONObject(action.query), "id" to action.id)
+                    action.show(options.getInt("count"), options.getBoolean("enabled"))
+                } else if (action is MoveCandidate) {
+                    NativeBridge.objectCall("CandidateRank", "session" to current.value, "query" to JSONObject(action.query),
+                        "id" to action.id, "rank" to action.rank)
+                    candidateOffset = 0
+                    refresh()
+                    EngineUpdates.request(this)
+                }
+            } catch (e: RuntimeException) { error = e.message; render() }
+            return
+        }
         if (action is LoadCandidateWindow) {
             val current = session ?: return
             if (keyboard.partialWindow && keyboard.query == action.query) {

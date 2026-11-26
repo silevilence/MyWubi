@@ -340,7 +340,7 @@ unsafe extern "system" fn wnd_proc(
             LRESULT(HTTRANSPARENT as isize)
         }
         WM_MOUSEACTIVATE => LRESULT(MA_NOACTIVATE as isize),
-        WM_LBUTTONDOWN | WM_LBUTTONUP => {
+        WM_LBUTTONDOWN | WM_LBUTTONUP | WM_RBUTTONDOWN | WM_RBUTTONUP => {
             let ptr = GetWindowLongPtrW(hwnd, GWLP_USERDATA) as *mut WindowData;
             if !ptr.is_null() {
                 let data = &*ptr;
@@ -352,7 +352,7 @@ unsafe extern "system" fn wnd_proc(
                     .iter()
                     .find(|(r, _, _)| x >= r.left && x < r.right && y >= r.top && y < r.bottom)
                     .map(|(_, q, id)| (*q, *id));
-                if msg == WM_LBUTTONDOWN {
+                if matches!(msg, WM_LBUTTONDOWN | WM_RBUTTONDOWN) {
                     data.pressed.set(hit);
                     if hit.is_some() {
                         windows::Win32::UI::Input::KeyboardAndMouse::SetCapture(hwnd);
@@ -361,7 +361,16 @@ unsafe extern "system" fn wnd_proc(
                     let pressed = data.pressed.take();
                     let _ = windows::Win32::UI::Input::KeyboardAndMouse::ReleaseCapture();
                     if let Some((query, id)) = pressed.filter(|p| Some(*p) == hit) {
-                        if id == crate::candidate_renderer::SCROLL_UP
+                        if msg == WM_RBUTTONUP {
+                            if !data.target.is_invalid() {
+                                let _ = PostMessageW(
+                                    Some(data.target),
+                                    crate::candidate_dispatch::RANK_MENU,
+                                    WPARAM(query as usize),
+                                    LPARAM(id as isize),
+                                );
+                            }
+                        } else if id == crate::candidate_renderer::SCROLL_UP
                             || id == crate::candidate_renderer::SCROLL_DOWN
                         {
                             data.renderer.borrow_mut().scroll(

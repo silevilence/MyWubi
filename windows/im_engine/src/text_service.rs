@@ -676,6 +676,58 @@ impl TextService {
         }
     }
 
+    fn candidate_rank_menu(&self, token: u64, id: usize) {
+        use windows::Win32::UI::WindowsAndMessaging::*;
+        let Some((count, enabled)) = self.input.rank_options(token, id) else {
+            return;
+        };
+        let Some(owner) = self.candidate_dispatch.lock().as_ref().map(|d| d.hwnd()) else {
+            return;
+        };
+        let focus = || {
+            self.lifecycle
+                .manager()
+                .and_then(|tm| unsafe { tm.GetFocus().ok()?.GetTop().ok() })
+        };
+        let Some(original) = focus() else {
+            return;
+        };
+        unsafe {
+            let Ok(menu) = CreatePopupMenu() else {
+                return;
+            };
+            if enabled {
+                for rank in 1..=count {
+                    let label = windows::core::HSTRING::from(format!("移到第 {rank} 位"));
+                    let _ = AppendMenuW(menu, MF_STRING, rank, &label);
+                }
+            } else {
+                let _ = AppendMenuW(
+                    menu,
+                    MF_GRAYED,
+                    0,
+                    windows::core::w!("请在设置中启用用户词库"),
+                );
+            }
+            let mut point = windows::Win32::Foundation::POINT::default();
+            let _ = GetCursorPos(&mut point);
+            let rank = TrackPopupMenu(
+                menu,
+                TPM_RETURNCMD | TPM_NONOTIFY | TPM_RIGHTBUTTON,
+                point.x,
+                point.y,
+                Some(0),
+                owner,
+                None,
+            )
+            .0;
+            let _ = DestroyMenu(menu);
+            if rank > 0 && focus().as_ref() == Some(&original) {
+                self.input.move_candidate(token, id, rank as usize);
+            }
+        }
+    }
+
     fn choose_prediction(&self, version: u64, id: usize) {
         if version == 0 && id == 1 {
             self.pump_prediction();
@@ -1440,8 +1492,12 @@ impl ITfTextInputProcessorEx_Impl for TextService_Impl {
         {
             use windows::core::IUnknownImpl;
             let owner = self.to_object();
-            match crate::candidate_dispatch::CandidateDispatch::new(move |version, id| {
-                owner.choose_prediction(version, id)
+            match crate::candidate_dispatch::CandidateDispatch::new(move |version, id, rank| {
+                if rank {
+                    owner.candidate_rank_menu(version, id);
+                } else {
+                    owner.choose_prediction(version, id);
+                }
             }) {
                 Ok(dispatch) => *self.candidate_dispatch.lock() = Some(dispatch),
                 Err(error) => log::warn!("候选点击窗口不可用: {error}"),

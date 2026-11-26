@@ -62,6 +62,12 @@ enum Request {
         offset: usize,
         count: usize,
     },
+    CandidateRank {
+        session: u64,
+        query: candidates::QueryRevision,
+        id: candidates::CandidateId,
+        rank: Option<usize>,
+    },
     IsCurrent {
         session: u64,
         token: EditToken,
@@ -406,6 +412,20 @@ impl Registry {
                     return Err(err(2, "candidate window exceeds 256"));
                 }
                 json!(self.session(session)?.candidate_window(offset, count))
+            }
+            Request::CandidateRank {
+                session,
+                query,
+                id,
+                rank,
+            } => {
+                let session = self.session(session)?;
+                if let Some(rank) = rank {
+                    session
+                        .move_candidate(query, id, rank)
+                        .map_err(|e| err(5, e))?;
+                }
+                json!({"count": session.rank_count(query,id), "enabled": session.config().dictionary.enable_user_dict})
             }
             Request::IsCurrent { session, token } => {
                 json!(self.session(session)?.is_current(token))

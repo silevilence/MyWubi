@@ -447,6 +447,37 @@ impl InputSession {
         }
     }
 
+    pub fn rank_options(&self, token: u64, id: usize) -> Option<(usize, bool)> {
+        let view = self.candidates.load_full();
+        if view.selection_token != Some(token) || !view.selection_ids.contains(&id) {
+            return None;
+        }
+        let core = self.core.lock();
+        let count = core.rank_count(
+            view.selection_query?,
+            core_engine::candidates::CandidateId(id),
+        );
+        (count > 0).then_some((count, core.config().dictionary.enable_user_dict))
+    }
+
+    pub fn move_candidate(&self, token: u64, id: usize, rank: usize) {
+        let view = self.candidates.load_full();
+        let Some(query) = view
+            .selection_query
+            .filter(|_| view.selection_token == Some(token))
+        else {
+            return;
+        };
+        let mut core = self.core.lock();
+        let result = core.move_candidate(query, core_engine::candidates::CandidateId(id), rank);
+        let mut data = candidate_view(core.snapshot(), core.config(), view.anchor);
+        bind_selection(&core, &mut data, &view);
+        if let Err(error) = result {
+            data.notices.push(error);
+        }
+        self.candidates.store(Arc::new(data));
+    }
+
     pub fn choose_candidate<E: EditFailure>(
         &self,
         token: u64,
