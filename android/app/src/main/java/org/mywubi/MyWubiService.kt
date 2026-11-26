@@ -95,6 +95,8 @@ class MyWubiService : InputMethodService() {
     }
 
     private fun loadRuntime() {
+        // A preference notification can already be queued when the service unregisters.
+        if (destroyed) return
         val ticket = loads.next()
         val previousConfig = lastConfig?.let { JSONObject(it.toString()) }
         val hasRuntime = runtime != null
