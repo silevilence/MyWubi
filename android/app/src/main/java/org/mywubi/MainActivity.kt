@@ -146,6 +146,9 @@ private fun SettingsScreen(model: SettingsModel, requestedSkin: SkinOption?, onP
                     }
                     SettingToggle("启用用户词库", dict.getBoolean("enable_user_dict"), !model.busy) { model.change("dictionary", "enable_user_dict", it) }
                     HorizontalDivider()
+                    val frequency = config.getJSONObject("frequency")
+                    SettingToggle("记录有效选词次数", frequency.getBoolean("record"), !model.busy) { model.change("frequency", "record", it) }
+                    SettingToggle("按选词次数调整候选顺序", frequency.getBoolean("rank"), !model.busy) { model.change("frequency", "rank", it) }
                     PersonalSettings(model, config)
                 }
                 OutlinedButton(onClick = { model.getApplication<android.app.Application>().startActivity(Intent(model.getApplication(), UpdateActivity::class.java).addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)) }) { Text("应用更新") }

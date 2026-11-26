@@ -147,6 +147,19 @@ pub fn show(ui: &mut Ui, state: &mut AppState) {
             }
         });
 
+        if ui
+            .checkbox(&mut state.config.frequency.record, "记录有效选词次数")
+            .changed()
+        {
+            state.mark_dirty();
+        }
+        if ui
+            .checkbox(&mut state.config.frequency.rank, "按选词次数调整候选顺序")
+            .changed()
+        {
+            state.mark_dirty();
+        }
+
         if ui.button("管理自造词…").clicked() {
             open_user_dictionary(state);
         }

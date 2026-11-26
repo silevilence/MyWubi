@@ -31,7 +31,7 @@ pub struct UserDictionary {
     additive: bool,
     system_path: Option<PathBuf>,
     entries: Vec<Entry>,
-    order: BTreeMap<String, Vec<String>>,
+    pub(crate) order: BTreeMap<String, Vec<String>>,
 }
 
 impl UserDictionary {

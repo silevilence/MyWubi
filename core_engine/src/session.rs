@@ -239,7 +239,7 @@ impl Session {
                 && context.purpose == InputPurpose::Text
                 && context.allows_assistance,
         );
-        Self {
+        let mut session = Self {
             frequency_tracker: Default::default(),
             ranked_locally: false,
             retry_time: None,
@@ -264,7 +264,11 @@ impl Session {
             closed: false,
             deferred_runtime: None,
             last_outcome: None,
+        };
+        if session.config.frequency.rank {
+            session.load_frequency();
         }
+        session
     }
     pub fn state_machine(&self) -> &StateMachine {
         self.engine.state_machine()
@@ -378,7 +382,31 @@ impl Session {
         Some(frequency::Choice {
             code: row.code.clone(),
             word: row.word.clone(),
+            scale: {
+                let rows = self.resources.dict.exact(&row.code);
+                let gap = rows
+                    .windows(2)
+                    .map(|p| p[0].weight.saturating_sub(p[1].weight))
+                    .filter(|n| *n > 0)
+                    .min()
+                    .unwrap_or(1);
+                (gap / 3).saturating_add(1)
+            },
         })
+    }
+
+    fn load_frequency(&mut self) {
+        if !self.config.frequency.rank
+            || self.context.purpose != InputPurpose::Text
+            || !self.context.allows_assistance
+        {
+            self.engine.set_frequency(Arc::default());
+            return;
+        }
+        match frequency::Ranking::load(&self.resources) {
+            Ok(ranking) => self.engine.set_frequency(Arc::new(ranking)),
+            Err(error) => log::warn!("载入词频失败: {error}"),
+        }
     }
 
     pub fn observe_frequency(&mut self, context: personal::Context) {
@@ -389,6 +417,11 @@ impl Session {
             ) {
                 if let Err(error) = self.frequency_tracker.observe(&path, context) {
                     log::warn!("词频统计写入失败: {error}");
+                } else if self.frequency_tracker.changed
+                    && self.config.frequency.rank
+                    && self.state_machine().spelling().is_empty()
+                {
+                    self.load_frequency();
                 }
             }
         }
@@ -423,7 +456,19 @@ impl Session {
             Some(&self.resources.system_table_path),
         )
         .map_err(|e| e.to_string())?;
-        user.move_to_rank(&self.resources.dict, &code, &candidate.text, rank)
+        let mut rows: Vec<_> = self.resources.dict.exact(&code);
+        self.state_machine().frequency.sort(&code, &mut rows);
+        let weighted = rows
+            .iter()
+            .map(|row| {
+                let mut e = (*row).clone();
+                e.weight = self.state_machine().frequency.weight(row);
+                e
+            })
+            .collect();
+        let visible = Dictionary::from_entries(weighted, None, Default::default())
+            .map_err(|e| e.to_string())?;
+        user.move_to_rank(&visible, &code, &candidate.text, rank)
             .map_err(|e| e.to_string())?;
         let dict = runtime::load_dictionary(
             &self.resources.system_table_path,
@@ -432,6 +477,9 @@ impl Session {
         )?;
         Arc::make_mut(&mut self.resources).dict = dict.clone();
         self.prediction_dict = dict.clone();
+        if self.config.frequency.rank {
+            self.load_frequency();
+        }
         let transition = self.engine.refresh_ranked_dictionary(dict);
         self.view = plan(
             self.engine.state_machine(),
@@ -474,6 +522,9 @@ impl Session {
         if self.context.allows_assistance != allowed {
             self.clear_prediction_context();
             self.context.allows_assistance = allowed;
+            if self.config.frequency.rank {
+                self.load_frequency();
+            }
             if !allowed {
                 self.frequency_tracker = Default::default();
             }
@@ -1404,6 +1455,9 @@ impl Session {
         self.pending = None;
         self.cleanup = None;
         self.context = context;
+        if self.config.frequency.rank {
+            self.load_frequency();
+        }
         if preserve_base {
             self.engine.reset_context();
         } else {
@@ -1535,6 +1589,10 @@ impl Session {
         self.revision = runtime.revision;
         // Runtime adoption is a control fact: cleanup failure never restores an older resource set.
         self.engine = next.clone();
+        if self.config.frequency.rank {
+            self.load_frequency();
+            next = self.engine.clone();
+        }
         self.cleared(next, op, false).map(Some)
     }
     fn only_prediction_changed(&self, runtime: &RuntimeSnapshot) -> bool {

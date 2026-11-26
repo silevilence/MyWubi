@@ -28,11 +28,103 @@ pub fn store_path(config: &Path, table: &Path) -> Option<PathBuf> {
     )
 }
 
-pub fn counts(path: &Path) -> io::Result<Counts> {
+#[derive(Default, Serialize, Deserialize)]
+pub struct Statistics {
+    // A store identity distinguishes independent devices when a user dictionary is imported.
+    pub id: String,
+    pub counts: Counts,
+    scales: BTreeMap<String, i64>,
+}
+
+pub fn statistics(path: &Path) -> io::Result<Statistics> {
     match fs::read(path) {
         Ok(bytes) => Ok(serde_json::from_slice(&bytes)?),
-        Err(e) if e.kind() == io::ErrorKind::NotFound => Ok(Counts::new()),
+        Err(e) if e.kind() == io::ErrorKind::NotFound => Ok(Statistics::default()),
         Err(e) => Err(e),
+    }
+}
+
+pub(crate) type Scores = BTreeMap<String, BTreeMap<String, i64>>;
+
+impl Statistics {
+    pub(crate) fn scores(&self, saved: &Counts) -> Scores {
+        let mut scores = Scores::new();
+        for (code, words) in &self.counts {
+            let scale = self.scales.get(code).copied().unwrap_or(1);
+            for (word, count) in words {
+                let saved = saved
+                    .get(code)
+                    .and_then(|row| row.get(word))
+                    .copied()
+                    .unwrap_or(0);
+                let fresh = count.saturating_sub(saved);
+                if fresh > 0 {
+                    let score = i64::try_from(fresh)
+                        .unwrap_or(i64::MAX)
+                        .saturating_mul(scale);
+                    scores
+                        .entry(code.clone())
+                        .or_default()
+                        .insert(word.clone(), score);
+                }
+            }
+        }
+        scores
+    }
+}
+
+#[derive(Default)]
+pub(crate) struct Ranking {
+    pub scores: Scores,
+    pub ties: BTreeMap<String, Vec<String>>,
+}
+impl Ranking {
+    pub fn weight(&self, row: &crate::Entry) -> i64 {
+        let extra = self
+            .scores
+            .get(&row.code)
+            .and_then(|words| words.get(&row.word))
+            .copied()
+            .unwrap_or(0);
+        row.weight.saturating_add(extra)
+    }
+
+    pub fn sort(&self, code: &str, rows: &mut [&crate::Entry]) {
+        if self.scores.is_empty() {
+            return;
+        }
+        rows.sort_by(|a, b| {
+            (b.code == code)
+                .cmp(&(a.code == code))
+                .then_with(|| self.weight(b).cmp(&self.weight(a)))
+                .then_with(|| {
+                    let Some(ties) = self.ties.get(&a.code).filter(|_| a.code == b.code) else {
+                        return std::cmp::Ordering::Equal;
+                    };
+                    let pos = |row: &crate::Entry| {
+                        ties.iter()
+                            .position(|w| *w == row.word)
+                            .unwrap_or(usize::MAX)
+                    };
+                    pos(a).cmp(&pos(b))
+                })
+        });
+    }
+
+    pub fn load(runtime: &crate::runtime::RuntimeSnapshot) -> Result<Self, String> {
+        let path =
+            store_path(&runtime.config_path, &runtime.system_table_path).ok_or("词频目录不可用")?;
+        let data = statistics(&path).map_err(|e| e.to_string())?;
+        let mut ranking = Self {
+            scores: data.scores(&Counts::new()),
+            ..Default::default()
+        };
+        if runtime.config.dictionary.enable_user_dict {
+            let user =
+                crate::UserDictionary::load(&runtime.user_table_path).map_err(|e| e.to_string())?;
+            ranking.ties = user.order.clone();
+        }
+        Ok(ranking)
     }
 }
 
@@ -54,6 +146,7 @@ pub(crate) fn lock_file(path: &Path) -> io::Result<fs::File> {
 pub(crate) struct Choice {
     pub code: String,
     pub word: String,
+    pub scale: i64,
 }
 
 fn update(path: &Path, add: Option<&Choice>, remove: Option<&Choice>) -> io::Result<()> {
@@ -61,7 +154,16 @@ fn update(path: &Path, add: Option<&Choice>, remove: Option<&Choice>) -> io::Res
         return Ok(());
     }
     let _lock = lock_file(path)?;
-    let mut totals = counts(path)?;
+    let mut data = statistics(path)?;
+    if data.id.is_empty() {
+        use std::hash::{BuildHasher, RandomState};
+        data.id = format!(
+            "{:016x}{:016x}",
+            RandomState::new().hash_one(0),
+            RandomState::new().hash_one(1)
+        );
+    }
+    let totals = &mut data.counts;
     if let Some(key) = remove {
         if let Some(words) = totals.get_mut(&key.code) {
             if let Some(count) = words.get_mut(&key.word) {
@@ -76,6 +178,7 @@ fn update(path: &Path, add: Option<&Choice>, remove: Option<&Choice>) -> io::Res
         }
     }
     if let Some(key) = add {
+        data.scales.entry(key.code.clone()).or_insert(key.scale);
         let n = totals
             .entry(key.code.clone())
             .or_default()
@@ -83,7 +186,7 @@ fn update(path: &Path, add: Option<&Choice>, remove: Option<&Choice>) -> io::Res
             .or_default();
         *n = n.saturating_add(1);
     }
-    crate::data::atomic_write(path, &serde_json::to_vec(&totals)?)
+    crate::data::atomic_write(path, &serde_json::to_vec(&data)?)
 }
 
 #[derive(Clone)]
@@ -141,6 +244,7 @@ pub(crate) struct Tracker {
     context: Option<Context>,
     waiting: Option<Selection>,
     previous: Option<Selection>,
+    pub changed: bool,
 }
 
 impl Tracker {
@@ -151,6 +255,7 @@ impl Tracker {
     }
 
     pub fn observe(&mut self, path: &Path, next: Context) -> io::Result<()> {
+        self.changed = false;
         let empty = next.selected.as_deref() == Some("");
         if next.discontinuity
             || next.left.is_none()
@@ -167,6 +272,7 @@ impl Tracker {
                     .as_ref()
                     .filter(|old| old.selected && old.at(&new.before, ""));
                 update(path, Some(&new.key), replaced.map(|old| &old.key))?;
+                self.changed = true;
                 self.previous = Some(new);
                 self.context = Some(next);
                 return Ok(());
@@ -181,6 +287,7 @@ impl Tracker {
                 self.previous = Some(old);
             } else if empty && old.at(&next, "") {
                 update(path, None, Some(&old.key))?;
+                self.changed = true;
             } else if empty {
                 // A sequence of backspaces may arrive separately or as one coalesced edit.
                 let prefix = old
@@ -203,9 +310,11 @@ impl Tracker {
                         .is_some_and(|(left, before)| left.starts_with(before))
                 {
                     update(path, None, Some(&old.key))?;
+                    self.changed = true;
                 }
             } else if next.selected == old.before.selected && old.at(&next, "") {
                 update(path, None, Some(&old.key))?;
+                self.changed = true;
             }
         }
         self.context = Some(next);
@@ -228,6 +337,7 @@ mod tests {
         Choice {
             code: "ab".into(),
             word: word.into(),
+            scale: 1,
         }
     }
     #[test]
@@ -252,7 +362,7 @@ mod tests {
             t.committed(Some(key("已经")));
             t.observe(&path, state("前以及已经", "")).unwrap();
             t.observe(&path, state("前以及已经", "")).unwrap();
-            let data = counts(&path).unwrap();
+            let data = statistics(&path).unwrap().counts;
             assert_eq!(data["ab"]["以及"], 1, "{correction}");
             assert_eq!(data["ab"]["已经"], 1, "{correction}");
         }
@@ -275,6 +385,41 @@ mod tests {
                 });
             }
         });
-        assert_eq!(counts(&path).unwrap()["ab"]["已经"], 1);
+        assert_eq!(statistics(&path).unwrap().counts["ab"]["已经"], 1);
+    }
+}
+
+#[cfg(test)]
+mod ranking_tests {
+    use super::*;
+    #[test]
+    fn recording_and_ranking_can_be_enabled_independently() {
+        let dir = tempfile::tempdir().unwrap();
+        let path = dir.path().join("frequency.json");
+        let key = Choice {
+            code: "ab".into(),
+            word: "乙".into(),
+            scale: 4,
+        };
+        for _ in 0..3 {
+            update(&path, Some(&key), None).unwrap();
+        }
+        let counts = statistics(&path).unwrap();
+        let ranking = Ranking {
+            scores: counts.scores(&Counts::new()),
+            ..Default::default()
+        };
+        let dictionary = crate::Dictionary::from_text("ab\t甲\t20\nab\t乙\t10\n").unwrap();
+        let mut rows = dictionary.exact("ab");
+        ranking.sort("ab", &mut rows);
+        assert_eq!(rows[0].word, "乙");
+        assert_eq!(dictionary.exact("ab")[0].word, "甲");
+        update(&path, None, Some(&key)).unwrap();
+        let ranking = Ranking {
+            scores: statistics(&path).unwrap().scores(&Counts::new()),
+            ..Default::default()
+        };
+        ranking.sort("ab", &mut rows);
+        assert_eq!(rows[0].word, "甲");
     }
 }

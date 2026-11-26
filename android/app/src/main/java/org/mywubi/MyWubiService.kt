@@ -109,7 +109,7 @@ class MyWubiService : InputMethodService() {
                 val skin = runCatching { loadSkinAppearance(path, nextConfig) }
                 val nextKeyboard = listOf("Main","Pinyin","English").associateWith {mode -> runCatching { restoreKeyboard(path, nextConfig,mode) } }
                 val nextChoices = runCatching { mainKeyboardChoices(path, nextConfig) }.getOrDefault(emptyList())
-                val appearanceOnly = hasRuntime && previousConfig != null && NativeBridge.objectCall(
+                val appearanceOnly = hasRuntime && previousConfig != null && previousConfig.toString() != nextConfig.toString() && NativeBridge.objectCall(
                     "SameInputConfiguration", "previous" to previousConfig, "current" to nextConfig).getBoolean("same")
                 if (appearanceOnly) {
                     main.post {

@@ -206,6 +206,10 @@ impl SemanticEngine {
         &self.sm
     }
 
+    pub(crate) fn set_frequency(&mut self, ranking: Arc<crate::frequency::Ranking>) {
+        self.sm.frequency = ranking;
+    }
+
     pub(crate) fn refresh_ranked_dictionary(&mut self, dict: Arc<crate::Dictionary>) -> Transition {
         self.sm.dict = dict;
         self.sm.page = 0;
@@ -386,7 +390,7 @@ impl SemanticEngine {
                 limit: dict.len(),
             };
             if self.sm.mode == InputMode::Main {
-                dict.search(self.sm.lookup_key(), options)
+                self.sm.main_candidates(self.sm.lookup_key(), options)
             } else {
                 dict.search_literal(&self.sm.spelling, options)
             }

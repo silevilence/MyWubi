@@ -100,6 +100,7 @@ const DEFAULT_PAGE_SIZE: usize = 5;
 /// 跨平台输入核心状态机。
 #[derive(Clone)]
 pub struct StateMachine {
+    pub(crate) frequency: Arc<crate::frequency::Ranking>,
     groups: Option<crate::group_input::Sequence>,
     group_matches: Option<Arc<crate::group_search::GroupWindow>>,
     shortcut_committed: bool,
@@ -185,6 +186,7 @@ impl StateMachine {
         Self {
             groups: None,
             group_matches: None,
+            frequency: Default::default(),
             shortcut_rules: Arc::default(),
             shortcut_committed: false,
             clock: Arc::new(crate::shortcut_time::UnavailableClock),
@@ -670,7 +672,8 @@ impl StateMachine {
             limit: self.dict.len().max(1),
         };
         let lookup_key = self.lookup_key().to_string();
-        let all: Vec<&Entry> = self.dict.search(&lookup_key, opts);
+        let mut all = self.dict.search(&lookup_key, opts);
+        self.frequency.sort(&lookup_key, &mut all);
         self.appended = self.build_appended(&all).map(Arc::new);
         if self.appended.is_some() {
             self.apply_appended_page();
@@ -731,6 +734,12 @@ impl StateMachine {
             page: self.page,
             total_pages: self.total_pages(),
         }
+    }
+
+    fn main_candidates(&self, code: &str, options: SearchOptions) -> Vec<&Entry> {
+        let mut rows = self.dict.search(code, options);
+        self.frequency.sort(code, &mut rows);
+        rows
     }
 
     fn lookup_key(&self) -> &str {

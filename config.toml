@@ -76,6 +76,11 @@ search = false
 [expressions.kaomoji]
 append = false
 search = false
+[frequency]
+# 分别控制有效选词计数和候选排序。
+record = false
+rank = false
+
 [personal]
 collect = false
 learn = false
