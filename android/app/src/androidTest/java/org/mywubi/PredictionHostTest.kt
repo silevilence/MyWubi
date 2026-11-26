@@ -16,9 +16,11 @@ class PredictionHostTest {
     @Test fun confirmedWordsPredictAndNewCodesOrExternalEditsDiscardSuggestions() = runHost(false)
     @Test fun modelScoredPredictionsUseTheConfirmedHostCommitPath() = runHost(true)
     @Test fun lowConfidenceModelPredictionsStayHiddenAndSpaceRemainsLiteral() = runHost(true,true)
-    private fun runHost(withModel:Boolean,rejectModel:Boolean=false,generated:Boolean=false,lifecycle:Boolean=false) {
+    @Test fun automaticDeviceFallbackCommitsAndDiscardsStalePredictions() = runHost(true, deviceFallback=true)
+    private fun runHost(withModel:Boolean,rejectModel:Boolean=false,generated:Boolean=false,lifecycle:Boolean=false,deviceFallback:Boolean=false) {
         val instrumentation=InstrumentationRegistry.getInstrumentation()
         val context=instrumentation.targetContext
+        if (deviceFallback) org.junit.Assume.assumeTrue(context.packageName == "org.mywubi.npuaccept")
         val device=UiDevice.getInstance(instrumentation)
         val store=EngineStore(context)
         val loaded=store.readConfig()
@@ -42,6 +44,18 @@ class PredictionHostTest {
                 .put("threads",if(generated) InstrumentationRegistry.getArguments().getString("model_threads","2").toInt().also {require(it in 1..4)} else 2)
                 .put("loading",if(generated || lifecycle) "preload_keep" else "on_demand")
                 .put("model",JSONObject().put("id",if(generated) "qwen25-words" else "instrumented-counts").put("version","v1"))
+        }
+        if (deviceFallback) {
+            val prediction = config.getJSONObject("prediction").put("device","auto")
+            val installed = File(store.configFile.parentFile,"models/instrumented-counts--v1")
+            val deadline = android.os.SystemClock.elapsedRealtime() + 15000
+            while (OnnxRuntime.status.value != OnnxRuntime.State.Ready && android.os.SystemClock.elapsedRealtime() < deadline)
+                android.os.SystemClock.sleep(25)
+            assertEquals(OnnxRuntime.State.Ready, OnnxRuntime.status.value)
+            // Inject an unavailable accelerator while preserving the real CPU component.
+            val detection = JSONObject(NpuDetection.detect(context, OnnxRuntime.State.Ready).toString()).put("backend", false)
+            val report = NpuValidation.run(context, installed, prediction, detection)
+            assertEquals("NNAPI_UNAVAILABLE", report.getString("reason"))
         }
         fun save(value:JSONObject,version:Long) {
             NativeHandle(version).use { v -> NativeHandle(store.saveConfig(value,v.value).getLong("version")).close() }
@@ -160,6 +174,19 @@ class PredictionHostTest {
             assertFalse(device.hasObject(By.text("联想")))
             key("空格"); expect("北京")
             candidate("天气"); expect("北京天气")
+            if(deviceFallback) {
+                val last = requireNotNull(LastPredictionDevice.entry)
+                assertEquals("CPU",last.getString("actual"))
+                assertEquals("NNAPI_UNAVAILABLE",last.getString("reason"))
+                key("退格");expect("北京天");expectPrediction(false)
+                device.pressHome()
+                device.executeShellCommand("am start -n org.mywubi.acceptancehost/.EditorActivity -f 0x20000000")
+                focusExternalEditor(device)
+                expect("北京天");expectPrediction(false)
+                key("b");expect("北京天b");candidate("北");expect("北京天北")
+                File(context.filesDir,"npu-host.json").writeText(last.toString())
+                return
+            }
             if(withModel) device.takeScreenshot(File(context.filesDir,"prediction-model-host.png"))
             expectPrediction(true)
             if(lifecycle) {
