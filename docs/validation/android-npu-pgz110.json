@@ -1,0 +1,470 @@
+{
+  "date": "2026-11-26",
+  "fixed_prefixes": [
+    "北京",
+    "天气",
+    "明天去",
+    "北京",
+    "天气",
+    "明天去"
+  ],
+  "missing_component": {
+    "devices": [
+      {
+        "driver": "5.1.1",
+        "name": "mtk-dsp_shim",
+        "type": 4
+      },
+      {
+        "driver": "5.1.1",
+        "name": "mtk-gpu_shim",
+        "type": 3
+      },
+      {
+        "driver": "5.1.1",
+        "name": "mtk-mdla_shim",
+        "type": 4
+      },
+      {
+        "driver": "5.1.1",
+        "name": "mtk-neuron_shim",
+        "type": 4
+      },
+      {
+        "driver": "S.1d29cb5-f8-111be",
+        "name": "nnapi-reference",
+        "type": 2
+      }
+    ],
+    "backend": false,
+    "state": "Hardware",
+    "runtime": "Missing",
+    "key": "OnePlus/PGZ110/OP5911:15/AP3A.240617.008/S.1d29cb5-f8-111be:user/release-keys|arm64-v8a|1.31.1|Missing"
+  },
+  "final_samples": {
+    "model": "PGZ110",
+    "system": "OnePlus/PGZ110/OP5911:15/AP3A.240617.008/S.1d29cb5-f8-111be:user/release-keys",
+    "abi": "arm64-v8a",
+    "runtime": "1.31.1",
+    "found": {
+      "devices": [
+        {
+          "driver": "5.1.1",
+          "name": "mtk-dsp_shim",
+          "type": 4
+        },
+        {
+          "driver": "5.1.1",
+          "name": "mtk-gpu_shim",
+          "type": 3
+        },
+        {
+          "driver": "5.1.1",
+          "name": "mtk-mdla_shim",
+          "type": 4
+        },
+        {
+          "driver": "5.1.1",
+          "name": "mtk-neuron_shim",
+          "type": 4
+        },
+        {
+          "driver": "S.1d29cb5-f8-111be",
+          "name": "nnapi-reference",
+          "type": 2
+        }
+      ],
+      "backend": true,
+      "state": "Available",
+      "runtime": "Ready",
+      "key": "OnePlus/PGZ110/OP5911:15/AP3A.240617.008/S.1d29cb5-f8-111be:user/release-keys|arm64-v8a|1.31.1|Ready"
+    },
+    "scoring": {
+      "actual": "CPU",
+      "approved": false,
+      "backend": "OnnxRuntime",
+      "cpu": {
+        "errors": [
+          null,
+          null,
+          null,
+          null,
+          null,
+          null
+        ],
+        "load_us": 10239,
+        "times_us": [
+          23638,
+          20698,
+          20444,
+          20628,
+          20446,
+          20641
+        ],
+        "words": [
+          [
+            "天气",
+            "大学",
+            "时间",
+            "奥运",
+            "现代",
+            "市",
+            "人",
+            "地区"
+          ],
+          [
+            "晴朗",
+            "预报"
+          ],
+          [
+            "年",
+            "了",
+            "看",
+            "过",
+            "吧",
+            "掉",
+            "做",
+            "找"
+          ],
+          [
+            "天气",
+            "大学",
+            "时间",
+            "奥运",
+            "现代",
+            "市",
+            "人",
+            "地区"
+          ],
+          [
+            "晴朗",
+            "预报"
+          ],
+          [
+            "年",
+            "了",
+            "看",
+            "过",
+            "吧",
+            "掉",
+            "做",
+            "找"
+          ]
+        ]
+      },
+      "reason": "NNAPI_LOAD: unsupported model format, architecture or operator",
+      "task": "scoring"
+    },
+    "generation": {
+      "actual": "CPU",
+      "approved": false,
+      "backend": "LlamaCpp",
+      "cpu": {
+        "errors": [
+          "试运行超过等待预算；保留原配置，可减少前文或使用更小的模型重试",
+          null,
+          null,
+          null,
+          null,
+          null
+        ],
+        "load_us": 2571481,
+        "times_us": [
+          76122911,
+          455837,
+          429396,
+          394063,
+          446999,
+          419702
+        ],
+        "words": [
+          [],
+          [
+            "晴朗"
+          ],
+          [
+            "出差"
+          ],
+          [
+            "市"
+          ],
+          [
+            "晴朗"
+          ],
+          [
+            "出差"
+          ]
+        ]
+      },
+      "reason": "GGUF_CPU_ONLY",
+      "task": "generation"
+    }
+  },
+  "earlier_gguf_cpu_samples": {
+    "errors": [
+      "试运行超过等待预算；保留原配置，可减少前文或使用更小的模型重试",
+      "试运行超过等待预算；保留原配置，可减少前文或使用更小的模型重试",
+      null,
+      null,
+      null,
+      null
+    ],
+    "load_us": 1945305,
+    "times_us": [
+      1584006,
+      38265982,
+      413550,
+      403278,
+      459940,
+      428159
+    ],
+    "words": [
+      [],
+      [],
+      [
+        "出差"
+      ],
+      [
+        "市"
+      ],
+      [
+        "晴朗"
+      ],
+      [
+        "出差"
+      ]
+    ]
+  },
+  "settings_diagnostics": [
+    "固定样例执行设备：CPU",
+    "「北京」的预测：天气、大学、时间、奥运、现代、市、人、地区",
+    "OnePlus PGZ110 · MT6895Z_A/TCZA · Android 15 (API 35)",
+    "arm64-v8a · ONNX Runtime 1.31.1 · 已安装，可加载",
+    "发现可供推理后端调用的加速器",
+    "mtk-dsp_shim · 5.1.1",
+    "mtk-gpu_shim · 5.1.1",
+    "mtk-mdla_shim · 5.1.1",
+    "mtk-neuron_shim · 5.1.1",
+    "nnapi-reference · S.1d29cb5-f8-111be",
+    "模型 instrumented-counts--v1 · 候选评分 · 可验证 ONNX 图的 NNAPI 分配",
+    "最近一次键盘预测：尚无预测记录",
+    "固定样例：CPU · ",
+    "NNAPI_LOAD: unsupported model format, architecture or operator"
+  ],
+  "runs": {
+    "host-cpu": {
+      "class": "org.mywubi.PredictionHostTest",
+      "method": "modelScoredPredictionsUseTheConfirmedHostCommitPath",
+      "seconds": 12.428,
+      "passed": true
+    },
+    "host-auto-retest": {
+      "class": "org.mywubi.PredictionHostTest",
+      "method": "automaticDeviceFallbackCommitsAndDiscardsStalePredictions",
+      "seconds": 14.811,
+      "passed": true
+    },
+    "final-models": {
+      "class": "org.mywubi.NpuHardwareTest",
+      "method": "fixedModelsAndSystemDrivers",
+      "seconds": 84.142,
+      "passed": true
+    },
+    "final-settings": {
+      "class": "org.mywubi.NpuHardwareTest",
+      "method": "settingsShowFixedSampleAndPrivateDiagnostics",
+      "seconds": 33.186,
+      "passed": true
+    },
+    "two-editors": {
+      "class": "org.mywubi.PredictionHostTest",
+      "method": "automaticDeviceFallbackCommitsAndDiscardsStalePredictions",
+      "seconds": 18.856,
+      "passed": true
+    },
+    "gguf-host": {
+      "class": "org.mywubi.PredictionHostTest",
+      "method": "generatedDictionaryExternalWordsAppendInTheRealHost",
+      "seconds": 41.83,
+      "passed": true
+    }
+  },
+  "injected_unavailable_execution": {
+    "id": "instrumented-counts",
+    "version": "v1",
+    "actual": "CPU",
+    "reason": "NNAPI_UNAVAILABLE"
+  },
+  "real_model_failure_execution": {
+    "id": "instrumented-counts",
+    "version": "v1",
+    "actual": "CPU",
+    "reason": "NNAPI_LOAD: unsupported model format, architecture or operator"
+  },
+  "first_editor_edits": [
+    {
+      "text": "",
+      "composing_start": -1,
+      "composing_end": -1
+    },
+    {
+      "text": "b",
+      "composing_start": 0,
+      "composing_end": 1
+    },
+    {
+      "text": "北",
+      "composing_start": -1,
+      "composing_end": -1
+    },
+    {
+      "text": "北京",
+      "composing_start": -1,
+      "composing_end": -1
+    },
+    {
+      "text": "北京天气",
+      "composing_start": -1,
+      "composing_end": -1
+    },
+    {
+      "text": "北京天",
+      "composing_start": -1,
+      "composing_end": -1
+    },
+    {
+      "text": "北京天b",
+      "composing_start": 3,
+      "composing_end": 4
+    },
+    {
+      "text": "北京天北",
+      "composing_start": -1,
+      "composing_end": -1
+    }
+  ],
+  "second_editor_edits": [
+    {
+      "text": "b",
+      "composing_start": 0,
+      "composing_end": 1
+    },
+    {
+      "text": "北",
+      "composing_start": -1,
+      "composing_end": -1
+    }
+  ],
+  "gguf_editor_edits": [
+    {
+      "text": "",
+      "composing_start": -1,
+      "composing_end": -1
+    },
+    {
+      "text": "",
+      "composing_start": -1,
+      "composing_end": -1
+    },
+    {
+      "text": "v",
+      "composing_start": 0,
+      "composing_end": 1
+    },
+    {
+      "text": "北京",
+      "composing_start": -1,
+      "composing_end": -1
+    },
+    {
+      "text": "",
+      "composing_start": -1,
+      "composing_end": -1
+    },
+    {
+      "text": "v",
+      "composing_start": 0,
+      "composing_end": 1
+    },
+    {
+      "text": "北京",
+      "composing_start": -1,
+      "composing_end": -1
+    },
+    {
+      "text": "北京市",
+      "composing_start": -1,
+      "composing_end": -1
+    },
+    {
+      "text": "北京市b",
+      "composing_start": 3,
+      "composing_end": 4
+    },
+    {
+      "text": "北京市北",
+      "composing_start": -1,
+      "composing_end": -1
+    },
+    {
+      "text": "外部编辑",
+      "composing_start": -1,
+      "composing_end": -1
+    },
+    {
+      "text": "",
+      "composing_start": -1,
+      "composing_end": -1
+    },
+    {
+      "text": "d",
+      "composing_start": 0,
+      "composing_end": 1
+    },
+    {
+      "text": "图书",
+      "composing_start": -1,
+      "composing_end": -1
+    },
+    {
+      "text": "图书作者",
+      "composing_start": -1,
+      "composing_end": -1
+    },
+    {
+      "text": "图书作者出版社",
+      "composing_start": -1,
+      "composing_end": -1
+    },
+    {
+      "text": "",
+      "composing_start": -1,
+      "composing_end": -1
+    },
+    {
+      "text": "z",
+      "composing_start": 0,
+      "composing_end": 1
+    },
+    {
+      "text": "工作结束了。",
+      "composing_start": -1,
+      "composing_end": -1
+    },
+    {
+      "text": "工作结束了。 ",
+      "composing_start": -1,
+      "composing_end": -1
+    },
+    {
+      "text": "工作结束了。 b",
+      "composing_start": 7,
+      "composing_end": 8
+    },
+    {
+      "text": "工作结束了。 北",
+      "composing_start": -1,
+      "composing_end": -1
+    }
+  ]
+}
