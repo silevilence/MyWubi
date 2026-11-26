@@ -16,6 +16,7 @@ import androidx.compose.ui.layout.onGloballyPositioned
 import androidx.compose.ui.layout.positionInRoot
 import androidx.compose.ui.platform.LocalViewConfiguration
 import androidx.compose.ui.platform.ViewConfiguration
+import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.DpSize
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyRow
@@ -28,6 +29,7 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.graphicsLayer
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.RectangleShape
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.semantics.Role
@@ -51,10 +53,14 @@ import org.json.JSONObject
 internal data class LoadCandidateWindow(val query: String)
 
 data class CandidateItem(val id: Long, val text: String, val hint: String, val expressionKind: String? = null, val dateTime: Boolean = false) {
-    val spokenHint: String get() = if(expressionKind == null && !dateTime && hint.isNotEmpty()) "编码提示 $hint" else hint
+    val hasCodeHint: Boolean get() = expressionKind == null && !dateTime && hint.isNotEmpty()
+    val spokenHint: String get() = if(hasCodeHint) "编码提示 $hint" else hint
 }
 data class ExpressionQueryUi(val kind: String, val phase: String, val text: String, val message: String?, val input: String = "Words", val browsing: Boolean = false)
 
+private const val defaultCandidateSize = 17f
+private const val defaultCodeHintSize = 10f
+private val portraitCandidateHeight = 54.dp
 private val LocalKeyboardKeyHeight = staticCompositionLocalOf { 54.dp }
 data class KeyboardModel(
     val customLayout: KeyboardLayout? = null,
@@ -181,7 +187,14 @@ private fun KeyboardSurface(model: KeyboardModel, latest: State<KeyboardModel>, 
             val groupControls = !model.privateInput && model.groupPositions.isNotEmpty()
             val showToolbar = (model.privateInput || model.spelling.isEmpty() || model.candidates.isNotEmpty()) && model.expression == null
             // Reserve scaled text space even when the candidate list is empty.
-            val barHeight = maxOf(48.dp, (28 * LocalDensity.current.fontScale + 16).dp)
+            val density = LocalDensity.current
+            val wordSize = skinNumber("font_size", defaultCandidateSize)
+            val hintSize = skinNumber("hint_size", defaultCodeHintSize)
+            val spellingSize = kotlin.math.round((wordSize + hintSize) / 2f).sp
+            val barHeight = if (landscape) maxOf(48.dp, (28 * density.fontScale + 16).dp) else {
+                // Budget both lines including the CJK fallback font's ascent and descent.
+                maxOf(portraitCandidateHeight, ((wordSize + hintSize + 10) * density.fontScale + 8).dp)
+            }
             model.expression?.let { query ->
                 val results = query.phase == "Results"
                 val name = specialLabel(query.kind)
@@ -202,7 +215,7 @@ private fun KeyboardSurface(model: KeyboardModel, latest: State<KeyboardModel>, 
                 if(!results && (query.text.isNotEmpty() || model.spelling.isNotEmpty())) Text("切换输入方式前请先清空查询", Modifier.padding(horizontal=10.dp), fontSize=12.sp)
                 Text("关键词：${query.text.ifEmpty { "尚未输入" }}" + if(model.spelling.isEmpty()) "" else "　编码：${model.spelling}",
                     Modifier.fillMaxWidth().horizontalScroll(rememberScrollState()).padding(horizontal=10.dp, vertical=4.dp),
-                    color=skinColor("code",colors.primary), fontSize=16.sp, maxLines=1)
+                    color=skinColor("code",colors.primary), fontSize=spellingSize, maxLines=1)
                 val notice = if(model.statusError) model.status else query.message
                 if(!notice.isNullOrBlank()) Text(notice, Modifier.fillMaxWidth().padding(horizontal=10.dp), fontSize=12.sp, color=colors.onSurfaceVariant)
             }
@@ -215,11 +228,11 @@ private fun KeyboardSurface(model: KeyboardModel, latest: State<KeyboardModel>, 
                     val heading = if (showSpelling) model.spelling else if (model.prediction) "字词预测" else "全部候选"
                     if (landscape) {
                         Text("$heading · ${model.total} 个候选", Modifier.weight(1f).padding(horizontal=12.dp),
-                            color=skinColor("code",colors.primary), fontSize=16.sp, maxLines=1,
+                            color=skinColor("code",colors.primary), fontSize=spellingSize, maxLines=1,
                             overflow=androidx.compose.ui.text.style.TextOverflow.Ellipsis)
                     } else Column(Modifier.weight(1f).padding(horizontal=12.dp)) {
                         Text(heading,
-                            color=skinColor("code",colors.primary), fontSize=16.sp, maxLines=1,
+                            color=skinColor("code",colors.primary), fontSize=spellingSize, maxLines=1,
                             overflow=androidx.compose.ui.text.style.TextOverflow.Ellipsis)
                         Text("${model.total} 个候选", color=colors.onSurfaceVariant, fontSize=12.sp, maxLines=1)
                     }
@@ -233,12 +246,12 @@ private fun KeyboardSurface(model: KeyboardModel, latest: State<KeyboardModel>, 
                 if (!landscape && model.expression == null) Text(if (showSpelling) model.spelling else "",
                     Modifier.fillMaxWidth().heightIn(min=28.dp).padding(horizontal=12.dp, vertical=4.dp)
                         .then(if (showSpelling) Modifier else Modifier.clearAndSetSemantics {}),
-                    color=skinColor("code",colors.primary), fontSize=16.sp, lineHeight=20.sp, maxLines=1,
+                    color=skinColor("code",colors.primary), fontSize=spellingSize, lineHeight=spellingSize * 1.3f, maxLines=1,
                     overflow=androidx.compose.ui.text.style.TextOverflow.Ellipsis)
                 Row(Modifier.fillMaxWidth().heightIn(min=barHeight), verticalAlignment=androidx.compose.ui.Alignment.CenterVertically) {
                     if (landscape && model.expression == null && showSpelling) Text(model.spelling,
                         Modifier.widthIn(max=112.dp).padding(horizontal=8.dp), color=skinColor("code",colors.primary),
-                        fontSize=16.sp, maxLines=1, overflow=androidx.compose.ui.text.style.TextOverflow.Ellipsis)
+                        fontSize=spellingSize, maxLines=1, overflow=androidx.compose.ui.text.style.TextOverflow.Ellipsis)
                     val showCandidates = model.candidates.isNotEmpty() && !model.privateInput
                     CandidateToolbarSlot(Modifier.weight(1f), showCandidates, candidates = {
                         Row(verticalAlignment=Alignment.CenterVertically) {
@@ -248,6 +261,8 @@ private fun KeyboardSurface(model: KeyboardModel, latest: State<KeyboardModel>, 
                             LaunchedEffect(model.query) {
                                 if (scroll.firstVisibleItemIndex != 0 || scroll.firstVisibleItemScrollOffset != 0) scroll.scrollToItem(0)
                             }
+                            val items = if (showCandidates) model.candidates else emptyCandidateSlots
+                            val stackHints = !landscape && remember(items) { items.any { it.hasCodeHint } }
                             LazyRow(state=scroll, modifier=Modifier.weight(1f).heightIn(min=48.dp).drawWithContent {
                                 // A content-free marker lets Perfetto identify the real IME buffer
                                 // without attaching an accessibility inspector or instrumenting the process.
@@ -255,7 +270,6 @@ private fun KeyboardSurface(model: KeyboardModel, latest: State<KeyboardModel>, 
                                 try { drawContent() } finally { if (showCandidates) android.os.Trace.endSection() }
                             }.skinImage("candidate").padding(skinContent("candidate"))) {
                                 // Subcompose a few adjacent cells together; the list still virtualizes long windows.
-                                val items = if (showCandidates) model.candidates else emptyCandidateSlots
                                 items((items.size + 3) / 4) { group ->
                                     Row {
                                         for (index in group * 4 until minOf(items.size, group * 4 + 4)) {
@@ -263,7 +277,7 @@ private fun KeyboardSurface(model: KeyboardModel, latest: State<KeyboardModel>, 
                                             if (model.partialWindow && index == items.size - 3) {
                                                 LaunchedEffect(model.query) { dispatch(LoadCandidateWindow(model.query)) }
                                             }
-                                            CandidateButton(item, model.query, showCandidates && model.enabled) {
+                                            CandidateButton(item, model.query, showCandidates && model.enabled, stackHints, barHeight) {
                                                 choose(item, model.query)
                                             }
                                         }
@@ -336,7 +350,7 @@ private fun KeyboardSurface(model: KeyboardModel, latest: State<KeyboardModel>, 
                 }
             }
         }
-        val expandedExtra = if (landscape) 0.dp else 28.dp
+        val expandedExtra = if (landscape) 0.dp else 28.dp + portraitCandidateHeight - 48.dp
         val keys: @Composable () -> Unit = {
             val rowHeight = LocalKeyboardKeyHeight.current
             val footerHeight = if (landscape && showExpanded) maxOf(48.dp, rowHeight).coerceAtMost(rowHeight * 4) else rowHeight
@@ -354,7 +368,7 @@ private fun KeyboardSurface(model: KeyboardModel, latest: State<KeyboardModel>, 
                             .semantics { contentDescription = "全部候选" }) {
                         items(model.candidates, key={it.id}, span={item ->
                             GridItemSpan(if (item.expressionKind != null || item.text.codePointCount(0, item.text.length) > 4) maxLineSpan else 1)
-                        }) { item -> ExpandedCandidateButton(item,model.enabled,showHints) {choose(item, model.query)} }
+                        }) { item -> ExpandedCandidateButton(item,model.enabled,showHints,landscape) {choose(item, model.query)} }
                     }
                 }
                 if (hasPages) Row(Modifier.fillMaxWidth().heightIn(min=48.dp), horizontalArrangement=Arrangement.SpaceBetween,
@@ -637,29 +651,25 @@ private fun CandidateToolbarSlot(modifier: Modifier, showCandidates: Boolean,
     }) { children, constraints ->
         val strip = children[0].measure(constraints)
         val visible = if (showCandidates) strip else children[1].measure(constraints)
-        layout(visible.width, visible.height) { visible.placeRelative(0, 0) }
+        val height = maxOf(visible.height, strip.height)
+        layout(visible.width, height) { visible.placeRelative(0, (height - visible.height) / 2) }
     }
 }
 
 @Composable
-private fun CandidateButton(item: CandidateItem, query: String, enabled: Boolean, choose: () -> Unit) {
+private fun CandidateButton(item: CandidateItem, query: String, enabled: Boolean, stackHints: Boolean,
+                            minHeight: Dp, choose: () -> Unit) {
     val display = remember(item) { ExpressionDisplay.display(item.text, item.hint, item.expressionKind) }
     val description = "候选 ${item.text}" + (if(item.hint.isEmpty()) "" else "，${item.spokenHint}") +
         (if(display.fallback) "，字体不支持完整显示，选择后输入原始表情" else "")
     val colors = ButtonDefaults.textButtonColors()
     val color = if (enabled) colors.contentColor else colors.disabledContentColor
     Box(Modifier.imeAction(description, enabled, choose), contentAlignment=Alignment.Center) {
-        Row(Modifier.heightIn(min=48.dp).widthIn(min=ButtonDefaults.MinWidth)
-            .padding(ButtonDefaults.TextButtonContentPadding),
-            verticalAlignment=Alignment.CenterVertically, horizontalArrangement=Arrangement.Center) {
-            ProvideTextStyle(MaterialTheme.typography.labelLarge) {
-                Text(display.text, color=skinColor(if (enabled) "text" else "disabled", color),
-                    fontSize=skinNumber("font_size",19f).sp, softWrap=false,
-                    style=androidx.compose.ui.text.TextStyle(platformStyle=androidx.compose.ui.text.PlatformTextStyle(includeFontPadding=true)))
-                val hint = if (item.hint.isNotEmpty() && !display.fallback) " ${item.hint}" else ""
-                Text(hint, fontSize=skinNumber("hint_size",11f).sp, softWrap=false,
-                    color=skinColor("hint",MaterialTheme.colorScheme.primary))
-            }
+        Box(Modifier.sizeIn(minWidth=48.dp, minHeight=minHeight).padding(horizontal=5.dp, vertical=3.dp),
+            contentAlignment=Alignment.Center) {
+            CandidateLabel(item, display, stackHints=stackHints, expanded=false, showHints=item.hint.isNotEmpty() || stackHints,
+                wordColor=skinColor(if (enabled) "text" else "disabled", color),
+                hintColor=skinColor("hint", MaterialTheme.colorScheme.primary))
         }
         // Rebind the hit target to the confirmed query. The label and its text layout stay mounted.
         key(query, item.id) {
@@ -669,7 +679,7 @@ private fun CandidateButton(item: CandidateItem, query: String, enabled: Boolean
 }
 
 @Composable
-private fun ExpandedCandidateButton(item: CandidateItem, enabled: Boolean, showHints: Boolean, choose: () -> Unit) {
+private fun ExpandedCandidateButton(item: CandidateItem, enabled: Boolean, showHints: Boolean, landscape: Boolean, choose: () -> Unit) {
     val colors = MaterialTheme.colorScheme
     val display = remember(item) { ExpressionDisplay.display(item.text, item.hint, item.expressionKind) }
     val description = "候选 ${item.text}" + (if(item.hint.isEmpty()) "" else "，${item.spokenHint}") +
@@ -678,19 +688,32 @@ private fun ExpandedCandidateButton(item: CandidateItem, enabled: Boolean, showH
         contentColor=if(enabled) colors.onSurface else colors.onSurface.copy(alpha=0.38f),
         border=BorderStroke(0.5.dp, colors.onSurface.copy(alpha=0.22f)),
         modifier=Modifier.fillMaxWidth().heightIn(min=72.dp).horizontalScroll(rememberScrollState()).imeAction(description,enabled,choose)) {
-        Column(Modifier.padding(horizontal=8.dp, vertical=12.dp),
-            verticalArrangement=Arrangement.Center, horizontalAlignment=androidx.compose.ui.Alignment.CenterHorizontally) {
-            // The whole surface scrolls, including its hint and padding. A drag over
-            // any part of a long candidate must cancel the surface's click gesture.
-            Box(Modifier.padding(vertical=4.dp)) {
-                Text(display.text, fontSize=skinNumber("font_size",20f).sp, softWrap=false,
-                    style=androidx.compose.ui.text.TextStyle(platformStyle=androidx.compose.ui.text.PlatformTextStyle(includeFontPadding=true)))
-            }
-            // Reserve the same hint line in every cell, and let text measure its own height.
-            // This keeps rows aligned even with Android's nonlinear font scaling.
-            if(showHints && !display.fallback) Text(item.hint.ifEmpty { " " }, Modifier.padding(top=4.dp), fontSize=skinNumber("hint_size",12f).sp,
-                color=skinColor("hint",colors.onSurfaceVariant))
+        Box(Modifier.padding(horizontal=8.dp, vertical=8.dp), contentAlignment=Alignment.Center) {
+            CandidateLabel(item, display, stackHints=!landscape, expanded=true, showHints=showHints,
+                wordColor=LocalContentColor.current, hintColor=skinColor("hint", colors.onSurfaceVariant))
         }
+    }
+}
+
+@Composable
+private fun CandidateLabel(item: CandidateItem, display: ExpressionDisplay.Display, stackHints: Boolean,
+                           expanded: Boolean, showHints: Boolean, wordColor: Color, hintColor: Color) {
+    val wordSize = skinNumber("font_size", defaultCandidateSize)
+    val hintSize = skinNumber("hint_size", defaultCodeHintSize)
+    val word: @Composable () -> Unit = {
+        Text(display.text, color=wordColor, fontSize=wordSize.sp, lineHeight=(wordSize + 5).sp, softWrap=false,
+            style=androidx.compose.ui.text.TextStyle(platformStyle=androidx.compose.ui.text.PlatformTextStyle(includeFontPadding=true)))
+    }
+    val hint: @Composable () -> Unit = {
+        Text(item.hint.ifEmpty { " " }, color=hintColor, fontSize=hintSize.sp, lineHeight=(hintSize + 3).sp, softWrap=false)
+    }
+    val annotation = item.expressionKind != null || item.dateTime
+    when {
+        display.fallback || !showHints -> word()
+        stackHints && !annotation -> Column(horizontalAlignment=Alignment.CenterHorizontally) { hint(); word() }
+        expanded && annotation -> Column(horizontalAlignment=Alignment.CenterHorizontally) { word(); hint() }
+        item.hint.isEmpty() -> word()
+        else -> Row(verticalAlignment=Alignment.CenterVertically, horizontalArrangement=Arrangement.spacedBy(2.dp)) { word(); hint() }
     }
 }
 

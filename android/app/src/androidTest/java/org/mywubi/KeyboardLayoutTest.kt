@@ -71,7 +71,7 @@ class KeyboardLayoutTest {
             val idleHeight = height.get()
             assertTrue(idleHeight > 0)
             if (fontScale == null) device.takeScreenshot(File(instrumentation.targetContext.filesDir, "keyboard-height-idle.png"))
-            val candidates = listOf(CandidateItem(1, "是", "j"))
+            val candidates = listOf(CandidateItem(1, "是", "j"), CandidateItem(2, "人", "wwww"))
             val states = listOf(
                 "clipboard" to ready.copy(clipboard="beancount 今日确认 ".repeat(15)),
                 "composing" to ready.copy(spelling="j", candidates=candidates),
@@ -115,8 +115,22 @@ class KeyboardLayoutTest {
                     val minimum = (48 * instrumentation.targetContext.resources.displayMetrics.density).toInt()
                     assertTrue("Candidate must have a visible touch target in $label", candidateBounds.width() >= minimum - 1)
                     assertTrue("Candidate must not be vertically clipped in $label", candidateBounds.height() >= minimum - 1)
+                    if (label == "composing" && fontScale == null && instrumentation.targetContext.resources.configuration.fontScale == 1f) {
+                        val fullCode = device.findObject(By.desc("候选 人，编码提示 wwww")).visibleBounds
+                        if (landscape) {
+                            assertTrue("An inline full code needs more width than a suffix", fullCode.width() > candidateBounds.width())
+                        } else {
+                            assertTrue("A full code should fit above a single word", kotlin.math.abs(minimum - fullCode.width()) <= 1)
+                            assertEquals("Both touch targets should fill the row", candidateBounds.bottom, fullCode.bottom)
+                        }
+                    }
                 }
-                assertTrue("Landscape keys must not stretch into wide strips", bounds.width() <= bounds.height() * 1.25f)
+                if (landscape) {
+                    // The full-width landscape keyboard distributes each letter row evenly.
+                    val lastKey = device.findObject(By.desc("p").pkg("org.mywubi")).visibleBounds
+                    assertEquals("First and last letters must share a row", bounds.top, lastKey.top)
+                    assertTrue("Both edge keys must fit at full width", kotlin.math.abs(bounds.width() - lastKey.width()) <= 1)
+                }
             }
         }
     }
