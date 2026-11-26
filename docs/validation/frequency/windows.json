@@ -1,0 +1,99 @@
+[
+  {
+    "case": "control",
+    "selection": [
+      2,
+      2
+    ],
+    "focus": true,
+    "counts": {
+      "已经": 1
+    },
+    "order": [
+      "以及，",
+      "已经，"
+    ],
+    "text": "已经",
+    "passed": true,
+    "preview": [
+      "ab  已经：第 2 位 → 第 2 位（+1）"
+    ]
+  },
+  {
+    "case": "backspace",
+    "selection": [
+      2,
+      2
+    ],
+    "focus": true,
+    "counts": {
+      "已经": 1
+    },
+    "order": [
+      "以及，",
+      "已经，"
+    ],
+    "text": "已经",
+    "passed": true,
+    "preview": [
+      "ab  已经：第 2 位 → 第 2 位（+1）"
+    ]
+  },
+  {
+    "case": "undo",
+    "selection": [
+      2,
+      2
+    ],
+    "focus": true,
+    "counts": {
+      "已经": 1
+    },
+    "order": [
+      "以及，",
+      "已经，"
+    ],
+    "text": "已经",
+    "passed": true,
+    "preview": [
+      "ab  已经：第 2 位 → 第 2 位（+1）"
+    ]
+  },
+  {
+    "case": "replace",
+    "selection": [
+      2,
+      2
+    ],
+    "focus": true,
+    "counts": {
+      "已经": 1
+    },
+    "order": [
+      "以及，",
+      "已经，"
+    ],
+    "text": "已经",
+    "passed": true,
+    "preview": [
+      "ab  已经：第 2 位 → 第 2 位（+1）"
+    ]
+  },
+  {
+    "passed": true,
+    "dictionaryUnchanged": true,
+    "other": "",
+    "case": "right-click",
+    "committed": "已经",
+    "afterFocusSwitch": "已经ab"
+  },
+  {
+    "case": "two-hosts",
+    "first": "以及",
+    "counts": {
+      "以及": 1
+    },
+    "second": "",
+    "passed": true
+  }
+]

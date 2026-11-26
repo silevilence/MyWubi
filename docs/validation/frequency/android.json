@@ -1,0 +1,82 @@
+[
+  {
+    "case": "control",
+    "wrong": 0,
+    "correct": 1,
+    "text": "已经",
+    "selection": "2,2",
+    "first": "候选 以及",
+    "examples": "[\"ab  已经：第 2 位 → 第 2 位（+1）\"]",
+    "localPreedit": false
+  },
+  {
+    "case": "backspace",
+    "wrong": 0,
+    "correct": 1,
+    "text": "已经",
+    "selection": "2,2",
+    "first": "候选 以及",
+    "examples": "[\"ab  已经：第 2 位 → 第 2 位（+1）\"]",
+    "localPreedit": false
+  },
+  {
+    "case": "undo",
+    "wrong": 0,
+    "correct": 1,
+    "text": "已经",
+    "selection": "2,2",
+    "first": "候选 以及",
+    "examples": "[\"ab  已经：第 2 位 → 第 2 位（+1）\"]",
+    "localPreedit": false
+  },
+  {
+    "case": "replace",
+    "wrong": 0,
+    "correct": 1,
+    "text": "已经",
+    "selection": "2,2",
+    "first": "候选 以及",
+    "examples": "[\"ab  已经：第 2 位 → 第 2 位（+1）\"]",
+    "localPreedit": false
+  },
+  {
+    "case": "control",
+    "wrong": 0,
+    "correct": 1,
+    "text": "已经",
+    "selection": "2,2",
+    "first": "候选 以及",
+    "examples": "[\"ab  已经：第 2 位 → 第 2 位（+1）\"]",
+    "localPreedit": true
+  },
+  {
+    "case": "backspace",
+    "wrong": 0,
+    "correct": 1,
+    "text": "已经",
+    "selection": "2,2",
+    "first": "候选 以及",
+    "examples": "[\"ab  已经：第 2 位 → 第 2 位（+1）\"]",
+    "localPreedit": true
+  },
+  {
+    "case": "undo",
+    "wrong": 0,
+    "correct": 1,
+    "text": "已经",
+    "selection": "2,2",
+    "first": "候选 以及",
+    "examples": "[\"ab  已经：第 2 位 → 第 2 位（+1）\"]",
+    "localPreedit": true
+  },
+  {
+    "case": "replace",
+    "wrong": 0,
+    "correct": 1,
+    "text": "已经",
+    "selection": "2,2",
+    "first": "候选 以及",
+    "examples": "[\"ab  已经：第 2 位 → 第 2 位（+1）\"]",
+    "localPreedit": true
+  }
+]

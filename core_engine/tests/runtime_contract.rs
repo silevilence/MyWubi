@@ -203,6 +203,42 @@ fn moving_a_word_can_split_ties_and_reuses_its_adjustment() {
 }
 
 #[test]
+fn a_candidate_from_the_second_page_can_move_to_each_requested_rank() {
+    use core_engine::session::*;
+    for rank in 1..=3 {
+        let f = Files::new();
+        let words = "甲乙丙丁戊己庚辛壬癸";
+        let table: String = words
+            .chars()
+            .enumerate()
+            .map(|(i, word)| format!("a\t{word}\t{}\n", 20 - i))
+            .collect();
+        f.write("main.dict", &table);
+        let snapshot = f.build(LoadPolicy::Reload).unwrap();
+        let mut session = Session::new(&snapshot, BehaviorProfile::TouchV1, HostContext::default());
+        let edit = session.prepare(Action::InputCode('a')).unwrap();
+        session.acknowledge(edit.token, HostOutcome::Applied);
+        let second_page = session.candidate_window(5, 5);
+        let target = second_page.candidates.last().unwrap();
+        assert_eq!(target.text, "癸");
+        session
+            .move_candidate(second_page.query_revision, target.id, rank)
+            .unwrap();
+        let after = session.candidate_window(0, 10);
+        assert_eq!(after.candidates[rank - 1].text, "癸");
+        assert_eq!(
+            after
+                .candidates
+                .iter()
+                .filter(|c| c.text != "癸")
+                .map(|c| c.text.as_str())
+                .collect::<String>(),
+            "甲乙丙丁戊己庚辛壬"
+        );
+    }
+}
+
+#[test]
 fn moving_by_query_keeps_preedit_and_invalidates_old_clicks() {
     use core_engine::session::*;
     let f = Files::new();
