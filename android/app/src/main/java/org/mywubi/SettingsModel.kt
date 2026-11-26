@@ -299,6 +299,7 @@ class SettingsModel(application: Application) : AndroidViewModel(application) {
         val disk = fingerprint()
         val saved = if (!discard && draftFile.baseFile.exists()) JSONObject(draftFile.openRead().bufferedReader().use { it.readText() }) else null
         val restored = saved?.getJSONObject("config") ?: loaded.getJSONObject("config")
+        if (!restored.has("frequency")) restored.put("frequency", loaded.getJSONObject("config").getJSONObject("frequency"))
         val available = TableCatalog(app).tables(restored.getJSONObject("dictionary").getString("system_table"))
         val expressions = runCatching { ExpressionCatalog(app).list(restored) }
         val imported = saved?.optJSONObject("pack")?.let { p ->

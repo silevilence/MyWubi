@@ -97,6 +97,7 @@ impl Ranking {
             (b.code == code)
                 .cmp(&(a.code == code))
                 .then_with(|| self.weight(b).cmp(&self.weight(a)))
+                .then_with(|| a.code.cmp(&b.code))
                 .then_with(|| {
                     let Some(ties) = self.ties.get(&a.code).filter(|_| a.code == b.code) else {
                         return std::cmp::Ordering::Equal;

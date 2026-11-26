@@ -356,9 +356,15 @@ fn read_order(text: &str) -> Result<BTreeMap<String, Vec<String>>, UserDictionar
 }
 
 fn validate(entry: &Entry) -> Result<(), UserDictionaryError> {
-    if entry.code.is_empty() || !entry.code.chars().all(|ch| ch.is_ascii_alphanumeric()) {
+    if entry.code.is_empty()
+        || entry.code.starts_with('#')
+        || entry
+            .code
+            .chars()
+            .any(|ch| ch.is_whitespace() || ch.is_control())
+    {
         return Err(UserDictionaryError::InvalidEntry(
-            "编码只能包含 ASCII 字母或数字".into(),
+            "编码不能为空、以 # 开头或包含空白和控制字符".into(),
         ));
     }
     if entry.word.is_empty()
@@ -406,7 +412,8 @@ fn parse(text: &str) -> Result<Vec<Entry>, UserDictionaryError> {
             .then_with(|| right.weight.cmp(&left.weight))
             .then_with(|| left.word.cmp(&right.word))
     });
-    entries.dedup_by(|left, right| left.code == right.code && left.word == right.word);
+    let mut seen = HashSet::new();
+    entries.retain(|row| seen.insert((row.code.clone(), row.word.clone())));
     Ok(entries)
 }
 
@@ -702,6 +709,14 @@ mod tests {
     }
 
     #[test]
+    fn repeated_custom_code_rows_keep_the_highest_adjustment() {
+        let entries =
+            parse("# mywubi-user-dict version=2\na;\t甲\t5\na;\t乙\t3\na;\t甲\t-2\n").unwrap();
+        assert_eq!(entries.len(), 2);
+        assert_eq!(entries[0].weight, 5);
+    }
+
+    #[test]
     fn crud_roundtrip_persists_entries() {
         let path = temporary_path("user-dict");
         let mut dictionary = UserDictionary::load(&path).unwrap();
@@ -754,6 +769,7 @@ mod tests {
             })
             .unwrap();
         std::fs::remove_file(&path).unwrap();
+        std::fs::remove_file(path.with_added_extension("lock")).unwrap();
         std::fs::remove_dir(&root).unwrap();
         std::fs::write(&root, "blocked").unwrap();
 
