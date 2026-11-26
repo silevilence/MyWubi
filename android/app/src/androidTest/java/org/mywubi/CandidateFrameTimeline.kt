@@ -13,20 +13,22 @@ import androidx.compose.ui.semantics.SemanticsNode
 import androidx.compose.ui.semantics.SemanticsProperties
 import androidx.compose.ui.semantics.getOrNull
 import androidx.test.platform.app.InstrumentationRegistry
-import androidx.test.uiautomator.UiDevice
 import java.util.concurrent.CountDownLatch
 import java.util.concurrent.TimeUnit
 
 /** Correlate the first draw containing the candidate with SurfaceFlinger's FrameTimeline token. */
 @OptIn(androidx.compose.ui.InternalComposeUiApi::class)
-internal class CandidateFrameTimeline(private val device: UiDevice) {
-    data class Draw(val down: Long, val up: Long, val observedNs: Long)
+internal class CandidateFrameTimeline(private val automation: android.app.UiAutomation) {
+    fun shell(command: String): String = android.os.ParcelFileDescriptor.AutoCloseInputStream(
+        automation.executeShellCommand(command)).bufferedReader().use { it.readText() }
+
+    data class Draw(val down: Long, val up: Long, val observedNs: Long, val receivedUp: Long, val handledUp: Long)
     private val ins = InstrumentationRegistry.getInstrumentation()
     private lateinit var root: View
     private lateinit var window: Window
     private lateinit var compose: RootForTest
     private val layer = Regex("""(?:^|\{)(InputMethod#\d+)(?: |$)""", RegexOption.MULTILINE)
-        .findAll(device.executeShellCommand("dumpsys SurfaceFlinger --list")).map { it.groupValues[1] }.distinct().single()
+        .findAll(shell("dumpsys SurfaceFlinger --list")).map { it.groupValues[1] }.distinct().single()
 
     init {
         ins.runOnMainSync {
@@ -54,12 +56,14 @@ internal class CandidateFrameTimeline(private val device: UiDevice) {
         val ready = CountDownLatch(1)
         var actualDown = 0L
         var actualUp = 0L
+        var receivedUp = 0L
+        var handledUp = 0L
         var found: Draw? = null
         lateinit var original: Window.Callback
         val onDraw = ViewTreeObserver.OnDrawListener {
             val observed = System.nanoTime()
             if (actualUp > 0 && found == null && hasCandidate(compose.semanticsOwner.rootSemanticsNode)) {
-                found = Draw(actualDown, actualUp, observed)
+                found = Draw(actualDown, actualUp, observed, receivedUp, handledUp)
                 ready.countDown()
             }
         }
@@ -70,15 +74,37 @@ internal class CandidateFrameTimeline(private val device: UiDevice) {
                 override fun dispatchTouchEvent(event: MotionEvent): Boolean {
                     when (event.actionMasked) {
                         MotionEvent.ACTION_DOWN -> actualDown = event.eventTime * 1_000_000L
-                        MotionEvent.ACTION_UP -> actualUp = event.eventTime * 1_000_000L
+                        MotionEvent.ACTION_UP -> {
+                            actualUp = event.eventTime * 1_000_000L
+                            receivedUp = System.nanoTime()
+                        }
                     }
-                    return original.dispatchTouchEvent(event)
+                    val handled = original.dispatchTouchEvent(event)
+                    if (event.actionMasked == MotionEvent.ACTION_UP) handledUp = System.nanoTime()
+                    return handled
                 }
             }
             root.viewTreeObserver.addOnDrawListener(onDraw)
         }
         try {
-            device.executeShellCommand("cmd input touchscreen swipe $x $y $x $y 40")
+            when (val pattern = InstrumentationRegistry.getArguments().getString("motion_pattern", "stationary_swipe")) {
+                "stationary_swipe" -> shell("cmd input touchscreen swipe $x $y $x $y 40")
+                "tap", "slight_motion" -> {
+                    val down = android.os.SystemClock.uptimeMillis()
+                    fun send(action: Int, dx: Int) {
+                        val event = MotionEvent.obtain(down, android.os.SystemClock.uptimeMillis(), action,
+                            (x + dx).toFloat(), y.toFloat(), 0)
+                        event.source = android.view.InputDevice.SOURCE_TOUCHSCREEN
+                        try { check(automation.injectInputEvent(event, false)) } finally { event.recycle() }
+                    }
+                    send(MotionEvent.ACTION_DOWN, 0)
+                    android.os.SystemClock.sleep(20)
+                    if (pattern == "slight_motion") send(MotionEvent.ACTION_MOVE, 2)
+                    android.os.SystemClock.sleep(20)
+                    send(MotionEvent.ACTION_UP, 0)
+                }
+                else -> error("Unknown motion pattern $pattern")
+            }
             check(ready.await(3, TimeUnit.SECONDS)) { "No frame drew the candidate after touch" }
             return checkNotNull(found)
         } finally {
@@ -91,7 +117,7 @@ internal class CandidateFrameTimeline(private val device: UiDevice) {
     // HWUI can choose a different timeline than Choreographer's preferred one.
     // The UI thread has only one active traversal at the instant we observe the glyph.
     fun submittedFrame(draw: Draw): org.json.JSONObject {
-        val lines = device.executeShellCommand("dumpsys gfxinfo ${ins.targetContext.packageName} framestats").lines()
+        val lines = shell("dumpsys gfxinfo ${ins.targetContext.packageName} framestats").lines()
         val fields = lines.first { it.startsWith("Flags,FrameTimelineVsyncId,") }.trimEnd(',').split(',')
         val start = fields.indexOf("PerformTraversalsStart")
         val end = fields.indexOf("SyncQueued")
@@ -103,7 +129,7 @@ internal class CandidateFrameTimeline(private val device: UiDevice) {
             .distinctBy { it[token] }.toList()
         val frame = matches.singleOrNull() ?: error("Expected one submitted frame for $draw; found ${matches.size}")
         val fences = org.json.JSONArray()
-        device.executeShellCommand("dumpsys SurfaceFlinger --latency $layer").lineSequence().forEach { line ->
+        shell("dumpsys SurfaceFlinger --latency $layer").lineSequence().forEach { line ->
             val fields = line.trim().split('\t')
             if (fields.size == 3) {
                 val shown = fields[1].toLong()
@@ -115,7 +141,9 @@ internal class CandidateFrameTimeline(private val device: UiDevice) {
         return org.json.JSONObject().apply {
             put("vsync_id", frame[token].toLong())
             put("layer_fences", fences)
-            for (name in listOf("IntendedVsync", "HandleInputStart", "DrawStart", "SyncQueued", "SwapBuffers", "SwapBuffersCompleted", "GpuCompleted", "FrameCompleted")) {
+            put("received_up_ns", draw.receivedUp)
+            put("handled_up_ns", draw.handledUp)
+            for (name in listOf("IntendedVsync", "HandleInputStart", "PerformTraversalsStart", "DrawStart", "SyncQueued", "SwapBuffers", "SwapBuffersCompleted", "GpuCompleted", "FrameCompleted")) {
                 put(name, frame[fields.indexOf(name)].toLong())
             }
         }

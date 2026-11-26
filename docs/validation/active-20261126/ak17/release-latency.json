@@ -1,0 +1,272 @@
+{
+  "device": "PGZ110 / Android 15 / ARM64",
+  "build": "release; isolated app ID, test signing, shell profiling; standalone process",
+  "base_commit": "1a8e5a9",
+  "apk_sha256": "5164422698ca209d0e3e71e11a38b8a71b0ce31e7958671f3034416e9216d32f",
+  "original_apk_sha256": "7364a2b58bb62748568aed74aea276b849a5d719f797ee30f8d46816bf7e9db1",
+  "native_sha256": "933573331de83cbd17f3f8241c69598b1895c918da63fc5933a51cd8458e7a2a",
+  "trace_sha256": "f9fa73510f430ab501cb5ba95425f63ba3e4e25bf7d59bc31583e24bb3a6ce50",
+  "raw_sha256": "60a0fcac52a78439177d3cf1a6b96b1fde7b4f630e60b33b7a1973bf468c8e96",
+  "original_trace_sha256": "df1f9e42b4a2407a17c5bf2db2cf61ea75c479a9fd9e0064b90fdd56e5240675",
+  "physical_trials": 195,
+  "measured_per_round": 60,
+  "warmups_per_round": 5,
+  "worker_compilation": "arm64: [status=verify] [reason=install] [primary-abi]",
+  "accessibility_enabled": "0",
+  "all_rounds_release_p95_within_50ms": false,
+  "all_rounds_down_p95_p99_within_200_300ms": true,
+  "max_physical_timeline_difference_ns": 309,
+  "rounds": [
+    {
+      "down_ms": {
+        "p50": 97.7792905,
+        "p95": 110.496748,
+        "p99": 115.308135
+      },
+      "release_ms": {
+        "p50": 55.439251999999996,
+        "p95": 64.496748,
+        "p99": 72.780751
+      },
+      "dwell_ms": {
+        "p50": 43.0,
+        "p95": 47.0,
+        "p99": 48.0
+      },
+      "input_delivery_ms": {
+        "p50": 2.6146745,
+        "p95": 3.208827,
+        "p99": 3.47775
+      },
+      "up_handler_ms": {
+        "p50": 7.8353845,
+        "p95": 11.714462,
+        "p99": 13.955385
+      },
+      "after_handler_to_draw_ms": {
+        "p50": 19.4973465,
+        "p95": 30.723923,
+        "p99": 38.167077
+      },
+      "draw_to_render_queue_ms": {
+        "p50": 1.5925384999999999,
+        "p95": 2.002307,
+        "p99": 2.562692
+      },
+      "render_queue_to_gpu_done_ms": {
+        "p50": 8.676731,
+        "p95": 10.802769,
+        "p99": 13.888385
+      },
+      "gpu_done_to_display_ms": {
+        "p50": 13.090999499999999,
+        "p95": 17.503154,
+        "p99": 17.994692
+      },
+      "after_handler_to_traversal_ms": {
+        "p50": 10.027384999999999,
+        "p95": 14.714154,
+        "p99": 22.794153
+      },
+      "traversal_to_draw_ms": {
+        "p50": 9.3213075,
+        "p95": 18.751307,
+        "p99": 22.479692
+      }
+    },
+    {
+      "down_ms": {
+        "p50": 92.80248900000001,
+        "p95": 103.697765,
+        "p99": 111.184227
+      },
+      "release_ms": {
+        "p50": 47.4019135,
+        "p95": 56.465149,
+        "p99": 64.358375
+      },
+      "dwell_ms": {
+        "p50": 44.0,
+        "p95": 48.0,
+        "p99": 49.0
+      },
+      "input_delivery_ms": {
+        "p50": 2.4904935,
+        "p95": 3.048143,
+        "p99": 3.375531
+      },
+      "up_handler_ms": {
+        "p50": 7.5820384999999995,
+        "p95": 10.473,
+        "p99": 11.695462
+      },
+      "after_handler_to_draw_ms": {
+        "p50": 15.903654,
+        "p95": 24.269462,
+        "p99": 26.649154
+      },
+      "draw_to_render_queue_ms": {
+        "p50": 1.5888849999999999,
+        "p95": 2.167693,
+        "p99": 10.070539
+      },
+      "render_queue_to_gpu_done_ms": {
+        "p50": 8.8664995,
+        "p95": 11.210384,
+        "p99": 11.780615
+      },
+      "gpu_done_to_display_ms": {
+        "p50": 12.3179615,
+        "p95": 17.806769,
+        "p99": 18.201462
+      },
+      "after_handler_to_traversal_ms": {
+        "p50": 7.5273845,
+        "p95": 8.944307,
+        "p99": 14.964846
+      },
+      "traversal_to_draw_ms": {
+        "p50": 8.374576999999999,
+        "p95": 10.232924,
+        "p99": 19.320923
+      }
+    },
+    {
+      "down_ms": {
+        "p50": 89.36854,
+        "p95": 102.265463,
+        "p99": 106.622926
+      },
+      "release_ms": {
+        "p50": 47.021849,
+        "p95": 56.04731,
+        "p99": 56.419236
+      },
+      "dwell_ms": {
+        "p50": 43.0,
+        "p95": 48.0,
+        "p99": 51.0
+      },
+      "input_delivery_ms": {
+        "p50": 2.43477,
+        "p95": 3.104696,
+        "p99": 3.74839
+      },
+      "up_handler_ms": {
+        "p50": 8.167346,
+        "p95": 11.212538,
+        "p99": 13.023385
+      },
+      "after_handler_to_draw_ms": {
+        "p50": 14.700462,
+        "p95": 16.924539,
+        "p99": 18.240077
+      },
+      "draw_to_render_queue_ms": {
+        "p50": 1.6635005,
+        "p95": 2.143693,
+        "p99": 2.378769
+      },
+      "render_queue_to_gpu_done_ms": {
+        "p50": 9.118884999999999,
+        "p95": 11.168308,
+        "p99": 12.251077
+      },
+      "gpu_done_to_display_ms": {
+        "p50": 10.640308000000001,
+        "p95": 17.558153,
+        "p99": 18.414692
+      },
+      "after_handler_to_traversal_ms": {
+        "p50": 6.578962000000001,
+        "p95": 7.988077,
+        "p99": 8.587924
+      },
+      "traversal_to_draw_ms": {
+        "p50": 7.810961000000001,
+        "p95": 9.16023,
+        "p99": 10.939923
+      }
+    }
+  ],
+  "standalone_pss_kib": [
+    {
+      "after_trial": 5,
+      "pss_kib": 130336
+    },
+    {
+      "after_trial": 65,
+      "pss_kib": 111556
+    },
+    {
+      "after_trial": 70,
+      "pss_kib": 110812
+    },
+    {
+      "after_trial": 130,
+      "pss_kib": 112550
+    },
+    {
+      "after_trial": 135,
+      "pss_kib": 112874
+    },
+    {
+      "after_trial": 195,
+      "pss_kib": 112853
+    }
+  ],
+  "control_first_20_ms": {
+    "original": {
+      "hold": {
+        "p50": 46.0,
+        "p95": 49.0
+      },
+      "release": {
+        "p50": 64.817,
+        "p95": 81.69
+      },
+      "up_handler": {
+        "p50": 12.342,
+        "p95": 17.717
+      },
+      "after_handler_to_draw": {
+        "p50": 27.728,
+        "p95": 40.627
+      },
+      "draw_to_gpu": {
+        "p50": 17.748,
+        "p95": 21.607
+      },
+      "gpu_to_display": {
+        "p50": 5.833,
+        "p95": 11.969
+      }
+    },
+    "optimized": {
+      "hold": {
+        "p50": 43.0,
+        "p95": 47.0
+      },
+      "release": {
+        "p50": 55.77,
+        "p95": 72.308
+      },
+      "up_handler": {
+        "p50": 8.202,
+        "p95": 12.828
+      },
+      "after_handler_to_draw": {
+        "p50": 22.708,
+        "p95": 35.499
+      },
+      "draw_to_gpu": {
+        "p50": 9.54,
+        "p95": 11.315
+      },
+      "gpu_to_display": {
+        "p50": 12.79,
+        "p95": 16.504
+      }
+    }
+  }
+}

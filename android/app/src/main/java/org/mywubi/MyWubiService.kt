@@ -18,6 +18,9 @@ import org.json.JSONObject
 import java.util.concurrent.Executors
 import kotlinx.coroutines.*
 
+private const val COMPACT_CANDIDATE_WINDOW = 12
+private const val FULL_CANDIDATE_WINDOW = 256
+
 class MyWubiService : InputMethodService() {
     private val loader = Executors.newSingleThreadExecutor()
     private val main = Handler(Looper.getMainLooper())
@@ -50,8 +53,11 @@ class MyWubiService : InputMethodService() {
     private val idle = KeyboardIdle()
     private var updateAvailable = false
     private val idleRefresh = Runnable { render(); predictionController.learning(false,viewVisible) }
+    private var fullWindowFor: Pair<Long, Long>? = null
+    private var compactWindow = false
     private var candidateOffset = 0
-    private var keyboard by mutableStateOf(KeyboardModel())
+    private val keyboardState = mutableStateOf(KeyboardModel())
+    private var keyboard by keyboardState
     private val keyboardModes = mutableMapOf<String,KeyboardCombination?>()
     private var mainKeyboards: List<MainKeyboardOption> = emptyList()
     private var switchingKeyboard = false
@@ -307,7 +313,7 @@ class MyWubiService : InputMethodService() {
             setViewTreeLifecycleOwner(owner)
             setViewTreeSavedStateRegistryOwner(owner)
             setViewCompositionStrategy(ViewCompositionStrategy.DisposeOnViewTreeLifecycleDestroyed)
-            setContent { Keyboard(keyboard, ::dispatch, { keyboardActivity(); candidateOffset = it; refresh() }, onTouch = { pressed ->
+            setContent { Keyboard(keyboardState, ::dispatch, { keyboardActivity(); candidateOffset = it; refresh() }, onTouch = { pressed ->
                 keyTouches = (keyTouches + if(pressed) 1 else -1).coerceAtLeast(0)
                 idle.touch(pressed, android.os.SystemClock.elapsedRealtime())
                 if (keyTouches == 0 && hasPendingCombination) main.post { if (hasPendingCombination) refresh() }
@@ -404,6 +410,7 @@ class MyWubiService : InputMethodService() {
             privateInput = inputPolicy.purpose == "Password",
             prediction = state.optJSONObject("view")?.optBoolean("prediction") == true,
             candidates = displayedCandidates,
+            partialWindow = compactWindow && displayedCandidates.size < candidates.optInt("total") - candidateOffset,
             query = candidates.optJSONObject("query_revision")?.toString() ?: "{}",
             total = candidates.optInt("total"), offset = candidates.optInt("offset")
         )
@@ -411,6 +418,15 @@ class MyWubiService : InputMethodService() {
 
     private fun dispatch(action: Any) {
         if (!active || !viewVisible) return
+        if (action is LoadCandidateWindow) {
+            val current = session ?: return
+            if (keyboard.partialWindow && keyboard.query == action.query) {
+                fetchCandidates(current.value, FULL_CANDIDATE_WINDOW)
+                fullWindowFor = current.value to state.getLong("revision")
+                render()
+            }
+            return
+        }
         if (action is SwitchMainKeyboard) {
             switchMainKeyboard(action.selection)
             return
@@ -693,13 +709,22 @@ class MyWubiService : InputMethodService() {
         }
     }
 
+    private fun fetchCandidates(handle: Long, count: Int) {
+        val page = NativeBridge.objectCall("Candidates", "session" to handle, "offset" to candidateOffset, "count" to count)
+        val items = decodeCandidates(page)
+        candidates = page
+        displayedCandidates = items
+        compactWindow = count < FULL_CANDIDATE_WINDOW
+    }
+
     private fun refresh() {
         if (destroyed) return
         session?.let {
             state = NativeBridge.objectCall("State", "session" to it.value)
             if (publishKeyboard()) state = NativeBridge.objectCall("State", "session" to it.value)
-            candidates = NativeBridge.objectCall("Candidates", "session" to it.value, "offset" to candidateOffset, "count" to 256)
-            displayedCandidates = decodeCandidates(candidates)
+            val full = candidateOffset != 0 || state.optJSONObject("view")?.optJSONObject("expression") != null ||
+                personalCapture.enabled || fullWindowFor == (it.value to state.getLong("revision"))
+            fetchCandidates(it.value, if (full) FULL_CANDIDATE_WINDOW else COMPACT_CANDIDATE_WINDOW)
         }
         render()
         personalCapture.display(state, candidates, predictionController.personalVersion)

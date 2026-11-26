@@ -34,7 +34,16 @@ import kotlin.math.roundToInt
 internal data class KeyPreview(val owner: Any, val text: String, val bounds: Rect, val deletion: Boolean = false,
     val picker: HoldPicker? = null, val selectedSlot: Int? = null)
 internal class KeyPreviewState {
-    var current by mutableStateOf<KeyPreview?>(null)
+    var last by mutableStateOf<KeyPreview?>(null)
+        private set
+    var visible by mutableStateOf(false)
+        private set
+    var current: KeyPreview?
+        get() = if (visible) last else null
+        set(value) {
+            if (value != null) last = value
+            visible = value != null
+        }
     var keyboardBounds = Rect.Zero
     fun clear(owner: Any) { if (current?.owner === owner) current = null }
 }
@@ -52,8 +61,18 @@ internal fun letterSymbol(letter: Char, chinese: Boolean): String {
 
 /** Drawn in the keyboard's own window: it never takes focus or intercepts touches. */
 @Composable
-internal fun KeyPreviewBubble(preview: KeyPreview?, origin: Offset, widthPx: Float) {
-    if (preview == null) return
+internal fun KeyPreviewBubble(state: KeyPreviewState, origin: Offset, widthPx: Float) {
+    val preview = state.last ?: return
+    // Release only changes placement. Hide the bubble on this frame without disposing
+    // its text layout and shadow while the candidate strip is also publishing.
+    androidx.compose.ui.layout.Layout(modifier = Modifier.fillMaxSize(), content = { Box { PreviewContent(preview, origin, widthPx) } }) { children, constraints ->
+        val content = children.single().measure(constraints)
+        layout(content.width, content.height) { if (state.visible) content.placeRelative(0, 0) }
+    }
+}
+
+@Composable
+private fun PreviewContent(preview: KeyPreview, origin: Offset, widthPx: Float) {
     preview.picker?.let { HoldPickerBubble(it, preview.selectedSlot, origin); return }
     val density = LocalDensity.current
     val fontSize = if (preview.deletion) 16.sp else skinNumber("bubble_text_size",30f).sp

@@ -22,15 +22,19 @@ object NativeBridge {
     @JvmStatic external fun probeOnnx(path: String, platform: String): Boolean
 
     fun call(op: String, vararg fields: Pair<String, Any?>): Any? {
-        val request = JSONObject().put("op", op)
-        fields.forEach { (key, value) -> request.put(key, value ?: JSONObject.NULL) }
-        val response = JSONObject(exchange(JSONObject().put("version", 1).put("request", request)
-            .toString().toByteArray(Charsets.UTF_8)).toString(Charsets.UTF_8))
-        if (!response.getBoolean("ok")) {
-            val error = response.getJSONObject("error")
-            throw ProtocolException(error.getInt("code"), error.getString("message"))
-        }
-        return response.opt("value").takeUnless { it == JSONObject.NULL }
+        // Operation names only; input text and editor contents must stay out of traces.
+        android.os.Trace.beginSection(op)
+        try {
+            val request = JSONObject().put("op", op)
+            fields.forEach { (key, value) -> request.put(key, value ?: JSONObject.NULL) }
+            val response = JSONObject(exchange(JSONObject().put("version", 1).put("request", request)
+                .toString().toByteArray(Charsets.UTF_8)).toString(Charsets.UTF_8))
+            if (!response.getBoolean("ok")) {
+                val error = response.getJSONObject("error")
+                throw ProtocolException(error.getInt("code"), error.getString("message"))
+            }
+            return response.opt("value").takeUnless { it == JSONObject.NULL }
+        } finally { android.os.Trace.endSection() }
     }
 
     fun objectCall(op: String, vararg fields: Pair<String, Any?>): JSONObject =

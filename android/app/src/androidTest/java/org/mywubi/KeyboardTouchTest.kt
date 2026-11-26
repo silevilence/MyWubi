@@ -379,10 +379,19 @@ class KeyboardTouchTest {
             touch(MotionEvent.ACTION_UP, q.x, q.y); settled()
             assertEquals(listOf("a", "q"), events.map { (it as JSONObject).getJSONArray("InputText").getString(0) })
             touch(MotionEvent.ACTION_DOWN, a.x, a.y)
-            scenario.moveToState(androidx.lifecycle.Lifecycle.State.CREATED)
+            // A translucent ActivityScenario trampoline only pauses the activity on ColorOS.
+            // Home actually hides the keyboard window while the finger is still held.
+            assertTrue(device.pressHome())
+            val deadline = SystemClock.uptimeMillis() + 5000
+            while (scenario.state != androidx.lifecycle.Lifecycle.State.CREATED && SystemClock.uptimeMillis() < deadline) {
+                SystemClock.sleep(50)
+            }
+            assertEquals(androidx.lifecycle.Lifecycle.State.CREATED, scenario.state)
             SystemClock.sleep(android.view.ViewConfiguration.getLongPressTimeout().toLong() + 175)
             touch(MotionEvent.ACTION_UP, a.x, a.y)
-            scenario.moveToState(androidx.lifecycle.Lifecycle.State.RESUMED)
+            val pkg = instrumentation.targetContext.packageName
+            device.executeShellCommand("am start -W --activity-reorder-to-front -n $pkg/org.mywubi.MainActivity")
+            assertEquals(androidx.lifecycle.Lifecycle.State.RESUMED, scenario.state)
             settled()
             assertEquals(2, events.size)
             assertFalse(device.hasObject(By.desc("按键预览")))

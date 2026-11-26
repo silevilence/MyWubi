@@ -102,4 +102,34 @@ class ExpandedCandidatesTest {
             assertEquals(2, selection.getJSONObject(0).getInt("revision"))
         }
     }
+
+    @Test fun replacingQueryCancelsPressedCandidate() {
+        val events = CopyOnWriteArrayList<Any>()
+        var model by mutableStateOf(KeyboardModel(enabled=true, spelling="a", query="""{"revision":1}""",
+            candidates=listOf(CandidateItem(0, "甲", "")), total=1))
+        ActivityScenario.launch(MainActivity::class.java).use { scenario ->
+            scenario.onActivity { it.setContent { Keyboard(model, { events.add(it) }, {}, switchIme={}) } }
+            val bounds = node("候选 甲").visibleBounds
+            val down = android.os.SystemClock.uptimeMillis()
+            fun touch(action: Int) {
+                val event = android.view.MotionEvent.obtain(down, android.os.SystemClock.uptimeMillis(), action,
+                    bounds.exactCenterX(), bounds.exactCenterY(), 0)
+                event.source = android.view.InputDevice.SOURCE_TOUCHSCREEN
+                try { assertTrue(instrumentation.uiAutomation.injectInputEvent(event, true)) } finally { event.recycle() }
+            }
+            touch(android.view.MotionEvent.ACTION_DOWN)
+            scenario.onActivity { model = model.copy(spelling="b", query="""{"revision":2}""",
+                candidates=listOf(CandidateItem(0, "乙", ""))) }
+            val replacement = node("候选 乙")
+            touch(android.view.MotionEvent.ACTION_UP)
+            settled()
+            assertFalse(events.filterIsInstance<JSONObject>().any { it.has("SelectCandidate") })
+            replacement.click()
+            settled()
+            val selection = (events.last() as JSONObject).getJSONArray("SelectCandidate")
+            assertEquals(2, selection.getJSONObject(0).getInt("revision"))
+            assertEquals(0L, selection.getLong(1))
+        }
+    }
+
 }
