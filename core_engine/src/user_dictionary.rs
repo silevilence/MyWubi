@@ -65,6 +65,19 @@ impl UserDictionary {
 
     /// Present legacy absolute weights as adjustments. Opening alone leaves the file intact.
     pub fn for_edit(path: &Path, system: Option<&Path>) -> Result<Self, UserDictionaryError> {
+        if let Some(system) = system {
+            let same_path = path == system
+                || path
+                    .canonicalize()
+                    .ok()
+                    .zip(system.canonicalize().ok())
+                    .is_some_and(|(user, base)| user == base);
+            if same_path {
+                return Err(UserDictionaryError::InvalidEntry(
+                    "用户词典与系统码表必须使用不同文件".into(),
+                ));
+            }
+        }
         let mut user = Self::load(path)?;
         user.system_path = system.map(Path::to_owned);
         if let Some(system) = system.filter(|_| !user.additive) {
@@ -706,6 +719,15 @@ mod tests {
                 .unwrap()
                 .as_nanos()
         ))
+    }
+
+    #[test]
+    fn cannot_edit_the_system_table_as_a_user_dictionary() {
+        let dir = tempfile::tempdir().unwrap();
+        let path = dir.path().join("main.dict");
+        std::fs::write(&path, "ab\t甲\t10\n").unwrap();
+        assert!(UserDictionary::for_edit(&path, Some(&dir.path().join("./main.dict"))).is_err());
+        assert_eq!(std::fs::read_to_string(&path).unwrap(), "ab\t甲\t10\n");
     }
 
     #[test]
