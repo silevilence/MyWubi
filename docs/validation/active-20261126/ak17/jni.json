@@ -1,0 +1,194 @@
+{
+  "device": "PGZ110",
+  "api": 35,
+  "rounds": [
+    {
+      "model": "PGZ110",
+      "api": 35,
+      "pss_before_kib": 88817,
+      "scope": "JNI Prepare/Ack + candidate fetch; no screen latency",
+      "Main_exact": {
+        "count": 500,
+        "p50_us": 2056.384,
+        "p95_us": 2213.923,
+        "p99_us": 3451.384
+      },
+      "Main_groups": {
+        "count": 500,
+        "p50_us": 2300.846,
+        "p95_us": 2488.923,
+        "p99_us": 3775.307
+      },
+      "Pinyin_exact": {
+        "count": 500,
+        "p50_us": 1895.077,
+        "p95_us": 7470.384,
+        "p99_us": 9503.616
+      },
+      "Pinyin_groups": {
+        "count": 500,
+        "p50_us": 1553.616,
+        "p95_us": 7366.461,
+        "p99_us": 9117.846
+      },
+      "pss_after_kib": 116832
+    },
+    {
+      "model": "PGZ110",
+      "api": 35,
+      "pss_before_kib": 89125,
+      "scope": "JNI Prepare/Ack + candidate fetch; no screen latency",
+      "Main_exact": {
+        "count": 500,
+        "p50_us": 2023.615,
+        "p95_us": 2163.692,
+        "p99_us": 3219.077
+      },
+      "Main_groups": {
+        "count": 500,
+        "p50_us": 2241.615,
+        "p95_us": 2390.462,
+        "p99_us": 2735.923
+      },
+      "Pinyin_exact": {
+        "count": 500,
+        "p50_us": 1833.846,
+        "p95_us": 7039.385,
+        "p99_us": 9081.308
+      },
+      "Pinyin_groups": {
+        "count": 500,
+        "p50_us": 1556.307,
+        "p95_us": 7313.231,
+        "p99_us": 8632.615
+      },
+      "pss_after_kib": 119368
+    },
+    {
+      "model": "PGZ110",
+      "api": 35,
+      "pss_before_kib": 88832,
+      "scope": "JNI Prepare/Ack + candidate fetch; no screen latency",
+      "Main_exact": {
+        "count": 500,
+        "p50_us": 2090.385,
+        "p95_us": 2290.846,
+        "p99_us": 3685.846
+      },
+      "Main_groups": {
+        "count": 500,
+        "p50_us": 2305.923,
+        "p95_us": 2442.077,
+        "p99_us": 2784.923
+      },
+      "Pinyin_exact": {
+        "count": 500,
+        "p50_us": 1884.846,
+        "p95_us": 7460.923,
+        "p99_us": 8866.539
+      },
+      "Pinyin_groups": {
+        "count": 500,
+        "p50_us": 1530.538,
+        "p95_us": 6867,
+        "p99_us": 8098.769
+      },
+      "pss_after_kib": 116592
+    }
+  ],
+  "before_first_group_cache": [
+    {
+      "model": "PGZ110",
+      "api": 35,
+      "pss_before_kib": 86915,
+      "scope": "JNI Prepare/Ack + candidate fetch; no screen latency",
+      "Main_exact": {
+        "count": 500,
+        "p50_us": 1487.384,
+        "p95_us": 1865.154,
+        "p99_us": 3723.154
+      },
+      "Main_groups": {
+        "count": 500,
+        "p50_us": 5032.384,
+        "p95_us": 6231.615,
+        "p99_us": 6808.077
+      },
+      "Pinyin_exact": {
+        "count": 500,
+        "p50_us": 1876.231,
+        "p95_us": 7648.077,
+        "p99_us": 9714.384
+      },
+      "Pinyin_groups": {
+        "count": 500,
+        "p50_us": 2386.769,
+        "p95_us": 7704,
+        "p99_us": 9997.616
+      },
+      "pss_after_kib": 115971
+    },
+    {
+      "model": "PGZ110",
+      "api": 35,
+      "pss_before_kib": 88270,
+      "scope": "JNI Prepare/Ack + candidate fetch; no screen latency",
+      "Main_exact": {
+        "count": 500,
+        "p50_us": 2057.308,
+        "p95_us": 2428,
+        "p99_us": 4494.461
+      },
+      "Main_groups": {
+        "count": 500,
+        "p50_us": 5587.307,
+        "p95_us": 6874.154,
+        "p99_us": 7585.846
+      },
+      "Pinyin_exact": {
+        "count": 500,
+        "p50_us": 1907.384,
+        "p95_us": 6780.923,
+        "p99_us": 8775.77
+      },
+      "Pinyin_groups": {
+        "count": 500,
+        "p50_us": 2377.846,
+        "p95_us": 7773.923,
+        "p99_us": 9585.231
+      },
+      "pss_after_kib": 115687
+    },
+    {
+      "model": "PGZ110",
+      "api": 35,
+      "pss_before_kib": 88190,
+      "scope": "JNI Prepare/Ack + candidate fetch; no screen latency",
+      "Main_exact": {
+        "count": 500,
+        "p50_us": 1979.154,
+        "p95_us": 2142.769,
+        "p99_us": 3620.923
+      },
+      "Main_groups": {
+        "count": 500,
+        "p50_us": 4793.769,
+        "p95_us": 5486.384,
+        "p99_us": 6216.923
+      },
+      "Pinyin_exact": {
+        "count": 500,
+        "p50_us": 1834.462,
+        "p95_us": 7452,
+        "p99_us": 9410.846
+      },
+      "Pinyin_groups": {
+        "count": 500,
+        "p50_us": 2272.615,
+        "p95_us": 7887.385,
+        "p99_us": 9613.769
+      },
+      "pss_after_kib": 115221
+    }
+  ]
+}

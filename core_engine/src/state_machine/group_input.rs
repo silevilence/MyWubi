@@ -7,7 +7,7 @@ impl StateMachine {
         self.groups.as_ref()
     }
     pub fn group_search_status(&self) -> Option<crate::group_search::SearchStatus> {
-        self.group_matches.as_ref().map(|m| m.status)
+        self.group_matches.as_ref().map(|m| m.matches.status)
     }
     pub fn group_shortcut_protected(&self) -> bool {
         self.shortcut_active()
@@ -303,19 +303,27 @@ impl SemanticEngine {
                 .as_ref()
                 .ok_or(Rejection::StaleCandidate)?;
             let start = self.sm.candidate_offset();
+            let entries = matches.dict.entries();
             self.sm.candidates = matches
+                .matches
                 .candidates
                 .iter()
                 .skip(start)
                 .take(self.sm.page_size)
-                .map(|m| m.text.clone())
+                .map(|m| entries[m.entry].word.clone())
                 .collect();
             self.sm.code_hints = matches
+                .matches
                 .candidates
                 .iter()
                 .skip(start)
                 .take(self.sm.page_size)
-                .map(|m| m.codes.join("/"))
+                .map(|m| {
+                    m.codes(entries)
+                        .map(String::as_str)
+                        .collect::<Vec<_>>()
+                        .join("/")
+                })
                 .collect();
         }
         self.sm.state = if self.sm.candidates.is_empty() {
@@ -357,11 +365,13 @@ impl SemanticEngine {
         } else {
             &self.sm.dict
         };
-        let matches =
-            crate::group_search::query(dict, &sequence.positions, crate::group_search::WORK_BUDGET);
+        let matches = dict.initial_groups.lookup(dict, &sequence.positions);
         let resolved = sequence.resolved().is_some();
         self.sm.total_candidates = matches.candidates.len();
-        self.sm.group_matches = Some(Arc::new(matches));
+        self.sm.group_matches = Some(Arc::new(crate::group_search::GroupWindow {
+            dict: Arc::clone(dict),
+            matches,
+        }));
         self.sm.appended = None;
         self.sm.shortcut_time = None;
         if resolved {
@@ -370,23 +380,18 @@ impl SemanticEngine {
         if !self.sm.may_append_candidates() {
             return self.show_group_page(committed);
         }
-        let entries: Vec<_> = self
+        let window = self
             .sm
             .group_matches
             .as_ref()
-            .unwrap()
+            .ok_or(Rejection::StaleCandidate)?;
+        let entries: Vec<_> = window
+            .matches
             .candidates
             .iter()
-            .map(|m| Entry {
-                word: m.text.clone(),
-                code: m.codes.first().cloned().unwrap_or_default(),
-                weight: m.weight,
-            })
+            .map(|m| &window.dict.entries()[m.entry])
             .collect();
-        self.sm.appended = self
-            .sm
-            .build_appended(&entries.iter().collect::<Vec<_>>())
-            .map(Arc::new);
+        self.sm.appended = self.sm.build_appended(&entries).map(Arc::new);
         self.show_group_page(committed)
     }
 }

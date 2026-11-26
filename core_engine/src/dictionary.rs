@@ -217,6 +217,7 @@ impl Default for LoadOptions {
 #[derive(Debug)]
 pub struct Dictionary {
     pub(crate) reverse: OnceLock<crate::ReverseLookup>,
+    pub(crate) initial_groups: crate::group_search::InitialGroups,
     prediction: std::sync::OnceLock<crate::assistance::prediction::Lexicon>,
     pinyin_index: Option<crate::pinyin::PinyinIndex>,
     /// 按编码有序排列的扁平条目数组，便于二分查找前缀区间。
@@ -246,6 +247,7 @@ impl Dictionary {
     pub fn empty() -> Arc<Self> {
         Arc::new(Self {
             reverse: OnceLock::new(),
+            initial_groups: Default::default(),
             prediction: std::sync::OnceLock::new(),
             pinyin_index: None,
             entries: Vec::new(),
@@ -340,6 +342,7 @@ impl Dictionary {
 
         Ok(Arc::new(Self {
             reverse: OnceLock::new(),
+            initial_groups: Default::default(),
             prediction: std::sync::OnceLock::new(),
             pinyin_index: (table_config.table_type == TableType::Pinyin)
                 .then(|| crate::pinyin::PinyinIndex::new(&entries)),

@@ -65,13 +65,15 @@ class PhysicalLayoutComparisonTest {
                         dev.waitForIdle()
                         ins.uiAutomation.clearCache()
                         val start=SystemClock.uptimeMillis()
+                        var groupHint = ""
                         for((index,c) in code.withIndex()) {
                             val k=if(layout=="full26")c.toString() else guides.getValue(layout).split(" ").single { c.uppercaseChar() in it }
                             val bounds=key(k).visibleBounds
                             val x=bounds.centerX() + when(index%3) {1->bounds.width()/4;2->-bounds.width()/4;else->0}
                             assertTrue(dev.click(x,bounds.centerY()))
+                            groupHint += if (k.length == 1) k.lowercase() else "[${k.lowercase()}]"
                             val acknowledged = if (layout == "full26") field().text(code.take(index+1))
-                                else By.textStartsWith("${index+1}: ")
+                                else By.pkg(app.packageName).text(groupHint)
                             assertTrue("No composing acknowledgement for $layout / $code after key ${index+1}",
                                 findFresh(dev,acknowledged,3000) != null)
                             if(index==0)row.put("first_key_width_px",bounds.width())
@@ -104,6 +106,47 @@ class PhysicalLayoutComparisonTest {
                 }
             }
             assertEquals("See layout-comparison.jsonl",0,failed)
+            if (InstrumentationRegistry.getArguments().getString("keyboard_soak") == "true") {
+                val settings = Configurator.getInstance()
+                val priorWait = settings.waitForIdleTimeout
+                val curve = File(app.filesDir, "keyboard-switch-pss.jsonl")
+                val layouts = listOf("full26" to "q", "shape14" to "GH", "shape9" to "GHI")
+                val editor = requireNotNull(findFresh(dev, field(), 5000))
+                val originalText = editor.text
+                try {
+                    settings.waitForIdleTimeout = 0
+                    curve.writeText("")
+                    val start = SystemClock.elapsedRealtime()
+                    var soakStart = start
+                    var warmPssKiB = 0L
+                    var finalPssKiB = 0L
+                    for (i in 1..1050) {
+                        val (layout, firstKey) = layouts[i % layouts.size]
+                        key("切换形码键盘").click()
+                        key("形码布局 $layout").click()
+                        key(firstKey)
+                        if (i % 25 == 0) {
+                            val hostField = requireNotNull(findFresh(dev,field(),3000))
+                            assertTrue(hostField.isFocused)
+                            assertEquals(originalText, hostField.text)
+                            val pssKiB = android.os.Debug.getPss()
+                            if (i == 50) warmPssKiB = pssKiB
+                            if (i == 1050) finalPssKiB = pssKiB
+                            val sample = JSONObject().put("switch",i).put("layout",layout)
+                                .put("elapsed_ms",SystemClock.elapsedRealtime()-start)
+                                .put("pss_kib",pssKiB)
+                            curve.appendText(sample.toString()+"\n")
+                        }
+                        // Fifty warm-up switches, then 1000 switches over at least 30 minutes.
+                        if (i == 50) {
+                            soakStart = SystemClock.elapsedRealtime()
+                        } else if (i > 50) {
+                            SystemClock.sleep((soakStart + (i-50)*1800L - SystemClock.elapsedRealtime()).coerceAtLeast(0L))
+                        }
+                    }
+                    assertTrue("Warm-to-final PSS: $warmPssKiB → $finalPssKiB KiB", finalPssKiB - warmPssKiB <= 10 * 1024)
+                } finally { settings.waitForIdleTimeout = priorWait }
+            }
         } finally {
             if(prior==null)receipt.delete() else receipt.writeBytes(prior)
             save(initial.getJSONObject("config"))

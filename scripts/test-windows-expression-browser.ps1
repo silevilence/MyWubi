@@ -33,6 +33,9 @@ temporary:
 ---
 a	笑脸
 b	普通
+jjad	2026-11-12	100
+jjad	甲	90
+jjad	乙	80
 '@
 [IO.File]::WriteAllText((Join-Path $app 'tables\main.dict'),$table.Replace('\t',"`t"),$utf8)
 $config = @'
@@ -46,6 +49,12 @@ user_table = "tables/user.dict"
 font_size = 14
 background_color = 0xFFFFFFFF
 highlight_color = 0xFFFFD54F
+[[shortcuts.rules]]
+code = "jjad"
+position = 3
+kind = "date_time"
+format = "'2026-11-12'"
+enabled = true
 '@
 foreach ($kind in 'emoji','kaomoji','kana','math','punctuation','symbols','greek','cyrillic','latin','phonetic','enclosed','numbers','arrows','currency','units','shapes','box_drawing','braille','music','diacritics') {
     $config += "`n[expressions.$kind]`nsearch = true`n"

@@ -257,6 +257,8 @@ impl SemanticEngine {
             .as_ref()
             .filter(|_| self.sm.appended.is_none())
         {
+            let entries = matches.dict.entries();
+            let matches = &matches.matches;
             let offset = offset.min(matches.candidates.len());
             return CandidateWindow {
                 query_revision: self.query_revision,
@@ -272,9 +274,11 @@ impl SemanticEngine {
                     .map(|(index, item)| Candidate {
                         expression_kind: None,
                         id: CandidateId(index),
-                        text: item.text.clone(),
+                        text: entries[item.entry].word.clone(),
                         exact: item.exact,
-                        hints: vec![CandidateHint::ReverseCodes(item.codes.clone())],
+                        hints: vec![CandidateHint::ReverseCodes(
+                            item.codes(entries).cloned().collect(),
+                        )],
                     })
                     .collect(),
             };

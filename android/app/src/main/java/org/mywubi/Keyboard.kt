@@ -100,7 +100,7 @@ fun Keyboard(model: KeyboardModel, dispatch: (Any) -> Unit, window: (Int) -> Uni
     val preferredHeight = parameters?.optDouble("keyboard_height", 216.0)?.toFloat()?.div(4f)
     val baseHeight = (preferredHeight?.times(if (landscape) 48f/54f else 1f) ?: if (landscape) 48f else 54f)
     val keyHeight = maxOf(48f, baseHeight, ((parameters?.optDouble("key_text_size",20.0)?.toFloat() ?: 16f)+12f)*LocalDensity.current.fontScale+16f).dp
-    var shift by remember(model.epoch) { mutableStateOf(KeyMode.Off) }
+    val shiftState = remember(model.epoch) { mutableStateOf(KeyMode.Off) }
     val pinyinLabel = when (model.pinyinMode) {
         KeyMode.Locked -> "拼音 · 锁定"
         KeyMode.Once -> "拼音 · 本次"
@@ -127,15 +127,17 @@ fun Keyboard(model: KeyboardModel, dispatch: (Any) -> Unit, window: (Int) -> Uni
     val showToolbar = !showCandidateBar && model.expression == null
     LaunchedEffect(model.spelling) { if (model.spelling.isEmpty()) expanded = false }
     val originalColors = myWubiColors()
-    val colors = originalColors.copy(
-        surface=skinColorValue(parameters,"background",originalColors.surface),
-        onSurface=skinColorValue(parameters,"text",originalColors.onSurface),
-        onSurfaceVariant=skinColorValue(parameters,"hint",originalColors.onSurfaceVariant),
-        primary=skinColorValue(parameters,"selected_background",originalColors.primary),
-        onPrimary=skinColorValue(parameters,"selected_text",originalColors.onPrimary),
-        surfaceContainerLowest=skinColorValue(parameters,"key_background",originalColors.surfaceContainerLowest),
-        secondaryContainer=skinColorValue(parameters,"function_background",originalColors.secondaryContainer),
-        onSecondaryContainer=skinColorValue(parameters,"function_text",originalColors.onSecondaryContainer))
+    val colors = remember(originalColors, parameters) {
+        originalColors.copy(
+            surface=skinColorValue(parameters,"background",originalColors.surface),
+            onSurface=skinColorValue(parameters,"text",originalColors.onSurface),
+            onSurfaceVariant=skinColorValue(parameters,"hint",originalColors.onSurfaceVariant),
+            primary=skinColorValue(parameters,"selected_background",originalColors.primary),
+            onPrimary=skinColorValue(parameters,"selected_text",originalColors.onPrimary),
+            surfaceContainerLowest=skinColorValue(parameters,"key_background",originalColors.surfaceContainerLowest),
+            secondaryContainer=skinColorValue(parameters,"function_background",originalColors.secondaryContainer),
+            onSecondaryContainer=skinColorValue(parameters,"function_text",originalColors.onSecondaryContainer))
+    }
     val baseEnabled = model.enabled && model.modesAvailable && !model.privateInput && model.expression == null
     val baseLabel = if (model.base == "Main") "中 → 英" else "英 → 中"
     val toggleBase = { dispatch(JSONObject().put("SetBaseMode", if (model.base == "Main") "English" else "Main")) }
@@ -144,7 +146,7 @@ fun Keyboard(model: KeyboardModel, dispatch: (Any) -> Unit, window: (Int) -> Uni
         dispatch(JSONObject().put("SelectCandidate", JSONArray().put(JSONObject(model.query)).put(item.id)))
         expanded = false
     }
-    CompositionLocalProvider(LocalSkinParameters provides parameters, LocalSkinImages provides ((variant?.opt("decodedImages") as? SkinImages) ?: SkinImages(emptyMap()))) { MaterialTheme(colorScheme=colors) {
+    CompositionLocalProvider(LocalSkinParameters provides parameters, LocalSkinImages provides ((variant?.opt("decodedImages") as? SkinImages) ?: EmptySkinImages)) { MaterialTheme(colorScheme=colors) {
         val pinyinControl: @Composable () -> Unit = {
             PinyinButton(pinyinMode, pinyinLabel, baseEnabled && model.pinyinAvailable, cyclePinyin)
         }
@@ -315,73 +317,9 @@ fun Keyboard(model: KeyboardModel, dispatch: (Any) -> Unit, window: (Int) -> Uni
                         else -> BuiltinKeyboardLayouts.symbols(asciiSymbols)
                     }
                 }
-                // On gesture-navigation devices the side strips may cover the first
-                // and last key centres. Protect only the typing grid, within Android's
-                // exclusion quota. The navigation band remains available below it.
-                BoxWithConstraints(Modifier.fillMaxWidth().height(LocalKeyboardKeyHeight.current*layout.height)
-                    .systemGestureExclusion()) {
-                    val unit=maxWidth/layout.width
-                    for (key in layout.keys) {
-                        val character=key.action.value.singleOrNull()
-                        val isLetter=key.action.kind == "Character" && character?.isLowerCase() == true
-                        val value=if(isLetter && shift != KeyMode.Off) key.action.value.uppercase() else key.action.value
-                        val label=when {
-                            key.action.kind == "Shift" -> if(shift == KeyMode.Locked) "⇪" else "⇧"
-                            isLetter && key.label == key.action.value -> value
-                            key.action.kind == "Enter" -> model.enterLabel
-                            else -> key.label
-                        }
-                        val symbol=key.alternate ?: if(layout.id == "builtin.26" && character != null)
-                            letterSymbol(character, !model.privateInput && model.layout == "letters" && (model.base == "Main" || model.temporary == "Pinyin")) else null
-                        val up = key.directions[0]?.takeIf { it.isSymbol }?.value
-                        val down = key.directions[4]?.takeIf { it.isSymbol }?.value
-                        val pairedHints = if (key.action.kind == "Group" && key.groupCharacters.size == 2 &&
-                            up != null && down != null) up to down else null
-                        fun perform(action: LayoutAction) {
-                            if (pairedHints != null && action.isSymbol && (action.value == up || action.value == down)) {
-                                dispatch(JSONObject().put("InputSymbol", action.value))
-                                return
-                            }
-                            when(action.kind) {
-                                "InputSymbol" -> dispatch(JSONObject().put("InputSymbol",action.value))
-                                "Character" -> {input(if(action == key.action) value else action.value); if(isLetter) shift=shift.consumed()}
-                                "Group" -> model.mappingIdentity?.let { identity -> dispatch(JSONObject().put("InputGroup",org.json.JSONArray().put(identity).put(action.value))) }
-                                "Shift" -> shift=shift.next()
-                                "Letters" -> panel="letters"
-                                "Numbers" -> panel="numbers"
-                                "Symbols" -> panel="symbols"
-                                "English" -> toggleBase()
-                                "Pinyin" -> cyclePinyin()
-                                "PageNext" -> dispatch(JSONObject().put("MoveCandidatePage",true))
-                                "PagePrevious" -> dispatch(JSONObject().put("MoveCandidatePage",false))
-                                "Backspace", "Space", "Enter", "Cancel" -> dispatch(action.kind)
-                            }
-                        }
-                        fun actionName(action: LayoutAction)=when {
-                            action.kind == "Group" -> "字符组 ${action.value}"
-                            action.kind == "Character" && action == key.action -> value
-                            else -> action.value.ifEmpty { action.kind }
-                        }
-                        val holdOptions = remember(key, symbol) { key.holdOptions(symbol) }
-                        Key(label,model.enabled,model.epoch,
-                            Modifier.offset(x=unit*key.x,y=LocalKeyboardKeyHeight.current*key.y).width(unit*key.width),
-                            heightFactor=key.height,
-                            repeat=key.action.kind == "Backspace", description=when(key.action.kind) {
-                                "Backspace" -> "退格"
-                                "Shift" -> when(shift) { KeyMode.Off -> "小写"; KeyMode.Once -> "大写 · 本次"; KeyMode.Locked -> "大写 · 锁定" }
-                                else -> label
-                            }, space=key.action.kind == "Space",function=key.role == "function",accent=key.role == "selected",
-                            selected=key.action.kind == "Shift" && shift != KeyMode.Off,
-                            alternate=holdOptions.firstOrNull()?.takeIf {
-                                key.hold != null || it.isSymbol
-                            }?.let(::actionName), pairedHints=pairedHints, previewEnabled=!model.privateInput,
-                            holdChoices=holdOptions.distinctBy(::actionName).map { TouchChoice(actionName(it)) { perform(it) } },
-                            bindingRevision=layout, directions=if(layout.id == "builtin.26") null else key.directions.mapValues { (_,action) -> TouchChoice(actionName(action)) {perform(action)} },
-                            clearAction={dispatch("ClearEditor")}) {
-                            perform(key.action)
-                        }
-                    }
-                }
+                TypingGrid(layout, model.enabled, model.epoch, model.enterLabel, model.privateInput,
+                    !model.privateInput && model.layout == "letters" && (model.base == "Main" || model.temporary == "Pinyin"),
+                    model.base, model.mappingIdentity, shiftState, { panel = it }, dispatch)
             }
             if (panel != "numbers" || showExpanded) CompositionLocalProvider(LocalKeyboardKeyHeight provides footerHeight) { Row(Modifier.fillMaxWidth()) {
                 val showBackspace = showExpanded || panel == "symbols"
@@ -544,6 +482,83 @@ private fun PinyinButton(mode: KeyMode, description: String, enabled: Boolean, a
             else if (mode == KeyMode.Once) Box(Modifier.size(5.dp)
                 .background(colors.primary, androidx.compose.foundation.shape.CircleShape))
         }, action=action)
+}
+
+// Candidate updates leave the typing grid in place while the toolbar changes.
+@Composable
+private fun TypingGrid(layout: KeyboardLayout, enabled: Boolean, epoch: Long, enterLabel: String,
+                       privateInput: Boolean, chineseSymbols: Boolean, base: String, mappingIdentity: JSONObject?,
+                       shiftState: MutableState<KeyMode>, changePanel: (String) -> Unit,
+                       dispatch: (Any) -> Unit) {
+    var shift by shiftState
+    fun input(text: String) { dispatch(JSONObject().put("InputText", JSONArray().put(text).put("Normal"))) }
+    // On gesture-navigation devices the side strips may cover the first
+    // and last key centres. Protect only the typing grid, within Android's
+    // exclusion quota. The navigation band remains available below it.
+    BoxWithConstraints(Modifier.fillMaxWidth().height(LocalKeyboardKeyHeight.current*layout.height)
+        .systemGestureExclusion()) {
+        val unit=maxWidth/layout.width
+        for (key in layout.keys) {
+            val character=key.action.value.singleOrNull()
+            val isLetter=key.action.kind == "Character" && character?.isLowerCase() == true
+            val value=if(isLetter && shift != KeyMode.Off) key.action.value.uppercase() else key.action.value
+            val label=when {
+                key.action.kind == "Shift" -> if(shift == KeyMode.Locked) "⇪" else "⇧"
+                isLetter && key.label == key.action.value -> value
+                key.action.kind == "Enter" -> enterLabel
+                else -> key.label
+            }
+            val symbol=key.alternate ?: if(layout.id == "builtin.26" && character != null)
+                letterSymbol(character, chineseSymbols) else null
+            val up = key.directions[0]?.takeIf { it.isSymbol }?.value
+            val down = key.directions[4]?.takeIf { it.isSymbol }?.value
+            val pairedHints = if (key.action.kind == "Group" && key.groupCharacters.size == 2 &&
+                up != null && down != null) up to down else null
+            fun perform(action: LayoutAction) {
+                if (pairedHints != null && action.isSymbol && (action.value == up || action.value == down)) {
+                    dispatch(JSONObject().put("InputSymbol", action.value))
+                    return
+                }
+                when(action.kind) {
+                    "InputSymbol" -> dispatch(JSONObject().put("InputSymbol",action.value))
+                    "Character" -> {input(if(action == key.action) value else action.value); if(isLetter) shift = shift.consumed()}
+                    "Group" -> mappingIdentity?.let { identity -> dispatch(JSONObject().put("InputGroup",org.json.JSONArray().put(identity).put(action.value))) }
+                    "Shift" -> shift = shift.next()
+                    "Letters" -> changePanel("letters")
+                    "Numbers" -> changePanel("numbers")
+                    "Symbols" -> changePanel("symbols")
+                    "English" -> dispatch(JSONObject().put("SetBaseMode", if (base == "Main") "English" else "Main"))
+                    "Pinyin" -> dispatch("CyclePinyin")
+                    "PageNext" -> dispatch(JSONObject().put("MoveCandidatePage",true))
+                    "PagePrevious" -> dispatch(JSONObject().put("MoveCandidatePage",false))
+                    "Backspace", "Space", "Enter", "Cancel" -> dispatch(action.kind)
+                }
+            }
+            fun actionName(action: LayoutAction)=when {
+                action.kind == "Group" -> "字符组 ${action.value}"
+                action.kind == "Character" && action == key.action -> value
+                else -> action.value.ifEmpty { action.kind }
+            }
+            val holdOptions = remember(key, symbol) { key.holdOptions(symbol) }
+            Key(label,enabled,epoch,
+                Modifier.offset(x=unit*key.x,y=LocalKeyboardKeyHeight.current*key.y).width(unit*key.width),
+                heightFactor=key.height,
+                repeat=key.action.kind == "Backspace", description=when(key.action.kind) {
+                    "Backspace" -> "退格"
+                    "Shift" -> when(shift) { KeyMode.Off -> "小写"; KeyMode.Once -> "大写 · 本次"; KeyMode.Locked -> "大写 · 锁定" }
+                    else -> label
+                }, space=key.action.kind == "Space",function=key.role == "function",accent=key.role == "selected",
+                selected=key.action.kind == "Shift" && shift != KeyMode.Off,
+                alternate=holdOptions.firstOrNull()?.takeIf {
+                    key.hold != null || it.isSymbol
+                }?.let(::actionName), pairedHints=pairedHints, previewEnabled=!privateInput,
+                holdChoices=holdOptions.distinctBy(::actionName).map { TouchChoice(actionName(it)) { perform(it) } },
+                bindingRevision=layout, directions=if(layout.id == "builtin.26") null else key.directions.mapValues { (_,action) -> TouchChoice(actionName(action)) {perform(action)} },
+                clearAction={dispatch("ClearEditor")}) {
+                perform(key.action)
+            }
+        }
+    }
 }
 
 @Composable

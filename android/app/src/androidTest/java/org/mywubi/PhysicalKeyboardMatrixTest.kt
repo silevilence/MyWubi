@@ -21,6 +21,9 @@ class PhysicalKeyboardMatrixTest {
         assumeNotNull(fixtureDir)
         val probe=InstrumentationRegistry.getArguments().getString("matrix_probe")=="true"
         fun <T> cases(items:List<T>)=if(probe)items.take(1) else items
+        val orientationFilter = InstrumentationRegistry.getArguments().getString("matrix_orientation")
+        require(orientationFilter == null || orientationFilter in listOf("portrait", "landscape"))
+        val orientations = orientationFilter?.let(::listOf) ?: cases(listOf("portrait", "landscape"))
         val ins = InstrumentationRegistry.getInstrumentation()
         val app = ins.targetContext
         val device = UiDevice.getInstance(ins)
@@ -99,7 +102,7 @@ class PhysicalKeyboardMatrixTest {
             device.executeShellCommand("ime set org.mywubi/.MyWubiService")
             device.executeShellCommand("am force-stop $host")
             device.executeShellCommand("am start -W -n $host/.EditorActivity")
-            requireNotNull(device.wait(Until.findObject(editor()), 10000)).click()
+            focusExternalEditor(device)
             for (skin in cases(listOf("parameters", "image"))) for (profile in cases(listOf("eight", "merged"))) {
                 val id = "pgz.matrix.$skin.$profile"
                 val input = File(fixtureDir, "$id.mywubi-skin")
@@ -110,7 +113,7 @@ class PhysicalKeyboardMatrixTest {
                     select(id, layout)
                     for (night in cases(listOf("no", "yes"))) {
                         device.executeShellCommand("cmd uimode night $night")
-                        for (orientation in cases(listOf("portrait", "landscape"))) {
+                        for (orientation in orientations) {
                             val row = JSONObject().put("skin", skin).put("profile", profile).put("layout", layout)
                                 .put("night", night).put("orientation", orientation)
                             try {
@@ -126,7 +129,8 @@ class PhysicalKeyboardMatrixTest {
                                 }
                                 val field = requireNotNull(fresh(editor(),6000))
                                 field.text = ""
-                                field.click()
+                                focusExternalEditor(device)
+                                assertTrue("Focus the empty host before swiping", awaitHostText(device, By.copy(editor()).focused(true), "", 3000))
                                 if (device.hasObject(By.pkg("org.mywubi").desc("英 → 中"))) key("英 → 中").click()
                                 val appearance = loadSkinAppearance(store.configFile, config)
                                 val variant = appearance.getJSONObject(if (night == "yes") "dark" else "light")
@@ -172,7 +176,7 @@ class PhysicalKeyboardMatrixTest {
                     }
                 }
             }
-            assertEquals(if(probe)1 else 48, completed)
+            assertEquals((if (probe) 1 else 24) * orientations.size, completed)
             assertEquals("See physical-matrix.jsonl", 0, failures)
         } finally {
             val restored=automation.serviceInfo

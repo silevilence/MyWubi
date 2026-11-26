@@ -101,7 +101,7 @@ const DEFAULT_PAGE_SIZE: usize = 5;
 #[derive(Clone)]
 pub struct StateMachine {
     groups: Option<crate::group_input::Sequence>,
-    group_matches: Option<Arc<crate::group_search::Matches>>,
+    group_matches: Option<Arc<crate::group_search::GroupWindow>>,
     shortcut_committed: bool,
     shortcut_rules: Arc<crate::shortcuts::RuleSet>,
     clock: Arc<dyn crate::shortcut_time::Clock>,

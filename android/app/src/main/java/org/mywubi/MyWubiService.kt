@@ -129,7 +129,7 @@ class MyWubiService : InputMethodService() {
                 main.post {
                     if (destroyed || !loads.accepts(ticket)) result.close() else {
                         personalCapture.configure(path, config.getJSONObject("config").optJSONObject("personal") ?: JSONObject(),config.getJSONObject("config").optJSONObject("prediction") ?: JSONObject())
-                        predictionController.configurePersonal(path)
+                        predictionController.configurePersonal(path, nextConfig.optJSONObject("personal")?.optBoolean("learn") == true)
                         val previous = runtime
                         if (dailySession != null) dailyRuntimeChanged = true
                         runtime = result
@@ -453,7 +453,7 @@ class MyWubiService : InputMethodService() {
         idle.activity(android.os.SystemClock.elapsedRealtime())
         main.removeCallbacks(idleRefresh)
         main.postDelayed(idleRefresh, 1800)
-        render()
+        if (keyboard.idle || keyboard.clipboard != clipboardSuggestion.preview()) render()
     }
 
     override fun onKeyDown(keyCode: Int, event: android.view.KeyEvent?): Boolean {
@@ -528,14 +528,16 @@ class MyWubiService : InputMethodService() {
                 error = null
                 if (cycling) pinyinMode = nextPinyin
                 if (action is JSONObject && action.has("SetBaseMode")) pinyinMode = KeyMode.Off
-                val current = NativeBridge.objectCall("State", "session" to s.value)
-                if (current.optString("temporary") != "Pinyin" &&
-                    current.optJSONObject("view")?.optJSONObject("expression") == null) {
-                    if (pinyinMode == KeyMode.Locked && current.optJSONObject("pinyin")?.optBoolean("available") == true) {
-                        val resume = NativeBridge.objectCall("Prepare", "session" to s.value,
-                            "action" to JSONObject().put("BeginTemporary", "Pinyin"))
-                        if (!applyPlan(resume)) pinyinMode = KeyMode.Off
-                    } else pinyinMode = KeyMode.Off
+                if (pinyinMode != KeyMode.Off) {
+                    val current = NativeBridge.objectCall("State", "session" to s.value)
+                    if (current.optString("temporary") != "Pinyin" &&
+                        current.optJSONObject("view")?.optJSONObject("expression") == null) {
+                        if (pinyinMode == KeyMode.Locked && current.optJSONObject("pinyin")?.optBoolean("available") == true) {
+                            val resume = NativeBridge.objectCall("Prepare", "session" to s.value,
+                                "action" to JSONObject().put("BeginTemporary", "Pinyin"))
+                            if (!applyPlan(resume)) pinyinMode = KeyMode.Off
+                        } else pinyinMode = KeyMode.Off
+                    }
                 }
             } else pinyinMode = KeyMode.Off
         } catch (_: ProtocolException) { error = "当前操作不可用" }

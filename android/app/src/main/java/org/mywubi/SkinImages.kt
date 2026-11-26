@@ -18,7 +18,8 @@ import org.json.JSONObject
 internal data class SkinImage(val bitmap: Bitmap, val mode: String, val slice: IntArray,
     val content: IntArray, val opacity: Float)
 internal class SkinImages(val roles: Map<String,SkinImage>)
-internal val LocalSkinImages = staticCompositionLocalOf { SkinImages(emptyMap()) }
+internal val EmptySkinImages = SkinImages(emptyMap())
+internal val LocalSkinImages = staticCompositionLocalOf { EmptySkinImages }
 
 /** Runs on the appearance loader; decoded bitmap ownership follows the whole snapshot. */
 internal fun decodeSkinImages(variant: JSONObject, bitmaps: MutableMap<String,Bitmap>): SkinImages {

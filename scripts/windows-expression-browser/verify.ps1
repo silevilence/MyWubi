@@ -59,6 +59,18 @@ try {
     [BrowserAutomation]::Key(0x1B)
     [BrowserAutomation]::CtrlA()
     [BrowserAutomation]::Key(0x08)
+    [BrowserAutomation]::Key(0x41)
+    [BrowserAutomation]::Key(0x20)
+    Expect-Text '笑脸' '形码空格上屏'
+    [BrowserAutomation]::Key(0x08)
+    Expect-Text '笑' '上屏后退格'
+    [BrowserAutomation]::CtrlA()
+    foreach ($vk in 0x4A,0x4A,0x41,0x44) {[BrowserAutomation]::Key($vk)}
+    [BrowserAutomation]::Key(0x22) # capacity two, global position three is on the second page
+    [BrowserAutomation]::Key(0x31)
+    Expect-Text '2026-11-12' 'SI-C04 第二页动态同文候选替换选区'
+    [BrowserAutomation]::CtrlA()
+    [BrowserAutomation]::Key(0x08)
     [BrowserAutomation]::Key(0xC0)
     Start-Sleep -Milliseconds 180
     [BrowserAutomation]::Key(0x22)

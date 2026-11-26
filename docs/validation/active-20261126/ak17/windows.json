@@ -1,0 +1,241 @@
+{
+  "result": {
+    "passed": true,
+    "checks": 52,
+    "automation": "WPF UIA + native MSAA + synthesized keyboard/mouse; no ComputerUse",
+    "resources": "local bundle; imported kaomoji order fixture",
+    "time": "2026-11-26T09:40:27.0708940+08:00",
+    "os": "Microsoft Windows NT 10.0.26100.0"
+  },
+  "checks": [
+    {
+      "name": "形码空格上屏 / 编辑框保持焦点",
+      "passed": true
+    },
+    {
+      "name": "上屏后退格 / 编辑框保持焦点",
+      "passed": true
+    },
+    {
+      "name": "SI-C04 第二页动态同文候选替换选区 / 编辑框保持焦点",
+      "passed": true
+    },
+    {
+      "name": "纯键盘从辅助菜单第三页进入全部，关键词不写入正文",
+      "passed": true
+    },
+    {
+      "name": "空关键词打开全部浏览",
+      "passed": true
+    },
+    {
+      "name": "真实鼠标点击上屏 / 编辑框保持焦点",
+      "passed": true
+    },
+    {
+      "name": "上屏后面板保留",
+      "passed": true
+    },
+    {
+      "name": "过期无障碍操作不重复提交",
+      "passed": true
+    },
+    {
+      "name": "连续上屏 / 编辑框保持焦点",
+      "passed": true
+    },
+    {
+      "name": "方向键和回车选择 / 编辑框保持焦点",
+      "passed": true
+    },
+    {
+      "name": "PageDown 后选择下一页首项 / 编辑框保持焦点",
+      "passed": true
+    },
+    {
+      "name": "颜文字分类原文上屏 / 编辑框保持焦点",
+      "passed": true
+    },
+    {
+      "name": "长颜文字网格可滚动",
+      "passed": true
+    },
+    {
+      "name": "滚动后搜索按钮固定可用",
+      "passed": true
+    },
+    {
+      "name": "假名分类原文上屏 / 编辑框保持焦点",
+      "passed": true
+    },
+    {
+      "name": "数学符号分类原文上屏 / 编辑框保持焦点",
+      "passed": true
+    },
+    {
+      "name": "标点分类原文上屏 / 编辑框保持焦点",
+      "passed": true
+    },
+    {
+      "name": "其他符号分类原文上屏 / 编辑框保持焦点",
+      "passed": true
+    },
+    {
+      "name": "希腊字母分类原文上屏 / 编辑框保持焦点",
+      "passed": true
+    },
+    {
+      "name": "西里尔字母分类原文上屏 / 编辑框保持焦点",
+      "passed": true
+    },
+    {
+      "name": "拼音与拉丁分类原文上屏 / 编辑框保持焦点",
+      "passed": true
+    },
+    {
+      "name": "音标分类原文上屏 / 编辑框保持焦点",
+      "passed": true
+    },
+    {
+      "name": "圈号与括号分类原文上屏 / 编辑框保持焦点",
+      "passed": true
+    },
+    {
+      "name": "数字形式分类原文上屏 / 编辑框保持焦点",
+      "passed": true
+    },
+    {
+      "name": "箭头分类原文上屏 / 编辑框保持焦点",
+      "passed": true
+    },
+    {
+      "name": "货币分类原文上屏 / 编辑框保持焦点",
+      "passed": true
+    },
+    {
+      "name": "单位分类原文上屏 / 编辑框保持焦点",
+      "passed": true
+    },
+    {
+      "name": "几何图形分类原文上屏 / 编辑框保持焦点",
+      "passed": true
+    },
+    {
+      "name": "制表与方块分类原文上屏 / 编辑框保持焦点",
+      "passed": true
+    },
+    {
+      "name": "盲文分类原文上屏 / 编辑框保持焦点",
+      "passed": true
+    },
+    {
+      "name": "音乐符号分类原文上屏 / 编辑框保持焦点",
+      "passed": true
+    },
+    {
+      "name": "组合附加符分类原文上屏 / 编辑框保持焦点",
+      "passed": true
+    },
+    {
+      "name": "纯键盘别名查询 α / 编辑框保持焦点",
+      "passed": true
+    },
+    {
+      "name": "空关键词打开全部浏览",
+      "passed": true
+    },
+    {
+      "name": "纯键盘别名查询 ① / 编辑框保持焦点",
+      "passed": true
+    },
+    {
+      "name": "空关键词打开全部浏览",
+      "passed": true
+    },
+    {
+      "name": "纯键盘别名查询 ā / 编辑框保持焦点",
+      "passed": true
+    },
+    {
+      "name": "空关键词打开全部浏览",
+      "passed": true
+    },
+    {
+      "name": "Esc 从分类返回全部网格",
+      "passed": true
+    },
+    {
+      "name": "末页最后一项可达 / 编辑框保持焦点",
+      "passed": true
+    },
+    {
+      "name": "连续输入保留末页位置",
+      "passed": true
+    },
+    {
+      "name": "全部与搜索切换保留 shi 草稿 / 编辑框保持焦点",
+      "passed": true
+    },
+    {
+      "name": "空关键词打开全部浏览",
+      "passed": true
+    },
+    {
+      "name": "Esc 不写入正文",
+      "passed": true
+    },
+    {
+      "name": "空关键词打开全部浏览",
+      "passed": true
+    },
+    {
+      "name": "切换编辑框关闭浏览",
+      "passed": true
+    },
+    {
+      "name": "空关键词打开全部浏览",
+      "passed": true
+    },
+    {
+      "name": "替换宿主选区 / 编辑框保持焦点",
+      "passed": true
+    },
+    {
+      "name": "空关键词打开全部浏览",
+      "passed": true
+    },
+    {
+      "name": "关闭专用检索的分类不可操作",
+      "passed": true
+    },
+    {
+      "name": "键盘确认不可用分类仍留在分类面板",
+      "passed": true
+    },
+    {
+      "name": "关闭按钮结束浏览",
+      "passed": true
+    }
+  ],
+  "dll": {
+    "Algorithm": "SHA256",
+    "Hash": "D0E0EBDC20575F571E68FD5D02A45AB72A596F9EDFFA7278FC1BC1C9231E5BF2",
+    "Path": "C:\\Browser-App\\im_engine.dll"
+  },
+  "host": {
+    "modules": [
+      {
+        "FileName": "C:\\Browser-App\\im_engine.dll"
+      }
+    ],
+    "focus": true,
+    "text": "😀"
+  },
+  "workspace": {
+    "command": "cargo test --locked --offline --workspace --lib --tests -j 4",
+    "binaries": 82,
+    "passed": 630,
+    "failed": 0,
+    "ignored": 8
+  }
+}

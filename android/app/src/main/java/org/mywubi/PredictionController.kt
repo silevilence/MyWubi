@@ -28,7 +28,10 @@ class PredictionController(private val context:Context,private val changed:()->U
     private var personalConfig:java.io.File?=null
     private var learningVisible=false
     private val learningPoll=Runnable { if(learningVisible)learning(false,true) }
-    fun configurePersonal(file:java.io.File){personalConfig=file}
+    fun configurePersonal(file:java.io.File, learningEnabled:Boolean) {
+        if (!learningEnabled && personalConfig != null) learning(false, false)
+        personalConfig = file.takeIf { learningEnabled }
+    }
     private fun personalCommand(op:String,vararg fields:Pair<String,Any?>):JSONObject {
         val request=JSONObject().put("op",op);fields.forEach{(k,v)->request.put(k,v ?: JSONObject.NULL)}
         return JSONObject(NativeBridge.personalRuntime(request.toString().toByteArray(Charsets.UTF_8)).toString(Charsets.UTF_8))
@@ -37,9 +40,12 @@ class PredictionController(private val context:Context,private val changed:()->U
         learningVisible=visible
         main.removeCallbacks(learningPoll)
         val file=personalConfig ?: return
-        val battery=context.registerReceiver(null,IntentFilter(Intent.ACTION_BATTERY_CHANGED))
-        val charging=battery?.getIntExtra(BatteryManager.EXTRA_PLUGGED,0)?.let{it!=0}==true
-        runCatching{personalCommand("Learning","config" to file.absolutePath,"allowed" to (visible && charging && !resourcePressure()),"busy" to busy)}
+        // Only an idle, visible keyboard can start work. Keep battery and memory
+        // service calls off the touch path while still notifying the worker to stop.
+        val allowed = visible && !busy && !resourcePressure() &&
+            context.registerReceiver(null, IntentFilter(Intent.ACTION_BATTERY_CHANGED))
+                ?.getIntExtra(BatteryManager.EXTRA_PLUGGED, 0)?.let { it != 0 } == true
+        runCatching{personalCommand("Learning","config" to file.absolutePath,"allowed" to allowed,"busy" to busy)}
         if(visible)main.postDelayed(learningPoll,1000)
     }
     private val poll=Runnable { currentSession?.let { update(it,lifecycleAllowed) } }

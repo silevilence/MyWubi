@@ -44,14 +44,14 @@ impl PinyinIndex {
     }
 
     /// The existing normalized index owns syllable boundaries; groups never enumerate strings.
-    pub fn search_groups(
+    pub(crate) fn group_indices(
         &self,
         entries: &[Entry],
         positions: &[crate::group_input::Position],
         budget: usize,
-    ) -> crate::group_search::Matches {
-        use crate::group_search::{Matches, SearchStatus};
-        let invalid = || Matches {
+    ) -> crate::group_search::IndexedMatches {
+        use crate::group_search::{IndexedMatches, SearchStatus};
+        let invalid = || IndexedMatches {
             status: SearchStatus::InvalidInput,
             visited: 0,
             candidates: Vec::new(),
