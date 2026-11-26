@@ -103,6 +103,7 @@ class SpecialPositionHostTest {
             assertTrue(dev.click(bounds.centerX(), bounds.centerY()))
             assertTrue(awaitHostText(dev, field, expected[selected], 3000))
         }
+        val restoreLayout = useBuiltInLayoutForTest(store.configFile)
         try {
             dev.executeShellCommand("ime enable $ime")
             dev.executeShellCommand("ime set $ime")
@@ -149,6 +150,7 @@ class SpecialPositionHostTest {
             activate("restored",listOf("甲"),rows)
             checkOrder(listOf("恢复","甲"),listOf(true,false),0)
         } finally {
+            restoreLayout()
             save(original.getJSONObject("config"))
             dev.executeShellCommand("am force-stop $host")
             dev.executeShellCommand("ime set $previous")
@@ -216,6 +218,7 @@ class SpecialPositionHostTest {
             }
             report.appendText(r.toString()+"\n")
         }
+        val restoreLayout = useBuiltInLayoutForTest(store.configFile)
         try {
             report.writeText("")
             dev.executeShellCommand("ime enable org.mywubi/.MyWubiService")
@@ -268,10 +271,20 @@ class SpecialPositionHostTest {
             }
             assertEquals("See special-positions.jsonl",0,failures)
         } finally {
+            restoreLayout()
             save(original.getJSONObject("config"), waitForReload = false)
             dev.executeShellCommand("am force-stop $host")
             if(previous.isNotEmpty())dev.executeShellCommand("ime set $previous")
             table.delete()
         }
     }
+}
+
+// These trajectories spell individual letters, even if the test device normally uses grouped keys.
+internal fun useBuiltInLayoutForTest(config: File): () -> Unit {
+    val receipt = File(config.parentFile, "keyboard-selection.json")
+    if (!receipt.isFile) return {}
+    val original = receipt.readBytes()
+    check(receipt.delete())
+    return { receipt.writeBytes(original) }
 }
