@@ -1,5 +1,6 @@
 //! 独立于 `config.toml` 的用户词库持久化与 C-ABI。
 
+use std::collections::{BTreeMap, HashSet};
 use std::ffi::{c_char, CStr, CString};
 use std::path::{Path, PathBuf};
 
@@ -30,23 +31,28 @@ pub struct UserDictionary {
     additive: bool,
     system_path: Option<PathBuf>,
     entries: Vec<Entry>,
+    order: BTreeMap<String, Vec<String>>,
 }
 
 impl UserDictionary {
     pub fn load(path: impl AsRef<Path>) -> Result<Self, UserDictionaryError> {
         let path = path.as_ref().to_path_buf();
-        let (entries, additive) = match std::fs::read_to_string(&path) {
+        let (entries, additive, order) = match std::fs::read_to_string(&path) {
             Ok(text) => (
                 parse(&text)?,
                 text.lines().any(|line| line.trim() == HEADER),
+                read_order(&text)?,
             ),
-            Err(error) if error.kind() == std::io::ErrorKind::NotFound => (Vec::new(), true),
+            Err(error) if error.kind() == std::io::ErrorKind::NotFound => {
+                (Vec::new(), true, BTreeMap::new())
+            }
             Err(error) => return Err(UserDictionaryError::Io(path, error.to_string())),
         };
         Ok(Self {
             path,
             additive,
             system_path: None,
+            order,
             entries,
         })
     }
@@ -64,6 +70,86 @@ impl UserDictionary {
             user.additive = true;
         }
         Ok(user)
+    }
+
+    /// Store only the selected word's adjustment. Equal-score neighbours retain their order.
+    pub fn move_to_rank(
+        &mut self,
+        visible: &crate::Dictionary,
+        code: &str,
+        word: &str,
+        rank: usize,
+    ) -> Result<(), UserDictionaryError> {
+        let invalid = |message: &str| UserDictionaryError::InvalidEntry(message.into());
+        if !self.additive {
+            return Err(invalid("请先按当前码表载入用户词典"));
+        }
+        let mut seen = HashSet::new();
+        let mut rows: Vec<_> = visible
+            .exact(code)
+            .into_iter()
+            .filter(|row| seen.insert(row.word.as_str()))
+            .collect();
+        if rank == 0 || rank > rows.len() {
+            return Err(invalid("指定名次超出同码候选数"));
+        }
+        let from = rows
+            .iter()
+            .position(|row| row.word == word)
+            .ok_or_else(|| invalid("当前编码没有该候选"))?;
+        if from == rank - 1 {
+            return Ok(());
+        }
+        let destination = rows[rank - 1].weight;
+        let entry = rows.remove(from);
+        rows.insert(rank - 1, entry);
+        let mut entries = self.entries.clone();
+        let position = entries
+            .iter()
+            .position(|row| row.code == code && row.word == word);
+        let previous = position.map_or(0, |i| entries[i].weight);
+        let weight = i64::try_from(
+            i128::from(previous) + i128::from(destination) - i128::from(entry.weight),
+        )
+        .map_err(|_| invalid("调整值超出范围"))?;
+        if let Some(i) = position {
+            entries[i].weight = weight;
+        } else {
+            entries.push(Entry {
+                code: code.into(),
+                word: word.into(),
+                weight,
+            });
+        }
+        let mut order = self.order.clone();
+        order.insert(
+            code.into(),
+            rows.iter().map(|row| row.word.clone()).collect(),
+        );
+        self.replace_ordered(entries, order)
+    }
+
+    /// Stable input to the dictionary's weight sort, used only to break ties.
+    pub(crate) fn order_ties(&self, entries: &mut [Entry]) {
+        if self.order.is_empty() {
+            return;
+        }
+        let ranks: std::collections::HashMap<_, _> = self
+            .order
+            .iter()
+            .flat_map(|(code, words)| {
+                words
+                    .iter()
+                    .enumerate()
+                    .map(move |(i, word)| ((code.as_str(), word.as_str()), i))
+            })
+            .collect();
+        entries.sort_by_key(|row| {
+            ranks
+                .get(&(row.code.as_str(), row.word.as_str()))
+                .copied()
+                .unwrap_or(usize::MAX)
+        });
     }
 
     pub fn additive(&self) -> bool {
@@ -144,29 +230,55 @@ impl UserDictionary {
             }
         }
         let added = entries.len() - before;
-        self.replace_entries(entries)?;
+        let mut order = self.order.clone();
+        order.extend(read_order(&text)?);
+        self.replace_ordered(entries, order)?;
         Ok(added)
     }
 
     pub fn export(&self, path: impl AsRef<Path>) -> Result<(), UserDictionaryError> {
-        write_entries(path.as_ref(), &self.entries, self.additive)
+        write_entries(path.as_ref(), &self.entries, self.additive, &self.order)
     }
 
     pub fn save(&self) -> Result<(), UserDictionaryError> {
-        write_entries(&self.path, &self.entries, self.additive)
+        write_entries(&self.path, &self.entries, self.additive, &self.order)
     }
 
-    fn replace_entries(&mut self, mut entries: Vec<Entry>) -> Result<(), UserDictionaryError> {
+    fn replace_entries(&mut self, entries: Vec<Entry>) -> Result<(), UserDictionaryError> {
+        self.replace_ordered(entries, self.order.clone())
+    }
+
+    fn replace_ordered(
+        &mut self,
+        mut entries: Vec<Entry>,
+        order: BTreeMap<String, Vec<String>>,
+    ) -> Result<(), UserDictionaryError> {
         entries.sort_by(|left, right| {
             left.code
                 .cmp(&right.code)
                 .then_with(|| right.weight.cmp(&left.weight))
                 .then_with(|| left.word.cmp(&right.word))
         });
-        write_entries(&self.path, &entries, self.additive)?;
+        write_entries(&self.path, &entries, self.additive, &order)?;
+        self.order = order;
         self.entries = entries;
         Ok(())
     }
+}
+
+const ORDER_PREFIX: &str = "# mywubi-order ";
+
+fn read_order(text: &str) -> Result<BTreeMap<String, Vec<String>>, UserDictionaryError> {
+    let mut order = BTreeMap::new();
+    for (n, line) in text.lines().enumerate() {
+        if let Some(json) = line.strip_prefix(ORDER_PREFIX) {
+            let (code, words) = serde_json::from_str(json).map_err(|e| {
+                UserDictionaryError::InvalidLine(n + 1, format!("同分顺序无效: {e}"))
+            })?;
+            order.insert(code, words);
+        }
+    }
+    Ok(order)
 }
 
 fn validate(entry: &Entry) -> Result<(), UserDictionaryError> {
@@ -228,6 +340,7 @@ fn write_entries(
     path: &Path,
     entries: &[Entry],
     additive: bool,
+    order: &BTreeMap<String, Vec<String>>,
 ) -> Result<(), UserDictionaryError> {
     if let Some(parent) = path
         .parent()
@@ -238,6 +351,11 @@ fn write_entries(
     }
     let header = if additive { HEADER } else { LEGACY_HEADER };
     let mut text = format!("{header}\n");
+    for row in order {
+        let json = serde_json::to_string(&row)
+            .map_err(|e| UserDictionaryError::InvalidEntry(e.to_string()))?;
+        text.push_str(&format!("{ORDER_PREFIX}{json}\n"));
+    }
     for entry in entries {
         text.push_str(&format!(
             "{}\t{}\t{}\n",

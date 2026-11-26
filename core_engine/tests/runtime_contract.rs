@@ -175,3 +175,29 @@ fn migration_and_import_preserve_legacy_weights_and_new_signed_values() {
         [70, 60]
     );
 }
+
+#[test]
+fn moving_a_word_can_split_ties_and_reuses_its_adjustment() {
+    let f = Files::new();
+    f.write(
+        "main.dict",
+        "a\t甲\t9\na\t乙\t9\na\t丙\t8\na\t丁\t5\na\t戊\t1\n",
+    );
+    let path = f.0.join("user.dict");
+    for (rank, expected) in [(2, "甲戊乙丙丁"), (1, "戊甲乙丙丁"), (3, "甲乙戊丙丁")]
+    {
+        let mut user = UserDictionary::for_edit(&path, Some(&f.0.join("main.dict"))).unwrap();
+        user.move_to_rank(&f.build(LoadPolicy::Reload).unwrap().dict, "a", "戊", rank)
+            .unwrap();
+        assert_eq!(user.entries().len(), 1);
+        let s = f.build(LoadPolicy::Reload).unwrap();
+        assert_eq!(
+            s.dict
+                .exact("a")
+                .iter()
+                .map(|e| e.word.as_str())
+                .collect::<String>(),
+            expected
+        );
+    }
+}

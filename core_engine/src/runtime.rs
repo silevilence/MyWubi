@@ -249,6 +249,7 @@ pub fn merge_dictionary(
             .filter(|e| !keys.contains(&(e.code.as_str(), e.word.as_str())))
             .cloned(),
     );
+    user.order_ties(&mut entries);
     system
         .rebuild_with_entries(entries, Default::default())
         .map_err(|e| format!("合并用户词库失败: {e}"))
