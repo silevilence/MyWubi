@@ -248,7 +248,8 @@ fn qualifies(cpu: &Samples, accelerated: &Samples, actual: &Value) -> bool {
     trial.sort_unstable();
     baseline.len() == 6
         && trial.len() == 6
-        && [2, 5].iter().all(|&i| trial[i] * 100 < baseline[i] * 85)
+        && (trial[2] + trial[3]) * 100 < (baseline[2] + baseline[3]) * 85
+        && trial[5] * 100 < baseline[5] * 85
 }
 
 fn run(r: &Request) -> Result<Value, String> {
@@ -350,7 +351,76 @@ pub(crate) mod tests {
         assert!(!qualifies(&cpu, &trial, &json!("NPU")));
     }
 
-    #[cfg(feature = "android-nnapi")]
+    #[cfg(windows)]
+    #[test]
+    fn fixed_prediction_with_missing_provider_uses_real_cpu_and_keeps_auto_disabled() {
+        let dir = tempfile::tempdir().unwrap();
+        let root = dir.path().join("counts--v1");
+        fs::create_dir(&root).unwrap();
+        let fixtures = Path::new(env!("CARGO_MANIFEST_DIR")).join("evaluation/onnx");
+        for name in ["counts.onnx", "vocabulary.json"] {
+            fs::copy(fixtures.join(name), root.join(name)).unwrap();
+        }
+        let policy = json!({"version":1,"adapter":"character-step-v1",
+            "model_sha256":package::sha256(&root.join("counts.onnx")).unwrap(),
+            "vocabulary_sha256":package::sha256(&root.join("vocabulary.json")).unwrap(),
+            "minimum_score":-100,"minimum_margin":0,"evidence":"Fixed plumbing sample"});
+        fs::write(root.join("policy.json"), policy.to_string()).unwrap();
+        let files: Vec<_> = ["counts.onnx", "vocabulary.json", "policy.json"]
+            .iter()
+            .map(|p| {
+                json!({"path":p,"bytes":fs::metadata(root.join(p)).unwrap().len(),
+                "sha256":package::sha256(&root.join(p)).unwrap()})
+            })
+            .collect();
+        let cpu =
+            OnnxScorer::load(&root.join("counts.onnx"), &root.join("vocabulary.json"), 2).unwrap();
+        let manifest = json!({"protocol":1,"id":"counts","version":"v1","backend":"OnnxRuntime",
+            "adapter":"character-step-v1","model":"counts.onnx","vocabulary":"vocabulary.json",
+            "prediction_policy":"policy.json","source":"MyWubi","license":"MIT","files":files,
+            "capabilities":cpu.capabilities(),"android_execution":{"provider":"nnapi","format":"onnx","quantization":"fp32"}});
+        fs::write(root.join("manifest.json"), manifest.to_string()).unwrap();
+        activate_platform("test-platform".into());
+        let r = Request {
+            package: root.clone(),
+            profile_dir: dir.path().into(),
+            threads: 2,
+            max_candidates: 8,
+            wait_ms: 1000,
+            provider: false,
+            accelerator_only: false,
+        };
+        let report = run(&r).unwrap();
+        assert_eq!(report["actual"], "CPU");
+        assert_eq!(report["approved"], false);
+        assert!(report["cpu"]["words"][0]
+            .as_array()
+            .is_some_and(|w| !w.is_empty()));
+        let package = package::validate(&root).unwrap();
+        let config = core_engine::config::PredictionConfig {
+            threads: 2,
+            wait_ms: 1000,
+            max_candidates: 8,
+            ..Default::default()
+        };
+        assert_eq!(
+            approved(&package, &config).err().as_deref(),
+            Some("NNAPI_UNAVAILABLE")
+        );
+        assert_eq!(
+            approved(
+                &package,
+                &core_engine::config::PredictionConfig {
+                    threads: 1,
+                    ..config
+                }
+            )
+            .err()
+            .as_deref(),
+            Some("NO_CURRENT_VALIDATION")
+        );
+    }
+
     pub(crate) fn test_lease(file: PathBuf, budget: u64) -> Lease {
         Lease {
             file,

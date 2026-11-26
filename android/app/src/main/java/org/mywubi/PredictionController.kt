@@ -154,13 +154,14 @@ class PredictionController(private val context:Context,private val changed:()->U
             check(result.getBoolean("ok"))
             val value=result.optJSONObject("value")
             if(value!=null) {
-                if (value.has("Ok")) {
-                    command("Execution").optJSONObject("value")?.takeUnless { it.isNull("actual") }?.let {
-                        LastPredictionDevice.record(config.getJSONObject("model"), it)
-                    }
-                }
                 NativeBridge.call("PredictionResult","session" to session,"key" to key,"response" to value.optJSONObject("Ok"))
-                activeKey=null;awaiting=false;changed()
+                activeKey=null;awaiting=false
+                if (value.has("Ok")) {
+                    // A status query must never discard a valid model response.
+                    runCatching { command("Execution").optJSONObject("value") }.getOrNull()
+                        ?.takeUnless { it.isNull("actual") }?.let { LastPredictionDevice.record(config.getJSONObject("model"), it) }
+                }
+                changed()
             } else {main.removeCallbacks(poll);main.postDelayed(poll,16)}
         } catch (_:RuntimeException) {fallback();changed()}
     }
