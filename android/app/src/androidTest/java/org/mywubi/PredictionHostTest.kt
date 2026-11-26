@@ -45,6 +45,7 @@ class PredictionHostTest {
                 .put("loading",if(generated || lifecycle) "preload_keep" else "on_demand")
                 .put("model",JSONObject().put("id",if(generated) "qwen25-words" else "instrumented-counts").put("version","v1"))
         }
+        var fallbackReason: String? = null
         if (deviceFallback) {
             val prediction = config.getJSONObject("prediction").put("device","auto")
             val installed = File(store.configFile.parentFile,"models/instrumented-counts--v1")
@@ -52,10 +53,14 @@ class PredictionHostTest {
             while (OnnxRuntime.status.value != OnnxRuntime.State.Ready && android.os.SystemClock.elapsedRealtime() < deadline)
                 android.os.SystemClock.sleep(25)
             assertEquals(OnnxRuntime.State.Ready, OnnxRuntime.status.value)
-            // Inject an unavailable accelerator while preserving the real CPU component.
-            val detection = JSONObject(NpuDetection.detect(context, OnnxRuntime.State.Ready).toString()).put("backend", false)
+            val detection = NpuDetection.detect(context, OnnxRuntime.State.Ready)
+            val realDevice = InstrumentationRegistry.getArguments().getString("npu_real_fallback") == "true"
+            // The injected case leaves the real CPU component available.
+            if (!realDevice) detection.put("backend", false)
             val report = NpuValidation.run(context, installed, prediction, detection)
-            assertEquals("NNAPI_UNAVAILABLE", report.getString("reason"))
+            fallbackReason = report.getString("reason")
+            if (realDevice) assertTrue(report.toString(), fallbackReason.startsWith("NNAPI_LOAD"))
+            else assertEquals("NNAPI_UNAVAILABLE", fallbackReason)
         }
         fun save(value:JSONObject,version:Long) {
             NativeHandle(version).use { v -> NativeHandle(store.saveConfig(value,v.value).getLong("version")).close() }
@@ -177,13 +182,18 @@ class PredictionHostTest {
             if(deviceFallback) {
                 val last = requireNotNull(LastPredictionDevice.entry)
                 assertEquals("CPU",last.getString("actual"))
-                assertEquals("NNAPI_UNAVAILABLE",last.getString("reason"))
+                assertEquals(fallbackReason,last.getString("reason"))
                 key("退格");expect("北京天");expectPrediction(false)
                 device.pressHome()
                 device.executeShellCommand("am start -n org.mywubi.acceptancehost/.EditorActivity -f 0x20000000")
                 focusExternalEditor(device)
                 expect("北京天");expectPrediction(false)
                 key("b");expect("北京天b");candidate("北");expect("北京天北")
+                // NEW_TASK | MULTIPLE_TASK creates a second independent EditText.
+                device.executeShellCommand("am start -W -f 0x18000000 -n org.mywubi.acceptancehost/.EditorActivity")
+                focusExternalEditor(device)
+                expect("");expectPrediction(false)
+                key("b");candidate("北");expect("北")
                 File(context.filesDir,"npu-host.json").writeText(last.toString())
                 return
             }

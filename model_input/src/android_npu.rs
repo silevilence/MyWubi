@@ -285,8 +285,15 @@ fn run(r: &Request) -> Result<Value, String> {
     } else {
         None
     };
+    // Until an accelerator trial supplies its own samples, the displayed candidates
+    // come from the measured CPU baseline, including when NNAPI cannot load the graph.
+    let actual = if cpu.errors.iter().any(Option::is_none) {
+        "CPU"
+    } else {
+        "执行设备未确认"
+    };
     let mut report = json!({"cpu":cpu,"task":if package.manifest.capabilities.proposes_words {"generation"} else {"scoring"},
-        "backend":package.manifest.backend,"actual":"执行设备未确认","reason":reason});
+        "backend":package.manifest.backend,"actual":actual,"reason":reason});
     if reason.is_none() {
         match attributed(&package, r) {
             Ok((allocation, samples)) => {
@@ -307,8 +314,6 @@ fn run(r: &Request) -> Result<Value, String> {
             }
             Err(error) => report["reason"] = json!(error),
         }
-    } else if cpu.errors.iter().any(Option::is_none) {
-        report["actual"] = json!("CPU");
     }
     if let Some(reason) = report["reason"].as_str() {
         decision.reason = reason.into();

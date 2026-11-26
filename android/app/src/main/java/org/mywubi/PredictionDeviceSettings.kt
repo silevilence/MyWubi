@@ -20,7 +20,8 @@ internal fun npuReason(reason: String): String = when (reason.substringBefore(':
     "BENCHMARK_GATE" -> "固定样例的候选或延迟未达到 CPU 对照要求"
     "PLACEMENT_GATE" -> "未确认全图使用 NPU"
     "NNAPI_TIMEOUT" -> "加速预测连续超时，已暂停使用此组合"
-    "NNAPI_EXECUTION", "NNAPI_LOAD", "NNAPI_PREDICT" -> "驱动加载或执行失败，已保留 CPU 路径"
+    "NNAPI_LOAD" -> "NNAPI 未能加载此模型，回退至 CPU"
+    "NNAPI_EXECUTION", "NNAPI_PREDICT" -> "驱动执行失败，已保留 CPU 路径"
     else -> reason
 }
 
