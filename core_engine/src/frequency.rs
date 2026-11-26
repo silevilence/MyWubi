@@ -540,6 +540,7 @@ mod materialize_tests {
     #[test]
     fn confirmed_batch_consumes_counts_atomically_and_rejects_changed_preview() {
         let private = dirs::data_local_dir().unwrap_or_else(std::env::temp_dir);
+        fs::create_dir_all(&private).unwrap();
         let root = tempfile::tempdir_in(private).unwrap();
         let config = root.path().join("config.toml");
         let table = root.path().join("main.dict");
