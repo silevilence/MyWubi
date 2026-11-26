@@ -95,6 +95,7 @@ pub struct AppState {
     pub config_path: PathBuf,
     /// 状态栏消息（如"已保存"、错误信息）。
     pub status_msg: Option<String>,
+    pub frequency_preview: Option<core_engine::frequency::Preview>,
     /// 是否便携模式。
     pub portable: bool,
     /// 启动期配置加载错误（若有）。UI 据此弹错误对话框让用户选择处理方式。
@@ -181,6 +182,7 @@ impl AppState {
             active_panel: Panel::Basic,
             config_path,
             status_msg: access_error,
+            frequency_preview: None,
             portable,
             load_error,
             pending_pick: None,

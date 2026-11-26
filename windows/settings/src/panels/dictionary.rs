@@ -160,6 +160,46 @@ pub fn show(ui: &mut Ui, state: &mut AppState) {
             state.mark_dirty();
         }
 
+        if ui
+            .add_enabled(
+                !state.dirty && state.config.dictionary.enable_user_dict,
+                egui::Button::new("预览学习结果…"),
+            )
+            .clicked()
+        {
+            match core_engine::frequency::materialize(&state.config_path, None) {
+                Ok(preview) => state.frequency_preview = Some(preview),
+                Err(error) => state.status_msg = Some(error),
+            }
+        }
+        if state.dirty {
+            ui.small("保存设置后可预览当前码表的学习结果。");
+        }
+        if let Some(preview) = &state.frequency_preview {
+            ui.label(format!("本次将调整 {} 条词条", preview.count));
+            for line in &preview.examples {
+                ui.label(line);
+            }
+            ui.label("保存后，即使关闭自动调频，这些调整也会保留。");
+            let confirm = ui
+                .add_enabled(
+                    preview.count > 0 && !state.dirty,
+                    egui::Button::new("确认写入用户词典"),
+                )
+                .clicked();
+            if confirm {
+                let result =
+                    core_engine::frequency::materialize(&state.config_path, Some(&preview.version));
+                state.status_msg = Some(match result {
+                    Ok(done) => format!("已写入 {} 条调整", done.count),
+                    Err(error) => error,
+                });
+                state.frequency_preview = None;
+            } else if ui.button("取消").clicked() {
+                state.frequency_preview = None;
+            }
+        }
+
         if ui.button("管理自造词…").clicked() {
             open_user_dictionary(state);
         }

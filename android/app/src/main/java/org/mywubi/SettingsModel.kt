@@ -43,6 +43,17 @@ class SettingsModel(application: Application) : AndroidViewModel(application) {
     val specialListScroll = androidx.compose.foundation.ScrollState(0)
     val specialDetailScroll = androidx.compose.foundation.ScrollState(0)
     val specialTrials = specialCategories.associate {it.first to ExpressionTrialDraft()}
+    var frequencyPreview by mutableStateOf<JSONObject?>(null); private set
+    fun dismissFrequencyPreview() { frequencyPreview = null }
+    fun frequencyResult(confirm: String? = null) = work(onError = { frequencyPreview = null }) {
+        val result = NativeBridge.objectCall("SaveFrequency", "path" to store.configFile.path, "confirm" to confirm)
+        if (confirm != null && result.getInt("count") > 0) EngineUpdates.request(app)
+        val publish: () -> Unit = {
+            frequencyPreview = if (confirm == null) result else null
+            if (confirm != null) message = "已写入 ${result.getInt("count")} 条调整"
+        }
+        publish
+    }
     var personalStatus by mutableStateOf(""); private set
     var personalPreview by mutableStateOf<JSONObject?>(null); private set
     private var personalImport: File? = null

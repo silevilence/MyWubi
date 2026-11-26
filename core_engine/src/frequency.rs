@@ -122,10 +122,117 @@ impl Ranking {
         if runtime.config.dictionary.enable_user_dict {
             let user =
                 crate::UserDictionary::load(&runtime.user_table_path).map_err(|e| e.to_string())?;
-            ranking.ties = user.order.clone();
+            if let Some(saved) = user.learned.get(&data.id) {
+                ranking.scores = data.scores(saved);
+            }
+            ranking.ties = user.order;
         }
         Ok(ranking)
     }
+}
+
+#[derive(Clone, Debug, Serialize)]
+pub struct Preview {
+    pub count: usize,
+    pub examples: Vec<String>,
+    pub version: String,
+}
+
+/// The user's adjustment and the consumed counts share one atomic file replacement.
+pub fn materialize(config_path: &Path, confirm: Option<&str>) -> Result<Preview, String> {
+    use crate::{config_path::resolve_resource_path, Config, Dictionary, Entry, UserDictionary};
+    let config = Config::load(config_path).map_err(|e| e.to_string())?;
+    if !config.dictionary.enable_user_dict {
+        return Err("请先启用用户词库并保存设置".into());
+    }
+    let table = resolve_resource_path(config_path, &config.dictionary.system_table);
+    let path = resolve_resource_path(config_path, &config.dictionary.user_table);
+    let file = store_path(config_path, &table).ok_or("词频目录不可用")?;
+    let _lock = if confirm.is_some() {
+        Some(lock_file(&file).map_err(|e| e.to_string())?)
+    } else {
+        None
+    };
+    let data = statistics(&file).map_err(|e| e.to_string())?;
+    let mut user = UserDictionary::for_edit(&path, Some(&table)).map_err(|e| e.to_string())?;
+    let system = Dictionary::load(&table).map_err(|e| e.to_string())?;
+    let dict = crate::runtime::merge_dictionary(system, &path, &config)?;
+    let empty = Counts::new();
+    let scores = data.scores(user.learned.get(&data.id).unwrap_or(&empty));
+    let ranking = Ranking {
+        scores,
+        ties: user.order.clone(),
+    };
+    let mut entries: BTreeMap<_, _> = user
+        .entries()
+        .iter()
+        .map(|e| ((e.code.clone(), e.word.clone()), e.weight))
+        .collect();
+    let mut order = user.order.clone();
+    let mut learned = user.learned.clone();
+    let mut examples = Vec::new();
+    let mut count = 0;
+    for (code, words) in &ranking.scores {
+        let mut rows = dict.exact(code);
+        let mut seen = std::collections::HashSet::new();
+        rows.retain(|e| seen.insert(e.word.as_str()));
+        let before: BTreeMap<_, _> = rows
+            .iter()
+            .enumerate()
+            .map(|(i, e)| (e.word.as_str(), i + 1))
+            .collect();
+        ranking.sort(code, &mut rows);
+        for (index, row) in rows.iter().enumerate() {
+            let Some(score) = words.get(&row.word) else {
+                continue;
+            };
+            let value = entries.entry((code.clone(), row.word.clone())).or_default();
+            *value = value.checked_add(*score).ok_or("词频调整值超出范围")?;
+            learned
+                .entry(data.id.clone())
+                .or_default()
+                .entry(code.clone())
+                .or_default()
+                .insert(row.word.clone(), data.counts[code][&row.word]);
+            count += 1;
+            if examples.len() < 5 {
+                examples.push(format!(
+                    "{code}  {}：第 {} 位 → 第 {} 位（+{score}）",
+                    row.word,
+                    before[row.word.as_str()],
+                    index + 1
+                ));
+            }
+        }
+        if !rows.is_empty() {
+            order.insert(
+                code.clone(),
+                rows.into_iter().map(|e| e.word.clone()).collect(),
+            );
+        }
+    }
+    let entries: Vec<_> = entries
+        .into_iter()
+        .map(|((code, word), weight)| Entry { code, word, weight })
+        .collect();
+    let preview_bytes = serde_json::to_vec(&(&path, &table, &entries, &order, &learned, &examples))
+        .map_err(|e| e.to_string())?;
+    let preview = Preview {
+        count,
+        examples,
+        version: format!("{:x}", Sha256::digest(preview_bytes)),
+    };
+    if let Some(expected) = confirm {
+        if preview.count == 0 {
+            return Ok(preview);
+        }
+        if expected != preview.version {
+            return Err("词频或词典已变化，请重新预览后确认".into());
+        }
+        user.replace_all(entries, order, learned)
+            .map_err(|e| e.to_string())?;
+    }
+    Ok(preview)
 }
 
 pub(crate) fn lock_file(path: &Path) -> io::Result<fs::File> {
@@ -421,5 +528,57 @@ mod ranking_tests {
         };
         ranking.sort("ab", &mut rows);
         assert_eq!(rows[0].word, "甲");
+    }
+}
+
+#[cfg(test)]
+mod materialize_tests {
+    use super::*;
+    use crate::{Config, UserDictionary};
+
+    #[test]
+    fn confirmed_batch_consumes_counts_atomically_and_rejects_changed_preview() {
+        let private = dirs::data_local_dir().unwrap_or_else(std::env::temp_dir);
+        let root = tempfile::tempdir_in(private).unwrap();
+        let config = root.path().join("config.toml");
+        let table = root.path().join("main.dict");
+        let user = root.path().join("user.dict");
+        fs::write(&table, "ab\t甲\t20\nab\t乙\t10\n").unwrap();
+        fs::write(&user, "# mywubi-user-dict version=2\nab\t乙\t5\n").unwrap();
+        let mut c = Config::default();
+        c.dictionary.enable_user_dict = true;
+        c.dictionary.system_table = table.clone();
+        c.dictionary.user_table = user.clone();
+        c.save(&config).unwrap();
+        let file = store_path(&config, &table).unwrap();
+        let key = Choice {
+            code: "ab".into(),
+            word: "乙".into(),
+            scale: 4,
+        };
+        update(&file, Some(&key), None).unwrap();
+        let old = materialize(&config, None).unwrap();
+        update(&file, Some(&key), None).unwrap();
+        update(&file, Some(&key), None).unwrap();
+        assert!(materialize(&config, Some(&old.version)).is_err());
+        assert_eq!(UserDictionary::load(&user).unwrap().entries()[0].weight, 5);
+        let preview = materialize(&config, None).unwrap();
+        assert_eq!(preview.count, 1);
+        let mut stale_editor = UserDictionary::for_edit(&user, Some(&table)).unwrap();
+        assert_eq!(
+            materialize(&config, Some(&preview.version)).unwrap().count,
+            1
+        );
+        assert!(stale_editor.remove(0).is_err());
+        assert_eq!(UserDictionary::load(&user).unwrap().entries()[0].weight, 17);
+        assert_eq!(
+            materialize(&config, Some(&preview.version)).unwrap().count,
+            0
+        );
+        assert_eq!(materialize(&config, None).unwrap().count, 0);
+        assert_eq!(
+            fs::read_to_string(&table).unwrap(),
+            "ab\t甲\t20\nab\t乙\t10\n"
+        );
     }
 }

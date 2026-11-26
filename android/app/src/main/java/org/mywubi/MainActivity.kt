@@ -149,6 +149,23 @@ private fun SettingsScreen(model: SettingsModel, requestedSkin: SkinOption?, onP
                     val frequency = config.getJSONObject("frequency")
                     SettingToggle("记录有效选词次数", frequency.getBoolean("record"), !model.busy) { model.change("frequency", "record", it) }
                     SettingToggle("按选词次数调整候选顺序", frequency.getBoolean("rank"), !model.busy) { model.change("frequency", "rank", it) }
+                    OutlinedButton(onClick = { model.frequencyResult() }, enabled = !model.dirty && !model.busy && dict.getBoolean("enable_user_dict")) {
+                        Text("预览学习结果")
+                    }
+                    model.frequencyPreview?.let { preview ->
+                        val count = preview.getInt("count")
+                        val examples = preview.getJSONArray("examples")
+                        AlertDialog(onDismissRequest = model::dismissFrequencyPreview,
+                            title = { Text("本次将调整 $count 条词条") },
+                            text = { Column {
+                                for (i in 0 until examples.length()) Text(examples.getString(i))
+                                Text("保存后，即使关闭自动调频，这些调整也会保留。")
+                            } },
+                            confirmButton = { TextButton(enabled = count > 0 && !model.busy, onClick = {
+                                model.frequencyResult(preview.getString("version"))
+                            }) { Text("确认写入用户词典") } },
+                            dismissButton = { TextButton(onClick = model::dismissFrequencyPreview) { Text("取消") } })
+                    }
                     PersonalSettings(model, config)
                 }
                 OutlinedButton(onClick = { model.getApplication<android.app.Application>().startActivity(Intent(model.getApplication(), UpdateActivity::class.java).addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)) }) { Text("应用更新") }

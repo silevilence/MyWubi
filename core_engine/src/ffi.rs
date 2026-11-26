@@ -72,6 +72,10 @@ enum Request {
         session: u64,
         token: EditToken,
     },
+    SaveFrequency {
+        path: PathBuf,
+        confirm: Option<String>,
+    },
     FrequencyContext {
         session: u64,
         context: personal::Context,
@@ -367,6 +371,9 @@ impl Registry {
             Request::State { session } => {
                 let s = self.session(session)?;
                 json!({"status":s.status(),"groups":s.state_machine().group_sequence(),"group_search_status":s.state_machine().group_search_status(),"view":s.snapshot(),"base":s.base_mode(),"temporary":s.temporary_mode(),"revision":s.revision(),"pinyin":s.capability(TemporaryMode::Pinyin),"emoji":s.capability(TemporaryMode::Emoji),"kaomoji":s.capability(TemporaryMode::Kaomoji),"kana":s.capability(TemporaryMode::Kana),"math":s.capability(TemporaryMode::Math),"punctuation":s.capability(TemporaryMode::Punctuation),"symbols":s.capability(TemporaryMode::Symbols),"special_capabilities":crate::expressions::ExpressionKind::ALL.into_iter().map(|kind|(kind.slug(),s.capability(kind.temporary_mode()))).collect::<std::collections::BTreeMap<_,_>>(),"prediction_enabled":s.config().prediction.enabled,"personal_prediction_enabled":s.config().personal.predict,"prediction_waiting":s.waiting_for_prediction()})
+            }
+            Request::SaveFrequency { path, confirm } => {
+                json!(frequency::materialize(&path, confirm.as_deref()).map_err(|e| err(5, e))?)
             }
             Request::FrequencyContext { session, context } => {
                 self.session(session)?.observe_frequency(context);

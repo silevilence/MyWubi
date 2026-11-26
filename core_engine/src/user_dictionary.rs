@@ -31,20 +31,24 @@ pub struct UserDictionary {
     additive: bool,
     system_path: Option<PathBuf>,
     entries: Vec<Entry>,
+    pub(crate) learned: BTreeMap<String, crate::frequency::Counts>,
+    baseline: Option<[u8; 32]>,
     pub(crate) order: BTreeMap<String, Vec<String>>,
 }
 
 impl UserDictionary {
     pub fn load(path: impl AsRef<Path>) -> Result<Self, UserDictionaryError> {
         let path = path.as_ref().to_path_buf();
-        let (entries, additive, order) = match std::fs::read_to_string(&path) {
+        let (entries, additive, order, learned, baseline) = match std::fs::read_to_string(&path) {
             Ok(text) => (
                 parse(&text)?,
                 text.lines().any(|line| line.trim() == HEADER),
                 read_order(&text)?,
+                read_learned(&text)?,
+                Some(fingerprint(text.as_bytes())),
             ),
             Err(error) if error.kind() == std::io::ErrorKind::NotFound => {
-                (Vec::new(), true, BTreeMap::new())
+                (Vec::new(), true, BTreeMap::new(), BTreeMap::new(), None)
             }
             Err(error) => return Err(UserDictionaryError::Io(path, error.to_string())),
         };
@@ -54,6 +58,8 @@ impl UserDictionary {
             system_path: None,
             order,
             entries,
+            learned,
+            baseline,
         })
     }
 
@@ -232,16 +238,34 @@ impl UserDictionary {
         let added = entries.len() - before;
         let mut order = self.order.clone();
         order.extend(read_order(&text)?);
-        self.replace_ordered(entries, order)?;
+        let mut learned = self.learned.clone();
+        for (id, counts) in read_learned(&text)? {
+            for (code, words) in counts {
+                learned
+                    .entry(id.clone())
+                    .or_default()
+                    .entry(code)
+                    .or_default()
+                    .extend(words);
+            }
+        }
+        self.replace_all(entries, order, learned)?;
         Ok(added)
     }
 
     pub fn export(&self, path: impl AsRef<Path>) -> Result<(), UserDictionaryError> {
-        write_entries(path.as_ref(), &self.entries, self.additive, &self.order)
+        write_entries(
+            path.as_ref(),
+            &self.entries,
+            self.additive,
+            &self.order,
+            &self.learned,
+        )
+        .map(|_| ())
     }
 
-    pub fn save(&self) -> Result<(), UserDictionaryError> {
-        write_entries(&self.path, &self.entries, self.additive, &self.order)
+    pub fn save(&mut self) -> Result<(), UserDictionaryError> {
+        self.replace_entries(self.entries.clone())
     }
 
     fn replace_entries(&mut self, entries: Vec<Entry>) -> Result<(), UserDictionaryError> {
@@ -250,20 +274,70 @@ impl UserDictionary {
 
     fn replace_ordered(
         &mut self,
-        mut entries: Vec<Entry>,
+        entries: Vec<Entry>,
         order: BTreeMap<String, Vec<String>>,
     ) -> Result<(), UserDictionaryError> {
+        self.replace_all(entries, order, self.learned.clone())
+    }
+
+    pub(crate) fn replace_all(
+        &mut self,
+        mut entries: Vec<Entry>,
+        order: BTreeMap<String, Vec<String>>,
+        learned: BTreeMap<String, crate::frequency::Counts>,
+    ) -> Result<(), UserDictionaryError> {
+        let error = |e: std::io::Error| UserDictionaryError::Io(self.path.clone(), e.to_string());
+        let _guard = crate::frequency::lock_file(&self.path).map_err(error)?;
+        let current = match std::fs::read(&self.path) {
+            Ok(bytes) => Some(fingerprint(&bytes)),
+            Err(e) if e.kind() == std::io::ErrorKind::NotFound => None,
+            Err(e) => return Err(error(e)),
+        };
+        if self.baseline != current {
+            return Err(UserDictionaryError::InvalidEntry(
+                "用户词典已修改，请重新载入".into(),
+            ));
+        }
+        for entry in &entries {
+            validate(entry)?;
+        }
         entries.sort_by(|left, right| {
             left.code
                 .cmp(&right.code)
                 .then_with(|| right.weight.cmp(&left.weight))
                 .then_with(|| left.word.cmp(&right.word))
         });
-        write_entries(&self.path, &entries, self.additive, &order)?;
+        self.baseline = Some(write_entries(
+            &self.path,
+            &entries,
+            self.additive,
+            &order,
+            &learned,
+        )?);
+        self.learned = learned;
         self.order = order;
         self.entries = entries;
         Ok(())
     }
+}
+
+fn fingerprint(bytes: &[u8]) -> [u8; 32] {
+    use sha2::Digest;
+    sha2::Sha256::digest(bytes).into()
+}
+
+const LEARNED_PREFIX: &str = "# mywubi-learned ";
+
+fn read_learned(
+    text: &str,
+) -> Result<BTreeMap<String, crate::frequency::Counts>, UserDictionaryError> {
+    for (i, line) in text.lines().enumerate() {
+        if let Some(json) = line.strip_prefix(LEARNED_PREFIX) {
+            return serde_json::from_str(json)
+                .map_err(|e| UserDictionaryError::InvalidLine(i + 1, e.to_string()));
+        }
+    }
+    Ok(BTreeMap::new())
 }
 
 const ORDER_PREFIX: &str = "# mywubi-order ";
@@ -341,7 +415,8 @@ fn write_entries(
     entries: &[Entry],
     additive: bool,
     order: &BTreeMap<String, Vec<String>>,
-) -> Result<(), UserDictionaryError> {
+    learned: &BTreeMap<String, crate::frequency::Counts>,
+) -> Result<[u8; 32], UserDictionaryError> {
     if let Some(parent) = path
         .parent()
         .filter(|parent| !parent.as_os_str().is_empty())
@@ -351,6 +426,11 @@ fn write_entries(
     }
     let header = if additive { HEADER } else { LEGACY_HEADER };
     let mut text = format!("{header}\n");
+    if !learned.is_empty() {
+        let json = serde_json::to_string(learned)
+            .map_err(|e| UserDictionaryError::InvalidEntry(e.to_string()))?;
+        text.push_str(&format!("{LEARNED_PREFIX}{json}\n"));
+    }
     for row in order {
         let json = serde_json::to_string(&row)
             .map_err(|e| UserDictionaryError::InvalidEntry(e.to_string()))?;
@@ -363,6 +443,7 @@ fn write_entries(
         ));
     }
     crate::data::atomic_write(path, text.as_bytes())
+        .map(|_| fingerprint(text.as_bytes()))
         .map_err(|error| UserDictionaryError::Io(path.to_path_buf(), error.to_string()))
 }
 
