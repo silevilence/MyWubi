@@ -37,6 +37,7 @@ struct State {
     paused: bool,
     closed: bool,
     reset: bool,
+    unload_requested: bool,
     phase: Phase,
     last_activity: Instant,
 }
@@ -75,6 +76,7 @@ impl Worker {
                 paused: false,
                 closed: false,
                 reset: false,
+                unload_requested: false,
                 phase: Phase::Idle,
                 last_activity: Instant::now(),
             }),
@@ -91,6 +93,7 @@ impl Worker {
     pub fn configure(&self, config: PredictionConfig) {
         if let Ok(mut s) = self.shared.0.lock() {
             if s.config != config {
+                s.unload_requested |= !config.enabled || config.model.is_none();
                 s.config = config;
                 s.phase = Phase::Idle;
                 s.epoch += 1;
@@ -103,6 +106,7 @@ impl Worker {
         if let Ok(mut s) = self.shared.0.lock() {
             if s.root != root || s.config != config {
                 s.root = root;
+                s.unload_requested |= !config.enabled || config.model.is_none();
                 s.config = config;
                 s.phase = Phase::Idle;
                 s.epoch += 1;
@@ -239,7 +243,13 @@ fn run(
                 if s.closed {
                     return;
                 }
-                if s.paused || !s.config.enabled || s.config.model.is_none() {
+                // A close followed immediately by a new configure must retire the old
+                // device session even if the worker sees both commands in one wakeup.
+                if std::mem::take(&mut s.unload_requested)
+                    || s.paused
+                    || !s.config.enabled
+                    || s.config.model.is_none()
+                {
                     s.phase = if s.paused { Phase::Paused } else { Phase::Idle };
                     if loaded.is_some() {
                         drop(s);
@@ -595,6 +605,12 @@ mod tests {
             before,
             "last working model remains reusable after a failed switch"
         );
+        worker.configure(PredictionConfig::default());
+        worker.configure(config.clone());
+        worker.submit(request(206)).unwrap();
+        wait(|| worker.shared.0.lock().unwrap().result.is_some());
+        assert!(worker.take(request(206).key).unwrap().is_ok());
+        assert_eq!(LOADS.load(Ordering::SeqCst), before + 1);
         let mut disabled = config;
         disabled.enabled = false;
         worker.configure(disabled);
