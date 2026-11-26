@@ -1,0 +1,6 @@
+{
+  "device": "PGZ110 Android 15",
+  "method": "SkinTrialRestartCheck (independent activity and instrumentation, isolated IME package)",
+  "result": "PASS: trial GH, new IME process, daily q, unchanged configuration",
+  "instrumentation_result": -1
+}
