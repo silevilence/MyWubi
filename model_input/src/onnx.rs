@@ -27,6 +27,12 @@ pub fn initialize_runtime(path: &Path) -> Result<(), Unavailable> {
     Ok(())
 }
 
+#[cfg(feature = "android-nnapi")]
+pub fn has_nnapi_provider() -> bool {
+    use ort::ep::ExecutionProvider;
+    ENVIRONMENT.get().is_some() && ort::ep::NNAPI::is_available().unwrap_or(false)
+}
+
 /// Fixed vocabulary: index 0 is unknown, index 1 is BOS, other tokens are single scalars.
 #[derive(Deserialize, Serialize)]
 #[serde(deny_unknown_fields)]

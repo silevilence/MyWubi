@@ -22,6 +22,7 @@ zip = { version = "2", default-features = false, features = ["deflate"] }
 [features]
 llama-cpp-2 = ["dep:llama-cpp-2", "dep:self_cell"]
 ort = ["dep:ort"]
+android-nnapi = ["ort", "ort/nnapi"]
 vulkan = ["llama-cpp-2", "llama-cpp-2/vulkan"]
 cuda = ["llama-cpp-2", "llama-cpp-2/cuda"]
 android-static-stdcxx = ["llama-cpp-2/android-static-stdcxx"]

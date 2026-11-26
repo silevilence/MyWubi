@@ -16,4 +16,7 @@ serde_json.workspace = true
 
 [features]
 llama = ["model_input/llama-cpp-2", "model_input/android-static-stdcxx"]
-onnx = ["model_input/ort"]
+onnx = ["model_input/android-nnapi"]
+
+[target.'cfg(target_os = "android")'.dependencies]
+libloading = "0.8.9"

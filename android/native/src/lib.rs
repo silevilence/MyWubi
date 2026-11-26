@@ -172,6 +172,35 @@ pub extern "system" fn Java_org_mywubi_NativeBridge_probeOnnx(
     }
 }
 
+#[cfg(target_os = "android")]
+mod nnapi;
+
+#[cfg(target_os = "android")]
+#[no_mangle]
+pub extern "system" fn Java_org_mywubi_NativeBridge_nnapiDevices(
+    env: JNIEnv,
+    _: JClass,
+) -> jni::sys::jstring {
+    let report = match nnapi::devices() {
+        Ok(devices) => serde_json::json!({"devices":devices}),
+        Err(error) => serde_json::json!({"error":error}),
+    };
+    env.new_string(report.to_string())
+        .map(|s| s.into_raw())
+        .unwrap_or(std::ptr::null_mut())
+}
+
+#[no_mangle]
+pub extern "system" fn Java_org_mywubi_NativeBridge_hasNnapiProvider(
+    _: JNIEnv,
+    _: JClass,
+) -> jni::sys::jboolean {
+    #[cfg(feature = "onnx")]
+    return model_input::onnx::has_nnapi_provider() as _;
+    #[cfg(not(feature = "onnx"))]
+    0
+}
+
 /// A translated Android process may run a different ABI from the device's preferred ABI.
 #[no_mangle]
 pub extern "system" fn Java_org_mywubi_NativeBridge_runtimeAbi(
