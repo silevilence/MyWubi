@@ -710,8 +710,7 @@ private fun RankTarget(item: CandidateItem, query: String, enabled: Boolean, dis
     Box(modifier.combinedClickable(enabled = enabled, onClick = choose, onLongClick = {
         dispatch(RankOptions(query, item.id) { size, canWrite -> count = size; allowed = canWrite; offset = 0 })
     })) {
-        DropdownMenu(expanded = count > 0, onDismissRequest = { count = 0 },
-            properties = androidx.compose.ui.window.PopupProperties(focusable = false)) {
+        DropdownMenu(expanded = count > 0, onDismissRequest = { count = 0 }) {
             if (!allowed) {
                 DropdownMenuItem(text = { Text("请在设置中启用用户词库") }, onClick = { count = 0 })
             } else {
@@ -724,6 +723,7 @@ private fun RankTarget(item: CandidateItem, query: String, enabled: Boolean, dis
                 }
                 if (offset + 8 < count) DropdownMenuItem(text = { Text("下一组名次") }, onClick = { offset += 8 })
             }
+            DropdownMenuItem(text = { Text("取消") }, onClick = { count = 0 })
         }
     }
 }
