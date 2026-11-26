@@ -190,9 +190,11 @@ enum Request {
     },
     ReadUser {
         path: PathBuf,
+        system: Option<PathBuf>,
     },
     EditUser {
         path: PathBuf,
+        system: Option<PathBuf>,
         expected: u64,
         edit: UserOperation,
     },
@@ -551,9 +553,10 @@ impl Registry {
             Request::ValidatePackage { root, main } => {
                 json!(validate_package(&root, &main).map_err(data_error)?)
             }
-            Request::ReadUser { path } => {
+            Request::ReadUser { path, system } => {
                 let before = FileVersion::read(&path).map_err(data_error)?;
-                let user = UserDictionary::load(&path).map_err(|e| err(5, e.to_string()))?;
+                let user = UserDictionary::for_edit(&path, system.as_deref())
+                    .map_err(|e| err(5, e.to_string()))?;
                 if before != FileVersion::read(&path).map_err(data_error)? {
                     return Err(err(6, "file changed during read"));
                 }
@@ -561,6 +564,7 @@ impl Registry {
             }
             Request::EditUser {
                 path,
+                system,
                 expected,
                 edit,
             } => {
@@ -570,8 +574,13 @@ impl Registry {
                     UserOperation::Remove(id) => UserEdit::Remove(id),
                     UserOperation::Import(p) => UserEdit::Import(p),
                 };
-                let result =
-                    edit_user(&path, self.policy(expected, &path)?, edit).map_err(data_error)?;
+                let result = edit_user_for_table(
+                    &path,
+                    self.policy(expected, &path)?,
+                    edit,
+                    system.as_deref(),
+                )
+                .map_err(data_error)?;
                 json!({"added":result.added,"updated":result.updated,"version":self.version(path,result.version)?})
             }
             Request::ExportUser {

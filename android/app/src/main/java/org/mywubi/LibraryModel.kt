@@ -88,13 +88,17 @@ class LibraryModel(app: Application) : AndroidViewModel(app) {
         }
     }
 
+    private fun readEntries(file: File, isUser: Boolean): JSONObject =
+        if (isUser) NativeBridge.objectCall("ReadUser", "path" to file.path, "system" to paths.first().second.path)
+        else NativeBridge.objectCall("ReadTable", "path" to file.path)
+
     fun open(index: Int, discard: Boolean = false) {
         if (busy) return
         if (index !in paths.indices || (dirty && !discard)) return
         val target = paths[index].second
         val targetUser = index == paths.lastIndex
         work {
-            val loaded = NativeBridge.objectCall(if(targetUser) "ReadUser" else "ReadTable", "path" to target.path)
+            val loaded = readEntries(target, targetUser)
             val next = NativeHandle(loaded.getLong("version"))
             try {
             val hash = digest(target)
@@ -152,7 +156,7 @@ class LibraryModel(app: Application) : AndroidViewModel(app) {
                     val id = JSONObject().put("code", old.getString("code")).put("word", old.getString("word"))
                     if(remove) JSONObject().put("Remove", id) else JSONObject().put("Update", JSONArray().put(id).put(entry))
                 } else JSONObject().put("Add", entry)
-                NativeBridge.objectCall("EditUser", "path" to path.path, "expected" to expected.value, "edit" to edit)
+                NativeBridge.objectCall("EditUser", "path" to path.path, "system" to paths.first().second.path, "expected" to expected.value, "edit" to edit)
             } else {
                 if(remove) entries.remove(index)
                 else if(index >= 0) entries.put(index, entry)
@@ -166,7 +170,7 @@ class LibraryModel(app: Application) : AndroidViewModel(app) {
             NativeHandle(result.getLong("version")).close()
             EngineUpdates.request(app)
             val (available, allTables) = readCatalog()
-            val loaded = NativeBridge.objectCall(if(user) "ReadUser" else "ReadTable", "path" to path.path)
+            val loaded = readEntries(path, user)
             val next = NativeHandle(loaded.getLong("version"))
             val hash = digest(path)
             val publish: () -> Unit = {
@@ -191,7 +195,7 @@ class LibraryModel(app: Application) : AndroidViewModel(app) {
                     app.contentResolver.openInputStream(uri)?.use { input -> temp.outputStream().use { output ->
                         val bytes = input.readBytesLimit(16 * 1024 * 1024); output.write(bytes)
                     } } ?: error("无法读取选中文件")
-                    val result = NativeBridge.objectCall("EditUser", "path" to path.path, "expected" to expected.value, "edit" to JSONObject().put("Import", temp.path))
+                    val result = NativeBridge.objectCall("EditUser", "path" to path.path, "system" to paths.first().second.path, "expected" to expected.value, "edit" to JSONObject().put("Import", temp.path))
                     NativeHandle(result.getLong("version")).close(); EngineUpdates.request(app)
                 } else {
                     NativeHandle(NativeBridge.objectCall("FileVersion", "path" to temp.path).getLong("version")).use { destination ->

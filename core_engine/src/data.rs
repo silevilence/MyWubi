@@ -253,9 +253,19 @@ pub fn edit_user(
     policy: WritePolicy,
     edit: UserEdit,
 ) -> Result<UserEditResult, DataError> {
+    edit_user_for_table(path, policy, edit, None)
+}
+
+pub fn edit_user_for_table(
+    path: &Path,
+    policy: WritePolicy,
+    edit: UserEdit,
+    system: Option<&Path>,
+) -> Result<UserEditResult, DataError> {
     let _guard = WRITES.lock();
     check(path, &policy)?;
-    let mut user = UserDictionary::load(path).map_err(|e| DataError::Failed(e.to_string()))?;
+    let mut user =
+        UserDictionary::for_edit(path, system).map_err(|e| DataError::Failed(e.to_string()))?;
     let before = user.entries().to_vec();
     let find = |user: &UserDictionary, id: &UserEntryId| {
         user.entries()

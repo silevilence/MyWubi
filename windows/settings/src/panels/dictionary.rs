@@ -490,7 +490,11 @@ fn open_user_dictionary(state: &mut AppState) {
         &state.config_path,
         &state.config.dictionary.user_table,
     );
-    match UserDictionary::load(&path) {
+    let system = crate::config_path::resolve_resource_path(
+        &state.config_path,
+        &state.config.dictionary.system_table,
+    );
+    match UserDictionary::for_edit(&path, Some(&system)) {
         Ok(dictionary) => {
             state.user_dictionary_editor.dictionary = Some(dictionary);
             state.user_dictionary_editor.clear_form();
@@ -553,7 +557,7 @@ fn show_user_dictionary_window(ctx: &egui::Context, state: &mut AppState) {
                         .show(ui, |ui| {
                             ui.strong("编码");
                             ui.strong("词条");
-                            ui.strong("词频");
+                            ui.strong("词频调整值");
                             ui.end_row();
                             for (index, entry) in dictionary.entries().iter().enumerate() {
                                 if ui
@@ -584,7 +588,7 @@ fn show_user_dictionary_window(ctx: &egui::Context, state: &mut AppState) {
                 ui.text_edit_singleline(&mut editor.code);
                 ui.label("词条");
                 ui.text_edit_singleline(&mut editor.word);
-                ui.label("词频");
+                ui.label("词频调整值");
                 ui.add(egui::DragValue::new(&mut editor.weight));
             });
             ui.horizontal_wrapped(|ui| {

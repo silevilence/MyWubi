@@ -28,6 +28,7 @@ pub enum UserDictionaryError {
 pub struct UserDictionary {
     path: PathBuf,
     additive: bool,
+    system_path: Option<PathBuf>,
     entries: Vec<Entry>,
 }
 
@@ -45,8 +46,24 @@ impl UserDictionary {
         Ok(Self {
             path,
             additive,
+            system_path: None,
             entries,
         })
+    }
+
+    /// Present legacy absolute weights as adjustments. Opening alone leaves the file intact.
+    pub fn for_edit(path: &Path, system: Option<&Path>) -> Result<Self, UserDictionaryError> {
+        let mut user = Self::load(path)?;
+        user.system_path = system.map(Path::to_owned);
+        if let Some(system) = system.filter(|_| !user.additive) {
+            let base = crate::Dictionary::load(system)
+                .map_err(|e| UserDictionaryError::Io(system.into(), e.to_string()))?;
+            for entry in &mut user.entries {
+                entry.weight -= base.base_weight(&entry.code, &entry.word);
+            }
+            user.additive = true;
+        }
+        Ok(user)
     }
 
     pub fn additive(&self) -> bool {
@@ -104,7 +121,16 @@ impl UserDictionary {
         let path = path.as_ref();
         let text = std::fs::read_to_string(path)
             .map_err(|error| UserDictionaryError::Io(path.to_path_buf(), error.to_string()))?;
-        let imported = parse(&text)?;
+        let mut imported = parse(&text)?;
+        if self.additive && !text.lines().any(|line| line.trim() == HEADER) {
+            if let Some(path) = &self.system_path {
+                let base = crate::Dictionary::load(path)
+                    .map_err(|e| UserDictionaryError::Io(path.clone(), e.to_string()))?;
+                for entry in &mut imported {
+                    entry.weight -= base.base_weight(&entry.code, &entry.word);
+                }
+            }
+        }
         let before = self.entries.len();
         let mut entries = self.entries.clone();
         for entry in imported {
@@ -163,6 +189,7 @@ fn validate(entry: &Entry) -> Result<(), UserDictionaryError> {
 }
 
 fn parse(text: &str) -> Result<Vec<Entry>, UserDictionaryError> {
+    let additive = text.lines().any(|line| line.trim() == HEADER);
     let mut entries = Vec::new();
     for (index, raw) in text.lines().enumerate() {
         let line = raw.trim();
@@ -177,6 +204,12 @@ fn parse(text: &str) -> Result<Vec<Entry>, UserDictionaryError> {
                 UserDictionaryError::InvalidLine(index + 1, "词频必须是有符号整数".into())
             })?,
         };
+        if !additive && u32::try_from(entry.weight).is_err() {
+            return Err(UserDictionaryError::InvalidLine(
+                index + 1,
+                "旧版词频超出范围".into(),
+            ));
+        }
         validate(&entry)
             .map_err(|error| UserDictionaryError::InvalidLine(index + 1, error.to_string()))?;
         entries.push(entry);

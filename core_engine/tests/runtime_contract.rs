@@ -148,3 +148,30 @@ fn additive_dictionary_keeps_signed_scores_and_system_bytes() {
         main
     );
 }
+
+#[test]
+fn migration_and_import_preserve_legacy_weights_and_new_signed_values() {
+    let f = Files::new();
+    f.write("main.dict", "a\t甲\t100\na\t乙\t80\n");
+    f.write("user.dict", "a\t甲\t70\n");
+    let path = f.0.join("user.dict");
+    let base = f.0.join("main.dict");
+    let mut user = UserDictionary::for_edit(&path, Some(&base)).unwrap();
+    assert_eq!(user.entries()[0].weight, -30);
+    assert_eq!(std::fs::read_to_string(&path).unwrap(), "a\t甲\t70\n");
+    f.write("import.dict", "a\t乙\t60\nb\t丙\t9\n");
+    user.import(f.0.join("import.dict")).unwrap();
+    user.export(f.0.join("export.dict")).unwrap();
+    let mut roundtrip = UserDictionary::for_edit(&f.0.join("other.dict"), Some(&base)).unwrap();
+    roundtrip.import(f.0.join("export.dict")).unwrap();
+    assert_eq!(roundtrip.entries(), user.entries());
+    let s = f.build(LoadPolicy::Reload).unwrap();
+    assert_eq!(
+        s.dict
+            .exact("a")
+            .iter()
+            .map(|e| e.weight)
+            .collect::<Vec<_>>(),
+        [70, 60]
+    );
+}

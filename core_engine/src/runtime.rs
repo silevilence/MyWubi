@@ -236,12 +236,9 @@ pub fn merge_dictionary(
         .collect();
     let mut entries = user.entries().to_vec();
     if user.additive() {
+        entries.sort_by(|a, b| a.word.cmp(&b.word));
         for entry in &mut entries {
-            let base = system
-                .exact(&entry.code)
-                .into_iter()
-                .find(|row| row.word == entry.word)
-                .map_or(0, |row| row.weight);
+            let base = system.base_weight(&entry.code, &entry.word);
             entry.weight = base.saturating_add(entry.weight);
         }
     }

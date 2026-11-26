@@ -91,7 +91,7 @@ private fun LibraryScreen(model: LibraryModel, leave: () -> Unit) {
                 }
                 item {
                     Text(if(model.form.optInt("index", -1) < 0) "新增词条" else "编辑词条", style = MaterialTheme.typography.titleMedium)
-                    for ((key, label) in listOf("code" to "编码", "word" to "词条", "weight" to "权重")) {
+                    for ((key, label) in listOf("code" to "编码", "word" to "词条", "weight" to if (model.user) "词频调整值" else "权重")) {
                         LibraryField(label, model.form.getString(key), !model.busy) { model.change(key, it) }
                     }
                     Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {

@@ -405,6 +405,13 @@ impl Dictionary {
         self.pinyin_index.as_ref()
     }
 
+    pub(crate) fn base_weight(&self, code: &str, word: &str) -> i64 {
+        self.exact(code)
+            .into_iter()
+            .find(|row| row.word == word)
+            .map_or(0, |row| row.weight)
+    }
+
     pub fn exact(&self, code: &str) -> Vec<&Entry> {
         // The sorted entry array is already an exact-code index. Avoid a second
         // allocation of every distinct code in every loaded main/auxiliary table.
