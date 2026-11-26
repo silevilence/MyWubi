@@ -40,7 +40,7 @@ pub struct UserDictionaryEditor {
     pub dictionary: Option<UserDictionary>,
     pub code: String,
     pub word: String,
-    pub weight: u32,
+    pub weight: i64,
     pub selected: Option<usize>,
 }
 

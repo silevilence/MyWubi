@@ -215,7 +215,7 @@ pub fn load_dictionary(
     merge_dictionary(main, user, config)
 }
 
-/// User (code, word) pairs override weights; reverse lookup is built before this merge.
+/// Version 2 user entries add to the strongest matching system row.
 pub fn merge_dictionary(
     system: Arc<Dictionary>,
     user_path: &Path,
@@ -235,6 +235,16 @@ pub fn merge_dictionary(
         .map(|e| (e.code.as_str(), e.word.as_str()))
         .collect();
     let mut entries = user.entries().to_vec();
+    if user.additive() {
+        for entry in &mut entries {
+            let base = system
+                .exact(&entry.code)
+                .into_iter()
+                .find(|row| row.word == entry.word)
+                .map_or(0, |row| row.weight);
+            entry.weight = base.saturating_add(entry.weight);
+        }
+    }
     entries.extend(
         system
             .entries()

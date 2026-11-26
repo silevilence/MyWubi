@@ -17,7 +17,7 @@ pub struct Match {
     pub text: String,
     pub codes: Vec<String>,
     pub exact: bool,
-    pub weight: u32,
+    pub weight: i64,
 }
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct Matches {

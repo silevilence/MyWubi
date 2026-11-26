@@ -44,7 +44,7 @@ fn build_dict(n_prefix: usize, per_prefix: usize) -> Arc<Dictionary> {
             entries.push(Entry {
                 code: format!("{c1}{c2}{c1}{c2}"),
                 word: format!("word{idx}"),
-                weight: (per_prefix - k) as u32,
+                weight: (per_prefix - k) as i64,
             });
             idx += 1;
         }

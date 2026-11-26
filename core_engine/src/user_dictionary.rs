@@ -7,7 +7,8 @@ use thiserror::Error;
 
 use crate::dictionary::Entry;
 
-const HEADER: &str = "# mywubi-user-dict version=1";
+const HEADER: &str = "# mywubi-user-dict version=2";
+const LEGACY_HEADER: &str = "# mywubi-user-dict version=1";
 
 #[derive(Debug, Error)]
 pub enum UserDictionaryError {
@@ -26,18 +27,30 @@ pub enum UserDictionaryError {
 #[derive(Debug)]
 pub struct UserDictionary {
     path: PathBuf,
+    additive: bool,
     entries: Vec<Entry>,
 }
 
 impl UserDictionary {
     pub fn load(path: impl AsRef<Path>) -> Result<Self, UserDictionaryError> {
         let path = path.as_ref().to_path_buf();
-        let entries = match std::fs::read_to_string(&path) {
-            Ok(text) => parse(&text)?,
-            Err(error) if error.kind() == std::io::ErrorKind::NotFound => Vec::new(),
+        let (entries, additive) = match std::fs::read_to_string(&path) {
+            Ok(text) => (
+                parse(&text)?,
+                text.lines().any(|line| line.trim() == HEADER),
+            ),
+            Err(error) if error.kind() == std::io::ErrorKind::NotFound => (Vec::new(), true),
             Err(error) => return Err(UserDictionaryError::Io(path, error.to_string())),
         };
-        Ok(Self { path, entries })
+        Ok(Self {
+            path,
+            additive,
+            entries,
+        })
+    }
+
+    pub fn additive(&self) -> bool {
+        self.additive
     }
 
     pub fn path(&self) -> &Path {
@@ -110,11 +123,11 @@ impl UserDictionary {
     }
 
     pub fn export(&self, path: impl AsRef<Path>) -> Result<(), UserDictionaryError> {
-        write_entries(path.as_ref(), &self.entries)
+        write_entries(path.as_ref(), &self.entries, self.additive)
     }
 
     pub fn save(&self) -> Result<(), UserDictionaryError> {
-        write_entries(&self.path, &self.entries)
+        write_entries(&self.path, &self.entries, self.additive)
     }
 
     fn replace_entries(&mut self, mut entries: Vec<Entry>) -> Result<(), UserDictionaryError> {
@@ -124,7 +137,7 @@ impl UserDictionary {
                 .then_with(|| right.weight.cmp(&left.weight))
                 .then_with(|| left.word.cmp(&right.word))
         });
-        write_entries(&self.path, &entries)?;
+        write_entries(&self.path, &entries, self.additive)?;
         self.entries = entries;
         Ok(())
     }
@@ -161,7 +174,7 @@ fn parse(text: &str) -> Result<Vec<Entry>, UserDictionaryError> {
             code: fields.next().unwrap_or_default().trim().to_string(),
             word: fields.next().unwrap_or_default().trim().to_string(),
             weight: fields.next().unwrap_or("1").trim().parse().map_err(|_| {
-                UserDictionaryError::InvalidLine(index + 1, "词频必须是 u32".into())
+                UserDictionaryError::InvalidLine(index + 1, "词频必须是有符号整数".into())
             })?,
         };
         validate(&entry)
@@ -178,7 +191,11 @@ fn parse(text: &str) -> Result<Vec<Entry>, UserDictionaryError> {
     Ok(entries)
 }
 
-fn write_entries(path: &Path, entries: &[Entry]) -> Result<(), UserDictionaryError> {
+fn write_entries(
+    path: &Path,
+    entries: &[Entry],
+    additive: bool,
+) -> Result<(), UserDictionaryError> {
     if let Some(parent) = path
         .parent()
         .filter(|parent| !parent.as_os_str().is_empty())
@@ -186,7 +203,8 @@ fn write_entries(path: &Path, entries: &[Entry]) -> Result<(), UserDictionaryErr
         std::fs::create_dir_all(parent)
             .map_err(|error| UserDictionaryError::Io(parent.to_path_buf(), error.to_string()))?;
     }
-    let mut text = format!("{HEADER}\n");
+    let header = if additive { HEADER } else { LEGACY_HEADER };
+    let mut text = format!("{header}\n");
     for entry in entries {
         text.push_str(&format!(
             "{}\t{}\t{}\n",
@@ -282,6 +300,7 @@ pub unsafe extern "C" fn mywubi_user_dict_entry_at(
     std::panic::catch_unwind(|| {
         // SAFETY: FFI 调用方保证 handle 在调用期间有效。
         let entry = unsafe { dictionary.as_ref() }?.entries.get(index)?;
+        let weight = u32::try_from(entry.weight).ok()?;
         let code = CString::new(entry.code.as_str()).ok()?.into_raw();
         let word = match CString::new(entry.word.as_str()) {
             Ok(word) => word.into_raw(),
@@ -294,7 +313,7 @@ pub unsafe extern "C" fn mywubi_user_dict_entry_at(
         Some(Box::into_raw(Box::new(UserDictionaryEntry {
             code,
             word,
-            weight: entry.weight,
+            weight,
         })))
     })
     .ok()
@@ -344,7 +363,7 @@ pub unsafe extern "C" fn mywubi_user_dict_add(
         dictionary.add(Entry {
             code: unsafe { ffi_text(code) }?,
             word: unsafe { ffi_text(word) }?,
-            weight,
+            weight: i64::from(weight),
         })
     })
 }
@@ -372,7 +391,7 @@ pub unsafe extern "C" fn mywubi_user_dict_update(
             Entry {
                 code: unsafe { ffi_text(code) }?,
                 word: unsafe { ffi_text(word) }?,
-                weight,
+                weight: i64::from(weight),
             },
         )
     })

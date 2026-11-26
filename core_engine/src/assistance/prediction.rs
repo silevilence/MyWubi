@@ -11,17 +11,17 @@ const ASSOCIATIONS: &str = include_str!("prediction_pairs.tsv");
 
 #[derive(Debug)]
 pub struct Lexicon {
-    words: Vec<(String, u32)>,
+    words: Vec<(String, i64)>,
 }
 impl Lexicon {
     pub fn new(entries: &[Entry]) -> Self {
-        let mut words = BTreeMap::<String, u32>::new();
+        let mut words = BTreeMap::<String, i64>::new();
         for line in include_str!("prediction_words.tsv")
             .lines()
             .filter(|l| !l.starts_with('#'))
         {
             if let Some((text, weight)) = line.split_once('\t') {
-                if let Ok(weight) = weight.parse::<u32>() {
+                if let Ok(weight) = weight.parse::<i64>() {
                     words.insert(text.to_owned(), weight);
                 }
             }
@@ -68,7 +68,7 @@ impl Lexicon {
             .map(|(offset, _)| *offset)
             .min()
             .unwrap_or(prefix.len());
-        let mut found = BTreeMap::<String, (usize, u32)>::new();
+        let mut found = BTreeMap::<String, (usize, i64)>::new();
         for (offset, start) in suffixes
             .into_iter()
             .filter(|(offset, _)| *offset <= boundary)

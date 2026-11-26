@@ -124,3 +124,27 @@ fn empty_user_dictionary_reuses_immutable_system_snapshot() {
     assert_eq!(merged.exact("a")[0].weight, 999);
     assert_eq!(system.exact("a")[0].weight, 10);
 }
+
+#[test]
+fn additive_dictionary_keeps_signed_scores_and_system_bytes() {
+    let f = Files::new();
+    let main = "a\t甲\t100\na\t乙\t80\naa\t甲\t20\n";
+    f.write("main.dict", main);
+    f.write(
+        "user.dict",
+        "# mywubi-user-dict version=2\na\t甲\t-30\na\t丙\t-8\naa\t甲\t9223372036854775807\n",
+    );
+    let snapshot = f.build(LoadPolicy::Reload).unwrap();
+    let scores: Vec<_> = snapshot
+        .dict
+        .exact("a")
+        .iter()
+        .map(|e| (e.word.as_str(), e.weight))
+        .collect();
+    assert_eq!(scores, [("乙", 80), ("甲", 70), ("丙", -8)]);
+    assert_eq!(snapshot.dict.exact("aa")[0].weight, i64::MAX);
+    assert_eq!(
+        std::fs::read_to_string(f.0.join("main.dict")).unwrap(),
+        main
+    );
+}

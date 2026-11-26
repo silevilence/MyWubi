@@ -165,7 +165,7 @@ pub struct Entry {
     /// 对应汉字/词组 (UTF-8)。
     pub word: String,
     /// 词频权重，越大越优先。
-    pub weight: u32,
+    pub weight: i64,
 }
 
 /// 检索匹配类型。
@@ -233,7 +233,7 @@ pub struct Dictionary {
 #[derive(Debug, Default)]
 struct TrieNode {
     /// 该节点终止时记录的 (word, weight) 列表（同编码可能多词）。
-    words: Vec<(String, u32)>,
+    words: Vec<(String, i64)>,
     children: BTreeMap<char, TrieNode>,
 }
 
@@ -535,7 +535,7 @@ impl Dictionary {
             {
                 if !node.words.is_empty() {
                     // 走 Trie 精确分支，再用 weight 排序。
-                    let mut ws: Vec<(String, u32)> = node.words.clone();
+                    let mut ws: Vec<(String, i64)> = node.words.clone();
                     ws.sort_by_key(|entry| std::cmp::Reverse(entry.1));
                     // 复用 search 的全局视图保证返回引用来自 entries。
                     let mut results: Vec<&Entry> = ws
@@ -804,6 +804,9 @@ pub fn validate_table(
     }
 
     for (index, entry) in entries.iter().enumerate() {
+        if u32::try_from(entry.weight).is_err() {
+            push_issue(Some(index), "系统码表词频必须在 0～4294967295 之间".into());
+        }
         if entry.code.is_empty() || entry.word.is_empty() {
             push_issue(Some(index), "编码或词条为空".into());
             continue;
@@ -942,7 +945,11 @@ fn parse_lines_with_config(
                 ));
             }
         }
-        out.push(Entry { code, word, weight });
+        out.push(Entry {
+            code,
+            word,
+            weight: i64::from(weight),
+        });
     }
     Ok(out)
 }
@@ -1349,7 +1356,7 @@ mod tests {
     fn parse_max_u32_weight() {
         let text = format!("a\t工\t{}\n", u32::MAX);
         let e = parse_lines(&text, 4096).unwrap();
-        assert_eq!(e[0].weight, u32::MAX);
+        assert_eq!(e[0].weight, i64::from(u32::MAX));
     }
 
     #[test]

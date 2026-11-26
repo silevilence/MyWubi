@@ -17,7 +17,7 @@ fn every_small_group_sequence_matches_exhaustive_reference_and_all_sources() {
                 entries.push(Entry {
                     code: format!("{a}{b}{c}"),
                     word: format!("word{}", i % 7),
-                    weight: (i % 5) as u32,
+                    weight: (i % 5) as i64,
                 });
             }
         }

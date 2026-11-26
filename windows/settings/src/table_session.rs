@@ -158,7 +158,7 @@ impl TableEditor {
         };
         self.code.clone_from(&entry.code);
         self.word.clone_from(&entry.word);
-        self.weight = entry.weight;
+        self.weight = entry.weight.try_into().unwrap_or_default();
         self.selected = Some(index);
     }
 
@@ -170,7 +170,7 @@ impl TableEditor {
             .ok_or_else(|| "所选词条已不存在".to_string())?;
         entry.code = self.code.trim().to_string();
         entry.word = self.word.trim().to_string();
-        entry.weight = self.weight;
+        entry.weight = i64::from(self.weight);
         self.dirty = true;
         self.refresh_filter();
         self.refresh_validation();
@@ -212,7 +212,7 @@ impl TableEditor {
 
 use core_engine::data::validate_references;
 
-fn search_relevance(entry: &Entry, query: &str) -> Option<(u8, usize, Reverse<u32>)> {
+fn search_relevance(entry: &Entry, query: &str) -> Option<(u8, usize, Reverse<i64>)> {
     [entry.code.as_str(), entry.word.as_str()]
         .into_iter()
         .filter_map(|value| {
