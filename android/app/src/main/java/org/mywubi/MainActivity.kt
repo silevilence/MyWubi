@@ -416,6 +416,7 @@ private fun PredictionModels(model:SettingsModel, prediction:JSONObject, import:
             model.change("prediction", "device", selected)
             model.change("prediction", "device_name", "")
         }
+        PredictionDeviceSettings(model, prediction)
         Text("提前加载仅在输入法前台允许时生效，不能常驻后台。")
         Text("选择与预算需保存后生效。已保存不代表模型已加载；不可用或超时隐藏本轮预测。支持的包规范见项目文档。")
     }
