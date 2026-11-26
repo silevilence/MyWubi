@@ -1,0 +1,23 @@
+
+running 19 tests
+test c01_c02_dynamic_pages_and_no_hit_keep_their_respective_boundaries ... ok
+test c03_c04_c05_sparse_positions_and_same_text_keep_distinct_sources ... ok
+test c06_global_nine_ten_eleven_have_identical_numeric_and_click_commits ... ok
+test c07_disabled_and_conflicting_rules_keep_legacy_input_trace_and_restore_after_reload ... ok
+test c08_c09_first_full_match_freezes_time_and_safe_retry_does_not_retake_it ... ok
+test c11_long_and_overlapping_codes_only_suppress_automatic_commits_while_reachable ... ok
+test clock_failure_is_local_to_one_query_and_preserves_base_candidates ... ok
+test context_modes_and_uncertain_writes_invalidate_the_old_query_without_replay ... ok
+test device_protocol_freezes_clock_across_midnight_and_rejected_edits ... ok
+test fixed_format_tokens_leap_days_and_timezone_snapshots ... ok
+test prediction_only_reload_ends_a_frozen_shortcut_query ... ok
+test prediction_reload_drops_failed_or_unpublished_clock_attempts ... ok
+test preview_uses_the_same_draft_merge_sources_and_page_locations_for_both_profiles ... ok
+test resolved_group_uses_same_special_dynamic_merge_and_learning_identity ... ok
+test retry_of_first_full_match_preedit_reuses_even_an_unpublished_time_snapshot ... ok
+test same_text_preserves_learning_identity_and_raw_uppercase_commits ... ok
+test temporary_modes_never_create_date_candidates_or_read_time ... ok
+test timezone_and_year_changes_only_affect_a_new_query ... ok
+test wrong_prefix_follows_original_overflow_and_auxiliary_entry_keeps_priority ... ok
+
+test result: ok. 19 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.10s

@@ -52,6 +52,9 @@ class SettingsNavigationTest {
             }
             find(By.text("组合附加符")).click()
             find(By.desc("特殊输入项目详情"))
+            find(By.desc("普通输入时追加"))
+            find(By.desc("专用模式可用"))
+            find(By.textStartsWith("任一开关打开后"))
             scenario.onActivity {
                 val model=ViewModelProvider(it)[SettingsModel::class.java]
                 assertEquals("diacritics",model.specialSelection)

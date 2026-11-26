@@ -473,6 +473,7 @@ fun ExpressionSettings(model: SettingsModel, config: JSONObject, selectedKind: S
         Text(label, style = MaterialTheme.typography.titleMedium)
         SettingToggle("普通输入时追加", selection.optBoolean("append"), !model.busy) { change("append", it) }
         SettingToggle("专用模式可用", selection.optBoolean("search"), !model.busy) { change("search", it) }
+        Text("任一开关打开后，输入法会将这份词库载入内存。同时启用多个大词库时，保存并重新加载会短时占用更多内存。", style = MaterialTheme.typography.bodySmall)
         TableChoice("选择${label}词库", current?.optString("name") ?: "尚未检查所选词库",
             entries.map { info ->
                 val prefix = if (info.optBoolean("builtin")) "内置 · " else ""

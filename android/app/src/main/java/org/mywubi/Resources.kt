@@ -14,8 +14,9 @@ object Resources {
             if (!target.exists()) {
                 // Keep existing files on upgrades, including user-maintained resources.
                 runCatching {
-                    val text = context.assets.open("expressions/$name").bufferedReader(Charsets.UTF_8).use { it.readText() }
-                    atomicCreate(target, text)
+                    atomicCreate(target) { output ->
+                        context.assets.open("expressions/$name").use { it.copyTo(output) }
+                    }
                 }.onFailure { android.util.Log.w("MyWubi", "内置表情词库准备失败：$name", it) }
             }
         }
@@ -38,10 +39,13 @@ object Resources {
         }
     }
 
-    private fun atomicCreate(target: File, text: String) {
+    private fun atomicCreate(target: File, text: String) =
+        atomicCreate(target) { it.write(text.toByteArray(Charsets.UTF_8)) }
+
+    private fun atomicCreate(target: File, write: (java.io.OutputStream) -> Unit) {
         val temp = File.createTempFile("prepare-", ".tmp", target.parentFile)
         try {
-            temp.outputStream().use { it.write(text.toByteArray(Charsets.UTF_8)); it.fd.sync() }
+            temp.outputStream().use { write(it); it.fd.sync() }
             check(temp.renameTo(target)) { "无法准备输入资源" }
         } finally { temp.delete() }
     }

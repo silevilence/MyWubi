@@ -68,9 +68,8 @@ pub struct SearchResults {
 
 #[derive(Debug)]
 struct IndexedEntry {
-    names: Vec<usize>,
-    fields: Vec<usize>,
-    loose_names: Vec<String>,
+    names: std::ops::Range<usize>,
+    fields: std::ops::Range<usize>,
 }
 
 /// Shared fields are interned so common categories are searched only once per
@@ -78,6 +77,9 @@ struct IndexedEntry {
 #[derive(Debug)]
 pub(crate) struct SearchIndex {
     fields: Vec<String>,
+    // All rows share the backing buffers, including repeated names and aliases.
+    names: Vec<(usize, usize)>,
+    row_fields: Vec<usize>,
     rows: Vec<IndexedEntry>,
     lexicon: BTreeMap<char, Vec<String>>,
 }
@@ -134,14 +136,14 @@ impl SearchIndex {
                 next
             })
         };
+        let mut names = Vec::new();
+        let mut row_fields = Vec::new();
         let rows = entries
             .iter()
             .map(|entry| {
-                let names = std::iter::once(&entry.name)
-                    .chain(&entry.aliases)
-                    .map(|name| intern(normalized(name)))
-                    .collect();
-                let mut row_fields = BTreeSet::new();
+                let name_start = names.len();
+                let field_start = row_fields.len();
+                let mut distinct = BTreeSet::new();
                 for raw in std::iter::once(&entry.name)
                     .chain(&entry.aliases)
                     .chain(&entry.triggers)
@@ -152,15 +154,17 @@ impl SearchIndex {
                     if !semantic.is_empty() {
                         vocabulary.insert(semantic.clone());
                     }
-                    row_fields.insert(intern(semantic));
+                    distinct.insert(intern(semantic));
                 }
+                for name in std::iter::once(&entry.name).chain(&entry.aliases) {
+                    let literal = normalized(name);
+                    let loose = intern(concepts(&literal));
+                    names.push((intern(literal), loose));
+                }
+                row_fields.extend(distinct);
                 IndexedEntry {
-                    names,
-                    fields: row_fields.into_iter().collect(),
-                    loose_names: std::iter::once(&entry.name)
-                        .chain(&entry.aliases)
-                        .map(|s| concepts(&normalized(s)))
-                        .collect(),
+                    names: name_start..names.len(),
+                    fields: field_start..row_fields.len(),
                 }
             })
             .collect();
@@ -177,6 +181,8 @@ impl SearchIndex {
         }
         Self {
             fields,
+            names,
+            row_fields,
             rows,
             lexicon,
         }
@@ -278,16 +284,17 @@ impl SearchIndex {
         let mut complete = Vec::new();
         let mut partial = Vec::new();
         for (index, entry) in self.rows.iter().enumerate() {
+            let fields = &self.row_fields[entry.fields.clone()];
+            let names = &self.names[entry.names.clone()];
             let matched_terms = (0..tokens.len())
-                .filter(|&term| entry.fields.iter().any(|&field| coverage[field][term]))
+                .filter(|&term| fields.iter().any(|&field| coverage[field][term]))
                 .count();
-            let exact = entry
-                .names
+            let exact = names
                 .iter()
-                .any(|&field| self.fields[field] == original);
+                .any(|&(field, _)| self.fields[field] == original);
             let quality = if exact {
                 MatchQuality::Exact
-            } else if entry.fields.iter().any(|&field| contains[field])
+            } else if fields.iter().any(|&field| contains[field])
                 || (matched_terms == tokens.len() && tokens.iter().all(|(_, known)| *known))
             {
                 MatchQuality::AllTerms
@@ -295,11 +302,10 @@ impl SearchIndex {
                 .iter()
                 .enumerate()
                 .filter(|(_, (term, _))| RESTRICTIONS.iter().any(|r| term.starts_with(r)))
-                .all(|(term, _)| entry.fields.iter().any(|&field| coverage[field][term]))
-                && entry
-                    .loose_names
+                .all(|(term, _)| fields.iter().any(|&field| coverage[field][term]))
+                && names
                     .iter()
-                    .any(|name| subsequence(&query, name))
+                    .any(|&(_, field)| subsequence(&query, &self.fields[field]))
             {
                 MatchQuality::Loose
             } else {

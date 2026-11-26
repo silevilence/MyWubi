@@ -1,0 +1,59 @@
+{
+  "scope": "Windows Release core; OS cache retained; no JNI, UI or actual host; PeakWorkingSet64 sampled every 20 ms",
+  "compiler": "rustc 1.99.1 (58cf8f9c3 2026-10-13)",
+  "source_and_resource_sha256": {
+    "expressions/math.mwe": "c701313067ac06ea499cf8287a1c0d8ec056d207eb73b8a2cf8b7758eb756d63",
+    "expressions/phonetic.mwe": "bfae995624451d812f06b1fb1562e8f2698c13df9036eb3cb5d2bf14b4a05458",
+    "expressions/arrows.mwe": "f9d550dcaeeec87d6902d9309b3265f6203bbed442ea441d071e6f1d013d7f65",
+    "tables/english.dict": "fe4a45b9325fbb53311da1978362fe6c3f29cb4a3185729deb99b68421e7f3e7",
+    "expressions/shapes.mwe": "32c3d3ab00b72f62fb3119c89db1c84d7179da62422113d50bac950fdb261ff9",
+    "expressions/greek.mwe": "ed5a8c0c0997a3cffaa4076b4ec6c8ceb54f703ad583b08e9cd04d3b6d2bfe4a",
+    "expressions/units.mwe": "91c16edb56d46f3ed242b110b3ac193f648134fdc38859e50ff61e61e696850b",
+    "expressions/braille.mwe": "7aa111ceb7f48287eefe6ecd26a0e21bdf79f60b7b4bbca4cd10548b8c998cde",
+    "expressions/cyrillic.mwe": "7ecd83184df7aa27195ff2131617b1545144c79ee207b1d9d12aba880e9f421e",
+    "expressions/emoji.mwe": "16056f5599579db163fd06c5574756afcb39301d97e68bbea3956bf112323802",
+    "expressions/diacritics.mwe": "5d1eb8defb23b7276ad3a7f261f3043686002b106a56ed0000fc8656d2fe7afc",
+    "core_engine/src/runtime.rs": "dad09c7096adc25ef43caa77c17d2825debc8c7bd66cca1492a356862fb45804",
+    "expressions/symbols-unicode18.mwe": "46cd4e3a8c30edb5742b1097b4e628a633322291fd31fd1d45bb07554fe3e1cd",
+    "tables/wubi86.dict": "63802db622c7ddbb252dbbaa369bbd6f43027449b2abdc0dc71a10e63176d145",
+    "core_engine/examples/special_input_benchmark.rs": "d6afff145cc0845670afa6562d3e45928e3a212aed97d35b32bac052a3449691",
+    "expressions/numbers.mwe": "1da68685964ec1dcc5ec8b9137185b7fccf8f6037d62cb50b380e0e6856e0843",
+    "docs/validation/special-input/workloads.json": "5b45d1c653a4422ae47e8243ef72ca1f8c8cd4127390c64667006cdfaaf0ef04",
+    "expressions/kaomoji.mwe": "b0b4f8f9fd1772d81896df85cce5b1197caae162cdbae81d6178029d65bd7814",
+    "tables/pinyin.dict": "234008541b549a2906c2879d8a9537400e82c5dd6b030f6440674c6b451d693b",
+    "docs/validation/special-input/cases.json": "21b716b38b28bbcbb8507fdb9247f91a008ebf2c7ff00e9971c1f191e40e72bd",
+    "expressions/punctuation.mwe": "dd842219bb7eb9a52f99e1622558539d2ca4a43a2296f6acdc0320ed59a1a7ca",
+    "expressions/latin.mwe": "0a1c8f32c1b9ba531aa07b2b029c6f1353ebf113780d71474e4c980706e0ac8e",
+    "expressions/currency.mwe": "198d7e6762f9fc32b95b488b9e29c5507bf20c128a4b91e9ee243b509457da5a",
+    "expressions/music.mwe": "5388e41c5289b7919cd7ca9d5c10bd6732c2e7c11e546d5c00a7fe87b94a2ce4",
+    "expressions/enclosed.mwe": "10215f287428c502d494797855791daaaeec9ce79305ebfab60ebc4b176d2305",
+    "expressions/symbols.mwe": "46cd4e3a8c30edb5742b1097b4e628a633322291fd31fd1d45bb07554fe3e1cd",
+    "expressions/math-unicode18.mwe": "c701313067ac06ea499cf8287a1c0d8ec056d207eb73b8a2cf8b7758eb756d63",
+    "expressions/box_drawing.mwe": "c0b564ec0c190163e2ba08ccf044fba9056ba63cecadd6aafc9b885eacf5bff8",
+    "expressions/kana.mwe": "49789256814ef73664b9897755f79f84104368a1b60666557345c7bd03c64371",
+    "expressions/punctuation-unicode18.mwe": "dd842219bb7eb9a52f99e1622558539d2ca4a43a2296f6acdc0320ed59a1a7ca",
+    "core_engine/src/dictionary.rs": "a078e119e86173026ba733e9b0620ff69ffca7ed84701acba6e64cec5a9778aa"
+  },
+  "runs": [
+    {
+      "peak_working_set_bytes": 120918016,
+      "run": 1,
+      "cpu_load_before_percent": 7,
+      "cpu_load_after_percent": 0
+    },
+    {
+      "peak_working_set_bytes": 120725504,
+      "run": 2,
+      "cpu_load_before_percent": 40,
+      "cpu_load_after_percent": 74
+    },
+    {
+      "peak_working_set_bytes": 120819712,
+      "run": 3,
+      "cpu_load_before_percent": 57,
+      "cpu_load_after_percent": 62
+    }
+  ],
+  "date": "2026-11-26T09:31:07.9243887+08:00",
+  "executable_sha256": "49df40763b0d2d7894501d6f829507e9f682a6e240a7f80675b3cd34541ca134"
+}

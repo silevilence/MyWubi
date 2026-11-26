@@ -544,6 +544,81 @@ fn c06_global_nine_ten_eleven_have_identical_numeric_and_click_commits() {
 }
 
 #[test]
+fn device_protocol_freezes_clock_across_midnight_and_rejected_edits() {
+    use serde_json::{json, Value};
+    let dir = tempfile::tempdir().unwrap();
+    let path = dir.path().join("config.toml");
+    std::fs::write(dir.path().join("main.dict"), "jjad\t甲\n").unwrap();
+    let mut config = Config::default();
+    config.dictionary.system_table = "main.dict".into();
+    config.basic.auto_commit_unique = false;
+    config.shortcuts.rules = vec![
+        rule("jjad", 1, "yyyy年MM月dd日"),
+        rule("jjad", 2, "yyyy-MM-dd HH:mm:ss"),
+    ];
+    config.save(&path).unwrap();
+    let c08 = fixture("SI-C08");
+    let c09 = fixture("SI-C09");
+    let clock = TestClock::new();
+    let invoke = |request: Value| -> Value {
+        let input = json!({"version": 1, "request": request});
+        serde_json::from_slice(&ffi::call_with_clock(
+            &serde_json::to_vec(&input).unwrap(),
+            clock.clone(),
+        ))
+        .unwrap()
+    };
+    let ok = |request| {
+        let reply = invoke(request);
+        assert_eq!(reply["ok"], true, "{reply}");
+        reply["value"].clone()
+    };
+    let runtime = ok(json!({"op":"BuildRuntime","path":path}))["handle"].clone();
+    let session =
+        ok(json!({"op":"CreateSession","runtime":runtime,"context":HostContext::default()}))
+            ["handle"]
+            .clone();
+    let prepare = |action| json!({"op":"Prepare","session":session,"action":action});
+    let ack = |plan: &Value, outcome| {
+        ok(
+            json!({"op":"Ack","session":session,"token":plan["token"],"outcome":outcome,"owns_preedit":false}),
+        )
+    };
+    let apply = |action| {
+        ack(&ok(prepare(action)), "Applied");
+    };
+    for (i, step) in c08["actions"].as_array().unwrap().iter().enumerate() {
+        *clock.value.lock().unwrap() = Ok(fixture_time(&step["at"]));
+        for ch in step["input"].as_str().unwrap().chars() {
+            apply(json!({"InputCode":ch}));
+        }
+        assert_eq!(clock.count(), i);
+    }
+    let window = || ok(json!({"op":"Candidates","session":session,"offset":0,"count":9}));
+    let original = window();
+    for (i, text) in c08["expected"].as_array().unwrap().iter().enumerate() {
+        assert_eq!(&original["candidates"][i]["text"], text);
+    }
+    let select =
+        json!({"SelectCandidate":[original["query_revision"],original["candidates"][1]["id"]]});
+    *clock.value.lock().unwrap() = Ok(fixture_time(&c09["edited_time"]));
+    let first = ok(prepare(select.clone()));
+    ack(&first, "RejectedBeforeWrite");
+    let retry = ok(prepare(select.clone()));
+    assert_eq!(first["op"], retry["op"]);
+    assert_eq!(clock.count(), 1);
+    ack(&retry, "RejectedBeforeWrite");
+    apply(json!("Backspace"));
+    apply(json!({"InputCode":"d"}));
+    assert_eq!(clock.count(), 2);
+    assert_eq!(window()["candidates"][1]["text"], "2026-11-13 00:00:09");
+    assert_eq!(invoke(prepare(select))["ok"], false);
+    for handle in [session, runtime] {
+        ok(json!({"op":"Destroy","handle":handle}));
+    }
+}
+
+#[test]
 fn c08_c09_first_full_match_freezes_time_and_safe_retry_does_not_retake_it() {
     let c08 = fixture("SI-C08");
     let c09 = fixture("SI-C09");

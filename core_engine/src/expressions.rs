@@ -318,6 +318,10 @@ pub struct ExpressionLibrary {
 
 impl ExpressionLibrary {
     pub fn parse(text: &str, expected: ExpressionKind) -> Result<Self, ExpressionError> {
+        Self::new(Self::decode(text)?, expected)
+    }
+
+    fn decode(text: &str) -> Result<ExpressionDocument, ExpressionError> {
         let (magic, json) = text
             .trim_start_matches('\u{feff}')
             .split_once('\n')
@@ -330,8 +334,7 @@ impl ExpressionLibrary {
         if text.len() as u64 > MAX_BYTES {
             return Err(ExpressionError::Invalid("词库超过 64 MiB".into()));
         }
-        let document: ExpressionDocument = serde_json::from_str(json)?;
-        Self::new(document, expected)
+        Ok(serde_json::from_str(json)?)
     }
 
     pub fn new(
@@ -395,6 +398,16 @@ impl ExpressionLibrary {
                 return Err(invalid("词条引用了缺失的来源"));
             }
         }
+        drop(outputs);
+        // JSON arrays usually contain only one or two strings. Release the
+        // decoder's spare capacity before building the two lookup indexes.
+        for entry in &mut document.entries {
+            entry.triggers.shrink_to_fit();
+            entry.tags.shrink_to_fit();
+            entry.aliases.shrink_to_fit();
+            entry.sources.shrink_to_fit();
+        }
+        document.entries.shrink_to_fit();
         document.entries.sort_by_key(|entry| entry.order);
         let mut exact: BTreeMap<String, Vec<usize>> = BTreeMap::new();
         for (index, entry) in document.entries.iter().enumerate() {
@@ -418,7 +431,9 @@ impl ExpressionLibrary {
         std::fs::File::open(path)
             .and_then(|file| file.take(MAX_BYTES + 1).read_to_string(&mut text))
             .map_err(|error| ExpressionError::Io(path.to_owned(), error.to_string()))?;
-        Self::parse(&text, expected)
+        let document = Self::decode(&text)?;
+        drop(text);
+        Self::new(document, expected)
     }
 
     pub fn document(&self) -> &ExpressionDocument {

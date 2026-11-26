@@ -1,0 +1,15 @@
+{"run":1,"scenario":"disabled","build_ms":0.367385,"candidates":0,"warmup":20,"samples":1000,"p95_ms":1.001846,"p99_ms":2.222385,"pss_kib":254141}
+{"run":1,"scenario":"misses","build_ms":9.345615,"candidates":0,"warmup":20,"samples":1000,"p95_ms":1.138462,"p99_ms":4.467692,"pss_kib":177061}
+{"run":1,"scenario":"multi","build_ms":18.423923,"candidates":6145,"warmup":20,"samples":200,"p95_ms":12.810154,"p99_ms":14.21177,"pss_kib":183161}
+{"run":1,"scenario":"same_code","build_ms":0.639153,"candidates":32,"warmup":20,"samples":200,"p95_ms":2.750846,"p99_ms":8.047923,"pss_kib":186078}
+{"run":1,"scenario":"full","build_ms":1337.697538,"pss_kib":233827,"resident_pss_kib":233091,"measurement":"visible IME, including reload peak"}
+{"run":2,"scenario":"disabled","build_ms":56.494154,"candidates":0,"warmup":20,"samples":1000,"p95_ms":1.589231,"p99_ms":4.771154,"pss_kib":189031}
+{"run":2,"scenario":"misses","build_ms":9.691077,"candidates":0,"warmup":20,"samples":1000,"p95_ms":0.836308,"p99_ms":3.511154,"pss_kib":177623}
+{"run":2,"scenario":"multi","build_ms":18.958153,"candidates":6145,"warmup":20,"samples":200,"p95_ms":12.123384,"p99_ms":15.344385,"pss_kib":183890}
+{"run":2,"scenario":"same_code","build_ms":0.476692,"candidates":32,"warmup":20,"samples":200,"p95_ms":1.943385,"p99_ms":8.983308,"pss_kib":183098}
+{"run":2,"scenario":"full","build_ms":1236.717847,"pss_kib":234050,"resident_pss_kib":234050,"measurement":"visible IME, including reload peak"}
+{"run":3,"scenario":"disabled","build_ms":18.94277,"candidates":0,"warmup":20,"samples":1000,"p95_ms":1.654077,"p99_ms":7.877539,"pss_kib":182294}
+{"run":3,"scenario":"misses","build_ms":9.685231,"candidates":0,"warmup":20,"samples":1000,"p95_ms":0.818692,"p99_ms":6.381923,"pss_kib":191610}
+{"run":3,"scenario":"multi","build_ms":19.415384,"candidates":6145,"warmup":20,"samples":200,"p95_ms":12.297615,"p99_ms":14.674846,"pss_kib":187922}
+{"run":3,"scenario":"same_code","build_ms":0.688923,"candidates":32,"warmup":20,"samples":200,"p95_ms":3.459077,"p99_ms":9.622769,"pss_kib":183822}
+{"run":3,"scenario":"full","build_ms":1245.479693,"pss_kib":244350,"resident_pss_kib":241530,"measurement":"visible IME, including reload peak"}

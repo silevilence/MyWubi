@@ -1,12 +1,18 @@
 //! 一次性输入使用的只读辅助码表。文件加载在会话外完成。
 use crate::{config::Hotkey, validate_temporary_hotkeys, Dictionary, TemporaryConfig};
-use std::collections::BTreeMap;
 use std::path::{Path, PathBuf};
 use std::sync::Arc;
 
 /// 仅由主码表文件构建，不包含合并后的用户词库。
 #[derive(Debug, Default, Clone)]
-pub struct ReverseLookup(Arc<BTreeMap<String, Vec<String>>>);
+pub struct ReverseLookup(Arc<ReverseCodes>);
+
+#[derive(Debug, Default)]
+struct ReverseCodes {
+    // Words are sorted, and each offset starts its contiguous slice of codes.
+    words: Vec<(String, usize)>,
+    codes: Vec<String>,
+}
 
 impl ReverseLookup {
     pub fn new(main: &Dictionary) -> Self {
@@ -14,22 +20,37 @@ impl ReverseLookup {
     }
 
     fn build(main: &Dictionary) -> Self {
-        let mut index: BTreeMap<String, Vec<String>> = BTreeMap::new();
-        for entry in main.entries() {
+        let mut entries: Vec<_> = main.entries().iter().collect();
+        entries.sort_unstable_by(|a, b| {
+            a.word
+                .cmp(&b.word)
+                .then_with(|| a.code.chars().count().cmp(&b.code.chars().count()))
+                .then_with(|| a.code.cmp(&b.code))
+        });
+        entries.dedup_by(|a, b| a.word == b.word && a.code == b.code);
+        let mut index = ReverseCodes::default();
+        for group in entries.chunk_by(|a, b| a.word == b.word) {
+            index.words.push((group[0].word.clone(), index.codes.len()));
             index
-                .entry(entry.word.clone())
-                .or_default()
-                .push(entry.code.clone());
-        }
-        for codes in index.values_mut() {
-            codes.sort_by(|a, b| a.chars().count().cmp(&b.chars().count()).then(a.cmp(b)));
-            codes.dedup();
+                .codes
+                .extend(group.iter().map(|entry| entry.code.clone()));
         }
         Self(Arc::new(index))
     }
 
     pub fn codes(&self, word: &str) -> &[String] {
-        self.0.get(word).map_or(&[], Vec::as_slice)
+        let index = &self.0;
+        let Ok(i) = index
+            .words
+            .binary_search_by(|(key, _)| key.as_str().cmp(word))
+        else {
+            return &[];
+        };
+        let end = index
+            .words
+            .get(i + 1)
+            .map_or(index.codes.len(), |next| next.1);
+        &index.codes[index.words[i].1..end]
     }
 
     pub fn hint(&self, word: &str) -> String {
