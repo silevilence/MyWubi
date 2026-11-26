@@ -1,0 +1,208 @@
+[
+  {
+    "run": "positions-recheck",
+    "method": "org.mywubi.SpecialPositionHostTest.globalPositionsAndReachablePrefixCommitToTheExternalEditor",
+    "passed": true
+  },
+  {
+    "run": "positions-recheck",
+    "method": "org.mywubi.SpecialPositionHostTest.sparseDuplicateAndConflictingRulesCommitThroughTheKeyboard",
+    "passed": true
+  },
+  {
+    "run": "special-final",
+    "method": "org.mywubi.ExpressionHostTest.kanaLiteralAliasUsesVisibleCategoryEntryAndCommitsOnlyTheResult",
+    "passed": true
+  },
+  {
+    "run": "special-final",
+    "method": "org.mywubi.ExpressionHostTest.realQueryEditsNeverTouchHostAndFinalEmojiAndLongKaomojiStayComplete",
+    "passed": true
+  },
+  {
+    "run": "special-final",
+    "method": "org.mywubi.ExpressionHostTest.browseWithoutTypingCommitsRepeatedSymbolsAndRetainsWindow",
+    "passed": true
+  },
+  {
+    "run": "special-final",
+    "method": "org.mywubi.ExpressionHostTest.numericChoicesStayLocalAndResourceReloadRejectsAnOldAccessibilityClick",
+    "passed": true
+  },
+  {
+    "run": "special-final",
+    "method": "org.mywubi.ExpressionHostTest.fullLibraryTailSelectionAndModeReturnDoNotLeakPartialQueries",
+    "passed": false
+  },
+  {
+    "run": "special-tail",
+    "method": "org.mywubi.ExpressionHostTest.fullLibraryTailSelectionAndModeReturnDoNotLeakPartialQueries",
+    "passed": true
+  },
+  {
+    "run": "settings-final",
+    "method": "org.mywubi.SettingsNavigationTest.finalUnicodeCategoryIsSearchableAndKeepsItsOwnDraft",
+    "passed": true
+  },
+  {
+    "run": "settings-final",
+    "method": "org.mywubi.SettingsNavigationTest.specialInputRecreationRetainsSelectionSearchAndQueryDraft",
+    "passed": true
+  },
+  {
+    "run": "settings-final",
+    "method": "org.mywubi.PhysicalRuleEditorTest.errorAndSaveAreReachableAboveTheNumericKeyboard",
+    "passed": true
+  },
+  {
+    "run": "gestures",
+    "method": "org.mywubi.KeyboardTouchTest.holdPickerFollowsTheCurrentBindingsOfTheSameKey",
+    "passed": true
+  },
+  {
+    "run": "gestures",
+    "method": "org.mywubi.KeyboardTouchTest.overlappingAlternatingFingersDoNotDropRepeatedKeys",
+    "passed": true
+  },
+  {
+    "run": "gestures",
+    "method": "org.mywubi.KeyboardTouchTest.visualKeyGuttersStillAcceptTaps",
+    "passed": true
+  },
+  {
+    "run": "gestures",
+    "method": "org.mywubi.KeyboardTouchTest.eightDirectionsMergedUpAndReturnToCenterUseOneReleaseAction",
+    "passed": true
+  },
+  {
+    "run": "gestures",
+    "method": "org.mywubi.KeyboardTouchTest.deleteHoldSwipeReleaseReturnAndContextCancellation",
+    "passed": true
+  },
+  {
+    "run": "gestures",
+    "method": "org.mywubi.KeyboardTouchTest.modesUseFixedLabelAndSymbolsDoNotConsumeOneShotShift",
+    "passed": true
+  },
+  {
+    "run": "gestures",
+    "method": "org.mywubi.KeyboardTouchTest.previewDoesNotBlockRapidTypingAndHidingCancelsHeldKey",
+    "passed": true
+  },
+  {
+    "run": "gestures",
+    "method": "org.mywubi.KeyboardTouchTest.tapPreviewSwipeHoldAndCancellationCommitExactlyOnce",
+    "passed": true
+  },
+  {
+    "run": "grid-host",
+    "method": "org.mywubi.ExpressionHostTest.kanaLiteralAliasUsesVisibleCategoryEntryAndCommitsOnlyTheResult",
+    "passed": true
+  },
+  {
+    "run": "grid-host",
+    "method": "org.mywubi.ExpressionHostTest.realQueryEditsNeverTouchHostAndFinalEmojiAndLongKaomojiStayComplete",
+    "passed": true
+  },
+  {
+    "run": "grid-host",
+    "method": "org.mywubi.ExpressionHostTest.browseWithoutTypingCommitsRepeatedSymbolsAndRetainsWindow",
+    "passed": true
+  },
+  {
+    "run": "grid-host",
+    "method": "org.mywubi.ExpressionHostTest.numericChoicesStayLocalAndResourceReloadRejectsAnOldAccessibilityClick",
+    "passed": true
+  },
+  {
+    "run": "grid-host",
+    "method": "org.mywubi.ExpressionHostTest.fullLibraryTailSelectionAndModeReturnDoNotLeakPartialQueries",
+    "passed": true
+  },
+  {
+    "run": "grid-layouts",
+    "method": "org.mywubi.PhysicalLayoutComparisonTest.identicalWordsOnThreeLayouts",
+    "passed": false
+  },
+  {
+    "run": "grid-position",
+    "method": "org.mywubi.SpecialPositionHostTest.globalPositionsAndReachablePrefixCommitToTheExternalEditor",
+    "passed": false,
+    "failure": "Android did not bind the input method to the freshly launched host editor."
+  },
+  {
+    "run": "grid-position",
+    "method": "org.mywubi.SpecialPositionHostTest.sparseDuplicateAndConflictingRulesCommitThroughTheKeyboard",
+    "passed": true
+  },
+  {
+    "run": "shift-touches",
+    "method": "org.mywubi.KeyboardTouchTest.holdPickerFollowsTheCurrentBindingsOfTheSameKey",
+    "passed": true
+  },
+  {
+    "run": "shift-touches",
+    "method": "org.mywubi.KeyboardTouchTest.overlappingAlternatingFingersDoNotDropRepeatedKeys",
+    "passed": true
+  },
+  {
+    "run": "shift-touches",
+    "method": "org.mywubi.KeyboardTouchTest.visualKeyGuttersStillAcceptTaps",
+    "passed": true
+  },
+  {
+    "run": "shift-touches",
+    "method": "org.mywubi.KeyboardTouchTest.eightDirectionsMergedUpAndReturnToCenterUseOneReleaseAction",
+    "passed": true
+  },
+  {
+    "run": "shift-touches",
+    "method": "org.mywubi.KeyboardTouchTest.deleteHoldSwipeReleaseReturnAndContextCancellation",
+    "passed": true
+  },
+  {
+    "run": "shift-touches",
+    "method": "org.mywubi.KeyboardTouchTest.modesUseFixedLabelAndSymbolsDoNotConsumeOneShotShift",
+    "passed": true
+  },
+  {
+    "run": "shift-touches",
+    "method": "org.mywubi.KeyboardTouchTest.previewDoesNotBlockRapidTypingAndHidingCancelsHeldKey",
+    "passed": true
+  },
+  {
+    "run": "shift-touches",
+    "method": "org.mywubi.KeyboardTouchTest.tapPreviewSwipeHoldAndCancellationCommitExactlyOnce",
+    "passed": true
+  },
+  {
+    "run": "shift-layouts",
+    "method": "org.mywubi.PhysicalLayoutComparisonTest.identicalWordsOnThreeLayouts",
+    "passed": true
+  },
+  {
+    "run": "shift-first-frame",
+    "method": "org.mywubi.PhysicalPresentationTest.tapToCapturedCandidateAndVibrationSwitch",
+    "passed": true
+  },
+  {
+    "run": "isolated-final-positions",
+    "method": "org.mywubi.SpecialPositionHostTest.globalPositionsAndReachablePrefixCommitToTheExternalEditor",
+    "passed": false
+  },
+  {
+    "run": "isolated-final-positions",
+    "method": "org.mywubi.SpecialPositionHostTest.sparseDuplicateAndConflictingRulesCommitThroughTheKeyboard",
+    "passed": false
+  },
+  {
+    "run": "clean-final-positions",
+    "method": "org.mywubi.SpecialPositionHostTest.globalPositionsAndReachablePrefixCommitToTheExternalEditor",
+    "passed": true
+  },
+  {
+    "run": "clean-final-positions",
+    "method": "org.mywubi.SpecialPositionHostTest.sparseDuplicateAndConflictingRulesCommitThroughTheKeyboard",
+    "passed": true
+  }
+]

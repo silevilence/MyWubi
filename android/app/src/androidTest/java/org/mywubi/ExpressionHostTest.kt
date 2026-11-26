@@ -33,9 +33,30 @@ class ExpressionHostTest {
         device.takeScreenshot(File(evidence,"failure.png"));device.dumpWindowHierarchy(File(evidence,"failure.xml"))
         error("Missing $selector")
     }
-    private fun key(label:String) { fresh(By.desc(label).pkg("org.mywubi").enabled(true)).click(); device.waitForIdle() }
-    private fun button(label:String) { fresh(By.text(label).pkg("org.mywubi").enabled(true)).click(); device.waitForIdle() }
-    private fun candidate(text:String) { fresh(By.desc(Pattern.compile("候选 ${Pattern.quote(text)}(?:，.*)?")).pkg("org.mywubi")).click();device.waitForIdle() }
+    private fun tap(selector: BySelector) {
+        val end = SystemClock.uptimeMillis() + 10000
+        while (true) {
+            val bounds = try {
+                fresh(selector).visibleBounds
+            } catch (stale: StaleObjectException) {
+                if (SystemClock.uptimeMillis() >= end) throw stale
+                continue
+            }
+            assertTrue(device.click(bounds.centerX(), bounds.centerY()))
+            device.waitForIdle()
+            return
+        }
+    }
+    private fun key(label:String) {
+        if (label == "特殊输入") {
+            val close = By.pkg(context.packageName).desc("关闭剪贴板建议")
+            val bounds = try { device.findObject(close)?.visibleBounds } catch (_: StaleObjectException) { null }
+            if (bounds != null && !bounds.isEmpty) device.click(bounds.centerX(), bounds.centerY())
+        }
+        tap(By.desc(label).pkg(context.packageName).enabled(true))
+    }
+    private fun button(label:String) = tap(By.text(label).pkg(context.packageName).enabled(true))
+    private fun candidate(text:String) = tap(By.desc(Pattern.compile("候选 ${Pattern.quote(text)}(?:，.*)?")).pkg(context.packageName))
     private fun host()=fresh(By.clazz("android.widget.EditText").pkg("org.mywubi.acceptancehost"))
     private fun journal()=device.executeShellCommand("cat /sdcard/Android/data/org.mywubi.acceptancehost/files/edits.jsonl")
     private fun shot(name:String) { device.takeScreenshot(File(evidence,"$name.png"));device.dumpWindowHierarchy(File(evidence,"$name.xml")) }

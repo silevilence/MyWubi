@@ -1,0 +1,116 @@
+{
+  "device": "Pixel 5 API 34 x86_64, headless read-only AVD",
+  "wide_display": "1600x2100 pixels at 240 dpi, system font=1.6, dark",
+  "results": [
+    {
+      "run": "positions",
+      "method": "org.mywubi.SpecialPositionHostTest.globalPositionsAndReachablePrefixCommitToTheExternalEditor",
+      "passed": true
+    },
+    {
+      "run": "positions",
+      "method": "org.mywubi.SpecialPositionHostTest.sparseDuplicateAndConflictingRulesCommitThroughTheKeyboard",
+      "passed": true
+    },
+    {
+      "run": "special",
+      "method": "org.mywubi.ExpressionHostTest.kanaLiteralAliasUsesVisibleCategoryEntryAndCommitsOnlyTheResult",
+      "passed": true
+    },
+    {
+      "run": "special",
+      "method": "org.mywubi.ExpressionHostTest.realQueryEditsNeverTouchHostAndFinalEmojiAndLongKaomojiStayComplete",
+      "passed": true
+    },
+    {
+      "run": "special",
+      "method": "org.mywubi.ExpressionHostTest.browseWithoutTypingCommitsRepeatedSymbolsAndRetainsWindow",
+      "passed": true
+    },
+    {
+      "run": "special",
+      "method": "org.mywubi.ExpressionHostTest.numericChoicesStayLocalAndResourceReloadRejectsAnOldAccessibilityClick",
+      "passed": true
+    },
+    {
+      "run": "special",
+      "method": "org.mywubi.ExpressionHostTest.fullLibraryTailSelectionAndModeReturnDoNotLeakPartialQueries",
+      "passed": true
+    },
+    {
+      "run": "templates",
+      "method": "org.mywubi.CustomKeyboardHostTest.realTemplatesKeepGroupsLocalAndReturnToRememberedMode",
+      "passed": true
+    },
+    {
+      "run": "wide",
+      "method": "org.mywubi.SettingsNavigationTest.finalUnicodeCategoryIsSearchableAndKeepsItsOwnDraft",
+      "passed": true
+    },
+    {
+      "run": "wide",
+      "method": "org.mywubi.ExpressionLayoutTest.browserLargeLandscape",
+      "passed": true
+    },
+    {
+      "run": "wide",
+      "method": "org.mywubi.ExpressionLayoutTest.portraitNormalFont",
+      "passed": false
+    },
+    {
+      "run": "wide",
+      "method": "org.mywubi.ExpressionLayoutTest.portraitLargeFont",
+      "passed": true
+    },
+    {
+      "run": "wide",
+      "method": "org.mywubi.ExpressionLayoutTest.landscapeLargeFont",
+      "passed": true
+    },
+    {
+      "run": "wide",
+      "method": "org.mywubi.ExpressionLayoutTest.landscapeNormalFont",
+      "passed": true
+    },
+    {
+      "run": "wide",
+      "method": "org.mywubi.ExpressionLayoutTest.browserPortrait",
+      "passed": true
+    },
+    {
+      "run": "wide",
+      "method": "org.mywubi.ExpandedCandidatesTest.expandedCandidatesAppearOnceAndReturnToTyping",
+      "passed": true
+    },
+    {
+      "run": "wide",
+      "method": "org.mywubi.ExpandedCandidatesTest.expandedGridScrollsAndPagesWithCurrentCandidateIdentity",
+      "passed": true
+    },
+    {
+      "run": "wide",
+      "method": "org.mywubi.ExpandedCandidatesTest.expandedCandidatesRemainUsableAtLargeFont",
+      "passed": true
+    },
+    {
+      "run": "large-settings",
+      "method": "org.mywubi.SettingsNavigationTest.finalUnicodeCategoryIsSearchableAndKeepsItsOwnDraft",
+      "passed": true
+    },
+    {
+      "run": "large-settings",
+      "method": "org.mywubi.SettingsNavigationTest.specialInputRecreationRetainsSelectionSearchAndQueryDraft",
+      "passed": true
+    },
+    {
+      "run": "large-settings",
+      "method": "org.mywubi.PhysicalRuleEditorTest.errorAndSaveAreReachableAboveTheNumericKeyboard",
+      "passed": true
+    },
+    {
+      "run": "wide-corrected",
+      "method": "org.mywubi.ExpressionLayoutTest.portraitNormalFont",
+      "passed": true
+    }
+  ]
+}

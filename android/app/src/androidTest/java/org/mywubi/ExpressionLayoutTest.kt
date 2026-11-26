@@ -43,7 +43,10 @@ class ExpressionLayoutTest {
     private fun reveal(selector:BySelector,pane:BySelector):UiObject2 {
         repeat(16) {
             settled()
-            device.findObject(By.copy(selector).pkg("org.mywubi"))?.let { if(it.visibleBounds.height()>32) return it }
+            device.findObject(By.copy(selector).pkg(instrumentation.targetContext.packageName))?.let { label ->
+                val button = generateSequence(label) { it.parent }.firstOrNull { it.isClickable }
+                if (button != null && button.visibleBounds.height() >= 32 * instrumentation.targetContext.resources.displayMetrics.density) return button
+            }
             val scroll=node(pane)
             scroll.setGestureMargin(20);scroll.scroll(Direction.DOWN,0.65f)
         }

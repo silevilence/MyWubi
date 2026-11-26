@@ -58,9 +58,15 @@ class PhysicalPresentationTest {
         val report=JSONObject()
         val out=File(app.filesDir,"physical-presentation.json")
         val latencies=mutableListOf<Long>()
-        fun haptics():String=dev.executeShellCommand("dumpsys vibrator_manager").lineSequence()
-            .filter { it.contains("status: finished") && it.contains("Usage=TOUCH") &&
-                (it.contains("opPkg=org.mywubi") || it.contains("uid=1000,") && it.contains("opPkg=android,")) }.joinToString("\n")
+        val trials = JSONArray()
+        fun clockOffset() = SystemClock.elapsedRealtimeNanos() - System.nanoTime()
+        report.put("boot_minus_monotonic_start_ns", clockOffset())
+        fun haptics():String=dev.executeShellCommand("dumpsys vibrator_manager").lineSequence().filter { line ->
+            val completed = "finished" in line && ("Usage=TOUCH" in line || "usage: TOUCH" in line)
+            val appRecord = "opPkg=${app.packageName}," in line || "| ${app.packageName} (uid=" in line
+            val systemRecord = "opPkg=android," in line && "uid=1000," in line
+            completed && (appRecord || systemRecord)
+        }.joinToString("\n")
         val receipt=File(EngineStore(app).configFile.parentFile,"keyboard-selection.json")
         val originalReceipt=receipt.takeIf {it.exists()}?.readBytes()
         try {
@@ -99,7 +105,9 @@ class PhysicalPresentationTest {
                 key("p")
                 SystemClock.sleep(180)
                 val empty=crop(bounds)
-                try {assertFalse("Baseline and candidate pixels must differ",empty.sameAs(reference))}
+                try {
+                    assertFalse("Baseline and candidate pixels must differ",empty.sameAs(reference))
+                }
                 finally {empty.recycle()}
                 val captureOverhead = JSONArray()
                 repeat(8) {
@@ -130,17 +138,26 @@ class PhysicalPresentationTest {
                 report.put("new_feedback_records",JSONArray(newFeedback))
                 ui.edit().putBoolean("vibration",false).commit()
                 args.waitForIdleTimeout=0
+                val measureLayer = InstrumentationRegistry.getArguments().getString("presentation_layer") != "false"
+                val timeline = if (measureLayer) CandidateFrameTimeline(dev) else null
                 repeat(195) { i ->
-                    val start=SystemClock.elapsedRealtimeNanos()
-                    assertTrue(tapAt(point.x,point.y))
+                    val draw = timeline?.tap(point.x, point.y)
+                    val start = draw?.down ?: System.nanoTime()
+                    if (draw == null) assertTrue(tapAt(point.x,point.y))
+                    // Screenshot readback can stall the GPU. Let the normal frame present first.
+                    if (draw != null) SystemClock.sleep(250)
                     var matched=false
                     var elapsed=0L
                     while(!matched && elapsed<2000000) {
                         val frame=crop(bounds)
                         try {matched=frame.sameAs(reference)} finally {frame.recycle()}
-                        elapsed=(SystemClock.elapsedRealtimeNanos()-start)/1000
+                        elapsed=(System.nanoTime()-start)/1000
                     }
                     assertTrue("Candidate pixels at trial $i",matched)
+                    draw?.let {
+                        trials.put(requireNotNull(timeline).submittedFrame(it).put("down_ns",it.down).put("release_ns",it.up)
+                            .put("draw_ns",it.observedNs).put("matched_capture_us",elapsed))
+                    }
                     if(i%65>=5)latencies.add(elapsed)
                     tapAt(bounds.centerX(),bounds.centerY())
                     assertTrue(dev.wait(Until.hasObject(field().text("这")),3000))
@@ -148,17 +165,31 @@ class PhysicalPresentationTest {
                     assertTrue(awaitHostText(dev,field(),"",3000))
                     key("p");SystemClock.sleep(120)
                 }
-                val rounds=latencies.chunked(60).map { batch ->
+                fun roundsOf(samples: List<Long>) = samples.chunked(60).map { batch ->
                     val sorted=batch.sorted()
                     JSONObject().put("p95_us",sorted[56]).put("p99_us",sorted[59])
                 }
-                report.put("rounds",JSONArray(rounds))
+                val captures = roundsOf(latencies)
+                report.put("rounds",JSONArray(captures))
+                val screenRounds = if (measureLayer) {
+                    assertEquals(195, trials.length())
+                    val physical = (0 until trials.length()).filter { it % 65 >= 5 }.map { index ->
+                        val frame = trials.getJSONObject(index)
+                        val gpu = frame.getLong("GpuCompleted")
+                        val fences = frame.getJSONArray("layer_fences")
+                        val buffer = (0 until fences.length()).map(fences::getJSONArray).single { it.getLong(0) == gpu }
+                        (buffer.getLong(1) - frame.getLong("down_ns")) / 1000
+                    }
+                    roundsOf(physical).also { report.put("physical_rounds", JSONArray(it)) }
+                } else captures
                 assertTrue("Haptics disabled must leave vibrator history unchanged", report.getBoolean("vibration_off_history_unchanged"))
                 assertTrue("Haptics enabled must create an OS record", report.getBoolean("vibration_on_new_os_record"))
-                assertTrue("Captured frame p95/p99 exceed 200/300 ms",
-                    rounds.size==3 && rounds.all { it.getLong("p95_us")<=200000 && it.getLong("p99_us")<=300000 })
+                assertTrue("Visible candidate p95/p99 exceed 200/300 ms",
+                    screenRounds.size==3 && screenRounds.all { it.getLong("p95_us")<=200000 && it.getLong("p99_us")<=300000 })
             } finally {reference.recycle()}
         } finally {
+            report.put("boot_minus_monotonic_end_ns", clockOffset())
+            report.put("trials", trials)
             if(originalReceipt!=null)receipt.writeBytes(originalReceipt)
             report.put("tap_to_matching_capture_us",JSONArray(latencies))
             out.writeText(report.toString())

@@ -1,0 +1,1924 @@
+{
+  "trace_sha256": "d788ef7d778d0514d6101199469d0deaaa00a240f1a6380977844543a697a7d2",
+  "rounds": [
+    {
+      "down_ms": {
+        "p50": 136.108388,
+        "p95": 163.628619,
+        "p99": 166.715081
+      },
+      "release_ms": {
+        "p50": 89.467235,
+        "p95": 113.918849,
+        "p99": 123.715081
+      },
+      "dwell_ms": {
+        "p50": 46.5,
+        "p95": 52.0,
+        "p99": 57.0
+      }
+    },
+    {
+      "down_ms": {
+        "p50": 127.62943250000001,
+        "p95": 140.594471,
+        "p99": 151.043164
+      },
+      "release_ms": {
+        "p50": 81.2527015,
+        "p95": 93.61447,
+        "p99": 98.082472
+      },
+      "dwell_ms": {
+        "p50": 46.0,
+        "p95": 51.0,
+        "p99": 53.0
+      }
+    },
+    {
+      "down_ms": {
+        "p50": 122.7273235,
+        "p95": 136.774168,
+        "p99": 140.169322
+      },
+      "release_ms": {
+        "p50": 80.3957075,
+        "p95": 89.647476,
+        "p99": 90.197938
+      },
+      "dwell_ms": {
+        "p50": 45.5,
+        "p95": 51.0,
+        "p99": 55.0
+      }
+    }
+  ],
+  "samples": [
+    {
+      "token": 76709067,
+      "display_token": 76709096,
+      "presented_ns": 98125316654155,
+      "timeline_delta_ns": 1692,
+      "dwell_ms": 60.0,
+      "down_ms": 191.654155,
+      "release_ms": 131.654155
+    },
+    {
+      "token": 76709203,
+      "display_token": 76709225,
+      "presented_ns": 98126572315463,
+      "timeline_delta_ns": 1538,
+      "dwell_ms": 43.0,
+      "down_ms": 193.315463,
+      "release_ms": 150.315463
+    },
+    {
+      "token": 76709329,
+      "display_token": 76709358,
+      "presented_ns": 98127786112002,
+      "timeline_delta_ns": 1692,
+      "dwell_ms": 49.0,
+      "down_ms": 178.112002,
+      "release_ms": 129.112002
+    },
+    {
+      "token": 76709449,
+      "display_token": 76709486,
+      "presented_ns": 98129041776002,
+      "timeline_delta_ns": 1692,
+      "dwell_ms": 49.0,
+      "down_ms": 169.776002,
+      "release_ms": 120.776002
+    },
+    {
+      "token": 76709576,
+      "display_token": 76709605,
+      "presented_ns": 98130222089540,
+      "timeline_delta_ns": 1538,
+      "dwell_ms": 51.0,
+      "down_ms": 174.08954,
+      "release_ms": 123.08954
+    },
+    {
+      "token": 76709696,
+      "display_token": 76709725,
+      "presented_ns": 98131461010464,
+      "timeline_delta_ns": 1461,
+      "dwell_ms": 48.0,
+      "down_ms": 155.010464,
+      "release_ms": 107.010464
+    },
+    {
+      "token": 76709815,
+      "display_token": 76709851,
+      "presented_ns": 98132699922464,
+      "timeline_delta_ns": 1769,
+      "dwell_ms": 44.0,
+      "down_ms": 144.922464,
+      "release_ms": 100.922464
+    },
+    {
+      "token": 76709973,
+      "display_token": 76710001,
+      "presented_ns": 98133980696002,
+      "timeline_delta_ns": 1461,
+      "dwell_ms": 51.0,
+      "down_ms": 159.696002,
+      "release_ms": 108.696002
+    },
+    {
+      "token": 76710099,
+      "display_token": 76710128,
+      "presented_ns": 98135194507156,
+      "timeline_delta_ns": 1538,
+      "dwell_ms": 49.0,
+      "down_ms": 143.507156,
+      "release_ms": 94.507156
+    },
+    {
+      "token": 76710243,
+      "display_token": 76710279,
+      "presented_ns": 98136383230464,
+      "timeline_delta_ns": 1769,
+      "dwell_ms": 46.0,
+      "down_ms": 155.230464,
+      "release_ms": 109.230464
+    },
+    {
+      "token": 76710370,
+      "display_token": 76710406,
+      "presented_ns": 98137479847464,
+      "timeline_delta_ns": 1538,
+      "dwell_ms": 50.0,
+      "down_ms": 144.847464,
+      "release_ms": 94.847464
+    },
+    {
+      "token": 76710506,
+      "display_token": 76710549,
+      "presented_ns": 98138735585233,
+      "timeline_delta_ns": 1692,
+      "dwell_ms": 46.0,
+      "down_ms": 135.585233,
+      "release_ms": 89.585233
+    },
+    {
+      "token": 76710678,
+      "display_token": 76710713,
+      "presented_ns": 98139832122464,
+      "timeline_delta_ns": 1538,
+      "dwell_ms": 45.0,
+      "down_ms": 143.122464,
+      "release_ms": 98.122464
+    },
+    {
+      "token": 76710833,
+      "display_token": 76710862,
+      "presented_ns": 98140886869541,
+      "timeline_delta_ns": 1539,
+      "dwell_ms": 44.0,
+      "down_ms": 125.869541,
+      "release_ms": 81.869541
+    },
+    {
+      "token": 76710953,
+      "display_token": 76710989,
+      "presented_ns": 98141949998233,
+      "timeline_delta_ns": 1538,
+      "dwell_ms": 50.0,
+      "down_ms": 135.998233,
+      "release_ms": 85.998233
+    },
+    {
+      "token": 76711102,
+      "display_token": 76711130,
+      "presented_ns": 98143029865233,
+      "timeline_delta_ns": 1692,
+      "dwell_ms": 45.0,
+      "down_ms": 126.865233,
+      "release_ms": 81.865233
+    },
+    {
+      "token": 76711236,
+      "display_token": 76711271,
+      "presented_ns": 98144159955080,
+      "timeline_delta_ns": 1461,
+      "dwell_ms": 48.0,
+      "down_ms": 137.95508,
+      "release_ms": 89.95508
+    },
+    {
+      "token": 76711370,
+      "display_token": 76711399,
+      "presented_ns": 98145231546234,
+      "timeline_delta_ns": 1462,
+      "dwell_ms": 43.0,
+      "down_ms": 124.546234,
+      "release_ms": 81.546234
+    },
+    {
+      "token": 76711499,
+      "display_token": 76711535,
+      "presented_ns": 98146344852311,
+      "timeline_delta_ns": 1461,
+      "dwell_ms": 43.0,
+      "down_ms": 123.852311,
+      "release_ms": 80.852311
+    },
+    {
+      "token": 76711649,
+      "display_token": 76711678,
+      "presented_ns": 98147483357541,
+      "timeline_delta_ns": 1692,
+      "dwell_ms": 57.0,
+      "down_ms": 154.357541,
+      "release_ms": 97.357541
+    },
+    {
+      "token": 76711796,
+      "display_token": 76711832,
+      "presented_ns": 98148940023080,
+      "timeline_delta_ns": 1539,
+      "dwell_ms": 46.0,
+      "down_ms": 140.02308,
+      "release_ms": 94.02308
+    },
+    {
+      "token": 76711955,
+      "display_token": 76711983,
+      "presented_ns": 98150438316926,
+      "timeline_delta_ns": 1538,
+      "dwell_ms": 41.0,
+      "down_ms": 149.316926,
+      "release_ms": 108.316926
+    },
+    {
+      "token": 76712099,
+      "display_token": 76712136,
+      "presented_ns": 98151970302772,
+      "timeline_delta_ns": 1462,
+      "dwell_ms": 47.0,
+      "down_ms": 153.302772,
+      "release_ms": 106.302772
+    },
+    {
+      "token": 76712253,
+      "display_token": 76712288,
+      "presented_ns": 98153451918849,
+      "timeline_delta_ns": 1769,
+      "dwell_ms": 50.0,
+      "down_ms": 163.918849,
+      "release_ms": 113.918849
+    },
+    {
+      "token": 76712397,
+      "display_token": 76712433,
+      "presented_ns": 98154841509542,
+      "timeline_delta_ns": 1538,
+      "dwell_ms": 48.0,
+      "down_ms": 155.509542,
+      "release_ms": 107.509542
+    },
+    {
+      "token": 76712534,
+      "display_token": 76712563,
+      "presented_ns": 98156315078465,
+      "timeline_delta_ns": 1461,
+      "dwell_ms": 42.0,
+      "down_ms": 135.078465,
+      "release_ms": 93.078465
+    },
+    {
+      "token": 76712680,
+      "display_token": 76712716,
+      "presented_ns": 98157721181234,
+      "timeline_delta_ns": 1769,
+      "dwell_ms": 47.0,
+      "down_ms": 134.181234,
+      "release_ms": 87.181234
+    },
+    {
+      "token": 76712840,
+      "display_token": 76712868,
+      "presented_ns": 98159202891773,
+      "timeline_delta_ns": 1692,
+      "dwell_ms": 52.0,
+      "down_ms": 151.891773,
+      "release_ms": 99.891773
+    },
+    {
+      "token": 76713000,
+      "display_token": 76713035,
+      "presented_ns": 98160642707773,
+      "timeline_delta_ns": 1538,
+      "dwell_ms": 51.0,
+      "down_ms": 156.707773,
+      "release_ms": 105.707773
+    },
+    {
+      "token": 76713158,
+      "display_token": 76713200,
+      "presented_ns": 98162149628619,
+      "timeline_delta_ns": 1538,
+      "dwell_ms": 49.0,
+      "down_ms": 163.628619,
+      "release_ms": 114.628619
+    },
+    {
+      "token": 76713316,
+      "display_token": 76713344,
+      "presented_ns": 98163572626773,
+      "timeline_delta_ns": 1769,
+      "dwell_ms": 48.0,
+      "down_ms": 137.626773,
+      "release_ms": 89.626773
+    },
+    {
+      "token": 76713452,
+      "display_token": 76713488,
+      "presented_ns": 98165045951389,
+      "timeline_delta_ns": 1769,
+      "dwell_ms": 53.0,
+      "down_ms": 153.951389,
+      "release_ms": 100.951389
+    },
+    {
+      "token": 76713596,
+      "display_token": 76713632,
+      "presented_ns": 98166510834466,
+      "timeline_delta_ns": 1461,
+      "dwell_ms": 43.0,
+      "down_ms": 126.834466,
+      "release_ms": 83.834466
+    },
+    {
+      "token": 76713741,
+      "display_token": 76713770,
+      "presented_ns": 98167942316081,
+      "timeline_delta_ns": 1692,
+      "dwell_ms": 42.0,
+      "down_ms": 141.316081,
+      "release_ms": 99.316081
+    },
+    {
+      "token": 76713877,
+      "display_token": 76713906,
+      "presented_ns": 98169340286543,
+      "timeline_delta_ns": 1769,
+      "dwell_ms": 45.0,
+      "down_ms": 127.286543,
+      "release_ms": 82.286543
+    },
+    {
+      "token": 76714037,
+      "display_token": 76714072,
+      "presented_ns": 98170830324697,
+      "timeline_delta_ns": 1539,
+      "dwell_ms": 50.0,
+      "down_ms": 164.324697,
+      "release_ms": 114.324697
+    },
+    {
+      "token": 76714174,
+      "display_token": 76714203,
+      "presented_ns": 98172278855158,
+      "timeline_delta_ns": 1539,
+      "dwell_ms": 48.0,
+      "down_ms": 135.855158,
+      "release_ms": 87.855158
+    },
+    {
+      "token": 76714335,
+      "display_token": 76714365,
+      "presented_ns": 98173726715081,
+      "timeline_delta_ns": 1538,
+      "dwell_ms": 43.0,
+      "down_ms": 166.715081,
+      "release_ms": 123.715081
+    },
+    {
+      "token": 76714494,
+      "display_token": 76714523,
+      "presented_ns": 98175200033005,
+      "timeline_delta_ns": 1769,
+      "dwell_ms": 48.0,
+      "down_ms": 129.033005,
+      "release_ms": 81.033005
+    },
+    {
+      "token": 76714647,
+      "display_token": 76714675,
+      "presented_ns": 98176648218543,
+      "timeline_delta_ns": 1769,
+      "dwell_ms": 46.0,
+      "down_ms": 136.218543,
+      "release_ms": 90.218543
+    },
+    {
+      "token": 76714798,
+      "display_token": 76714826,
+      "presented_ns": 98178071343466,
+      "timeline_delta_ns": 1769,
+      "dwell_ms": 48.0,
+      "down_ms": 129.343466,
+      "release_ms": 81.343466
+    },
+    {
+      "token": 76714942,
+      "display_token": 76714971,
+      "presented_ns": 98179452799159,
+      "timeline_delta_ns": 1692,
+      "dwell_ms": 40.0,
+      "down_ms": 130.799159,
+      "release_ms": 90.799159
+    },
+    {
+      "token": 76715080,
+      "display_token": 76715109,
+      "presented_ns": 98180951114466,
+      "timeline_delta_ns": 1462,
+      "dwell_ms": 44.0,
+      "down_ms": 131.114466,
+      "release_ms": 87.114466
+    },
+    {
+      "token": 76715216,
+      "display_token": 76715245,
+      "presented_ns": 98182340605543,
+      "timeline_delta_ns": 1538,
+      "dwell_ms": 44.0,
+      "down_ms": 126.605543,
+      "release_ms": 82.605543
+    },
+    {
+      "token": 76715368,
+      "display_token": 76715396,
+      "presented_ns": 98183797279697,
+      "timeline_delta_ns": 1692,
+      "dwell_ms": 51.0,
+      "down_ms": 148.279697,
+      "release_ms": 97.279697
+    },
+    {
+      "token": 76715519,
+      "display_token": 76715547,
+      "presented_ns": 98185253676697,
+      "timeline_delta_ns": 1769,
+      "dwell_ms": 52.0,
+      "down_ms": 131.676697,
+      "release_ms": 79.676697
+    },
+    {
+      "token": 76715656,
+      "display_token": 76715685,
+      "presented_ns": 98186768878851,
+      "timeline_delta_ns": 1461,
+      "dwell_ms": 44.0,
+      "down_ms": 131.878851,
+      "release_ms": 87.878851
+    },
+    {
+      "token": 76715807,
+      "display_token": 76715835,
+      "presented_ns": 98188217122852,
+      "timeline_delta_ns": 1461,
+      "dwell_ms": 49.0,
+      "down_ms": 138.122852,
+      "release_ms": 89.122852
+    },
+    {
+      "token": 76715958,
+      "display_token": 76715986,
+      "presented_ns": 98189682030236,
+      "timeline_delta_ns": 1692,
+      "dwell_ms": 50.0,
+      "down_ms": 139.030236,
+      "release_ms": 89.030236
+    },
+    {
+      "token": 76716095,
+      "display_token": 76716124,
+      "presented_ns": 98191155361621,
+      "timeline_delta_ns": 1769,
+      "dwell_ms": 41.0,
+      "down_ms": 122.361621,
+      "release_ms": 81.361621
+    },
+    {
+      "token": 76716232,
+      "display_token": 76716261,
+      "presented_ns": 98192570120698,
+      "timeline_delta_ns": 1769,
+      "dwell_ms": 45.0,
+      "down_ms": 132.120698,
+      "release_ms": 87.120698
+    },
+    {
+      "token": 76716377,
+      "display_token": 76716405,
+      "presented_ns": 98193968038775,
+      "timeline_delta_ns": 1692,
+      "dwell_ms": 40.0,
+      "down_ms": 121.038775,
+      "release_ms": 81.038775
+    },
+    {
+      "token": 76716512,
+      "display_token": 76716548,
+      "presented_ns": 98195424705929,
+      "timeline_delta_ns": 1538,
+      "dwell_ms": 49.0,
+      "down_ms": 145.705929,
+      "release_ms": 96.705929
+    },
+    {
+      "token": 76716671,
+      "display_token": 76716699,
+      "presented_ns": 98196830899160,
+      "timeline_delta_ns": 1692,
+      "dwell_ms": 48.0,
+      "down_ms": 128.89916,
+      "release_ms": 80.89916
+    },
+    {
+      "token": 76716808,
+      "display_token": 76716837,
+      "presented_ns": 98198228922160,
+      "timeline_delta_ns": 1539,
+      "dwell_ms": 40.0,
+      "down_ms": 105.92216,
+      "release_ms": 65.92216
+    },
+    {
+      "token": 76716966,
+      "display_token": 76716994,
+      "presented_ns": 98199576688698,
+      "timeline_delta_ns": 1462,
+      "dwell_ms": 45.0,
+      "down_ms": 142.688698,
+      "release_ms": 97.688698
+    },
+    {
+      "token": 76717111,
+      "display_token": 76717140,
+      "presented_ns": 98200949498775,
+      "timeline_delta_ns": 1539,
+      "dwell_ms": 40.0,
+      "down_ms": 120.498775,
+      "release_ms": 80.498775
+    },
+    {
+      "token": 76717247,
+      "display_token": 76717283,
+      "presented_ns": 98202355886545,
+      "timeline_delta_ns": 1769,
+      "dwell_ms": 50.0,
+      "down_ms": 135.886545,
+      "release_ms": 85.886545
+    },
+    {
+      "token": 76717405,
+      "display_token": 76717433,
+      "presented_ns": 98203812647160,
+      "timeline_delta_ns": 1692,
+      "dwell_ms": 49.0,
+      "down_ms": 129.64716,
+      "release_ms": 80.64716
+    },
+    {
+      "token": 76717556,
+      "display_token": 76717584,
+      "presented_ns": 98205243897545,
+      "timeline_delta_ns": 1692,
+      "dwell_ms": 46.0,
+      "down_ms": 134.897545,
+      "release_ms": 88.897545
+    },
+    {
+      "token": 76717707,
+      "display_token": 76717735,
+      "presented_ns": 98206683718160,
+      "timeline_delta_ns": 1692,
+      "dwell_ms": 46.0,
+      "down_ms": 127.71816,
+      "release_ms": 81.71816
+    },
+    {
+      "token": 76717858,
+      "display_token": 76717886,
+      "presented_ns": 98208165454468,
+      "timeline_delta_ns": 1461,
+      "dwell_ms": 46.0,
+      "down_ms": 144.454468,
+      "release_ms": 98.454468
+    },
+    {
+      "token": 76718017,
+      "display_token": 76718045,
+      "presented_ns": 98209571783391,
+      "timeline_delta_ns": 1538,
+      "dwell_ms": 49.0,
+      "down_ms": 129.783391,
+      "release_ms": 80.783391
+    },
+    {
+      "token": 76718168,
+      "display_token": 76718196,
+      "presented_ns": 98211028349237,
+      "timeline_delta_ns": 1692,
+      "dwell_ms": 48.0,
+      "down_ms": 137.349237,
+      "release_ms": 89.349237
+    },
+    {
+      "token": 76718313,
+      "display_token": 76718342,
+      "presented_ns": 98212401201545,
+      "timeline_delta_ns": 1692,
+      "dwell_ms": 40.0,
+      "down_ms": 127.201545,
+      "release_ms": 87.201545
+    },
+    {
+      "token": 76718442,
+      "display_token": 76718465,
+      "presented_ns": 98213740536007,
+      "timeline_delta_ns": 1538,
+      "dwell_ms": 40.0,
+      "down_ms": 125.536007,
+      "release_ms": 85.536007
+    },
+    {
+      "token": 76718598,
+      "display_token": 76718626,
+      "presented_ns": 98215289306853,
+      "timeline_delta_ns": 1461,
+      "dwell_ms": 48.0,
+      "down_ms": 137.306853,
+      "release_ms": 89.306853
+    },
+    {
+      "token": 76718726,
+      "display_token": 76718755,
+      "presented_ns": 98216486270853,
+      "timeline_delta_ns": 1539,
+      "dwell_ms": 43.0,
+      "down_ms": 125.270853,
+      "release_ms": 82.270853
+    },
+    {
+      "token": 76718863,
+      "display_token": 76718892,
+      "presented_ns": 98217909490238,
+      "timeline_delta_ns": 1538,
+      "dwell_ms": 42.0,
+      "down_ms": 130.490238,
+      "release_ms": 88.490238
+    },
+    {
+      "token": 76719006,
+      "display_token": 76719035,
+      "presented_ns": 98219341225007,
+      "timeline_delta_ns": 1692,
+      "dwell_ms": 52.0,
+      "down_ms": 134.225007,
+      "release_ms": 82.225007
+    },
+    {
+      "token": 76719142,
+      "display_token": 76719171,
+      "presented_ns": 98220797602238,
+      "timeline_delta_ns": 1538,
+      "dwell_ms": 44.0,
+      "down_ms": 133.602238,
+      "release_ms": 89.602238
+    },
+    {
+      "token": 76719302,
+      "display_token": 76719330,
+      "presented_ns": 98222237381854,
+      "timeline_delta_ns": 1538,
+      "dwell_ms": 48.0,
+      "down_ms": 137.381854,
+      "release_ms": 89.381854
+    },
+    {
+      "token": 76719453,
+      "display_token": 76719481,
+      "presented_ns": 98223643573854,
+      "timeline_delta_ns": 1692,
+      "dwell_ms": 49.0,
+      "down_ms": 129.573854,
+      "release_ms": 80.573854
+    },
+    {
+      "token": 76719597,
+      "display_token": 76719626,
+      "presented_ns": 98225075028931,
+      "timeline_delta_ns": 1462,
+      "dwell_ms": 41.0,
+      "down_ms": 123.028931,
+      "release_ms": 82.028931
+    },
+    {
+      "token": 76719734,
+      "display_token": 76719763,
+      "presented_ns": 98226556706161,
+      "timeline_delta_ns": 1692,
+      "dwell_ms": 44.0,
+      "down_ms": 124.706161,
+      "release_ms": 80.706161
+    },
+    {
+      "token": 76719879,
+      "display_token": 76719907,
+      "presented_ns": 98227963041008,
+      "timeline_delta_ns": 1769,
+      "dwell_ms": 42.0,
+      "down_ms": 131.041008,
+      "release_ms": 89.041008
+    },
+    {
+      "token": 76720016,
+      "display_token": 76720044,
+      "presented_ns": 98229369565239,
+      "timeline_delta_ns": 1692,
+      "dwell_ms": 41.0,
+      "down_ms": 123.565239,
+      "release_ms": 82.565239
+    },
+    {
+      "token": 76720161,
+      "display_token": 76720189,
+      "presented_ns": 98230767396008,
+      "timeline_delta_ns": 1538,
+      "dwell_ms": 40.0,
+      "down_ms": 121.396008,
+      "release_ms": 81.396008
+    },
+    {
+      "token": 76720312,
+      "display_token": 76720340,
+      "presented_ns": 98232232329623,
+      "timeline_delta_ns": 1461,
+      "dwell_ms": 47.0,
+      "down_ms": 136.329623,
+      "release_ms": 89.329623
+    },
+    {
+      "token": 76720472,
+      "display_token": 76720500,
+      "presented_ns": 98233739094854,
+      "timeline_delta_ns": 1693,
+      "dwell_ms": 50.0,
+      "down_ms": 131.094854,
+      "release_ms": 81.094854
+    },
+    {
+      "token": 76720637,
+      "display_token": 76720665,
+      "presented_ns": 98235170662470,
+      "timeline_delta_ns": 1538,
+      "dwell_ms": 40.0,
+      "down_ms": 137.66247,
+      "release_ms": 97.66247
+    },
+    {
+      "token": 76720773,
+      "display_token": 76720802,
+      "presented_ns": 98236585274854,
+      "timeline_delta_ns": 1692,
+      "dwell_ms": 51.0,
+      "down_ms": 128.274854,
+      "release_ms": 77.274854
+    },
+    {
+      "token": 76720916,
+      "display_token": 76720945,
+      "presented_ns": 98237991614470,
+      "timeline_delta_ns": 1769,
+      "dwell_ms": 50.0,
+      "down_ms": 143.61447,
+      "release_ms": 93.61447
+    },
+    {
+      "token": 76721061,
+      "display_token": 76721090,
+      "presented_ns": 98239389649855,
+      "timeline_delta_ns": 1539,
+      "dwell_ms": 42.0,
+      "down_ms": 123.649855,
+      "release_ms": 81.649855
+    },
+    {
+      "token": 76721213,
+      "display_token": 76721241,
+      "presented_ns": 98240779217932,
+      "timeline_delta_ns": 1769,
+      "dwell_ms": 43.0,
+      "down_ms": 124.217932,
+      "release_ms": 81.217932
+    },
+    {
+      "token": 76721356,
+      "display_token": 76721384,
+      "presented_ns": 98242193935085,
+      "timeline_delta_ns": 1692,
+      "dwell_ms": 47.0,
+      "down_ms": 127.935085,
+      "release_ms": 80.935085
+    },
+    {
+      "token": 76721508,
+      "display_token": 76721536,
+      "presented_ns": 98243617017855,
+      "timeline_delta_ns": 1692,
+      "dwell_ms": 46.0,
+      "down_ms": 135.017855,
+      "release_ms": 89.017855
+    },
+    {
+      "token": 76721658,
+      "display_token": 76721686,
+      "presented_ns": 98245031722778,
+      "timeline_delta_ns": 1461,
+      "dwell_ms": 51.0,
+      "down_ms": 139.722778,
+      "release_ms": 88.722778
+    },
+    {
+      "token": 76721808,
+      "display_token": 76721836,
+      "presented_ns": 98246354358163,
+      "timeline_delta_ns": 1769,
+      "dwell_ms": 46.0,
+      "down_ms": 127.358163,
+      "release_ms": 81.358163
+    },
+    {
+      "token": 76721959,
+      "display_token": 76721987,
+      "presented_ns": 98247777434855,
+      "timeline_delta_ns": 1769,
+      "dwell_ms": 47.0,
+      "down_ms": 136.434855,
+      "release_ms": 89.434855
+    },
+    {
+      "token": 76722118,
+      "display_token": 76722146,
+      "presented_ns": 98249150287471,
+      "timeline_delta_ns": 1769,
+      "dwell_ms": 48.0,
+      "down_ms": 129.287471,
+      "release_ms": 81.287471
+    },
+    {
+      "token": 76722269,
+      "display_token": 76722297,
+      "presented_ns": 98250581784932,
+      "timeline_delta_ns": 1692,
+      "dwell_ms": 49.0,
+      "down_ms": 138.784932,
+      "release_ms": 89.784932
+    },
+    {
+      "token": 76722420,
+      "display_token": 76722448,
+      "presented_ns": 98251996594471,
+      "timeline_delta_ns": 1769,
+      "dwell_ms": 51.0,
+      "down_ms": 140.594471,
+      "release_ms": 89.594471
+    },
+    {
+      "token": 76722571,
+      "display_token": 76722599,
+      "presented_ns": 98253377718855,
+      "timeline_delta_ns": 1692,
+      "dwell_ms": 49.0,
+      "down_ms": 129.718855,
+      "release_ms": 80.718855
+    },
+    {
+      "token": 76722731,
+      "display_token": 76722759,
+      "presented_ns": 98254784125625,
+      "timeline_delta_ns": 1538,
+      "dwell_ms": 46.0,
+      "down_ms": 127.125625,
+      "release_ms": 81.125625
+    },
+    {
+      "token": 76722882,
+      "display_token": 76722910,
+      "presented_ns": 98256198781317,
+      "timeline_delta_ns": 1538,
+      "dwell_ms": 48.0,
+      "down_ms": 129.781317,
+      "release_ms": 81.781317
+    },
+    {
+      "token": 76723042,
+      "display_token": 76723070,
+      "presented_ns": 98257613670163,
+      "timeline_delta_ns": 1692,
+      "dwell_ms": 43.0,
+      "down_ms": 132.670163,
+      "release_ms": 89.670163
+    },
+    {
+      "token": 76723177,
+      "display_token": 76723206,
+      "presented_ns": 98259019805548,
+      "timeline_delta_ns": 1769,
+      "dwell_ms": 40.0,
+      "down_ms": 121.805548,
+      "release_ms": 81.805548
+    },
+    {
+      "token": 76723328,
+      "display_token": 76723356,
+      "presented_ns": 98260468043164,
+      "timeline_delta_ns": 1693,
+      "dwell_ms": 53.0,
+      "down_ms": 151.043164,
+      "release_ms": 98.043164
+    },
+    {
+      "token": 76723479,
+      "display_token": 76723507,
+      "presented_ns": 98261840900702,
+      "timeline_delta_ns": 1461,
+      "dwell_ms": 47.0,
+      "down_ms": 127.900702,
+      "release_ms": 80.900702
+    },
+    {
+      "token": 76723630,
+      "display_token": 76723658,
+      "presented_ns": 98263255588625,
+      "timeline_delta_ns": 1461,
+      "dwell_ms": 49.0,
+      "down_ms": 121.588625,
+      "release_ms": 72.588625
+    },
+    {
+      "token": 76723790,
+      "display_token": 76723818,
+      "presented_ns": 98264561494471,
+      "timeline_delta_ns": 1769,
+      "dwell_ms": 52.0,
+      "down_ms": 133.494471,
+      "release_ms": 81.494471
+    },
+    {
+      "token": 76723940,
+      "display_token": 76723968,
+      "presented_ns": 98265951192318,
+      "timeline_delta_ns": 1692,
+      "dwell_ms": 47.0,
+      "down_ms": 128.192318,
+      "release_ms": 81.192318
+    },
+    {
+      "token": 76724091,
+      "display_token": 76724119,
+      "presented_ns": 98267323914164,
+      "timeline_delta_ns": 1692,
+      "dwell_ms": 41.0,
+      "down_ms": 105.914164,
+      "release_ms": 64.914164
+    },
+    {
+      "token": 76724242,
+      "display_token": 76724270,
+      "presented_ns": 98268763768933,
+      "timeline_delta_ns": 1769,
+      "dwell_ms": 46.0,
+      "down_ms": 126.768933,
+      "release_ms": 80.768933
+    },
+    {
+      "token": 76724400,
+      "display_token": 76724421,
+      "presented_ns": 98270128250241,
+      "timeline_delta_ns": 1769,
+      "dwell_ms": 46.0,
+      "down_ms": 118.250241,
+      "release_ms": 72.250241
+    },
+    {
+      "token": 76724536,
+      "display_token": 76724565,
+      "presented_ns": 98271501146241,
+      "timeline_delta_ns": 1461,
+      "dwell_ms": 43.0,
+      "down_ms": 109.146241,
+      "release_ms": 66.146241
+    },
+    {
+      "token": 76724688,
+      "display_token": 76724716,
+      "presented_ns": 98272941094164,
+      "timeline_delta_ns": 1539,
+      "dwell_ms": 45.0,
+      "down_ms": 135.094164,
+      "release_ms": 90.094164
+    },
+    {
+      "token": 76724839,
+      "display_token": 76724867,
+      "presented_ns": 98274297082472,
+      "timeline_delta_ns": 1462,
+      "dwell_ms": 50.0,
+      "down_ms": 148.082472,
+      "release_ms": 98.082472
+    },
+    {
+      "token": 76724982,
+      "display_token": 76725011,
+      "presented_ns": 98275736922549,
+      "timeline_delta_ns": 1769,
+      "dwell_ms": 41.0,
+      "down_ms": 115.922549,
+      "release_ms": 74.922549
+    },
+    {
+      "token": 76725134,
+      "display_token": 76725162,
+      "presented_ns": 98277185056088,
+      "timeline_delta_ns": 1539,
+      "dwell_ms": 48.0,
+      "down_ms": 120.056088,
+      "release_ms": 72.056088
+    },
+    {
+      "token": 76725285,
+      "display_token": 76725313,
+      "presented_ns": 98278616606165,
+      "timeline_delta_ns": 1769,
+      "dwell_ms": 44.0,
+      "down_ms": 116.606165,
+      "release_ms": 72.606165
+    },
+    {
+      "token": 76725420,
+      "display_token": 76725449,
+      "presented_ns": 98279947546780,
+      "timeline_delta_ns": 1539,
+      "dwell_ms": 42.0,
+      "down_ms": 114.54678,
+      "release_ms": 72.54678
+    },
+    {
+      "token": 76725573,
+      "display_token": 76725594,
+      "presented_ns": 98281395775088,
+      "timeline_delta_ns": 1538,
+      "dwell_ms": 43.0,
+      "down_ms": 125.775088,
+      "release_ms": 82.775088
+    },
+    {
+      "token": 76725717,
+      "display_token": 76725745,
+      "presented_ns": 98282818858473,
+      "timeline_delta_ns": 1769,
+      "dwell_ms": 46.0,
+      "down_ms": 118.858473,
+      "release_ms": 72.858473
+    },
+    {
+      "token": 76725867,
+      "display_token": 76725895,
+      "presented_ns": 98284200127703,
+      "timeline_delta_ns": 1769,
+      "dwell_ms": 45.0,
+      "down_ms": 126.127703,
+      "release_ms": 81.127703
+    },
+    {
+      "token": 76726019,
+      "display_token": 76726047,
+      "presented_ns": 98285665021242,
+      "timeline_delta_ns": 1769,
+      "dwell_ms": 50.0,
+      "down_ms": 139.021242,
+      "release_ms": 89.021242
+    },
+    {
+      "token": 76726170,
+      "display_token": 76726198,
+      "presented_ns": 98287062982780,
+      "timeline_delta_ns": 1461,
+      "dwell_ms": 46.0,
+      "down_ms": 134.98278,
+      "release_ms": 88.98278
+    },
+    {
+      "token": 76726320,
+      "display_token": 76726348,
+      "presented_ns": 98288494432319,
+      "timeline_delta_ns": 1692,
+      "dwell_ms": 50.0,
+      "down_ms": 131.432319,
+      "release_ms": 81.432319
+    },
+    {
+      "token": 76726457,
+      "display_token": 76726486,
+      "presented_ns": 98289925888627,
+      "timeline_delta_ns": 1461,
+      "dwell_ms": 45.0,
+      "down_ms": 126.888627,
+      "release_ms": 81.888627
+    },
+    {
+      "token": 76726593,
+      "display_token": 76726622,
+      "presented_ns": 98291340632319,
+      "timeline_delta_ns": 1538,
+      "dwell_ms": 47.0,
+      "down_ms": 114.632319,
+      "release_ms": 67.632319
+    },
+    {
+      "token": 76726730,
+      "display_token": 76726759,
+      "presented_ns": 98292738609627,
+      "timeline_delta_ns": 1692,
+      "dwell_ms": 40.0,
+      "down_ms": 124.609627,
+      "release_ms": 84.609627
+    },
+    {
+      "token": 76726884,
+      "display_token": 76726912,
+      "presented_ns": 98294128245627,
+      "timeline_delta_ns": 1769,
+      "dwell_ms": 41.0,
+      "down_ms": 113.245627,
+      "release_ms": 72.245627
+    },
+    {
+      "token": 76727042,
+      "display_token": 76727071,
+      "presented_ns": 98295526146781,
+      "timeline_delta_ns": 1539,
+      "dwell_ms": 46.0,
+      "down_ms": 118.146781,
+      "release_ms": 72.146781
+    },
+    {
+      "token": 76727193,
+      "display_token": 76727221,
+      "presented_ns": 98296924160320,
+      "timeline_delta_ns": 1692,
+      "dwell_ms": 48.0,
+      "down_ms": 129.16032,
+      "release_ms": 81.16032
+    },
+    {
+      "token": 76727339,
+      "display_token": 76727367,
+      "presented_ns": 98298355581320,
+      "timeline_delta_ns": 1692,
+      "dwell_ms": 42.0,
+      "down_ms": 122.58132,
+      "release_ms": 80.58132
+    },
+    {
+      "token": 76727490,
+      "display_token": 76727518,
+      "presented_ns": 98299753656704,
+      "timeline_delta_ns": 1538,
+      "dwell_ms": 46.0,
+      "down_ms": 118.656704,
+      "release_ms": 72.656704
+    },
+    {
+      "token": 76727626,
+      "display_token": 76727655,
+      "presented_ns": 98301134969320,
+      "timeline_delta_ns": 1461,
+      "dwell_ms": 40.0,
+      "down_ms": 116.96932,
+      "release_ms": 76.96932
+    },
+    {
+      "token": 76727778,
+      "display_token": 76727806,
+      "presented_ns": 98302516041320,
+      "timeline_delta_ns": 1538,
+      "dwell_ms": 47.0,
+      "down_ms": 128.04132,
+      "release_ms": 81.04132
+    },
+    {
+      "token": 76727914,
+      "display_token": 76727943,
+      "presented_ns": 98303930751781,
+      "timeline_delta_ns": 1538,
+      "dwell_ms": 42.0,
+      "down_ms": 117.751781,
+      "release_ms": 75.751781
+    },
+    {
+      "token": 76728065,
+      "display_token": 76728093,
+      "presented_ns": 98305337144935,
+      "timeline_delta_ns": 1462,
+      "dwell_ms": 44.0,
+      "down_ms": 125.144935,
+      "release_ms": 81.144935
+    },
+    {
+      "token": 76728216,
+      "display_token": 76728244,
+      "presented_ns": 98306718318782,
+      "timeline_delta_ns": 1462,
+      "dwell_ms": 47.0,
+      "down_ms": 128.318782,
+      "release_ms": 81.318782
+    },
+    {
+      "token": 76728374,
+      "display_token": 76728402,
+      "presented_ns": 98308158139397,
+      "timeline_delta_ns": 1461,
+      "dwell_ms": 46.0,
+      "down_ms": 135.139397,
+      "release_ms": 89.139397
+    },
+    {
+      "token": 76728518,
+      "display_token": 76728546,
+      "presented_ns": 98309539421320,
+      "timeline_delta_ns": 1539,
+      "dwell_ms": 42.0,
+      "down_ms": 115.42132,
+      "release_ms": 73.42132
+    },
+    {
+      "token": 76728668,
+      "display_token": 76728696,
+      "presented_ns": 98310962457936,
+      "timeline_delta_ns": 1692,
+      "dwell_ms": 45.0,
+      "down_ms": 117.457936,
+      "release_ms": 72.457936
+    },
+    {
+      "token": 76728819,
+      "display_token": 76728847,
+      "presented_ns": 98312293513551,
+      "timeline_delta_ns": 1692,
+      "dwell_ms": 46.0,
+      "down_ms": 118.513551,
+      "release_ms": 72.513551
+    },
+    {
+      "token": 76728970,
+      "display_token": 76728998,
+      "presented_ns": 98313691446551,
+      "timeline_delta_ns": 1769,
+      "dwell_ms": 46.0,
+      "down_ms": 127.446551,
+      "release_ms": 81.446551
+    },
+    {
+      "token": 76729121,
+      "display_token": 76729149,
+      "presented_ns": 98315039228628,
+      "timeline_delta_ns": 1692,
+      "dwell_ms": 48.0,
+      "down_ms": 120.228628,
+      "release_ms": 72.228628
+    },
+    {
+      "token": 76729272,
+      "display_token": 76729300,
+      "presented_ns": 98316495760628,
+      "timeline_delta_ns": 1769,
+      "dwell_ms": 46.0,
+      "down_ms": 117.760628,
+      "release_ms": 71.760628
+    },
+    {
+      "token": 76729422,
+      "display_token": 76729450,
+      "presented_ns": 98317935582167,
+      "timeline_delta_ns": 1692,
+      "dwell_ms": 47.0,
+      "down_ms": 128.582167,
+      "release_ms": 81.582167
+    },
+    {
+      "token": 76729558,
+      "display_token": 76729587,
+      "presented_ns": 98319316810475,
+      "timeline_delta_ns": 1462,
+      "dwell_ms": 41.0,
+      "down_ms": 107.810475,
+      "release_ms": 66.810475
+    },
+    {
+      "token": 76729710,
+      "display_token": 76729738,
+      "presented_ns": 98320706398167,
+      "timeline_delta_ns": 1769,
+      "dwell_ms": 45.0,
+      "down_ms": 117.398167,
+      "release_ms": 72.398167
+    },
+    {
+      "token": 76729861,
+      "display_token": 76729889,
+      "presented_ns": 98322146272398,
+      "timeline_delta_ns": 1769,
+      "dwell_ms": 51.0,
+      "down_ms": 132.272398,
+      "release_ms": 81.272398
+    },
+    {
+      "token": 76730005,
+      "display_token": 76730033,
+      "presented_ns": 98323552593552,
+      "timeline_delta_ns": 1769,
+      "dwell_ms": 46.0,
+      "down_ms": 135.593552,
+      "release_ms": 89.593552
+    },
+    {
+      "token": 76730163,
+      "display_token": 76730191,
+      "presented_ns": 98324984062552,
+      "timeline_delta_ns": 1538,
+      "dwell_ms": 47.0,
+      "down_ms": 136.062552,
+      "release_ms": 89.062552
+    },
+    {
+      "token": 76730306,
+      "display_token": 76730334,
+      "presented_ns": 98326331798860,
+      "timeline_delta_ns": 1462,
+      "dwell_ms": 43.0,
+      "down_ms": 115.79886,
+      "release_ms": 72.79886
+    },
+    {
+      "token": 76730466,
+      "display_token": 76730494,
+      "presented_ns": 98327662779398,
+      "timeline_delta_ns": 1538,
+      "dwell_ms": 47.0,
+      "down_ms": 127.779398,
+      "release_ms": 80.779398
+    },
+    {
+      "token": 76730617,
+      "display_token": 76730645,
+      "presented_ns": 98329052392014,
+      "timeline_delta_ns": 1539,
+      "dwell_ms": 45.0,
+      "down_ms": 125.392014,
+      "release_ms": 80.392014
+    },
+    {
+      "token": 76730770,
+      "display_token": 76730798,
+      "presented_ns": 98330508947475,
+      "timeline_delta_ns": 1538,
+      "dwell_ms": 41.0,
+      "down_ms": 121.947475,
+      "release_ms": 80.947475
+    },
+    {
+      "token": 76730914,
+      "display_token": 76730942,
+      "presented_ns": 98331957161629,
+      "timeline_delta_ns": 1769,
+      "dwell_ms": 41.0,
+      "down_ms": 114.161629,
+      "release_ms": 73.161629
+    },
+    {
+      "token": 76731058,
+      "display_token": 76731086,
+      "presented_ns": 98333321676322,
+      "timeline_delta_ns": 1769,
+      "dwell_ms": 41.0,
+      "down_ms": 105.676322,
+      "release_ms": 64.676322
+    },
+    {
+      "token": 76731209,
+      "display_token": 76731237,
+      "presented_ns": 98334719647476,
+      "timeline_delta_ns": 1538,
+      "dwell_ms": 45.0,
+      "down_ms": 134.647476,
+      "release_ms": 89.647476
+    },
+    {
+      "token": 76731360,
+      "display_token": 76731388,
+      "presented_ns": 98336201367091,
+      "timeline_delta_ns": 1769,
+      "dwell_ms": 47.0,
+      "down_ms": 128.367091,
+      "release_ms": 81.367091
+    },
+    {
+      "token": 76731520,
+      "display_token": 76731548,
+      "presented_ns": 98337616089937,
+      "timeline_delta_ns": 1769,
+      "dwell_ms": 49.0,
+      "down_ms": 122.089937,
+      "release_ms": 73.089937
+    },
+    {
+      "token": 76731672,
+      "display_token": 76731700,
+      "presented_ns": 98338972169322,
+      "timeline_delta_ns": 1461,
+      "dwell_ms": 51.0,
+      "down_ms": 140.169322,
+      "release_ms": 89.169322
+    },
+    {
+      "token": 76731816,
+      "display_token": 76731844,
+      "presented_ns": 98340370111784,
+      "timeline_delta_ns": 1538,
+      "dwell_ms": 43.0,
+      "down_ms": 132.111784,
+      "release_ms": 89.111784
+    },
+    {
+      "token": 76731960,
+      "display_token": 76731988,
+      "presented_ns": 98341742961015,
+      "timeline_delta_ns": 1769,
+      "dwell_ms": 44.0,
+      "down_ms": 124.961015,
+      "release_ms": 80.961015
+    },
+    {
+      "token": 76732111,
+      "display_token": 76732139,
+      "presented_ns": 98343157774168,
+      "timeline_delta_ns": 1462,
+      "dwell_ms": 47.0,
+      "down_ms": 136.774168,
+      "release_ms": 89.774168
+    },
+    {
+      "token": 76732262,
+      "display_token": 76732290,
+      "presented_ns": 98344572431092,
+      "timeline_delta_ns": 1461,
+      "dwell_ms": 44.0,
+      "down_ms": 124.431092,
+      "release_ms": 80.431092
+    },
+    {
+      "token": 76732413,
+      "display_token": 76732441,
+      "presented_ns": 98345987168015,
+      "timeline_delta_ns": 1692,
+      "dwell_ms": 48.0,
+      "down_ms": 129.168015,
+      "release_ms": 81.168015
+    },
+    {
+      "token": 76732564,
+      "display_token": 76732592,
+      "presented_ns": 98347334867476,
+      "timeline_delta_ns": 1692,
+      "dwell_ms": 40.0,
+      "down_ms": 103.867476,
+      "release_ms": 63.867476
+    },
+    {
+      "token": 76732709,
+      "display_token": 76732737,
+      "presented_ns": 98348791442169,
+      "timeline_delta_ns": 1461,
+      "dwell_ms": 42.0,
+      "down_ms": 123.442169,
+      "release_ms": 81.442169
+    },
+    {
+      "token": 76732845,
+      "display_token": 76732874,
+      "presented_ns": 98350206160092,
+      "timeline_delta_ns": 1769,
+      "dwell_ms": 55.0,
+      "down_ms": 123.160092,
+      "release_ms": 68.160092
+    },
+    {
+      "token": 76732991,
+      "display_token": 76733019,
+      "presented_ns": 98351671083784,
+      "timeline_delta_ns": 1538,
+      "dwell_ms": 46.0,
+      "down_ms": 127.083784,
+      "release_ms": 81.083784
+    },
+    {
+      "token": 76733150,
+      "display_token": 76733178,
+      "presented_ns": 98353094197938,
+      "timeline_delta_ns": 1461,
+      "dwell_ms": 47.0,
+      "down_ms": 137.197938,
+      "release_ms": 90.197938
+    },
+    {
+      "token": 76733295,
+      "display_token": 76733330,
+      "presented_ns": 98354500540938,
+      "timeline_delta_ns": 1692,
+      "dwell_ms": 44.0,
+      "down_ms": 116.540938,
+      "release_ms": 72.540938
+    },
+    {
+      "token": 76733467,
+      "display_token": 76733495,
+      "presented_ns": 98355881772631,
+      "timeline_delta_ns": 1769,
+      "dwell_ms": 41.0,
+      "down_ms": 113.772631,
+      "release_ms": 72.772631
+    },
+    {
+      "token": 76733618,
+      "display_token": 76733646,
+      "presented_ns": 98357313554862,
+      "timeline_delta_ns": 1692,
+      "dwell_ms": 46.0,
+      "down_ms": 127.554862,
+      "release_ms": 81.554862
+    },
+    {
+      "token": 76733761,
+      "display_token": 76733789,
+      "presented_ns": 98358727993016,
+      "timeline_delta_ns": 1538,
+      "dwell_ms": 41.0,
+      "down_ms": 113.993016,
+      "release_ms": 72.993016
+    },
+    {
+      "token": 76733902,
+      "display_token": 76733930,
+      "presented_ns": 98359891515169,
+      "timeline_delta_ns": 1461,
+      "dwell_ms": 47.0,
+      "down_ms": 128.515169,
+      "release_ms": 81.515169
+    },
+    {
+      "token": 76734068,
+      "display_token": 76734096,
+      "presented_ns": 98361297880016,
+      "timeline_delta_ns": 1769,
+      "dwell_ms": 51.0,
+      "down_ms": 123.880016,
+      "release_ms": 72.880016
+    },
+    {
+      "token": 76734233,
+      "display_token": 76734261,
+      "presented_ns": 98362679121631,
+      "timeline_delta_ns": 1461,
+      "dwell_ms": 50.0,
+      "down_ms": 123.121631,
+      "release_ms": 73.121631
+    },
+    {
+      "token": 76734392,
+      "display_token": 76734420,
+      "presented_ns": 98364118940708,
+      "timeline_delta_ns": 1692,
+      "dwell_ms": 46.0,
+      "down_ms": 118.940708,
+      "release_ms": 72.940708
+    },
+    {
+      "token": 76734528,
+      "display_token": 76734557,
+      "presented_ns": 98365491856631,
+      "timeline_delta_ns": 1692,
+      "dwell_ms": 42.0,
+      "down_ms": 115.856631,
+      "release_ms": 73.856631
+    },
+    {
+      "token": 76734682,
+      "display_token": 76734710,
+      "presented_ns": 98366873028093,
+      "timeline_delta_ns": 1692,
+      "dwell_ms": 42.0,
+      "down_ms": 115.028093,
+      "release_ms": 73.028093
+    },
+    {
+      "token": 76734833,
+      "display_token": 76734861,
+      "presented_ns": 98368321399401,
+      "timeline_delta_ns": 1692,
+      "dwell_ms": 40.0,
+      "down_ms": 120.399401,
+      "release_ms": 80.399401
+    },
+    {
+      "token": 76734992,
+      "display_token": 76735020,
+      "presented_ns": 98369752664708,
+      "timeline_delta_ns": 1539,
+      "dwell_ms": 46.0,
+      "down_ms": 135.664708,
+      "release_ms": 89.664708
+    },
+    {
+      "token": 76735136,
+      "display_token": 76735164,
+      "presented_ns": 98371108777555,
+      "timeline_delta_ns": 1692,
+      "dwell_ms": 44.0,
+      "down_ms": 116.777555,
+      "release_ms": 72.777555
+    },
+    {
+      "token": 76735286,
+      "display_token": 76735315,
+      "presented_ns": 98372456606786,
+      "timeline_delta_ns": 1769,
+      "dwell_ms": 45.0,
+      "down_ms": 125.606786,
+      "release_ms": 80.606786
+    },
+    {
+      "token": 76735432,
+      "display_token": 76735461,
+      "presented_ns": 98373804304093,
+      "timeline_delta_ns": 1692,
+      "dwell_ms": 40.0,
+      "down_ms": 110.304093,
+      "release_ms": 70.304093
+    },
+    {
+      "token": 76735577,
+      "display_token": 76735605,
+      "presented_ns": 98375202333016,
+      "timeline_delta_ns": 1692,
+      "dwell_ms": 41.0,
+      "down_ms": 122.333016,
+      "release_ms": 81.333016
+    },
+    {
+      "token": 76735735,
+      "display_token": 76735763,
+      "presented_ns": 98376583497555,
+      "timeline_delta_ns": 1692,
+      "dwell_ms": 50.0,
+      "down_ms": 130.497555,
+      "release_ms": 80.497555
+    },
+    {
+      "token": 76735879,
+      "display_token": 76735907,
+      "presented_ns": 98377947978478,
+      "timeline_delta_ns": 1462,
+      "dwell_ms": 44.0,
+      "down_ms": 116.978478,
+      "release_ms": 72.978478
+    },
+    {
+      "token": 76736038,
+      "display_token": 76736066,
+      "presented_ns": 98379320837940,
+      "timeline_delta_ns": 1538,
+      "dwell_ms": 46.0,
+      "down_ms": 118.83794,
+      "release_ms": 72.83794
+    },
+    {
+      "token": 76736173,
+      "display_token": 76736202,
+      "presented_ns": 98380752321248,
+      "timeline_delta_ns": 1538,
+      "dwell_ms": 40.0,
+      "down_ms": 117.321248,
+      "release_ms": 77.321248
+    },
+    {
+      "token": 76736325,
+      "display_token": 76736353,
+      "presented_ns": 98382150249325,
+      "timeline_delta_ns": 1769,
+      "dwell_ms": 49.0,
+      "down_ms": 121.249325,
+      "release_ms": 72.249325
+    },
+    {
+      "token": 76736476,
+      "display_token": 76736504,
+      "presented_ns": 98383539976940,
+      "timeline_delta_ns": 1693,
+      "dwell_ms": 49.0,
+      "down_ms": 121.97694,
+      "release_ms": 72.97694
+    },
+    {
+      "token": 76736628,
+      "display_token": 76736656,
+      "presented_ns": 98384937855171,
+      "timeline_delta_ns": 1769,
+      "dwell_ms": 42.0,
+      "down_ms": 114.855171,
+      "release_ms": 72.855171
+    },
+    {
+      "token": 76736780,
+      "display_token": 76736808,
+      "presented_ns": 98386352603402,
+      "timeline_delta_ns": 1769,
+      "dwell_ms": 48.0,
+      "down_ms": 137.603402,
+      "release_ms": 89.603402
+    },
+    {
+      "token": 76736931,
+      "display_token": 76736959,
+      "presented_ns": 98387717046248,
+      "timeline_delta_ns": 1462,
+      "dwell_ms": 44.0,
+      "down_ms": 125.046248,
+      "release_ms": 81.046248
+    },
+    {
+      "token": 76737090,
+      "display_token": 76737118,
+      "presented_ns": 98389098267402,
+      "timeline_delta_ns": 1461,
+      "dwell_ms": 46.0,
+      "down_ms": 118.267402,
+      "release_ms": 72.267402
+    },
+    {
+      "token": 76737234,
+      "display_token": 76737262,
+      "presented_ns": 98390529726479,
+      "timeline_delta_ns": 1692,
+      "dwell_ms": 41.0,
+      "down_ms": 121.726479,
+      "release_ms": 80.726479
+    },
+    {
+      "token": 76737385,
+      "display_token": 76737413,
+      "presented_ns": 98391927691402,
+      "timeline_delta_ns": 1462,
+      "dwell_ms": 45.0,
+      "down_ms": 125.691402,
+      "release_ms": 80.691402
+    },
+    {
+      "token": 76737529,
+      "display_token": 76737557,
+      "presented_ns": 98393325721248,
+      "timeline_delta_ns": 1692,
+      "dwell_ms": 43.0,
+      "down_ms": 123.721248,
+      "release_ms": 80.721248
+    },
+    {
+      "token": 76737680,
+      "display_token": 76737708,
+      "presented_ns": 98394723668402,
+      "timeline_delta_ns": 1461,
+      "dwell_ms": 48.0,
+      "down_ms": 120.668402,
+      "release_ms": 72.668402
+    }
+  ],
+  "si_200_300_pass": true,
+  "ak_50_pass": false,
+  "device": "OPPO PGZ110 Android 15 / ARM64",
+  "apk_sha256": "6318f7ab1c109de904cf3621664d92e028396cfb39c35bdac6d0fc70f2563b4c",
+  "normal_debug_apk_sha256": "8b0c4ce75ff1103ac5779b87f4dcb7d702335be39a3befebf6c789da79d75cea",
+  "before_optimization_rounds": [
+    {
+      "down_ms": {
+        "p50": 187.1255515,
+        "p95": 221.308011,
+        "p99": 232.831627
+      },
+      "release_ms": {
+        "p50": 140.043052,
+        "p95": 173.393858,
+        "p99": 186.831627
+      },
+      "dwell_ms": {
+        "p50": 45.0,
+        "p95": 53.0,
+        "p99": 55.0
+      }
+    },
+    {
+      "down_ms": {
+        "p50": 155.2989415,
+        "p95": 186.46517,
+        "p99": 192.670094
+      },
+      "release_ms": {
+        "p50": 106.39967200000001,
+        "p95": 139.670094,
+        "p99": 141.496016
+      },
+      "dwell_ms": {
+        "p50": 45.5,
+        "p95": 52.0,
+        "p99": 54.0
+      }
+    },
+    {
+      "down_ms": {
+        "p50": 148.21279199999998,
+        "p95": 162.294792,
+        "p99": 175.87102
+      },
+      "release_ms": {
+        "p50": 105.7047135,
+        "p95": 115.108866,
+        "p99": 130.87102
+      },
+      "dwell_ms": {
+        "p50": 45.0,
+        "p95": 50.0,
+        "p99": 53.0
+      }
+    }
+  ],
+  "first_grid_build_rounds": [
+    {
+      "down_ms": {
+        "p50": 142.48877399999998,
+        "p95": 161.446809,
+        "p99": 176.592886
+      },
+      "release_ms": {
+        "p50": 97.7204655,
+        "p95": 110.292271,
+        "p99": 122.592886
+      },
+      "dwell_ms": {
+        "p50": 47.0,
+        "p95": 55.0,
+        "p99": 65.0
+      }
+    },
+    {
+      "down_ms": {
+        "p50": 127.7971235,
+        "p95": 140.472663,
+        "p99": 148.70097
+      },
+      "release_ms": {
+        "p50": 81.240163,
+        "p95": 97.435968,
+        "p99": 97.739661
+      },
+      "dwell_ms": {
+        "p50": 45.5,
+        "p95": 50.0,
+        "p99": 52.0
+      }
+    },
+    {
+      "down_ms": {
+        "p50": 125.20435850000001,
+        "p95": 138.665822,
+        "p99": 140.34067
+      },
+      "release_ms": {
+        "p50": 80.87062900000001,
+        "p95": 89.665822,
+        "p99": 90.242746
+      },
+      "dwell_ms": {
+        "p50": 46.0,
+        "p95": 51.0,
+        "p99": 54.0
+      }
+    }
+  ]
+}
