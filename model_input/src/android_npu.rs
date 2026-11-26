@@ -144,6 +144,113 @@ fn attributed(package: &ValidatedPackage, r: &Request) -> Result<(Value, Samples
     ))
 }
 
+static PLATFORM: std::sync::OnceLock<String> = std::sync::OnceLock::new();
+
+pub fn activate_platform(platform: String) {
+    let _ = PLATFORM.set(platform);
+}
+
+#[derive(Serialize, Deserialize)]
+pub(crate) struct Decision {
+    signature: String,
+    pub reason: String,
+    pub cpu_budget_us: Option<u64>,
+}
+
+pub(crate) struct Lease {
+    file: PathBuf,
+    decision: Decision,
+    pub timeouts: u8,
+}
+
+impl Lease {
+    pub fn cpu_time(&self) -> Duration {
+        Duration::from_micros(self.decision.cpu_budget_us.unwrap_or_default())
+    }
+    pub fn suspend(&mut self, reason: &str) {
+        self.decision.cpu_budget_us = None;
+        self.decision.reason = reason.into();
+        let _ = write_decision(&self.file, &self.decision);
+    }
+}
+
+fn decision_file(p: &ValidatedPackage) -> PathBuf {
+    p.root.with_file_name(format!(
+        ".nnapi-{}--{}.json",
+        p.manifest.id, p.manifest.version
+    ))
+}
+
+fn signature(p: &ValidatedPackage, threads: u8, wait_ms: u16, limit: u8) -> Option<String> {
+    use sha2::{Digest, Sha256};
+    let input =
+        serde_json::to_vec(&(PLATFORM.get()?, &p.manifest, threads, wait_ms, limit)).ok()?;
+    Some(format!("{:x}", Sha256::digest(input)))
+}
+
+fn write_decision(path: &Path, decision: &Decision) -> std::io::Result<()> {
+    use std::io::Write;
+    let mut tmp =
+        tempfile::NamedTempFile::new_in(path.parent().ok_or(std::io::ErrorKind::InvalidInput)?)?;
+    serde_json::to_writer(&mut tmp, decision)?;
+    tmp.flush()?;
+    tmp.persist(path)?;
+    Ok(())
+}
+
+pub(crate) fn approved(
+    p: &ValidatedPackage,
+    c: &core_engine::config::PredictionConfig,
+) -> Result<Lease, String> {
+    if p.manifest.backend == package::Backend::LlamaCpp {
+        return Err("GGUF_CPU_ONLY".into());
+    }
+    if p.manifest
+        .android_execution
+        .as_ref()
+        .is_none_or(|e| e.provider != "nnapi")
+    {
+        return Err("PACKAGE_CPU_ONLY".into());
+    }
+    let path = decision_file(p);
+    let decision = fs::File::open(&path)
+        .ok()
+        .and_then(|f| serde_json::from_reader::<_, Decision>(f).ok())
+        .filter(|d| {
+            signature(p, c.threads, c.wait_ms, c.max_candidates).as_ref() == Some(&d.signature)
+        })
+        .ok_or("NO_CURRENT_VALIDATION")?;
+    if decision.cpu_budget_us.is_none() {
+        return Err(decision.reason);
+    }
+    Ok(Lease {
+        file: path,
+        decision,
+        timeouts: 0,
+    })
+}
+
+fn qualifies(cpu: &Samples, accelerated: &Samples, actual: &Value) -> bool {
+    if actual != "NPU"
+        || cpu.words != accelerated.words
+        || cpu.words.iter().any(Vec::is_empty)
+        || cpu
+            .errors
+            .iter()
+            .chain(&accelerated.errors)
+            .any(Option::is_some)
+    {
+        return false;
+    }
+    let mut baseline = cpu.times_us.clone();
+    let mut trial = accelerated.times_us.clone();
+    baseline.sort_unstable();
+    trial.sort_unstable();
+    baseline.len() == 6
+        && trial.len() == 6
+        && [2, 5].iter().all(|&i| trial[i] * 100 < baseline[i] * 85)
+}
+
 fn run(r: &Request) -> Result<Value, String> {
     if !(1..=4).contains(&r.threads)
         || !(50..=1000).contains(&r.wait_ms)
@@ -152,6 +259,13 @@ fn run(r: &Request) -> Result<Value, String> {
         return Err("INVALID_BUDGET".into());
     }
     let package = crate::compatibility::check(&r.package).map_err(|e| e.to_string())?;
+    let file = decision_file(&package);
+    let mut decision = Decision {
+        signature: signature(&package, r.threads, r.wait_ms, r.max_candidates).unwrap_or_default(),
+        reason: "NO_CURRENT_VALIDATION".into(),
+        cpu_budget_us: None,
+    };
+    write_decision(&file, &decision).map_err(|e| e.to_string())?;
     let start = Instant::now();
     let cpu =
         package::load_with_threads(&package, r.threads).map_err(|e| format!("CPU_LOAD: {e}"))?;
@@ -177,6 +291,17 @@ fn run(r: &Request) -> Result<Value, String> {
             Ok((allocation, samples)) => {
                 report["actual"] = allocation["actual"].clone();
                 report["node_events"] = allocation["node_events"].clone();
+                if qualifies(&cpu, &samples, &allocation["actual"]) {
+                    decision.cpu_budget_us =
+                        cpu.times_us.iter().max().map(|t| (cpu.load_us + t) as u64);
+                    decision.reason = "VALIDATED".into();
+                } else {
+                    report["reason"] = json!(if allocation["actual"] == "NPU" {
+                        "BENCHMARK_GATE"
+                    } else {
+                        "PLACEMENT_GATE"
+                    });
+                }
                 report["nnapi"] = json!(samples);
             }
             Err(error) => report["reason"] = json!(error),
@@ -184,6 +309,11 @@ fn run(r: &Request) -> Result<Value, String> {
     } else if cpu.errors.iter().any(Option::is_none) {
         report["actual"] = json!("CPU");
     }
+    if let Some(reason) = report["reason"].as_str() {
+        decision.reason = reason.into();
+    }
+    report["approved"] = json!(decision.cpu_budget_us.is_some());
+    write_decision(&file, &decision).map_err(|e| e.to_string())?;
     Ok(report)
 }
 
@@ -199,8 +329,40 @@ pub fn exchange(bytes: &[u8]) -> Vec<u8> {
 }
 
 #[cfg(test)]
-mod tests {
+pub(crate) mod tests {
     use super::*;
+    #[test]
+    fn admission_requires_same_nonempty_outputs_and_both_latency_gains() {
+        let samples = |t| Samples {
+            load_us: 100,
+            times_us: vec![t; 6],
+            words: vec![vec!["天气".into()]; 6],
+            errors: vec![None; 6],
+        };
+        let cpu = samples(100);
+        let mut trial = samples(70);
+        assert!(qualifies(&cpu, &trial, &json!("NPU")));
+        assert!(!qualifies(&cpu, &trial, &json!("CPU + NPU")));
+        trial.times_us[1] = 88;
+        assert!(!qualifies(&cpu, &trial, &json!("NPU")));
+        trial.times_us[1] = 70;
+        trial.words[2].clear();
+        assert!(!qualifies(&cpu, &trial, &json!("NPU")));
+    }
+
+    #[cfg(feature = "android-nnapi")]
+    pub(crate) fn test_lease(file: PathBuf, budget: u64) -> Lease {
+        Lease {
+            file,
+            decision: Decision {
+                signature: "test".into(),
+                reason: "VALIDATED".into(),
+                cpu_budget_us: Some(budget),
+            },
+            timeouts: 0,
+        }
+    }
+
     #[test]
     fn provider_and_eligible_device_types_are_both_required() {
         let mut nodes = BTreeMap::from([("NnapiExecutionProvider".into(), 4)]);

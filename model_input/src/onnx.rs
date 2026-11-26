@@ -136,7 +136,13 @@ impl OnnxScorer {
                 .with_disable_cpu(true)
                 .register(&mut builder)
                 .map_err(|_| Unavailable::Capability)?;
-            builder
+            if profile.is_none() {
+                builder
+                    .with_disable_cpu_fallback()
+                    .map_err(|_| Unavailable::Load)?
+            } else {
+                builder
+            }
         } else {
             builder
         };

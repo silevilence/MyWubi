@@ -409,8 +409,13 @@ private fun PredictionModels(model:SettingsModel, prediction:JSONObject, import:
             Slider(value=value.toFloat(),onValueChange={model.change("prediction",key,it.toInt())},
                 valueRange=range.first.toFloat()..range.last.toFloat(),enabled=!model.busy && (key!="idle_seconds" || prediction.optString("loading")!="preload_keep"))
         }
-        Text("请求设备：${prediction.optString("device", "cpu")}；Android 当前仅支持 CPU，桌面 GPU 配置在此回退 CPU。")
-        OutlinedButton(onClick={model.change("prediction","device","cpu"); model.change("prediction","device_name","")}, enabled=!model.busy) {Text("使用 CPU")}
+        val device = prediction.optString("device", "cpu")
+        val deviceChoices = listOf("自动" to "auto", "仅 CPU" to "cpu")
+        TableChoice("预测设备", deviceChoices.firstOrNull { it.second == device }?.first ?: "桌面设备（使用 CPU）",
+            deviceChoices, !model.busy) { selected ->
+            model.change("prediction", "device", selected)
+            model.change("prediction", "device_name", "")
+        }
         Text("提前加载仅在输入法前台允许时生效，不能常驻后台。")
         Text("选择与预算需保存后生效。已保存不代表模型已加载；不可用或超时隐藏本轮预测。支持的包规范见项目文档。")
     }

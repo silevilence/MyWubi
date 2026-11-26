@@ -19,7 +19,7 @@ object NativeBridge {
     @JvmStatic external fun inference(request: ByteArray): ByteArray
     @JvmStatic external fun hasNnapiProvider(): Boolean
     @JvmStatic external fun nnapiDevices(): String
-    @JvmStatic external fun probeOnnx(path: String): Boolean
+    @JvmStatic external fun probeOnnx(path: String, platform: String): Boolean
 
     fun call(op: String, vararg fields: Pair<String, Any?>): Any? {
         val request = JSONObject().put("op", op)

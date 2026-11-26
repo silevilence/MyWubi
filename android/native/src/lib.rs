@@ -156,18 +156,21 @@ pub extern "system" fn Java_org_mywubi_NativeBridge_probeOnnx(
     mut env: JNIEnv,
     _class: JClass,
     path: JString,
+    platform: JString,
 ) -> jni::sys::jboolean {
     #[cfg(feature = "onnx")]
     return std::panic::catch_unwind(std::panic::AssertUnwindSafe(|| {
         let path: String = env.get_string(&path).ok()?.into();
-        model_input::onnx::initialize_runtime(std::path::Path::new(&path)).ok()
+        model_input::onnx::initialize_runtime(std::path::Path::new(&path)).ok()?;
+        model_input::android_npu::activate_platform(env.get_string(&platform).ok()?.into());
+        Some(())
     }))
     .ok()
     .flatten()
     .is_some() as _;
     #[cfg(not(feature = "onnx"))]
     {
-        let _ = (&mut env, path);
+        let _ = (&mut env, path, platform);
         0
     }
 }

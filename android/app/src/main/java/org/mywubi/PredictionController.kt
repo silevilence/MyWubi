@@ -122,10 +122,12 @@ class PredictionController(private val context:Context,private val changed:()->U
         }
         val preload=config.optString("loading","on_demand")=="preload_keep"
         if(request==null && !preload) {val notify=awaiting;awaiting=false;cancel();if(notify)changed();return}
-        val identity=work.getString("root")+config.toString()+OnnxRuntime.status.value.name
+        val identity=work.getString("root")+config.toString()+OnnxRuntime.status.value.name+NpuValidation.revision.get()
         if(configuredFor!=identity) {
             cancel()
             if (configured) command("Close")
+            configured=false
+            configuredFor=""
             val result=command("Configure","root" to work.getString("root"),"config" to config)
             if(result.getBoolean("ok")){configured=true;configuredFor=identity}
         }

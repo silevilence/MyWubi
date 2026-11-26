@@ -82,6 +82,10 @@ pub fn load(
     config: &PredictionConfig,
     state: ExecutionState,
 ) -> Result<Box<dyn ModelBackend>, Unavailable> {
+    #[cfg(all(target_os = "android", feature = "android-nnapi"))]
+    if config.device == ModelDevice::Auto {
+        return load_android(package, config, state);
+    }
     if config.device == ModelDevice::Auto {
         let devices = discover().unwrap_or_default();
         let candidate = devices
@@ -163,6 +167,50 @@ pub fn load(
     wrap(backend, package, config.threads, state, execution, gpu)
 }
 
+#[cfg(feature = "android-nnapi")]
+#[cfg_attr(not(target_os = "android"), allow(dead_code))]
+fn load_android(
+    package: ValidatedPackage,
+    config: &PredictionConfig,
+    state: ExecutionState,
+) -> Result<Box<dyn ModelBackend>, Unavailable> {
+    let selected = crate::android_npu::approved(&package, config).and_then(|mut lease| {
+        let result = crate::android_npu::scorer(&package, config.threads, None)
+            .and_then(|model| package::gate(&package, Box::new(model)));
+        match result {
+            Ok(backend) => Ok((backend, lease)),
+            Err(error) => {
+                let reason = format!("NNAPI_LOAD: {error}");
+                lease.suspend(&reason);
+                Err(reason)
+            }
+        }
+    });
+    let (backend, lease, reason) = match selected {
+        Ok((backend, lease)) => (backend, Some(lease), None),
+        Err(reason) => (
+            package::load_with_threads(&package, config.threads)?,
+            None,
+            Some(reason),
+        ),
+    };
+    *state.lock().map_err(|_| Unavailable::Inference)? = Execution {
+        requested: config.device,
+        requested_name: config.device_name.clone(),
+        actual: Some(if lease.is_some() { "NPU" } else { "CPU" }.into()),
+        reason,
+    };
+    Ok(Box::new(Recovering {
+        backend: Some(backend),
+        package,
+        threads: config.threads,
+        gpu: false,
+        state,
+        cpu_load: package::load_with_threads,
+        nnapi: lease,
+    }))
+}
+
 fn wrap(
     backend: Box<dyn ModelBackend>,
     package: ValidatedPackage,
@@ -179,6 +227,8 @@ fn wrap(
         gpu,
         state,
         cpu_load: package::load_with_threads,
+        #[cfg(feature = "android-nnapi")]
+        nnapi: None,
     }))
 }
 
@@ -190,15 +240,71 @@ struct Recovering {
     gpu: bool,
     state: ExecutionState,
     cpu_load: CpuLoader,
+    #[cfg(feature = "android-nnapi")]
+    nnapi: Option<crate::android_npu::Lease>,
 }
 impl Recovering {
+    #[cfg(feature = "android-nnapi")]
+    fn load_cpu(&mut self) -> Result<(), Unavailable> {
+        self.backend = Some((self.cpu_load)(&self.package, self.threads)?);
+        if let Ok(mut status) = self.state.lock() {
+            status.actual = Some("CPU".into());
+        }
+        Ok(())
+    }
+
     fn invoke<T>(
         &mut self,
         control: &ComputeControl,
         mut call: impl FnMut(&mut dyn ModelBackend) -> Result<T, Unavailable>,
     ) -> Result<T, Unavailable> {
         control.check()?;
+        #[cfg(feature = "android-nnapi")]
+        if self.backend.is_none() {
+            self.load_cpu()?;
+            control.check()?;
+        }
         let result = call(self.backend.as_mut().ok_or(Unavailable::Load)?.as_mut());
+        #[cfg(feature = "android-nnapi")]
+        if let Some(lease) = self.nnapi.as_mut() {
+            let reason = match &result {
+                Err(Unavailable::Timeout) => {
+                    lease.timeouts += 1;
+                    if lease.timeouts < 2 {
+                        return result;
+                    }
+                    "NNAPI_TIMEOUT"
+                }
+                Err(Unavailable::Inference | Unavailable::Load | Unavailable::NonFinite) => {
+                    "NNAPI_EXECUTION"
+                }
+                _ => {
+                    if result.is_ok() {
+                        lease.timeouts = 0;
+                    }
+                    return result;
+                }
+            };
+            let required = lease.cpu_time();
+            lease.suspend(reason);
+            self.nnapi = None;
+            self.backend = None;
+            if let Ok(mut status) = self.state.lock() {
+                status.actual = None;
+                status.reason = Some(reason.into());
+            }
+            control.check()?;
+            if control
+                .deadline
+                .saturating_duration_since(std::time::Instant::now())
+                < required
+            {
+                return result;
+            }
+            self.load_cpu()?;
+            control.check()?;
+            return call(self.backend.as_mut().ok_or(Unavailable::Load)?.as_mut());
+        }
         if self.gpu && matches!(result, Err(Unavailable::Inference | Unavailable::Load)) {
             self.gpu = false;
             // Release VRAM before constructing CPU replacement. Do not retry GPU every key.
@@ -304,6 +410,8 @@ mod tests {
                 threads: 2,
                 gpu: true,
                 state: Arc::clone(&state),
+                #[cfg(feature = "android-nnapi")]
+                nnapi: None,
                 cpu_load: |package, _| {
                     Ok(Box::new(Fault {
                         caps: package.manifest.capabilities.clone(),
@@ -328,6 +436,52 @@ mod tests {
             }
         }
     }
+    #[cfg(feature = "android-nnapi")]
+    #[test]
+    fn repeated_nnapi_deadlines_suspend_across_unload_and_defer_cpu_until_next_request() {
+        let root = tempfile::tempdir().unwrap();
+        let file = root.path().join("decision");
+        let manifest = crate::download::available_models().remove(0).manifest;
+        let mut model = Recovering {
+            backend: Some(Box::new(Fault {
+                caps: manifest.capabilities.clone(),
+                error: Some(Unavailable::Timeout),
+                dropped: Arc::default(),
+            })),
+            package: ValidatedPackage {
+                root: root.path().into(),
+                manifest,
+            },
+            threads: 2,
+            gpu: false,
+            state: Arc::default(),
+            nnapi: Some(crate::android_npu::tests::test_lease(
+                file.clone(),
+                2_000_000,
+            )),
+            cpu_load: |p, _| {
+                Ok(Box::new(Fault {
+                    caps: p.manifest.capabilities.clone(),
+                    error: None,
+                    dropped: Arc::default(),
+                }))
+            },
+        };
+        let control = ComputeControl {
+            cancellation: Default::default(),
+            deadline: Instant::now() + Duration::from_secs(1),
+        };
+        assert_eq!(model.warmup(&control), Err(Unavailable::Timeout));
+        assert!(!file.exists());
+        assert_eq!(model.warmup(&control), Err(Unavailable::Timeout));
+        assert!(std::fs::read_to_string(file)
+            .unwrap()
+            .contains("NNAPI_TIMEOUT"));
+        assert!(model.backend.is_none());
+        assert!(model.warmup(&control).is_ok());
+        assert_eq!(model.state.lock().unwrap().actual.as_deref(), Some("CPU"));
+    }
+
     #[test]
     fn selection_requires_matching_backend_name_and_memory() {
         let mut config = PredictionConfig {

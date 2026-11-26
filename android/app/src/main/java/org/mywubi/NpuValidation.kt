@@ -6,6 +6,8 @@ import java.io.File
 import java.nio.file.Files
 
 internal object NpuValidation {
+    val revision = java.util.concurrent.atomic.AtomicLong()
+
     fun run(context: Context, model: File, config: JSONObject, detection: JSONObject): JSONObject {
         val devices = detection.optJSONArray("devices")
         // ORT's CPU_DISABLED mode excludes the NNAPI reference driver. Treat additional
@@ -23,6 +25,7 @@ internal object NpuValidation {
             check(reply.optBoolean("ok")) { reply.optString("error") }
             return reply.getJSONObject("value")
         } finally {
+            revision.incrementAndGet()
             profile.deleteRecursively()
         }
     }

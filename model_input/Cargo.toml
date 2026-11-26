@@ -7,6 +7,7 @@ autobins = false
 
 [dependencies]
 core_engine = { path = "../core_engine" }
+tempfile = { version = "3.27.0", optional = true }
 fs2 = "0.4"
 llama-cpp-2 = { version = "=0.1.161", default-features = false, optional = true }
 ort = { version = "=2.0.0-rc.15", default-features = false, features = ["std", "load-dynamic", "api-31"], optional = true }
@@ -22,7 +23,7 @@ zip = { version = "2", default-features = false, features = ["deflate"] }
 [features]
 llama-cpp-2 = ["dep:llama-cpp-2", "dep:self_cell"]
 ort = ["dep:ort"]
-android-nnapi = ["ort", "ort/nnapi"]
+android-nnapi = ["ort", "ort/nnapi", "dep:tempfile"]
 vulkan = ["llama-cpp-2", "llama-cpp-2/vulkan"]
 cuda = ["llama-cpp-2", "llama-cpp-2/cuda"]
 android-static-stdcxx = ["llama-cpp-2/android-static-stdcxx"]

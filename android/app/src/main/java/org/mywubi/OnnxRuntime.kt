@@ -70,7 +70,7 @@ internal object OnnxRuntime {
         if (active == path) return State.Ready
         val payload = OnnxComponent.payload()
         if (path != bundled && !OnnxInstaller.matches(path, payload.bytes, payload.hash)) return State.Corrupt
-        if (!NativeBridge.probeOnnx(path.absolutePath)) return State.Failed
+        if (!NativeBridge.probeOnnx(path.absolutePath, listOf(android.os.Build.FINGERPRINT, payload.hash, BuildConfig.VERSION_CODE).joinToString("|"))) return State.Failed
         active = path
         return State.Ready
     }
