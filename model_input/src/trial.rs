@@ -50,7 +50,21 @@ pub fn run(request: Request) -> Result<Report, String> {
         })
         .map_err(reason)?;
     let load_ms = start.elapsed().as_millis();
-    let mut session = ModelSession::new(backend);
+    let (words, predict_ms) = predict_sample(
+        &mut ModelSession::new(backend),
+        request.prefix,
+        request.wait_ms,
+        16,
+    )?;
+    Ok(Report {words,load_ms,predict_ms,notice:"仅证明此样例兼容运行；空候选表示无召回或未过准入。不是质量认证，未选择模型或更改预测开关。".into()})
+}
+
+pub(crate) fn predict_sample(
+    session: &mut ModelSession<Box<dyn ModelBackend>>,
+    prefix: String,
+    wait_ms: u64,
+    limit: usize,
+) -> Result<(Vec<String>, u128), String> {
     let key = RequestKey {
         edit: core_engine::session::EditToken {
             session: 0,
@@ -72,7 +86,7 @@ pub fn run(request: Request) -> Result<Report, String> {
     let start = Instant::now();
     let control = ComputeControl {
         cancellation: Cancellation::default(),
-        deadline: start + Duration::from_millis(request.wait_ms),
+        deadline: start + Duration::from_millis(wait_ms),
     };
     let result = if session.proposes_words() {
         session
@@ -80,7 +94,7 @@ pub fn run(request: Request) -> Result<Report, String> {
                 &ProposalRequest {
                     key,
                     language: "zh".into(),
-                    prefix: request.prefix,
+                    prefix,
                     limit: 1,
                 },
                 &control,
@@ -88,7 +102,7 @@ pub fn run(request: Request) -> Result<Report, String> {
             .map(|r| r.words)
     } else {
         let candidates = prediction::Lexicon::new(&[])
-            .recall(&request.prefix, 16)
+            .recall(&prefix, limit)
             .into_iter()
             .enumerate()
             .map(|(i, c)| ScoringCandidate {
@@ -101,7 +115,7 @@ pub fn run(request: Request) -> Result<Report, String> {
             key,
             task: Task::Predict,
             language: "zh".into(),
-            prefix: request.prefix,
+            prefix,
             code: String::new(),
             candidates,
         };
@@ -126,7 +140,7 @@ pub fn run(request: Request) -> Result<Report, String> {
         Err(Unavailable::Empty | Unavailable::LowConfidence) => Vec::new(),
         Err(e) => return Err(reason(e)),
     };
-    Ok(Report {words,load_ms,predict_ms,notice:"仅证明此样例兼容运行；空候选表示无召回或未过准入。不是质量认证，未选择模型或更改预测开关。".into()})
+    Ok((words, predict_ms))
 }
 
 fn reason(error: Unavailable) -> String {

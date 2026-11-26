@@ -1,4 +1,6 @@
 //! Optional model adapters and offline evaluation. Never linked into the TSF DLL.
+#[cfg(feature = "android-nnapi")]
+pub mod android_npu;
 mod auto_device;
 pub mod catalog;
 pub mod compatibility;

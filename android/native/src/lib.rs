@@ -326,6 +326,24 @@ pub extern "system" fn Java_org_mywubi_NativeBridge_modelTrial(
     _class: JClass,
     request: JByteArray,
 ) -> jbyteArray {
+    trial_exchange(&mut env, request, model_input::trial::exchange)
+}
+
+#[no_mangle]
+pub extern "system" fn Java_org_mywubi_NativeBridge_npuTrial(
+    mut env: JNIEnv,
+    _: JClass,
+    request: JByteArray,
+) -> jbyteArray {
+    #[cfg(feature = "onnx")]
+    return trial_exchange(&mut env, request, model_input::android_npu::exchange);
+    #[cfg(not(feature = "onnx"))]
+    return trial_exchange(&mut env, request, |_| {
+        br#"{"ok":false,"error":"NNAPI_ADAPTER_MISSING"}"#.to_vec()
+    });
+}
+
+fn trial_exchange(env: &mut JNIEnv, request: JByteArray, run: fn(&[u8]) -> Vec<u8>) -> jbyteArray {
     static TRIAL: std::sync::Mutex<()> = std::sync::Mutex::new(());
     let result = std::panic::catch_unwind(std::panic::AssertUnwindSafe(|| {
         if env.get_array_length(&request).ok()? > 65536 {
@@ -333,7 +351,7 @@ pub extern "system" fn Java_org_mywubi_NativeBridge_modelTrial(
         }
         let bytes = env.convert_byte_array(&request).ok()?;
         let reply = match TRIAL.try_lock() {
-            Ok(_guard) => model_input::trial::exchange(&bytes),
+            Ok(_guard) => run(&bytes),
             Err(_) => br#"{"ok":false,"error":"Another trial is running"}"#.to_vec(),
         };
         env.byte_array_from_slice(&reply).ok().map(|a| a.into_raw())

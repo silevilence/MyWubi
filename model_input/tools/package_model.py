@@ -19,7 +19,13 @@ def main():
     parser.add_argument('--version', required=True)
     parser.add_argument('--source', required=True)
     parser.add_argument('--license', required=True)
+    parser.add_argument('--android-provider', choices=['cpu', 'nnapi'])
+    parser.add_argument('--quantization', help='weight encoding, for example fp32 or Q4_K_M')
     args = parser.parse_args()
+    if bool(args.android_provider) != bool(args.quantization):
+        parser.error('specify --android-provider and --quantization together')
+    if args.android_provider == 'nnapi' and args.backend != 'onnx':
+        parser.error('NNAPI requires an ONNX graph')
     if (args.backend == 'onnx') != (args.vocabulary is not None):
         parser.error('ONNX requires --vocabulary; GGUF must not supply it')
     if args.generation_policy and (args.backend != 'llama' or args.prediction_policy):
@@ -47,6 +53,10 @@ def main():
                                       max_context_chars=256, max_candidates=64, max_candidate_chars=16,
                                       max_code_chars=64, proposes_words=bool(args.generation_policy), incremental=True,
                                       cooperative_cancel=True))
+    if args.android_provider:
+        manifest['android_execution'] = dict(provider=args.android_provider,
+                                             format='onnx' if args.backend == 'onnx' else 'gguf',
+                                             quantization=args.quantization)
     (args.destination / 'manifest.json').write_text(json.dumps(manifest, ensure_ascii=False, indent=2) + '\n', encoding='utf-8')
 
 

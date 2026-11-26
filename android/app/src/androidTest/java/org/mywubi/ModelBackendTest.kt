@@ -73,6 +73,7 @@ class ModelBackendTest {
             .put("evidence","Authored instrumentation fixture, permissive thresholds for plumbing tests only; not calibrated for product quality.").toString())
         val manifest=JSONObject().put("protocol",1).put("id","instrumented-counts").put("version","v1").put("backend","OnnxRuntime")
             .put("adapter","character-step-v1").put("model","counts.onnx").put("vocabulary","vocabulary.json").put("source","MyWubi authored MI01 train").put("license","MIT").put("capabilities",caps())
+        manifest.put("android_execution", JSONObject("""{"provider":"nnapi","format":"onnx","quantization":"fp32"}"""))
         manifest.put("prediction_policy","prediction-policy.json")
         manifest.put("files",JSONArray().also{a->for(name in listOf("counts.onnx","vocabulary.json","prediction-policy.json")){val f=File(root,name);a.put(JSONObject().put("path",name).put("bytes",f.length()).put("sha256",digest(name)))}})
         File(root,"manifest.json").writeText(manifest.toString());return root

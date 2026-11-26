@@ -13,6 +13,7 @@ object NativeBridge {
     @JvmStatic external fun exchange(request: ByteArray): ByteArray
     @JvmStatic external fun modelPackages(request: ByteArray): ByteArray
     @JvmStatic external fun modelDownloads(request: ByteArray): ByteArray
+    @JvmStatic external fun npuTrial(request: ByteArray): ByteArray
     @JvmStatic external fun modelTrial(request: ByteArray): ByteArray
     @JvmStatic external fun modelGuide(): String
     @JvmStatic external fun inference(request: ByteArray): ByteArray

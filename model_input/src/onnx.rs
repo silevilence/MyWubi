@@ -61,6 +61,16 @@ pub struct OnnxScorer {
 
 impl OnnxScorer {
     pub fn load(model: &Path, vocabulary: &Path, threads: usize) -> Result<Self, Unavailable> {
+        Self::load_session(model, vocabulary, threads, false, None)
+    }
+
+    pub(crate) fn load_session(
+        model: &Path,
+        vocabulary: &Path,
+        threads: usize,
+        nnapi: bool,
+        profile: Option<&Path>,
+    ) -> Result<Self, Unavailable> {
         if !model.is_file() || !vocabulary.is_file() {
             return Err(Unavailable::MissingModel);
         }
@@ -112,12 +122,36 @@ impl OnnxScorer {
         // Memory loading deliberately has no model-directory base for external weights.
         // character-step-v1 packages require embedded tensors; no arbitrary filesystem reads.
         let model_bytes = std::fs::read(model).map_err(|_| Unavailable::Load)?;
-        let session = Session::builder(environment)
+        let builder = Session::builder(environment)
             .map_err(|_| Unavailable::Load)?
             .with_intra_threads(threads)
             .map_err(|_| Unavailable::Load)?
             .with_inter_threads(1)
-            .map_err(|_| Unavailable::Load)?
+            .map_err(|_| Unavailable::Load)?;
+        #[cfg(feature = "android-nnapi")]
+        let builder = if nnapi {
+            use ort::ep::ExecutionProvider;
+            let mut builder = builder;
+            ort::ep::NNAPI::default()
+                .with_disable_cpu(true)
+                .register(&mut builder)
+                .map_err(|_| Unavailable::Capability)?;
+            builder
+        } else {
+            builder
+        };
+        #[cfg(not(feature = "android-nnapi"))]
+        if nnapi {
+            return Err(Unavailable::Capability);
+        }
+        let mut builder = if let Some(prefix) = profile {
+            builder
+                .with_profiling(prefix)
+                .map_err(|_| Unavailable::Load)?
+        } else {
+            builder
+        };
+        let session = builder
             .commit_from_memory(&model_bytes)
             .map_err(|_| Unavailable::UnsupportedModel)?;
         let ids = vocabulary
@@ -149,6 +183,14 @@ impl OnnxScorer {
         // A real probe rejects incompatible shapes/types/operators before activation.
         scorer.step(1, &scorer.zero())?;
         Ok(scorer)
+    }
+
+    #[cfg(feature = "android-nnapi")]
+    pub(crate) fn finish_profile(&mut self) -> Result<std::path::PathBuf, Unavailable> {
+        self.session
+            .end_profiling()
+            .map(Into::into)
+            .map_err(|_| Unavailable::Inference)
     }
 
     fn zero(&self) -> State {

@@ -34,6 +34,9 @@ pub struct Manifest {
     pub backend: Backend,
     pub adapter: String,
     pub model: String,
+    /// Optional Android export metadata. Legacy packages remain CPU-compatible.
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub android_execution: Option<AndroidExecution>,
     pub vocabulary: Option<String>,
     /// Optional hashed JSON admission policy, bound to these exact model weights.
     #[serde(default, skip_serializing_if = "Option::is_none")]
@@ -44,6 +47,14 @@ pub struct Manifest {
     pub source: String,
     pub license: String,
     pub capabilities: Capabilities,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
+#[serde(deny_unknown_fields)]
+pub struct AndroidExecution {
+    pub provider: String,
+    pub format: String,
+    pub quantization: String,
 }
 
 #[derive(Debug, thiserror::Error)]
@@ -265,6 +276,20 @@ pub fn validate(root: &Path) -> Result<ValidatedPackage, PackageError> {
                 && manifest.model.ends_with(".onnx")
         }
     };
+    if let Some(export) = &manifest.android_execution {
+        let format = if manifest.backend == Backend::OnnxRuntime {
+            "onnx"
+        } else {
+            "gguf"
+        };
+        if export.format != format
+            || export.quantization.trim().is_empty()
+            || export.quantization.len() > 64
+            || !(export.provider == "cpu" || (export.provider == "nnapi" && format == "onnx"))
+        {
+            return Err(PackageError::Manifest);
+        }
+    }
     if !supported {
         return Err(PackageError::Manifest);
     }
@@ -513,6 +538,14 @@ pub(crate) fn load_on_device(
             }
         };
     let backend = backend?;
+    gate(&checked, backend)
+}
+
+pub(crate) fn gate(
+    checked: &ValidatedPackage,
+    backend: Box<dyn core_engine::assistance::ModelBackend>,
+) -> Result<Box<dyn core_engine::assistance::ModelBackend>, core_engine::assistance::Unavailable> {
+    use core_engine::assistance::Unavailable;
     if backend.capabilities() != &checked.manifest.capabilities {
         return Err(Unavailable::Capability);
     }
@@ -645,6 +678,7 @@ mod tests {
                 backend: Backend::LlamaCpp,
                 adapter: "gguf-continuation-v1".into(),
                 model: "model.gguf".into(),
+                android_execution: None,
                 vocabulary: None,
                 prediction_policy: None,
                 generation_policy: None,
