@@ -25,6 +25,9 @@ deploy/
 !.agents/skills/
 .agents/skills/*
 !.agents/skills/mywubi-release/
+!.agents/skills/pgz110-install-apk/
+.agents/skills/pgz110-install-apk/*
+!.agents/skills/pgz110-install-apk/SKILL.md
 skills-lock.json
 
 # Velopack 打包产物
