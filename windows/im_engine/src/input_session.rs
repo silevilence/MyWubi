@@ -313,6 +313,16 @@ impl InputSession {
         bind_editor(&mut core, editor);
         core.set_assistance_allowed(prefix.allowed);
         let context = core.context();
+        if prefix.allowed
+            && prefix.text.is_some()
+            && core.snapshot().spelling.is_empty()
+            && core.config().frequency.record
+        {
+            core.observe_frequency(core_engine::personal::Context {
+                left: prefix.text.clone(),
+                ..prefix.personal.clone()
+            });
+        }
         if prefix.text.is_some() {
             core.observe_personal_right(prefix.personal.right.as_deref());
         }

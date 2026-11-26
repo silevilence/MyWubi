@@ -35,7 +35,7 @@ class PersonalCapture {
         send(JSONObject().put("op","Context").put("context",next).put("external",external))
         return next
     }
-    private fun readContext(connection: InputConnection?, start: Int, end: Int): JSONObject {
+    fun readContext(connection: InputConnection?, start: Int, end: Int): JSONObject {
         fun read(tail: Boolean = false, block: () -> CharSequence?): Any {
             val raw = try { block() } catch (_: RuntimeException) { null } ?: return JSONObject.NULL
             val bounded = if (tail) raw.takeLast(512) else raw.take(512)

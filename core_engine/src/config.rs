@@ -39,6 +39,8 @@ pub struct Config {
     pub shortcuts: crate::shortcuts::ShortcutConfig,
     #[serde(default)]
     pub personal: crate::personal::PersonalConfig,
+    #[serde(default)]
+    pub frequency: crate::frequency::FrequencyConfig,
 }
 
 /// Word predictions are independent of code-candidate sorting and disabled by default.

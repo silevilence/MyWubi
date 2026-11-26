@@ -155,6 +155,7 @@ pub struct Acknowledged {
 }
 
 struct Pending {
+    frequency_choice: Option<frequency::Choice>,
     shortcut_attempt: Option<(Action, Result<crate::shortcut_time::LocalTime, String>)>,
     local_query: bool,
     owned_preedit_before: bool,
@@ -183,6 +184,7 @@ struct PlanParts {
 /// A caller serializes access, releases its lock for host calls, then acknowledges.
 /// Legacy permits nested prepares; only the newest generation may publish.
 pub struct Session {
+    frequency_tracker: frequency::Tracker,
     ranked_locally: bool,
     retry_time: Option<RetryTime>,
     clock: Arc<dyn crate::shortcut_time::Clock>,
@@ -238,6 +240,7 @@ impl Session {
                 && context.allows_assistance,
         );
         Self {
+            frequency_tracker: Default::default(),
             ranked_locally: false,
             retry_time: None,
             clock,
@@ -326,6 +329,71 @@ impl Session {
         .then_some(candidate)
     }
 
+    fn records_frequency(&self) -> bool {
+        !self.closed
+            && self.config.frequency.record
+            && self.context.purpose == InputPurpose::Text
+            && self.context.allows_assistance
+    }
+
+    fn frequency_choice(&self, action: &Action, op: &EditSessionOp) -> Option<frequency::Choice> {
+        if self.has_prediction()
+            || self.base_mode() != BaseMode::Main
+            || self.state_machine().mode() != InputMode::Main
+        {
+            return None;
+        }
+        let text = match op {
+            EditSessionOp::CommitThenUpdate { text, .. }
+            | EditSessionOp::CommitAndReplace { text, .. } => text,
+            _ => return None,
+        };
+        let mut code = self.state_machine().spelling().to_string();
+        match action {
+            Action::SelectCandidate(_, _)
+            | Action::Space
+            | Action::CommitPreferred
+            | Action::Legacy(InputEvent::Space | InputEvent::Select(_)) => {}
+            Action::InputText(c, TextIntent::Normal)
+            | Action::InputCode(c)
+            | Action::Legacy(InputEvent::Char(c)) => {
+                if !matches!(op, EditSessionOp::CommitThenUpdate { .. }) && !c.is_ascii_digit() {
+                    code.push(*c);
+                }
+            }
+            _ => return None,
+        }
+        let row = self
+            .resources
+            .dict
+            .search(
+                &code,
+                SearchOptions {
+                    prefer_exact: true,
+                    limit: self.resources.dict.len(),
+                },
+            )
+            .into_iter()
+            .find(|row| row.word == *text)?;
+        Some(frequency::Choice {
+            code: row.code.clone(),
+            word: row.word.clone(),
+        })
+    }
+
+    pub fn observe_frequency(&mut self, context: personal::Context) {
+        if self.records_frequency() {
+            if let Some(path) = frequency::store_path(
+                &self.resources.config_path,
+                &self.resources.system_table_path,
+            ) {
+                if let Err(error) = self.frequency_tracker.observe(&path, context) {
+                    log::warn!("词频统计写入失败: {error}");
+                }
+            }
+        }
+    }
+
     pub fn rank_count(&self, query: QueryRevision, id: CandidateId) -> usize {
         if self.rank_candidate(query, id).is_none() {
             return 0;
@@ -406,6 +474,9 @@ impl Session {
         if self.context.allows_assistance != allowed {
             self.clear_prediction_context();
             self.context.allows_assistance = allowed;
+            if !allowed {
+                self.frequency_tracker = Default::default();
+            }
             let expressions_allowed = allowed && self.context.purpose == InputPurpose::Text;
             let _ = self.engine.set_expression_context(expressions_allowed);
             if let Some(transition) = self
@@ -951,8 +1022,14 @@ impl Session {
         if self.prediction.is_some() {
             parts.unchanged = false;
         }
+        let choice = if self.records_frequency() && !next.state_machine().committed_shortcut() {
+            self.frequency_choice(&retry_action, &parts.op)
+        } else {
+            None
+        };
         let prepared = self.stage(next, rollback, parts, false)?;
         if let Some(pending) = &mut self.pending {
+            pending.frequency_choice = choice;
             pending.predict_after = predict_after && pending.plan.learnable;
             pending.shortcut_attempt = pending
                 .next
@@ -1067,6 +1144,7 @@ impl Session {
             },
         };
         self.pending = Some(Pending {
+            frequency_choice: None,
             shortcut_attempt: None,
             local_query,
             owned_preedit_before: self.context.owns_preedit,
@@ -1114,6 +1192,15 @@ impl Session {
                 follow_up: None,
             };
         };
+        if self.records_frequency()
+            && outcome == HostOutcome::Applied
+            && matches!(
+                pending.plan.op,
+                EditSessionOp::CommitThenUpdate { .. } | EditSessionOp::CommitAndReplace { .. }
+            )
+        {
+            self.frequency_tracker.committed(pending.frequency_choice);
+        }
         self.last_outcome = Some(outcome);
         let mut confirmed = pending.plan.op.clone();
         if pending.owned_preedit_before {
@@ -1268,6 +1355,7 @@ impl Session {
         self.cleared(next, op, false).map(Some)
     }
     pub fn lose_focus(&mut self) -> Result<PreparedEdit, SessionError> {
+        self.frequency_tracker = Default::default();
         self.clear_prediction_context();
         let temporary = self.engine.temporary_mode().is_some()
             || self.state_machine().mode() == InputMode::Menu;
@@ -1303,6 +1391,7 @@ impl Session {
     }
     /// A dead connection/terminated composition cannot be cleaned through the new selection.
     pub fn invalidate_context(&mut self, context: HostContext, preserve_base: bool) {
+        self.frequency_tracker = Default::default();
         self.clear_prediction_context();
         self.prefix.bind(
             context.editor,
@@ -1350,6 +1439,7 @@ impl Session {
         );
     }
     pub fn host_terminated(&mut self) {
+        self.frequency_tracker = Default::default();
         let mut context = self.context;
         context.owns_preedit = false;
         context.epoch += 1;
@@ -1367,6 +1457,11 @@ impl Session {
     ) -> Result<Option<PreparedEdit>, SessionError> {
         if self.closed {
             return Err(SessionError::Closed);
+        }
+        if !runtime.config.frequency.record
+            || runtime.system_table_path != self.resources.system_table_path
+        {
+            self.frequency_tracker = Default::default();
         }
         if runtime.revision == self.revision {
             return Ok(None);

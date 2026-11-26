@@ -759,7 +759,9 @@ impl TextService {
         let prefix = crate::prediction_context::read(
             &context,
             self.lifecycle.tid(),
-            prediction || self.config_snapshot().personal.collect,
+            prediction
+                || (self.config_snapshot().personal.collect
+                    || self.config_snapshot().frequency.record),
         );
         // After an external notification (or just before a click), an unreadable
         // range cannot prove that a previously displayed suggestion is still current.
@@ -916,7 +918,7 @@ impl TextService {
             });
         if result.is_ok()
             && matches!(op, EditSessionOp::CommitAndReplace { .. })
-            && self.config_snapshot().personal.collect
+            && (self.config_snapshot().personal.collect || self.config_snapshot().frequency.record)
         {
             // Observe the committed range after TSF releases the write transaction.
             self.queue_context_read();
@@ -1712,7 +1714,9 @@ impl ITfTextEditSink_Impl for TextService_Impl {
         // Re-read on the apartment after the host has completed the transaction.
         let config = self.config_snapshot();
         if !self.writing_host.load(Ordering::Acquire)
-            && (config.prediction.enabled || config.personal.collect || config.personal.predict)
+            && (config.prediction.enabled
+                || (config.personal.collect || config.frequency.record)
+                || config.personal.predict)
         {
             self.queue_context_read();
         }
@@ -1872,7 +1876,9 @@ impl ITfKeyEventSink_Impl for TextService_Impl {
         };
         // An editor may consume undo, delete or cursor movement without sending
         // OnEndEdit. Observe the result after dispatch, without consuming the key.
-        if !handled && self.config_snapshot().personal.collect {
+        if !handled
+            && (self.config_snapshot().personal.collect || self.config_snapshot().frequency.record)
+        {
             self.queue_context_read();
         }
         Ok(BOOL(handled as i32))
@@ -1910,7 +1916,7 @@ impl ITfKeyEventSink_Impl for TextService_Impl {
         };
         let config = self.config_snapshot();
         if config.prediction.enabled
-            || config.personal.collect
+            || (config.personal.collect || config.frequency.record)
             || config.personal.predict
             || config.expressions.emoji.needed()
             || config.expressions.kaomoji.needed()
@@ -1924,7 +1930,7 @@ impl ITfKeyEventSink_Impl for TextService_Impl {
                     context,
                     self.lifecycle.tid(),
                     (config.prediction.enabled
-                        || config.personal.collect
+                        || (config.personal.collect || config.frequency.record)
                         || config.personal.predict)
                         && self.composition.lock().is_none(),
                 );

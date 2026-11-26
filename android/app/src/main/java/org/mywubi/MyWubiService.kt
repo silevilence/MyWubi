@@ -276,6 +276,13 @@ class MyWubiService : InputMethodService() {
 
     override fun onEvaluateFullscreenMode() = false
 
+    private fun observeFrequency(start: Int, end: Int) {
+        val current = session ?: return
+        if (!active || trial != null || !inputPolicy.allowsAssistance || lastConfig?.optJSONObject("frequency")?.optBoolean("record") != true) return
+        NativeBridge.call("FrequencyContext", "session" to current.value,
+            "context" to personalCapture.readContext(connection, start, end))
+    }
+
     override fun onUpdateSelection(oldSelStart: Int, oldSelEnd: Int, newSelStart: Int, newSelEnd: Int, candidatesStart: Int, candidatesEnd: Int) {
         super.onUpdateSelection(oldSelStart, oldSelEnd, newSelStart, newSelEnd, candidatesStart, candidatesEnd)
         hasSelection = newSelStart >= 0 && newSelStart != newSelEnd
@@ -283,6 +290,7 @@ class MyWubiService : InputMethodService() {
         val own = writingHost || ownIndex >= 0
         if (ownIndex >= 0) repeat(ownIndex + 1) { ownSelections.removeFirst() }
         if (active && !own && (oldSelStart != newSelStart || oldSelEnd != newSelEnd)) {
+            if (!editor.ownsPreedit) observeFrequency(newSelStart, newSelEnd)
             personalCapture.observe(connection, newSelStart, newSelEnd, true)
             ownSelections.clear(); projectedSelection = minOf(newSelStart,newSelEnd).coerceAtLeast(0)
             projectedSelectionEnd = maxOf(newSelStart,newSelEnd)
@@ -594,6 +602,7 @@ class MyWubiService : InputMethodService() {
                 NativeBridge.call("IsCurrent", "session" to s.value, "token" to token) == true
             if (!current()) return false
             val operation = plan.optJSONObject("op")
+            if (!editor.ownsPreedit) observeFrequency(projectedSelection, projectedSelectionEnd)
             if (!editor.ownsPreedit) personalCapture.observe(host, projectedSelection, projectedSelectionEnd)
             val start = projectedPreedit ?: projectedSelection
             val expected = when {
@@ -618,6 +627,7 @@ class MyWubiService : InputMethodService() {
             if (outcome != "Applied") { ownSelections.clear(); projectedPreedit = null }
             if (!current()) return false
             val ack = NativeBridge.objectCall("Ack", "session" to s.value, "token" to token, "outcome" to outcome, "owns_preedit" to editor.ownsPreedit)
+            if (outcome == "Applied" && operation?.has("CommitAndReplace") == true) observeFrequency(projectedSelection, projectedSelectionEnd)
             if (outcome != "Applied") error = "编辑结果未确认，已停止本次输入；请检查正文后继续"
             plan = ack.optJSONObject("follow_up")
             if (outcome != "Applied" && plan == null) return false
