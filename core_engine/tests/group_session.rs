@@ -30,8 +30,13 @@ fn session(auto: bool) -> Session {
             ..Default::default()
         },
     );
+    bind_pairs(&mut s);
+    s
+}
+
+fn bind_pairs(s: &mut Session) {
     apply(
-        &mut s,
+        s,
         Action::BindMapping(
             identity(),
             Definition {
@@ -40,7 +45,6 @@ fn session(auto: bool) -> Session {
             },
         ),
     );
-    s
 }
 fn apply(s: &mut Session, action: Action) -> PreparedEdit {
     let plan = s.prepare(action).unwrap();
@@ -76,21 +80,69 @@ fn reject_before_write_keeps_groups_and_stale_selection_cannot_commit() {
     assert!(matches!(committed.op,EditSessionOp::CommitAndReplace{ref text,..} if text=="乙"));
 }
 #[test]
-fn ambiguous_full_code_never_autocommits_or_overflows_but_explicit_resolution_can() {
+fn ambiguous_full_code_waits_for_resolution_before_unique_autocommit() {
     let mut s = session(true);
     let plan = apply(&mut s, Action::InputGroup(identity(), "pair".into()));
     assert_eq!(plan.op, EditSessionOp::NoOp);
     let query = s.candidate_window(0, 0).query_revision;
     let plan = apply(&mut s, Action::ResolveGroup(query, 0, 'j'));
     assert!(matches!(plan.op,EditSessionOp::CommitAndReplace{ref text,..} if text=="甲"));
-    let mut s = session(false);
-    apply(&mut s, Action::InputGroup(identity(), "pair".into()));
-    let plan = apply(&mut s, Action::InputCode('j'));
-    assert_eq!(plan.op, EditSessionOp::NoOp);
-    assert_eq!(
-        s.state_machine().group_sequence().unwrap().positions.len(),
-        2
+}
+
+#[test]
+fn fifth_group_commits_the_preferred_word_and_starts_a_fresh_group() {
+    let mut r = runtime(1, false);
+    Arc::make_mut(&mut r).dict =
+        Dictionary::from_text("---\nmax_code_len: 4\n---\njjjj\t甲\t20\nkkkk\t乙\t10\n").unwrap();
+    let mut s = Session::new(&r, BehaviorProfile::TouchV1, HostContext::default());
+    let group = || Action::InputGroup(identity(), "pair".into());
+    bind_pairs(&mut s);
+    for _ in 0..4 {
+        assert_eq!(apply(&mut s, group()).op, EditSessionOp::NoOp);
+    }
+    let before = s.snapshot().clone();
+    let fifth = s.prepare(group()).unwrap();
+    assert!(
+        matches!(&fifth.op, EditSessionOp::CommitAndReplace { text, .. } if text == "甲"),
+        "{:?}",
+        fifth.op
     );
+    s.acknowledge(fifth.token, HostOutcome::RejectedBeforeWrite);
+    assert_eq!(s.snapshot(), &before);
+    assert_eq!(apply(&mut s, group()).op, fifth.op);
+    assert_eq!(s.snapshot().spelling, "[jk]");
+    for _ in 0..3 {
+        apply(&mut s, Action::InputCode('k'));
+    }
+    let next = apply(&mut s, Action::InputCode('j'));
+    assert!(
+        matches!(next.op, EditSessionOp::CommitThenUpdate { text, spelling, .. } if text == "乙" && spelling == "j")
+    );
+    for _ in 0..3 {
+        apply(&mut s, Action::InputCode('j'));
+    }
+    let mixed = apply(&mut s, group());
+    assert!(matches!(mixed.op, EditSessionOp::CommitAndReplace { text, .. } if text == "甲"));
+    assert_eq!(mixed.target, EditTarget::OwnedComposition);
+    assert_eq!(s.snapshot().spelling, "[jk]");
+}
+
+#[test]
+fn group_overflow_disabled_keeps_both_positions() {
+    let mut r = runtime(1, false);
+    Arc::make_mut(&mut r)
+        .config
+        .basic
+        .commit_on_max_code_overflow = false;
+    let mut s = Session::new(&r, BehaviorProfile::TouchV1, HostContext::default());
+    bind_pairs(&mut s);
+    for _ in 0..2 {
+        assert_eq!(
+            apply(&mut s, Action::InputGroup(identity(), "pair".into())).op,
+            EditSessionOp::NoOp
+        );
+    }
+    assert_eq!(s.snapshot().spelling, "[jk][jk]");
 }
 #[test]
 fn undo_and_backspace_preserve_raw_positions_and_enter_requires_resolution() {

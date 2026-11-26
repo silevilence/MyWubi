@@ -97,13 +97,22 @@ impl SemanticEngine {
                     positions: self.sm.spelling.chars().map(Position::exact).collect(),
                     resolutions: Vec::new(),
                 });
-                if sequence.positions.len() >= MAX_POSITIONS {
-                    return Err(Rejection::TextTooLong);
-                }
                 sequence.positions.push(Position {
                     characters: chars.clone(),
                     selected: None,
                 });
+                if let Some(text) = self.group_overflow_candidate(&sequence.positions) {
+                    let dynamic = self.sm.is_shortcut_candidate(self.sm.candidate_offset());
+                    sequence.positions.drain(..sequence.positions.len() - 1);
+                    sequence.resolutions.clear();
+                    self.sm.reset();
+                    self.sm.groups = Some(sequence);
+                    self.sm.shortcut_committed = dynamic;
+                    return self.refresh_groups(Some(text));
+                }
+                if sequence.positions.len() > MAX_POSITIONS {
+                    return Err(Rejection::TextTooLong);
+                }
                 self.sm.groups = Some(sequence);
             }
             Action::ResolveGroup(query, index, character) => {
@@ -149,17 +158,7 @@ impl SemanticEngine {
                 if let Some(sequence) = &self.sm.groups {
                     let mut next = sequence.positions.clone();
                     next.push(Position::exact(*c));
-                    if sequence.resolved().is_some()
-                        && self.sm.mode == InputMode::Main
-                        && sequence.positions.len() >= self.sm.max_code_len
-                        && self.sm.commit_on_max_code_overflow
-                        && !self.sm.candidates.is_empty()
-                        && self.sm.group_search_status()
-                            == Some(crate::group_search::SearchStatus::Complete)
-                        && !(self.sm.shortcut_active()
-                            && self.sm.shortcut_rules.reaches_groups(&next))
-                    {
-                        let text = self.sm.candidates[0].clone();
+                    if let Some(text) = self.group_overflow_candidate(&next) {
                         let dynamic = self.sm.is_shortcut_candidate(self.sm.candidate_offset());
                         let transition = self.sm.commit_and_start_next(text, 0, *c);
                         self.sm.shortcut_committed = dynamic;
@@ -223,7 +222,7 @@ impl SemanticEngine {
                 } else {
                     self.sm.page.saturating_sub(1)
                 };
-                return self.show_group_page();
+                return self.show_group_page(None);
             }
             Action::Legacy(InputEvent::PageNext | InputEvent::PagePrev) => {
                 let next = matches!(action, Action::Legacy(InputEvent::PageNext));
@@ -232,7 +231,7 @@ impl SemanticEngine {
                 } else {
                     self.sm.page.saturating_sub(1)
                 };
-                return self.show_group_page();
+                return self.show_group_page(None);
             }
             _ => {
                 return Err(Rejection::Unavailable(
@@ -240,7 +239,7 @@ impl SemanticEngine {
                 ))
             }
         }
-        let transition = self.refresh_groups()?;
+        let transition = self.refresh_groups(None)?;
         if matches!(
             action,
             Action::InputCode(_)
@@ -261,6 +260,21 @@ impl SemanticEngine {
         }
         Ok(transition)
     }
+    fn group_overflow_candidate(&self, extended: &[Position]) -> Option<String> {
+        if self.sm.mode != InputMode::Main
+            || !self.sm.commit_on_max_code_overflow
+            || extended.len() <= self.sm.max_code_len
+            || self.sm.groups.is_none() && self.sm.has_buffered_punctuation()
+            || self.sm.groups.is_some()
+                && self.sm.group_search_status()
+                    != Some(crate::group_search::SearchStatus::Complete)
+            || self.sm.shortcut_active() && self.sm.shortcut_rules.reaches_groups(extended)
+        {
+            return None;
+        }
+        self.sm.candidates.first().cloned()
+    }
+
     fn commit_group_candidate(&mut self, index: usize) -> Result<Transition, Rejection> {
         let candidate = self
             .candidate_window(index, 1)
@@ -279,7 +293,7 @@ impl SemanticEngine {
         self.sm.shortcut_committed = dynamic;
         Ok(Transition::Commit(text))
     }
-    fn show_group_page(&mut self) -> Result<Transition, Rejection> {
+    fn show_group_page(&mut self, committed: Option<String>) -> Result<Transition, Rejection> {
         if self.sm.appended.is_some() {
             self.sm.apply_appended_page();
         } else {
@@ -309,6 +323,9 @@ impl SemanticEngine {
         } else {
             InputState::Selecting
         };
+        if let Some(text) = committed {
+            return Ok(self.sm.commit_then_candidates(text, 0));
+        }
         Ok(Transition::Candidates {
             spelling: self.sm.spelling.clone(),
             candidates: self.sm.candidates.clone(),
@@ -327,7 +344,7 @@ impl SemanticEngine {
             _ => false,
         }
     }
-    fn refresh_groups(&mut self) -> Result<Transition, Rejection> {
+    fn refresh_groups(&mut self, committed: Option<String>) -> Result<Transition, Rejection> {
         let sequence = self.sm.groups.as_ref().ok_or(Rejection::InvalidCode)?;
         self.sm.spelling = sequence.hint();
         self.sm.page = 0;
@@ -351,7 +368,7 @@ impl SemanticEngine {
             self.sm.capture_shortcut_time();
         }
         if !self.sm.may_append_candidates() {
-            return self.show_group_page();
+            return self.show_group_page(committed);
         }
         let entries: Vec<_> = self
             .sm
@@ -370,6 +387,6 @@ impl SemanticEngine {
             .sm
             .build_appended(&entries.iter().collect::<Vec<_>>())
             .map(Arc::new);
-        self.show_group_page()
+        self.show_group_page(committed)
     }
 }

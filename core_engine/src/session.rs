@@ -892,13 +892,16 @@ impl Session {
             || self.state_machine().group_sequence().is_some()
             || next.state_machine().group_sequence().is_some();
         // Group hints are keyboard presentation only, including fully resolved histories.
-        if next.state_machine().group_sequence().is_some()
-            && matches!(parts.op, EditSessionOp::CompositionUpdate { .. })
-        {
-            parts.op = if self.context.owns_preedit {
-                EditSessionOp::EndComposition { delete_text: true }
-            } else {
-                EditSessionOp::NoOp
+        if next.state_machine().group_sequence().is_some() {
+            parts.op = match parts.op {
+                EditSessionOp::CommitThenUpdate {
+                    text, replace_len, ..
+                } => EditSessionOp::CommitAndReplace { text, replace_len },
+                EditSessionOp::CompositionUpdate { .. } if self.context.owns_preedit => {
+                    EditSessionOp::EndComposition { delete_text: true }
+                }
+                EditSessionOp::CompositionUpdate { .. } => EditSessionOp::NoOp,
+                other => other,
             };
         }
         if self.closed {

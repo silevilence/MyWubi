@@ -718,6 +718,10 @@ impl StateMachine {
             };
         }
         self.state = InputState::Selecting;
+        self.commit_then_candidates(text, replace_len)
+    }
+
+    fn commit_then_candidates(&self, text: String, replace_len: usize) -> Transition {
         Transition::CommitThenCandidates {
             text,
             replace_len,
