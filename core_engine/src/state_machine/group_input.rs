@@ -44,7 +44,10 @@ impl SemanticEngine {
         if !active
             && !matches!(
                 action,
-                Action::InputGroup(..) | Action::ResolveGroup(..) | Action::UndoGroupResolution(..)
+                Action::InputGroup(..)
+                    | Action::ResolveGroup(..)
+                    | Action::ClearGroupResolution(..)
+                    | Action::UndoGroupResolution(..)
             )
         {
             return None;
@@ -55,7 +58,9 @@ impl SemanticEngine {
             && previous_groups != self.sm.groups
             && matches!(
                 action,
-                Action::ResolveGroup(..) | Action::UndoGroupResolution(..)
+                Action::ResolveGroup(..)
+                    | Action::ClearGroupResolution(..)
+                    | Action::UndoGroupResolution(..)
             )
         {
             self.invalidate_query();
@@ -135,6 +140,20 @@ impl SemanticEngine {
                     .resolve(*index, *character)
                     .map_err(Rejection::Unavailable)?;
             }
+            Action::ClearGroupResolution(query, index) => {
+                if *query != self.candidate_window(0, 0).query_revision {
+                    return Err(Rejection::StaleCandidate);
+                }
+                let sequence = self.sm.groups.as_mut().ok_or(Rejection::StaleCandidate)?;
+                let position = sequence
+                    .positions
+                    .get_mut(*index)
+                    .ok_or(Rejection::InvalidCode)?;
+                if position.selected.take().is_none() {
+                    return Ok(Transition::None);
+                }
+                sequence.resolutions.retain(|(i, _)| i != index);
+            }
             Action::UndoGroupResolution(query) => {
                 if *query != self.candidate_window(0, 0).query_revision {
                     return Err(Rejection::StaleCandidate);
@@ -173,9 +192,10 @@ impl SemanticEngine {
             }
             Action::Backspace | Action::Legacy(InputEvent::Backspace) => {
                 if let Some(sequence) = &mut self.sm.groups {
-                    if !sequence.undo() {
-                        sequence.positions.pop();
-                    }
+                    sequence.positions.pop();
+                    sequence
+                        .resolutions
+                        .retain(|(i, _)| *i < sequence.positions.len());
                     if sequence.positions.is_empty() {
                         let mode = self.sm.mode;
                         self.sm.reset();

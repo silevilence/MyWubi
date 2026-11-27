@@ -55,7 +55,8 @@ internal data class RankOptions(val query: String, val id: Long, val show: (Int,
 internal data class MoveCandidate(val query: String, val id: Long, val rank: Int)
 internal data class LoadCandidateWindow(val query: String)
 
-data class CandidateItem(val id: Long, val text: String, val hint: String, val expressionKind: String? = null, val dateTime: Boolean = false) {
+data class CandidateItem(val id: Long, val text: String, val hint: String, val expressionKind: String? = null, val dateTime: Boolean = false,
+                         val reverseCodes: List<String> = emptyList()) {
     val hasCodeHint: Boolean get() = expressionKind == null && !dateTime && hint.isNotEmpty()
     val spokenHint: String get() = if(hasCodeHint) "编码提示 $hint" else hint
 }
@@ -187,13 +188,12 @@ private fun KeyboardSurface(model: KeyboardModel, latest: State<KeyboardModel>, 
         }
         val controls: @Composable () -> Unit = {
             val model = latest.value
-            val groupControls = !model.privateInput && model.groupPositions.isNotEmpty()
             val showToolbar = (model.privateInput || model.spelling.isEmpty() || model.candidates.isNotEmpty()) && model.expression == null
             // Reserve scaled text space even when the candidate list is empty.
             val density = LocalDensity.current
             val wordSize = skinNumber("font_size", defaultCandidateSize)
             val hintSize = skinNumber("hint_size", defaultCodeHintSize)
-            val spellingSize = kotlin.math.round((wordSize + hintSize) / 2f).sp
+            val spellingSize = (kotlin.math.round((wordSize + hintSize) / 2f) - 2f).coerceAtLeast(10f).sp
             val barHeight = if (landscape) maxOf(48.dp, (28 * density.fontScale + 16).dp) else {
                 // Budget both lines including the CJK fallback font's ascent and descent.
                 maxOf(portraitCandidateHeight, ((wordSize + hintSize + 10) * density.fontScale + 8).dp)
@@ -223,13 +223,18 @@ private fun KeyboardSurface(model: KeyboardModel, latest: State<KeyboardModel>, 
                 if(!notice.isNullOrBlank()) Text(notice, Modifier.fillMaxWidth().padding(horizontal=10.dp), fontSize=12.sp, color=colors.onSurfaceVariant)
             }
             // Reserve the same single text line while idle, composing or showing predictions.
-            // Keep actions in the toolbar so their 48 dp touch targets do not enlarge this line.
             val showSpelling = model.spelling.isNotEmpty() && !model.privateInput
             val showClipboard = model.clipboard != null && model.expression == null && model.spelling.isEmpty() && model.candidates.isEmpty() && !model.privateInput
             if (showExpanded) {
                 Row(Modifier.fillMaxWidth().heightIn(min=48.dp), verticalAlignment=androidx.compose.ui.Alignment.CenterVertically) {
                     val heading = if (showSpelling) model.spelling else if (model.prediction) "字词预测" else "全部候选"
-                    if (landscape) {
+                    if (model.groupPositions.isNotEmpty() && !model.privateInput) {
+                        Column(Modifier.weight(1f)) {
+                            SpellingStrip(model, spellingSize, Modifier.fillMaxWidth(), dispatch)
+                            Text("${model.total} 个候选", Modifier.padding(horizontal = 8.dp),
+                                color = colors.onSurfaceVariant, fontSize = 12.sp, maxLines = 1)
+                        }
+                    } else if (landscape) {
                         Text("$heading · ${model.total} 个候选", Modifier.weight(1f).padding(horizontal=12.dp),
                             color=skinColor("code",colors.primary), fontSize=spellingSize, maxLines=1,
                             overflow=androidx.compose.ui.text.style.TextOverflow.Ellipsis)
@@ -246,15 +251,14 @@ private fun KeyboardSurface(model: KeyboardModel, latest: State<KeyboardModel>, 
                     }
                 }
             } else {
-                if (!landscape && model.expression == null) Text(if (showSpelling) model.spelling else "",
-                    Modifier.fillMaxWidth().heightIn(min=28.dp).padding(horizontal=12.dp, vertical=4.dp)
-                        .then(if (showSpelling) Modifier else Modifier.clearAndSetSemantics {}),
-                    color=skinColor("code",colors.primary), fontSize=spellingSize, lineHeight=spellingSize * 1.3f, maxLines=1,
-                    overflow=androidx.compose.ui.text.style.TextOverflow.Ellipsis)
-                Row(Modifier.fillMaxWidth().heightIn(min=barHeight), verticalAlignment=androidx.compose.ui.Alignment.CenterVertically) {
-                    if (landscape && model.expression == null && showSpelling) Text(model.spelling,
-                        Modifier.widthIn(max=112.dp).padding(horizontal=8.dp), color=skinColor("code",colors.primary),
-                        fontSize=spellingSize, maxLines=1, overflow=androidx.compose.ui.text.style.TextOverflow.Ellipsis)
+                if (!landscape && model.expression == null) {
+                    SpellingStrip(model, spellingSize, Modifier.fillMaxWidth(), dispatch)
+                }
+                Row(Modifier.fillMaxWidth().heightIn(min=barHeight), verticalAlignment=Alignment.CenterVertically) {
+                    if (landscape && model.expression == null && showSpelling) {
+                        val width = if (model.groupPositions.isEmpty()) 112.dp else 216.dp
+                        SpellingStrip(model, spellingSize, Modifier.widthIn(max = width), dispatch)
+                    }
                     val showCandidates = model.candidates.isNotEmpty() && !model.privateInput
                     CandidateToolbarSlot(Modifier.weight(1f), showCandidates, candidates = {
                         Row(verticalAlignment=Alignment.CenterVertically) {
@@ -344,7 +348,6 @@ private fun KeyboardSurface(model: KeyboardModel, latest: State<KeyboardModel>, 
                             }
                         }
                     })
-                    if (groupControls) GroupConstraints(model.groupPositions,model.query,model.enabled,dispatch)
                     IconButton(onClick=hideKeyboard,
                         modifier=Modifier.size(48.dp).imeAction("收起键盘", true, hideKeyboard)) {
                         Icon(androidx.compose.ui.res.painterResource(R.drawable.ic_hide_keyboard), null,
@@ -353,7 +356,7 @@ private fun KeyboardSurface(model: KeyboardModel, latest: State<KeyboardModel>, 
                 }
             }
         }
-        val expandedExtra = if (landscape) 0.dp else 28.dp + portraitCandidateHeight - 48.dp
+        val expandedExtra = if (landscape) 0.dp else minSpellingHeight + portraitCandidateHeight - 48.dp
         val keys: @Composable () -> Unit = {
             val rowHeight = LocalKeyboardKeyHeight.current
             val footerHeight = if (landscape && showExpanded) maxOf(48.dp, rowHeight).coerceAtMost(rowHeight * 4) else rowHeight
@@ -826,35 +829,4 @@ internal fun Modifier.imeAction(label:String,enabled:Boolean,action:()->Unit) = 
     role=Role.Button;contentDescription=label
     if(!enabled) disabled()
     onClick {if(enabled)action();enabled}
-}
-
-
-@Composable
-private fun GroupConstraints(positions: List<Pair<String,String?>>,query: String,enabled: Boolean,dispatch: (Any)->Unit) {
-    var open by remember(query) { mutableStateOf(false) }
-    var position by remember(query) { mutableStateOf<Int?>(null) }
-    Box {
-        TextButton(onClick={position=null; open=true}, enabled=enabled) { Text("筛选", maxLines=1) }
-        DropdownMenu(expanded=open, onDismissRequest={open=false}) {
-            val index = position
-            if (index == null) {
-                positions.forEachIndexed { i, (letters, resolved) ->
-                    DropdownMenuItem(text={Text("第 ${i+1} 位 · ${resolved ?: letters}")},
-                        enabled=letters.length > 1, onClick={position=i})
-                }
-                DropdownMenuItem(text={Text("撤回筛选")}, onClick={
-                    open=false
-                    dispatch(JSONObject().put("UndoGroupResolution",JSONObject(query)))
-                })
-                DropdownMenuItem(text={Text("取消当前输入")}, onClick={open=false; dispatch("Cancel")})
-            } else {
-                positions.getOrNull(index)?.first?.forEach { letter ->
-                    DropdownMenuItem(text={Text(letter.uppercaseChar().toString())}, onClick={
-                        open=false
-                        dispatch(JSONObject().put("ResolveGroup", JSONArray().put(JSONObject(query)).put(index).put(letter.toString())))
-                    })
-                }
-            }
-        }
-    }
 }

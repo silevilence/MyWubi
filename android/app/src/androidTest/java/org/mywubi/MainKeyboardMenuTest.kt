@@ -58,6 +58,8 @@ class MainKeyboardMenuTest {
                 }
             } }
             node("切换形码键盘").click()
+            val heading = requireNotNull(device.wait(Until.findObject(By.text("形码键盘")), 5000))
+            assertFalse("Menu heading must be separate from layout choices", heading.isClickable)
             val current=node("形码布局 custom0，当前布局")
             device.dumpWindowHierarchy(File(context.filesDir,"keyboard-menu-open.xml"))
             assertTrue("Current layout: checked=${current.isChecked}, selected=${current.isSelected}", current.isChecked || current.isSelected)

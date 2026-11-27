@@ -98,6 +98,7 @@ pub enum Action {
     ),
     InputGroup(crate::group_input::MappingIdentity, String),
     ResolveGroup(QueryRevision, usize, char),
+    ClearGroupResolution(QueryRevision, usize),
     UndoGroupResolution(QueryRevision),
     Legacy(InputEvent),
     InputCode(char),
@@ -685,6 +686,7 @@ impl SemanticEngine {
             Action::BindMapping(..)
             | Action::InputGroup(..)
             | Action::ResolveGroup(..)
+            | Action::ClearGroupResolution(..)
             | Action::UndoGroupResolution(..) => true,
             Action::SelectCandidate(revision, id) => {
                 *revision == self.query_revision && id.0 < self.sm.total_candidates
@@ -829,6 +831,7 @@ impl SemanticEngine {
             Action::BindMapping(..)
             | Action::InputGroup(..)
             | Action::ResolveGroup(..)
+            | Action::ClearGroupResolution(..)
             | Action::UndoGroupResolution(..) => {
                 return ActionResult::rejected(Rejection::InvalidCode)
             }
@@ -1023,6 +1026,7 @@ impl SemanticEngine {
             Action::BindMapping(..)
             | Action::InputGroup(..)
             | Action::ResolveGroup(..)
+            | Action::ClearGroupResolution(..)
             | Action::UndoGroupResolution(..) => {
                 return Some(ActionResult::rejected(Rejection::InvalidCode))
             }

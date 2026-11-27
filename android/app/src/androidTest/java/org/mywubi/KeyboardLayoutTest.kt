@@ -75,6 +75,9 @@ class KeyboardLayoutTest {
             val states = listOf(
                 "clipboard" to ready.copy(clipboard="beancount 今日确认 ".repeat(15)),
                 "composing" to ready.copy(spelling="j", candidates=candidates),
+                "grouped" to ready.copy(spelling="[qw][ert]", groupPositions=listOf("qw" to null, "ert" to null),
+                    candidates=listOf(candidates[0].copy(reverseCodes=listOf("wwww", "qqqq")),
+                        candidates[1].copy(reverseCodes=listOf("wwww", "qwwq")))),
                 "no matches" to ready.copy(spelling="zzzz"),
                 "long spelling" to ready.copy(spelling="abcdefghijklmnopqrstuvwxyz".repeat(3)),
                 "cleared" to ready,
@@ -93,6 +96,11 @@ class KeyboardLayoutTest {
                 if (label == "composing") {
                     assertTrue(device.wait(Until.hasObject(By.desc("候选 是，编码提示 j")), 5000))
                     device.takeScreenshot(File(instrumentation.targetContext.filesDir, "keyboard-height-composing.png"))
+                }
+                if (label == "grouped") {
+                    assertTrue(device.hasObject(By.desc("第 2 位 [ert]")))
+                    assertTrue(device.hasObject(By.text("wwww  qqqq  qwwq")))
+                    assertFalse(device.hasObject(By.text("筛选")))
                 }
                 assertEquals("Keyboard height changed in $label", idleHeight, height.get())
                 assertEquals("Letter keys moved in $label", idleKey, bounds)

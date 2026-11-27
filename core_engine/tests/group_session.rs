@@ -145,18 +145,46 @@ fn group_overflow_disabled_keeps_both_positions() {
     assert_eq!(s.snapshot().spelling, "[jk][jk]");
 }
 #[test]
-fn undo_and_backspace_preserve_raw_positions_and_enter_requires_resolution() {
+fn clearing_a_position_restores_ambiguity_and_enter_requires_resolution() {
     let mut s = session(false);
     apply(&mut s, Action::InputGroup(identity(), "pair".into()));
     let query = s.candidate_window(0, 0).query_revision;
     apply(&mut s, Action::ResolveGroup(query, 0, 'j'));
-    apply(&mut s, Action::Backspace);
+    let revision = s.candidate_window(0, 0).query_revision;
+    apply(&mut s, Action::ClearGroupResolution(revision, 0));
     assert_eq!(s.snapshot().spelling, "[jk]");
     assert!(s.prepare(Action::Enter).is_err());
     let query = s.candidate_window(0, 0).query_revision;
     apply(&mut s, Action::ResolveGroup(query, 0, 'k'));
     let plan = apply(&mut s, Action::Enter);
     assert!(matches!(plan.op,EditSessionOp::CommitAndReplace{ref text,..} if text=="k"));
+}
+#[test]
+fn backspace_deletes_one_position_and_keeps_other_selections() {
+    let mut r = runtime(1, false);
+    Arc::make_mut(&mut r)
+        .config
+        .basic
+        .commit_on_max_code_overflow = false;
+    let mut s = Session::new(&r, BehaviorProfile::TouchV1, HostContext::default());
+    bind_pairs(&mut s);
+    for _ in 0..2 {
+        apply(&mut s, Action::InputGroup(identity(), "pair".into()));
+    }
+    for (index, letter) in [(1, 'k'), (0, 'j')] {
+        let revision = s.candidate_window(0, 0).query_revision;
+        apply(&mut s, Action::ResolveGroup(revision, index, letter));
+    }
+    let revision = s.candidate_window(0, 0).query_revision;
+    apply(&mut s, Action::ClearGroupResolution(revision, 1));
+    assert_eq!(s.snapshot().spelling, "j[jk]");
+    assert!(s
+        .prepare(Action::ClearGroupResolution(revision, 0))
+        .is_err());
+    apply(&mut s, Action::Backspace);
+    assert_eq!(s.snapshot().spelling, "j");
+    apply(&mut s, Action::Backspace);
+    assert!(s.snapshot().spelling.is_empty());
 }
 #[test]
 fn runtime_and_mapping_switch_wait_for_group_input_to_finish() {

@@ -8,6 +8,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.semantics
+import androidx.compose.ui.semantics.heading
 import androidx.compose.ui.semantics.selected
 import androidx.compose.ui.unit.dp
 
@@ -18,8 +19,10 @@ internal fun MainKeyboardMenu(model: KeyboardModel, expanded: Boolean, mainMode:
     DropdownMenu(expanded = expanded, onDismissRequest = dismiss, modifier = Modifier.widthIn(max = 304.dp)) {
         Column(Modifier.heightIn(max = 288.dp).verticalScroll(rememberScrollState())
             .semantics { contentDescription = "形码键盘布局列表" }) {
-            Text(if (mainMode) "切换形码键盘" else "切换键盘布局", Modifier.padding(horizontal = 16.dp, vertical = 8.dp),
-                style = MaterialTheme.typography.labelLarge)
+            Text(if (mainMode) "形码键盘" else "键盘布局",
+                Modifier.semantics { heading() }.padding(horizontal = 12.dp, vertical = 4.dp),
+                style = MaterialTheme.typography.labelMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
+            HorizontalDivider(Modifier.padding(vertical = 4.dp))
             val builtin = model.customLayout == null && (!mainMode || model.mainKeyboardSelection == null)
             DropdownMenuItem(
                 text = { Text(if (builtin) "原始全键盘（当前）" else "原始全键盘") },

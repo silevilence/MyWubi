@@ -47,6 +47,7 @@ class MyWubiService : InputMethodService() {
     private var projectedPreedit: Int? = null
     private val ownSelections = ArrayDeque<Int>()
     private var writingHost = false
+    private var keyboardView: ComposeView? = null
     private var viewOwner: ImeViewOwner? = null
     private var viewVisible = false
     private val updateScope = CoroutineScope(SupervisorJob() + Dispatchers.Main.immediate)
@@ -320,6 +321,7 @@ class MyWubiService : InputMethodService() {
             it.setViewTreeSavedStateRegistryOwner(owner)
         }
         return ComposeView(this).apply {
+            keyboardView = this
             setViewTreeLifecycleOwner(owner)
             setViewTreeSavedStateRegistryOwner(owner)
             setViewCompositionStrategy(ViewCompositionStrategy.DisposeOnViewTreeLifecycleDestroyed)
@@ -348,7 +350,10 @@ class MyWubiService : InputMethodService() {
             }.getOrNull() else null
             clipboardSuggestion.offer(clip, allowed)
         }
-        viewVisible = true; viewOwner?.visible(true); keyboardActivity(); refresh()
+        viewVisible = true
+        viewOwner?.visible(true)
+        keyboardView?.takeIf { it.isAttachedToWindow }?.createComposition()
+        keyboardActivity(); refresh()
         AppUpdates.get(this).check()
     }
 
@@ -368,6 +373,9 @@ class MyWubiService : InputMethodService() {
         }
         keyTouches = 0
         viewVisible = false; idle.touch(false, android.os.SystemClock.elapsedRealtime())
+        // Remove any popup window synchronously while the editor is leaving. A paused
+        // composition can otherwise keep the popup focused throughout a secure lock.
+        keyboardView?.disposeComposition()
         main.removeCallbacks(idleRefresh); refresh(); viewOwner?.visible(false)
         super.onFinishInputView(finishingInput)
     }
@@ -718,6 +726,7 @@ class MyWubiService : InputMethodService() {
         return (0 until items.length()).map { i ->
             val item = items.getJSONObject(i)
             val hints = item.getJSONArray("hints")
+            var reverseCodes = emptyList<String>()
             val hint = (0 until hints.length()).joinToString(" ") { n ->
                 val h = hints.getJSONObject(n)
                 when {
@@ -727,14 +736,15 @@ class MyWubiService : InputMethodService() {
                     h.has("DateTime") -> "日期时间"
                     h.has("ReverseCodes") -> {
                         val codes = h.getJSONArray("ReverseCodes")
-                        (0 until codes.length()).joinToString("/") { codes.getString(it) }
+                        reverseCodes = (0 until codes.length()).map { codes.getString(it) }
+                        reverseCodes.joinToString("/")
                     }
                     else -> ""
                 }
             }
             CandidateItem(item.getLong("id"),item.getString("text"),hint,
                 item.optString("expression_kind").takeIf { it in specialKinds },
-                (0 until hints.length()).any { hints.getJSONObject(it).has("DateTime") })
+                (0 until hints.length()).any { hints.getJSONObject(it).has("DateTime") }, reverseCodes)
         }
     }
 
@@ -785,6 +795,7 @@ class MyWubiService : InputMethodService() {
         session = null
         dailySession?.close(); dailySession = null
         runtime?.close(); runtime = null; loader.shutdown(); viewOwner?.destroy(); viewOwner = null
+        keyboardView = null
         super.onDestroy()
     }
     override fun onTrimMemory(level:Int) {
