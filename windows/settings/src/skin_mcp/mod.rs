@@ -1,5 +1,6 @@
 //! MCP requests run on the editor thread, against the same draft the user sees.
 pub mod control;
+mod docs;
 #[cfg(test)]
 mod tests;
 use crate::skin_editor::SkinEditor;
@@ -82,9 +83,18 @@ impl Endpoint {
     fn rpc(&mut self, rpc: &Value, editor: &mut SkinEditor) -> Value {
         let id = &rpc["id"];
         let result = match rpc["method"].as_str() {
-            Some("initialize") => json!({"protocolVersion":VERSION,"capabilities":{"tools":{}},
+            Some("initialize") => {
+                json!({"protocolVersion":VERSION,"capabilities":{"tools":{},"resources":{}},
                 "serverInfo":{"name":"mywubi-skin-editor","version":env!("CARGO_PKG_VERSION")},
-                "instructions":"Use acquire before editing. Pass its lease to editing tools. Release when finished."}),
+                "instructions":"Use acquire before editing. Pass its lease to editing tools. Release when finished."})
+            }
+            Some("resources/list") => json!({"resources":docs::list()}),
+            Some("resources/read") => {
+                match docs::read(rpc["params"]["uri"].as_str().unwrap_or_default()) {
+                    Ok(c) => json!({"contents":[c]}),
+                    Err(e) => return error(id, -32002, &e),
+                }
+            }
             Some("ping") => json!({}),
             Some("tools/list") => json!({"tools":self.tools()}),
             Some("tools/call") => {
@@ -102,6 +112,12 @@ impl Endpoint {
     }
     fn tools(&self) -> Vec<Value> {
         vec![
+            tool(
+                "lookup_skin_docs",
+                "Search bundled authoring documentation in Chinese or English",
+                json!({"query":{"type":"string"}}),
+                &["query"],
+            ),
             tool(
                 "status",
                 "Current draft and authoring state",
@@ -124,6 +140,7 @@ impl Endpoint {
     }
     fn call(&mut self, name: &str, args: &Value, editor: &mut SkinEditor) -> Result<Value, String> {
         let result = match name {
+            "lookup_skin_docs" => docs::lookup(args["query"].as_str().unwrap_or_default())?,
             "status" => {
                 json!({"draft":editor.title(),"hasDraft":editor.has_draft(),"controlled":self.active(),"operation":self.operation})
             }
