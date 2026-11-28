@@ -25,6 +25,7 @@ pub mod skin_association;
 pub mod skin_editor;
 pub mod skin_file;
 mod skin_image_editor;
+pub mod skin_mcp;
 pub mod state;
 pub mod vpk;
 

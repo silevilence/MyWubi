@@ -25,6 +25,17 @@ pub fn show(ui: &mut Ui, state: &mut AppState) {
                 Err(e) => format!("[ERR] {e}"),
             });
         }
+        let mut enabled = crate::skin_mcp::control::enabled(&state.config_path);
+        if ui
+            .checkbox(&mut enabled, "允许 AI 通过 MCP 接管皮肤编辑器")
+            .changed()
+        {
+            if let Err(e) = crate::skin_app::toggle_mcp(&state.config_path, enabled) {
+                state.status_msg = Some(e);
+            }
+        }
+        ui.ctx()
+            .request_repaint_after(crate::skin_mcp::control::POLL);
         ui.small("可直接打开皮肤文件导入，也可在编辑器中制作、导出和应用。");
         #[cfg(windows)]
         if ui.button("注册皮肤文件打开方式").clicked() {

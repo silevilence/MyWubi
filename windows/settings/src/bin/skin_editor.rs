@@ -28,6 +28,10 @@ fn main() {
             std::process::exit(1);
         }
     };
+    let enable = args.iter().any(|a| a == "--enable-mcp");
+    if enable && settings::skin_mcp::control::signal(&path, "enable") {
+        return;
+    }
     let mut editor = settings::skin_editor::SkinEditor::default();
     if let Some(open) = args.windows(2).find(|a| a[0] == "--open") {
         if let Err(e) = editor.open_file(std::path::Path::new(&open[1])) {
@@ -52,7 +56,10 @@ fn main() {
         "MyWubi 皮肤编辑器",
         options,
         Box::new(|cc| {
-            let app = settings::skin_app::SkinApp::new(cc, path, editor);
+            let mut app = settings::skin_app::SkinApp::new(cc, path, editor);
+            if enable {
+                app.set_mcp(true, &cc.egui_ctx);
+            }
             if let Some(directory) = capture {
                 Box::new(settings::ui_capture::CaptureApp::new(app, directory))
             } else {

@@ -125,6 +125,18 @@ impl SkinEditor {
             _ => {}
         }
     }
+    pub(crate) fn can_handoff(&self) -> Result<(), &'static str> {
+        if self.is_busy() {
+            return Err("请先完成当前文件操作，再开启 MCP");
+        }
+        if self.keyboard_editor.is_dirty() {
+            return Err("请先写入或放弃键盘组件修改，再开启 MCP");
+        }
+        if !self.field_errors.is_empty() {
+            return Err("请先修正无效字段，再开启 MCP");
+        }
+        Ok(())
+    }
     pub fn is_busy(&self) -> bool {
         self.pending.is_some()
     }

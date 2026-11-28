@@ -4,6 +4,20 @@ use eframe::egui;
 use std::path::{Path, PathBuf};
 
 pub fn launch(config: &Path) -> Result<(), String> {
+    if crate::skin_mcp::control::signal(config, "focus") {
+        return Ok(());
+    }
+    launch_editor(config, false)
+}
+pub fn toggle_mcp(config: &Path, enable: bool) -> Result<(), String> {
+    if crate::skin_mcp::control::signal(config, if enable { "enable" } else { "disable" })
+        || !enable
+    {
+        return Ok(());
+    }
+    launch_editor(config, true)
+}
+fn launch_editor(config: &Path, enable: bool) -> Result<(), String> {
     let executable = std::env::current_exe()
         .map_err(|e| e.to_string())?
         .with_file_name("skin_editor.exe");
@@ -13,6 +27,7 @@ pub fn launch(config: &Path) -> Result<(), String> {
     std::process::Command::new(executable)
         .arg("--config")
         .arg(config)
+        .args(enable.then_some("--enable-mcp"))
         .spawn()
         .map_err(|e| format!("无法打开皮肤编辑器：{e}"))?;
     Ok(())
@@ -22,6 +37,8 @@ pub struct SkinApp {
     pub editor: SkinEditor,
     config: core_engine::Config,
     path: PathBuf,
+    controls: Option<crate::skin_mcp::control::Controls>,
+    mcp: Option<crate::skin_mcp::Endpoint>,
     close_confirm: bool,
     allow_close: bool,
     error: Option<String>,
@@ -36,7 +53,11 @@ impl SkinApp {
             .as_ref()
             .err()
             .map(|e| format!("无法读取配置：{e}。可以编辑皮肤，修复配置后再应用。"));
+        let controls = crate::skin_mcp::control::Controls::register(&path);
+        let error = controls.as_ref().err().map(|e| e.to_string()).or(error);
         Self {
+            controls: controls.ok().flatten(),
+            mcp: None,
             editor,
             config: loaded.unwrap_or_default(),
             path,
@@ -45,11 +66,51 @@ impl SkinApp {
             error,
         }
     }
+    pub fn set_mcp(&mut self, enable: bool, ctx: &egui::Context) {
+        if enable == self.mcp.is_some() {
+            return;
+        }
+        let Some(controls) = &self.controls else {
+            self.error = Some("请在当前配置的首个编辑器窗口接管草稿".into());
+            return;
+        };
+        if enable {
+            if let Err(reason) = self.editor.can_handoff() {
+                self.error = Some(reason.into());
+                return;
+            }
+            match crate::skin_mcp::Endpoint::start(ctx.clone()) {
+                Ok(endpoint) => self.mcp = Some(endpoint),
+                Err(e) => {
+                    self.error = Some(format!("MCP 开启失败：{e}"));
+                    return;
+                }
+            }
+        } else {
+            self.mcp = None;
+        }
+        if let Err(e) = controls.publish(enable) {
+            self.error = Some(e.to_string());
+            self.mcp = None;
+        }
+        ctx.request_repaint();
+    }
 }
 
 impl eframe::App for SkinApp {
     fn update(&mut self, ctx: &egui::Context, _frame: &mut eframe::Frame) {
-        if ctx.input_mut(|i| i.consume_key(egui::Modifiers::CTRL, egui::Key::S))
+        if let Some(control) = &self.controls {
+            let (enable, disable, focus) = control.poll();
+            if enable || disable {
+                self.set_mcp(!disable, ctx);
+            }
+            if focus || enable {
+                ctx.send_viewport_cmd(egui::ViewportCommand::Focus);
+            }
+            ctx.request_repaint_after(crate::skin_mcp::control::POLL);
+        }
+        if self.mcp.is_none()
+            && ctx.input_mut(|i| i.consume_key(egui::Modifiers::CTRL, egui::Key::S))
             && !self.close_confirm
         {
             self.editor.export_dialog(ctx.clone());
@@ -78,8 +139,27 @@ impl eframe::App for SkinApp {
                     ui.separator();
                     ui.label(self.editor.title());
                 });
-                ui.small("编辑草稿 / 预览效果 / 导出文件或应用到 Windows");
+                if let Some(endpoint) = &self.mcp {
+                    ui.horizontal_wrapped(|ui| {
+                        if endpoint.active() {
+                            ui.strong(format!("AI 接管中 · {}", endpoint.operation));
+                        } else {
+                            ui.strong("等待 Agent 接管 · 当前只读");
+                        }
+                        if ui.button("复制 MCP 连接地址").clicked() {
+                            ui.output_mut(|o| o.copied_text = endpoint.url.clone());
+                        }
+                    });
+                    if ui.button("关闭 MCP，恢复手动编辑").clicked() {
+                        self.set_mcp(false, ctx);
+                    }
+                } else {
+                    ui.small("编辑草稿 / 预览效果 / 导出文件或应用到 Windows");
+                }
             });
+        if let Some(server) = &mut self.mcp {
+            server.update(&mut self.editor);
+        }
         egui::TopBottomPanel::bottom("skin-actions")
             .frame(
                 egui::Frame::none()
@@ -87,7 +167,7 @@ impl eframe::App for SkinApp {
                     .inner_margin(16.0),
             )
             .show(ctx, |ui| {
-                ui.set_enabled(!self.close_confirm);
+                ui.set_enabled(!self.close_confirm && self.mcp.is_none());
                 if self.editor.actions(ui, &self.path) {
                     if let Ok(config) = core_engine::Config::load(&self.path) {
                         self.config = config;
@@ -130,7 +210,7 @@ impl eframe::App for SkinApp {
                     .inner_margin(22.0),
             )
             .show(ctx, |ui| {
-                ui.set_enabled(!self.close_confirm);
+                ui.set_enabled(!self.close_confirm && self.mcp.is_none());
                 egui::ScrollArea::vertical()
                     .id_source("skin-properties")
                     .auto_shrink([false, false])
