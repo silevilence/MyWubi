@@ -93,6 +93,17 @@ impl Default for SkinEditor {
     }
 }
 impl SkinEditor {
+    pub(crate) fn draft(&self) -> Result<&Draft, String> {
+        self.draft
+            .as_ref()
+            .ok_or_else(|| "请先新建或打开皮肤".into())
+    }
+    pub(crate) fn publish_edit(&mut self, mut draft: Draft) {
+        draft.dirty = true;
+        self.draft = Some(draft);
+        self.revision = self.revision.wrapping_add(1);
+        self.readonly_key = None;
+    }
     pub fn is_dirty(&self) -> bool {
         self.draft.as_ref().is_some_and(|d| d.dirty)
             || self.keyboard_editor.is_dirty()
@@ -161,7 +172,7 @@ impl SkinEditor {
         self.preview_parameters = None;
         self.discard_confirm = false;
     }
-    fn replace_draft(&mut self, draft: Draft) {
+    pub(crate) fn replace_draft(&mut self, draft: Draft) {
         self.field_errors.clear();
         self.revision = self.revision.wrapping_add(1);
         self.platform = if draft.package.platforms.contains_key("windows") {

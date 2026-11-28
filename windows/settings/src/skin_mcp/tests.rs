@@ -49,6 +49,33 @@ fn release_expiry_and_shutdown_revoke_writer_ownership() {
 }
 
 #[test]
+fn targeted_edit_is_atomic_and_round_trips_to_new_file() {
+    let mut editor = SkinEditor::default();
+    author::write("create_skin", &json!({"template":"bamboo"}), &mut editor).unwrap();
+    let original = editor.draft().unwrap().package.files["windows/appearance.toml"].clone();
+    let mut args = json!({"platform":"android","component":"jade","variant":"dark","fields":{"font_size":23},"images":{"space":{"resource":"shared:missing","mode":"stretch","opacity":1.0}}});
+    let before = author::read("inspect", &args, &editor).unwrap();
+    assert!(author::write("edit_appearance", &args, &mut editor)
+        .unwrap_err()
+        .contains("images.dark.space.resource"));
+    assert_eq!(author::read("inspect", &args, &editor).unwrap(), before);
+    args["images"]["space"]["resource"] = "shared:bamboo".into();
+    author::write("edit_appearance", &args, &mut editor).unwrap();
+    let root = tempfile::tempdir().unwrap();
+    let path = root.path().join("皮肤.mywubi-skin");
+    author::write("export", &json!({"path":path}), &mut editor).unwrap();
+    assert!(author::write("export", &json!({"path":path}), &mut editor).is_err());
+    assert_eq!(
+        editor.draft().unwrap().package.files["windows/appearance.toml"],
+        original
+    );
+    assert_eq!(
+        author::read("inspect", &args, &editor).unwrap()["images"]["space"]["resource"],
+        "shared:bamboo"
+    );
+}
+
+#[test]
 fn http_client_inspects_the_open_draft() {
     let mut server = Endpoint::start(egui::Context::default()).unwrap();
     let url = server.url.clone();

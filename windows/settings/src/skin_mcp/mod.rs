@@ -1,4 +1,5 @@
 //! MCP requests run on the editor thread, against the same draft the user sees.
+mod author;
 pub mod control;
 mod docs;
 #[cfg(test)]
@@ -111,7 +112,7 @@ impl Endpoint {
         json!({"jsonrpc":"2.0","id":id,"result":result})
     }
     fn tools(&self) -> Vec<Value> {
-        vec![
+        let mut tools = vec![
             tool(
                 "lookup_skin_docs",
                 "Search bundled authoring documentation in Chinese or English",
@@ -136,7 +137,9 @@ impl Endpoint {
                 json!({"lease":{"type":"string"}}),
                 &["lease"],
             ),
-        ]
+        ];
+        tools.extend(author::tools());
+        tools
     }
     fn call(&mut self, name: &str, args: &Value, editor: &mut SkinEditor) -> Result<Value, String> {
         let result = match name {
@@ -158,7 +161,20 @@ impl Endpoint {
                 self.operation.clear();
                 json!({"released":true})
             }
-            _ => return Err(format!("未知工具 {name}")),
+            "inspect" | "validate" => author::read(name, args, editor)?,
+            _ => {
+                self.check_owner(args)?;
+                self.operation = format!(
+                    "{} {} {} {}",
+                    name,
+                    args["platform"].as_str().unwrap_or(""),
+                    args["component"].as_str().unwrap_or(""),
+                    args["variant"].as_str().unwrap_or("")
+                )
+                .trim()
+                .into();
+                author::write(name, args, editor)?
+            }
         };
         Ok(text_result(result))
     }

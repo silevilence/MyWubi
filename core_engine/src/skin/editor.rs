@@ -12,6 +12,10 @@ pub struct Draft {
     source: Option<(PathBuf, Vec<u8>)>,
 }
 impl Draft {
+    /// An editable, unsaved copy of a package supplied by an authoring template.
+    pub fn from_template(package: Package) -> Self {
+        Self { package, dirty: true, source: None }
+    }
     pub fn builtin(name: &str) -> Result<Self, Error> {
         let mut package = parameters::builtin_package(name)?;
         package.metadata.id.push_str(".copy");
