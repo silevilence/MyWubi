@@ -251,14 +251,10 @@ private fun KeyboardSurface(model: KeyboardModel, latest: State<KeyboardModel>, 
                     }
                 }
             } else {
-                if (!landscape && model.expression == null) {
+                if (model.expression == null) {
                     SpellingStrip(model, spellingSize, Modifier.fillMaxWidth(), dispatch)
                 }
                 Row(Modifier.fillMaxWidth().heightIn(min=barHeight), verticalAlignment=Alignment.CenterVertically) {
-                    if (landscape && model.expression == null && showSpelling) {
-                        val width = if (model.groupPositions.isEmpty()) 112.dp else 216.dp
-                        SpellingStrip(model, spellingSize, Modifier.widthIn(max = width), dispatch)
-                    }
                     val showCandidates = model.candidates.isNotEmpty() && !model.privateInput
                     CandidateToolbarSlot(Modifier.weight(1f), showCandidates, candidates = {
                         Row(verticalAlignment=Alignment.CenterVertically) {

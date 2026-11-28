@@ -101,6 +101,9 @@ class KeyboardLayoutTest {
                     assertTrue(device.hasObject(By.desc("第 2 位 [ert]")))
                     assertTrue(device.hasObject(By.text("wwww  qqqq  qwwq")))
                     assertFalse(device.hasObject(By.text("筛选")))
+                    if (landscape && fontScale == null) {
+                        device.takeScreenshot(File(instrumentation.targetContext.filesDir, "keyboard-landscape-grouped.png"))
+                    }
                 }
                 assertEquals("Keyboard height changed in $label", idleHeight, height.get())
                 assertEquals("Letter keys moved in $label", idleKey, bounds)
@@ -119,6 +122,16 @@ class KeyboardLayoutTest {
                     val candidate = device.wait(Until.findObject(By.desc("候选 是，编码提示 j").pkg("org.mywubi")), 5000)
                         ?: error("Missing candidate in $label")
                     val candidateBounds = candidate.visibleBounds
+                    val spellingNodes = when (label) {
+                        "composing" -> listOf(By.text(next.spelling))
+                        "grouped" -> listOf(By.desc("第 2 位 [ert]"), By.text("wwww  qqqq  qwwq"))
+                        else -> emptyList()
+                    }
+                    for (selector in spellingNodes) {
+                        val spelling = device.findObject(selector.pkg("org.mywubi")).visibleBounds
+                        assertTrue("Encoding must be visible above candidates in $label",
+                            !spelling.isEmpty && spelling.bottom <= candidateBounds.top)
+                    }
                     assertTrue("Candidates must stay above the keyboard in $label", candidateBounds.bottom <= bounds.top)
                     val minimum = (48 * instrumentation.targetContext.resources.displayMetrics.density).toInt()
                     assertTrue("Candidate must have a visible touch target in $label", candidateBounds.width() >= minimum - 1)
