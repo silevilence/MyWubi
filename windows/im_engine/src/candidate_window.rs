@@ -38,6 +38,21 @@ struct WindowData {
 pub struct CandidateWindow {
     join_handle: Option<JoinHandle<()>>,
     hwnd: HWND,
+    attach_to_host: bool,
+}
+
+fn is_ica_station(name: &str) -> bool {
+    name.get(..4)
+        .is_some_and(|prefix| prefix.eq_ignore_ascii_case("ICA-"))
+}
+
+fn citrix_host() -> bool {
+    // A single-session VDA can host the editor with a console-style station name.
+    // Inspect the already loaded VDA module, without loading Citrix on client PCs.
+    std::env::var("SESSIONNAME").is_ok_and(|name| is_ica_station(&name))
+        || unsafe {
+            windows::Win32::System::LibraryLoader::GetModuleHandleW(w!("PicaWtsHook.dll")).is_ok()
+        }
 }
 
 impl CandidateWindow {
@@ -50,6 +65,9 @@ impl CandidateWindow {
 
     /// 在窗口线程中更新宿主，确保候选框位于 Windows 搜索等沉浸式窗口之上。
     pub fn set_owner(&self, owner: HWND) {
+        if !self.attach_to_host {
+            return;
+        }
         unsafe {
             let _ = PostMessageW(
                 Some(self.hwnd),
@@ -67,7 +85,13 @@ impl CandidateWindow {
         target: HWND,
     ) -> Self {
         let (hwnd_tx, hwnd_rx) = mpsc::channel::<isize>();
-        let owner = owner.0 as isize;
+        // Cross-thread ownership joins the candidate and editor input queues. In
+        // Citrix keep them independent at creation and on subsequent keystrokes.
+        let attach_to_host = !citrix_host();
+        let owner = if attach_to_host { owner.0 as isize } else { 0 };
+        if !attach_to_host {
+            log::info!("Citrix 候选窗使用独立输入队列 pid={}", std::process::id());
+        }
         let target = target.0 as isize;
         // 安全创建窗口线程——失败时不 panic，避免崩溃宿主进程
         let join_handle = match std::thread::Builder::new()
@@ -80,6 +104,7 @@ impl CandidateWindow {
                 return Self {
                     join_handle: None,
                     hwnd: HWND::default(),
+                    attach_to_host,
                 };
             }
         };
@@ -94,10 +119,15 @@ impl CandidateWindow {
                 return Self {
                     join_handle: None,
                     hwnd: HWND::default(),
+                    attach_to_host,
                 };
             }
         };
-        Self { join_handle, hwnd }
+        Self {
+            join_handle,
+            hwnd,
+            attach_to_host,
+        }
     }
 
     /// 发送退出信号（WM_CLOSE, 最多重试 3 次）并等待线程结束（超时后分离）。
@@ -517,6 +547,16 @@ pub(crate) fn get_monitor_rect(
 #[cfg(test)]
 mod tests {
     use super::*;
+
+    #[test]
+    fn ica_station_prefix_excludes_console_and_rdp() {
+        for name in ["ICA-CGP#4", "ica-tcp#0"] {
+            assert!(is_ica_station(name));
+        }
+        for name in ["Console", "RDP-Tcp#1", "", "ICA", "本地会话"] {
+            assert!(!is_ica_station(name));
+        }
+    }
 
     thread_local! {
         static RESIZES: std::cell::RefCell<Vec<(i32, i32)>> = const { std::cell::RefCell::new(Vec::new()) };
