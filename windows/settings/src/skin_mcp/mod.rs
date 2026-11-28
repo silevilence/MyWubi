@@ -27,6 +27,7 @@ pub struct Endpoint {
     calls: mpsc::Receiver<Call>,
     stopped: Arc<AtomicBool>,
     owner: Option<String>,
+    last_write: std::time::Instant,
     pub operation: String,
 }
 impl Drop for Endpoint {
@@ -61,11 +62,16 @@ impl Endpoint {
             calls,
             stopped,
             owner: None,
+            last_write: std::time::Instant::now(),
             operation: String::new(),
         })
     }
     pub fn update(&mut self, editor: &mut SkinEditor) {
-        while let Ok(call) = self.calls.try_recv() {
+        if self.owner.is_some() && self.last_write.elapsed() >= Duration::from_secs(300) {
+            self.owner = None;
+            self.operation.clear();
+        }
+        if let Ok(call) = self.calls.try_recv() {
             let result = self.rpc(&call.rpc, editor);
             let _ = call.reply.send(result);
         }
@@ -104,7 +110,7 @@ impl Endpoint {
             ),
             tool(
                 "acquire",
-                "Acquire exclusive editing control",
+                "Acquire exclusive editing control for up to 300 idle seconds",
                 json!({}),
                 &[],
             ),
@@ -123,6 +129,7 @@ impl Endpoint {
             }
             "acquire" if self.owner.is_none() => {
                 let lease = Uuid::new_v4().to_string();
+                self.last_write = std::time::Instant::now();
                 self.owner = Some(lease.clone());
                 self.operation = "已接管草稿".into();
                 json!({"lease":lease})
@@ -138,8 +145,9 @@ impl Endpoint {
         };
         Ok(text_result(result))
     }
-    fn check_owner(&self, args: &Value) -> Result<(), String> {
+    fn check_owner(&mut self, args: &Value) -> Result<(), String> {
         if self.owner.is_some() && args["lease"].as_str() == self.owner.as_deref() {
+            self.last_write = std::time::Instant::now();
             Ok(())
         } else {
             Err("接管凭据无效，请先 acquire".into())

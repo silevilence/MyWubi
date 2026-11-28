@@ -30,6 +30,7 @@ enum Section {
 }
 pub struct SkinEditor {
     section: Section,
+    readonly_key: Option<(u64, String, String, bool)>,
     field_errors: std::collections::HashMap<egui::Id, String>,
     revision: u64,
     keyboard_editor: crate::keyboard_editor::KeyboardEditor,
@@ -61,6 +62,7 @@ impl Default for SkinEditor {
     fn default() -> Self {
         Self {
             section: Section::Appearance,
+            readonly_key: None,
             field_errors: Default::default(),
             revision: 0,
             keyboard_editor: Default::default(),
@@ -282,6 +284,77 @@ impl SkinEditor {
         self.refresh_catalog(path);
         self.message = "已应用到 Windows。需要保留皮肤文件时，请另行导出。".into();
         Ok(())
+    }
+    pub(crate) fn readonly_ui(&mut self, ui: &mut egui::Ui) {
+        let Some(draft) = &self.draft else {
+            self.preview_parameters = None;
+            ui.label("等待 Agent 创建或打开草稿");
+            return;
+        };
+        let package = &draft.package;
+        ui.label(format!(
+            "{} · {} · {}",
+            package.metadata.id, package.metadata.version, package.metadata.author
+        ));
+        ui.horizontal_wrapped(|ui| {
+            for platform in package.platforms.keys() {
+                ui.selectable_value(&mut self.platform, platform.clone(), platform);
+            }
+            ui.checkbox(&mut self.dark, "深色预览");
+        });
+        let Some(platform) = package.platforms.get(&self.platform) else {
+            return;
+        };
+        if !platform.components.iter().any(|c| c.id == self.component) {
+            self.component = platform
+                .components
+                .first()
+                .map(|c| c.id.clone())
+                .unwrap_or_default();
+        }
+        egui::ComboBox::from_label("查看组件")
+            .selected_text(&self.component)
+            .show_ui(ui, |ui| {
+                for c in &platform.components {
+                    ui.selectable_value(&mut self.component, c.id.clone(), &c.id);
+                }
+            });
+        if let Some(component) = platform.components.iter().find(|c| c.id == self.component) {
+            let key = (
+                self.revision,
+                self.platform.clone(),
+                self.component.clone(),
+                self.dark,
+            );
+            if self.readonly_key.as_ref() != Some(&key) {
+                self.readonly_key = Some(key);
+                self.preview_parameters = None;
+                if component.kind == "appearance" {
+                    match resolve_view(package, &self.platform, &self.component, self.dark) {
+                        Ok((view, images)) => {
+                            self.preview_parameters =
+                                Some((view.parameters, false, Arc::new(images)))
+                        }
+                        Err(e) => self.message = e,
+                    }
+                }
+            }
+            if let Some(bytes) = package
+                .files
+                .get(&format!("{}/{}", self.platform, component.path))
+            {
+                ui.collapsing("组件属性", |ui| {
+                    if let Ok(s) = std::str::from_utf8(bytes) {
+                        ui.monospace(s);
+                    }
+                });
+            }
+            if let Some((params, _, _)) = &self.preview_parameters {
+                for (field, value) in &params.0 {
+                    ui.label(format!("{field}   {value}"));
+                }
+            }
+        }
     }
     pub fn show_preview(&mut self, ui: &mut egui::Ui) {
         if let Some((parameters, legacy, images)) = self.preview_parameters.clone() {
@@ -795,6 +868,34 @@ impl SkinEditor {
             });
         }
     }
+}
+
+pub(crate) fn resolve_view(
+    package: &skin::Package,
+    platform: &str,
+    component: &str,
+    dark: bool,
+) -> Result<(parameters::Resolved, text_render::skin_images::Cache), String> {
+    let supported = [
+        "container.zip/1".into(),
+        format!("{platform}.base/1"),
+        "appearance.parameters/1".into(),
+        skin::images::CAPABILITY.into(),
+    ]
+    .into();
+    let view = parameters::resolve(
+        package,
+        platform,
+        component,
+        dark,
+        &Extensions::new(),
+        false,
+        &supported,
+    )
+    .map_err(|e| e.to_string())?;
+    let images =
+        text_render::skin_images::decode(package, &view.images).map_err(|e| e.to_string())?;
+    Ok((view, images))
 }
 
 fn patch_form(

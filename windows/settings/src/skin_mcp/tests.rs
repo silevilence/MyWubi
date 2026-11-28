@@ -22,6 +22,33 @@ fn settings_controls_address_the_existing_window_and_both_endpoints_observe_shut
 }
 
 #[test]
+fn release_expiry_and_shutdown_revoke_writer_ownership() {
+    let mut editor = SkinEditor::default();
+    let mut endpoint = Endpoint::start(egui::Context::default()).unwrap();
+    let first = endpoint.call("acquire", &Value::Null, &mut editor).unwrap();
+    let token: Value = serde_json::from_str(first[0]["text"].as_str().unwrap()).unwrap();
+    assert!(endpoint.call("acquire", &Value::Null, &mut editor).is_err());
+    assert!(endpoint
+        .call("release", &json!({"lease":"other"}), &mut editor)
+        .is_err());
+    endpoint.last_write -= Duration::from_secs(301);
+    endpoint.update(&mut editor);
+    assert!(endpoint.call("release", &token, &mut editor).is_err());
+    let (tx, rx) = mpsc::channel();
+    let (reply, response) = mpsc::channel();
+    endpoint.calls = rx;
+    tx.send(Call {
+        rpc: json!({"method":"tools/call","params":{"name":"acquire"}}),
+        reply,
+    })
+    .unwrap();
+    drop(endpoint);
+    assert!(response.recv().is_err());
+    editor.create("plain").unwrap();
+    assert!(editor.has_draft());
+}
+
+#[test]
 fn http_client_inspects_the_open_draft() {
     let mut server = Endpoint::start(egui::Context::default()).unwrap();
     let url = server.url.clone();

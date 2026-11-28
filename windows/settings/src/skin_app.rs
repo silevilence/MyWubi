@@ -75,6 +75,10 @@ impl SkinApp {
             return;
         };
         if enable {
+            if self.close_confirm {
+                self.error = Some("请先处理关闭草稿提示".into());
+                return;
+            }
             if let Err(reason) = self.editor.can_handoff() {
                 self.error = Some(reason.into());
                 return;
@@ -117,10 +121,14 @@ impl eframe::App for SkinApp {
         }
         if ctx.input(|i| i.viewport().close_requested())
             && !self.allow_close
-            && (self.editor.is_dirty() || self.editor.is_busy())
+            && (self.mcp.is_some() || self.editor.is_dirty() || self.editor.is_busy())
         {
             ctx.send_viewport_cmd(egui::ViewportCommand::CancelClose);
-            self.close_confirm = true;
+            if self.mcp.is_some() {
+                self.error = Some("请先关闭 MCP，再退出编辑器".into());
+            } else {
+                self.close_confirm = true;
+            }
         }
         ctx.send_viewport_cmd(egui::ViewportCommand::Title(format!(
             "{}{} · MyWubi 皮肤编辑器",
@@ -210,13 +218,17 @@ impl eframe::App for SkinApp {
                     .inner_margin(22.0),
             )
             .show(ctx, |ui| {
-                ui.set_enabled(!self.close_confirm && self.mcp.is_none());
+                ui.set_enabled(!self.close_confirm);
                 egui::ScrollArea::vertical()
                     .id_source("skin-properties")
                     .auto_shrink([false, false])
                     .show(ui, |ui| {
                         ui_style::card(ui, "", |ui| {
-                            self.editor.ui(ui, &mut self.config, &self.path);
+                            if self.mcp.is_some() {
+                                self.editor.readonly_ui(ui);
+                            } else {
+                                self.editor.ui(ui, &mut self.config, &self.path);
+                            }
                         });
                     });
             });
