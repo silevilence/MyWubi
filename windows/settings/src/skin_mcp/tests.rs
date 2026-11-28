@@ -127,6 +127,45 @@ fn bamboo_preview_changes_only_android_dark_space_and_exports_the_final_revision
 }
 
 #[test]
+#[ignore = "requires an explicitly selected OS host and exported skin"]
+fn run_designated_host_acceptance() {
+    let mut editor = SkinEditor::default();
+    let mut endpoint = Endpoint::start(egui::Context::default()).unwrap();
+    let acquired = endpoint.call("acquire", &Value::Null, &mut editor).unwrap();
+    let mut args: Value = serde_json::from_str(acquired[0]["text"].as_str().unwrap()).unwrap();
+    args["platform"] = std::env::var("MYWUBI_TEST_PLATFORM").unwrap().into();
+    args["path"] = std::env::var("MYWUBI_TEST_SKIN").unwrap().into();
+    args["serial"] = std::env::var("MYWUBI_TEST_SERIAL")
+        .unwrap_or_default()
+        .into();
+    let response = endpoint.call("test", &args, &mut editor).unwrap();
+    let mut report: Value = serde_json::from_str(response[0]["text"].as_str().unwrap()).unwrap();
+    println!("Host evidence: {}", report["evidence"]);
+    let end = Instant::now() + Duration::from_secs(310);
+    while report["results"]
+        .as_object()
+        .unwrap()
+        .values()
+        .any(|v| v["status"] == "running")
+    {
+        assert!(Instant::now() < end, "{report}");
+        std::thread::sleep(Duration::from_millis(500));
+        let result = endpoint.call("test_status", &report, &mut editor).unwrap();
+        report = serde_json::from_str(result[0]["text"].as_str().unwrap()).unwrap();
+    }
+    println!("{report}");
+    assert!(
+        report["results"]
+            .as_object()
+            .unwrap()
+            .values()
+            .all(|r| r["status"] == "passed"
+                || (args["serial"] == "offline-test" && r["status"] == "not_run")),
+        "{report}"
+    );
+}
+
+#[test]
 fn http_client_inspects_the_open_draft() {
     let mut server = Endpoint::start(egui::Context::default()).unwrap();
     let url = server.url.clone();

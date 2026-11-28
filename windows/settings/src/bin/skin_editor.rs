@@ -55,7 +55,7 @@ fn main() {
     if let Err(e) = eframe::run_native(
         "MyWubi 皮肤编辑器",
         options,
-        Box::new(|cc| {
+        Box::new(move |cc| {
             let mut app = settings::skin_app::SkinApp::new(cc, path, editor);
             if enable {
                 app.set_mcp(true, &cc.egui_ctx);

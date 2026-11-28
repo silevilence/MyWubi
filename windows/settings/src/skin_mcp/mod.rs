@@ -2,6 +2,7 @@
 mod author;
 pub mod control;
 mod docs;
+mod hosts;
 mod preview;
 #[cfg(test)]
 mod tests;
@@ -141,6 +142,7 @@ impl Endpoint {
         ];
         tools.extend(author::tools());
         tools.push(preview::definition());
+        tools.extend(hosts::definitions());
         tools
     }
     fn call(&mut self, name: &str, args: &Value, editor: &mut SkinEditor) -> Result<Value, String> {
@@ -163,6 +165,12 @@ impl Endpoint {
                 self.operation.clear();
                 json!({"released":true})
             }
+            "test" => {
+                self.check_owner(args)?;
+                self.operation = "运行真实宿主验收".into();
+                hosts::start(args)?
+            }
+            "test_status" => hosts::status(author::string(args, "job")?)?,
             "preview" => return preview::run(args, editor),
             "inspect" | "validate" => author::read(name, args, editor)?,
             _ => {
