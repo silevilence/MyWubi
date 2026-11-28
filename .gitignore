@@ -49,3 +49,6 @@ android/signing.properties
 __pycache__/
 /release-metadata/
 /android-release/
+
+# 个人皮肤的原图、工作文件和成品仅在本地保存
+/local-skins/
