@@ -3353,6 +3353,7 @@ dependencies = [
  "model_input",
  "model_ipc",
  "personal_input",
+ "pollster",
  "rfd",
  "runtime_components",
  "semver",

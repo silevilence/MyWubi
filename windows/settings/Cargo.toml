@@ -41,6 +41,7 @@ image = { version = "0.24.9", default-features = false, features = ["png"] }
 tiny_http = "0.12"
 uuid = { version = "1", features = ["v4"] }
 base64 = "0.22"
+pollster = "0.3"
 
 [build-dependencies]
 winres = "0.1"

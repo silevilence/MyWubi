@@ -32,6 +32,44 @@ impl Default for AndroidPreview {
 }
 impl AndroidPreview {
     pub fn ui(&mut self, ui: &mut egui::Ui, p: &Parameters, images: &Arc<Cache>) {
+        ui.label("Android 示意预览 · Windows 字体与系统渲染可能不同，需在 Android 原生预览核对");
+        ui.horizontal_wrapped(|ui| {
+            egui::ComboBox::from_label("屏宽 dp")
+                .selected_text(self.width.to_string())
+                .show_ui(ui, |ui| {
+                    for width in [320, 393, 720] {
+                        ui.selectable_value(&mut self.width, width, width.to_string());
+                    }
+                });
+            ui.checkbox(&mut self.landscape, "横屏");
+            ui.checkbox(&mut self.symbols, "数字符号");
+            ui.checkbox(&mut self.pressed, "按下态");
+            ui.checkbox(&mut self.disabled, "禁用态");
+            ui.checkbox(&mut self.bubble, "气泡");
+            ui.add(egui::Slider::new(&mut self.font_scale, 1.0..=2.0).text("字体缩放"));
+        });
+        self.paint(ui, p, images);
+        ui.small("固定样例：普通候选、字母/符号键、功能键、按下/禁用状态及气泡。预览不派发输入。");
+    }
+
+    pub(crate) fn scene(width: u32, landscape: bool, font_scale: f32, state: &str) -> Self {
+        Self {
+            width,
+            landscape,
+            font_scale,
+            pressed: state == "pressed",
+            disabled: state == "disabled",
+            bubble: state == "bubble",
+            symbols: state == "symbols",
+            ..Self::default()
+        }
+    }
+    pub(crate) fn paint(
+        &mut self,
+        ui: &mut egui::Ui,
+        p: &Parameters,
+        images: &Arc<Cache>,
+    ) -> egui::Rect {
         let key = Arc::as_ptr(images) as usize;
         if self.image_key != key {
             self.image_key = key;
@@ -59,22 +97,6 @@ impl AndroidPreview {
                     });
             }
         }
-        ui.label("Android 示意预览 · Windows 字体与系统渲染可能不同，需在 Android 原生预览核对");
-        ui.horizontal_wrapped(|ui| {
-            egui::ComboBox::from_label("屏宽 dp")
-                .selected_text(self.width.to_string())
-                .show_ui(ui, |ui| {
-                    for width in [320, 393, 720] {
-                        ui.selectable_value(&mut self.width, width, width.to_string());
-                    }
-                });
-            ui.checkbox(&mut self.landscape, "横屏");
-            ui.checkbox(&mut self.symbols, "数字符号");
-            ui.checkbox(&mut self.pressed, "按下态");
-            ui.checkbox(&mut self.disabled, "禁用态");
-            ui.checkbox(&mut self.bubble, "气泡");
-            ui.add(egui::Slider::new(&mut self.font_scale, 1.0..=2.0).text("字体缩放"));
-        });
         let requested = if self.landscape {
             self.width.max(720)
         } else {
@@ -171,7 +193,7 @@ impl AndroidPreview {
                 color(p, "bubble_text"),
             );
         }
-        ui.small("固定样例：普通候选、字母/符号键、功能键、按下/禁用状态及气泡。预览不派发输入。");
+        rect
     }
 }
 #[allow(clippy::too_many_arguments)]

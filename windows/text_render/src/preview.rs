@@ -6,7 +6,15 @@ pub fn candidate(
     data: &CandidateData,
     width: f32,
 ) -> windows::core::Result<Bitmap> {
-    let size = f32::from(data.theme.font_size) * 96.0 / 72.0;
+    candidate_scaled(system, data, width, 1.0)
+}
+pub fn candidate_scaled(
+    system: &mut TextSystem,
+    data: &CandidateData,
+    width: f32,
+    scale: f32,
+) -> windows::core::Result<Bitmap> {
+    let size = f32::from(data.theme.font_size) * 96.0 / 72.0 * scale;
     let scene = Scene::build(system, data, size, width)?;
     let parameters = data.theme.parameters.as_deref();
     let mut draws = Vec::new();
@@ -18,7 +26,7 @@ pub fn candidate(
             .get("selected")
             .filter(|_| block.background.is_some())
         {
-            let inset = image.image.style.content.map(|v| v as f32 * 1.0);
+            let inset = image.image.style.content.map(|v| v as f32 * scale);
             image_selections.push([
                 block.x - inset[0],
                 block.y - inset[1],
@@ -31,7 +39,7 @@ pub fn candidate(
                 top: block.y,
                 right: block.x + block.layout.width + 2.0,
                 bottom: block.y + block.layout.height,
-                radius: parameters.map_or(0.0, |p| p.number("selected_radius")),
+                radius: parameters.map_or(0.0, |p| p.number("selected_radius") * scale),
                 color,
             });
         }
@@ -47,15 +55,15 @@ pub fn candidate(
             .render_alpha(scene.width as u32, scene.height as u32, 0, &draws)?
             .skin_background(
                 &data.theme.images,
-                1.0,
+                scale,
                 data.theme.background_color,
                 &image_selections,
             )?
             .framed(
-                p.number("corner_radius"),
-                p.number("border_width"),
+                p.number("corner_radius") * scale,
+                p.number("border_width") * scale,
                 p.color("border"),
-                p.number("shadow"),
+                p.number("shadow") * scale,
             )
     } else {
         system.render(

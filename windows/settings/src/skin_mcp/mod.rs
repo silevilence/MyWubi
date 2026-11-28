@@ -2,6 +2,7 @@
 mod author;
 pub mod control;
 mod docs;
+mod preview;
 #[cfg(test)]
 mod tests;
 use crate::skin_editor::SkinEditor;
@@ -139,6 +140,7 @@ impl Endpoint {
             ),
         ];
         tools.extend(author::tools());
+        tools.push(preview::definition());
         tools
     }
     fn call(&mut self, name: &str, args: &Value, editor: &mut SkinEditor) -> Result<Value, String> {
@@ -161,6 +163,7 @@ impl Endpoint {
                 self.operation.clear();
                 json!({"released":true})
             }
+            "preview" => return preview::run(args, editor),
             "inspect" | "validate" => author::read(name, args, editor)?,
             _ => {
                 self.check_owner(args)?;

@@ -76,6 +76,57 @@ fn targeted_edit_is_atomic_and_round_trips_to_new_file() {
 }
 
 #[test]
+fn bamboo_preview_changes_only_android_dark_space_and_exports_the_final_revision() {
+    use base64::{engine::general_purpose::STANDARD, Engine};
+    let temp = tempfile::tempdir().unwrap();
+    let root = std::env::var_os("MYWUBI_SKIN_PREVIEW_EVIDENCE")
+        .map(std::path::PathBuf::from)
+        .unwrap_or_else(|| temp.path().into());
+    std::fs::create_dir_all(&root).unwrap();
+    let mut editor = SkinEditor::default();
+    author::write("create_skin", &json!({"template":"bamboo"}), &mut editor).unwrap();
+    author::write(
+        "set_identity",
+        &json!({"id":"agent.bamboo.space","name":"竹纸 · 深色空格","version":"1"}),
+        &mut editor,
+    )
+    .unwrap();
+    let render = |e: &SkinEditor, platform: &str, revision: &str| {
+        let content=preview::run(&json!({"platform":platform,"component":"jade","variant":"dark","scenes":[{"state":"ordinary","scale":1.0}]}),e).unwrap();
+        let pixels = STANDARD
+            .decode(content[1]["data"].as_str().unwrap())
+            .unwrap();
+        std::fs::write(root.join(format!("{platform}-{revision}.png")), &pixels).unwrap();
+        image::load_from_memory(&pixels).unwrap().to_rgba8()
+    };
+    let android = render(&editor, "android", "before");
+    let windows = render(&editor, "windows", "before");
+    let mut patch = json!({"platform":"android","component":"jade","variant":"dark","images":{"space":{"resource":"shared:bamboo","mode":"stretch","opacity":0.35}}});
+    author::write("edit_appearance", &patch, &mut editor).unwrap();
+    let first = render(&editor, "android", "first");
+    assert_ne!(android, first);
+    patch["images"]["space"]["opacity"] = 1.0.into();
+    author::write("edit_appearance", &patch, &mut editor).unwrap();
+    let after = render(&editor, "android", "after");
+    assert_ne!(first, after);
+    assert_eq!(windows, render(&editor, "windows", "after"));
+    let diff: Vec<_> = android
+        .enumerate_pixels()
+        .filter(|(x, y, p)| *p != after.get_pixel(*x, *y))
+        .collect();
+    assert!(!diff.is_empty());
+    assert!(diff.iter().all(|(x, y, _)| *x > android.width() * 2 / 5
+        && *x < android.width() * 3 / 5
+        && *y > android.height() * 3 / 4));
+    let path = root.join("agent.bamboo.space.mywubi-skin");
+    author::write("export", &json!({"path":path}), &mut editor).unwrap();
+    let mut combined = image::RgbaImage::new(android.width() * 2, android.height());
+    image::imageops::overlay(&mut combined, &android, 0, 0);
+    image::imageops::overlay(&mut combined, &after, i64::from(android.width()), 0);
+    combined.save(root.join("android-comparison.png")).unwrap();
+}
+
+#[test]
 fn http_client_inspects_the_open_draft() {
     let mut server = Endpoint::start(egui::Context::default()).unwrap();
     let url = server.url.clone();
