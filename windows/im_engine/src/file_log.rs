@@ -1,12 +1,12 @@
 //! im_engine.dll 文件日志初始化。
 //!
-//! 使用 `log` crate 的日志门面，将日志写入 DLL 同级目录的 `log/im_engine.log`。
+//! 宿主可能长时间持有日志句柄。安装版将日志放在 Velopack 替换的目录之外。
 //! 在 DllMain loader lock 下不可初始化——由 `dll_log_init()` 惰性初始化，
 //! 在 `DllGetClassObject` 或 `im_engine_init` 等安全时机调用。
 
 use std::fs::{self, File, OpenOptions};
 use std::io::Write;
-use std::path::PathBuf;
+use std::path::{Path, PathBuf};
 use std::sync::Mutex;
 use std::time::SystemTime;
 
@@ -47,31 +47,27 @@ impl log::Log for FileLogger {
     }
 }
 
-/// 计算日志文件路径：DLL 所在目录下的 `log/im_engine.log`。
-fn log_file_path() -> Option<PathBuf> {
-    let handle = crate::module_handle();
-    if handle == 0 {
-        return None;
-    }
-    use windows::Win32::Foundation::HMODULE;
-    use windows::Win32::System::LibraryLoader::GetModuleFileNameW;
-    let mut buf = vec![0u16; 260];
-    let hmodule = HMODULE(handle as *mut core::ffi::c_void);
-    let len = unsafe { GetModuleFileNameW(Some(hmodule), &mut buf) as usize };
-    if len == 0 {
-        return None;
-    }
-    let dll_path = String::from_utf16_lossy(&buf[..len]);
-    let dll_dir = std::path::Path::new(&dll_path).parent()?;
-    Some(dll_dir.join("log").join("im_engine.log"))
+fn log_file_path(dll_dir: &Path) -> PathBuf {
+    // Velopack moves current into packages/VelopackTemp across parent directories.
+    // Even a share-delete log handle in a TSF host can prevent that move.
+    let install_root = dll_dir.parent().filter(|_| {
+        dll_dir
+            .file_name()
+            .is_some_and(|name| name.eq_ignore_ascii_case("current"))
+            && dll_dir.join("sq.version").is_file()
+    });
+    install_root
+        .unwrap_or(dll_dir)
+        .join("log")
+        .join("im_engine.log")
 }
 
 /// 惰性初始化文件日志。可以安全地多次调用（仅第一次生效）。
 pub fn init() {
     static INIT: std::sync::Once = std::sync::Once::new();
     INIT.call_once(|| {
-        let log_path = match log_file_path() {
-            Some(p) => p,
+        let log_path = match crate::dll_directory() {
+            Some(directory) => log_file_path(Path::new(&directory)),
             None => {
                 eprintln!("[im_engine_log] 无法确定日志路径");
                 return;
@@ -112,4 +108,26 @@ pub fn init() {
             }
         }
     });
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn active_engine_log_allows_velopack_to_move_current_into_its_backup() {
+        let install = tempfile::tempdir().unwrap();
+        let current = install.path().join("current");
+        let backup = install.path().join("packages/VelopackTemp");
+        fs::create_dir(&current).unwrap();
+        fs::create_dir_all(&backup).unwrap();
+        assert_eq!(log_file_path(&current), current.join("log/im_engine.log"));
+        File::create(current.join("sq.version")).unwrap();
+        let path = log_file_path(&current);
+        fs::create_dir_all(path.parent().unwrap()).unwrap();
+        let mut log = File::create(&path).unwrap();
+        fs::rename(&current, backup.join("old")).unwrap();
+        log.write_all(b"still running").unwrap();
+        assert_eq!(fs::read(path).unwrap(), b"still running");
+    }
 }

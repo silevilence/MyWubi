@@ -1844,6 +1844,7 @@ dependencies = [
  "personal_input",
  "runtime_components",
  "serde_json",
+ "tempfile",
  "text_render",
  "tip_manager",
  "windows 0.62.2",

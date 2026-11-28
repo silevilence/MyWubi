@@ -84,7 +84,9 @@ pub enum UpdateState {
 /// 而 TIP 注册需要管理员权限——若由安装器自动调用会触发提升冲突。TIP 注册
 /// 改由用户安装完成后手动运行 settings.exe，在「输入法管理」面板完成。
 pub fn init_velopack() {
-    let mut app = velopack::VelopackApp::build();
+    // Apply only from the update panel. A failed directory swap leaves the
+    // downloaded package in place, including when Velopack restarts the old exe.
+    let mut app = velopack::VelopackApp::build().set_auto_apply_on_startup(false);
     #[cfg(windows)]
     {
         app = app
@@ -199,13 +201,15 @@ pub fn start_download(selected: SelectedUpdate) -> UpdateWorker {
         let (ptx, prx) = mpsc::channel::<i16>();
         // 转发进度到 UI
         let tx2 = tx.clone();
-        thread::spawn(move || {
+        let progress = thread::spawn(move || {
             while let Ok(p) = prx.recv() {
                 let _ = tx2.send(UpdateEvent::DownloadProgress(p));
             }
         });
 
-        if let Err(e) = mgr.download_updates(&selected.info, Some(ptx)) {
+        let download = mgr.download_updates(&selected.info, Some(ptx));
+        let _ = progress.join();
+        if let Err(e) = download {
             let _ = tx.send(UpdateEvent::Error(format!("下载更新失败: {e}")));
             return;
         }
@@ -216,15 +220,23 @@ pub fn start_download(selected: SelectedUpdate) -> UpdateWorker {
     UpdateWorker { rx }
 }
 
-/// 应用已下载的更新并重启进程。调用后进程会立即退出。
-pub fn apply_and_restart(asset: VelopackAsset) {
-    thread::spawn(move || {
-        if let Ok(mgr) = UpdateManager::new(NoneSource {}, None, None) {
-            if let Err(e) = mgr.apply_updates_and_restart(&asset) {
-                log::error!("[vpk] 应用更新失败: {e}");
-            }
-        }
-    });
+pub fn pending_update() -> Option<VelopackAsset> {
+    let manager = UpdateManager::new(NoneSource {}, None, None).ok()?;
+    if manager.get_is_portable() {
+        return None;
+    }
+    manager.get_update_pending_restart()
+}
+
+/// Velopack also passes the restart arguments to the old exe when the swap fails.
+pub fn apply_and_restart(asset: &VelopackAsset) -> Result<(), String> {
+    let manager = UpdateManager::new(NoneSource {}, None, None).map_err(|e| e.to_string())?;
+    manager
+        .apply_updates_and_restart_with_args(
+            asset,
+            ["--page", "about", "--updated-to", &asset.Version],
+        )
+        .map_err(|e| e.to_string())
 }
 
 #[cfg(test)]

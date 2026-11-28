@@ -104,6 +104,26 @@ fn main() {
     } else {
         AppState::load(config_path, portable)
     };
+    if !isolated {
+        if let Some(asset) = settings::vpk::pending_update() {
+            state.status_msg = Some(format!(
+                "{} 已下载，可在「关于与更新」中继续安装。",
+                asset.Version
+            ));
+            state.update_state = settings::vpk::UpdateState::Ready { asset };
+        }
+        if let Some(expected) = args.windows(2).find(|a| a[0] == "--updated-to") {
+            let expected = expected[1].to_string_lossy();
+            let current = env!("CARGO_PKG_VERSION");
+            if expected == current {
+                state.status_msg = Some(format!("已更新到 {current}。"));
+            } else {
+                state.update_state = settings::vpk::UpdateState::Error(format!(
+                    r"更新到 {expected} 未完成，当前运行 {current}。请保存工作，关闭使用过输入法的应用后重试。更新日志位于 %LOCALAPPDATA%\velopack\velopack_MyWubi.log。"
+                ));
+            }
+        }
+    }
     if let Some(page) = args.windows(2).find(|a| a[0] == "--page") {
         match settings::automation::panel(&page[1].to_string_lossy()) {
             Ok(panel) => state.active_panel = panel,

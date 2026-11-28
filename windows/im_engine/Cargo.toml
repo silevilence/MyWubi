@@ -47,3 +47,6 @@ windows-core.workspace = true
 
 [build-dependencies]
 winres = "0.1"
+
+[dev-dependencies]
+tempfile = "3"
