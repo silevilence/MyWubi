@@ -85,7 +85,16 @@ fn panel_insets_apply_once_and_empty_controls_add_no_row() {
     let line = &scene.blocks[0];
     assert!(line.x < 20.0);
     assert_eq!(line.y, 28.0);
-    assert_eq!(scene.height, (line.y + line.layout.height + 12.0).ceil());
+    // Empty composition keeps the candidate row, with panel margins applied once.
+    let mut plain = data.clone();
+    plain.theme.images = Default::default();
+    let reference = Scene::build(&mut TextSystem::new().unwrap(), &plain, size, 600.0).unwrap();
+    let default_margin = (size * 0.4).ceil().max(6.0);
+    assert_eq!(
+        scene.height,
+        reference.height + (28.0 - default_margin) + (12.0 - default_margin)
+    );
+    assert_eq!(scene.blocks.len(), 1);
     let narrow = Scene::build(&mut TextSystem::new().unwrap(), &data, size, 100.0).unwrap();
     assert!(narrow
         .blocks

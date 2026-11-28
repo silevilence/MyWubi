@@ -237,7 +237,7 @@ fn create_lang_bar_icon(text: &str, ink: [u8; 3]) -> Result<HICON> {
         );
         let _ = GdiFlush();
 
-        for pixel in pixels.chunks_exact_mut(4) {
+        for pixel in pixels.as_chunks_mut::<4>().0 {
             let alpha = pixel[0].max(pixel[1]).max(pixel[2]);
             for (channel, color) in pixel[..3].iter_mut().zip(ink) {
                 *channel = (u16::from(alpha) * u16::from(color) / 255) as u8;
@@ -2155,9 +2155,10 @@ mod tests {
                     DestroyIcon(icon).unwrap();
                     assert_eq!(read, 1024);
                 }
-                assert!(pixels.chunks_exact(4).any(|p| p[3] >= 230));
+                let (pixels, _) = pixels.as_chunks::<4>();
+                assert!(pixels.iter().any(|p| p[3] >= 230));
                 assert!(pixels
-                    .chunks_exact(4)
+                    .iter()
                     .all(|p| p[0] == (u16::from(p[3]) * u16::from(ink) / 255) as u8
                         && p[1] == p[0]
                         && p[2] == p[0]));
