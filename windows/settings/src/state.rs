@@ -22,6 +22,8 @@ pub enum Panel {
 #[derive(Debug, Clone, Copy)]
 pub enum FilePickTarget {
     SystemTableDir,
+    SystemTableImport,
+    SkinImport,
     UserTable,
     UserDictionaryImport,
     UserDictionaryExport,
@@ -117,6 +119,7 @@ pub struct AppState {
     pub user_dictionary_editor: UserDictionaryEditor,
     /// 当前系统码表的编辑状态。
     pub tables: TableSession,
+    pub(crate) skin_choices: Option<Vec<(core_engine::skin::preferences::Selection, String)>>,
 }
 
 /// 配置加载失败信息。用户需在 UI 中确认后才覆盖损坏文件。
@@ -197,6 +200,7 @@ impl AppState {
             update_worker: None,
             user_dictionary_editor: UserDictionaryEditor::default(),
             tables,
+            skin_choices: None,
         }
     }
 

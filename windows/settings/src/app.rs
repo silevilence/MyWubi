@@ -229,6 +229,30 @@ impl SettingsApp {
                 self.state.pending_pick = None;
                 if let Some(path) = result {
                     match target {
+                        FilePickTarget::SkinImport => {
+                            self.state.status_msg = Some(
+                                crate::skin_file::import_for_settings(
+                                    &path,
+                                    &self.state.config_path,
+                                )
+                                .unwrap_or_else(|error| format!("[ERR] {error}")),
+                            );
+                            self.state.skin_choices = None;
+                            return;
+                        }
+                        FilePickTarget::SystemTableImport => {
+                            self.state.status_msg = Some(
+                                match self
+                                    .state
+                                    .tables
+                                    .import(&path, &self.state.config.dictionary.user_table)
+                                {
+                                    Ok(name) => format!("已导入 {name}，可在「使用码表」中选用。"),
+                                    Err(error) => format!("[ERR] {error}"),
+                                },
+                            );
+                            return;
+                        }
                         FilePickTarget::SystemTableDir => {
                             self.state.browse_tables(path);
                             return;
@@ -442,6 +466,9 @@ fn nav_item(ui: &mut egui::Ui, state: &mut AppState, panel: Panel, label: &str) 
         egui::SelectableLabel::new(selected, label),
     );
     if response.clicked() {
+        if panel == Panel::Appearance && !selected {
+            state.skin_choices = None;
+        }
         state.active_panel = panel;
         state.uninstall_confirm = false;
         if panel == Panel::TipManager && state.desktop_effects {

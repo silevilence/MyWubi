@@ -23,6 +23,82 @@ fn confirm_import(
     Ok(Some(message))
 }
 
+fn windows_choices(
+    item: &serde_json::Value,
+) -> Vec<(core_engine::skin::preferences::Selection, String)> {
+    let Some(components) = item["components"]
+        .as_array()
+        .filter(|_| item["reason"].is_null())
+    else {
+        return Vec::new();
+    };
+    components
+        .iter()
+        .filter_map(|component| {
+            if component["kind"] != "appearance" || component["enabled"] != true {
+                return None;
+            }
+            let selection = core_engine::skin::preferences::Selection {
+                id: item["id"].as_str()?.to_owned(),
+                version: item["version"].as_str()?.to_owned(),
+                component: component["id"].as_str()?.to_owned(),
+            };
+            let label = format!(
+                "{} · {} / {}",
+                item["name"].as_str()?,
+                selection.version,
+                selection.component
+            );
+            Some((selection, label))
+        })
+        .collect()
+}
+
+pub(crate) fn list_for_settings(
+    config: &Path,
+) -> Result<Vec<(core_engine::skin::preferences::Selection, String)>, String> {
+    use core_engine::skin::manage::{execute, Request};
+    let result = execute(Request::List {
+        path: config.to_owned(),
+        platform: "windows".into(),
+    })
+    .map_err(|e| e.to_string())?;
+    Ok(result["items"]
+        .as_array()
+        .into_iter()
+        .flatten()
+        .flat_map(windows_choices)
+        .collect())
+}
+
+pub(crate) fn import_for_settings(source: &Path, config: &Path) -> Result<String, String> {
+    use core_engine::skin::manage::{execute, Request};
+    let result = execute(Request::Import {
+        path: config.to_owned(),
+        source: source.to_owned(),
+        platform: "windows".into(),
+    })
+    .map_err(|e| e.to_string())?;
+    let item = &result["item"];
+    let name = item["name"].as_str().unwrap_or_default();
+    Ok(if windows_choices(item).is_empty() {
+        format!("「{name}」已在皮肤库中，此包没有可用于 Windows 的外观。")
+    } else {
+        format!("「{name}」已在皮肤库中，可在「皮肤方案」中选用。")
+    })
+}
+
+pub(crate) fn validate_windows(config: &core_engine::Config, path: &Path) -> Result<(), String> {
+    for dark in [false, true] {
+        let skin =
+            runtime::load(path, config, "windows", dark, false).map_err(|e| e.to_string())?;
+        if let Some(package) = &skin.package {
+            text_render::skin_images::decode(package, &skin.images).map_err(|e| e.to_string())?;
+        }
+    }
+    Ok(())
+}
+
 pub fn open(path: &Path) {
     let result = confirm_import(
         path,
@@ -64,6 +140,39 @@ pub fn open(path: &Path) {
 #[cfg(test)]
 mod tests {
     use super::*;
+
+    #[test]
+    fn settings_can_select_two_imported_skins_then_return_to_a_preset() {
+        let directory = tempfile::tempdir().unwrap();
+        let config = directory.path().join("config.toml");
+        let mut settings = core_engine::Config::default();
+        for preset in ["jade", "plain"] {
+            let mut package = core_engine::skin::parameters::builtin_package(preset).unwrap();
+            package.metadata.id = format!("custom.{preset}");
+            let path = directory.path().join(format!("{preset}.mywubi-skin"));
+            package.export_new(&path).unwrap();
+            import_for_settings(&path, &config).unwrap();
+        }
+        let choices = list_for_settings(&config).unwrap();
+        assert_eq!(choices.len(), 2);
+        for (selection, _) in choices {
+            settings.skins.windows.selection = Some(selection.clone());
+            settings.save(&config).unwrap();
+            let saved = core_engine::Config::load(&config).unwrap();
+            assert_eq!(saved.skins.windows.selection.as_ref(), Some(&selection));
+            let skin = runtime::load(&config, &saved, "windows", false, false).unwrap();
+            assert_eq!(skin.package.unwrap().metadata.id, selection.id);
+        }
+        settings.skins.windows.selection = None;
+        settings.skins.windows.preset = "plain".into();
+        settings.save(&config).unwrap();
+        assert!(core_engine::Config::load(&config)
+            .unwrap()
+            .skins
+            .windows
+            .selection
+            .is_none());
+    }
 
     #[test]
     fn confirm_import_uses_inspected_contents_and_cancel_never_creates_library() {

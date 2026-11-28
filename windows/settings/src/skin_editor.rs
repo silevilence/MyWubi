@@ -286,14 +286,7 @@ impl SkinEditor {
             version: draft.package.metadata.version.clone(),
             component: self.component.clone(),
         });
-        for dark in [false, true] {
-            let skin = skin::runtime::load(path, &candidate, "windows", dark, false)
-                .map_err(|e| e.to_string())?;
-            if let Some(package) = &skin.package {
-                text_render::skin_images::decode(package, &skin.images)
-                    .map_err(|e| e.to_string())?;
-            }
-        }
+        crate::skin_file::validate_windows(&candidate, path)?;
         candidate.save(path).map_err(|e| e.to_string())?;
         self.refresh_catalog(path);
         self.message = "已应用到 Windows。需要保留皮肤文件时，请另行导出。".into();

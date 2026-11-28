@@ -152,7 +152,7 @@ fn fixed_utf16<const N: usize>(text: &str) -> [u16; N] {
     output
 }
 
-fn create_lang_bar_icon(text: &str) -> Result<HICON> {
+fn create_lang_bar_icon(text: &str, ink: [u8; 3]) -> Result<HICON> {
     const SIZE: i32 = 16;
 
     // SAFETY: Every GDI handle created here is restored/deleted before return.
@@ -217,7 +217,8 @@ fn create_lang_bar_icon(text: &str) -> Result<HICON> {
         }
         let old_font = SelectObject(dc, HGDIOBJ(font.0));
         let _ = SetBkMode(dc, TRANSPARENT);
-        let _ = SetTextColor(dc, COLORREF(0x00ff0000));
+        // Render white coverage first; a dark glyph still needs opaque strokes.
+        let _ = SetTextColor(dc, COLORREF(0x00ffffff));
 
         let pixels = std::slice::from_raw_parts_mut(bits.cast::<u8>(), (SIZE * SIZE * 4) as usize);
         pixels.fill(0);
@@ -237,7 +238,11 @@ fn create_lang_bar_icon(text: &str) -> Result<HICON> {
         let _ = GdiFlush();
 
         for pixel in pixels.chunks_exact_mut(4) {
-            pixel[3] = pixel[0].max(pixel[1]).max(pixel[2]);
+            let alpha = pixel[0].max(pixel[1]).max(pixel[2]);
+            for (channel, color) in pixel[..3].iter_mut().zip(ink) {
+                *channel = (u16::from(alpha) * u16::from(color) / 255) as u8;
+            }
+            pixel[3] = alpha;
         }
 
         let mask_bits = [0u8; 32];
@@ -1429,7 +1434,10 @@ impl ITfLangBarItemButton_Impl for TextService_Impl {
 
     fn GetIcon(&self) -> Result<HICON> {
         let chinese = self.input.chinese();
-        create_lang_bar_icon(lang_bar_display(chinese).0)
+        create_lang_bar_icon(
+            lang_bar_display(chinese).0,
+            crate::skin_runtime::taskbar_ink(),
+        )
     }
 
     fn GetText(&self) -> Result<windows::core::BSTR> {
@@ -1494,13 +1502,17 @@ impl ITfTextInputProcessorEx_Impl for TextService_Impl {
         {
             use windows::core::IUnknownImpl;
             let owner = self.to_object();
-            match crate::candidate_dispatch::CandidateDispatch::new(move |version, id, rank| {
-                if rank {
-                    owner.candidate_rank_menu(version, id);
-                } else {
-                    owner.choose_prediction(version, id);
-                }
-            }) {
+            let theme_owner = owner.clone();
+            match crate::candidate_dispatch::CandidateDispatch::new(
+                move |version, id, rank| {
+                    if rank {
+                        owner.candidate_rank_menu(version, id);
+                    } else {
+                        owner.choose_prediction(version, id);
+                    }
+                },
+                move || theme_owner.notify_lang_bar_flags(TF_LBI_ICON),
+            ) {
                 Ok(dispatch) => *self.candidate_dispatch.lock() = Some(dispatch),
                 Err(error) => log::warn!("候选点击窗口不可用: {error}"),
             }
@@ -2118,6 +2130,39 @@ mod tests {
     #[test]
     fn chinese_mode_uses_chinese_language_bar_text() {
         assert_eq!(lang_bar_display(true), ("中", "中文模式"));
+    }
+
+    #[test]
+    fn rendered_language_bar_glyphs_keep_opacity_on_both_taskbar_colors() {
+        use windows::Win32::{
+            Graphics::Gdi::GetBitmapBits,
+            UI::WindowsAndMessaging::{DestroyIcon, GetIconInfo},
+        };
+        for text in ["中", "英"] {
+            for ink in [32, 250] {
+                let icon = create_lang_bar_icon(text, [ink; 3]).unwrap();
+                let mut info = ICONINFO::default();
+                let mut pixels = [0u8; 1024];
+                unsafe {
+                    GetIconInfo(icon, &mut info).unwrap();
+                    let read = GetBitmapBits(
+                        info.hbmColor,
+                        pixels.len() as i32,
+                        pixels.as_mut_ptr().cast(),
+                    );
+                    let _ = DeleteObject(info.hbmColor.into());
+                    let _ = DeleteObject(info.hbmMask.into());
+                    DestroyIcon(icon).unwrap();
+                    assert_eq!(read, 1024);
+                }
+                assert!(pixels.chunks_exact(4).any(|p| p[3] >= 230));
+                assert!(pixels
+                    .chunks_exact(4)
+                    .all(|p| p[0] == (u16::from(p[3]) * u16::from(ink) / 255) as u8
+                        && p[1] == p[0]
+                        && p[2] == p[0]));
+            }
+        }
     }
 
     #[test]

@@ -12,11 +12,25 @@ pub fn show(ui: &mut Ui, state: &mut AppState) {
     crate::ui_style::heading(ui, "候选外观", "调整候选框的显示方式；保存后自动应用。");
     crate::ui_style::card(ui, "皮肤方案", |ui| {
         skin_preferences(ui, state);
-        if let Some(selection) = &state.config.skins.windows.selection {
-            ui.label(format!(
-                "当前自定义皮肤：{} / {}",
-                selection.id, selection.component
-            ));
+        if ui
+            .add_enabled(
+                state.pending_pick.is_none(),
+                eframe::egui::Button::new("导入皮肤…"),
+            )
+            .clicked()
+        {
+            let (tx, rx) = std::sync::mpsc::channel();
+            std::thread::spawn(move || {
+                let _ = tx.send(
+                    rfd::FileDialog::new()
+                        .add_filter("MyWubi 皮肤", &["mywubi-skin"])
+                        .pick_file(),
+                );
+            });
+            state.pending_pick = Some(state::PickRequest {
+                target: state::FilePickTarget::SkinImport,
+                rx,
+            });
         }
         ui.add_space(4.0);
         if ui.button("打开皮肤编辑器…").clicked() {
@@ -36,7 +50,6 @@ pub fn show(ui: &mut Ui, state: &mut AppState) {
         }
         ui.ctx()
             .request_repaint_after(crate::skin_mcp::control::POLL);
-        ui.small("可直接打开皮肤文件导入，也可在编辑器中制作、导出和应用。");
         #[cfg(windows)]
         if ui.button("注册皮肤文件打开方式").clicked() {
             let portable =
@@ -96,11 +109,24 @@ pub fn show(ui: &mut Ui, state: &mut AppState) {
 
 fn skin_preferences(ui: &mut Ui, state: &mut AppState) {
     use core_engine::skin::preferences::Mode;
+    if state.skin_choices.is_none() {
+        state.skin_choices = Some(
+            crate::skin_file::list_for_settings(&state.config_path).unwrap_or_else(|error| {
+                state.status_msg = Some(format!("读取皮肤库失败：{error}"));
+                Vec::new()
+            }),
+        );
+    }
+    let choices = state.skin_choices.as_deref().unwrap_or_default();
     let preference = &mut state.config.skins.windows;
     let before = preference.clone();
     eframe::egui::ComboBox::from_label("皮肤方案")
-        .selected_text(if preference.selection.is_some() {
-            "自定义皮肤"
+        .selected_text(if let Some(selection) = &preference.selection {
+            choices
+                .iter()
+                .find(|(s, _)| s == selection)
+                .map(|(_, label)| label.clone())
+                .unwrap_or_else(|| format!("{} / {}（不可用）", selection.id, selection.component))
         } else {
             match preference.preset.as_str() {
                 "jade" => "墨绿",
@@ -108,6 +134,7 @@ fn skin_preferences(ui: &mut Ui, state: &mut AppState) {
                 "contrast" => "高对比",
                 _ => "经典外观",
             }
+            .to_owned()
         })
         .show_ui(ui, |ui| {
             for (id, label) in [
@@ -125,6 +152,14 @@ fn skin_preferences(ui: &mut Ui, state: &mut AppState) {
                 {
                     preference.preset = id.into();
                     preference.selection = None;
+                }
+            }
+            for (selection, label) in choices {
+                if ui
+                    .selectable_label(preference.selection.as_ref() == Some(selection), label)
+                    .clicked()
+                {
+                    preference.selection = Some(selection.clone());
                 }
             }
         });
@@ -146,6 +181,15 @@ fn skin_preferences(ui: &mut Ui, state: &mut AppState) {
     ui.checkbox(&mut preference.use_skin_metrics, "采用皮肤推荐字号");
     ui.small("默认保留当前字号；经典外观可直接自定义颜色。");
     if *preference != before {
+        if state.config.skins.windows.selection.is_some() {
+            if let Err(error) =
+                crate::skin_file::validate_windows(&state.config, &state.config_path)
+            {
+                state.config.skins.windows = before;
+                state.status_msg = Some(format!("无法使用所选皮肤：{error}"));
+                return;
+            }
+        }
         state.mark_dirty();
     }
 }

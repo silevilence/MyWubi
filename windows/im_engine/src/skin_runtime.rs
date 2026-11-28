@@ -147,23 +147,29 @@ pub fn start(path: PathBuf, config: &Config) {
     }
 }
 
-fn system_state() -> (bool, bool) {
+fn light_theme(setting: windows::core::PCWSTR) -> bool {
     let mut light = 1u32;
     let mut size = 4u32;
-    let mut contrast = HIGHCONTRASTW {
-        cbSize: std::mem::size_of::<HIGHCONTRASTW>() as u32,
-        ..Default::default()
-    };
     unsafe {
         let _ = RegGetValueW(
             HKEY_CURRENT_USER,
             w!("Software\\Microsoft\\Windows\\CurrentVersion\\Themes\\Personalize"),
-            w!("AppsUseLightTheme"),
+            setting,
             RRF_RT_REG_DWORD,
             None,
             Some((&mut light as *mut u32).cast()),
             Some(&mut size),
         );
+    }
+    light != 0
+}
+
+fn high_contrast() -> bool {
+    let mut contrast = HIGHCONTRASTW {
+        cbSize: std::mem::size_of::<HIGHCONTRASTW>() as u32,
+        ..Default::default()
+    };
+    unsafe {
         let _ = SystemParametersInfoW(
             SPI_GETHIGHCONTRAST,
             contrast.cbSize,
@@ -171,5 +177,21 @@ fn system_state() -> (bool, bool) {
             SYSTEM_PARAMETERS_INFO_UPDATE_FLAGS(0),
         );
     }
-    (light == 0, contrast.dwFlags.contains(HCF_HIGHCONTRASTON))
+    contrast.dwFlags.contains(HCF_HIGHCONTRASTON)
+}
+
+pub(crate) fn taskbar_ink() -> [u8; 3] {
+    if high_contrast() {
+        use windows::Win32::Graphics::Gdi::{GetSysColor, COLOR_BTNTEXT};
+        let [r, g, b, _] = unsafe { GetSysColor(COLOR_BTNTEXT) }.to_le_bytes();
+        [b, g, r]
+    } else if light_theme(w!("SystemUsesLightTheme")) {
+        [32; 3]
+    } else {
+        [250; 3]
+    }
+}
+
+fn system_state() -> (bool, bool) {
+    (!light_theme(w!("AppsUseLightTheme")), high_contrast())
 }

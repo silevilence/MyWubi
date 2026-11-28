@@ -336,6 +336,27 @@ impl TableSession {
         self.labels = table_labels(&self.directory, &self.tables);
     }
 
+    pub fn import(&mut self, source: &Path, user_table: &Path) -> Result<String, String> {
+        let name = source
+            .file_name()
+            .and_then(|n| n.to_str())
+            .ok_or("无效的码表名称")?;
+        if !name.to_ascii_lowercase().ends_with(".dict") {
+            return Err("请选择 .dict 码表文件".into());
+        }
+        if user_table
+            .file_name()
+            .and_then(|n| n.to_str())
+            .is_some_and(|n| n.eq_ignore_ascii_case(name))
+        {
+            return Err("文件名与用户词库相同，请先重命名待导入的码表".into());
+        }
+        let target = self.directory.join(name);
+        core_engine::data::import_table(source, &target)?;
+        self.rescan(user_table);
+        Ok(name.into())
+    }
+
     /// 初始化完成后显式加载当前目录；普通重扫继续保留草稿。
     pub fn reload_directory(&mut self, config: &mut Config) -> Result<(), String> {
         self.browse(self.directory.clone(), config)
@@ -435,7 +456,11 @@ fn scan_table_dir(dir: &std::path::Path, excluded: Option<&std::path::Path>) -> 
         .into_iter()
         .flatten()
         .filter_map(|e| e.ok())
-        .filter(|e| e.path().extension().is_some_and(|ext| ext == "dict"))
+        .filter(|e| {
+            e.path()
+                .extension()
+                .is_some_and(|ext| ext.eq_ignore_ascii_case("dict"))
+        })
         .filter(|e| {
             !matches!(
                 core_engine::read_table_config(e.path()),
@@ -452,6 +477,35 @@ fn scan_table_dir(dir: &std::path::Path, excluded: Option<&std::path::Path>) -> 
 #[cfg(test)]
 mod tests {
     use super::*;
+
+    #[test]
+    fn import_adds_valid_choices_and_preserves_current_draft_and_existing_files() {
+        let dest = tempfile::tempdir().unwrap();
+        let external = tempfile::tempdir().unwrap();
+        let (mut tables, config) = session(dest.path());
+        tables.editor.mark_changed();
+        let source = external.path().join("外部.DICT");
+        std::fs::write(&source, "a\t新词\n").unwrap();
+        tables
+            .import(&source, &config.dictionary.user_table)
+            .unwrap();
+        assert!(tables.tables().contains(&"外部.DICT".into()));
+        assert!(tables.editor.is_dirty());
+        assert_eq!(tables.editor.path(), config.dictionary.system_table);
+        let imported = dest.path().join("外部.DICT");
+        let before = std::fs::read(&imported).unwrap();
+        std::fs::write(&source, "b\t不同\n").unwrap();
+        assert!(tables
+            .import(&source, &config.dictionary.user_table)
+            .is_err());
+        assert_eq!(std::fs::read(imported).unwrap(), before);
+        let invalid = external.path().join("invalid.dict");
+        std::fs::write(&invalid, "badline").unwrap();
+        assert!(tables
+            .import(&invalid, &config.dictionary.user_table)
+            .is_err());
+        assert!(!dest.path().join("invalid.dict").exists());
+    }
 
     #[test]
     fn main_table_choices_exclude_renamed_expression_resources() {

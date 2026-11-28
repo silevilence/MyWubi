@@ -14,14 +14,26 @@ pub fn show(ui: &mut Ui, state: &mut AppState) {
             ui.label("码表目录:");
             let current = state.tables.directory().display().to_string();
             let (text, response) = crate::ui_style::text_buffer(ui, "table-directory", &current);
-            if ui.button("打开目录").clicked()
-                || (response.has_focus() && ui.input(|i| i.key_pressed(egui::Key::Enter)))
-            {
+            if response.lost_focus() && ui.input(|i| i.key_pressed(egui::Key::Enter)) {
                 let directory = PathBuf::from(&text);
                 if directory.is_dir() {
                     state.browse_tables(directory);
                 } else {
                     state.status_msg = Some("[ERR] 目录不存在，请检查路径。".into());
+                }
+            }
+            if ui.button("打开目录").clicked() {
+                let directory = state.tables.directory();
+                if directory.is_dir() {
+                    if let Err(error) = std::process::Command::new("explorer.exe")
+                        .arg(directory)
+                        .spawn()
+                    {
+                        state.status_msg =
+                            Some(format!("[ERR] 无法打开 {}：{error}", directory.display()));
+                    }
+                } else {
+                    state.status_msg = Some(format!("[ERR] 目录不存在：{}", directory.display()));
                 }
             }
             if !response.has_focus() && text == current {
@@ -92,6 +104,13 @@ pub fn show(ui: &mut Ui, state: &mut AppState) {
 
         // ── 初始化码表：从 exe 同目录 tables/ 复制模板 ──
         ui.horizontal_wrapped(|ui| {
+            if ui
+                .add_enabled(state.pending_pick.is_none(), egui::Button::new("导入码表…"))
+                .clicked()
+            {
+                let path = state.tables.editor.path().to_owned();
+                start_dictionary_pick(state, FilePickTarget::SystemTableImport, &path);
+            }
             if ui.button("补全内置码表").clicked() {
                 init_tables(state);
             }
@@ -736,7 +755,7 @@ fn start_dictionary_pick(state: &mut AppState, target: FilePickTarget, path: &Pa
     std::thread::spawn(move || {
         let dialog = rfd::FileDialog::new()
             .set_directory(directory)
-            .add_filter("MyWubi 用户词库", &["dict"]);
+            .add_filter("MyWubi 码表与词库", &["dict"]);
         let result = match target {
             FilePickTarget::UserDictionaryExport => dialog.set_file_name("user.dict").save_file(),
             _ => dialog.pick_file(),

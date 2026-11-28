@@ -84,6 +84,17 @@ impl Scene {
             vertical: false,
         };
         let mut header = Vec::new();
+        let layout = parameters.map_or("auto", |p| p.text("layout"));
+        let ordinary_row = layout != "vertical"
+            && !data.spelling.is_empty()
+            && data.expression.is_none()
+            && data.notices.is_empty()
+            && data.controls.iter().all(|c| {
+                matches!(
+                    c.id,
+                    crate::candidate_data::PREVIOUS_PAGE | crate::candidate_data::NEXT_PAGE
+                )
+            });
         if let Some(query) = &data.expression {
             header.push(format!(
                 "{} · {}",
@@ -112,6 +123,8 @@ impl Scene {
             if let Some(message) = &query.message {
                 header.push(message.clone());
             }
+        } else if ordinary_row {
+            // The spelling shares its row with page navigation below.
         } else if !data.spelling.is_empty() {
             header.push(data.spelling.clone());
         } else if !data.mode_label.is_empty() {
@@ -203,7 +216,11 @@ impl Scene {
                 &text,
                 if fallback { "Segoe UI" } else { family },
                 size,
-                content_width,
+                if ordinary_row {
+                    100_000.0
+                } else {
+                    content_width
+                },
                 &spans,
             )?;
             items.push(Block {
@@ -233,7 +250,91 @@ impl Scene {
             .iter()
             .map(|item| item.layout.width + spacing)
             .sum::<f32>();
-        let layout = parameters.map_or("auto", |p| p.text("layout"));
+        if ordinary_row {
+            let mut navigation = Vec::new();
+            if data.total_pages > 1 {
+                for control in &data.controls {
+                    let text = if control.id == crate::candidate_data::PREVIOUS_PAGE {
+                        "◀"
+                    } else {
+                        "▶"
+                    };
+                    navigation.push((
+                        system.single_line(text, font, size, content_width / 6.0)?,
+                        Some(control.id),
+                    ));
+                }
+                let page = format!("{}/{}", data.page + 1, data.total_pages);
+                navigation.push((
+                    system.single_line(&page, font, size, content_width / 4.0)?,
+                    None,
+                ));
+            }
+            let nav_gap = spacing.min(content_width / 16.0);
+            let nav_width: f32 = navigation.iter().map(|(l, _)| l.width + nav_gap).sum();
+            let spelling = system.single_line(
+                &data.spelling,
+                font,
+                size,
+                (content_width - nav_width).max(1.0),
+            )?;
+            let mut x = left + spelling.width;
+            let header_height = system.layout("中Ag▶", font, size, 1000.0)?.height;
+            scene.blocks.push(Block {
+                layout: spelling,
+                x: left,
+                y: top,
+                color: data.theme.primary_color,
+                background: None,
+                id: None,
+            });
+            for (layout, id) in navigation {
+                x += nav_gap;
+                let width = layout.width;
+                scene.blocks.push(Block {
+                    layout,
+                    x,
+                    y: top,
+                    color,
+                    background: None,
+                    id,
+                });
+                x += width;
+            }
+            scene.width = scene.width.max(x + right);
+            let count = items.len().max(1) as f32;
+            let spacing = spacing.min(content_width / (2.0 * count));
+            let budget = (content_width - (count - 1.0) * spacing).max(1.0);
+            // Let short words use their natural width, sharing the rest among longer words.
+            let mut widths: Vec<f32> = items.iter().map(|b| b.layout.width).collect();
+            widths.sort_by(f32::total_cmp);
+            let mut remaining = budget;
+            let mut cap = budget;
+            for (i, width) in widths.iter().enumerate() {
+                cap = remaining / (widths.len() - i) as f32;
+                if *width >= cap {
+                    break;
+                }
+                remaining -= width;
+            }
+            let row_y = top + header_height + gap;
+            let hint_size = parameters.map_or(size, |p| p.number("hint_size") * dip * 96.0 / 72.0);
+            let row_height = system
+                .layout("中Ag", font, size.max(hint_size), 1000.0)?
+                .height;
+            x = left;
+            for mut block in items {
+                block.layout = system.fit_single_line(block.layout, cap.max(1.0))?;
+                block.x = x;
+                block.y = row_y;
+                scene.width = scene.width.max(x + block.layout.width + right);
+                x += block.layout.width + spacing;
+                scene.blocks.push(block);
+            }
+            scene.width = scene.width.min(max_width).ceil();
+            scene.height = (row_y + row_height + bottom).ceil();
+            return Ok(scene);
+        }
         scene.vertical = layout == "vertical" || (layout == "auto" && total > content_width);
         if scene.vertical {
             for mut block in items {
@@ -348,6 +449,52 @@ impl Scene {
 mod tests {
     use super::*;
     use crate::candidate_data::CandidateItem;
+
+    #[test]
+    fn composing_row_keeps_its_height_with_empty_long_and_paged_results() {
+        use crate::candidate_data::{CandidateControl, NEXT_PAGE};
+        let mut system = TextSystem::new().unwrap();
+        let mut data = CandidateData {
+            spelling: "asdf".into(),
+            visible: true,
+            ..Default::default()
+        };
+        for size in [19.0, 34.0] {
+            data.items.clear();
+            data.controls.clear();
+            data.total_pages = 0;
+            let empty = Scene::build(&mut system, &data, size, 360.0).unwrap();
+            assert_eq!(empty.width, 200.0);
+            for i in 0..5 {
+                data.items.push(CandidateItem {
+                    expression_kind: None,
+                    disabled: false,
+                    label: format!("{}.", i + 1),
+                    text: "较长的候选词".repeat(i + 1),
+                    hint: "abc".into(),
+                });
+                data.selection_ids = (0..=i).collect();
+                if i == 2 {
+                    data.total_pages = 3;
+                    data.controls.push(CandidateControl {
+                        id: NEXT_PAGE,
+                        label: "下一页".into(),
+                    });
+                }
+                let scene = Scene::build(&mut system, &data, size, 360.0).unwrap();
+                assert_eq!(scene.height, empty.height);
+                assert!(!scene.vertical);
+                assert!(scene
+                    .blocks
+                    .iter()
+                    .all(|b| b.x + b.layout.width <= scene.width
+                        && b.y + b.layout.height <= scene.height));
+                for id in &data.selection_ids {
+                    assert!(scene.blocks.iter().any(|b| b.id == Some(*id)));
+                }
+            }
+        }
+    }
 
     #[test]
     fn semantic_styles_and_explicit_layouts_keep_whole_candidate_geometry() {

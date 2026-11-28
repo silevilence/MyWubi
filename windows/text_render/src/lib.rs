@@ -174,8 +174,14 @@ impl TextSystem {
         size: f32,
         width: f32,
     ) -> Result<TextLayout> {
-        let mut layout = self.layout(text, family, size, width)?;
+        let layout = self.layout(text, family, size, width)?;
+        self.fit_single_line(layout, width)
+    }
+
+    /// Keep the shaped run and its styles when fitting a candidate into one row.
+    fn fit_single_line(&self, mut layout: TextLayout, width: f32) -> Result<TextLayout> {
         unsafe {
+            layout.raw.SetMaxWidth(width.max(1.0))?;
             layout.raw.SetWordWrapping(DWRITE_WORD_WRAPPING_NO_WRAP)?;
             let sign = self.write.CreateEllipsisTrimmingSign(&layout.raw)?;
             layout.raw.SetTrimming(

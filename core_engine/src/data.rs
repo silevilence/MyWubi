@@ -154,6 +154,28 @@ pub fn save_table(
     Ok((config, FileVersion::read(target)?))
 }
 
+/// Validate the imported bytes before publishing them under their final name.
+pub fn import_table(source: &Path, target: &Path) -> Result<(), String> {
+    let (header, entries) = crate::read_table(source).map_err(|e| e.to_string())?;
+    if entries.is_empty() {
+        return Err("码表没有词条".into());
+    }
+    let header = relocated_config(&header, source, target)?;
+    let directory = target.parent().ok_or("缺少目标目录")?;
+    std::fs::create_dir_all(directory).map_err(|e| e.to_string())?;
+    let temporary = tempfile::NamedTempFile::new_in(directory)
+        .map_err(|e| e.to_string())?
+        .into_temp_path();
+    crate::save_table(&temporary, &header, &entries).map_err(|e| e.to_string())?;
+    temporary.persist_noclobber(target).map_err(|e| {
+        if e.error.kind() == std::io::ErrorKind::AlreadyExists {
+            format!("{} 已存在，请更换文件名后导入", target.display())
+        } else {
+            e.error.to_string()
+        }
+    })
+}
+
 /// Caller keeps the original draft; partial success explicitly lists completed files.
 #[derive(Debug)]
 pub struct SaveReport {
