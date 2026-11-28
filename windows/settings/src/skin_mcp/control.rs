@@ -16,10 +16,12 @@ use windows::{
 };
 
 fn name(config: &Path, action: &str) -> HSTRING {
-    let path = config
-        .canonicalize()
-        .or_else(|_| std::path::absolute(config))
-        .unwrap_or_else(|_| config.into());
+    let absolute = std::path::absolute(config).unwrap_or_else(|_| config.into());
+    let path = absolute
+        .parent()
+        .zip(absolute.file_name())
+        .and_then(|(parent, file)| parent.canonicalize().ok().map(|p| p.join(file)))
+        .unwrap_or(absolute);
     let mut hash = DefaultHasher::new();
     path.to_string_lossy().to_lowercase().hash(&mut hash);
     HSTRING::from(format!(

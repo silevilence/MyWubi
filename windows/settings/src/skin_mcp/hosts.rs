@@ -91,11 +91,17 @@ fn stage(args: &Value, bin: &Path) -> Result<Value, String> {
                 c.kind == "appearance" && args[&field].as_str().is_none_or(|id| id == c.id)
             })
         });
-        if let Some(c) = component {
-            crate::skin_editor::resolve_view(&package, p, &c.id, true)?;
-            manifest[&field] = c.id.clone().into();
-        }
-        selected.push((p, component.is_some()));
+        let failure = match component {
+            None => Some(("not_run", "皮肤未提供指定平台的外观组件".to_owned())),
+            Some(c) => match crate::skin_editor::resolve_view(&package, p, &c.id, true) {
+                Ok(_) => {
+                    manifest[&field] = c.id.clone().into();
+                    None
+                }
+                Err(error) => Some(("failed", error)),
+            },
+        };
+        selected.push((p, failure));
     }
     let prepare = || -> std::io::Result<()> {
         fs::create_dir_all(app.join("skins"))?;
@@ -139,10 +145,10 @@ fn stage(args: &Value, bin: &Path) -> Result<Value, String> {
         Ok(())
     };
     prepare().map_err(|e| e.to_string())?;
-    for (p, available) in selected {
+    for (p, failure) in selected {
         let report = root.join(p).join("report.json");
-        if !available {
-            record(&report, "not_run", "皮肤未提供指定平台的外观组件")?;
+        if let Some((state, reason)) = failure {
+            record(&report, state, &reason)?;
             continue;
         }
         let lock = fs::OpenOptions::new()
@@ -166,7 +172,13 @@ fn stage(args: &Value, bin: &Path) -> Result<Value, String> {
                 )
                 .join("System32/WindowsPowerShell/v1.0/powershell.exe");
                 let result = Command::new(powershell)
-                    .args(["-NoProfile", "-NonInteractive", "-File"])
+                    .args([
+                        "-NoProfile",
+                        "-NonInteractive",
+                        "-ExecutionPolicy",
+                        "RemoteSigned",
+                        "-File",
+                    ])
                     .arg(script)
                     .arg(p)
                     .creation_flags(0x08000000)

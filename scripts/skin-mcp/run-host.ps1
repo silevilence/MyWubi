@@ -4,7 +4,12 @@ $root = $PSScriptRoot
 $job = Get-Content -Raw -Encoding UTF8 -LiteralPath "$root\job.json" | ConvertFrom-Json
 $out = "$root\$Platform"
 New-Item -ItemType Directory -Path $out | Out-Null
-function Skip([string]$Reason) { @{status='not_run';reason=$Reason} | ConvertTo-Json | Set-Content "$out\report.json" -Encoding UTF8 }
+function Write-Report($report) {
+    $pending = Join-Path $out 'report.pending'
+    [IO.File]::WriteAllText($pending,($report | ConvertTo-Json -Depth 4),[Text.UTF8Encoding]::new($false))
+    [IO.File]::Move($pending,(Join-Path $out 'report.json'))
+}
+function Skip([string]$Reason) { Write-Report @{status='not_run';reason=$Reason} }
 function Test-Windows {
     $sandbox = Get-Command WindowsSandbox.exe -ErrorAction SilentlyContinue
     if (!$sandbox) { Skip 'Windows Sandbox is unavailable'; return }
@@ -13,7 +18,7 @@ function Test-Windows {
     $src = [Security.SecurityElement]::Escape($root)
     $dest = [Security.SecurityElement]::Escape($out)
     $xml = @"
-<Configuration><Networking>Disable</Networking><MappedFolders><MappedFolder><HostFolder>$src</HostFolder><SandboxFolder>C:\Browser-Source</SandboxFolder><ReadOnly>true</ReadOnly></MappedFolder><MappedFolder><HostFolder>$dest</HostFolder><SandboxFolder>C:\Browser-Results</SandboxFolder><ReadOnly>false</ReadOnly></MappedFolder></MappedFolders><LogonCommand><Command>powershell.exe -NoProfile -STA -File C:\Browser-Source\scripts\guest.ps1</Command></LogonCommand></Configuration>
+<Configuration><Networking>Disable</Networking><MappedFolders><MappedFolder><HostFolder>$src</HostFolder><SandboxFolder>C:\Browser-Source</SandboxFolder><ReadOnly>true</ReadOnly></MappedFolder><MappedFolder><HostFolder>$dest</HostFolder><SandboxFolder>C:\Browser-Results</SandboxFolder><ReadOnly>false</ReadOnly></MappedFolder></MappedFolders><LogonCommand><Command>powershell.exe -NoProfile -ExecutionPolicy RemoteSigned -STA -File C:\Browser-Source\scripts\guest.ps1</Command></LogonCommand></Configuration>
 "@
     [IO.File]::WriteAllText("$root\skin.wsb",$xml)
     $instance = Start-Process -FilePath $sandbox.Source -ArgumentList ('"'+$root+'\skin.wsb"') -PassThru -WindowStyle Hidden
@@ -42,18 +47,19 @@ function Test-Android {
         Skip 'Install the MyWubi debug app, androidTest APK, and acceptance host on the test device'; return
     }
     $remote = "/sdcard/Android/data/org.mywubi/files/mcp-$($job.job)"
-    Adb shell mkdir -p $remote | Out-Null
+    $staged = "/data/local/tmp/mywubi-$($job.job).mywubi-skin"
     try {
-        Adb push "$root\app\skins\$($job.file)" "$remote/skin.mywubi-skin" | Out-Null
+        Adb push "$root\app\skins\$($job.file)" $staged | Out-Null
         $lines = Adb shell am instrument -w -r -e class 'org.mywubi.McpSkinHostTest#exportedSkinInExternalEditor' -e skinJob $job.job -e component $job.androidComponent -e sha256 $job.sha256 org.mywubi.test/androidx.test.runner.AndroidJUnitRunner
         $lines | Set-Content "$out\instrumentation.txt" -Encoding UTF8
         if (!($lines -match 'OK \(1 test\)')) { throw "Android host assertion failed: $($lines -join ' ')" }
         Adb pull "$remote/assertions.json" "$out\assertions.json" | Out-Null
         Adb pull "$remote/android.png" "$out\android.png" | Out-Null
     } finally {
+        Adb shell rm -f $staged | Out-Null
         # Only this run's UUID directory is owned by this runner.
         foreach ($name in 'skin.mywubi-skin','main.dict','assertions.json','android.png') { Adb shell rm -f "$remote/$name" | Out-Null }
-        Adb shell rmdir $remote | Out-Null
+        Adb shell "if [ -d '$remote' ]; then rmdir '$remote'; fi" | Out-Null
     }
 }
 try {
@@ -61,9 +67,9 @@ try {
     if (!(Test-Path "$out\report.json")) {
         $assertions=Get-Content -Raw -Encoding UTF8 "$out\assertions.json" | ConvertFrom-Json
         if ($assertions.sha256 -ne $job.sha256 -or $assertions.text -cne '以及' -or !$assertions.focus -or $assertions.selectionStart -ne 2 -or $assertions.selectionEnd -ne 2 -or !(Test-Path "$out\$Platform.png")) { throw 'Incomplete host evidence' }
-        @{status='passed';assertions=$assertions;screenshot="$out\$Platform.png"} | ConvertTo-Json -Depth 4 | Set-Content "$out\report.json" -Encoding UTF8
+        Write-Report @{status='passed';assertions=$assertions;screenshot="$out\$Platform.png"}
     }
 } catch {
-    @{status='failed';reason=$_.Exception.Message} | ConvertTo-Json | Set-Content "$out\report.json" -Encoding UTF8
+    Write-Report @{status='failed';reason=$_.Exception.Message}
     exit 1
 }

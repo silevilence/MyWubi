@@ -1,4 +1,6 @@
 //! Standalone skin authoring window. Applying a skin reads the latest saved config.
+#[cfg(test)]
+mod takeover_test;
 use crate::{skin_editor::SkinEditor, ui_style};
 use eframe::egui;
 use std::path::{Path, PathBuf};
@@ -84,7 +86,10 @@ impl SkinApp {
                 return;
             }
             match crate::skin_mcp::Endpoint::start(ctx.clone()) {
-                Ok(endpoint) => self.mcp = Some(endpoint),
+                Ok(endpoint) => {
+                    self.editor.refresh_readonly_preview();
+                    self.mcp = Some(endpoint);
+                }
                 Err(e) => {
                     self.error = Some(format!("MCP 开启失败：{e}"));
                     return;
@@ -103,6 +108,11 @@ impl SkinApp {
 
 impl eframe::App for SkinApp {
     fn update(&mut self, ctx: &egui::Context, _frame: &mut eframe::Frame) {
+        self.show(ctx);
+    }
+}
+impl SkinApp {
+    fn show(&mut self, ctx: &egui::Context) {
         if let Some(control) = &self.controls {
             let (enable, disable, focus) = control.poll();
             if enable || disable {

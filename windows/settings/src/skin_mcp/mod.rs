@@ -48,27 +48,38 @@ impl Endpoint {
         let url = format!("http://{authority}{path}");
         let (send, calls) = mpsc::channel();
         let stopped = Arc::new(AtomicBool::new(false));
-        let shutdown = stopped.clone();
-        std::thread::Builder::new()
-            .name("skin-mcp".into())
-            .spawn(move || {
-                while !shutdown.load(Ordering::Acquire) {
-                    match server.recv_timeout(Duration::from_millis(100)) {
-                        Ok(Some(req)) => serve(req, &authority, &path, &send, &ctx),
-                        Ok(None) => continue,
-                        Err(_) => break,
-                    }
-                }
-            })
-            .map_err(|e| e.to_string())?;
-        Ok(Self {
+        let server = Arc::new(server);
+        let endpoint = Self {
             url,
             calls,
             stopped,
             owner: None,
             last_write: std::time::Instant::now(),
             operation: String::new(),
-        })
+        };
+        for _ in 0..3 {
+            let (server, send, ctx, authority, path, shutdown) = (
+                server.clone(),
+                send.clone(),
+                ctx.clone(),
+                authority.clone(),
+                path.clone(),
+                endpoint.stopped.clone(),
+            );
+            std::thread::Builder::new()
+                .name("skin-mcp".into())
+                .spawn(move || {
+                    while !shutdown.load(Ordering::Acquire) {
+                        match server.recv_timeout(Duration::from_millis(100)) {
+                            Ok(Some(req)) => serve(req, &authority, &path, &send, &ctx),
+                            Ok(None) => continue,
+                            Err(_) => break,
+                        }
+                    }
+                })
+                .map_err(|e| e.to_string())?;
+        }
+        Ok(endpoint)
     }
     pub fn update(&mut self, editor: &mut SkinEditor) {
         if self.owner.is_some() && self.last_write.elapsed() >= Duration::from_secs(300) {
@@ -76,6 +87,22 @@ impl Endpoint {
             self.operation.clear();
         }
         if let Ok(call) = self.calls.try_recv() {
+            if call.rpc["method"] == "tools/call" && call.rpc["params"]["name"] == "preview" {
+                // A snapshot lets the user take control while a preview is being rendered.
+                if let Ok(draft) = editor.draft() {
+                    let package = draft.package.clone();
+                    std::thread::spawn(move || {
+                        let result = tool_result(preview::render(
+                            &call.rpc["params"]["arguments"],
+                            &package,
+                        ));
+                        let _ = call
+                            .reply
+                            .send(json!({"jsonrpc":"2.0","id":call.rpc["id"],"result":result}));
+                    });
+                    return;
+                }
+            }
             let result = self.rpc(&call.rpc, editor);
             let _ = call.reply.send(result);
         }
@@ -87,11 +114,16 @@ impl Endpoint {
         let id = &rpc["id"];
         let result = match rpc["method"].as_str() {
             Some("initialize") => {
-                json!({"protocolVersion":VERSION,"capabilities":{"tools":{},"resources":{}},
+                let version = match rpc["params"]["protocolVersion"].as_str() {
+                    Some(version @ ("2025-03-26" | "2025-06-18")) => version,
+                    _ => VERSION,
+                };
+                json!({"protocolVersion":version,"capabilities":{"tools":{},"resources":{}},
                 "serverInfo":{"name":"mywubi-skin-editor","version":env!("CARGO_PKG_VERSION")},
                 "instructions":"Use acquire before editing. Pass its lease to editing tools. Release when finished."})
             }
             Some("resources/list") => json!({"resources":docs::list()}),
+            Some("resources/templates/list") => json!({"resourceTemplates":[]}),
             Some("resources/read") => {
                 match docs::read(rpc["params"]["uri"].as_str().unwrap_or_default()) {
                     Ok(c) => json!({"contents":[c]}),
@@ -102,12 +134,7 @@ impl Endpoint {
             Some("tools/list") => json!({"tools":self.tools()}),
             Some("tools/call") => {
                 let name = rpc["params"]["name"].as_str().unwrap_or_default();
-                match self.call(name, &rpc["params"]["arguments"], editor) {
-                    Ok(content) => json!({"content":content}),
-                    Err(message) => {
-                        json!({"isError":true,"content":[{"type":"text","text":message}]})
-                    }
-                }
+                tool_result(self.call(name, &rpc["params"]["arguments"], editor))
             }
             _ => return error(id, -32601, "Method not found"),
         };
@@ -171,20 +198,29 @@ impl Endpoint {
                 hosts::start(args)?
             }
             "test_status" => hosts::status(author::string(args, "job")?)?,
-            "preview" => return preview::run(args, editor),
+            "preview" => return preview::render(args, &editor.draft()?.package),
             "inspect" | "validate" => author::read(name, args, editor)?,
             _ => {
                 self.check_owner(args)?;
-                self.operation = format!(
-                    "{} {} {} {}",
-                    name,
-                    args["platform"].as_str().unwrap_or(""),
-                    args["component"].as_str().unwrap_or(""),
-                    args["variant"].as_str().unwrap_or("")
-                )
-                .trim()
-                .into();
-                author::write(name, args, editor)?
+                let output = author::write(name, args, editor)?;
+                self.operation = match name {
+                    "create_skin" => "已从模板创建草稿".into(),
+                    "open_skin" => "已打开皮肤包".into(),
+                    "set_identity" => "已更新作品信息".into(),
+                    "import_png" => "已导入 PNG 素材".into(),
+                    "export" => "已导出皮肤包".into(),
+                    _ => format!(
+                        "已修改 {} · {} · {}",
+                        args["platform"].as_str().unwrap_or_default(),
+                        args["component"].as_str().unwrap_or_default(),
+                        if args["variant"] == "dark" {
+                            "深色"
+                        } else {
+                            "浅色"
+                        }
+                    ),
+                };
+                output
             }
         };
         Ok(text_result(result))
@@ -201,6 +237,12 @@ impl Endpoint {
 
 fn text_result(value: Value) -> Value {
     json!([{"type":"text","text":value.to_string()}])
+}
+fn tool_result(result: Result<Value, String>) -> Value {
+    match result {
+        Ok(content) => json!({"content":content}),
+        Err(message) => json!({"isError":true,"content":[{"type":"text","text":message}]}),
+    }
 }
 fn tool(name: &str, description: &str, properties: Value, required: &[&str]) -> Value {
     json!({"name":name,"description":description,"inputSchema":{"type":"object","properties":properties,"required":required,"additionalProperties":false}})

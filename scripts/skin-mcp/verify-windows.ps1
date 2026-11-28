@@ -36,16 +36,19 @@ try {
     $pattern = [Windows.Automation.TextPattern]$editor.GetCurrentPattern([Windows.Automation.TextPattern]::Pattern)
     $caret = $pattern.GetSelection()[0]
     $prefix = $pattern.DocumentRange.Clone()
-    $prefix.MoveEndpointByRange([Windows.Automation.TextPatternRangeEndpoint]::End,$caret,[Windows.Automation.TextPatternRangeEndpoint]::Start)
-    if ($caret.GetText(-1) -ne '' -or $prefix.GetText(-1) -cne '以及') { throw 'Host caret did not collapse at end of commit' }
+    $prefix.MoveEndpointByRange([Windows.Automation.Text.TextPatternRangeEndpoint]::End,$caret,[Windows.Automation.Text.TextPatternRangeEndpoint]::Start)
+    $start = $prefix.GetText(-1).Length
+    $end = $start + $caret.GetText(-1).Length
+    if ($start -ne 2 -or $end -ne 2) { throw "Host caret did not collapse at end of commit ($start, $end)" }
     $manifest = Get-Content -Raw -Encoding UTF8 C:\Browser-Source\job.json | ConvertFrom-Json
     $loaded = Get-FileHash -LiteralPath ("C:\Browser-App\skins\" + $manifest.file)
     if ($loaded.Hash.ToLowerInvariant() -ne $manifest.sha256) { throw 'Guest skin hash differs' }
-    $logs = Get-ChildItem C:\Browser-App -Recurse -Filter debug.log
-    foreach ($log in $logs) {
-        if (Select-String -LiteralPath $log.FullName -SimpleMatch '[skin] 初始皮肤加载失败' -Quiet) {throw 'TSF fell back to the default skin'}
-    }
-    @{text=$value.Current.Value; focus=$editor.Current.HasKeyboardFocus; selectionStart=2; selectionEnd=2; sha256=$manifest.sha256} | ConvertTo-Json | Set-Content C:\Browser-Results\assertions.json -Encoding UTF8
+    $identity = [IO.Path]::GetFileNameWithoutExtension($manifest.file)
+    $expected = "[skin] loaded pid=$hostId package=$identity component=$($manifest.windowsComponent)"
+    $log = 'C:\Browser-App\log\im_engine.log'
+    Wait-For { (Test-Path $log) -and (Select-String -LiteralPath $log -Encoding UTF8 -SimpleMatch $expected -Quiet) } 'The editor host did not load the expected skin'
+    $expected | Set-Content C:\Browser-Results\loaded-skin.txt -Encoding UTF8
+    @{text=$value.Current.Value; focus=$editor.Current.HasKeyboardFocus; selectionStart=$start; selectionEnd=$end; sha256=$manifest.sha256} | ConvertTo-Json | Set-Content C:\Browser-Results\assertions.json -Encoding UTF8
     'passed' | Set-Content C:\Browser-Results\passed.txt
 } catch {
     $_ | Out-String | Set-Content C:\Browser-Results\failure.txt

@@ -14,7 +14,11 @@ pub struct Draft {
 impl Draft {
     /// An editable, unsaved copy of a package supplied by an authoring template.
     pub fn from_template(package: Package) -> Self {
-        Self { package, dirty: true, source: None }
+        Self {
+            package,
+            dirty: true,
+            source: None,
+        }
     }
     pub fn builtin(name: &str) -> Result<Self, Error> {
         let mut package = parameters::builtin_package(name)?;

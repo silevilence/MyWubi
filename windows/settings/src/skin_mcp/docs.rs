@@ -17,6 +17,12 @@ const SPACE_EXAMPLE: &str =
     "[images.dark.space]\nresource = \"shared:bamboo\"\nmode = \"stretch\"\nopacity = 0.8";
 const RESOURCES: &[Resource] = &[
     Resource {
+        key: "mcp",
+        name: "MCP 使用说明与真实宿主环境",
+        mime: "text/markdown",
+        data: include_bytes!("../../../../docs/skin-mcp.md"),
+    },
+    Resource {
         key: "guide",
         name: "制作指南 Author guide",
         mime: "text/markdown",
@@ -186,6 +192,13 @@ pub fn lookup(query: &str) -> Result<Value, String> {
             found.push(json!({"uri":uri(r),"name":r.name,"text":if excerpt.is_empty() && text {lines.lines().take(5).collect::<Vec<_>>().join("\n")} else {excerpt}}));
         }
     }
+    found.sort_by_key(|entry| {
+        !entry["name"]
+            .as_str()
+            .unwrap_or_default()
+            .to_lowercase()
+            .contains(&query)
+    });
     Ok(json!({"matches":found}))
 }
 

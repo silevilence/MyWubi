@@ -154,7 +154,14 @@ pub fn validate(draft: &Draft) -> Result<(), skin::Error> {
                     false,
                     &supported,
                 )?;
-                text_render::skin_images::decode(&draft.package, &resolved.images)?;
+                text_render::skin_images::decode(&draft.package, &resolved.images).map_err(
+                    |e| {
+                        skin::Error::Invalid(format!(
+                            "{platform}/{}/images.{}: {e}",
+                            component.id, resolved.variant
+                        ))
+                    },
+                )?;
             }
         }
     }

@@ -21,8 +21,11 @@ class McpSkinHostTest {
         val ins = InstrumentationRegistry.getInstrumentation()
         val context = ins.targetContext
         val device = UiDevice.getInstance(ins)
-        val root = File(context.getExternalFilesDir(null), "mcp-$job")
+        val root = File(context.getExternalFilesDir(null), "mcp-$job").apply { check(mkdirs() || isDirectory) }
         val source = File(root, "skin.mywubi-skin")
+        android.os.ParcelFileDescriptor.AutoCloseInputStream(ins.uiAutomation.executeShellCommand("cat /data/local/tmp/mywubi-$job.mywubi-skin")).use { input ->
+            source.outputStream().use { output -> input.copyTo(output) }
+        }
         val hash = MessageDigest.getInstance("SHA-256").digest(source.readBytes()).joinToString("") { "%02x".format(it) }
         assertEquals(args.getString("sha256"), hash)
         val path = Resources.prepare(context)

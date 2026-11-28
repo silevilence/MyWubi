@@ -1,8 +1,7 @@
 use super::{author::target, tool};
-use crate::{
-    android_skin_preview::AndroidPreview,
-    skin_editor::{resolve_view, SkinEditor},
-};
+#[cfg(test)]
+use crate::skin_editor::SkinEditor;
+use crate::{android_skin_preview::AndroidPreview, skin_editor::resolve_view};
 use base64::{engine::general_purpose::STANDARD, Engine};
 use eframe::{egui, egui_wgpu};
 use image::RgbaImage;
@@ -34,14 +33,18 @@ fn ordinary() -> String {
     "ordinary".into()
 }
 
+#[cfg(test)]
 pub fn run(args: &Value, editor: &SkinEditor) -> Result<Value, String> {
+    render(args, &editor.draft()?.package)
+}
+pub fn render(args: &Value, package: &core_engine::skin::Package) -> Result<Value, String> {
     let (platform, component, dark) = target(args)?;
     let scenes: Vec<Scene> =
         serde_json::from_value(args["scenes"].clone()).map_err(|e| e.to_string())?;
     if !(1..=6).contains(&scenes.len()) {
         return Err("scenes 需指定一至六个场景".into());
     }
-    let (view, images) = resolve_view(&editor.draft()?.package, platform, component, dark)?;
+    let (view, images) = resolve_view(package, platform, component, dark)?;
     let images = Arc::new(images);
     let mut results = Vec::new();
     for scene in scenes {
@@ -91,14 +94,16 @@ pub fn run(args: &Value, editor: &SkinEditor) -> Result<Value, String> {
                     .map_err(|e| e.to_string())?;
                 let pixels = bitmap
                     .pixels()
-                    .chunks_exact(4)
+                    .as_chunks::<4>()
+                    .0
+                    .iter()
                     .flat_map(|p| {
                         egui::Color32::from_rgba_premultiplied(p[2], p[1], p[0], p[3])
                             .to_srgba_unmultiplied()
                     })
                     .collect();
                 (
-                    RgbaImage::from_raw(bitmap.width as u32, bitmap.height as u32, pixels)
+                    RgbaImage::from_raw(bitmap.width, bitmap.height, pixels)
                         .ok_or("无效的原生位图")?,
                     "windows-native",
                 )

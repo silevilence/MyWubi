@@ -34,18 +34,26 @@ fn release_expiry_and_shutdown_revoke_writer_ownership() {
     endpoint.last_write -= Duration::from_secs(301);
     endpoint.update(&mut editor);
     assert!(endpoint.call("release", &token, &mut editor).is_err());
+    author::write("create_skin", &json!({"template":"bamboo"}), &mut editor).unwrap();
+    let lease = endpoint.call("acquire", &Value::Null, &mut editor).unwrap();
+    let lease: Value = serde_json::from_str(lease[0]["text"].as_str().unwrap()).unwrap();
+    let mut args = json!({"platform":"android","component":"jade","variant":"dark","fields":{"key_text_size":29},"lease":lease["lease"]});
     let (tx, rx) = mpsc::channel();
     let (reply, response) = mpsc::channel();
     endpoint.calls = rx;
     tx.send(Call {
-        rpc: json!({"method":"tools/call","params":{"name":"acquire"}}),
+        rpc: json!({"method":"tools/call","params":{"name":"edit_appearance","arguments":args}}),
         reply,
     })
     .unwrap();
     drop(endpoint);
+    args["fields"]["key_text_size"] = 31.into();
+    author::write("edit_appearance", &args, &mut editor).unwrap();
     assert!(response.recv().is_err());
-    editor.create("plain").unwrap();
-    assert!(editor.has_draft());
+    assert_eq!(
+        author::read("inspect", &args, &editor).unwrap()["fields"]["key_text_size"].as_f64(),
+        Some(31.0)
+    );
 }
 
 #[test]
@@ -54,6 +62,9 @@ fn targeted_edit_is_atomic_and_round_trips_to_new_file() {
     author::write("create_skin", &json!({"template":"bamboo"}), &mut editor).unwrap();
     let original = editor.draft().unwrap().package.files["windows/appearance.toml"].clone();
     let mut args = json!({"platform":"android","component":"jade","variant":"dark","fields":{"font_size":23},"images":{"space":{"resource":"shared:missing","mode":"stretch","opacity":1.0}}});
+    let mut light = args.clone();
+    light["variant"] = "light".into();
+    let before_light = author::read("inspect", &light, &editor).unwrap();
     let before = author::read("inspect", &args, &editor).unwrap();
     assert!(author::write("edit_appearance", &args, &mut editor)
         .unwrap_err()
@@ -65,6 +76,12 @@ fn targeted_edit_is_atomic_and_round_trips_to_new_file() {
     let path = root.path().join("皮肤.mywubi-skin");
     author::write("export", &json!({"path":path}), &mut editor).unwrap();
     assert!(author::write("export", &json!({"path":path}), &mut editor).is_err());
+    let mut editor = SkinEditor::default();
+    author::write("open_skin", &json!({"path":path}), &mut editor).unwrap();
+    assert_eq!(
+        author::read("inspect", &light, &editor).unwrap(),
+        before_light
+    );
     assert_eq!(
         editor.draft().unwrap().package.files["windows/appearance.toml"],
         original
@@ -101,11 +118,12 @@ fn bamboo_preview_changes_only_android_dark_space_and_exports_the_final_revision
     };
     let android = render(&editor, "android", "before");
     let windows = render(&editor, "windows", "before");
-    let mut patch = json!({"platform":"android","component":"jade","variant":"dark","images":{"space":{"resource":"shared:bamboo","mode":"stretch","opacity":0.35}}});
+    let mut patch = json!({"platform":"android","component":"jade","variant":"dark","images":{"space":{"resource":"shared:bamboo","mode":"stretch","opacity":1.0}}});
     author::write("edit_appearance", &patch, &mut editor).unwrap();
     let first = render(&editor, "android", "first");
     assert_ne!(android, first);
-    patch["images"]["space"]["opacity"] = 1.0.into();
+    // Keep the pale paper subtle under the light lettering of the dark keyboard.
+    patch["images"]["space"]["opacity"] = 0.20.into();
     author::write("edit_appearance", &patch, &mut editor).unwrap();
     let after = render(&editor, "android", "after");
     assert_ne!(first, after);
@@ -158,11 +176,30 @@ fn run_designated_host_acceptance() {
         report["results"]
             .as_object()
             .unwrap()
-            .values()
-            .all(|r| r["status"] == "passed"
-                || (args["serial"] == "offline-test" && r["status"] == "not_run")),
+            .iter()
+            .all(|(platform, r)| r["status"] == "passed"
+                || (platform == "android"
+                    && args["serial"] == "offline-test"
+                    && r["status"] == "not_run")),
         "{report}"
     );
+}
+
+#[test]
+fn preview_batch_labels_native_scaling_and_schematic_states() {
+    let mut editor = SkinEditor::default();
+    editor.create("jade").unwrap();
+    let mut request = json!({"platform":"windows","component":"jade","variant":"light","scenes":[{"state":"long"},{"state":"long","scale":2}]});
+    let native = preview::run(&request, &editor).unwrap();
+    let metadata = |v: &Value| serde_json::from_str::<Value>(v["text"].as_str().unwrap()).unwrap();
+    assert_eq!(metadata(&native[0])["source"], "windows-native");
+    assert!(metadata(&native[2])["height"].as_u64() > metadata(&native[0])["height"].as_u64());
+    request["platform"] = "android".into();
+    request["scenes"] = json!([{"state":"pressed"},{"state":"disabled"},{"state":"bubble","landscape":true,"scale":2}]);
+    let android = preview::run(&request, &editor).unwrap();
+    assert_eq!(metadata(&android[0])["source"], "android-desktop-schematic");
+    assert_ne!(android[1]["data"], android[3]["data"]);
+    assert_eq!(metadata(&android[4])["width"], 720);
 }
 
 #[test]
@@ -177,22 +214,72 @@ fn http_client_inspects_the_open_draft() {
             .unwrap()
             .split_once('/')
             .unwrap();
-        let mut socket = TcpStream::connect(host).unwrap();
-        socket
-            .set_read_timeout(Some(Duration::from_secs(5)))
-            .unwrap();
-        let body = json!({"jsonrpc":"2.0","id":1,"method":"tools/call","params":{"name":"status","arguments":{}}}).to_string();
-        write!(socket, "POST /{path} HTTP/1.1\r\nHost: {host}\r\nConnection: close\r\nContent-Type: application/json\r\nContent-Length: {}\r\n\r\n{body}",body.len()).unwrap();
-        let mut response = String::new();
-        socket.read_to_string(&mut response).unwrap();
-        response
+        let rpc = |method: &str, params: Value| -> Value {
+            let mut socket = TcpStream::connect(host).unwrap();
+            socket
+                .set_read_timeout(Some(Duration::from_secs(15)))
+                .unwrap();
+            let body = json!({"jsonrpc":"2.0","id":1,"method":method,"params":params}).to_string();
+            write!(socket,"POST /{path} HTTP/1.0\r\nHost: {host}\r\nConnection: close\r\nAccept: application/json, text/event-stream\r\nContent-Type: application/json\r\nContent-Length: {}\r\n\r\n{body}",body.len()).unwrap();
+            let mut response = String::new();
+            socket.read_to_string(&mut response).unwrap();
+            let (headers, body) = response.split_once("\r\n\r\n").unwrap();
+            assert!(headers.lines().next().unwrap().contains(" 200 "));
+            serde_json::from_str::<Value>(body).unwrap()["result"].clone()
+        };
+        let invoke = |name: &str, arguments: Value| {
+            rpc("tools/call", json!({"name":name,"arguments":arguments}))
+        };
+        assert_eq!(
+            rpc(
+                "initialize",
+                json!({"protocolVersion":VERSION,"capabilities":{},"clientInfo":{"name":"acceptance","version":"1"}})
+            )["protocolVersion"],
+            VERSION
+        );
+        for version in ["2025-03-26", "2025-06-18"] {
+            assert_eq!(
+                rpc(
+                    "initialize",
+                    json!({"protocolVersion":version,"capabilities":{},"clientInfo":{"name":"acceptance","version":"1"}})
+                )["protocolVersion"],
+                version
+            );
+        }
+        assert!(rpc("resources/list", json!({}))["resources"]
+            .as_array()
+            .unwrap()
+            .iter()
+            .any(|r| r["uri"] == "mywubi://skin/android-space"));
+        let lease: Value = serde_json::from_str(
+            invoke("acquire", json!({}))["content"][0]["text"]
+                .as_str()
+                .unwrap(),
+        )
+        .unwrap();
+        let mut edit = json!({"platform":"android","component":"jade","variant":"dark","fields":{"key_text_size":36}});
+        edit["lease"] = lease["lease"].clone();
+        assert!(invoke("edit_appearance", edit).get("isError").is_none());
+        let result = invoke(
+            "preview",
+            json!({"platform":"android","component":"jade","variant":"dark","scenes":[{"state":"bubble","landscape":true,"scale":2}]}),
+        );
+        assert_eq!(result["content"][1]["mimeType"], "image/png");
+        assert!(result["content"][1]["data"]
+            .as_str()
+            .unwrap()
+            .starts_with("iVBOR"));
+        assert!(invoke("release", lease).get("isError").is_none());
+        invoke("status", json!({}))["content"][0]["text"]
+            .as_str()
+            .unwrap()
+            .to_owned()
     });
-    let until = Instant::now() + Duration::from_secs(5);
+    let until = Instant::now() + Duration::from_secs(20);
     while !client.is_finished() && Instant::now() < until {
         server.update(&mut editor);
         std::thread::sleep(Duration::from_millis(5));
     }
     let response = client.join().unwrap();
-    assert!(response.starts_with("HTTP/1.1 200"));
     assert!(response.contains(editor.title()));
 }

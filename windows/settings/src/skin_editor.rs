@@ -150,6 +150,9 @@ impl SkinEditor {
         }
         Ok(())
     }
+    pub(crate) fn refresh_readonly_preview(&mut self) {
+        self.readonly_key = None;
+    }
     pub fn is_busy(&self) -> bool {
         self.pending.is_some()
     }
@@ -687,12 +690,13 @@ impl SkinEditor {
                             if let Some(mut appearance)=parsed {
                                 if matches!(self.platform.as_str(),"windows"|"android") {
                                     let variant=if self.dark {"dark"} else {"light"};
-                                    if !appearance.variants.contains_key(variant) && ui.button("创建所选变体").clicked() {
+                                    let created = !appearance.variants.contains_key(variant) && ui.button("创建所选变体").clicked();
+                                    if created {
                                         appearance.variants.insert(variant.into(),resolved.parameters.0.clone());draft.dirty=true;
                                     }
                                     let mut changed=false;
                                     if let Some(patch)=appearance.variants.get_mut(variant) {egui::CollapsingHeader::new(if self.platform=="android" {"Android 候选栏、按键与状态参数"} else {"Windows 外观参数"}).default_open(true).show(ui,|ui| {changed=patch_form(ui,patch,&resolved.parameters,false,self.platform=="android",&mut self.field_errors,self.revision);});}
-                                    if changed || (draft.dirty && appearance.variants.contains_key(variant)) {
+                                    if changed || created {
                                         match toml::to_string(&appearance) {Ok(s)=>{draft.package.files.insert(entry_path,s.into_bytes());draft.dirty|=changed;},Err(e)=>self.message=e.to_string()}
                                     }
                                 }

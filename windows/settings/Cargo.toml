@@ -40,7 +40,7 @@ personal_input = { version = "0.15.2", path = "../../personal_input" }
 image = { version = "0.24.9", default-features = false, features = ["png"] }
 tiny_http = "0.12"
 uuid = { version = "1", features = ["v4"] }
-base64 = "0.22"
+base64 = "0.23"
 pollster = "0.3"
 sha2 = "0.11"
 

@@ -67,6 +67,15 @@ pub fn start(path: PathBuf, config: &Config) {
             return;
         }
     };
+    if let (Some(package), Some(selection)) = (&initial.package, &config.skins.windows.selection) {
+        log::info!(
+            "[skin] loaded pid={} package={}@{} component={}",
+            std::process::id(),
+            package.metadata.id,
+            package.metadata.version,
+            selection.component
+        );
+    }
     let skin = Arc::new(arc_swap::ArcSwap::from_pointee(initial));
     if SKIN.set(skin.clone()).is_err() {
         return;

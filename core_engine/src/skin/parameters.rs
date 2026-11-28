@@ -364,8 +364,10 @@ pub fn resolve(
         return Err(Error::Invalid("外观默认变体或变体名称无效".into()));
     }
     validate_patch(&appearance.defaults)?;
-    for patch in appearance.variants.values() {
-        validate_patch(patch)?;
+    for (variant, patch) in &appearance.variants {
+        validate_patch(patch).map_err(|e| {
+            Error::Invalid(format!("{platform}/{component_id}/variants.{variant}: {e}"))
+        })?;
     }
     let requested = if dark { "dark" } else { "light" };
     let variant = if appearance.variants.contains_key(requested) {

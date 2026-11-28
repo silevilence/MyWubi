@@ -157,9 +157,18 @@ pub fn resolve(
     let mut resolved = Images::new();
     for (name, roles) in variants {
         if !appearance.variants.contains_key(&name) {
-            return Err(Error::Invalid("图片变体没有对应参数变体".into()));
+            return Err(Error::Invalid(format!(
+                "{platform}/{}/images.{name} 没有对应参数变体",
+                component.id
+            )));
         }
         for (role, style) in roles {
+            let invalid = |field: &str, reason: &str| {
+                Error::Invalid(format!(
+                    "{platform}/{}/images.{name}.{role}.{field}: {reason}",
+                    component.id
+                ))
+            };
             if !ROLES.contains(&role.as_str())
                 || (platform == "windows" && !matches!(role.as_str(), "background" | "selected"))
             {
@@ -172,25 +181,27 @@ pub fn resolve(
                     .iter()
                     .any(|v| *v > max_content_inset(platform, &role))
             {
-                return Err(Error::Invalid("图片透明度或内容留白超限".into()));
+                return Err(invalid("opacity/content", "图片透明度或内容留白超限"));
             }
-            let path = resource_path(package, platform, &style.resource)?;
+            let path = resource_path(package, platform, &style.resource)
+                .map_err(|e| invalid("resource", &e.to_string()))?;
             let (width, height) = if let Some(size) = dimensions_by_path.get(&path) {
                 *size
             } else {
-                let size = dimensions(&package.files[&path])?;
+                let size = dimensions(&package.files[&path])
+                    .map_err(|e| invalid("resource", &e.to_string()))?;
                 dimensions_by_path.insert(path.clone(), size);
                 size
             };
             let [left, top, right, bottom] = style.slice;
             if style.mode == Mode::Tile && (width < 8 || height < 8) {
-                return Err(Error::Invalid("平铺纹理至少为 8×8 像素".into()));
+                return Err(invalid("mode", "平铺纹理至少为 8×8 像素"));
             }
             if u64::from(left) + u64::from(right) >= u64::from(width)
                 || u64::from(top) + u64::from(bottom) >= u64::from(height)
                 || (style.mode != Mode::NineSlice && style.slice != [0; 4])
             {
-                return Err(Error::Invalid("九宫格切片越界或非九宫格带切片".into()));
+                return Err(invalid("slice", "九宫格切片越界或非九宫格带切片"));
             }
             if name == variant {
                 resolved.insert(
