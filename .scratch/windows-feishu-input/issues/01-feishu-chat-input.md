@@ -22,5 +22,25 @@ Status: 已完成
 - 设置程序会将只有一种架构的旧安装显示为「状态异常」，可点击「修复安装」。在原沙盒中对完整目录执行 `regsvr32 /s im_engine.dll`、卸载、再安装。两个注册表视图依次指向各自的 DLL、同时清空、再指向各自的 DLL。
 - 第一版 x86 构建依赖额外的 VC 运行库，干净沙盒加载失败。改为和 x64 相同的静态 CRT 后，沙盒通过安装和加载检查。最终沙盒构建的 SHA-256 为 x86 `4f1923b361ab833feb6f95949485a2718765597f3c18c47ea7654487a6699032`、x64 `5fa0aeaf3ff44f69241a204274eb3fd2ac5caa3cd81edbb188cdae972709a6d1`。实机飞书测试时使用的 x86 构建为 `7a419cbc26f65fe678f4c6524cd615db20894154e8e2ed0747265bbfd95c5c2f`。
 - 复用本地五笔 86 码表，在沙盒的 32 位记事本、64 位记事本和任务栏搜索框分别键入两次 `a` 加空格。等待候选框出现后选词，每个宿主逐次读回「工」「工工」。两种记事本中，选词后选区均折叠在文字末端。
-- 额外试验中，32 位 Windows PowerShell 临时创建的 WinForms 文本框只收到字母和空格，未观察到候选。该宿主的原因未定位。
+- 额外试验中，32 位 Windows PowerShell 临时创建的 WinForms 文本框只收到字母和空格。后续在同一进程内定位到文档焦点丢失，见下节。
 - `cargo test --workspace --locked --offline` 通过 655 项，忽略 9 项。`cargo +1.96.0 test --target i686-pc-windows-msvc -p im_engine -p tip_manager --locked --offline` 通过 98 项，忽略 1 项。
+
+## 32 位 PowerShell 窗体验证
+
+2026-11-28 在 Windows Sandbox 中复用了上面的 x86 DLL 和五笔 86 码表。重装后打开 32 位 Windows PowerShell 的 WinForms 单行文本框，间歇出现连续两次输入 `a` 加空格只得到 `a a `。原试验只核对了前台进程；本次在窗体自己的 UI 线程记录了以下状态。
+
+| 检查 | 只收到字母和空格时 | 在同一窗体内恢复后 |
+| --- | --- | --- |
+| 输入法 | MyWubi 已选中，x86 DLL 已加载，中文开关已开 | 同一进程、同一 DLL、同一码表 |
+| 焦点 | Win32 键盘焦点是文本框，TSF 的文档和编辑上下文均为空 | 焦点从窗体按钮回到原文本框，TSF 文档和编辑上下文均可用 |
+| 输入 | 没有候选；点击已获焦的文本框或切走再切回输入法仍无候选 | 出现候选，空格能把「工」插入原文本框 |
+
+修正在沙盒验收窗体中。切到 MyWubi 后，窗体让焦点从自己的按钮回到文本框，并在 UI 线程确认 TSF 已取得文档，再发送测试按键。Windows 由宿主提供编辑文档，输入法从当前文档取得上屏位置。[微软 TSF 文档](https://learn.microsoft.com/en-us/windows/win32/tsf/document-manager)
+
+复测时，在已装 MyWubi 的沙盒内仅保留美式键盘和中文 MyWubi，选用五笔 86 码表。将 [验收脚本与控件探针](../../../scripts/windows-winforms) 放在同一目录，在该目录运行以下命令。
+
+```powershell
+& "$env:WINDIR\SysWOW64\WindowsPowerShell\v1.0\powershell.exe" -NoProfile -STA -ExecutionPolicy RemoteSigned -File .\verify.ps1
+```
+
+两次独立启动均以退出码 0 结束。每次先用美式键盘读回 `a `，再切到 MyWubi，核对本进程候选框和两次上屏，依次读回「工」「工工」，光标位置为 1、2，选区长度均为 0。用临时副本分别省略切换中文、回到文本框两个步骤，前者在候选检查失败，后者在文档焦点检查失败，退出码均为 1。
