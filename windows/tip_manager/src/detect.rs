@@ -5,7 +5,7 @@
 use windows::core::HSTRING;
 use windows::Win32::Foundation::WIN32_ERROR;
 use windows::Win32::System::Registry::{
-    RegCloseKey, RegOpenKeyExW, HKEY, HKEY_CLASSES_ROOT, KEY_READ,
+    RegCloseKey, RegOpenKeyExW, HKEY, HKEY_CLASSES_ROOT, KEY_READ, REG_SAM_FLAGS,
 };
 
 use crate::guids::clsid_string;
@@ -15,12 +15,11 @@ use crate::TipStatus;
 const ERROR_SUCCESS: WIN32_ERROR = WIN32_ERROR(0);
 
 /// 检查注册表中 TIP CLSID 键是否存在。
-fn is_registry_present() -> bool {
+pub(crate) fn is_registry_present(access: REG_SAM_FLAGS) -> bool {
     let clsid_str = clsid_string();
     let inproc_path = HSTRING::from(format!("CLSID\\{clsid_str}\\InprocServer32"));
     let mut key = HKEY::default();
-    let status =
-        unsafe { RegOpenKeyExW(HKEY_CLASSES_ROOT, &inproc_path, None, KEY_READ, &mut key) };
+    let status = unsafe { RegOpenKeyExW(HKEY_CLASSES_ROOT, &inproc_path, None, access, &mut key) };
     if status == ERROR_SUCCESS {
         unsafe {
             let _ = RegCloseKey(key);
@@ -36,7 +35,12 @@ fn is_registry_present() -> bool {
 /// `profile_mgr` 参数允许注入 mock 用于测试。
 /// 若传 `None`，内部创建真实 `ComProfileManager`。
 pub fn detect_status_impl(profile_mgr: Option<&dyn TipProfileManager>) -> TipStatus {
-    if !is_registry_present() {
+    let native = is_registry_present(KEY_READ);
+    #[cfg(target_arch = "x86_64")]
+    if native != is_registry_present(KEY_READ | windows::Win32::System::Registry::KEY_WOW64_32KEY) {
+        return TipStatus::Unknown;
+    }
+    if !native {
         return TipStatus::NotInstalled;
     }
 

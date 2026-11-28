@@ -3,12 +3,14 @@
 //! 封装 TIP 全生命周期管理：注册表写入 + `ITfInputProcessorProfileMgr` COM 调用。
 
 pub mod app_container;
+mod bundle;
 pub mod detect;
 pub mod error;
 pub mod guids;
 pub mod profile;
 pub mod registrar;
 
+pub use bundle::{install_bundle, uninstall_bundle, X86_DLL};
 pub use error::TipManagerError;
 pub use profile::TipProfileManager;
 

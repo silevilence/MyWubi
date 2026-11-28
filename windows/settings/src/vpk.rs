@@ -102,7 +102,12 @@ pub fn init_velopack() {
 pub fn prepare_tip_access() -> Result<(), String> {
     let exe = std::env::current_exe().map_err(|error| error.to_string())?;
     let directory = exe.parent().ok_or_else(|| "无法定位应用目录".to_string())?;
-    tip_manager::app_container::prepare_tip(&directory.join("im_engine.dll"))
+    tip_manager::app_container::prepare_tip(&directory.join("im_engine.dll"))?;
+    let companion = directory.join(tip_manager::X86_DLL);
+    if companion.exists() {
+        tip_manager::app_container::prepare_tip(&companion)?;
+    }
+    Ok(())
 }
 
 #[cfg(windows)]

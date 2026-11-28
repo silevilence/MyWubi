@@ -62,6 +62,9 @@ cargo build --release
 ### 打包发布
 
 ```powershell
+# 首次打包时添加 32 位目标，供飞书等 32 位应用加载输入法
+rustup target add i686-pc-windows-msvc
+
 # Velopack 打包（生成 Setup.exe / Portable.zip / 增量包）
 .\build.ps1
 

@@ -15,17 +15,17 @@ $ErrorActionPreference = "Stop"
 # 选择构建配置
 $buildProfile = if ($Release) { "release" } else { "debug" }
 $targetDir = "target\$buildProfile"
+$imEngineX86 = "target\i686-pc-windows-msvc\$buildProfile\im_engine.dll"
 $deployDir = "deploy"
 
 Write-Host "=== MyWubi 打包 ($buildProfile) ===" -ForegroundColor Cyan
 
 # 1. 确保已构建
-if (-not (Test-Path "$targetDir\settings.exe") -or -not (Test-Path "$targetDir\skin_editor.exe") -or -not (Test-Path "$targetDir\im_engine.dll")) {
-    Write-Host "尚未构建，执行 cargo build --$buildProfile ..." -ForegroundColor Yellow
-    if ($Release) { cargo build --release --locked -p settings -p im_engine }
-    else { cargo build --locked -p settings -p im_engine }
-    if ($LASTEXITCODE -ne 0) { throw "构建失败" }
-}
+$profileArgs = if ($Release) { @('--release') } else { @() }
+cargo build --locked -p settings -p im_engine @profileArgs
+if ($LASTEXITCODE -ne 0) { throw 'Application build failed' }
+cargo build --locked --target i686-pc-windows-msvc -p im_engine @profileArgs
+if ($LASTEXITCODE -ne 0) { throw '32-bit input service build failed' }
 
 # 2. 创建 deploy 目录
 New-Item -ItemType Directory -Force -Path $deployDir | Out-Null
@@ -35,6 +35,7 @@ Write-Host "复制二进制文件..." -ForegroundColor Green
 Copy-Item "$targetDir\settings.exe" "$deployDir\" -Force
 Copy-Item "$targetDir\skin_editor.exe" "$deployDir\" -Force
 Copy-Item "$targetDir\im_engine.dll" "$deployDir\" -Force
+Copy-Item -LiteralPath $imEngineX86 -Destination (Join-Path $deployDir 'im_engine_x86.dll') -Force
 
 # 4. 复制配置文件（默认不复制，避免覆盖已有配置）
 if ($CopyConfig) {

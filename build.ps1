@@ -63,6 +63,8 @@ if (-not $SkipBuild) {
         try {
             cargo build --release --locked -p settings -p im_engine
             if ($LASTEXITCODE -ne 0) { throw 'Application build failed' }
+            cargo build --release --locked --target i686-pc-windows-msvc -p im_engine
+            if ($LASTEXITCODE -ne 0) { throw '32-bit input service build failed' }
         } finally { Pop-Location }
     } finally { $env:MYWUBI_COMPONENT_CATALOG = $previousCatalog }
 }
@@ -70,6 +72,8 @@ if (-not $SkipBuild) {
 # 校验关键产物存在
 $settingsExe = Join-Path $targetDir "settings.exe"
 $imEngineDll = Join-Path $targetDir "im_engine.dll"
+$imEngineX86 = Join-Path $repoRoot "target\i686-pc-windows-msvc\release\im_engine.dll"
+if (-not (Test-Path -LiteralPath $imEngineX86 -PathType Leaf)) { throw "Missing x86 input service: $imEngineX86" }
 $skinEditorExe = Join-Path $targetDir "skin_editor.exe"
 if (-not (Test-Path $skinEditorExe)) { throw "Missing skin_editor.exe; rebuild the settings package." }
 if (-not (Test-Path $settingsExe)) { throw "找不到 $settingsExe，请先执行 cargo build --release。" }
@@ -86,6 +90,7 @@ New-Item -ItemType Directory -Force -Path $stagingDir | Out-Null
 Copy-Item $settingsExe $stagingDir -Force
 Copy-Item $skinEditorExe $stagingDir -Force
 Copy-Item $imEngineDll $stagingDir -Force
+Copy-Item -LiteralPath $imEngineX86 -Destination (Join-Path $stagingDir 'im_engine_x86.dll')
 # Native inference libraries and model weights never enter the base application.
 $embeddedCatalogFile = Join-Path $stagingDir 'components.json'
 $probe = Start-Process -FilePath (Join-Path $stagingDir 'settings.exe') -ArgumentList '--component-catalog' -WindowStyle Hidden -Wait -PassThru -RedirectStandardOutput $embeddedCatalogFile

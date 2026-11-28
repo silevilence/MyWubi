@@ -269,7 +269,14 @@ pub extern "system" fn DllRegisterServer() -> HRESULT {
         Ok(p) => p,
         Err(_) => return windows::core::HRESULT(-1),
     };
-    match ::tip_manager::install(&dll_path) {
+    // A standalone DLL registers its own architecture. Packaged builds carry both.
+    let sibling = std::path::Path::new(&dll_path).with_file_name(::tip_manager::X86_DLL);
+    let result = if cfg!(target_arch = "x86_64") && sibling.is_file() {
+        ::tip_manager::install_bundle(&dll_path)
+    } else {
+        ::tip_manager::install(&dll_path)
+    };
+    match result {
         Ok(()) => windows::core::HRESULT(0),
         Err(e) => {
             log::error!("DllRegisterServer 失败: {e}");
@@ -281,7 +288,10 @@ pub extern "system" fn DllRegisterServer() -> HRESULT {
 /// `regsvr32 /u im_engine.dll` 调用，从注册表移除 CLSID / TIP 节点。
 #[no_mangle]
 pub extern "system" fn DllUnregisterServer() -> HRESULT {
-    match ::tip_manager::uninstall() {
+    let Ok(dll_path) = get_this_dll_path() else {
+        return windows::core::HRESULT(-1);
+    };
+    match ::tip_manager::uninstall_bundle(std::path::Path::new(&dll_path)) {
         Ok(()) => windows::core::HRESULT(0),
         Err(e) => {
             log::error!("DllUnregisterServer 失败: {e}");

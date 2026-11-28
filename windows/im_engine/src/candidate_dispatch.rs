@@ -53,7 +53,7 @@ impl CandidateDispatch {
             theme: Box::new(theme),
         }));
         unsafe {
-            SetWindowLongPtrW(hwnd, GWLP_USERDATA, Box::into_raw(callback) as isize);
+            SetWindowLongPtrW(hwnd, GWLP_USERDATA, Box::into_raw(callback) as _);
         }
         Ok(Self(hwnd))
     }

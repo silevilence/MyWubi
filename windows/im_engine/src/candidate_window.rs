@@ -252,7 +252,7 @@ fn run_window_thread(
 
     // 注意：class_name 变量在 Once 闭包内作用域，此处使用静态常量 CLASS_NAME。
     unsafe {
-        SetWindowLongPtrW(hwnd, GWLP_USERDATA, window_data_ptr as isize);
+        SetWindowLongPtrW(hwnd, GWLP_USERDATA, window_data_ptr as _);
     }
     unsafe {
         let _ = SetTimer(Some(hwnd), TIMER_ID, TIMER_INTERVAL_MS, None);
@@ -409,8 +409,8 @@ unsafe extern "system" fn wnd_proc(
             LRESULT(0)
         }
         SET_OWNER => {
-            if GetWindowLongPtrW(hwnd, GWLP_HWNDPARENT) != lparam.0 {
-                SetWindowLongPtrW(hwnd, GWLP_HWNDPARENT, lparam.0);
+            if GetWindowLongPtrW(hwnd, GWLP_HWNDPARENT) as isize != lparam.0 {
+                SetWindowLongPtrW(hwnd, GWLP_HWNDPARENT, lparam.0 as _);
             }
             LRESULT(0)
         }
@@ -579,8 +579,8 @@ mod tests {
                 None,
             )
             .unwrap();
-            SetWindowLongPtrW(hwnd, GWLP_USERDATA, &window_data as *const _ as isize);
-            SetWindowLongPtrW(hwnd, GWLP_WNDPROC, observe_size as *const () as isize);
+            SetWindowLongPtrW(hwnd, GWLP_USERDATA, &window_data as *const _ as _);
+            SetWindowLongPtrW(hwnd, GWLP_WNDPROC, observe_size as *const () as _);
             RESIZES.with_borrow_mut(Vec::clear);
             for _ in 0..3 {
                 handle_timer(hwnd);

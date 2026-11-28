@@ -4,6 +4,11 @@ use crate::state::AppState;
 use eframe::egui::{self, Ui};
 use tip_manager::TipStatus;
 
+fn uninstall() -> Result<(), String> {
+    let exe = std::env::current_exe().map_err(|e| e.to_string())?;
+    tip_manager::uninstall_bundle(&exe.with_file_name("im_engine.dll")).map_err(|e| e.to_string())
+}
+
 /// 渲染「输入法管理」面板。
 pub fn show(ui: &mut Ui, state: &mut AppState) {
     crate::ui_style::heading(
@@ -88,7 +93,7 @@ fn show_not_installed(ui: &mut Ui, state: &mut AppState, is_admin: bool) {
                 .and_then(|p| p.to_str().map(String::from));
 
             match dll_path {
-                Some(path) => match tip_manager::install(&path) {
+                Some(path) => match tip_manager::install_bundle(&path) {
                     Ok(()) => {
                         state.tip_status = tip_manager::detect_status();
                         state.status_msg =
@@ -143,7 +148,7 @@ fn show_installed_enabled(ui: &mut Ui, state: &mut AppState, is_admin: bool) {
             if state.uninstall_confirm {
                 if ui.button("确认卸载").clicked() {
                     state.uninstall_confirm = false;
-                    match tip_manager::uninstall() {
+                    match uninstall() {
                         Ok(()) => {
                             state.tip_status = tip_manager::detect_status();
                             state.status_msg = Some("✅ 输入法已卸载".into());
@@ -189,7 +194,7 @@ fn show_installed_disabled(ui: &mut Ui, state: &mut AppState, is_admin: bool) {
             if state.uninstall_confirm {
                 if ui.button("确认卸载").clicked() {
                     state.uninstall_confirm = false;
-                    match tip_manager::uninstall() {
+                    match uninstall() {
                         Ok(()) => {
                             state.tip_status = tip_manager::detect_status();
                             state.status_msg = Some("✅ 输入法已卸载".into());
@@ -228,7 +233,7 @@ fn show_unknown(ui: &mut Ui, state: &mut AppState, is_admin: bool) {
                     .and_then(|p| p.to_str().map(String::from));
 
                 if let Some(path) = dll_path {
-                    match tip_manager::install(&path) {
+                    match tip_manager::install_bundle(&path) {
                         Ok(()) => {
                             state.tip_status = tip_manager::detect_status();
                             state.status_msg = Some("✅ 修复成功".into());
@@ -244,7 +249,7 @@ fn show_unknown(ui: &mut Ui, state: &mut AppState, is_admin: bool) {
             }
             if state.uninstall_confirm && ui.button("确认完全卸载").clicked() {
                 state.uninstall_confirm = false;
-                match tip_manager::uninstall() {
+                match uninstall() {
                     Ok(()) => {
                         state.tip_status = tip_manager::detect_status();
                         state.status_msg = Some("✅ 已完全卸载".into());
